@@ -1,229 +1,232 @@
-# DeliverHub - P2P Delivery Marketplace (SQLite Edition)
+# Matrix Delivery - Comprehensive Test Suite
 
-## Features
+This repository contains a comprehensive test suite for the Matrix Delivery P2P marketplace application using Cucumber.js, Playwright, and Chai.
 
-✅ **SQLite Database** - Fast, lightweight, perfect for Termux
-✅ **JWT Authentication** - Secure user login/registration
-✅ **P2P Bidding System** - Drivers bid on delivery orders
-✅ **Order Management** - Track orders from creation to completion
-✅ **Real-time Updates** - Auto-refresh every 5 seconds
-✅ **Mobile-Friendly** - Optimized for Termux on Android
+## Features Tested
 
-## Quick Start
+### ✅ Authentication System
+- User registration (Customer & Driver roles)
+- User login with validation
+- Duplicate email prevention
+- Form validation and error handling
+- Logout functionality
+- Role-based dashboard access
 
-### 1. Install Dependencies
+### ✅ Order Management
+- Create delivery orders
+- View order details and status
+- Edit orders (if supported)
+- Delete orders
+- Order history and filtering
+- Location and pricing management
 
-**Backend:**
+### ✅ Driver Bidding System
+- View available delivery orders
+- Place competitive bids
+- Customer bid acceptance
+- Order assignment and status updates
+- Delivery completion and driver crediting
+- Multiple driver bidding scenarios
+- Bid withdrawal functionality
+
+## Tech Stack
+
+- **Framework**: Cucumber.js with BDD
+- **Browser Automation**: Playwright (Chrome/Chromium)
+- **Assertions**: Chai
+- **API Testing**: Native fetch (Node.js)
+- **OS Compatibility**: Windows 10+ (with Windows-specific process management)
+
+## Project Structure
+
+```
+tests/
+├── features/                          # Gherkin feature files
+│   ├── authentication.feature         # Auth-related scenarios
+│   ├── order_management.feature       # Order CRUD operations
+│   └── driver_bidding.feature         # Bidding and delivery flow
+├── step_definitions/                  # Step implementation files
+│   ├── authentication_steps.js        # Auth step definitions
+│   ├── order_steps.js                 # Order step definitions
+│   └── bidding_steps.js               # Bidding step definitions
+├── support/                           # Test support files
+│   ├── hooks.js                       # Before/After hooks & setup
+│   └── world.js                       # (Not used - using hooks approach)
+└── utils/                             # Test utilities
+    ├── cleanup.js                     # Pre-test cleanup
+    ├── serverManager.js               # Backend/frontend server management
+    └── generate-report.js             # Test report generation
+```
+
+## Installation & Setup
+
+1. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
+
+2. **Verify Backend & Frontend**:
+   Ensure backend and frontend applications are properly configured and can start:
+   - Backend: Node.js application on port 5000
+   - Frontend: React application on port 3000
+
+## Running Tests
+
+### Run All Tests
 ```bash
-cd ~/deliverhub/backend
-npm install
+npm test
 ```
 
-**Frontend:**
+### Run Specific Feature Tests
 ```bash
-cd ~/deliverhub/frontend
-npm install
+# Authentication tests only
+npm run test:auth
+
+# Order management tests only
+npm run test:orders
+
+# Driver bidding tests only
+npm run test:bidding
 ```
 
-### 2. Start Services
-
-**Easy way (both at once):**
+### Run Smoke Tests Only
 ```bash
-bash ~/deliverhub/start_all.sh
+npm run test:smoke
 ```
 
-**Manual way:**
-
-Terminal 1 - Backend:
+### Debug Mode (Visible browser, slow motion)
 ```bash
-cd ~/deliverhub/backend
-node server.js
+npm run test:debug
 ```
 
-Terminal 2 - Frontend:
+### Headed Mode (Browser visible)
 ```bash
-cd ~/deliverhub/frontend
-npm start
+npm run test:headed
 ```
 
-### 3. Access the App
+## Test Configuration
 
-- **Frontend:** http://localhost:3000
-- **Backend API:** http://localhost:5000/api
-- **Database:** ~/deliverhub/backend/deliverhub.db
+### Browser Options
+- **Headless**: Set `HEADLESS=false` environment variable for visible browser
+- **Slow Motion**: Set `SLOWMO=100` (milliseconds) for debugging
+- **Videos**: Set `VIDEO=true` to record test session videos
 
-## Database Management
-
-### View Database
+### Custom Base URLs
 ```bash
-cd ~/deliverhub/backend
-sqlite3 deliverhub.db
-.tables
-SELECT * FROM Users;
-SELECT * FROM Orders;
-.quit
+# Custom frontend URL
+set BASE_URL=http://localhost:3001
+
+# Custom API URL
+set API_URL=http://localhost:5001/api
 ```
 
-### Backup Database
+## Generated Reports
+
+Tests generate multiple report formats:
+
+- **HTML Report**: `reports/cucumber-report.html` - Interactive web report
+- **JSON Report**: `reports/cucumber-report.json` - Machine-readable data
+- **Console Output**: Real-time progress with scenario status
+- **Screenshots**: Failed scenario screenshots in `reports/screenshots/`
+- **Videos**: Optional video recordings in `reports/videos/`
+
+View the HTML report:
 ```bash
-cp ~/deliverhub/backend/deliverhub.db ~/deliverhub/backend/deliverhub.db.backup
+npm run test:report
+# Then open reports/cucumber-report.html in your browser
 ```
 
-### Reset Database
-```bash
-rm ~/deliverhub/backend/deliverhub.db
-# Will recreate on next server start
-```
+## Test Data Management
 
-## Test Accounts
+### Isolated Test Accounts
+- All tests create unique test accounts via API calls
+- No shared test data between scenarios
+- Automatic cleanup between test runs
 
-Create new accounts by signing up, or manually insert test data:
+### Database Cleanup
+- Pre-test cleanup removes all database files
+- Fresh database state for each test run
+- No persistent data between test sessions
 
-```bash
-sqlite3 ~/deliverhub/backend/deliverhub.db
--- View existing users
-SELECT id, name, email, role FROM Users;
-```
+## Windows Compatibility
 
-## Usage Flow
+This test suite is specifically designed for Windows 10:
 
-1. **Customer:** Sign up → Create order
-2. **Driver:** Sign up → Browse orders → Place bid
-3. **Customer:** View bids → Accept best bid
-4. **Driver:** Complete delivery
-5. **System:** Update driver stats
-
-## Commands
-
-**Start:**
-```bash
-bash ~/deliverhub/start_all.sh
-```
-
-**Stop:**
-```bash
-bash ~/deliverhub/stop_all.sh
-```
-
-**View Logs:**
-```bash
-tail -f ~/deliverhub/logs/backend.log
-tail -f ~/deliverhub/logs/frontend.log
-```
-
-**Check if Running:**
-```bash
-ps aux | grep -E "node|npm"
-```
-
-## File Structure
-
-```
-~/deliverhub/
-├── backend/
-│   ├── server.js          # Backend API (SQLite)
-│   ├── deliverhub.db      # SQLite database file
-│   ├── package.json
-│   └── .env
-├── frontend/
-│   ├── public/
-│   │   └── index.html
-│   ├── src/
-│   │   ├── App.js         # Main React app
-│   │   ├── index.js
-│   │   └── index.css
-│   └── package.json
-├── scripts/
-│   └── update_ddns.sh     # DDNS updater (optional)
-├── logs/
-│   ├── backend.log
-│   └── frontend.log
-├── start_all.sh           # Start script
-├── stop_all.sh            # Stop script
-└── README.md
-```
-
-## API Endpoints
-
-### Authentication
-- POST `/api/auth/register` - Register new user
-- POST `/api/auth/login` - Login user
-- GET `/api/auth/me` - Get current user
-
-### Orders
-- POST `/api/orders` - Create order
-- GET `/api/orders` - Get all orders
-- GET `/api/orders/:id` - Get single order
-- POST `/api/orders/:id/bid` - Place bid
-- POST `/api/orders/:id/accept-bid` - Accept bid
-- POST `/api/orders/:id/complete` - Complete order
-- DELETE `/api/orders/:id` - Delete order
+- Uses `taskkill /f /t` for process termination
+- Emulator-based command execution
+- PowerShell-compatible path handling
+- Windows-style environment variables
 
 ## Troubleshooting
 
-### Backend won't start
-```bash
-# Check if port 5000 is in use
-lsof -i :5000
+### Common Issues
 
-# Kill process if needed
-kill -9 PID
+1. **Server Won't Start**
+   - Ensure ports 3000 (frontend) and 5000 (backend) are available
+   - Check if another application is using these ports
+   - Verify backend dependencies are installed
+
+2. **Browser Launch Failures**
+   - Ensure Playwright browsers are installed: `npx playwright install`
+   - Try running in headed mode: `npm run test:headed`
+
+3. **Authentication Failures**
+   - Verify backend JWT_SECRET is set correctly
+   - Check if backend database is accessible
+
+4. **Timeout Errors**
+   - Increase timeout in `cucumber.js` or individual steps
+   - Check if frontend/backend is responding slowly
+
+### Debug Mode
+Use debug mode to see what's happening:
+```bash
+# Headed + slow motion
+set HEADLESS=false
+set SLOWMO=500
+npm test
 ```
 
-### Frontend won't start
-```bash
-# Check if port 3000 is in use
-lsof -i :3000
+## Contributing
 
-# Kill process if needed
-kill -9 PID
+1. Add new feature files in `tests/features/`
+2. Implement steps in `tests/step_definitions/`
+3. Follow existing naming conventions
+4. Add proper assertions and error handling
+5. Test on Windows platform
+
+## Test Coverage
+
+### ✅ High Coverage Scenarios
+- End-to-end user journeys (registration → login → order creation → bidding → delivery)
+- Error scenarios and edge cases
+- Form validation and error messages
+- Role-based access control
+- Real-time UI updates
+
+### 🔄 Pending Enhancements
+- Parallel test execution
+- Cross-browser testing (Firefox, Safari)
+- API-only test scenarios
+- Performance/load testing
+- Mobile responsiveness testing
+
+## CI/CD Integration
+
+Configure your CI pipeline:
+```yaml
+# Example GitHub Actions
+- name: Run Tests
+  run: |
+    npm install
+    npm run test:smoke
+    npm run test:report
 ```
-
-### Database errors
-```bash
-# Reset database
-rm ~/deliverhub/backend/deliverhub.db
-cd ~/deliverhub/backend
-node server.js
-```
-
-### Dependencies installation failed
-```bash
-# Clear npm cache
-npm cache clean --force
-
-# Reinstall
-cd ~/deliverhub/backend && npm install
-cd ~/deliverhub/frontend && npm install
-```
-
-## DDNS Setup (Optional)
-
-To access from the internet:
-
-1. Go to https://www.duckdns.org
-2. Get your domain and token
-3. Edit `~/deliverhub/scripts/update_ddns.sh`
-4. Set up port forwarding on router (ports 3000 & 5000)
-
-## Production Deployment
-
-For production, consider:
-- Use environment-based configuration
-- Enable HTTPS with SSL certificates
-- Set up proper CORS restrictions
-- Use PM2 or similar for process management
-- Regular database backups
-- Rate limiting on API endpoints
 
 ## Support
 
-Check logs for errors:
-```bash
-tail -f ~/deliverhub/logs/backend.log
-tail -f ~/deliverhub/logs/frontend.log
-```
-
-## License
-
-MIT License - Feel free to use and modify!
+For issues with the test suite:
+1. Check existing issues in the repository
+2. Verify your Windows environment setup
+3. Review the generated HTML report for failure details
+4. Enable debug mode and capture screenshots/videos

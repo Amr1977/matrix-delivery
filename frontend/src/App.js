@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 const DeliveryApp = () => {
-  const API_URL = 'http://localhost:5000/api';
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
   
   const [authState, setAuthState] = useState('login');
   const [token, setToken] = useState(localStorage.getItem('token') || null);
@@ -488,26 +488,28 @@ const DeliveryApp = () => {
             <p style={{ textAlign: 'center', padding: '2rem', background: 'white', borderRadius: '0.5rem' }}>No orders available</p>
           ) : (
             orders.map((order) => (
-              <div key={order._id} style={{ background: 'white', borderRadius: '0.5rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)', padding: '1rem' }}>
+              <div key={order._id || order.id} style={{ background: 'white', borderRadius: '0.5rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)', padding: '1rem' }}>
                 <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>{order.title}</h3>
                 <p style={{ fontSize: '0.875rem', color: '#6B7280', marginBottom: '0.5rem' }}>{order.description}</p>
-                <p style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#4F46E5', marginBottom: '0.5rem' }}>${order.price.toFixed(2)}</p>
-                <p style={{ fontSize: '0.875rem', color: '#6B7280', marginBottom: '0.5rem' }}>📍 {order.from.name} → {order.to.name}</p>
+                <p style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#4F46E5', marginBottom: '0.5rem' }}>${order.price.toFixed ? order.price.toFixed(2) : parseFloat(order.price).toFixed(2)}</p>
+                <p style={{ fontSize: '0.875rem', color: '#6B7280', marginBottom: '0.5rem' }}>
+                  📍 {order.from ? `${order.from.name} → ${order.to.name}` : `Pickup: ${order.fromName} → Drop: ${order.toName}`}
+                </p>
                 <span style={{ display: 'inline-block', padding: '0.25rem 0.75rem', borderRadius: '9999px', fontSize: '0.875rem', fontWeight: '600', background: order.status === 'open' ? '#FEF3C7' : order.status === 'accepted' ? '#DBEAFE' : '#D1FAE5', color: order.status === 'open' ? '#92400E' : order.status === 'accepted' ? '#1E40AF' : '#065F46' }}>
                   {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                 </span>
-                
+
                 {order.status === 'open' && currentUser?.role === 'driver' && (
                   <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem' }}>
                     <input
                       type="number"
                       placeholder="Your bid"
-                      value={bidInput[order._id] || ''}
-                      onChange={(e) => setBidInput({ ...bidInput, [order._id]: e.target.value })}
+                      value={bidInput[order._id || order.id] || ''}
+                      onChange={(e) => setBidInput({ ...bidInput, [order._id || order.id]: e.target.value })}
                       style={{ flex: 1, padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
                     />
                     <button
-                      onClick={() => handleBidOnOrder(order._id, bidInput[order._id])}
+                      onClick={() => handleBidOnOrder(order._id || order.id, bidInput[order._id || order.id])}
                       style={{ background: '#10B981', color: 'white', padding: '0.5rem 1rem', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600' }}
                     >
                       Bid
@@ -520,9 +522,9 @@ const DeliveryApp = () => {
                     <p style={{ fontWeight: '600', marginBottom: '0.5rem' }}>Bids ({order.bids.length}):</p>
                     {order.bids.map((bid, idx) => (
                       <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem', background: '#F9FAFB', borderRadius: '0.375rem', marginBottom: '0.25rem' }}>
-                        <span>{bid.driverName}: ${bid.bidPrice.toFixed(2)}</span>
+                        <span>{bid.driverName}: ${(bid.bidPrice.toFixed ? bid.bidPrice.toFixed(2) : parseFloat(bid.bidPrice).toFixed(2))}</span>
                         <button
-                          onClick={() => handleAcceptBid(order._id, bid.userId)}
+                          onClick={() => handleAcceptBid(order._id || order.id, bid.userId)}
                           style={{ background: '#10B981', color: 'white', padding: '0.25rem 0.75rem', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem' }}
                         >
                           Accept
@@ -532,9 +534,9 @@ const DeliveryApp = () => {
                   </div>
                 )}
 
-                {order.status === 'accepted' && order.assignedDriver && currentUser?.id === order.assignedDriver.userId && (
+                {order.status === 'accepted' && order.assignedDriver && (currentUser?.id === order.assignedDriver?.userId) && (
                   <button
-                    onClick={() => handleCompleteOrder(order._id)}
+                    onClick={() => handleCompleteOrder(order._id || order.id)}
                     style={{ marginTop: '0.75rem', background: '#3B82F6', color: 'white', padding: '0.5rem 1rem', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600', width: '100%' }}
                   >
                     Complete Delivery

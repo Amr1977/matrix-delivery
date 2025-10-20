@@ -1,0 +1,22 @@
+{
+  "name": "matrix-delivery",
+  "version": "1.0.0",
+  "description": "Matrix Delivery - P2P Delivery Marketplace",
+  "scripts": {
+    "test": "cucumber-js",
+    "test:smoke": "cucumber-js --tags \"@smoke\"",
+    "test:auth": "cucumber-js --tags \"@authentication\"",
+    "test:orders": "cucumber-js --tags \"@orders\"",
+    "test:bidding": "cucumber-js --tags \"@bidding\"",
+    "test:debug": "set HEADLESS=false&& set SLOWMO=100&& cucumber-js",
+    "test:headed": "set HEADLESS=false&& cucumber-js",
+    "test:report": "node tests/utils/generate-report.js",
+    "pretest": "node tests/utils/cleanup.js"
+  },
+  "devDependencies": {
+    "@cucumber/cucumber": "^10.0.0",
+    "chai": "^4.3.10",
+    "playwright": "^1.40.0"
+  },
+  "dependencies": {}
+}
