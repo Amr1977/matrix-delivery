@@ -80,7 +80,8 @@ class ServerManager {
       
       this.frontendProcess.stdout.on('data', (data) => {
         output += data.toString();
-        if (output.includes('webpack compiled') || output.includes('Compiled successfully')) {
+        console.log('Frontend stdout:', data.toString().trim());
+        if (output.includes('webpack compiled') || output.includes('Compiled successfully') || output.includes('Local:') || output.includes('On Your Network:')) {
           console.log('   ✅ Frontend server started');
           resolve();
         }
@@ -88,10 +89,11 @@ class ServerManager {
 
       this.frontendProcess.stderr.on('data', (data) => {
         const msg = data.toString();
+        console.log('Frontend stderr:', msg.trim());
         // React dev server sends some messages to stderr that aren't errors
         if (!msg.includes('webpack compiled')) {
           output += msg;
-          if (output.includes('Compiled successfully')) {
+          if (output.includes('Compiled successfully') || output.includes('Local:') || output.includes('On Your Network:')) {
             console.log('   ✅ Frontend server started');
             resolve();
           }
@@ -116,34 +118,88 @@ class ServerManager {
     console.log('\n🛑 Stopping servers...');
     
     const killProcess = (process, name) => {
-      return new Promise((resolve) => {
+      return new Promise(async (resolve) => {
         if (process && !process.killed) {
           console.log(`   Stopping ${name}...`);
           
-          // On Windows, use taskkill to ensure process and children are killed
-          if (process.pid) {
-            spawn('taskkill', ['/pid', process.pid, '/f', '/t'], { shell: true });
-          }
-          
-          process.kill('SIGTERM');
-          
-          setTimeout(() => {
+          try {
+            // On Windows, use taskkill to ensure process and children are killed
+            if (process.pid) {
+              const taskkill = spawn('taskkill', ['/pid', process.pid, '/f', '/t'], { 
+                shell: true,
+                stdio: 'pipe'
+              });
+              
+              // Wait for taskkill to complete
+              await new Promise((taskkillResolve) => {
+                taskkill.on('close', taskkillResolve);
+                taskkill.on('error', taskkillResolve);
+                setTimeout(taskkillResolve, 3000); // 3 second timeout
+              });
+            }
+            
+            // Try graceful shutdown first
+            process.kill('SIGTERM');
+            
+            // Wait a bit for graceful shutdown
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Force kill if still running
             if (!process.killed) {
               process.kill('SIGKILL');
+              await new Promise(resolve => setTimeout(resolve, 1000));
             }
-            resolve();
-          }, 2000);
-        } else {
-          resolve();
+          } catch (error) {
+            console.log(`   Warning: Error stopping ${name}:`, error.message);
+          }
         }
+        resolve();
       });
     };
     
-    await killProcess(this.frontendProcess, 'frontend');
-    await killProcess(this.backendProcess, 'backend');
+    // Stop both processes in parallel
+    await Promise.all([
+      killProcess(this.frontendProcess, 'frontend'),
+      killProcess(this.backendProcess, 'backend')
+    ]);
     
     this.frontendProcess = null;
     this.backendProcess = null;
+    
+    // Additional cleanup: kill any remaining processes on our ports
+    try {
+      const killPort = (port) => {
+        return new Promise((resolve) => {
+          const netstat = spawn('netstat', ['-ano'], { shell: true, stdio: 'pipe' });
+          let output = '';
+          
+          netstat.stdout.on('data', (data) => {
+            output += data.toString();
+          });
+          
+          netstat.on('close', () => {
+            const lines = output.split('\n');
+            const portLines = lines.filter(line => line.includes(`:${port}`) && line.includes('LISTENING'));
+            
+            portLines.forEach(line => {
+              const parts = line.trim().split(/\s+/);
+              const pid = parts[parts.length - 1];
+              if (pid && !isNaN(pid)) {
+                spawn('taskkill', ['/pid', pid, '/f'], { shell: true, stdio: 'pipe' });
+              }
+            });
+            resolve();
+          });
+        });
+      };
+      
+      await Promise.all([
+        killPort(3000),
+        killPort(5000)
+      ]);
+    } catch (error) {
+      console.log('   Warning: Error cleaning up ports:', error.message);
+    }
     
     console.log('   ✅ All servers stopped\n');
   }

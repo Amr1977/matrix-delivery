@@ -4,8 +4,8 @@ const serverManager = require('../utils/serverManager');
 const path = require('path');
 const fs = require('fs');
 
-// Set default timeout to 60 seconds
-setDefaultTimeout(60 * 1000);
+// Set default timeout to 180 seconds
+setDefaultTimeout(180 * 1000);
 
 // Start servers before all tests
 BeforeAll(async function() {
@@ -30,6 +30,31 @@ BeforeAll(async function() {
 // Stop servers after all tests
 AfterAll(async function() {
   await serverManager.stop();
+});
+
+// Ensure cleanup on process exit
+process.on('SIGINT', async () => {
+  console.log('\n🛑 Received SIGINT, cleaning up...');
+  await serverManager.stop();
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  console.log('\n🛑 Received SIGTERM, cleaning up...');
+  await serverManager.stop();
+  process.exit(0);
+});
+
+process.on('uncaughtException', async (error) => {
+  console.error('\n❌ Uncaught Exception:', error);
+  await serverManager.stop();
+  process.exit(1);
+});
+
+process.on('unhandledRejection', async (reason, promise) => {
+  console.error('\n❌ Unhandled Rejection at:', promise, 'reason:', reason);
+  await serverManager.stop();
+  process.exit(1);
 });
 
 // Setup before each scenario

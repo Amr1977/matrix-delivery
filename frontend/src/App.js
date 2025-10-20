@@ -17,7 +17,9 @@ const DeliveryApp = () => {
     name: '',
     email: '',
     password: '',
-    role: 'customer'
+    phone: '',
+    role: 'customer',
+    vehicle_type: ''
   });
 
   const [formData, setFormData] = useState({
@@ -69,8 +71,12 @@ const DeliveryApp = () => {
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    if (!authForm.name || !authForm.email || !authForm.password) {
+    if (!authForm.name || !authForm.email || !authForm.password || !authForm.phone) {
       setError('All fields required');
+      return;
+    }
+    if (authForm.role === 'driver' && !authForm.vehicle_type) {
+      setError('Vehicle type is required for drivers');
       return;
     }
 
@@ -91,7 +97,7 @@ const DeliveryApp = () => {
       localStorage.setItem('token', data.token);
       setToken(data.token);
       setCurrentUser(data.user);
-      setAuthForm({ name: '', email: '', password: '', role: 'customer' });
+      setAuthForm({ name: '', email: '', password: '', phone: '', role: 'customer', vehicle_type: '' });
       setError('');
     } catch (err) {
       setError(err.message);
@@ -127,7 +133,7 @@ const DeliveryApp = () => {
       localStorage.setItem('token', data.token);
       setToken(data.token);
       setCurrentUser(data.user);
-      setAuthForm({ name: '', email: '', password: '', role: 'customer' });
+      setAuthForm({ name: '', email: '', password: '', phone: '', role: 'customer', vehicle_type: '' });
       setError('');
     } catch (err) {
       setError(err.message);
@@ -339,6 +345,13 @@ const DeliveryApp = () => {
                   onChange={(e) => setAuthForm({ ...authForm, email: e.target.value })}
                   style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
                 />
+                <input
+                  type="tel"
+                  placeholder="Phone Number"
+                  value={authForm.phone}
+                  onChange={(e) => setAuthForm({ ...authForm, phone: e.target.value })}
+                  style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
+                />
                 <div style={{ position: 'relative' }}>
                   <input
                     type={showPassword ? 'text' : 'password'}
@@ -362,6 +375,19 @@ const DeliveryApp = () => {
                   <option value="customer">Customer</option>
                   <option value="driver">Driver</option>
                 </select>
+                {authForm.role === 'driver' && (
+                  <select
+                    value={authForm.vehicle_type}
+                    onChange={(e) => setAuthForm({ ...authForm, vehicle_type: e.target.value })}
+                    style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
+                  >
+                    <option value="">Select Vehicle Type</option>
+                    <option value="bike">Bike</option>
+                    <option value="car">Car</option>
+                    <option value="van">Van</option>
+                    <option value="truck">Truck</option>
+                  </select>
+                )}
                 <button
                   onClick={handleRegister}
                   disabled={loading}

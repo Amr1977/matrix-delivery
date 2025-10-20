@@ -122,11 +122,15 @@ app.get('/api/health', (req, res) => {
 // Register
 app.post('/api/auth/register', async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, phone, role, vehicle_type } = req.body;
 
     // Validation
-    if (!name || !email || !password || !role) {
+    if (!name || !email || !password || !phone || !role) {
       return res.status(400).json({ error: 'All fields required' });
+    }
+
+    if (role === 'driver' && !vehicle_type) {
+      return res.status(400).json({ error: 'Vehicle type is required for drivers' });
     }
 
     if (!validateEmail(email)) {
@@ -154,7 +158,9 @@ app.post('/api/auth/register', async (req, res) => {
       name: name.trim(),
       email: email.toLowerCase().trim(),
       password: hashedPassword,
+      phone: phone.trim(),
       role,
+      vehicle_type: role === 'driver' ? vehicle_type : null,
       rating: 5,
       completedDeliveries: 0,
       createdAt: new Date().toISOString()
@@ -178,7 +184,9 @@ app.post('/api/auth/register', async (req, res) => {
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role
+        phone: user.phone,
+        role: user.role,
+        vehicle_type: user.vehicle_type
       }
     });
   } catch (error) {

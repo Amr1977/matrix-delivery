@@ -47,3 +47,7 @@ dist/
 
 # Process IDs
 *.pid
+
+reports/
+reports/cucumber-report.html
+reports/cucumber-report.json

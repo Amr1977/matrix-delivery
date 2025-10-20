@@ -1,1 +1,821 @@
-[]
+[
+  {
+    "description": "  As a new user\n  I want to register and login to the platform\n  So that I can use delivery services",
+    "elements": [
+      {
+        "description": "",
+        "id": "user-registration-and-authentication;successful-customer-registration",
+        "keyword": "Scenario",
+        "line": 12,
+        "name": "Successful customer registration",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 5017434400
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 8,
+            "name": "the P2P delivery platform is running",
+            "match": {
+              "location": "tests\\step_definitions\\features_steps.js:5"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1306792499
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "the database is clean",
+            "match": {
+              "location": "tests\\step_definitions\\features_steps.js:11"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 254991699
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 13,
+            "name": "I am on the registration page",
+            "match": {
+              "location": "tests\\step_definitions\\features_steps.js:23"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 887911299
+            }
+          },
+          {
+            "arguments": [
+              {
+                "rows": [
+                  {
+                    "cells": [
+                      "field",
+                      "value"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "name",
+                      "John Doe"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "email",
+                      "john@example.com"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "password",
+                      "SecurePass123!"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "phone",
+                      "+1234567890"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "user_type",
+                      "customer"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "keyword": "When ",
+            "line": 14,
+            "name": "I fill in the registration form with:",
+            "match": {
+              "location": "tests\\step_definitions\\features_steps.js:33"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 270768499
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 21,
+            "name": "I submit the registration form",
+            "match": {
+              "location": "tests\\step_definitions\\authentication_steps.js:122"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2147386999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 22,
+            "name": "I should see a success message \"Registration successful\"",
+            "match": {
+              "location": "tests\\step_definitions\\features_steps.js:59"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1105404899
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 23,
+            "name": "I should receive a verification email at \"john@example.com\"",
+            "match": {
+              "location": "tests\\step_definitions\\features_steps.js:67"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 31387900
+            }
+          },
+          {
+            "arguments": [
+              {
+                "rows": [
+                  {
+                    "cells": [
+                      "field",
+                      "value"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "status",
+                      "pending_verification"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "completed_orders",
+                      "0"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "average_rating",
+                      "0"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "member_since",
+                      "2025-10-19"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "keyword": "And ",
+            "line": 24,
+            "name": "my account should be created with:",
+            "match": {
+              "location": "tests\\step_definitions\\features_steps.js:79"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 4100700
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 2667489099
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@user_management",
+            "line": 1
+          },
+          {
+            "name": "@UR-001",
+            "line": 11
+          }
+        ],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "user-registration-and-authentication;successful-driver-registration",
+        "keyword": "Scenario",
+        "line": 32,
+        "name": "Successful driver registration",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 1831086999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 8,
+            "name": "the P2P delivery platform is running",
+            "match": {
+              "location": "tests\\step_definitions\\features_steps.js:5"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1198276700
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "the database is clean",
+            "match": {
+              "location": "tests\\step_definitions\\features_steps.js:11"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 16055599
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 33,
+            "name": "I am on the registration page",
+            "match": {
+              "location": "tests\\step_definitions\\features_steps.js:23"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1056173900
+            }
+          },
+          {
+            "arguments": [
+              {
+                "rows": [
+                  {
+                    "cells": [
+                      "field",
+                      "value"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "name",
+                      "Jane Driver"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "email",
+                      "jane@example.com"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "password",
+                      "SecurePass123!"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "phone",
+                      "+1234567891"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "user_type",
+                      "driver"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "vehicle_type",
+                      "bike"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "keyword": "When ",
+            "line": 34,
+            "name": "I fill in the registration form with:",
+            "match": {
+              "location": "tests\\step_definitions\\features_steps.js:33"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 448567800
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 42,
+            "name": "I submit the registration form",
+            "match": {
+              "location": "tests\\step_definitions\\authentication_steps.js:122"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2137630100
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 43,
+            "name": "I should see a success message \"Registration successful\"",
+            "match": {
+              "location": "tests\\step_definitions\\features_steps.js:59"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1032831399
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 44,
+            "name": "I should receive a verification email at \"jane@example.com\"",
+            "match": {
+              "location": "tests\\step_definitions\\features_steps.js:67"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 11170799
+            }
+          },
+          {
+            "arguments": [
+              {
+                "rows": [
+                  {
+                    "cells": [
+                      "field",
+                      "value"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "status",
+                      "pending_verification"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "completed_orders",
+                      "0"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "average_rating",
+                      "0"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "member_since",
+                      "2025-10-19"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "keyword": "And ",
+            "line": 45,
+            "name": "my account should be created with:",
+            "match": {
+              "location": "tests\\step_definitions\\features_steps.js:79"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 621800
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 916031900
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@user_management",
+            "line": 1
+          },
+          {
+            "name": "@UR-002",
+            "line": 31
+          }
+        ],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "user-registration-and-authentication;registration-with-existing-email",
+        "keyword": "Scenario",
+        "line": 53,
+        "name": "Registration with existing email",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 2353140899
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 8,
+            "name": "the P2P delivery platform is running",
+            "match": {
+              "location": "tests\\step_definitions\\features_steps.js:5"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1720742299
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "the database is clean",
+            "match": {
+              "location": "tests\\step_definitions\\features_steps.js:11"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 20766700
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 54,
+            "name": "a user exists with email \"existing@example.com\"",
+            "match": {
+              "location": "tests\\step_definitions\\features_steps.js:160"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 326333599
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 55,
+            "name": "I attempt to register with email \"existing@example.com\"",
+            "match": {
+              "location": "tests\\step_definitions\\features_steps.js:170"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2374747600
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 56,
+            "name": "I should see an error message \"Email already registered\"",
+            "match": {
+              "location": "tests\\step_definitions\\features_steps.js:184"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2070414399
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 57,
+            "name": "no new account should be created",
+            "match": {
+              "location": "tests\\step_definitions\\features_steps.js:251"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 543169500
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 5010151100
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@user_management",
+            "line": 1
+          },
+          {
+            "name": "@UR-003",
+            "line": 52
+          }
+        ],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "user-registration-and-authentication;successful-login",
+        "keyword": "Scenario",
+        "line": 60,
+        "name": "Successful login",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 2856679799
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 8,
+            "name": "the P2P delivery platform is running",
+            "match": {
+              "location": "tests\\step_definitions\\features_steps.js:5"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1190945999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "the database is clean",
+            "match": {
+              "location": "tests\\step_definitions\\features_steps.js:11"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 12409400
+            }
+          },
+          {
+            "arguments": [
+              {
+                "rows": [
+                  {
+                    "cells": [
+                      "email",
+                      "john@example.com"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "password",
+                      "SecurePass123!"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "status",
+                      "verified"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "keyword": "Given ",
+            "line": 61,
+            "name": "I am a registered user with:",
+            "match": {
+              "location": "tests\\step_definitions\\features_steps.js:96"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 218363000
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 65,
+            "name": "I login with email \"john@example.com\" and password \"SecurePass123!\"",
+            "match": {
+              "location": "tests\\step_definitions\\features_steps.js:266"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1256823799
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 66,
+            "name": "I should be redirected to the dashboard",
+            "match": {
+              "location": "tests\\step_definitions\\features_steps.js:273"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 15702799
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 67,
+            "name": "I should see a welcome message \"Welcome back, John\"",
+            "match": {
+              "location": "tests\\step_definitions\\features_steps.js:289"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2203569000
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 6047795899
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@user_management",
+            "line": 1
+          },
+          {
+            "name": "@UR-004",
+            "line": 59
+          }
+        ],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "user-registration-and-authentication;login-with-incorrect-password",
+        "keyword": "Scenario",
+        "line": 70,
+        "name": "Login with incorrect password",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 2726145599
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 8,
+            "name": "the P2P delivery platform is running",
+            "match": {
+              "location": "tests\\step_definitions\\features_steps.js:5"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1598798299
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "the database is clean",
+            "match": {
+              "location": "tests\\step_definitions\\features_steps.js:11"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 10255799
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 71,
+            "name": "I am a registered user with email \"john@example.com\"",
+            "match": {
+              "location": "tests\\step_definitions\\features_steps.js:144"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 29009299
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 72,
+            "name": "I login with email \"john@example.com\" and password \"WrongPassword\"",
+            "match": {
+              "location": "tests\\step_definitions\\features_steps.js:266"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1364178099
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 73,
+            "name": "I should see an error message \"Invalid credentials\"",
+            "match": {
+              "location": "tests\\step_definitions\\features_steps.js:184"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2158621600
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 74,
+            "name": "I should remain on the login page",
+            "match": {
+              "location": "tests\\step_definitions\\features_steps.js:367"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 25909400
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 1130498199
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@user_management",
+            "line": 1
+          },
+          {
+            "name": "@UR-005",
+            "line": 69
+          }
+        ],
+        "type": "scenario"
+      }
+    ],
+    "id": "user-registration-and-authentication",
+    "line": 2,
+    "keyword": "Feature",
+    "name": "User Registration and Authentication",
+    "tags": [
+      {
+        "name": "@user_management",
+        "line": 1
+      }
+    ],
+    "uri": "tests\\features\\user_management.feature"
+  }
+]
