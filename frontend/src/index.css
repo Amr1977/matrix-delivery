@@ -1,18 +1,242 @@
+/* ============ MATRIX THEME STYLES ============ */
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+/* Matrix font - Monospace for that hacker/terminal feel */
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  font-family: 'Courier New', 'Consolas', 'Monaco', 'Courier', monospace;
+  background-color: #090909; /* Deep black background */
+  color: #30FF30; /* Classic Matrix green text */
+  -webkit-font-smoothing: none; /* Crisp pixel look */
+  -moz-osx-font-smoothing: none;
+  font-weight: 400;
+  line-height: 1.4;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+/* Scrolling Matrix rain effect background */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background:
+    linear-gradient(transparent 97%, rgba(48, 255, 48, 0.05) 97%),
+    linear-gradient(90deg, transparent 97%, rgba(48, 255, 48, 0.05) 97%);
+  background-size: 2px 2px;
+  pointer-events: none;
+  z-index: -1;
+  animation: matrixRain 20s linear infinite;
 }
+
+@keyframes matrixRain {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 200%; }
+}
+
+/* Custom scrollbar - Matrix style */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #111;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #30FF30;
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #00FF00;
+}
+
+/* Matrix glow effect */
+.glow {
+  text-shadow: 0 0 5px #30FF30, 0 0 10px #30FF30, 0 0 15px #30FF30;
+}
+
+/* Button hover effects */
+button {
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  text-shadow: 0 0 8px #30FF30, 0 0 16px #30FF30;
+  box-shadow: 0 0 10px rgba(48, 255, 48, 0.3);
+}
+
+/* Matrix-styled input fields */
+input, textarea, select {
+  background-color: #111;
+  color: #30FF30;
+  border: 1px solid #30FF30;
+  font-family: inherit;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: #00FF00;
+  box-shadow: 0 0 10px rgba(48, 255, 48, 0.5);
+  text-shadow: 0 0 5px #30FF30;
+}
+
+/* Placeholder text in green */
+::placeholder {
+  color: #22BB22;
+  opacity: 0.7;
+}
+
+/* Matrix card styles */
+.card-matrix {
+  background: linear-gradient(135deg, #111 0%, #0a0a0a 100%);
+  border: 1px solid #30FF30;
+  box-shadow:
+    0 0 10px rgba(48, 255, 48, 0.1),
+    inset 0 0 10px rgba(48, 255, 48, 0.05);
+}
+
+/* Status badges */
+.status-matrix {
+  background: linear-gradient(135deg, #30FF30 0%, #22BB22 100%);
+  color: #000;
+  font-weight: bold;
+  text-shadow: none;
+}
+
+/* Success messages */
+.success-matrix {
+  background: linear-gradient(135deg, #003300 0%, #001100 100%);
+  color: #30FF30;
+  border: 1px solid #30FF30;
+  text-shadow: 0 0 5px #30FF30;
+}
+
+/* Error messages */
+.error-matrix {
+  background: linear-gradient(135deg, #330000 0%, #110000 100%);
+  color: #FF3030;
+  border: 1px solid #FF3030;
+  text-shadow: 0 0 5px #FF3030;
+}
+
+/* Header with Matrix styling */
+header {
+  background: linear-gradient(135deg, #000 0%, #111 100%);
+  border-bottom: 1px solid #30FF30;
+  box-shadow: 0 0 20px rgba(48, 255, 48, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+/* Sliding text animation for headings */
+@keyframes slideIn {
+  from { transform: translateX(-100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+h1, h2, h3 {
+  animation: slideIn 0.5s ease-out;
+  text-shadow: 0 0 10px #30FF30;
+}
+
+/* Matrix terminal-like input fields */
+.input-matrix {
+  background-color: #000;
+  color: #30FF30;
+  border: 1px solid #30FF30;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 14px;
+}
+
+.input-matrix:focus {
+  outline: none;
+  border-color: #00FF00;
+  box-shadow: 0 0 0 2px rgba(48, 255, 48, 0.3);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(48, 255, 48, 0.3); }
+  50% { box-shadow: 0 0 0 4px rgba(48, 255, 48, 0.6); }
+}
+
+/* Matrix buttons with glow */
+.btn-matrix {
+  background: linear-gradient(135deg, #30FF30 0%, #22BB22 50%, #107710 100%);
+  color: #000;
+  border: 1px solid #30FF30;
+  font-weight: bold;
+  text-shadow: 0 0 3px #30FF30;
+  transition: all 0.3s ease;
+}
+
+.btn-matrix:hover {
+  background: linear-gradient(135deg, #00FF00 0%, #30FF30 50%, #22BB22 100%);
+  box-shadow: 0 0 15px rgba(48, 255, 48, 0.8);
+  transform: translateY(-2px);
+}
+
+.btn-matrix:active {
+  transform: translateY(0);
+}
+
+/* Loading spinners */
+.spinner-matrix {
+  border: 3px solid #111;
+  border-top: 3px solid #30FF30;
+  border-right: 3px solid #00FF00;
+}
+
+/* Notification bell animation */
+@keyframes bellRing {
+  0%, 50%, 100% { transform: rotate(0); }
+  25% { transform: rotate(5deg); }
+  75% { transform: rotate(-5deg); }
+}
+
+.bell-notification {
+  animation: bellRing 1s ease-in-out;
+}
+
+/* Matrix code rain effect (optional decorative element) */
+.matrix-rain {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: -2;
+  opacity: 0.1;
+}
+
+/* Override any conflicting styles */
+code {
+  font-family: 'Consolas', 'Monaco', monospace;
+  background: #000;
+  color: #30FF30;
+  padding: 2px 4px;
+  border-radius: 3px;
+  border: 1px solid #30FF30;
+  text-shadow: 0 0 5px #30FF30;
+}
+
+/* Success message auto-hide animation */
+.success-message {
+  animation: fadeInOut 5s ease-in-out forwards;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateY(-10px); }
+  10% { opacity: 1; transform: translateY(0); }
+  90% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-10px); }
+}
+
+/* =========== END MATRIX THEME =========== */

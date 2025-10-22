@@ -24,7 +24,24 @@ const DeliveryApp = () => {
   const [reviewStatus, setReviewStatus] = useState(null);
   const [orderReviews, setOrderReviews] = useState([]);
   const [showReviewsModal, setShowReviewsModal] = useState(false);
-  
+
+  // Enhanced UX states
+  const [loadingStates, setLoadingStates] = useState({
+    userFetch: false,
+    ordersFetch: false,
+    notificationsFetch: false,
+    createOrder: false,
+    placeBid: false,
+    acceptBid: false,
+    pickupOrder: false,
+    updateInTransit: false,
+    completeOrder: false,
+    submitReview: false,
+    trackOrder: false
+  });
+  const [successMessage, setSuccessMessage] = useState('');
+  const [retryCount, setRetryCount] = useState(0);
+
   const [reviewForm, setReviewForm] = useState({
     rating: 0,
     comment: '',
@@ -118,6 +135,22 @@ const DeliveryApp = () => {
       if (!response.ok) return;
       const data = await response.json();
       setNotifications(data);
+
+      // Enhanced notifications with sound and TTS
+      // Check for new notifications
+      const newUnreadCount = data.filter(n => !n.isRead).length;
+      const previousUnreadCount = notifications.filter(n => !n.isRead).length;
+
+      if (newUnreadCount > previousUnreadCount && data.length > 0) {
+        // Play notification sound
+        playNotificationSound();
+
+        // Get the latest unread notification for TTS
+        const latestUnread = data.filter(n => !n.isRead)[0];
+        if (latestUnread) {
+          speakNotification(latestUnread);
+        }
+      }
     } catch (err) {
       console.error(err);
     }
@@ -252,8 +285,97 @@ const DeliveryApp = () => {
     );
   };
 
-// ============ END OF PART 2 ============
-// Continue with Part 3 for Event Handlers
+  // Enhanced UX Helper Functions
+  const showSuccess = (message) => {
+    setSuccessMessage(message);
+    setTimeout(() => setSuccessMessage(''), 5000); // Auto-hide after 5 seconds
+  };
+
+  const setLoadingState = (key, value) => {
+    setLoadingStates(prev => ({ ...prev, [key]: value }));
+  };
+
+  const clearError = () => setError('');
+
+  // Sound and Text-to-Speech Notifications
+  const playNotificationSound = () => {
+    try {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.frequency.setValueAtTime(800, audioContext.currentTime); // Frequency of the beep
+      oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1); // Drop to lower frequency
+
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3);
+    } catch (error) {
+      console.warn('Could not play notification sound:', error);
+    }
+  };
+
+  const speakNotification = (notification) => {
+    if ('speechSynthesis' in window) {
+      try {
+        const utterance = new SpeechSynthesisUtterance();
+        utterance.text = `New notification: ${notification.title}. ${notification.message}`;
+        utterance.volume = 0.8;
+        utterance.rate = 1;
+        utterance.pitch = 0.7; // Lower pitch for deeper, more authoritative male voice
+
+        // Prefer male voices like Morpheus from The Matrix
+        const voices = speechSynthesis.getVoices();
+        const preferredVoice = voices.find(voice =>
+          // Try common male voice names
+          voice.name.includes('David') || voice.name.includes('Microsoft David') ||
+          voice.name.includes('Alex') || voice.name.includes('James') ||
+          voice.name.includes('Daniel') || voice.name.includes('Paul') ||
+          voice.name.includes('Mark') || voice.name.includes('George') ||
+          voice.name.includes('Michael') || voice.name.includes('Steven') ||
+          // Fallback to any male voice available
+          (voice.lang.includes('en-US') && !voice.name.toLowerCase().includes('female') && !voice.name.toLowerCase().includes('zira'))
+        );
+
+        if (preferredVoice) {
+          utterance.voice = preferredVoice;
+        }
+
+        speechSynthesis.speak(utterance);
+      } catch (error) {
+        console.warn('Could not speak notification:', error);
+      }
+    }
+  };
+
+  const renderLoadingSpinner = () => (
+    <div style={{ display: 'inline-block', width: '1rem', height: '1rem', border: '2px solid #F3F4F6', borderRadius: '50%', borderTop: '2px solid #4F46E5', animation: 'spin 1s linear infinite' }} />
+  );
+
+  const renderLoadingButton = (text, loading, style = {}) => (
+    <button
+      disabled={loading}
+      style={{
+        ...style,
+        opacity: loading ? 0.6 : 1,
+        cursor: loading ? 'not-allowed' : 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.5rem'
+      }}
+    >
+      {loading && renderLoadingSpinner()}
+      {loading ? `${text}...` : text}
+    </button>
+  );
+
+  // ============ END OF PART 2 ============
+  // Continue with Part 3 for Event Handlers
 
 // ============ APP.JS PART 3: Event Handlers ============
 // Add this after Part 2
@@ -348,7 +470,9 @@ const DeliveryApp = () => {
       return;
     }
 
-    setLoading(true);
+    setLoadingState('createOrder', true);
+    setError('');
+
     try {
       const newOrder = {
         title: formData.title,
@@ -382,9 +506,12 @@ const DeliveryApp = () => {
         body: JSON.stringify(newOrder)
       });
 
-      if (!response.ok) throw new Error('Failed to publish order');
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to publish order');
+      }
 
-      setFormData({ 
+      setFormData({
         title: '', description: '', pickup_address: '', delivery_address: '',
         fromLocation: '', toLocation: '', package_description: '',
         package_weight: '', estimated_value: '', special_instructions: '',
@@ -392,11 +519,28 @@ const DeliveryApp = () => {
       });
       setShowOrderForm(false);
       fetchOrders();
-      setError('');
+      showSuccess('Order published successfully! Waiting for driver bids.');
     } catch (err) {
-      setError(err.message);
+      let errorMessage = 'Failed to publish order';
+      if (err.message.includes('Service Unavailable')) {
+        errorMessage = 'Server is temporarily unavailable. Please try again in a moment.';
+      } else if (err.message.includes('Network')) {
+        errorMessage = 'Network connection error. Please check your connection and try again.';
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+
+      setError(errorMessage);
+
+      // Retry mechanism for failed requests
+      if (retryCount < 2) {
+        setRetryCount(prev => prev + 1);
+        setTimeout(() => {
+          handlePublishOrder(e);
+        }, 2000);
+      }
     } finally {
-      setLoading(false);
+      setLoadingState('createOrder', false);
     }
   };
 
@@ -407,7 +551,9 @@ const DeliveryApp = () => {
       return;
     }
 
-    setLoading(true);
+    setLoadingState('placeBid', true);
+    setError('');
+
     try {
       const bidData = {
         bidPrice: parseFloat(bidPrice),
@@ -425,21 +571,25 @@ const DeliveryApp = () => {
         body: JSON.stringify(bidData)
       });
 
-      if (!response.ok) throw new Error('Failed to place bid');
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to place bid');
+      }
 
       fetchOrders();
       setBidInput({ ...bidInput, [orderId]: '' });
       setBidDetails({ ...bidDetails, [orderId]: {} });
-      setError('');
+      showSuccess('Bid placed successfully!');
     } catch (err) {
       setError(err.message);
     } finally {
-      setLoading(false);
+      setLoadingState('placeBid', false);
     }
   };
 
   const handleAcceptBid = async (orderId, userId) => {
-    setLoading(true);
+    setLoadingState('acceptBid', true);
+    setError('');
     try {
       const response = await fetch(`${API_URL}/orders/${orderId}/accept-bid`, {
         method: 'POST',
@@ -450,14 +600,17 @@ const DeliveryApp = () => {
         body: JSON.stringify({ userId })
       });
 
-      if (!response.ok) throw new Error('Failed to accept bid');
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to accept bid');
+      }
 
       fetchOrders();
-      setError('');
+      showSuccess('Bid accepted successfully! Driver notified.');
     } catch (err) {
       setError(err.message);
     } finally {
-      setLoading(false);
+      setLoadingState('acceptBid', false);
     }
   };
 
@@ -551,11 +704,11 @@ const DeliveryApp = () => {
 
   if (!token) {
     return (
-      <div style={{ minHeight: '100vh', background: 'linear-gradient(to bottom right, #EFF6FF, #E0E7FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-        <div style={{ background: 'white', borderRadius: '0.5rem', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)', padding: '2rem', maxWidth: '28rem', width: '100%' }}>
+      <div style={{ minHeight: '100vh', background: '#090909', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+        <div className="card-matrix" style={{ borderRadius: '0.5rem', boxShadow: '0 20px 25px -5px rgba(0, 48, 0, 0.2), inset 0 0 20px rgba(48, 255, 48, 0.1)', padding: '2rem', maxWidth: '28rem', width: '100%', background: 'linear-gradient(135deg, #000000 0%, #111111 100%)' }}>
           <div style={{ fontSize: '3rem', textAlign: 'center', marginBottom: '1.5rem' }}>📦</div>
-          <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#1F2937', marginBottom: '0.5rem', textAlign: 'center' }}>Matrix Delivery</h1>
-          <p style={{ color: '#6B7280', marginBottom: '1.5rem', textAlign: 'center' }}>P2P Delivery Marketplace</p>
+          <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#30FF30', marginBottom: '0.5rem', textAlign: 'center', textShadow: '0 0 10px #30FF30' }}>Matrix Delivery</h1>
+          <p style={{ color: '#22BB22', marginBottom: '1.5rem', textAlign: 'center' }}>P2P Delivery Marketplace</p>
 
           {error && (
             <div style={{ background: '#FEF2F2', color: '#991B1B', padding: '0.75rem', borderRadius: '0.375rem', marginBottom: '1rem', fontSize: '0.875rem', border: '1px solid #FEE2E2' }}>
@@ -698,20 +851,23 @@ const DeliveryApp = () => {
 // ============ APP.JS PART 5A: Main UI - Header & Modals ============
 // Add this after Part 4 (continues the return statement)
 
-  return (
-    <div style={{ minHeight: '100vh', background: '#F9FAFB' }}>
-      <header style={{ background: 'white', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)', position: 'sticky', top: 0, zIndex: 10 }}>
-        <div style={{ maxWidth: '80rem', margin: '0 auto', padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontSize: '1.5rem' }}>📦</span>
-            <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1F2937' }}>Matrix Delivery</h1>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <button
-              onClick={() => setShowNotifications(!showNotifications)}
-              style={{ position: 'relative', padding: '0.5rem', background: 'white', border: '1px solid #D1D5DB', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '1.25rem' }}
-            >
-              🔔
+    return (
+      <div style={{ minHeight: '100vh', background: '#090909' }}>
+        <header className="glow" style={{ background: 'linear-gradient(135deg, #000 0%, #111 100%)', boxShadow: '0 0 20px rgba(48, 255, 48, 0.3)', position: 'sticky', top: 0, zIndex: 10, borderBottom: '1px solid #30FF30' }}>
+          <div style={{ maxWidth: '80rem', margin: '0 auto', padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ fontSize: '1.5rem', color: '#30FF30', textShadow: '0 0 10px #30FF30' }}>📦</span>
+              <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#30FF30', textShadow: '0 0 10px #30FF30' }}>Matrix Delivery</h1>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <button
+                onClick={() => setShowNotifications(!showNotifications)}
+                className={`${unreadCount > 0 ? 'bell-notification' : ''}`}
+                style={{ position: 'relative', padding: '0.5rem', background: 'rgba(48, 255, 48, 0.1)', border: '1px solid #30FF30', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '1.25rem', color: '#30FF30', transition: 'all 0.3s ease' }}
+                onMouseEnter={(e) => e.target.style.textShadow = '0 0 10px #30FF30'}
+                onMouseLeave={(e) => e.target.style.textShadow = 'none'}
+              >
+                🔔
               {unreadCount > 0 && (
                 <span style={{ position: 'absolute', top: '-0.25rem', right: '-0.25rem', background: '#DC2626', color: 'white', borderRadius: '9999px', width: '1.25rem', height: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold' }}>
                   {unreadCount}
@@ -761,9 +917,16 @@ const DeliveryApp = () => {
 
       <main style={{ maxWidth: '80rem', margin: '0 auto', padding: '2rem 1rem' }}>
         {error && (
-          <div style={{ background: '#FEF2F2', color: '#991B1B', padding: '1rem', borderRadius: '0.5rem', marginBottom: '1rem', border: '1px solid #FEE2E2', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span>⚠️ {error}</span>
-            <button onClick={() => setError('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem', color: '#991B1B' }}>×</button>
+          <div className="error-matrix" style={{ padding: '1rem', borderRadius: '0.5rem', marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: 'Consolas, Monaco, monospace' }}>
+            <span style={{ textShadow: '0 0 5px #FF3030' }}>⚠️ {error}</span>
+            <button onClick={() => setError('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem', color: '#FF3030' }}>×</button>
+          </div>
+        )}
+
+        {successMessage && (
+          <div className="success-message" style={{ background: 'linear-gradient(135deg, #003300 0%, #001100 100%)', color: '#30FF30', padding: '1rem', borderRadius: '0.5rem', marginBottom: '1rem', border: '1px solid #30FF30', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: 'Consolas, Monaco, monospace', textShadow: '0 0 5px #30FF30' }}>
+            <span>✅ {successMessage}</span>
+            <button onClick={() => setSuccessMessage('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem', color: '#30FF30' }}>×</button>
           </div>
         )}
 
@@ -977,6 +1140,148 @@ const DeliveryApp = () => {
           </div>
         )}
 
+        {showReviewModal && (
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '1rem' }}>
+            <div style={{ background: 'white', borderRadius: '0.5rem', maxWidth: '32rem', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
+              <div style={{ padding: '1.5rem', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Submit Review</h2>
+                <button onClick={() => setShowReviewModal(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
+              </div>
+              <div style={{ padding: '1.5rem' }}>
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <label style={{ display: 'block', fontWeight: '600', fontSize: '0.875rem', color: '#374151', marginBottom: '0.5rem' }}>Overall Rating *</label>
+                  <div style={{ marginBottom: '1rem' }}>
+                    {renderStars(reviewForm.rating, (rating) => setReviewForm({ ...reviewForm, rating: rating }))}
+                  </div>
+                </div>
+
+                {reviewType === 'customer_to_driver' && (
+                  <>
+                    <div style={{ marginBottom: '1rem' }}>
+                      <label style={{ display: 'block', fontWeight: '600', fontSize: '0.875rem', color: '#374151', marginBottom: '0.5rem' }}>Professionalism</label>
+                      {renderStars(reviewForm.professionalismRating, (rating) => setReviewForm({ ...reviewForm, professionalismRating: rating }))}
+                    </div>
+                    <div style={{ marginBottom: '1rem' }}>
+                      <label style={{ display: 'block', fontWeight: '600', fontSize: '0.875rem', color: '#374151', marginBottom: '0.5rem' }}>Communication</label>
+                      {renderStars(reviewForm.communicationRating, (rating) => setReviewForm({ ...reviewForm, communicationRating: rating }))}
+                    </div>
+                    <div style={{ marginBottom: '1rem' }}>
+                      <label style={{ display: 'block', fontWeight: '600', fontSize: '0.875rem', color: '#374151', marginBottom: '0.5rem' }}>Timeliness</label>
+                      {renderStars(reviewForm.timelinessRating, (rating) => setReviewForm({ ...reviewForm, timelinessRating: rating }))}
+                    </div>
+                    <div style={{ marginBottom: '1rem' }}>
+                      <label style={{ display: 'block', fontWeight: '600', fontSize: '0.875rem', color: '#374151', marginBottom: '0.5rem' }}>Package Condition</label>
+                      {renderStars(reviewForm.conditionRating, (rating) => setReviewForm({ ...reviewForm, conditionRating: rating }))}
+                    </div>
+                  </>
+                )}
+
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <label style={{ display: 'block', fontWeight: '600', fontSize: '0.875rem', color: '#374151', marginBottom: '0.5rem' }}>Comment (Optional)</label>
+                  <textarea
+                    value={reviewForm.comment}
+                    onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })}
+                    placeholder="Share your experience..."
+                    style={{ width: '100%', padding: '0.75rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem', minHeight: '100px', resize: 'vertical' }}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                  <button
+                    onClick={() => setShowReviewModal(false)}
+                    style={{ flex: 1, padding: '0.75rem', background: '#F3F4F6', color: '#374151', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600' }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSubmitReview}
+                    disabled={loading || reviewForm.rating === 0}
+                    style={{ flex: 1, padding: '0.75rem', background: '#4F46E5', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: reviewForm.rating === 0 || loading ? 'not-allowed' : 'pointer', fontWeight: '600', opacity: reviewForm.rating === 0 || loading ? 0.5 : 1 }}
+                  >
+                    {loading ? 'Submitting...' : 'Submit Review'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showReviewsModal && (
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '1rem' }}>
+            <div style={{ background: 'white', borderRadius: '0.5rem', maxWidth: '48rem', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
+              <div style={{ padding: '1.5rem', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Order Reviews</h2>
+                <button onClick={() => setShowReviewsModal(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
+              </div>
+              <div style={{ padding: '1.5rem' }}>
+                {orderReviews.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '3rem', color: '#6B7280' }}>
+                    <p style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📝</p>
+                    <p>No reviews yet for this order</p>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    {orderReviews.map((review, idx) => (
+                      <div key={idx} style={{ border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1rem', background: '#F9FAFB' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.75rem' }}>
+                          <div>
+                            <p style={{ fontWeight: '600', color: '#1F2937' }}>{review.reviewerName}</p>
+                            <p style={{ fontSize: '0.75rem', color: '#6B7280', textTransform: 'capitalize' }}>{review.reviewerRole}</p>
+                          </div>
+                          <div style={{ textAlign: 'right' }}>
+                            {renderStars(review.rating)}
+                            <p style={{ fontSize: '0.75rem', color: '#6B7280', marginTop: '0.25rem' }}>
+                              {new Date(review.createdAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div style={{ marginBottom: '0.75rem' }}>
+                          <p style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+                            Review Type: {review.reviewType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                          </p>
+                          {review.revieweeName && (
+                            <p style={{ fontSize: '0.875rem', color: '#6B7280' }}>
+                              Reviewing: {review.revieweeName}
+                            </p>
+                          )}
+                        </div>
+
+                        {review.professionalismRating && (
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                            <div>
+                              <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>Professionalism</p>
+                              {renderStars(review.professionalismRating)}
+                            </div>
+                            <div>
+                              <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>Communication</p>
+                              {renderStars(review.communicationRating)}
+                            </div>
+                            <div>
+                              <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>Timeliness</p>
+                              {renderStars(review.timelinessRating)}
+                            </div>
+                            <div>
+                              <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>Condition</p>
+                              {renderStars(review.conditionRating)}
+                            </div>
+                          </div>
+                        )}
+
+                        {review.comment && (
+                          <div style={{ background: 'white', padding: '1rem', borderRadius: '0.375rem', border: '1px solid #E5E7EB' }}>
+                            <p style={{ fontStyle: 'italic', color: '#374151' }}>"{review.comment}"</p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>
           {currentUser?.role === 'customer' ? 'My Orders' : 'Available Orders'}
         </h2>
@@ -1049,12 +1354,48 @@ const DeliveryApp = () => {
                     <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#4F46E5' }}>
                       ${parseFloat(order.price).toFixed(2)}
                     </p>
-                    <button
-                      onClick={() => fetchOrderTracking(order._id)}
-                      style={{ padding: '0.5rem 1rem', background: '#6366F1', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
-                    >
-                      🗺️ Track Order
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      {order.status === 'delivered' && (
+                        <>
+                          {currentUser?.role === 'customer' && !reviewStatus?.reviews.toDriver && (
+                            <button
+                              onClick={() => openReviewModal(order._id, 'customer_to_driver')}
+                              style={{ padding: '0.5rem 1rem', background: '#10B981', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
+                            >
+                              ⭐ Review Driver
+                            </button>
+                          )}
+                          {currentUser?.role === 'driver' && order.assignedDriver?.userId === currentUser?.id && !reviewStatus?.reviews.toCustomer && (
+                            <button
+                              onClick={() => openReviewModal(order._id, 'driver_to_customer')}
+                              style={{ padding: '0.5rem 1rem', background: '#10B981', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
+                            >
+                              ⭐ Review Customer
+                            </button>
+                          )}
+                          {!reviewStatus?.reviews.toPlatform && (
+                            <button
+                              onClick={() => openReviewModal(order._id, `${currentUser?.role}_to_platform`)}
+                              style={{ padding: '0.5rem 1rem', background: '#6366F1', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
+                            >
+                              🌟 Review Platform
+                            </button>
+                          )}
+                          <button
+                            onClick={() => fetchOrderReviews(order._id)}
+                            style={{ padding: '0.5rem 1rem', background: '#F59E0B', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
+                          >
+                            📝 View Reviews
+                          </button>
+                        </>
+                      )}
+                      <button
+                        onClick={() => fetchOrderTracking(order._id)}
+                        style={{ padding: '0.5rem 1rem', background: '#6366F1', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
+                      >
+                        🗺️ Track Order
+                      </button>
+                    </div>
                   </div>
 
                   {order.status === 'pending_bids' && currentUser?.role === 'driver' && (

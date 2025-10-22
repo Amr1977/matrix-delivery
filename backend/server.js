@@ -8,6 +8,9 @@ const { Pool } = require('pg');
 dotenv.config();
 const app = express();
 
+// Add security middleware for production
+// NOT USED: helmet, rateLimit packages - using custom implementation for demo
+
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 const IS_TEST = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing';
 
