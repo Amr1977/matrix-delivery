@@ -9,7 +9,6 @@ module.exports = {
       'html:reports/cucumber-report.html',
       'json:reports/cucumber-report.json'
     ],
-    publishQuiet: true,
     parallel: 1
   }
 };

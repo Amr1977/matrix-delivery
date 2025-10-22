@@ -7,20 +7,66 @@ const fs = require('fs');
 // Set default timeout to 180 seconds
 setDefaultTimeout(180 * 1000);
 
+// Check if port is already in use
+const checkPortInUse = (port) => {
+  return new Promise((resolve) => {
+    const net = require('net');
+    const server = net.createServer();
+    server.once('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        resolve(true); // Port is in use
+      } else {
+        resolve(false);
+      }
+    });
+    server.once('listening', () => {
+      server.close();
+      resolve(false); // Port is free
+    });
+    server.listen(port, 'localhost');
+  });
+};
+
 // Start servers before all tests
 BeforeAll(async function() {
   console.log('\n🎬 Starting test suite...\n');
-  
+
   try {
-    await serverManager.startBackend();
-    // Wait a bit for backend to fully initialize
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    await serverManager.startFrontend();
-    // Wait a bit for frontend to fully initialize
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    
-    console.log('\n✅ All servers ready for testing\n');
+    // Check if servers are already running
+    const backendPortInUse = await checkPortInUse(5000);
+    const frontendPortInUse = await checkPortInUse(3000);
+
+    // Also check if we can reach the backend API
+    let serversAlreadyRunning = false;
+    try {
+      const response = await fetch('http://localhost:5000/api/health');
+      if (response.ok) {
+        const health = await response.json();
+        if (health.status === 'healthy') {
+          serversAlreadyRunning = true;
+        }
+      }
+    } catch (err) {
+      // API not available
+    }
+
+    if (serversAlreadyRunning) {
+      console.log('   ✅ Servers already running (using existing instance)');
+      // Don't start our own servers, use the existing ones
+      // Mark that we shouldn't stop them at the end
+      global.skipServerStop = true;
+    } else {
+      // Start servers normally
+      await serverManager.startBackend();
+      // Wait a bit for backend to fully initialize
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      await serverManager.startFrontend();
+      // Wait a bit for frontend to fully initialize
+      await new Promise(resolve => setTimeout(resolve, 3000));
+
+      console.log('\n✅ All servers ready for testing\n');
+    }
   } catch (error) {
     console.error('❌ Failed to start servers:', error.message);
     throw error;
@@ -29,31 +75,43 @@ BeforeAll(async function() {
 
 // Stop servers after all tests
 AfterAll(async function() {
-  await serverManager.stop();
+  if (!global.skipServerStop) {
+    await serverManager.stop();
+  } else {
+    console.log('Skipping server stop (using external servers)');
+  }
 });
 
 // Ensure cleanup on process exit
 process.on('SIGINT', async () => {
   console.log('\n🛑 Received SIGINT, cleaning up...');
-  await serverManager.stop();
+  if (!global.skipServerStop) {
+    await serverManager.stop();
+  }
   process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
   console.log('\n🛑 Received SIGTERM, cleaning up...');
-  await serverManager.stop();
+  if (!global.skipServerStop) {
+    await serverManager.stop();
+  }
   process.exit(0);
 });
 
 process.on('uncaughtException', async (error) => {
   console.error('\n❌ Uncaught Exception:', error);
-  await serverManager.stop();
+  if (!global.skipServerStop) {
+    await serverManager.stop();
+  }
   process.exit(1);
 });
 
 process.on('unhandledRejection', async (reason, promise) => {
   console.error('\n❌ Unhandled Rejection at:', promise, 'reason:', reason);
-  await serverManager.stop();
+  if (!global.skipServerStop) {
+    await serverManager.stop();
+  }
   process.exit(1);
 });
 

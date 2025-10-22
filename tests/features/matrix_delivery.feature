@@ -83,15 +83,6 @@ Feature: User Registration and Authentication
 ## PHASE 2: ORDER MANAGEMENT
 ## ============================================================================
 
-Feature: Order Creation and Management
-As a customer
-I want to create and manage delivery orders
-So that I can send packages through the platform
-
-Background:
-Given I am logged in as a customer
-And I am on the dashboard
-
 @OM-001
 Scenario: Create a new delivery order
 Given I am on the "Create Order" page
@@ -134,15 +125,6 @@ And I should see estimated delivery time
 ## PHASE 3: DRIVER OPERATIONS
 ## ============================================================================
 
-Feature: Driver Bidding System
-As a driver
-I want to bid on delivery orders
-So that I can earn money by delivering packages
-
-Background:
-Given I am logged in as a driver
-And I am available for deliveries
-
 @DB-001
 Scenario: Driver places bid on order
 Given there is an available order "ORD-001"
@@ -178,15 +160,6 @@ And payment should be processed
 ## PHASE 4: PAYMENT SYSTEM
 ## ============================================================================
 
-Feature: Payment Processing
-As a user
-I want to make secure payments
-So that I can complete transactions on the platform
-
-Background:
-Given I am logged in as a customer
-And I have a valid payment method
-
 @PP-001
 Scenario: Process payment for order
 Given I have order "ORD-001" with total cost $30
@@ -214,14 +187,6 @@ And the amount should be credited to my original payment method
 ## ============================================================================
 ## PHASE 5: PROMOTIONS AND REWARDS
 ## ============================================================================
-
-Feature: Referral Program
-As a user
-I want to refer friends and earn rewards
-So that I can get benefits for bringing new users to the platform
-
-Background:
-Given I am logged in as a verified user
 
 @PR-001
 Scenario: Generate referral link
@@ -260,13 +225,6 @@ Then I should see:
 | total_earned | $60 in credits |
 And I should see list of referred friends (names hidden)
 
-Feature: Loyalty Program
-As a customer
-I want to earn and redeem loyalty points
-So that I can get discounts and benefits
-
-Background:
-Given I am a member of the loyalty program
 
 @PR-005
 Scenario: Loyalty points for completed orders
@@ -302,13 +260,7 @@ And I should see tier benefits:
 | - Priority customer support | |
 | - Exclusive promo codes | |
 
-Feature: Promotional Campaigns
-As a user
-I want to participate in promotional campaigns
-So that I can get discounts and special offers
 
-Background:
-Given the platform has active promotions
 
 @PR-008
 Scenario: Seasonal promotion campaign

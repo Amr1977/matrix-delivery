@@ -1,102 +1,95 @@
-const { Sequelize } = require('sequelize');
-const path = require('path');
-const fs = require('fs');
+const dotenv = require('dotenv');
+dotenv.config();
 
 class DBSeeder {
   constructor() {
-    // Use a test database file
-    this.dbPath = path.join(__dirname, '../../test-db.sqlite');
-    this.sequelize = new Sequelize({
-      dialect: 'sqlite',
-      storage: this.dbPath,
-      logging: false
-    });
+    this.apiUrl = 'http://localhost:5000/api';
   }
 
-  async connect() {
-    try {
-      await this.sequelize.authenticate();
-      console.log('Database connection has been established successfully.');
-      return true;
-    } catch (error) {
-      console.error('Unable to connect to the database:', error);
-      return false;
+  async waitForServer(timeout = 30000) {
+    const startTime = Date.now();
+    while (Date.now() - startTime < timeout) {
+      try {
+        const response = await fetch(`${this.apiUrl}/health`);
+        if (response.ok) {
+          return true;
+        }
+      } catch (error) {
+        // Server not ready yet
+      }
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
-  }
-
-  async clearDatabase() {
-    // Drop all tables
-    await this.sequelize.drop();
-    console.log('Database cleared');
+    throw new Error('Server did not become ready within timeout');
   }
 
   async seed() {
+    console.log('🌱 Seeding test data...');
+
     try {
-      // Import models from your application
-      const { User, Order, Bid } = require('../../backend/models');
-      
-      // Create test users
-      const [customer, driver] = await Promise.all([
-        User.create({
+      // Wait for server to be ready
+      await this.waitForServer();
+
+      // Create timestamps for unique emails
+      const timestamp = Date.now();
+
+      // Create test users via API
+      const customerResponse = await fetch(`${this.apiUrl}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           name: 'Test Customer',
-          email: 'customer@test.com',
-          password: 'password123',
-          role: 'customer',
-          phone: '+1234567890'
-        }),
-        User.create({
-          name: 'Test Driver',
-          email: 'driver@test.com',
-          password: 'password123',
-          role: 'driver',
-          phone: '+1987654321',
-          vehicleType: 'bike',
-          licensePlate: 'TEST123'
+          email: `customer_${timestamp}@test.com`,
+          password: 'test123',
+          phone: '+1234567890',
+          role: 'customer'
         })
-      ]);
-
-      // Create test orders
-      const order = await Order.create({
-        customerId: customer.id,
-        pickupAddress: '123 Test St, Test City',
-        deliveryAddress: '456 Delivery Ave, Test City',
-        itemDescription: 'Test Package',
-        itemWeight: 2.5,
-        status: 'pending',
-        price: 25.00
       });
 
-      // Create test bids
-      await Bid.create({
-        orderId: order.id,
-        driverId: driver.id,
-        amount: 20.00,
-        status: 'pending',
-        message: 'I can deliver this quickly!'
+      const driverResponse = await fetch(`${this.apiUrl}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: 'Test Driver',
+          email: `driver_${timestamp}@test.com`,
+          password: 'test123',
+          phone: '+1987654321',
+          role: 'driver',
+          vehicle_type: 'bike'
+        })
       });
 
-      console.log('Database seeded with test data');
-      
+      if (!customerResponse.ok || !driverResponse.ok) {
+        throw new Error('Failed to create test users');
+      }
+
+      const customerData = await customerResponse.json();
+      const driverData = await driverResponse.json();
+
+      console.log('✅ Test users created');
+
       // Store test data for use in tests
       return {
         customer: {
-          ...customer.toJSON(),
-          password: 'password123' // Include plain password for testing
+          id: customerData.user.id,
+          name: customerData.user.name,
+          email: customerData.user.email,
+          password: 'test123', // Plain password for testing
+          token: customerData.token,
+          role: 'customer'
         },
         driver: {
-          ...driver.toJSON(),
-          password: 'password123' // Include plain password for testing
-        },
-        order: order.toJSON()
+          id: driverData.user.id,
+          name: driverData.user.name,
+          email: driverData.user.email,
+          password: 'test123', // Plain password for testing
+          token: driverData.token,
+          role: 'driver'
+        }
       };
     } catch (error) {
-      console.error('Error seeding database:', error);
+      console.error('❌ Error seeding database:', error);
       throw error;
     }
-  }
-
-  async close() {
-    await this.sequelize.close();
   }
 }
 

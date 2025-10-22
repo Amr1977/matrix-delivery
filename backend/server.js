@@ -15,7 +15,7 @@ const IS_TEST = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'tes
 const pool = new Pool({
   host: process.env.DB_HOST || 'localhost',
   port: process.env.DB_PORT || 5432,
-  database: process.env.DB_NAME || 'matrix_delivery',
+  database: IS_TEST ? (process.env.DB_NAME_TEST || 'matrix_delivery_test') : (process.env.DB_NAME || 'matrix_delivery'),
   user: process.env.DB_USER || 'postgres',
   password: process.env.DB_PASSWORD || 'postgres',
   max: 20,
@@ -126,6 +126,70 @@ const initDatabase = async () => {
       )
     `);
 
+    // Create payments table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS payments (
+        id VARCHAR(255) PRIMARY KEY,
+        order_id VARCHAR(255) NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+        amount DECIMAL(10,2) NOT NULL,
+        currency VARCHAR(3) DEFAULT 'USD',
+        payment_method VARCHAR(50) CHECK (payment_method IN ('credit_card', 'debit_card', 'paypal', 'bank_transfer', 'cash')),
+        status VARCHAR(50) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'completed', 'failed', 'refunded', 'cancelled')),
+        stripe_payment_intent_id VARCHAR(255),
+        stripe_charge_id VARCHAR(255),
+        payer_id VARCHAR(255) NOT NULL REFERENCES users(id),
+        payee_id VARCHAR(255),
+        platform_fee DECIMAL(10,2) DEFAULT 0.00,
+        driver_earnings DECIMAL(10,2) DEFAULT 0.00,
+        refund_amount DECIMAL(10,2) DEFAULT 0.00,
+        refund_reason TEXT,
+        metadata JSONB,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        processed_at TIMESTAMP,
+        refunded_at TIMESTAMP
+      )
+    `);
+
+    // Create user_payment_methods table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS user_payment_methods (
+        id SERIAL PRIMARY KEY,
+        user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        payment_method_type VARCHAR(50) NOT NULL CHECK (payment_method_type IN ('credit_card', 'debit_card', 'paypal', 'bank_account')),
+        provider VARCHAR(50) NOT NULL DEFAULT 'stripe',
+        provider_token VARCHAR(255),
+        last_four VARCHAR(4),
+        expiry_month INTEGER,
+        expiry_year INTEGER,
+        is_default BOOLEAN DEFAULT false,
+        is_verified BOOLEAN DEFAULT false,
+        metadata JSONB,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, provider_token)
+      )
+    `);
+
+    // Create reviews table for mutual rating system
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS reviews (
+        id SERIAL PRIMARY KEY,
+        order_id VARCHAR(255) NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+        reviewer_id VARCHAR(255) NOT NULL REFERENCES users(id),
+        reviewee_id VARCHAR(255) REFERENCES users(id),
+        reviewer_role VARCHAR(50) NOT NULL,
+        review_type VARCHAR(50) NOT NULL CHECK (review_type IN ('customer_to_driver', 'driver_to_customer', 'customer_to_platform', 'driver_to_platform')),
+        rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+        comment TEXT,
+        professionalism_rating INTEGER CHECK (professionalism_rating >= 1 AND professionalism_rating <= 5),
+        communication_rating INTEGER CHECK (communication_rating >= 1 AND communication_rating <= 5),
+        timeliness_rating INTEGER CHECK (timeliness_rating >= 1 AND timeliness_rating <= 5),
+        condition_rating INTEGER CHECK (condition_rating >= 1 AND condition_rating <= 5),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(order_id, reviewer_id, review_type)
+      )
+    `);
+
     // Create indexes
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_orders_customer ON orders(customer_id)`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_orders_driver ON orders(assigned_driver_user_id)`);
@@ -136,6 +200,9 @@ const initDatabase = async () => {
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id)`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_notifications_read ON notifications(is_read)`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_location_updates_order ON location_updates(order_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_reviews_order ON reviews(order_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_reviews_reviewer ON reviews(reviewer_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_reviews_reviewee ON reviews(reviewee_id)`);
 
     console.log('✅ PostgreSQL Database initialized');
   } catch (error) {
@@ -182,7 +249,12 @@ app.use(cors({
   credentials: true
 }));
 
-const JWT_SECRET = process.env.JWT_SECRET || 'test-secret-key-12345';
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+  console.error('❌ JWT_SECRET environment variable is required');
+  process.exit(1);
+}
 
 // Middleware
 const verifyToken = (req, res, next) => {
@@ -197,20 +269,73 @@ const verifyToken = (req, res, next) => {
   }
 };
 
+// Input sanitization
+const sanitizeString = (str, maxLength = 1000) => {
+  if (typeof str !== 'string') return '';
+  return str.trim().substring(0, maxLength).replace(/[<>\"'&]/g, '');
+};
+
+const sanitizeHtml = (str, maxLength = 5000) => {
+  if (typeof str !== 'string') return '';
+  return str.trim().substring(0, maxLength).replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+};
+
+const sanitizeNumeric = (value, min = 0, max = 1000000) => {
+  const num = parseFloat(value);
+  if (isNaN(num) || num < min || num > max) return null;
+  return Math.round(num * 100) / 100; // Round to 2 decimal places
+};
+
+// Rate limiting store (simple in-memory for demo)
+const rateLimitStore = new Map();
+
+const rateLimit = (maxRequests = 100, windowMs = 15 * 60 * 1000) => {
+  return (req, res, next) => {
+    const key = req.ip || req.connection.remoteAddress;
+    const now = Date.now();
+    const windowStart = now - windowMs;
+
+    if (!rateLimitStore.has(key)) {
+      rateLimitStore.set(key, []);
+    }
+
+    const requests = rateLimitStore.get(key);
+    const validRequests = requests.filter(time => time > windowStart);
+
+    if (validRequests.length >= maxRequests) {
+      return res.status(429).json({
+        error: 'Too many requests, please try again later'
+      });
+    }
+
+    validRequests.push(now);
+    rateLimitStore.set(key, validRequests);
+
+    next();
+  };
+};
+
 // Validation helpers
-const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-const validatePassword = (password) => password && password.length >= 8;
+const validateEmail = (email) => {
+  const sanitized = sanitizeString(email, 255);
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sanitized);
+};
 
-// Routes
+const validatePassword = (password) => {
+  const sanitized = sanitizeString(password, 255);
+  return sanitized && sanitized.length >= 8;
+};
 
-// Health check
+// ============ END OF PART 1 ============
+// Continue with Part 2 for Authentication Routes
+
 app.get('/api/health', async (req, res) => {
   try {
     const usersResult = await pool.query('SELECT COUNT(*) as count FROM users');
     const ordersResult = await pool.query('SELECT COUNT(*) as count FROM orders');
-    const openOrdersResult = await pool.query("SELECT COUNT(*) as count FROM orders WHERE status = 'open'");
+    const openOrdersResult = await pool.query("SELECT COUNT(*) as count FROM orders WHERE status = 'pending_bids'");
     const acceptedOrdersResult = await pool.query("SELECT COUNT(*) as count FROM orders WHERE status = 'accepted'");
-    const completedOrdersResult = await pool.query("SELECT COUNT(*) as count FROM orders WHERE status = 'completed'");
+    const completedOrdersResult = await pool.query("SELECT COUNT(*) as count FROM orders WHERE status = 'delivered'");
 
     res.json({
       status: 'healthy',
@@ -237,12 +362,11 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
-// Register
-app.post('/api/auth/register', async (req, res) => {
+// Registration rate limiting (stricter)
+app.post('/api/auth/register', rateLimit(5, 60 * 60 * 1000), async (req, res) => {
   try {
     const { name, email, password, phone, role, vehicle_type } = req.body;
 
-    // Validation
     if (!name || !email || !password || !phone || !role) {
       return res.status(400).json({ error: 'All fields required' });
     }
@@ -263,7 +387,6 @@ app.post('/api/auth/register', async (req, res) => {
       return res.status(400).json({ error: 'Invalid role' });
     }
 
-    // Check if user exists
     const existingUser = await pool.query(
       'SELECT id FROM users WHERE LOWER(email) = LOWER($1)',
       [email.trim()]
@@ -392,22 +515,18 @@ app.get('/api/auth/me', verifyToken, async (req, res) => {
   }
 });
 
+// ============ END OF PART 2 ============
+// Continue with Part 3 for Order Management
+
+// ============ PART 3: Order Management & Bidding ============
+// Add this after Part 2
+
 // Create Order
 app.post('/api/orders', verifyToken, async (req, res) => {
   try {
     const { 
-      title, 
-      description, 
-      pickup_address,
-      delivery_address,
-      from, 
-      to, 
-      price,
-      package_description,
-      package_weight,
-      estimated_value,
-      special_instructions,
-      estimated_delivery_date
+      title, description, pickup_address, delivery_address, from, to, price,
+      package_description, package_weight, estimated_value, special_instructions, estimated_delivery_date
     } = req.body;
 
     if (!title || !from || !to || !price) {
@@ -423,73 +542,32 @@ app.post('/api/orders', verifyToken, async (req, res) => {
     
     const result = await pool.query(
       `INSERT INTO orders (
-        id, order_number, title, description, 
-        pickup_address, delivery_address,
-        from_lat, from_lng, from_name, 
-        to_lat, to_lng, to_name, 
-        package_description, package_weight, estimated_value,
-        special_instructions, price, status, 
-        customer_id, customer_name, estimated_delivery_date
-      )
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
+        id, order_number, title, description, pickup_address, delivery_address,
+        from_lat, from_lng, from_name, to_lat, to_lng, to_name, 
+        package_description, package_weight, estimated_value, special_instructions, 
+        price, status, customer_id, customer_name, estimated_delivery_date
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
        RETURNING *`,
-      [
-        orderId,
-        orderNumber,
-        title.trim(),
-        description?.trim() || '',
-        pickup_address || from.name,
-        delivery_address || to.name,
-        parseFloat(from.lat),
-        parseFloat(from.lng),
-        from.name,
-        parseFloat(to.lat),
-        parseFloat(to.lng),
-        to.name,
-        package_description || null,
-        package_weight ? parseFloat(package_weight) : null,
-        estimated_value ? parseFloat(estimated_value) : null,
-        special_instructions || null,
-        parseFloat(price),
-        'pending_bids',
-        req.user.userId,
-        req.user.name,
-        estimated_delivery_date || null
-      ]
+      [orderId, orderNumber, title.trim(), description?.trim() || '', pickup_address || from.name, delivery_address || to.name,
+       parseFloat(from.lat), parseFloat(from.lng), from.name, parseFloat(to.lat), parseFloat(to.lng), to.name,
+       package_description || null, package_weight ? parseFloat(package_weight) : null, 
+       estimated_value ? parseFloat(estimated_value) : null, special_instructions || null, 
+       parseFloat(price), 'pending_bids', req.user.userId, req.user.name, estimated_delivery_date || null]
     );
 
     const order = result.rows[0];
     console.log(`✅ Order created: "${order.title}" (${order.order_number}) by ${req.user.name}`);
     
     res.status(201).json({
-      _id: order.id,
-      orderNumber: order.order_number,
-      title: order.title,
-      description: order.description,
-      pickupAddress: order.pickup_address,
-      deliveryAddress: order.delivery_address,
-      from: {
-        lat: parseFloat(order.from_lat),
-        lng: parseFloat(order.from_lng),
-        name: order.from_name
-      },
-      to: {
-        lat: parseFloat(order.to_lat),
-        lng: parseFloat(order.to_lng),
-        name: order.to_name
-      },
-      packageDescription: order.package_description,
-      packageWeight: order.package_weight ? parseFloat(order.package_weight) : null,
+      _id: order.id, orderNumber: order.order_number, title: order.title, description: order.description,
+      pickupAddress: order.pickup_address, deliveryAddress: order.delivery_address,
+      from: { lat: parseFloat(order.from_lat), lng: parseFloat(order.from_lng), name: order.from_name },
+      to: { lat: parseFloat(order.to_lat), lng: parseFloat(order.to_lng), name: order.to_name },
+      packageDescription: order.package_description, packageWeight: order.package_weight ? parseFloat(order.package_weight) : null,
       estimatedValue: order.estimated_value ? parseFloat(order.estimated_value) : null,
-      specialInstructions: order.special_instructions,
-      price: parseFloat(order.price),
-      status: order.status,
-      bids: [],
-      customerId: order.customer_id,
-      customerName: order.customer_name,
-      assignedDriver: null,
-      estimatedDeliveryDate: order.estimated_delivery_date,
-      createdAt: order.created_at
+      specialInstructions: order.special_instructions, price: parseFloat(order.price), status: order.status,
+      bids: [], customerId: order.customer_id, customerName: order.customer_name, assignedDriver: null,
+      estimatedDeliveryDate: order.estimated_delivery_date, createdAt: order.created_at
     });
   } catch (error) {
     console.error('Create order error:', error);
@@ -500,100 +578,31 @@ app.post('/api/orders', verifyToken, async (req, res) => {
 // Get all orders
 app.get('/api/orders', verifyToken, async (req, res) => {
   try {
-    let query;
-    let params;
+    let query, params;
 
     if (req.user.role === 'customer') {
-      query = `
-        SELECT o.*, 
-               COALESCE(json_agg(
-                 json_build_object(
-                   'userId', b.user_id,
-                   'driverName', b.driver_name,
-                   'bidPrice', b.bid_price,
-                   'status', b.status,
-                   'createdAt', b.created_at
-                 ) ORDER BY b.created_at DESC
-               ) FILTER (WHERE b.id IS NOT NULL), '[]') as bids
-        FROM orders o
-        LEFT JOIN bids b ON o.id = b.order_id
-        WHERE o.customer_id = $1
-        GROUP BY o.id
-        ORDER BY o.created_at DESC
-      `;
+      query = `SELECT o.*, COALESCE(json_agg(json_build_object('userId', b.user_id, 'driverName', b.driver_name, 'bidPrice', b.bid_price, 'estimatedPickupTime', b.estimated_pickup_time, 'estimatedDeliveryTime', b.estimated_delivery_time, 'message', b.message, 'status', b.status, 'createdAt', b.created_at) ORDER BY b.created_at DESC) FILTER (WHERE b.id IS NOT NULL), '[]') as bids FROM orders o LEFT JOIN bids b ON o.id = b.order_id WHERE o.customer_id = $1 GROUP BY o.id ORDER BY o.created_at DESC`;
       params = [req.user.userId];
     } else if (req.user.role === 'driver') {
-      // Drivers should see:
-      // 1. ALL open orders (regardless of who created them)
-      // 2. Orders they've bid on
-      // 3. Orders assigned to them
-      query = `
-        SELECT o.*, 
-               COALESCE(json_agg(
-                 json_build_object(
-                   'userId', b.user_id,
-                   'driverName', b.driver_name,
-                   'bidPrice', b.bid_price,
-                   'estimatedPickupTime', b.estimated_pickup_time,
-                   'estimatedDeliveryTime', b.estimated_delivery_time,
-                   'message', b.message,
-                   'status', b.status,
-                   'createdAt', b.created_at
-                 ) ORDER BY b.created_at DESC
-               ) FILTER (WHERE b.id IS NOT NULL), '[]') as bids
-        FROM orders o
-        LEFT JOIN bids b ON o.id = b.order_id
-        WHERE o.status = 'pending_bids' 
-           OR o.assigned_driver_user_id = $1
-           OR EXISTS (SELECT 1 FROM bids WHERE order_id = o.id AND user_id = $1)
-        GROUP BY o.id
-        ORDER BY o.created_at DESC
-      `;
+      query = `SELECT o.*, COALESCE(json_agg(json_build_object('userId', b.user_id, 'driverName', b.driver_name, 'bidPrice', b.bid_price, 'estimatedPickupTime', b.estimated_pickup_time, 'estimatedDeliveryTime', b.estimated_delivery_time, 'message', b.message, 'status', b.status, 'createdAt', b.created_at) ORDER BY b.created_at DESC) FILTER (WHERE b.id IS NOT NULL), '[]') as bids FROM orders o LEFT JOIN bids b ON o.id = b.order_id WHERE o.status = 'pending_bids' OR o.assigned_driver_user_id = $1 OR EXISTS (SELECT 1 FROM bids WHERE order_id = o.id AND user_id = $1) GROUP BY o.id ORDER BY o.created_at DESC`;
       params = [req.user.userId];
     }
 
     const result = await pool.query(query, params);
     
     const orders = result.rows.map(order => ({
-      _id: order.id,
-      orderNumber: order.order_number,
-      title: order.title,
-      description: order.description,
-      pickupAddress: order.pickup_address,
-      deliveryAddress: order.delivery_address,
-      from: {
-        lat: parseFloat(order.from_lat),
-        lng: parseFloat(order.from_lng),
-        name: order.from_name
-      },
-      to: {
-        lat: parseFloat(order.to_lat),
-        lng: parseFloat(order.to_lng),
-        name: order.to_name
-      },
-      packageDescription: order.package_description,
-      packageWeight: order.package_weight ? parseFloat(order.package_weight) : null,
+      _id: order.id, orderNumber: order.order_number, title: order.title, description: order.description,
+      pickupAddress: order.pickup_address, deliveryAddress: order.delivery_address,
+      from: { lat: parseFloat(order.from_lat), lng: parseFloat(order.from_lng), name: order.from_name },
+      to: { lat: parseFloat(order.to_lat), lng: parseFloat(order.to_lng), name: order.to_name },
+      packageDescription: order.package_description, packageWeight: order.package_weight ? parseFloat(order.package_weight) : null,
       estimatedValue: order.estimated_value ? parseFloat(order.estimated_value) : null,
-      specialInstructions: order.special_instructions,
-      price: parseFloat(order.price),
-      status: order.status,
-      bids: order.bids,
-      customerId: order.customer_id,
-      customerName: order.customer_name,
-      assignedDriver: order.assigned_driver_user_id ? {
-        userId: order.assigned_driver_user_id,
-        driverName: order.assigned_driver_name,
-        bidPrice: parseFloat(order.assigned_driver_bid_price)
-      } : null,
+      specialInstructions: order.special_instructions, price: parseFloat(order.price), status: order.status,
+      bids: order.bids, customerId: order.customer_id, customerName: order.customer_name,
+      assignedDriver: order.assigned_driver_user_id ? { userId: order.assigned_driver_user_id, driverName: order.assigned_driver_name, bidPrice: parseFloat(order.assigned_driver_bid_price) } : null,
       estimatedDeliveryDate: order.estimated_delivery_date,
-      currentLocation: order.current_location_lat ? {
-        lat: parseFloat(order.current_location_lat),
-        lng: parseFloat(order.current_location_lng)
-      } : null,
-      createdAt: order.created_at,
-      acceptedAt: order.accepted_at,
-      pickedUpAt: order.picked_up_at,
-      deliveredAt: order.delivered_at
+      currentLocation: order.current_location_lat ? { lat: parseFloat(order.current_location_lat), lng: parseFloat(order.current_location_lng) } : null,
+      createdAt: order.created_at, acceptedAt: order.accepted_at, pickedUpAt: order.picked_up_at, deliveredAt: order.delivered_at
     }));
 
     res.json(orders);
@@ -603,12 +612,50 @@ app.get('/api/orders', verifyToken, async (req, res) => {
   }
 });
 
+// Get single order details
+app.get('/api/orders/:id', verifyToken, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT o.*, COALESCE(json_agg(json_build_object('userId', b.user_id, 'driverName', b.driver_name, 'bidPrice', b.bid_price, 'estimatedPickupTime', b.estimated_pickup_time, 'estimatedDeliveryTime', b.estimated_delivery_time, 'message', b.message, 'status', b.status, 'createdAt', b.created_at) ORDER BY b.created_at DESC) FILTER (WHERE b.id IS NOT NULL), '[]') as bids FROM orders o LEFT JOIN bids b ON o.id = b.order_id WHERE o.id = $1 GROUP BY o.id`,
+      [req.params.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    const order = result.rows[0];
+
+    if (order.customer_id !== req.user.userId && order.assigned_driver_user_id !== req.user.userId &&
+        !order.bids.some(bid => bid.userId === req.user.userId) && order.status !== 'pending_bids') {
+      return res.status(403).json({ error: 'Unauthorized to view this order' });
+    }
+
+    res.json({
+      _id: order.id, orderNumber: order.order_number, title: order.title, description: order.description,
+      pickupAddress: order.pickup_address, deliveryAddress: order.delivery_address,
+      from: { lat: parseFloat(order.from_lat), lng: parseFloat(order.from_lng), name: order.from_name },
+      to: { lat: parseFloat(order.to_lat), lng: parseFloat(order.to_lng), name: order.to_name },
+      packageDescription: order.package_description, packageWeight: order.package_weight ? parseFloat(order.package_weight) : null,
+      estimatedValue: order.estimated_value ? parseFloat(order.estimated_value) : null,
+      specialInstructions: order.special_instructions, price: parseFloat(order.price), status: order.status,
+      bids: order.bids, customerId: order.customer_id, customerName: order.customer_name,
+      assignedDriver: order.assigned_driver_user_id ? { userId: order.assigned_driver_user_id, driverName: order.assigned_driver_name, bidPrice: parseFloat(order.assigned_driver_bid_price) } : null,
+      estimatedDeliveryDate: order.estimated_delivery_date,
+      currentLocation: order.current_location_lat ? { lat: parseFloat(order.current_location_lat), lng: parseFloat(order.current_location_lng) } : null,
+      createdAt: order.created_at, acceptedAt: order.accepted_at, pickedUpAt: order.picked_up_at, deliveredAt: order.delivered_at
+    });
+  } catch (error) {
+    console.error('Get order error:', error);
+    res.status(500).json({ error: 'Failed to get order' });
+  }
+});
+
 // Place bid
 app.post('/api/orders/:id/bid', verifyToken, async (req, res) => {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-
     const { bidPrice, estimatedPickupTime, estimatedDeliveryTime, message } = req.body;
 
     if (!bidPrice) {
@@ -616,119 +663,48 @@ app.post('/api/orders/:id/bid', verifyToken, async (req, res) => {
       return res.status(400).json({ error: 'Bid price is required' });
     }
 
-    // Check order exists and is open
-    const orderResult = await client.query(
-      'SELECT * FROM orders WHERE id = $1',
-      [req.params.id]
-    );
-
+    const orderResult = await client.query('SELECT * FROM orders WHERE id = $1', [req.params.id]);
     if (orderResult.rows.length === 0) {
       await client.query('ROLLBACK');
       return res.status(404).json({ error: 'Order not found' });
     }
 
     const order = orderResult.rows[0];
-
     if (order.status !== 'pending_bids') {
       await client.query('ROLLBACK');
       return res.status(400).json({ error: 'Order is no longer available for bidding' });
     }
-
     if (order.customer_id === req.user.userId) {
       await client.query('ROLLBACK');
       return res.status(400).json({ error: 'Cannot bid on your own order' });
     }
 
-    // Delete existing bid if any
+    await client.query('DELETE FROM bids WHERE order_id = $1 AND user_id = $2', [req.params.id, req.user.userId]);
     await client.query(
-      'DELETE FROM bids WHERE order_id = $1 AND user_id = $2',
-      [req.params.id, req.user.userId]
+      `INSERT INTO bids (order_id, user_id, driver_name, bid_price, estimated_pickup_time, estimated_delivery_time, message, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [req.params.id, req.user.userId, req.user.name, parseFloat(bidPrice), estimatedPickupTime || null, estimatedDeliveryTime || null, message || null, 'pending']
     );
 
-    // Insert new bid
-    await client.query(
-      `INSERT INTO bids (order_id, user_id, driver_name, bid_price, estimated_pickup_time, estimated_delivery_time, message, status)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-      [req.params.id, req.user.userId, req.user.name, parseFloat(bidPrice), 
-       estimatedPickupTime || null, estimatedDeliveryTime || null, message || null, 'pending']
-    );
+    await createNotification(order.customer_id, order.id, 'new_bid', 'New Bid Received', `${req.user.name} placed a bid of $${bidPrice} on your order ${order.order_number}`);
 
-    // Create notification for customer
-    await createNotification(
-      order.customer_id,
-      order.id,
-      'new_bid',
-      'New Bid Received',
-      `${req.user.name} placed a bid of ${bidPrice} on your order ${order.order_number}`
-    );
-
-    // Get updated order with bids
     const updatedOrderResult = await client.query(
-      `SELECT o.*, 
-              COALESCE(json_agg(
-                json_build_object(
-                  'userId', b.user_id,
-                  'driverName', b.driver_name,
-                  'bidPrice', b.bid_price,
-                  'estimatedPickupTime', b.estimated_pickup_time,
-                  'estimatedDeliveryTime', b.estimated_delivery_time,
-                  'message', b.message,
-                  'status', b.status,
-                  'createdAt', b.created_at
-                ) ORDER BY b.created_at DESC
-              ) FILTER (WHERE b.id IS NOT NULL), '[]') as bids
-       FROM orders o
-       LEFT JOIN bids b ON o.id = b.order_id
-       WHERE o.id = $1
-       GROUP BY o.id`,
+      `SELECT o.*, COALESCE(json_agg(json_build_object('userId', b.user_id, 'driverName', b.driver_name, 'bidPrice', b.bid_price, 'estimatedPickupTime', b.estimated_pickup_time, 'estimatedDeliveryTime', b.estimated_delivery_time, 'message', b.message, 'status', b.status, 'createdAt', b.created_at) ORDER BY b.created_at DESC) FILTER (WHERE b.id IS NOT NULL), '[]') as bids FROM orders o LEFT JOIN bids b ON o.id = b.order_id WHERE o.id = $1 GROUP BY o.id`,
       [req.params.id]
     );
-
     await client.query('COMMIT');
 
     const updatedOrder = updatedOrderResult.rows[0];
-    console.log(`✅ Bid placed: ${req.user.name} bid ${bidPrice} on "${updatedOrder.title}" (${updatedOrder.order_number})`);
+    console.log(`✅ Bid placed: ${req.user.name} bid $${bidPrice} on "${updatedOrder.title}" (${updatedOrder.order_number})`);
 
     res.json({
-      _id: updatedOrder.id,
-      orderNumber: updatedOrder.order_number,
-      title: updatedOrder.title,
-      description: updatedOrder.description,
-      pickupAddress: updatedOrder.pickup_address,
+      _id: updatedOrder.id, orderNumber: updatedOrder.order_number, title: updatedOrder.title,
+      description: updatedOrder.description, pickupAddress: updatedOrder.pickup_address,
       deliveryAddress: updatedOrder.delivery_address,
-      from: {
-        lat: parseFloat(updatedOrder.from_lat),
-        lng: parseFloat(updatedOrder.from_lng),
-        name: updatedOrder.from_name
-      },
-      to: {
-        lat: parseFloat(updatedOrder.to_lat),
-        lng: parseFloat(updatedOrder.to_lng),
-        name: updatedOrder.to_name
-      },
-      packageDescription: updatedOrder.package_description,
-      packageWeight: updatedOrder.package_weight ? parseFloat(updatedOrder.package_weight) : null,
-      estimatedValue: updatedOrder.estimated_value ? parseFloat(updatedOrder.estimated_value) : null,
-      specialInstructions: updatedOrder.special_instructions,
-      price: parseFloat(updatedOrder.price),
-      status: updatedOrder.status,
-      bids: updatedOrder.bids,
-      customerId: updatedOrder.customer_id,
-      customerName: updatedOrder.customer_name,
-      assignedDriver: null,
-      createdAt: updatedOrder.created_at
-    });
-  } catch (error) {
-    await client.query('ROLLBACK');
-    console.error('Place bid error:', error);
-    res.status(500).json({ error: 'Failed to place bid' });
-  } finally {
-    client.release();
-  }
-});datedOrder.customer_id,
-      customerName: updatedOrder.customer_name,
-      assignedDriver: null,
-      createdAt: updatedOrder.created_at
+      from: { lat: parseFloat(updatedOrder.from_lat), lng: parseFloat(updatedOrder.from_lng), name: updatedOrder.from_name },
+      to: { lat: parseFloat(updatedOrder.to_lat), lng: parseFloat(updatedOrder.to_lng), name: updatedOrder.to_name },
+      packageDescription: updatedOrder.package_description, price: parseFloat(updatedOrder.price),
+      status: updatedOrder.status, bids: updatedOrder.bids, customerId: updatedOrder.customer_id,
+      customerName: updatedOrder.customer_name, assignedDriver: null, createdAt: updatedOrder.created_at
     });
   } catch (error) {
     await client.query('ROLLBACK');
@@ -744,134 +720,58 @@ app.post('/api/orders/:id/accept-bid', verifyToken, async (req, res) => {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-
     const { userId } = req.body;
 
-    // Get order
-    const orderResult = await client.query(
-      'SELECT * FROM orders WHERE id = $1',
-      [req.params.id]
-    );
-
+    const orderResult = await client.query('SELECT * FROM orders WHERE id = $1', [req.params.id]);
     if (orderResult.rows.length === 0) {
       await client.query('ROLLBACK');
       return res.status(404).json({ error: 'Order not found' });
     }
 
     const order = orderResult.rows[0];
-
     if (order.customer_id !== req.user.userId) {
       await client.query('ROLLBACK');
       return res.status(403).json({ error: 'Only customer can accept bids' });
     }
-
-    if (order.status !== 'open') {
+    if (order.status !== 'pending_bids') {
       await client.query('ROLLBACK');
       return res.status(400).json({ error: 'Order is no longer open' });
     }
 
-    // Get the bid to accept
-    const bidResult = await client.query(
-      'SELECT * FROM bids WHERE order_id = $1 AND user_id = $2',
-      [req.params.id, userId]
-    );
-
+    const bidResult = await client.query('SELECT * FROM bids WHERE order_id = $1 AND user_id = $2', [req.params.id, userId]);
     if (bidResult.rows.length === 0) {
       await client.query('ROLLBACK');
       return res.status(404).json({ error: 'Bid not found' });
     }
 
     const acceptedBid = bidResult.rows[0];
-
-    // Update order
     await client.query(
-      `UPDATE orders 
-       SET status = 'accepted',
-           assigned_driver_user_id = $1,
-           assigned_driver_name = $2,
-           assigned_driver_bid_price = $3,
-           accepted_at = CURRENT_TIMESTAMP
-       WHERE id = $4`,
+      `UPDATE orders SET status = 'accepted', assigned_driver_user_id = $1, assigned_driver_name = $2, assigned_driver_bid_price = $3, accepted_at = CURRENT_TIMESTAMP WHERE id = $4`,
       [acceptedBid.user_id, acceptedBid.driver_name, acceptedBid.bid_price, req.params.id]
     );
+    await client.query("UPDATE bids SET status = 'accepted' WHERE order_id = $1 AND user_id = $2", [req.params.id, userId]);
+    await client.query("UPDATE bids SET status = 'rejected' WHERE order_id = $1 AND user_id != $2", [req.params.id, userId]);
+    await createNotification(acceptedBid.user_id, order.id, 'bid_accepted', 'Bid Accepted!', `Your bid of $${acceptedBid.bid_price} has been accepted for order ${order.order_number}`);
 
-    // Update bids
-    await client.query(
-      "UPDATE bids SET status = 'accepted' WHERE order_id = $1 AND user_id = $2",
-      [req.params.id, userId]
-    );
-
-    await client.query(
-      "UPDATE bids SET status = 'rejected' WHERE order_id = $1 AND user_id != $2",
-      [req.params.id, userId]
-    );
-
-    // Create notification for driver
-    await createNotification(
-      acceptedBid.user_id,
-      order.id,
-      'bid_accepted',
-      'Bid Accepted!',
-      `Your bid of ${acceptedBid.bid_price} has been accepted for order ${order.order_number}`
-    );
-
-    // Get updated order
     const updatedOrderResult = await client.query(
-      `SELECT o.*, 
-              COALESCE(json_agg(
-                json_build_object(
-                  'userId', b.user_id,
-                  'driverName', b.driver_name,
-                  'bidPrice', b.bid_price,
-                  'status', b.status,
-                  'createdAt', b.created_at
-                ) ORDER BY b.created_at DESC
-              ) FILTER (WHERE b.id IS NOT NULL), '[]') as bids
-       FROM orders o
-       LEFT JOIN bids b ON o.id = b.order_id
-       WHERE o.id = $1
-       GROUP BY o.id`,
+      `SELECT o.*, COALESCE(json_agg(json_build_object('userId', b.user_id, 'driverName', b.driver_name, 'bidPrice', b.bid_price, 'estimatedPickupTime', b.estimated_pickup_time, 'estimatedDeliveryTime', b.estimated_delivery_time, 'message', b.message, 'status', b.status, 'createdAt', b.created_at) ORDER BY b.created_at DESC) FILTER (WHERE b.id IS NOT NULL), '[]') as bids FROM orders o LEFT JOIN bids b ON o.id = b.order_id WHERE o.id = $1 GROUP BY o.id`,
       [req.params.id]
     );
-
     await client.query('COMMIT');
 
     const updatedOrder = updatedOrderResult.rows[0];
-    console.log(`✅ Bid accepted: ${acceptedBid.driver_name} (${acceptedBid.bid_price}) for "${updatedOrder.title}" (${updatedOrder.order_number})`);
+    console.log(`✅ Bid accepted: ${acceptedBid.driver_name} ($${acceptedBid.bid_price}) for "${updatedOrder.title}"`);
 
     res.json({
-      _id: updatedOrder.id,
-      orderNumber: updatedOrder.order_number,
-      title: updatedOrder.title,
-      description: updatedOrder.description,
-      pickupAddress: updatedOrder.pickup_address,
+      _id: updatedOrder.id, orderNumber: updatedOrder.order_number, title: updatedOrder.title,
+      description: updatedOrder.description, pickupAddress: updatedOrder.pickup_address,
       deliveryAddress: updatedOrder.delivery_address,
-      from: {
-        lat: parseFloat(updatedOrder.from_lat),
-        lng: parseFloat(updatedOrder.from_lng),
-        name: updatedOrder.from_name
-      },
-      to: {
-        lat: parseFloat(updatedOrder.to_lat),
-        lng: parseFloat(updatedOrder.to_lng),
-        name: updatedOrder.to_name
-      },
-      packageDescription: updatedOrder.package_description,
-      packageWeight: updatedOrder.package_weight ? parseFloat(updatedOrder.package_weight) : null,
-      estimatedValue: updatedOrder.estimated_value ? parseFloat(updatedOrder.estimated_value) : null,
-      specialInstructions: updatedOrder.special_instructions,
-      price: parseFloat(updatedOrder.price),
-      status: updatedOrder.status,
-      bids: updatedOrder.bids,
-      customerId: updatedOrder.customer_id,
-      customerName: updatedOrder.customer_name,
-      assignedDriver: {
-        userId: updatedOrder.assigned_driver_user_id,
-        driverName: updatedOrder.assigned_driver_name,
-        bidPrice: parseFloat(updatedOrder.assigned_driver_bid_price)
-      },
-      createdAt: updatedOrder.created_at,
-      acceptedAt: updatedOrder.accepted_at
+      from: { lat: parseFloat(updatedOrder.from_lat), lng: parseFloat(updatedOrder.from_lng), name: updatedOrder.from_name },
+      to: { lat: parseFloat(updatedOrder.to_lat), lng: parseFloat(updatedOrder.to_lng), name: updatedOrder.to_name },
+      price: parseFloat(updatedOrder.price), status: updatedOrder.status, bids: updatedOrder.bids,
+      customerId: updatedOrder.customer_id, customerName: updatedOrder.customer_name,
+      assignedDriver: { userId: updatedOrder.assigned_driver_user_id, driverName: updatedOrder.assigned_driver_name, bidPrice: parseFloat(updatedOrder.assigned_driver_bid_price) },
+      createdAt: updatedOrder.created_at, acceptedAt: updatedOrder.accepted_at
     });
   } catch (error) {
     await client.query('ROLLBACK');
@@ -882,125 +782,59 @@ app.post('/api/orders/:id/accept-bid', verifyToken, async (req, res) => {
   }
 });
 
-// Complete order
-app.post('/api/orders/:id/complete', verifyToken, async (req, res) => {
-  const client = await pool.connect();
+// Delete order
+app.delete('/api/orders/:id', verifyToken, async (req, res) => {
   try {
-    await client.query('BEGIN');
-
-    const orderResult = await client.query(
-      'SELECT * FROM orders WHERE id = $1',
-      [req.params.id]
-    );
-
-    if (orderResult.rows.length === 0) {
-      await client.query('ROLLBACK');
-      return res.status(404).json({ error: 'Order not found' });
-    }
+    const orderResult = await pool.query('SELECT * FROM orders WHERE id = $1', [req.params.id]);
+    if (orderResult.rows.length === 0) return res.status(404).json({ error: 'Order not found' });
 
     const order = orderResult.rows[0];
+    if (order.customer_id !== req.user.userId) return res.status(403).json({ error: 'Only customer can delete order' });
+    if (order.status !== 'pending_bids') return res.status(400).json({ error: 'Cannot delete order that has been accepted' });
 
-    if (order.status !== 'in_transit' && order.status !== 'picked_up') {
-      await client.query('ROLLBACK');
-      return res.status(400).json({ error: 'Order must be picked up or in transit before completion' });
-    }
-
-    if (order.assigned_driver_user_id !== req.user.userId) {
-      await client.query('ROLLBACK');
-      return res.status(403).json({ error: 'Only assigned driver can complete order' });
-    }
-
-    // Mark order as delivered
-    await client.query(
-      `UPDATE orders SET status = 'delivered', delivered_at = CURRENT_TIMESTAMP WHERE id = $1`,
-      [req.params.id]
-    );
-
-    // Update driver stats
-    await client.query(
-      'UPDATE users SET completed_deliveries = completed_deliveries + 1 WHERE id = $1',
-      [req.user.userId]
-    );
-
-    // Create notification for customer
-    await createNotification(
-      order.customer_id,
-      order.id,
-      'order_delivered',
-      'Order Delivered',
-      `Your order ${order.order_number} has been delivered successfully!`
-    );
-
-    await client.query('COMMIT');
-
-    console.log(`✅ Order delivered: "${order.title}" (${order.order_number}) by ${req.user.name}`);
-    res.json({
-      _id: order.id,
-      orderNumber: order.order_number,
-      status: 'delivered',
-      deliveredAt: new Date().toISOString()
-    });
+    await pool.query('DELETE FROM orders WHERE id = $1', [req.params.id]);
+    console.log(`✅ Order deleted: "${order.title}" by ${req.user.name}`);
+    res.json({ message: 'Order deleted successfully' });
   } catch (error) {
-    await client.query('ROLLBACK');
-    console.error('Complete order error:', error);
-    res.status(500).json({ error: 'Failed to complete order' });
-  } finally {
-    client.release();
+    console.error('Delete order error:', error);
+    res.status(500).json({ error: 'Failed to delete order' });
   }
 });
+
+// ============ END OF PART 3 ============
+// Continue with Part 4 for Delivery Workflow & Tracking
+
+// ============ PART 4: Delivery Workflow & Tracking (COMPLETE) ============
+// Add this after Part 3
 
 // Mark order as picked up
 app.post('/api/orders/:id/pickup', verifyToken, async (req, res) => {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-
-    const orderResult = await client.query(
-      'SELECT * FROM orders WHERE id = $1',
-      [req.params.id]
-    );
-
+    const orderResult = await client.query('SELECT * FROM orders WHERE id = $1', [req.params.id]);
+    
     if (orderResult.rows.length === 0) {
       await client.query('ROLLBACK');
       return res.status(404).json({ error: 'Order not found' });
     }
 
     const order = orderResult.rows[0];
-
     if (order.status !== 'accepted') {
       await client.query('ROLLBACK');
       return res.status(400).json({ error: 'Order must be accepted before pickup' });
     }
-
     if (order.assigned_driver_user_id !== req.user.userId) {
       await client.query('ROLLBACK');
       return res.status(403).json({ error: 'Only assigned driver can mark pickup' });
     }
 
-    // Mark order as picked up
-    await client.query(
-      `UPDATE orders SET status = 'picked_up', picked_up_at = CURRENT_TIMESTAMP WHERE id = $1`,
-      [req.params.id]
-    );
-
-    // Create notification for customer
-    await createNotification(
-      order.customer_id,
-      order.id,
-      'order_picked_up',
-      'Package Picked Up',
-      `${req.user.name} has picked up your package for order ${order.order_number}`
-    );
-
+    await client.query(`UPDATE orders SET status = 'picked_up', picked_up_at = CURRENT_TIMESTAMP WHERE id = $1`, [req.params.id]);
+    await createNotification(order.customer_id, order.id, 'order_picked_up', 'Package Picked Up', `${req.user.name} has picked up your package for order ${order.order_number}`);
     await client.query('COMMIT');
 
     console.log(`✅ Order picked up: "${order.title}" (${order.order_number}) by ${req.user.name}`);
-    res.json({
-      _id: order.id,
-      orderNumber: order.order_number,
-      status: 'picked_up',
-      pickedUpAt: new Date().toISOString()
-    });
+    res.json({ _id: order.id, orderNumber: order.order_number, status: 'picked_up', pickedUpAt: new Date().toISOString() });
   } catch (error) {
     await client.query('ROLLBACK');
     console.error('Pickup order error:', error);
@@ -1015,52 +849,29 @@ app.post('/api/orders/:id/in-transit', verifyToken, async (req, res) => {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-
-    const orderResult = await client.query(
-      'SELECT * FROM orders WHERE id = $1',
-      [req.params.id]
-    );
-
+    const orderResult = await client.query('SELECT * FROM orders WHERE id = $1', [req.params.id]);
+    
     if (orderResult.rows.length === 0) {
       await client.query('ROLLBACK');
       return res.status(404).json({ error: 'Order not found' });
     }
 
     const order = orderResult.rows[0];
-
     if (order.status !== 'picked_up') {
       await client.query('ROLLBACK');
       return res.status(400).json({ error: 'Order must be picked up before marking as in transit' });
     }
-
     if (order.assigned_driver_user_id !== req.user.userId) {
       await client.query('ROLLBACK');
       return res.status(403).json({ error: 'Only assigned driver can update status' });
     }
 
-    // Mark order as in transit
-    await client.query(
-      `UPDATE orders SET status = 'in_transit' WHERE id = $1`,
-      [req.params.id]
-    );
-
-    // Create notification for customer
-    await createNotification(
-      order.customer_id,
-      order.id,
-      'order_in_transit',
-      'Package In Transit',
-      `Your package for order ${order.order_number} is now in transit`
-    );
-
+    await client.query(`UPDATE orders SET status = 'in_transit' WHERE id = $1`, [req.params.id]);
+    await createNotification(order.customer_id, order.id, 'order_in_transit', 'Package In Transit', `Your package for order ${order.order_number} is now in transit`);
     await client.query('COMMIT');
 
     console.log(`✅ Order in transit: "${order.title}" (${order.order_number})`);
-    res.json({
-      _id: order.id,
-      orderNumber: order.order_number,
-      status: 'in_transit'
-    });
+    res.json({ _id: order.id, orderNumber: order.order_number, status: 'in_transit' });
   } catch (error) {
     await client.query('ROLLBACK');
     console.error('In transit error:', error);
@@ -1070,47 +881,62 @@ app.post('/api/orders/:id/in-transit', verifyToken, async (req, res) => {
   }
 });
 
-// Update driver location
-app.post('/api/orders/:id/location', verifyToken, async (req, res) => {
+// Complete order (mark as delivered)
+app.post('/api/orders/:id/complete', verifyToken, async (req, res) => {
+  const client = await pool.connect();
   try {
-    const { latitude, longitude } = req.body;
-
-    if (!latitude || !longitude) {
-      return res.status(400).json({ error: 'Latitude and longitude are required' });
-    }
-
-    const orderResult = await pool.query(
-      'SELECT * FROM orders WHERE id = $1',
-      [req.params.id]
-    );
-
+    await client.query('BEGIN');
+    const orderResult = await client.query('SELECT * FROM orders WHERE id = $1', [req.params.id]);
+    
     if (orderResult.rows.length === 0) {
+      await client.query('ROLLBACK');
       return res.status(404).json({ error: 'Order not found' });
     }
 
     const order = orderResult.rows[0];
+    if (order.status !== 'in_transit' && order.status !== 'picked_up') {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'Order must be picked up or in transit before completion' });
+    }
+    if (order.assigned_driver_user_id !== req.user.userId) {
+      await client.query('ROLLBACK');
+      return res.status(403).json({ error: 'Only assigned driver can complete order' });
+    }
 
+    await client.query(`UPDATE orders SET status = 'delivered', delivered_at = CURRENT_TIMESTAMP WHERE id = $1`, [req.params.id]);
+    await client.query('UPDATE users SET completed_deliveries = completed_deliveries + 1 WHERE id = $1', [req.user.userId]);
+    await createNotification(order.customer_id, order.id, 'order_delivered', 'Order Delivered', `Your order ${order.order_number} has been delivered successfully!`);
+    await client.query('COMMIT');
+
+    console.log(`✅ Order delivered: "${order.title}" (${order.order_number}) by ${req.user.name}`);
+    res.json({ _id: order.id, orderNumber: order.order_number, status: 'delivered', deliveredAt: new Date().toISOString() });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Complete order error:', error);
+    res.status(500).json({ error: 'Failed to complete order' });
+  } finally {
+    client.release();
+  }
+});
+
+// Update driver location
+app.post('/api/orders/:id/location', verifyToken, async (req, res) => {
+  try {
+    const { latitude, longitude } = req.body;
+    if (!latitude || !longitude) return res.status(400).json({ error: 'Latitude and longitude are required' });
+
+    const orderResult = await pool.query('SELECT * FROM orders WHERE id = $1', [req.params.id]);
+    if (orderResult.rows.length === 0) return res.status(404).json({ error: 'Order not found' });
+
+    const order = orderResult.rows[0];
     if (order.assigned_driver_user_id !== req.user.userId) {
       return res.status(403).json({ error: 'Only assigned driver can update location' });
     }
 
-    // Update order current location
-    await pool.query(
-      `UPDATE orders SET current_location_lat = $1, current_location_lng = $2 WHERE id = $3`,
-      [parseFloat(latitude), parseFloat(longitude), req.params.id]
-    );
+    await pool.query(`UPDATE orders SET current_location_lat = $1, current_location_lng = $2 WHERE id = $3`, [parseFloat(latitude), parseFloat(longitude), req.params.id]);
+    await pool.query(`INSERT INTO location_updates (order_id, driver_id, latitude, longitude, status) VALUES ($1, $2, $3, $4, $5)`, [req.params.id, req.user.userId, parseFloat(latitude), parseFloat(longitude), order.status]);
 
-    // Add location update record
-    await pool.query(
-      `INSERT INTO location_updates (order_id, driver_id, latitude, longitude, status)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [req.params.id, req.user.userId, parseFloat(latitude), parseFloat(longitude), order.status]
-    );
-
-    res.json({
-      message: 'Location updated successfully',
-      location: { latitude: parseFloat(latitude), longitude: parseFloat(longitude) }
-    });
+    res.json({ message: 'Location updated successfully', location: { latitude: parseFloat(latitude), longitude: parseFloat(longitude) } });
   } catch (error) {
     console.error('Update location error:', error);
     res.status(500).json({ error: 'Failed to update location' });
@@ -1120,63 +946,50 @@ app.post('/api/orders/:id/location', verifyToken, async (req, res) => {
 // Get order tracking details
 app.get('/api/orders/:id/tracking', verifyToken, async (req, res) => {
   try {
-    const orderResult = await pool.query(
-      'SELECT * FROM orders WHERE id = $1',
-      [req.params.id]
-    );
-
-    if (orderResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Order not found' });
-    }
+    const orderResult = await pool.query('SELECT * FROM orders WHERE id = $1', [req.params.id]);
+    if (orderResult.rows.length === 0) return res.status(404).json({ error: 'Order not found' });
 
     const order = orderResult.rows[0];
-
-    // Check authorization
     if (order.customer_id !== req.user.userId && order.assigned_driver_user_id !== req.user.userId) {
       return res.status(403).json({ error: 'Unauthorized to view tracking' });
     }
 
-    // Get location updates
     const locationResult = await pool.query(
-      `SELECT latitude, longitude, status, created_at 
-       FROM location_updates 
-       WHERE order_id = $1 
-       ORDER BY created_at DESC 
-       LIMIT 50`,
+      `SELECT latitude, longitude, status, created_at FROM location_updates WHERE order_id = $1 ORDER BY created_at DESC LIMIT 50`,
       [req.params.id]
     );
 
     res.json({
-      orderNumber: order.order_number,
+      orderNumber: order.order_number, 
       status: order.status,
-      currentLocation: order.current_location_lat ? {
-        lat: parseFloat(order.current_location_lat),
-        lng: parseFloat(order.current_location_lng)
+      currentLocation: order.current_location_lat ? { 
+        lat: parseFloat(order.current_location_lat), 
+        lng: parseFloat(order.current_location_lng) 
       } : null,
-      pickup: {
-        address: order.pickup_address,
-        location: {
-          lat: parseFloat(order.from_lat),
-          lng: parseFloat(order.from_lng)
-        }
+      pickup: { 
+        address: order.pickup_address, 
+        location: { 
+          lat: parseFloat(order.from_lat), 
+          lng: parseFloat(order.from_lng) 
+        } 
       },
-      delivery: {
-        address: order.delivery_address,
-        location: {
-          lat: parseFloat(order.to_lat),
-          lng: parseFloat(order.to_lng)
-        }
+      delivery: { 
+        address: order.delivery_address, 
+        location: { 
+          lat: parseFloat(order.to_lat), 
+          lng: parseFloat(order.to_lng) 
+        } 
       },
       estimatedDelivery: order.estimated_delivery_date,
-      createdAt: order.created_at,
-      acceptedAt: order.accepted_at,
-      pickedUpAt: order.picked_up_at,
+      createdAt: order.created_at, 
+      acceptedAt: order.accepted_at, 
+      pickedUpAt: order.picked_up_at, 
       deliveredAt: order.delivered_at,
-      locationHistory: locationResult.rows.map(loc => ({
-        lat: parseFloat(loc.latitude),
-        lng: parseFloat(loc.longitude),
-        status: loc.status,
-        timestamp: loc.created_at
+      locationHistory: locationResult.rows.map(loc => ({ 
+        lat: parseFloat(loc.latitude), 
+        lng: parseFloat(loc.longitude), 
+        status: loc.status, 
+        timestamp: loc.created_at 
       }))
     });
   } catch (error) {
@@ -1185,25 +998,22 @@ app.get('/api/orders/:id/tracking', verifyToken, async (req, res) => {
   }
 });
 
+// ============ END OF PART 4 (COMPLETE) ============
+// Continue with Part 5 for Notifications & Reviews
+
+// ============ PART 5: Notifications & Reviews (FINAL) ============
+// Add this after Part 4
+
 // Get notifications
 app.get('/api/notifications', verifyToken, async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT * FROM notifications 
-       WHERE user_id = $1 
-       ORDER BY created_at DESC 
-       LIMIT 50`,
+      `SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC LIMIT 50`,
       [req.user.userId]
     );
-
     res.json(result.rows.map(notif => ({
-      id: notif.id,
-      orderId: notif.order_id,
-      type: notif.type,
-      title: notif.title,
-      message: notif.message,
-      isRead: notif.is_read,
-      createdAt: notif.created_at
+      id: notif.id, orderId: notif.order_id, type: notif.type, title: notif.title,
+      message: notif.message, isRead: notif.is_read, createdAt: notif.created_at
     })));
   } catch (error) {
     console.error('Get notifications error:', error);
@@ -1215,17 +1025,10 @@ app.get('/api/notifications', verifyToken, async (req, res) => {
 app.put('/api/notifications/:id/read', verifyToken, async (req, res) => {
   try {
     const result = await pool.query(
-      `UPDATE notifications 
-       SET is_read = true 
-       WHERE id = $1 AND user_id = $2
-       RETURNING *`,
+      `UPDATE notifications SET is_read = true WHERE id = $1 AND user_id = $2 RETURNING *`,
       [req.params.id, req.user.userId]
     );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Notification not found' });
-    }
-
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Notification not found' });
     res.json({ message: 'Notification marked as read' });
   } catch (error) {
     console.error('Mark notification read error:', error);
@@ -1233,122 +1036,355 @@ app.put('/api/notifications/:id/read', verifyToken, async (req, res) => {
   }
 });
 
-// Get single order details
-app.get('/api/orders/:id', verifyToken, async (req, res) => {
+// Submit review
+app.post('/api/orders/:id/review', verifyToken, async (req, res) => {
+  const client = await pool.connect();
   try {
-    const result = await pool.query(
-      `SELECT o.*, 
-              COALESCE(json_agg(
-                json_build_object(
-                  'userId', b.user_id,
-                  'driverName', b.driver_name,
-                  'bidPrice', b.bid_price,
-                  'estimatedPickupTime', b.estimated_pickup_time,
-                  'estimatedDeliveryTime', b.estimated_delivery_time,
-                  'message', b.message,
-                  'status', b.status,
-                  'createdAt', b.created_at
-                ) ORDER BY b.created_at DESC
-              ) FILTER (WHERE b.id IS NOT NULL), '[]') as bids
-       FROM orders o
-       LEFT JOIN bids b ON o.id = b.order_id
-       WHERE o.id = $1
-       GROUP BY o.id`,
-      [req.params.id]
-    );
+    await client.query('BEGIN');
+    const { reviewType, rating, comment, professionalismRating, communicationRating, timelinessRating, conditionRating } = req.body;
 
-    if (result.rows.length === 0) {
+    if (!rating || rating < 1 || rating > 5) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'Rating must be between 1 and 5' });
+    }
+    if (!reviewType || !['customer_to_driver', 'driver_to_customer', 'customer_to_platform', 'driver_to_platform'].includes(reviewType)) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'Invalid review type' });
+    }
+
+    const orderResult = await client.query('SELECT * FROM orders WHERE id = $1', [req.params.id]);
+    if (orderResult.rows.length === 0) {
+      await client.query('ROLLBACK');
       return res.status(404).json({ error: 'Order not found' });
     }
 
-    const order = result.rows[0];
-
-    // Check authorization
-    if (order.customer_id !== req.user.userId && 
-        order.assigned_driver_user_id !== req.user.userId &&
-        !order.bids.some(bid => bid.userId === req.user.userId) &&
-        order.status !== 'pending_bids') {
-      return res.status(403).json({ error: 'Unauthorized to view this order' });
+    const order = orderResult.rows[0];
+    if (order.status !== 'delivered') {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'Can only review completed orders' });
     }
 
-    res.json({
-      _id: order.id,
-      orderNumber: order.order_number,
-      title: order.title,
-      description: order.description,
-      pickupAddress: order.pickup_address,
-      deliveryAddress: order.delivery_address,
-      from: {
-        lat: parseFloat(order.from_lat),
-        lng: parseFloat(order.from_lng),
-        name: order.from_name
-      },
-      to: {
-        lat: parseFloat(order.to_lat),
-        lng: parseFloat(order.to_lng),
-        name: order.to_name
-      },
-      packageDescription: order.package_description,
-      packageWeight: order.package_weight ? parseFloat(order.package_weight) : null,
-      estimatedValue: order.estimated_value ? parseFloat(order.estimated_value) : null,
-      specialInstructions: order.special_instructions,
-      price: parseFloat(order.price),
-      status: order.status,
-      bids: order.bids,
-      customerId: order.customer_id,
-      customerName: order.customer_name,
-      assignedDriver: order.assigned_driver_user_id ? {
-        userId: order.assigned_driver_user_id,
-        driverName: order.assigned_driver_name,
-        bidPrice: parseFloat(order.assigned_driver_bid_price)
-      } : null,
-      estimatedDeliveryDate: order.estimated_delivery_date,
-      currentLocation: order.current_location_lat ? {
-        lat: parseFloat(order.current_location_lat),
-        lng: parseFloat(order.current_location_lng)
-      } : null,
-      createdAt: order.created_at,
-      acceptedAt: order.accepted_at,
-      pickedUpAt: order.picked_up_at,
-      deliveredAt: order.delivered_at
-    });
+    let revieweeId = null;
+    if (reviewType === 'customer_to_driver') {
+      if (order.customer_id !== req.user.userId) {
+        await client.query('ROLLBACK');
+        return res.status(403).json({ error: 'Only customer can review driver' });
+      }
+      revieweeId = order.assigned_driver_user_id;
+    } else if (reviewType === 'driver_to_customer') {
+      if (order.assigned_driver_user_id !== req.user.userId) {
+        await client.query('ROLLBACK');
+        return res.status(403).json({ error: 'Only assigned driver can review customer' });
+      }
+      revieweeId = order.customer_id;
+    } else if (reviewType === 'customer_to_platform') {
+      if (order.customer_id !== req.user.userId) {
+        await client.query('ROLLBACK');
+        return res.status(403).json({ error: 'Unauthorized' });
+      }
+    } else if (reviewType === 'driver_to_platform') {
+      if (order.assigned_driver_user_id !== req.user.userId) {
+        await client.query('ROLLBACK');
+        return res.status(403).json({ error: 'Unauthorized' });
+      }
+    }
+
+    const existingReview = await client.query(
+      'SELECT id FROM reviews WHERE order_id = $1 AND reviewer_id = $2 AND review_type = $3',
+      [req.params.id, req.user.userId, reviewType]
+    );
+    if (existingReview.rows.length > 0) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'Review already submitted' });
+    }
+
+    const reviewResult = await client.query(
+      `INSERT INTO reviews (order_id, reviewer_id, reviewee_id, reviewer_role, review_type, rating, comment, professionalism_rating, communication_rating, timeliness_rating, condition_rating) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
+      [req.params.id, req.user.userId, revieweeId, req.user.role, reviewType, rating, comment || null, professionalismRating || null, communicationRating || null, timelinessRating || null, conditionRating || null]
+    );
+
+    if (revieweeId) {
+      const ratingsResult = await client.query('SELECT AVG(rating) as avg_rating FROM reviews WHERE reviewee_id = $1', [revieweeId]);
+      const newRating = parseFloat(ratingsResult.rows[0].avg_rating);
+      await client.query('UPDATE users SET rating = $1 WHERE id = $2', [newRating, revieweeId]);
+      await createNotification(revieweeId, order.id, 'new_review', 'New Review Received', `You received a ${rating}-star review for order ${order.order_number}`);
+    }
+
+    await client.query('COMMIT');
+    console.log(`✅ Review submitted: ${reviewType} for order ${order.order_number} by ${req.user.name}`);
+    res.status(201).json({ message: 'Review submitted successfully', review: { id: reviewResult.rows[0].id, reviewType, rating, createdAt: reviewResult.rows[0].created_at } });
   } catch (error) {
-    console.error('Get order error:', error);
-    res.status(500).json({ error: 'Failed to get order' });
+    await client.query('ROLLBACK');
+    console.error('Submit review error:', error);
+    res.status(500).json({ error: 'Failed to submit review' });
+  } finally {
+    client.release();
   }
 });
 
-// Delete order
-app.delete('/api/orders/:id', verifyToken, async (req, res) => {
+// Get reviews for an order
+app.get('/api/orders/:id/reviews', verifyToken, async (req, res) => {
   try {
-    const orderResult = await pool.query(
-      'SELECT * FROM orders WHERE id = $1',
+    const orderResult = await pool.query('SELECT * FROM orders WHERE id = $1', [req.params.id]);
+    if (orderResult.rows.length === 0) return res.status(404).json({ error: 'Order not found' });
+
+    const order = orderResult.rows[0];
+    if (order.customer_id !== req.user.userId && order.assigned_driver_user_id !== req.user.userId) {
+      return res.status(403).json({ error: 'Unauthorized to view reviews' });
+    }
+
+    const reviewsResult = await pool.query(
+      `SELECT r.*, reviewer.name as reviewer_name, reviewee.name as reviewee_name FROM reviews r LEFT JOIN users reviewer ON r.reviewer_id = reviewer.id LEFT JOIN users reviewee ON r.reviewee_id = reviewee.id WHERE r.order_id = $1 ORDER BY r.created_at DESC`,
       [req.params.id]
     );
 
+    res.json(reviewsResult.rows.map(review => ({
+      id: review.id, reviewType: review.review_type, reviewerName: review.reviewer_name, revieweeName: review.reviewee_name,
+      reviewerRole: review.reviewer_role, rating: review.rating, comment: review.comment,
+      professionalismRating: review.professionalism_rating, communicationRating: review.communication_rating,
+      timelinessRating: review.timeliness_rating, conditionRating: review.condition_rating, createdAt: review.created_at
+    })));
+  } catch (error) {
+    console.error('Get reviews error:', error);
+    res.status(500).json({ error: 'Failed to get reviews' });
+  }
+});
+
+// Check review status for an order
+app.get('/api/orders/:id/review-status', verifyToken, async (req, res) => {
+  try {
+    const orderResult = await pool.query('SELECT * FROM orders WHERE id = $1', [req.params.id]);
+    if (orderResult.rows.length === 0) return res.status(404).json({ error: 'Order not found' });
+
+    const order = orderResult.rows[0];
+    if (order.customer_id !== req.user.userId && order.assigned_driver_user_id !== req.user.userId) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    const isCustomer = order.customer_id === req.user.userId;
+    const isDriver = order.assigned_driver_user_id === req.user.userId;
+
+    const reviewsResult = await pool.query('SELECT review_type FROM reviews WHERE order_id = $1 AND reviewer_id = $2', [req.params.id, req.user.userId]);
+    const submittedReviews = reviewsResult.rows.map(r => r.review_type);
+
+    const status = {
+      canReview: order.status === 'delivered',
+      userRole: req.user.role,
+      reviews: {
+        toDriver: isCustomer ? submittedReviews.includes('customer_to_driver') : null,
+        toCustomer: isDriver ? submittedReviews.includes('driver_to_customer') : null,
+        toPlatform: submittedReviews.includes(`${req.user.role}_to_platform`)
+      }
+    };
+
+    res.json(status);
+  } catch (error) {
+    console.error('Check review status error:', error);
+    res.status(500).json({ error: 'Failed to check review status' });
+  }
+});
+
+// ============ PART 6: Payments (Cash on Delivery) ============
+// Add this after Part 5
+
+// Process COD payment (mark as payment received)
+app.post('/api/orders/:id/payment/cod', verifyToken, async (req, res) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const orderResult = await client.query('SELECT * FROM orders WHERE id = $1', [req.params.id]);
     if (orderResult.rows.length === 0) {
+      await client.query('ROLLBACK');
       return res.status(404).json({ error: 'Order not found' });
     }
 
     const order = orderResult.rows[0];
 
-    if (order.customer_id !== req.user.userId) {
-      return res.status(403).json({ error: 'Only customer can delete order' });
+    // Only the assigned driver can confirm COD payment on delivery
+    if (order.assigned_driver_user_id !== req.user.userId) {
+      await client.query('ROLLBACK');
+      return res.status(403).json({ error: 'Only assigned driver can confirm payment' });
     }
 
-    if (order.status !== 'pending_bids') {
-      return res.status(400).json({ error: 'Cannot delete order that has been accepted' });
+    if (order.status !== 'delivered') {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'Order must be delivered before payment can be confirmed' });
     }
 
-    await pool.query('DELETE FROM orders WHERE id = $1', [req.params.id]);
+    // Check if payment already exists
+    const existingPayment = await client.query('SELECT * FROM payments WHERE order_id = $1', [req.params.id]);
+    if (existingPayment.rows.length > 0) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'Payment already recorded' });
+    }
 
-    console.log(`✅ Order deleted: "${order.title}" by ${req.user.name}`);
-    res.json({ message: 'Order deleted successfully' });
+    // Calculate platform fee (0% for current stage) and driver earnings
+    const totalAmount = parseFloat(order.assigned_driver_bid_price);
+    const platformFee = 0; // 0% platform fee for current stage
+    const driverEarnings = totalAmount;
+
+    const paymentId = generateId();
+    await client.query(
+      `INSERT INTO payments (id, order_id, amount, currency, payment_method, status, payer_id, payee_id, platform_fee, driver_earnings, processed_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP)`,
+      [paymentId, req.params.id, totalAmount, 'USD', 'cash', 'completed', order.customer_id, order.assigned_driver_user_id, platformFee, driverEarnings]
+    );
+
+    await createNotification(order.customer_id, order.id, 'payment_completed', 'Payment Confirmed', `Payment of $${totalAmount.toFixed(2)} has been confirmed for order ${order.order_number}`);
+
+    await client.query('COMMIT');
+
+    console.log(`✅ COD Payment confirmed: $${totalAmount.toFixed(2)} for order ${order.order_number}`);
+    res.json({
+      message: 'COD payment confirmed successfully',
+      payment: {
+        id: paymentId,
+        amount: totalAmount,
+        platformFee: platformFee,
+        driverEarnings: driverEarnings,
+        status: 'completed'
+      }
+    });
+
   } catch (error) {
-    console.error('Delete order error:', error);
-    res.status(500).json({ error: 'Failed to delete order' });
+    await client.query('ROLLBACK');
+    console.error('COD payment error:', error);
+    res.status(500).json({ error: 'Failed to confirm COD payment' });
+  } finally {
+    client.release();
   }
 });
+
+// Get payment status for an order
+app.get('/api/orders/:id/payment', verifyToken, async (req, res) => {
+  try {
+    const orderResult = await pool.query('SELECT * FROM orders WHERE id = $1', [req.params.id]);
+    if (orderResult.rows.length === 0) return res.status(404).json({ error: 'Order not found' });
+
+    const order = orderResult.rows[0];
+    if (order.customer_id !== req.user.userId && order.assigned_driver_user_id !== req.user.userId) {
+      return res.status(403).json({ error: 'Unauthorized to view payment' });
+    }
+
+    const paymentResult = await pool.query(
+      `SELECT p.*, u.name as driver_name FROM payments p
+       LEFT JOIN users u ON p.payee_id = u.id
+       WHERE p.order_id = $1`,
+      [req.params.id]
+    );
+
+    if (paymentResult.rows.length === 0) {
+      return res.json({ status: 'pending', paymentMethod: 'cash' });
+    }
+
+    const payment = paymentResult.rows[0];
+    res.json({
+      id: payment.id,
+      amount: parseFloat(payment.amount),
+      currency: payment.currency,
+      paymentMethod: payment.payment_method,
+      status: payment.status,
+      platformFee: parseFloat(payment.platform_fee),
+      driverEarnings: parseFloat(payment.driver_earnings),
+      processedAt: payment.processed_at
+    });
+
+  } catch (error) {
+    console.error('Get payment error:', error);
+    res.status(500).json({ error: 'Failed to get payment information' });
+  }
+});
+
+// Get user's earnings/payments summary (for drivers)
+app.get('/api/payments/earnings', verifyToken, async (req, res) => {
+  try {
+    if (req.user.role !== 'driver') {
+      return res.status(403).json({ error: 'Only drivers can access earnings' });
+    }
+
+    const earningsResult = await pool.query(
+      `SELECT
+        COUNT(*) as total_deliveries,
+        COALESCE(SUM(amount), 0) as total_earnings,
+        COALESCE(SUM(driver_earnings), 0) as driver_earnings,
+        COALESCE(SUM(platform_fee), 0) as platform_fee,
+        COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_payments,
+        COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_payments
+       FROM payments WHERE payee_id = $1`,
+      [req.user.userId]
+    );
+
+    const stats = earningsResult.rows[0];
+
+    // Get recent payments
+    const recentPayments = await pool.query(
+      `SELECT p.*, o.order_number, o.title, o.created_at as order_created_at
+       FROM payments p
+       JOIN orders o ON p.order_id = o.id
+       WHERE p.payee_id = $1
+       ORDER BY p.processed_at DESC LIMIT 10`,
+      [req.user.userId]
+    );
+
+    res.json({
+      summary: {
+        totalDeliveries: parseInt(stats.total_deliveries),
+        totalEarnings: parseFloat(stats.total_earnings),
+        driverEarnings: parseFloat(stats.driver_earnings),
+        platformFee: parseFloat(stats.platform_fee),
+        netEarnings: parseFloat(stats.driver_earnings),
+        completedPayments: parseInt(stats.completed_payments),
+        pendingPayments: parseInt(stats.pending_payments)
+      },
+      recentPayments: recentPayments.rows.map(payment => ({
+        id: payment.id,
+        orderNumber: payment.order_number,
+        orderTitle: payment.title,
+        amount: parseFloat(payment.amount),
+        driverEarnings: parseFloat(payment.driver_earnings),
+        status: payment.status,
+        processedAt: payment.processed_at
+      }))
+    });
+
+  } catch (error) {
+    console.error('Get earnings error:', error);
+    res.status(500).json({ error: 'Failed to get earnings information' });
+  }
+});
+
+// Get customer's payment history
+app.get('/api/payments/history', verifyToken, async (req, res) => {
+  try {
+    const paymentsResult = await pool.query(
+      `SELECT p.*, o.order_number, o.title, u.name as driver_name
+       FROM payments p
+       JOIN orders o ON p.order_id = o.id
+       LEFT JOIN users u ON p.payee_id = u.id
+       WHERE p.payer_id = $1
+       ORDER BY p.processed_at DESC LIMIT 20`,
+      [req.user.userId]
+    );
+
+    res.json(paymentsResult.rows.map(payment => ({
+      id: payment.id,
+      orderNumber: payment.order_number,
+      orderTitle: payment.title,
+      driverName: payment.driver_name,
+      amount: parseFloat(payment.amount),
+      paymentMethod: payment.payment_method,
+      status: payment.status,
+      processedAt: payment.processed_at
+    })));
+
+  } catch (error) {
+    console.error('Get payment history error:', error);
+    res.status(500).json({ error: 'Failed to get payment history' });
+  }
+});
+
+// ============ END OF PART 6 ============
+// Continue with Error Handling
 
 // Error handling
 app.use((req, res) => {
@@ -1357,9 +1393,7 @@ app.use((req, res) => {
 
 app.use((err, req, res, next) => {
   console.error('Server error:', err);
-  res.status(500).json({
-    error: IS_PRODUCTION ? 'Internal server error' : err.message
-  });
+  res.status(500).json({ error: IS_PRODUCTION ? 'Internal server error' : err.message });
 });
 
 const PORT = process.env.PORT || 5000;
@@ -1392,6 +1426,9 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log('   DELETE /api/orders/:id');
   console.log('   GET    /api/notifications');
   console.log('   PUT    /api/notifications/:id/read');
+  console.log('   POST   /api/orders/:id/review');
+  console.log('   GET    /api/orders/:id/reviews');
+  console.log('   GET    /api/orders/:id/review-status');
   console.log('');
   console.log('╚════════════════════════════════════════════════════╝');
   console.log('');
@@ -1408,3 +1445,6 @@ process.on('SIGINT', async () => {
 });
 
 module.exports = app;
+
+// ============ END OF SERVER.JS ============
+// Complete server.js by combining Parts 1 + 2 + 3 + 4 + 5

@@ -1,8 +1,10 @@
+// ============ APP.JS PART 1: Setup & State Management ============
 import React, { useState, useEffect } from 'react';
 
 const DeliveryApp = () => {
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
   
+  // State variables
   const [authState, setAuthState] = useState('login');
   const [token, setToken] = useState(localStorage.getItem('token') || null);
   const [currentUser, setCurrentUser] = useState(null);
@@ -16,6 +18,21 @@ const DeliveryApp = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [trackingData, setTrackingData] = useState(null);
   const [showTracking, setShowTracking] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewOrderId, setReviewOrderId] = useState(null);
+  const [reviewType, setReviewType] = useState('');
+  const [reviewStatus, setReviewStatus] = useState(null);
+  const [orderReviews, setOrderReviews] = useState([]);
+  const [showReviewsModal, setShowReviewsModal] = useState(false);
+  
+  const [reviewForm, setReviewForm] = useState({
+    rating: 0,
+    comment: '',
+    professionalismRating: 0,
+    communicationRating: 0,
+    timelinessRating: 0,
+    conditionRating: 0
+  });
   
   const [authForm, setAuthForm] = useState({
     name: '',
@@ -44,6 +61,7 @@ const DeliveryApp = () => {
   const [bidInput, setBidInput] = useState({});
   const [bidDetails, setBidDetails] = useState({});
 
+  // Effects
   useEffect(() => {
     if (token) {
       fetchCurrentUser();
@@ -56,6 +74,13 @@ const DeliveryApp = () => {
     }
   }, [token]);
 
+  // ============ END OF PART 1 ============
+  // Continue with Part 2 for API Functions
+
+  // ============ APP.JS PART 2: API Functions ============
+// Add this after Part 1
+
+  // Fetch Functions
   const fetchCurrentUser = async () => {
     try {
       const response = await fetch(`${API_URL}/auth/me`, {
@@ -123,6 +148,115 @@ const DeliveryApp = () => {
       setError(err.message);
     }
   };
+
+  const fetchReviewStatus = async (orderId) => {
+    try {
+      const response = await fetch(`${API_URL}/orders/${orderId}/review-status`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) return;
+      const data = await response.json();
+      setReviewStatus(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchOrderReviews = async (orderId) => {
+    try {
+      const response = await fetch(`${API_URL}/orders/${orderId}/reviews`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) return;
+      const data = await response.json();
+      setOrderReviews(data);
+      setShowReviewsModal(true);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const openReviewModal = async (orderId, type) => {
+    setReviewOrderId(orderId);
+    setReviewType(type);
+    setReviewForm({
+      rating: 0,
+      comment: '',
+      professionalismRating: 0,
+      communicationRating: 0,
+      timelinessRating: 0,
+      conditionRating: 0
+    });
+    await fetchReviewStatus(orderId);
+    setShowReviewModal(true);
+  };
+
+  const handleSubmitReview = async () => {
+    if (reviewForm.rating === 0) {
+      setError('Please provide an overall rating');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/orders/${reviewOrderId}/review`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          reviewType: reviewType,
+          rating: reviewForm.rating,
+          comment: reviewForm.comment,
+          professionalismRating: reviewForm.professionalismRating || null,
+          communicationRating: reviewForm.communicationRating || null,
+          timelinessRating: reviewForm.timelinessRating || null,
+          conditionRating: reviewForm.conditionRating || null
+        })
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to submit review');
+      }
+
+      setShowReviewModal(false);
+      setError('');
+      alert('Review submitted successfully!');
+      fetchOrders();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const renderStars = (rating, onRate = null) => {
+    return (
+      <div style={{ display: 'flex', gap: '0.25rem' }}>
+        {[1, 2, 3, 4, 5].map((star) => (
+          <span
+            key={star}
+            onClick={() => onRate && onRate(star)}
+            style={{
+              fontSize: '1.5rem',
+              cursor: onRate ? 'pointer' : 'default',
+              color: star <= rating ? '#FCD34D' : '#D1D5DB'
+            }}
+          >
+            ★
+          </span>
+        ))}
+      </div>
+    );
+  };
+
+// ============ END OF PART 2 ============
+// Continue with Part 3 for Event Handlers
+
+// ============ APP.JS PART 3: Event Handlers ============
+// Add this after Part 2
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -409,6 +543,12 @@ const DeliveryApp = () => {
     return labels[status] || status;
   };
 
+// ============ END OF PART 3 ============
+// Continue with Part 4 for Authentication UI
+
+// ============ APP.JS PART 4: Authentication UI ============
+// Add this after Part 3
+
   if (!token) {
     return (
       <div style={{ minHeight: '100vh', background: 'linear-gradient(to bottom right, #EFF6FF, #E0E7FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
@@ -551,6 +691,12 @@ const DeliveryApp = () => {
   }
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
+
+// ============ END OF PART 4 ============
+// Continue with Part 5 for Main App UI (FINAL)
+
+// ============ APP.JS PART 5A: Main UI - Header & Modals ============
+// Add this after Part 4 (continues the return statement)
 
   return (
     <div style={{ minHeight: '100vh', background: '#F9FAFB' }}>
