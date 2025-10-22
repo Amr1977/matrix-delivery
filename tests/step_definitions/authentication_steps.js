@@ -256,10 +256,6 @@ When('I am logged in as the customer', async function() {
   await this.amLoggedInAsACustomer();
 });
 
-When('I am logged in as a driver', async function() {
-  await this.amLoggedInAsADriver();
-});
-
 // Review functionality steps
 When('I submit a review with rating {string} and comment {string}', async function(rating, comment) {
   // Use the completed order ID created in the background setup

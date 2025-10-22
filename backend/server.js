@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { Pool } = require('pg');
+const { getDistance } = require('geolib');
 
 dotenv.config();
 const app = express();
@@ -170,6 +171,18 @@ const initDatabase = async () => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(user_id, provider_token)
+      )
+    `);
+
+    // Create driver_locations table for tracking driver locations
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS driver_locations (
+        id SERIAL PRIMARY KEY,
+        driver_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        latitude DECIMAL(10,8) NOT NULL,
+        longitude DECIMAL(11,8) NOT NULL,
+        last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(driver_id)
       )
     `);
 
@@ -587,8 +600,106 @@ app.get('/api/orders', verifyToken, async (req, res) => {
       query = `SELECT o.*, COALESCE(json_agg(json_build_object('userId', b.user_id, 'driverName', b.driver_name, 'bidPrice', b.bid_price, 'estimatedPickupTime', b.estimated_pickup_time, 'estimatedDeliveryTime', b.estimated_delivery_time, 'message', b.message, 'status', b.status, 'createdAt', b.created_at) ORDER BY b.created_at DESC) FILTER (WHERE b.id IS NOT NULL), '[]') as bids FROM orders o LEFT JOIN bids b ON o.id = b.order_id WHERE o.customer_id = $1 GROUP BY o.id ORDER BY o.created_at DESC`;
       params = [req.user.userId];
     } else if (req.user.role === 'driver') {
-      query = `SELECT o.*, COALESCE(json_agg(json_build_object('userId', b.user_id, 'driverName', b.driver_name, 'bidPrice', b.bid_price, 'estimatedPickupTime', b.estimated_pickup_time, 'estimatedDeliveryTime', b.estimated_delivery_time, 'message', b.message, 'status', b.status, 'createdAt', b.created_at) ORDER BY b.created_at DESC) FILTER (WHERE b.id IS NOT NULL), '[]') as bids FROM orders o LEFT JOIN bids b ON o.id = b.order_id WHERE o.status = 'pending_bids' OR o.assigned_driver_user_id = $1 OR EXISTS (SELECT 1 FROM bids WHERE order_id = o.id AND user_id = $1) GROUP BY o.id ORDER BY o.created_at DESC`;
-      params = [req.user.userId];
+      // First get driver's location
+      const driverLocationResult = await pool.query(
+        'SELECT latitude, longitude FROM driver_locations WHERE driver_id = $1',
+        [req.user.userId]
+      );
+
+      let driverLocation = null;
+      if (driverLocationResult.rows.length > 0) {
+        driverLocation = {
+          latitude: parseFloat(driverLocationResult.rows[0].latitude),
+          longitude: parseFloat(driverLocationResult.rows[0].longitude)
+        };
+      }
+
+      // Get active orders first (assigned or bid on)
+      const activeOrdersQuery = `
+        SELECT o.*,
+               COALESCE(json_agg(json_build_object('userId', b.user_id, 'driverName', b.driver_name, 'bidPrice', b.bid_price, 'estimatedPickupTime', b.estimated_pickup_time, 'estimatedDeliveryTime', b.estimated_delivery_time, 'message', b.message, 'status', b.status, 'createdAt', b.created_at) ORDER BY b.created_at DESC) FILTER (WHERE b.id IS NOT NULL), '[]') as bids
+        FROM orders o
+        LEFT JOIN bids b ON o.id = b.order_id
+        WHERE (o.assigned_driver_user_id = $1 OR EXISTS (SELECT 1 FROM bids WHERE order_id = o.id AND user_id = $1))
+        AND o.status != 'delivered' AND o.status != 'cancelled'
+        GROUP BY o.id
+        ORDER BY o.created_at DESC
+      `;
+      const activeOrdersResult = await pool.query(activeOrdersQuery, [req.user.userId]);
+
+      // Get bidding orders (pending_bids) with distance filtering
+      let biddingOrders = [];
+      if (driverLocation) {
+        const biddingOrdersQuery = `
+          SELECT o.*,
+                 COALESCE(json_agg(json_build_object('userId', b.user_id, 'driverName', b.driver_name, 'bidPrice', b.bid_price, 'estimatedPickupTime', b.estimated_pickup_time, 'estimatedDeliveryTime', b.estimated_delivery_time, 'message', b.message, 'status', b.status, 'createdAt', b.created_at) ORDER BY b.created_at DESC) FILTER (WHERE b.id IS NOT NULL), '[]') as bids
+          FROM orders o
+          LEFT JOIN bids b ON o.id = b.order_id
+          WHERE o.status = 'pending_bids'
+          AND NOT EXISTS (SELECT 1 FROM bids WHERE order_id = o.id AND user_id = $1)
+          GROUP BY o.id
+          ORDER BY o.created_at DESC
+        `;
+        const biddingOrdersResult = await pool.query(biddingOrdersQuery, [req.user.userId]);
+
+        // Filter orders within 5km range
+        biddingOrders = biddingOrdersResult.rows.filter(order => {
+          const distance = getDistance(
+            { latitude: driverLocation.latitude, longitude: driverLocation.longitude },
+            { latitude: parseFloat(order.from_lat), longitude: parseFloat(order.from_lng) }
+          );
+          return distance <= 5000; // 5km in meters
+        }).map(order => ({
+          ...order,
+          distanceToPickup: getDistance(
+            { latitude: driverLocation.latitude, longitude: driverLocation.longitude },
+            { latitude: parseFloat(order.from_lat), longitude: parseFloat(order.from_lng) }
+          )
+        }));
+      }
+
+      // Get completed orders (delivered) for history
+      const historyQuery = `
+        SELECT o.*,
+               COALESCE(json_agg(json_build_object('userId', b.user_id, 'driverName', b.driver_name, 'bidPrice', b.bid_price, 'estimatedPickupTime', b.estimated_pickup_time, 'estimatedDeliveryTime', b.estimated_delivery_time, 'message', b.message, 'status', b.status, 'createdAt', b.created_at) ORDER BY b.created_at DESC) FILTER (WHERE b.id IS NOT NULL), '[]') as bids
+        FROM orders o
+        LEFT JOIN bids b ON o.id = b.order_id
+        WHERE o.assigned_driver_user_id = $1
+        AND o.status = 'delivered'
+        GROUP BY o.id
+        ORDER BY o.delivered_at DESC
+        LIMIT 50
+      `;
+      const historyResult = await pool.query(historyQuery, [req.user.userId]);
+
+      // Combine all results
+      const allOrders = [
+        ...activeOrdersResult.rows.map(order => ({ ...order, isActiveOrder: true })),
+        ...biddingOrders.map(order => ({ ...order, isBiddingOrder: true })),
+        ...historyResult.rows.map(order => ({ ...order, isHistoryOrder: true }))
+      ];
+
+      // Format the response
+      const orders = allOrders.map(order => ({
+        _id: order.id, orderNumber: order.order_number, title: order.title, description: order.description,
+        pickupAddress: order.pickup_address, deliveryAddress: order.delivery_address,
+        from: { lat: parseFloat(order.from_lat), lng: parseFloat(order.from_lng), name: order.from_name },
+        to: { lat: parseFloat(order.to_lat), lng: parseFloat(order.to_lng), name: order.to_name },
+        packageDescription: order.package_description, packageWeight: order.package_weight ? parseFloat(order.package_weight) : null,
+        estimatedValue: order.estimated_value ? parseFloat(order.estimated_value) : null,
+        specialInstructions: order.special_instructions, price: parseFloat(order.price), status: order.status,
+        bids: order.bids, customerId: order.customer_id, customerName: order.customer_name,
+        assignedDriver: order.assigned_driver_user_id ? { userId: order.assigned_driver_user_id, driverName: order.assigned_driver_name, bidPrice: parseFloat(order.assigned_driver_bid_price) } : null,
+        estimatedDeliveryDate: order.estimated_delivery_date,
+        currentLocation: order.current_location_lat ? { lat: parseFloat(order.current_location_lat), lng: parseFloat(order.current_location_lng) } : null,
+        distanceToPickup: order.distanceToPickup,
+        isActiveOrder: order.isActiveOrder,
+        isBiddingOrder: order.isBiddingOrder,
+        isHistoryOrder: order.isHistoryOrder,
+        createdAt: order.created_at, acceptedAt: order.accepted_at, pickedUpAt: order.picked_up_at, deliveredAt: order.delivered_at
+      }));
+
+      return res.json(orders);
     }
 
     const result = await pool.query(query, params);
@@ -1002,6 +1113,72 @@ app.get('/api/orders/:id/tracking', verifyToken, async (req, res) => {
 });
 
 // ============ END OF PART 4 (COMPLETE) ============
+// ============ PART 4.5: Driver Location Management ============
+
+// Update driver location
+app.post('/api/drivers/location', verifyToken, async (req, res) => {
+  try {
+    if (req.user.role !== 'driver') {
+      return res.status(403).json({ error: 'Only drivers can update location' });
+    }
+
+    const { latitude, longitude } = req.body;
+    if (!latitude || !longitude) {
+      return res.status(400).json({ error: 'Latitude and longitude are required' });
+    }
+
+    // Validate coordinates
+    const lat = parseFloat(latitude);
+    const lng = parseFloat(longitude);
+    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+      return res.status(400).json({ error: 'Invalid coordinates' });
+    }
+
+    await pool.query(
+      `INSERT INTO driver_locations (driver_id, latitude, longitude) VALUES ($1, $2, $3)
+       ON CONFLICT (driver_id) DO UPDATE SET latitude = $2, longitude = $3, last_updated = CURRENT_TIMESTAMP`,
+      [req.user.userId, lat, lng]
+    );
+
+    console.log(`✅ Driver location updated: ${req.user.name} (${lat.toFixed(6)}, ${lng.toFixed(6)})`);
+    res.json({ message: 'Location updated successfully', location: { latitude: lat, longitude: lng } });
+  } catch (error) {
+    console.error('Update driver location error:', error);
+    res.status(500).json({ error: 'Failed to update location' });
+  }
+});
+
+// Get driver current location
+app.get('/api/drivers/location', verifyToken, async (req, res) => {
+  try {
+    if (req.user.role !== 'driver') {
+      return res.status(403).json({ error: 'Only drivers can access location' });
+    }
+
+    const result = await pool.query(
+      'SELECT latitude, longitude, last_updated FROM driver_locations WHERE driver_id = $1',
+      [req.user.userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.json({ location: null });
+    }
+
+    const location = result.rows[0];
+    res.json({
+      location: {
+        latitude: parseFloat(location.latitude),
+        longitude: parseFloat(location.longitude),
+        lastUpdated: location.last_updated
+      }
+    });
+  } catch (error) {
+    console.error('Get driver location error:', error);
+    res.status(500).json({ error: 'Failed to get location' });
+  }
+});
+
+// ============ END OF PART 4.5 ============
 // Continue with Part 5 for Notifications & Reviews
 
 // ============ PART 5: Notifications & Reviews (FINAL) ============

@@ -1,0 +1,23 @@
+{
+  "name": "matrix-delivery-tests",
+  "version": "1.0.0",
+  "description": "E2E Tests for Matrix Delivery Application",
+  "main": "index.js",
+  "scripts": {
+    "test": "cucumber-js",
+    "test:smoke": "cucumber-js --tags @smoke",
+    "test:location": "cucumber-js --tags @location",
+    "driver-location-tests": "cucumber-js --tags '@location or @driver'",
+    "test:watch": "cucumber-js --watch",
+    "report": "node utils/generate-report.js"
+  },
+  "dependencies": {
+    "@cucumber/cucumber": "^9.0.5",
+    "playwright": "^1.40.1",
+    "chai": "^4.3.10",
+    "axios": "^1.5.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.1"
+  }
+}

@@ -9,6 +9,10 @@ module.exports = {
       'html:reports/cucumber-report.html',
       'json:reports/cucumber-report.json'
     ],
-    parallel: 1
+    parallel: 1,
+    paths: [
+      'tests/features/driver_location.feature'
+    ],
+    tags: undefined
   }
 };

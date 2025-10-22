@@ -1,5 +1,8 @@
 // ============ APP.JS PART 1: Setup & State Management ============
 import React, { useState, useEffect } from 'react';
+import L from 'leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
 
 const DeliveryApp = () => {
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
@@ -41,6 +44,11 @@ const DeliveryApp = () => {
   });
   const [successMessage, setSuccessMessage] = useState('');
   const [retryCount, setRetryCount] = useState(0);
+
+  // Driver location functionality
+  const [viewType, setViewType] = useState('active'); // 'active', 'bidding', 'history'
+  const [driverLocation, setDriverLocation] = useState({ latitude: null, longitude: null, lastUpdated: null });
+  const [locationPermission, setLocationPermission] = useState('unknown'); // 'unknown', 'granted', 'denied'
 
   const [reviewForm, setReviewForm] = useState({
     rating: 0,
@@ -90,6 +98,19 @@ const DeliveryApp = () => {
       return () => clearInterval(interval);
     }
   }, [token]);
+
+  // Driver location effect
+  useEffect(() => {
+    if (currentUser?.role === 'driver' && token) {
+      getDriverLocation();
+      // Update location every 5 minutes for drivers
+      const locationInterval = setInterval(() => {
+        updateDriverLocation();
+      }, 5 * 60 * 1000); // 5 minutes
+
+      return () => clearInterval(locationInterval);
+    }
+  }, [currentUser, token]);
 
   // ============ END OF PART 1 ============
   // Continue with Part 2 for API Functions
@@ -317,6 +338,41 @@ const DeliveryApp = () => {
       oscillator.stop(audioContext.currentTime + 0.3);
     } catch (error) {
       console.warn('Could not play notification sound:', error);
+    }
+  };
+
+  // Filter orders based on driver view type
+  const filterDriverOrders = (orders, viewType) => {
+    if (currentUser?.role !== 'driver') return orders;
+
+    switch (viewType) {
+      case 'active':
+        return orders.filter(order =>
+          order.assignedDriver?.userId === currentUser.id &&
+          ['accepted', 'picked_up', 'in_transit'].includes(order.status)
+        );
+      case 'bidding':
+        return orders.filter(order =>
+          order.status === 'pending_bids' &&
+          !order.assignedDriver
+        );
+      case 'history':
+        return orders.filter(order =>
+          order.status === 'delivered' ||
+          (order.assignedDriver?.userId === currentUser.id && order.status === 'cancelled')
+        );
+      default:
+        return orders;
+    }
+  };
+
+  // Get title for driver view
+  const getDriverViewTitle = (viewType) => {
+    switch (viewType) {
+      case 'active': return 'Active Orders';
+      case 'bidding': return 'Available Bids';
+      case 'history': return 'My History';
+      default: return 'Available Orders';
     }
   };
 
@@ -672,6 +728,63 @@ const DeliveryApp = () => {
     }
   };
 
+  // Driver location functions
+  const updateDriverLocation = async () => {
+    if (currentUser?.role !== 'driver') return;
+
+    try {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            const { latitude, longitude } = position.coords;
+
+            const response = await fetch(`${API_URL}/drivers/location`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({ latitude, longitude })
+            });
+
+            if (!response.ok) throw new Error('Failed to update location');
+
+            setDriverLocation({
+              latitude: parseFloat(latitude),
+              longitude: parseFloat(longitude),
+              lastUpdated: new Date()
+            });
+            setLocationPermission('granted');
+            fetchOrders(); // Refresh orders with new distance calculations
+          },
+          (error) => {
+            console.error('Geolocation error:', error);
+            setLocationPermission('denied');
+            setError('Location access denied. Please enable location services.');
+          }
+        );
+      } else {
+        setError('Geolocation is not supported by this browser.');
+      }
+    } catch (err) {
+      console.error('Update location error:', err);
+      setError('Failed to update location');
+    }
+  };
+
+  const getDriverLocation = async () => {
+    try {
+      const response = await fetch(`${API_URL}/drivers/location`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error('Failed to get location');
+      const data = await response.json();
+      setDriverLocation(data.location || { latitude: null, longitude: null, lastUpdated: null });
+    } catch (err) {
+      console.error('Get location error:', err);
+    }
+  };
+
   const getStatusColor = (status) => {
     const colors = {
       'pending_bids': { bg: '#FEF3C7', text: '#92400E' },
@@ -939,6 +1052,85 @@ const DeliveryApp = () => {
             >
               📦 {showOrderForm ? 'Cancel' : 'Create New Order'}
             </button>
+          </div>
+        )}
+
+        {currentUser?.role === 'driver' && (
+          <div style={{ marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1rem' }}>
+              <button
+                onClick={updateDriverLocation}
+                disabled={loading}
+                style={{
+                  background: locationPermission === 'granted' ? '#10B981' : '#4F46E5',
+                  color: 'white',
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '0.5rem',
+                  fontWeight: '600',
+                  border: 'none',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  opacity: loading ? 0.5 : 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                📍 {loading ? 'Updating...' : locationPermission === 'granted' ? 'Location Updated' : 'Update Location'}
+              </button>
+              <div style={{ fontSize: '0.875rem', color: '#6B7280' }}>
+                {locationPermission === 'granted' && driverLocation.latitude ? (
+                  <span>📍 Lat: {driverLocation.latitude.toFixed(4)}, Lng: {driverLocation.longitude.toFixed(4)}</span>
+                ) : locationPermission === 'denied' ? (
+                  <span style={{ color: '#DC2626' }}>❌ Location access denied</span>
+                ) : (
+                  <span>⚠️ Enable location for better order visibility</span>
+                )}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.25rem', marginBottom: '1rem' }}>
+              <button
+                onClick={() => setViewType('active')}
+                style={{
+                  padding: '0.5rem 1rem',
+                  background: viewType === 'active' ? '#4F46E5' : '#F3F4F6',
+                  color: viewType === 'active' ? 'white' : '#374151',
+                  border: 'none',
+                  borderRadius: '0.375rem 0 0 0.375rem',
+                  cursor: 'pointer',
+                  fontWeight: '500'
+                }}
+              >
+                Active Orders
+              </button>
+              <button
+                onClick={() => setViewType('bidding')}
+                style={{
+                  padding: '0.5rem 1rem',
+                  background: viewType === 'bidding' ? '#4F46E5' : '#F3F4F6',
+                  color: viewType === 'bidding' ? 'white' : '#374151',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontWeight: '500'
+                }}
+              >
+                Available Bids
+              </button>
+              <button
+                onClick={() => setViewType('history')}
+                style={{
+                  padding: '0.5rem 1rem',
+                  background: viewType === 'history' ? '#4F46E5' : '#F3F4F6',
+                  color: viewType === 'history' ? 'white' : '#374151',
+                  border: 'none',
+                  borderRadius: '0 0.375rem 0.375rem 0',
+                  cursor: 'pointer',
+                  fontWeight: '500'
+                }}
+              >
+                My History
+              </button>
+            </div>
           </div>
         )}
 
@@ -1283,255 +1475,268 @@ const DeliveryApp = () => {
         )}
 
         <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>
-          {currentUser?.role === 'customer' ? 'My Orders' : 'Available Orders'}
+          {currentUser?.role === 'customer' ? 'My Orders' : getDriverViewTitle(viewType)}
         </h2>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {orders.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '3rem', background: 'white', borderRadius: '0.5rem' }}>
-              <p style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>📦</p>
-              <p style={{ color: '#6B7280' }}>No orders available</p>
-            </div>
-          ) : (
-            orders.map((order) => {
-              const statusColor = getStatusColor(order.status);
-              const isDriverAssigned = order.assignedDriver?.userId === currentUser?.id;
-              
-              return (
-                <div key={order._id} style={{ background: 'white', borderRadius: '0.5rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)', padding: '1.5rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
-                    <div>
-                      <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.25rem' }}>{order.title}</h3>
-                      {order.orderNumber && (
-                        <p style={{ fontSize: '0.875rem', color: '#6B7280' }}>Order #{order.orderNumber}</p>
-                      )}
-                    </div>
-                    <span style={{ display: 'inline-block', padding: '0.25rem 0.75rem', borderRadius: '9999px', fontSize: '0.875rem', fontWeight: '600', background: statusColor.bg, color: statusColor.text }}>
-                      {getStatusLabel(order.status)}
-                    </span>
-                  </div>
+          {(() => {
+            const filteredOrders = currentUser?.role === 'driver' ? filterDriverOrders(orders, viewType) : orders;
+            return filteredOrders.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '3rem', background: 'white', borderRadius: '0.5rem' }}>
+                <p style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>📦</p>
+                <p style={{ color: '#6B7280' }}>
+                  {currentUser?.role === 'driver'
+                    ? `No ${viewType === 'active' ? 'active orders' : viewType === 'bidding' ? 'available bids' : 'order history'} found`
+                    : 'No orders available'
+                  }
+                </p>
+              </div>
+            ) : (
+              filteredOrders.map((order) => {
+                const statusColor = getStatusColor(order.status);
+                const isDriverAssigned = order.assignedDriver?.userId === currentUser?.id;
 
-                  {order.description && (
-                    <p style={{ fontSize: '0.875rem', color: '#6B7280', marginBottom: '0.75rem' }}>{order.description}</p>
-                  )}
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem', padding: '1rem', background: '#F9FAFB', borderRadius: '0.375rem' }}>
-                    <div>
-                      <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>📤 Pickup</p>
-                      <p style={{ fontSize: '0.875rem' }}>{order.pickupAddress || order.from?.name}</p>
-                    </div>
-                    <div>
-                      <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>📥 Delivery</p>
-                      <p style={{ fontSize: '0.875rem' }}>{order.deliveryAddress || order.to?.name}</p>
-                    </div>
-                    {order.packageDescription && (
-                      <div style={{ gridColumn: '1 / -1' }}>
-                        <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>📦 Package</p>
-                        <p style={{ fontSize: '0.875rem' }}>{order.packageDescription}</p>
-                      </div>
-                    )}
-                    {order.packageWeight && (
+                return (
+                  <div key={order._id} style={{ background: 'white', borderRadius: '0.5rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)', padding: '1.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
                       <div>
-                        <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>⚖️ Weight</p>
-                        <p style={{ fontSize: '0.875rem' }}>{order.packageWeight} kg</p>
+                        <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.25rem' }}>{order.title}</h3>
+                        {order.orderNumber && (
+                          <p style={{ fontSize: '0.875rem', color: '#6B7280' }}>Order #{order.orderNumber}</p>
+                        )}
                       </div>
+                      <span style={{ display: 'inline-block', padding: '0.25rem 0.75rem', borderRadius: '9999px', fontSize: '0.875rem', fontWeight: '600', background: statusColor.bg, color: statusColor.text }}>
+                        {getStatusLabel(order.status)}
+                      </span>
+                    </div>
+
+                    {order.description && (
+                      <p style={{ fontSize: '0.875rem', color: '#6B7280', marginBottom: '0.75rem' }}>{order.description}</p>
                     )}
-                    {order.estimatedValue && (
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem', padding: '1rem', background: '#F9FAFB', borderRadius: '0.375rem' }}>
                       <div>
-                        <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>💰 Value</p>
-                        <p style={{ fontSize: '0.875rem' }}>${parseFloat(order.estimatedValue).toFixed(2)}</p>
+                        <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>📤 Pickup</p>
+                        <p style={{ fontSize: '0.875rem' }}>{order.pickupAddress || order.from?.name}</p>
                       </div>
-                    )}
-                    {order.specialInstructions && (
-                      <div style={{ gridColumn: '1 / -1' }}>
-                        <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>📝 Instructions</p>
-                        <p style={{ fontSize: '0.875rem' }}>{order.specialInstructions}</p>
+                      <div>
+                        <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>📥 Delivery</p>
+                        <p style={{ fontSize: '0.875rem' }}>{order.deliveryAddress || order.to?.name}</p>
                       </div>
-                    )}
-                  </div>
-
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                    <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#4F46E5' }}>
-                      ${parseFloat(order.price).toFixed(2)}
-                    </p>
-                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                      {order.status === 'delivered' && (
-                        <>
-                          {currentUser?.role === 'customer' && !reviewStatus?.reviews.toDriver && (
-                            <button
-                              onClick={() => openReviewModal(order._id, 'customer_to_driver')}
-                              style={{ padding: '0.5rem 1rem', background: '#10B981', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
-                            >
-                              ⭐ Review Driver
-                            </button>
-                          )}
-                          {currentUser?.role === 'driver' && order.assignedDriver?.userId === currentUser?.id && !reviewStatus?.reviews.toCustomer && (
-                            <button
-                              onClick={() => openReviewModal(order._id, 'driver_to_customer')}
-                              style={{ padding: '0.5rem 1rem', background: '#10B981', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
-                            >
-                              ⭐ Review Customer
-                            </button>
-                          )}
-                          {!reviewStatus?.reviews.toPlatform && (
-                            <button
-                              onClick={() => openReviewModal(order._id, `${currentUser?.role}_to_platform`)}
-                              style={{ padding: '0.5rem 1rem', background: '#6366F1', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
-                            >
-                              🌟 Review Platform
-                            </button>
-                          )}
-                          <button
-                            onClick={() => fetchOrderReviews(order._id)}
-                            style={{ padding: '0.5rem 1rem', background: '#F59E0B', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
-                          >
-                            📝 View Reviews
-                          </button>
-                        </>
+                      {order.packageDescription && (
+                        <div style={{ gridColumn: '1 / -1' }}>
+                          <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>📦 Package</p>
+                          <p style={{ fontSize: '0.875rem' }}>{order.packageDescription}</p>
+                        </div>
                       )}
-                      <button
-                        onClick={() => fetchOrderTracking(order._id)}
-                        style={{ padding: '0.5rem 1rem', background: '#6366F1', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
-                      >
-                        🗺️ Track Order
-                      </button>
-                    </div>
-                  </div>
-
-                  {order.status === 'pending_bids' && currentUser?.role === 'driver' && (
-                    <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
-                      <p style={{ fontWeight: '600', marginBottom: '0.75rem', fontSize: '0.875rem' }}>Place Your Bid</p>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                        <input
-                          type="number"
-                          placeholder="Bid Amount ($)"
-                          value={bidInput[order._id] || ''}
-                          onChange={(e) => setBidInput({ ...bidInput, [order._id]: e.target.value })}
-                          style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
-                          step="0.01"
-                        />
-                        <input
-                          type="datetime-local"
-                          placeholder="Pickup Time"
-                          value={bidDetails[order._id]?.pickupTime || ''}
-                          onChange={(e) => setBidDetails({ ...bidDetails, [order._id]: { ...bidDetails[order._id], pickupTime: e.target.value } })}
-                          style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
-                        />
-                        <input
-                          type="datetime-local"
-                          placeholder="Delivery Time"
-                          value={bidDetails[order._id]?.deliveryTime || ''}
-                          onChange={(e) => setBidDetails({ ...bidDetails, [order._id]: { ...bidDetails[order._id], deliveryTime: e.target.value } })}
-                          style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
-                        />
-                        <textarea
-                          placeholder="Message (optional)"
-                          value={bidDetails[order._id]?.message || ''}
-                          onChange={(e) => setBidDetails({ ...bidDetails, [order._id]: { ...bidDetails[order._id], message: e.target.value } })}
-                          style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem', minHeight: '60px', gridColumn: '1 / -1' }}
-                        />
-                      </div>
-                      <button
-                        onClick={() => handleBidOnOrder(order._id)}
-                        disabled={loading}
-                        style={{ width: '100%', background: '#10B981', color: 'white', padding: '0.75rem', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600' }}
-                      >
-                        {loading ? 'Placing Bid...' : 'Place Bid'}
-                      </button>
-                    </div>
-                  )}
-
-                  {order.status === 'pending_bids' && order.bids && order.bids.length > 0 && currentUser?.role === 'customer' && (
-                    <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
-                      <p style={{ fontWeight: '600', marginBottom: '0.75rem' }}>Bids Received ({order.bids.filter(b => b.status === 'pending').length})</p>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        {order.bids.filter(b => b.status === 'pending').map((bid, idx) => (
-                          <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', background: '#F9FAFB', borderRadius: '0.375rem', border: '1px solid #E5E7EB' }}>
-                            <div style={{ flex: 1 }}>
-                              <p style={{ fontWeight: '600', fontSize: '0.875rem' }}>{bid.driverName}</p>
-                              <p style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#10B981', marginTop: '0.25rem' }}>
-                                ${parseFloat(bid.bidPrice).toFixed(2)}
-                              </p>
-                              {bid.estimatedPickupTime && (
-                                <p style={{ fontSize: '0.75rem', color: '#6B7280', marginTop: '0.25rem' }}>
-                                  🕐 Pickup: {new Date(bid.estimatedPickupTime).toLocaleString()}
-                                </p>
-                              )}
-                              {bid.estimatedDeliveryTime && (
-                                <p style={{ fontSize: '0.75rem', color: '#6B7280' }}>
-                                  🕐 Delivery: {new Date(bid.estimatedDeliveryTime).toLocaleString()}
-                                </p>
-                              )}
-                              {bid.message && (
-                                <p style={{ fontSize: '0.875rem', color: '#6B7280', marginTop: '0.5rem', fontStyle: 'italic' }}>
-                                  "{bid.message}"
-                                </p>
-                              )}
-                            </div>
-                            <button
-                              onClick={() => handleAcceptBid(order._id, bid.userId)}
-                              disabled={loading}
-                              style={{ padding: '0.5rem 1rem', background: '#10B981', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600', marginLeft: '1rem' }}
-                            >
-                              Accept
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {order.assignedDriver && (
-                    <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem', marginTop: '1rem' }}>
-                      <p style={{ fontSize: '0.875rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.5rem' }}>
-                        🚗 Assigned Driver
-                      </p>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      {order.packageWeight && (
                         <div>
-                          <p style={{ fontWeight: '600' }}>{order.assignedDriver.driverName}</p>
-                          <p style={{ fontSize: '0.875rem', color: '#10B981', fontWeight: '600' }}>
-                            Agreed Price: ${parseFloat(order.assignedDriver.bidPrice).toFixed(2)}
-                          </p>
+                          <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>⚖️ Weight</p>
+                          <p style={{ fontSize: '0.875rem' }}>{order.packageWeight} kg</p>
+                        </div>
+                      )}
+                      {order.estimatedValue && (
+                        <div>
+                          <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>💰 Value</p>
+                          <p style={{ fontSize: '0.875rem' }}>${parseFloat(order.estimatedValue).toFixed(2)}</p>
+                        </div>
+                      )}
+                      {order.specialInstructions && (
+                        <div style={{ gridColumn: '1 / -1' }}>
+                          <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>📝 Instructions</p>
+                          <p style={{ fontSize: '0.875rem' }}>{order.specialInstructions}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                      <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#4F46E5' }}>
+                        ${parseFloat(order.price).toFixed(2)}
+                      </p>
+                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        {order.status === 'delivered' && (
+                          <>
+                            {currentUser?.role === 'customer' && !reviewStatus?.reviews.toDriver && (
+                              <button
+                                onClick={() => openReviewModal(order._id, 'customer_to_driver')}
+                                style={{ padding: '0.5rem 1rem', background: '#10B981', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
+                              >
+                                ⭐ Review Driver
+                              </button>
+                            )}
+                            {currentUser?.role === 'driver' && order.assignedDriver?.userId === currentUser?.id && !reviewStatus?.reviews.toCustomer && (
+                              <button
+                                onClick={() => openReviewModal(order._id, 'driver_to_customer')}
+                                style={{ padding: '0.5rem 1rem', background: '#10B981', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
+                              >
+                                ⭐ Review Customer
+                              </button>
+                            )}
+                            {!reviewStatus?.reviews.toPlatform && (
+                              <button
+                                onClick={() => openReviewModal(order._id, `${currentUser?.role}_to_platform`)}
+                                style={{ padding: '0.5rem 1rem', background: '#6366F1', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
+                              >
+                                🌟 Review Platform
+                              </button>
+                            )}
+                            <button
+                              onClick={() => fetchOrderReviews(order._id)}
+                              style={{ padding: '0.5rem 1rem', background: '#F59E0B', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
+                            >
+                              📝 View Reviews
+                            </button>
+                          </>
+                        )}
+                        <button
+                          onClick={() => fetchOrderTracking(order._id)}
+                          style={{ padding: '0.5rem 1rem', background: '#6366F1', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
+                        >
+                          🗺️ Track Order
+                        </button>
+                      </div>
+                    </div>
+
+                    {order.status === 'pending_bids' && currentUser?.role === 'driver' && (
+                      <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
+                        {order.distance && (
+                          <div style={{ marginBottom: '0.75rem', fontSize: '0.875rem', color: '#6B7280' }}>
+                            📍 Distance from pickup: {order.distance ? `${order.distance.toFixed(2)} km` : 'Unknown'}
+                          </div>
+                        )}
+                        <p style={{ fontWeight: '600', marginBottom: '0.75rem', fontSize: '0.875rem' }}>Place Your Bid</p>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                          <input
+                            type="number"
+                            placeholder="Bid Amount ($)"
+                            value={bidInput[order._id] || ''}
+                            onChange={(e) => setBidInput({ ...bidInput, [order._id]: e.target.value })}
+                            style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
+                            step="0.01"
+                          />
+                          <input
+                            type="datetime-local"
+                            placeholder="Pickup Time"
+                            value={bidDetails[order._id]?.pickupTime || ''}
+                            onChange={(e) => setBidDetails({ ...bidDetails, [order._id]: { ...bidDetails[order._id], pickupTime: e.target.value } })}
+                            style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
+                          />
+                          <input
+                            type="datetime-local"
+                            placeholder="Delivery Time"
+                            value={bidDetails[order._id]?.deliveryTime || ''}
+                            onChange={(e) => setBidDetails({ ...bidDetails, [order._id]: { ...bidDetails[order._id], deliveryTime: e.target.value } })}
+                            style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
+                          />
+                          <textarea
+                            placeholder="Message (optional)"
+                            value={bidDetails[order._id]?.message || ''}
+                            onChange={(e) => setBidDetails({ ...bidDetails, [order._id]: { ...bidDetails[order._id], message: e.target.value } })}
+                            style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem', minHeight: '60px', gridColumn: '1 / -1' }}
+                          />
+                        </div>
+                        <button
+                          onClick={() => handleBidOnOrder(order._id)}
+                          disabled={loading}
+                          style={{ width: '100%', background: '#10B981', color: 'white', padding: '0.75rem', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600' }}
+                        >
+                          {loading ? 'Placing Bid...' : 'Place Bid'}
+                        </button>
+                      </div>
+                    )}
+
+                    {order.status === 'pending_bids' && order.bids && order.bids.length > 0 && currentUser?.role === 'customer' && (
+                      <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
+                        <p style={{ fontWeight: '600', marginBottom: '0.75rem' }}>Bids Received ({order.bids.filter(b => b.status === 'pending').length})</p>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                          {order.bids.filter(b => b.status === 'pending').map((bid, idx) => (
+                            <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', background: '#F9FAFB', borderRadius: '0.375rem', border: '1px solid #E5E7EB' }}>
+                              <div style={{ flex: 1 }}>
+                                <p style={{ fontWeight: '600', fontSize: '0.875rem' }}>{bid.driverName}</p>
+                                <p style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#10B981', marginTop: '0.25rem' }}>
+                                  ${parseFloat(bid.bidPrice).toFixed(2)}
+                                </p>
+                                {bid.estimatedPickupTime && (
+                                  <p style={{ fontSize: '0.75rem', color: '#6B7280', marginTop: '0.25rem' }}>
+                                    🕐 Pickup: {new Date(bid.estimatedPickupTime).toLocaleString()}
+                                  </p>
+                                )}
+                                {bid.estimatedDeliveryTime && (
+                                  <p style={{ fontSize: '0.75rem', color: '#6B7280' }}>
+                                    🕐 Delivery: {new Date(bid.estimatedDeliveryTime).toLocaleString()}
+                                  </p>
+                                )}
+                                {bid.message && (
+                                  <p style={{ fontSize: '0.875rem', color: '#6B7280', marginTop: '0.5rem', fontStyle: 'italic' }}>
+                                    "{bid.message}"
+                                  </p>
+                                )}
+                              </div>
+                              <button
+                                onClick={() => handleAcceptBid(order._id, bid.userId)}
+                                disabled={loading}
+                                style={{ padding: '0.5rem 1rem', background: '#10B981', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600', marginLeft: '1rem' }}
+                              >
+                                Accept
+                              </button>
+                            </div>
+                          ))}
                         </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {isDriverAssigned && (
-                    <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem', marginTop: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                      {order.status === 'accepted' && (
-                        <button
-                          onClick={() => handlePickupOrder(order._id)}
-                          disabled={loading}
-                          style={{ flex: 1, minWidth: '200px', background: '#F59E0B', color: 'white', padding: '0.75rem', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600' }}
-                        >
-                          📦 Mark as Picked Up
-                        </button>
-                      )}
-                      {order.status === 'picked_up' && (
-                        <button
-                          onClick={() => handleInTransit(order._id)}
-                          disabled={loading}
-                          style={{ flex: 1, minWidth: '200px', background: '#8B5CF6', color: 'white', padding: '0.75rem', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600' }}
-                        >
-                          🚚 Mark as In Transit
-                        </button>
-                      )}
-                      {(order.status === 'in_transit' || order.status === 'picked_up') && (
-                        <button
-                          onClick={() => handleCompleteOrder(order._id)}
-                          disabled={loading}
-                          style={{ flex: 1, minWidth: '200px', background: '#10B981', color: 'white', padding: '0.75rem', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600' }}
-                        >
-                          ✅ Mark as Delivered
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })
-          )}
+                    {order.assignedDriver && (
+                      <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem', marginTop: '1rem' }}>
+                        <p style={{ fontSize: '0.875rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.5rem' }}>
+                          🚗 Assigned Driver
+                        </p>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div>
+                            <p style={{ fontWeight: '600' }}>{order.assignedDriver.driverName}</p>
+                            <p style={{ fontSize: '0.875rem', color: '#10B981', fontWeight: '600' }}>
+                              Agreed Price: ${parseFloat(order.assignedDriver.bidPrice).toFixed(2)}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {isDriverAssigned && (
+                      <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem', marginTop: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        {order.status === 'accepted' && (
+                          <button
+                            onClick={() => handlePickupOrder(order._id)}
+                            disabled={loading}
+                            style={{ flex: 1, minWidth: '200px', background: '#F59E0B', color: 'white', padding: '0.75rem', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600' }}
+                          >
+                            📦 Mark as Picked Up
+                          </button>
+                        )}
+                        {order.status === 'picked_up' && (
+                          <button
+                            onClick={() => handleInTransit(order._id)}
+                            disabled={loading}
+                            style={{ flex: 1, minWidth: '200px', background: '#8B5CF6', color: 'white', padding: '0.75rem', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600' }}
+                          >
+                            🚚 Mark as In Transit
+                          </button>
+                        )}
+                        {(order.status === 'in_transit' || order.status === 'picked_up') && (
+                          <button
+                            onClick={() => handleCompleteOrder(order._id)}
+                            disabled={loading}
+                            style={{ flex: 1, minWidth: '200px', background: '#10B981', color: 'white', padding: '0.75rem', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600' }}
+                          >
+                            ✅ Mark as Delivered
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            );
+          })()}
         </div>
       </main>
     </div>
