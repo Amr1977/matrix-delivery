@@ -8,20 +8,54 @@ const DeliveryApp = () => {
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
   // Location Selector Component
-  const LocationSelector = ({ isOpen, onClose, onLocationSelect, initialCoordinates }) => {
+  const LocationSelector = ({ isOpen, onClose, onLocationSelect, initialCoordinates, customerLocation }) => {
     const [selectedPosition, setSelectedPosition] = useState(initialCoordinates || null);
 
     const LocationMarker = () => {
-      useMapEvents({
+      const map = useMapEvents({
         click(e) {
-          setSelectedPosition([e.latlng.lat, e.latlng.lng]);
+          const newPosition = [e.latlng.lat, e.latlng.lng];
+          setSelectedPosition(newPosition);
+
+          // Center the map on the clicked location and zoom in slightly
+          setTimeout(() => {
+            map.setView(newPosition, Math.max(15, map.getZoom()));
+          }, 100);
         },
       });
 
       return selectedPosition ? (
         <Marker position={selectedPosition}>
           <Popup>
-            Selected Location: {selectedPosition[0].toFixed(6)}, {selectedPosition[1].toFixed(6)}
+            <div style={{ textAlign: 'center', fontSize: '0.875rem' }}>
+              <div style={{ fontWeight: '600', marginBottom: '0.5rem' }}>
+                📍 Selected Location
+              </div>
+              <div style={{ color: '#6B7280', marginBottom: '0.5rem' }}>
+                Coordinates: {selectedPosition[0].toFixed(6)}, {selectedPosition[1].toFixed(6)}
+              </div>
+              <button
+                onClick={() => {
+                  navigator.share({
+                    text: `Location: ${selectedPosition[0].toFixed(6)}, ${selectedPosition[1].toFixed(6)}`,
+                    url: `https://www.openstreetmap.org/?mlat=${selectedPosition[0]}&mlon=${selectedPosition[1]}`
+                  }).catch(() => {
+                    navigator.clipboard.writeText(`${selectedPosition[0].toFixed(6)}, ${selectedPosition[1].toFixed(6)}`);
+                  });
+                }}
+                style={{
+                  background: '#4F46E5',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '0.25rem',
+                  padding: '0.25rem 0.5rem',
+                  fontSize: '0.75rem',
+                  cursor: 'pointer'
+                }}
+              >
+                Copy Coordinates
+              </button>
+            </div>
           </Popup>
         </Marker>
       ) : null;
@@ -72,8 +106,10 @@ const DeliveryApp = () => {
           </div>
           <div style={{ height: '400px' }}>
             <MapContainer
-              key={JSON.stringify(initialCoordinates)} // Force re-render on coordinate changes
-              center={initialCoordinates || [40.7128, -74.0060]}
+              center={
+                // Use initial coordinates first, then fallback to customer location or default NYC
+                initialCoordinates || [40.7128, -74.0060]
+              }
               zoom={13}
               style={{ height: '100%', width: '100%' }}
               whenReady={() => {
@@ -84,7 +120,21 @@ const DeliveryApp = () => {
                     const mapElement = document.querySelector('.leaflet-container');
                     if (mapElement && mapElement._leaflet_map) {
                       // Force a map size recalculation
-                      mapElement._leaflet_map.invalidateSize();
+                      const mapInstance = mapElement._leaflet_map;
+                      mapInstance.invalidateSize();
+
+                      // If we have customer location but no initial coordinates, recenter the map
+                      if (!initialCoordinates && customerLocation) {
+                        setTimeout(() => {
+                          try {
+                            if (mapElement && mapElement._leaflet_map) {
+                              mapElement._leaflet_map.setView([customerLocation.lat, customerLocation.lng], 13);
+                            }
+                          } catch (e) {
+                            console.warn('Map recenter warning:', e);
+                          }
+                        }, 500);
+                      }
                     }
                   } catch (e) {
                     console.warn('Map initialization warning:', e);
@@ -532,6 +582,30 @@ const DeliveryApp = () => {
   // Map selector state
   const [showMapSelector, setShowMapSelector] = useState(false);
   const [mapSelectorType, setMapSelectorType] = useState('pickup'); // 'pickup' or 'dropoff'
+  const [customerLocation, setCustomerLocation] = useState(null); // Customer's current location for map centering
+
+  // Get customer's current location for map centering
+  const getCustomerLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setCustomerLocation({ lat: latitude, lng: longitude });
+        },
+        (error) => {
+          console.warn('Could not get customer location:', error);
+          setCustomerLocation(null); // Fall back to default center
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 300000 // 5 minutes
+        }
+      );
+    } else {
+      setCustomerLocation(null);
+    }
+  };
 
   // Map event handlers
   const handleLocationSelect = (lat, lng) => {
@@ -559,6 +633,8 @@ const DeliveryApp = () => {
 
   const handleOpenMap = (type) => {
     setMapSelectorType(type);
+    // Get customer's current location when opening the map
+    getCustomerLocation();
     setShowMapSelector(true);
   };
 
@@ -1711,6 +1787,7 @@ const DeliveryApp = () => {
               (formData.pickupLocation.coordinates?.lat ? [formData.pickupLocation.coordinates.lat, formData.pickupLocation.coordinates.lng] : null) :
               (formData.dropoffLocation.coordinates?.lat ? [formData.dropoffLocation.coordinates.lat, formData.dropoffLocation.coordinates.lng] : null)
             }
+            customerLocation={customerLocation}
           />
         )}
 
