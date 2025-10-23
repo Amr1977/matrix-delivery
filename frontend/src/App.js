@@ -107,8 +107,9 @@ const DeliveryApp = () => {
           <div style={{ height: '400px' }}>
             <MapContainer
               center={
-                // Use initial coordinates first, then fallback to customer location or default NYC
-                initialCoordinates || [40.7128, -74.0060]
+                // Priority: initialCoordinates > customerLocation > default NYC
+                initialCoordinates ||
+                (customerLocation ? [customerLocation.lat, customerLocation.lng] : [40.7128, -74.0060])
               }
               zoom={13}
               style={{ height: '100%', width: '100%' }}
@@ -116,25 +117,10 @@ const DeliveryApp = () => {
                 // Ensure map is fully loaded before interactions
                 setTimeout(() => {
                   try {
-                    // Validate map container after rendering
+                    // Force a map size recalculation only once
                     const mapElement = document.querySelector('.leaflet-container');
                     if (mapElement && mapElement._leaflet_map) {
-                      // Force a map size recalculation
-                      const mapInstance = mapElement._leaflet_map;
-                      mapInstance.invalidateSize();
-
-                      // If we have customer location but no initial coordinates, recenter the map
-                      if (!initialCoordinates && customerLocation) {
-                        setTimeout(() => {
-                          try {
-                            if (mapElement && mapElement._leaflet_map) {
-                              mapElement._leaflet_map.setView([customerLocation.lat, customerLocation.lng], 13);
-                            }
-                          } catch (e) {
-                            console.warn('Map recenter warning:', e);
-                          }
-                        }, 500);
-                      }
+                      mapElement._leaflet_map.invalidateSize();
                     }
                   } catch (e) {
                     console.warn('Map initialization warning:', e);
