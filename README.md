@@ -16,6 +16,32 @@ This is an open source project released under the MIT License. We welcome contri
 ### Development Setup
 Get started quickly with our automated setup scripts. See the [Quick Start](#-quick-start) section below for detailed instructions.
 
+## 💡 Motive & Ethics
+
+The Matrix Delivery Platform was created to challenge unfair working conditions in today's delivery industry. Many couriers face instability, lack of transparency, and unfair treatment from corporate platforms that prioritize profit over people.
+
+This project was born from a belief that technology should empower workers, not exploit them. By making this platform open source, we aim to build a fair, transparent, and community-driven ecosystem where both couriers and customers benefit from mutual respect and accountability.
+
+### Core Ethical Principles
+
+**🟢 Fairness**: Every courier deserves equal opportunity, transparent pay calculation, and respect for their time and effort.
+
+**🕊️ Freedom**: No forced algorithms, manipulative gamification, or hidden penalties — couriers retain control over their choices and schedules.
+
+**🔍 Transparency**: All system logic, from delivery matching to earnings, is open source and verifiable by anyone.
+
+**⚖️ Justice**: The platform enforces community rules with clarity and fairness, protecting both couriers and customers.
+
+**🌍 Open Collaboration**: By keeping the project public, we invite developers, riders, and ethical businesses to contribute toward a better delivery model.
+
+### Vision
+
+Our vision is a world where couriers are treated as professionals, not disposable assets — where software works for the people who use it. Matrix Delivery stands as a declaration that open collaboration and ethics-driven design can replace exploitation with empowerment.
+
+### About the Founder
+
+This project was founded by **Amr Lotfy**, a software engineer and advocate for ethical technology. You can connect with Amr on [LinkedIn](https://www.linkedin.com/in/amr-lotfy).
+
 ## ✨ Key Features
 
 ### 🔐 User Management
