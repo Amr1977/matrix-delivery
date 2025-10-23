@@ -23,16 +23,16 @@ const DeliveryApp = () => {
   });
 
 
-  // Location Selector Component
-  const LocationSelector = ({ isOpen, onClose, onLocationSelect, initialCoordinates, customerLocation }) => {
+// Location Selector Component
+  const LocationSelector = React.memo(({ isOpen, onClose, onLocationSelect, initialCoordinates, customerLocation }) => {
     const [selectedPosition, setSelectedPosition] = useState(initialCoordinates || null);
+    const [hasCentered, setHasCentered] = useState(false);
 
-    const LocationMarker = () => {
+    const LocationMarker = React.memo(() => {
       const map = useMapEvents({
         click(e) {
           const newPosition = [e.latlng.lat, e.latlng.lng];
           setSelectedPosition(newPosition);
-          // Removed automatic centering to prevent zoom reset issues
         },
       });
 
@@ -71,7 +71,14 @@ const DeliveryApp = () => {
           </Popup>
         </Marker>
       ) : null;
-    };
+    });
+
+    // Reset state when modal closes
+    React.useEffect(() => {
+      if (!isOpen) {
+        setHasCentered(false);
+      }
+    }, [isOpen]);
 
     return (
       <div style={{
@@ -118,7 +125,7 @@ const DeliveryApp = () => {
           </div>
           <div style={{ height: '400px' }}>
             <MapContainer
-              center={[40.7128, -74.0060]} // Default center, stable center to prevent zoom resets
+              center={customerLocation ? [customerLocation.lat, customerLocation.lng] : [40.7128, -74.0060]}
               zoom={13}
               style={{ height: '100%', width: '100%' }}
               whenReady={() => {
@@ -195,7 +202,7 @@ const DeliveryApp = () => {
         </div>
       </div>
     );
-  };
+  });
 
   // Detailed Address Form Component
   const AddressDetailsForm = ({ type, location, onLocationChange, onOpenMap }) => {
@@ -627,9 +634,8 @@ const DeliveryApp = () => {
 
   const handleOpenMap = (type) => {
     setMapSelectorType(type);
-    // Get customer's current location when opening the map
-    getCustomerLocation();
     setShowMapSelector(true);
+    // Location is fetched on auth and stored globally to prevent re-fetching
   };
 
   const handleLocationChange = (locationType, newLocationData) => {
@@ -645,12 +651,15 @@ const DeliveryApp = () => {
       fetchCurrentUser();
       fetchNotifications();
       const interval = setInterval(() => {
-        fetchOrders();
-        fetchNotifications();
-      }, 5000);
+        // Skip polling when map selector is open to prevent map zoom resets
+        if (!showMapSelector) {
+          fetchOrders();
+          fetchNotifications();
+        }
+      }, 30000);
       return () => clearInterval(interval);
     }
-  }, [token]);
+  }, [token, showMapSelector]); // Added showMapSelector as dependency
 
   // Driver location effect
   useEffect(() => {
@@ -682,6 +691,25 @@ const DeliveryApp = () => {
       setCurrentUser(data);
       setError('');
       fetchOrders();
+
+      // Get user's current location once for map centering
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            setCustomerLocation({ lat: latitude, lng: longitude });
+          },
+          (error) => {
+            console.warn('Could not get customer location for map:', error);
+            setCustomerLocation(null);
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 300000 // 5 minutes cache
+          }
+        );
+      }
     } catch (err) {
       console.error(err);
       logout();
