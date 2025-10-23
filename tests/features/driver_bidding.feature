@@ -8,7 +8,7 @@ Feature: Driver Bidding and Order Acceptance
     Given there is a registered customer account
     And there is a registered driver account
 
-  @smoke @bidding
+  @BID-001
   Scenario: View available orders as driver
     Given there are open customer orders available
     When I am logged in as a driver
@@ -16,7 +16,7 @@ Feature: Driver Bidding and Order Acceptance
     And each order should show pickup and delivery locations
     And each order should show the offered price
 
-  @smoke @bidding
+  @BID-002
   Scenario: Place a bid on an order
     Given there is an open customer order
     And I am logged in as a driver
@@ -25,7 +25,7 @@ Feature: Driver Bidding and Order Acceptance
     And the bid amount should be "$20.00"
     And the customer should be able to see my bid
 
-  @smoke @bidding
+  @BID-003
   Scenario: Customer accepts driver bid
     Given a driver has placed a bid on a customer order
     When I am logged in as the customer
@@ -34,7 +34,7 @@ Feature: Driver Bidding and Order Acceptance
     And the order status should change to "accepted"
     And the driver should see the order in their accepted deliveries
 
-  @smoke @bidding
+  @BID-004
   Scenario: Complete assigned delivery
     Given a driver has an accepted order assigned to them
     When the driver marks the order as completed
@@ -42,7 +42,7 @@ Feature: Driver Bidding and Order Acceptance
     And the driver should get credited for the delivery
     And the delivery count should increase for the driver
 
-  @bidding
+  @BID-005
   Scenario: Multiple drivers bidding on same order
     Given there is an open customer order
     And multiple drivers are registered
@@ -51,7 +51,7 @@ Feature: Driver Bidding and Order Acceptance
     And the customer can choose any bid to accept
     And other drivers should be notified their bids are not accepted
 
-  @bidding
+  @BID-006
   Scenario: Driver withdraws bid before acceptance
     Given a driver has placed a bid on an order
     When the driver withdraws their bid
@@ -59,7 +59,7 @@ Feature: Driver Bidding and Order Acceptance
     And the bid should not appear in active bids
     And the customer should not see the withdrawn bid
 
-  @bidding
+  @BID-007
   Scenario: Driver views their bidding history
     Given a driver has placed multiple bids
     When the driver views their bid history
@@ -67,7 +67,7 @@ Feature: Driver Bidding and Order Acceptance
     And each bid should show the order details
     And bid status should be shown (active, accepted, withdrawn, rejected)
 
-  @bidding
+  @BID-008
   Scenario: Customer cannot accept bid after order is taken
     Given an order has been accepted by one driver
     When another driver tries to interact with the same order

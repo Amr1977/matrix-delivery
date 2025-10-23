@@ -8,7 +8,7 @@ Feature: Driver Location Tracking and Distance-Based Order Filtering
     Given there is a registered customer account
     And there is a registered driver account
 
-  @smoke @location
+  @LOC-001
   Scenario: Driver updates location manually
     Given I am logged in as a driver
     When I click the update location button
@@ -17,7 +17,7 @@ Feature: Driver Location Tracking and Distance-Based Order Filtering
     And I should see the location permission as granted
     And my coordinates should be displayed
 
-  @smoke @location
+  @LOC-002
   Scenario: Driver views available orders with distance display
     Given there are customer orders available
     And I am logged in as a driver
@@ -26,7 +26,7 @@ Feature: Driver Location Tracking and Distance-Based Order Filtering
     And each nearby order should show the distance to pickup location
     And orders should be highlighted with location information
 
-  @location
+  @LOC-003
   Scenario: Driver with no location permission sees limited orders
     Given I am logged in as a driver
     And I have not granted location permission
@@ -35,7 +35,7 @@ Feature: Driver Location Tracking and Distance-Based Order Filtering
     And distance information should not be shown
     And I should be prompted to enable location
 
-  @location
+  @LOC-004
   Scenario: Orders outside 5km radius are hidden from driver
     Given there are customer orders available at various locations
     And I am logged in as a driver with location set
@@ -43,7 +43,7 @@ Feature: Driver Location Tracking and Distance-Based Order Filtering
     Then I should not see orders that are more than 5km away
     And I should only see nearby orders with distance information
 
-  @location
+  @LOC-005
   Scenario: Driver switches between tabs (Active, Bidding, History)
     Given I am logged in as a driver
     When I click on the "Active Orders" tab
@@ -54,7 +54,7 @@ Feature: Driver Location Tracking and Distance-Based Order Filtering
     When I click on the "My History" tab
     Then I should see my completed deliveries
 
-  @location
+  @LOC-006
   Scenario: Driver manually updates location multiple times
     Given I am logged in as a driver
     And I have granted location permission
@@ -63,7 +63,7 @@ Feature: Driver Location Tracking and Distance-Based Order Filtering
     And nearby orders should be refreshed
     And distance calculations should be recalculated
 
-  @location
+  @LOC-007
   Scenario: Customer orders show up for drivers within radius
     Given there is a completed delivery in the system
     And there is a customer order within 5km of the driver location
@@ -72,7 +72,7 @@ Feature: Driver Location Tracking and Distance-Based Order Filtering
     And the order should be marked as available for bidding
     And the driver should be able to place a bid on the order
 
-  @location
+  @LOC-008
   Scenario: Driver location tracking and order filtering integration
     Given multiple customer orders exist at different locations
     And I am logged in as a driver
@@ -81,7 +81,7 @@ Feature: Driver Location Tracking and Distance-Based Order Filtering
     And I should see distance information for each nearby order
     And orders outside the radius should be hidden
 
-  @smoke @location
+  @LOC-009
   Scenario: Location permission denied handling
     Given I am logged in as a driver
     When I try to update my location
@@ -90,7 +90,7 @@ Feature: Driver Location Tracking and Distance-Based Order Filtering
     And the location status should show as denied
     And I should still be able to view orders but without distance filtering
 
-  @location
+  @LOC-010
   Scenario: Location services unavailable
     Given location services are unavailable or disabled
     And I am logged in as a driver
@@ -99,7 +99,7 @@ Feature: Driver Location Tracking and Distance-Based Order Filtering
     And I should still be able to view all available orders
     And distance information should not be displayed
 
-  @location
+  @LOC-011
   Scenario: Distance sorting and display accuracy
     Given there are multiple orders within 5km of my location
     And I am logged in as a driver
