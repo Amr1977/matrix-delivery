@@ -109,14 +109,14 @@ Write-Host "Press Ctrl+C to stop all servers" -ForegroundColor Yellow
 # Keep script running and show job status
 try {
     while ($true) {
-        $backendStatus = Get-Job $backendJob | Select-Object -ExpandProperty State
-        $frontendStatus = Get-Job $frontendJob | Select-Object -ExpandProperty State
-        
+        $backendStatus = $backendJob.State
+        $frontendStatus = $frontendJob.State
+
         if ($backendStatus -eq "Failed" -or $frontendStatus -eq "Failed") {
             Write-Host "One or more servers failed!" -ForegroundColor Red
             break
         }
-        
+
         Start-Sleep -Seconds 5
     }
 }

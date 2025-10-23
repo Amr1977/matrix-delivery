@@ -6,7 +6,406 @@ import 'leaflet/dist/leaflet.css';
 
 const DeliveryApp = () => {
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-  
+
+  // Location Selector Component
+  const LocationSelector = ({ isOpen, onClose, onLocationSelect, initialCoordinates }) => {
+    const [selectedPosition, setSelectedPosition] = useState(initialCoordinates || null);
+
+    const LocationMarker = () => {
+      useMapEvents({
+        click(e) {
+          setSelectedPosition([e.latlng.lat, e.latlng.lng]);
+        },
+      });
+
+      return selectedPosition ? (
+        <Marker position={selectedPosition}>
+          <Popup>
+            Selected Location: {selectedPosition[0].toFixed(6)}, {selectedPosition[1].toFixed(6)}
+          </Popup>
+        </Marker>
+      ) : null;
+    };
+
+    return (
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: 'rgba(0, 0, 0, 0.5)',
+        display: isOpen ? 'flex' : 'none',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1000,
+        padding: '1rem'
+      }}>
+        <div style={{
+          background: 'white',
+          borderRadius: '0.5rem',
+          width: '100%',
+          maxWidth: '48rem',
+          maxHeight: '90vh',
+          overflow: 'hidden'
+        }}>
+          <div style={{
+            padding: '1rem',
+            borderBottom: '1px solid #E5E7EB',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: '600' }}>Select Location on Map</h3>
+            <button
+              onClick={onClose}
+              style={{
+                background: 'none',
+                border: 'none',
+                fontSize: '1.5rem',
+                cursor: 'pointer',
+                color: '#6B7280'
+              }}
+            >
+              ×
+            </button>
+          </div>
+          <div style={{ height: '400px' }}>
+            <MapContainer
+              center={initialCoordinates || [40.7128, -74.0060]}
+              zoom={13}
+              style={{ height: '100%', width: '100%' }}
+            >
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              <LocationMarker />
+            </MapContainer>
+          </div>
+          <div style={{ padding: '1rem', borderTop: '1px solid #E5E7EB' }}>
+            <p style={{ fontSize: '0.875rem', color: '#6B7280', marginBottom: '1rem' }}>
+              Click on the map to select your location. Make sure to position the marker accurately.
+            </p>
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button
+                onClick={onClose}
+                style={{
+                  padding: '0.5rem 1rem',
+                  background: '#F3F4F6',
+                  color: '#374151',
+                  borderRadius: '0.375rem',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontWeight: '600',
+                  flex: 1
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (selectedPosition) {
+                    onLocationSelect(selectedPosition[0], selectedPosition[1]);
+                    onClose();
+                  }
+                }}
+                disabled={!selectedPosition}
+                style={{
+                  padding: '0.5rem 1rem',
+                  background: '#4F46E5',
+                  color: 'white',
+                  borderRadius: '0.375rem',
+                  border: 'none',
+                  cursor: !selectedPosition ? 'not-allowed' : 'pointer',
+                  fontWeight: '600',
+                  flex: 1,
+                  opacity: !selectedPosition ? 0.5 : 1
+                }}
+              >
+                Confirm Location
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Detailed Address Form Component
+  const AddressDetailsForm = ({ type, location, onLocationChange, onOpenMap }) => {
+    const updateAddressField = (field, value) => {
+      const updatedLocation = {
+        ...location,
+        address: {
+          ...location.address,
+          [field]: value
+        }
+      };
+      onLocationChange(updatedLocation);
+    };
+
+    return (
+      <div style={{
+        border: '1px solid #E5E7EB',
+        borderRadius: '0.5rem',
+        padding: '1rem',
+        background: '#F9FAFB'
+      }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '1rem'
+        }}>
+          <h4 style={{
+            fontSize: '1.125rem',
+            fontWeight: '600',
+            color: '#1F2937',
+            textTransform: 'capitalize'
+          }}>
+            {type} Location
+          </h4>
+        </div>
+
+        {/* Map Selection Button */}
+        <button
+          onClick={onOpenMap}
+          style={{
+            width: '100%',
+            padding: '0.75rem',
+            background: location.coordinates?.lat ? '#10B981' : '#4F46E5',
+            color: 'white',
+            border: 'none',
+            borderRadius: '0.375rem',
+            cursor: 'pointer',
+            fontWeight: '600',
+            marginBottom: '1rem'
+          }}
+        >
+          {location.coordinates?.lat ? '📍 Update Location on Map' : '🗺️ Select Location on Map'}
+        </button>
+
+        {location.coordinates?.lat && (
+          <div style={{
+            background: '#D1FAE5',
+            color: '#065F46',
+            padding: '0.75rem',
+            borderRadius: '0.375rem',
+            marginBottom: '1rem',
+            fontSize: '0.875rem'
+          }}>
+            ✅ Map location selected: {location.coordinates.lat.toFixed(6)}, {location.coordinates.lng.toFixed(6)}
+          </div>
+        )}
+
+        {/* Address Fields */}
+        <div style={{ display: 'grid', gap: '0.75rem' }}>
+          <div>
+            <label style={{
+              display: 'block',
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              color: '#374151',
+              marginBottom: '0.25rem'
+            }}>
+              Country *
+            </label>
+            <input
+              type="text"
+              placeholder="Country (e.g., Iraq, USA, UK)"
+              value={location.address.country}
+              onChange={(e) => updateAddressField('country', e.target.value)}
+              style={{
+                width: '100%',
+                padding: '0.5rem',
+                border: '1px solid #D1D5DB',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem'
+              }}
+            />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+            <div>
+              <label style={{
+                display: 'block',
+                fontSize: '0.875rem',
+                fontWeight: '600',
+                color: '#374151',
+                marginBottom: '0.25rem'
+              }}>
+                City *
+              </label>
+              <input
+                type="text"
+                placeholder="City"
+                value={location.address.city}
+                onChange={(e) => updateAddressField('city', e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '0.5rem',
+                  border: '1px solid #D1D5DB',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.875rem'
+                }}
+              />
+            </div>
+            <div>
+              <label style={{
+                display: 'block',
+                fontSize: '0.875rem',
+                fontWeight: '600',
+                color: '#374151',
+                marginBottom: '0.25rem'
+              }}>
+                Area *
+              </label>
+              <input
+                type="text"
+                placeholder="Area/District"
+                value={location.address.area}
+                onChange={(e) => updateAddressField('area', e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '0.5rem',
+                  border: '1px solid #D1D5DB',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.875rem'
+                }}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label style={{
+              display: 'block',
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              color: '#374151',
+              marginBottom: '0.25rem'
+            }}>
+              Street *
+            </label>
+            <input
+              type="text"
+              placeholder="Street name and number"
+              value={location.address.street}
+              onChange={(e) => updateAddressField('street', e.target.value)}
+              style={{
+                width: '100%',
+                padding: '0.5rem',
+                border: '1px solid #D1D5DB',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem'
+              }}
+            />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
+            <div>
+              <label style={{
+                display: 'block',
+                fontSize: '0.875rem',
+                fontWeight: '600',
+                color: '#374151',
+                marginBottom: '0.25rem'
+              }}>
+                Building #
+              </label>
+              <input
+                type="text"
+                placeholder="Building number"
+                value={location.address.buildingNumber}
+                onChange={(e) => updateAddressField('buildingNumber', e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '0.5rem',
+                  border: '1px solid #D1D5DB',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.875rem'
+                }}
+              />
+            </div>
+            <div>
+              <label style={{
+                display: 'block',
+                fontSize: '0.875rem',
+                fontWeight: '600',
+                color: '#374151',
+                marginBottom: '0.25rem'
+              }}>
+                Floor
+              </label>
+              <input
+                type="text"
+                placeholder="Floor (optional)"
+                value={location.address.floor}
+                onChange={(e) => updateAddressField('floor', e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '0.5rem',
+                  border: '1px solid #D1D5DB',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.875rem'
+                }}
+              />
+            </div>
+            <div>
+              <label style={{
+                display: 'block',
+                fontSize: '0.875rem',
+                fontWeight: '600',
+                color: '#374151',
+                marginBottom: '0.25rem'
+              }}>
+                Apt #
+              </label>
+              <input
+                type="text"
+                placeholder="Apartment (optional)"
+                value={location.address.apartmentNumber}
+                onChange={(e) => updateAddressField('apartmentNumber', e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '0.5rem',
+                  border: '1px solid #D1D5DB',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.875rem'
+                }}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label style={{
+              display: 'block',
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              color: '#374151',
+              marginBottom: '0.25rem'
+            }}>
+              Person Name *
+            </label>
+            <input
+              type="text"
+              placeholder="Person to contact at this location"
+              value={location.address.personName}
+              onChange={(e) => updateAddressField('personName', e.target.value)}
+              style={{
+                width: '100%',
+                padding: '0.5rem',
+                border: '1px solid #D1D5DB',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem'
+              }}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // State variables
   const [authState, setAuthState] = useState('login');
   const [token, setToken] = useState(localStorage.getItem('token') || null);
@@ -44,6 +443,7 @@ const DeliveryApp = () => {
   });
   const [successMessage, setSuccessMessage] = useState('');
   const [retryCount, setRetryCount] = useState(0);
+  const [spokenNotifications, setSpokenNotifications] = useState(new Set());
 
   // Driver location functionality
   const [viewType, setViewType] = useState('active'); // 'active', 'bidding', 'history'
@@ -71,10 +471,32 @@ const DeliveryApp = () => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    pickup_address: '',
-    delivery_address: '',
-    fromLocation: '',
-    toLocation: '',
+    pickupLocation: {
+      coordinates: { lat: null, lng: null },
+      address: {
+        country: '',
+        city: '',
+        area: '',
+        street: '',
+        buildingNumber: '',
+        floor: '',
+        apartmentNumber: '',
+        personName: ''
+      }
+    },
+    dropoffLocation: {
+      coordinates: { lat: null, lng: null },
+      address: {
+        country: '',
+        city: '',
+        area: '',
+        street: '',
+        buildingNumber: '',
+        floor: '',
+        apartmentNumber: '',
+        personName: ''
+      }
+    },
     package_description: '',
     package_weight: '',
     estimated_value: '',
@@ -85,6 +507,46 @@ const DeliveryApp = () => {
 
   const [bidInput, setBidInput] = useState({});
   const [bidDetails, setBidDetails] = useState({});
+
+  // Map selector state
+  const [showMapSelector, setShowMapSelector] = useState(false);
+  const [mapSelectorType, setMapSelectorType] = useState('pickup'); // 'pickup' or 'dropoff'
+
+  // Map event handlers
+  const handleLocationSelect = (lat, lng) => {
+    const coordinates = { lat: parseFloat(lat), lng: parseFloat(lng) };
+
+    if (mapSelectorType === 'pickup') {
+      setFormData(prev => ({
+        ...prev,
+        pickupLocation: {
+          ...prev.pickupLocation,
+          coordinates: coordinates
+        }
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        dropoffLocation: {
+          ...prev.dropoffLocation,
+          coordinates: coordinates
+        }
+      }));
+    }
+    setShowMapSelector(false);
+  };
+
+  const handleOpenMap = (type) => {
+    setMapSelectorType(type);
+    setShowMapSelector(true);
+  };
+
+  const handleLocationChange = (locationType, newLocationData) => {
+    setFormData(prev => ({
+      ...prev,
+      [locationType]: newLocationData
+    }));
+  };
 
   // Effects
   useEffect(() => {
@@ -158,7 +620,7 @@ const DeliveryApp = () => {
       setNotifications(data);
 
       // Enhanced notifications with sound and TTS
-      // Check for new notifications
+      // Check for new notifications that haven't been spoken yet
       const newUnreadCount = data.filter(n => !n.isRead).length;
       const previousUnreadCount = notifications.filter(n => !n.isRead).length;
 
@@ -166,10 +628,14 @@ const DeliveryApp = () => {
         // Play notification sound
         playNotificationSound();
 
-        // Get the latest unread notification for TTS
-        const latestUnread = data.filter(n => !n.isRead)[0];
-        if (latestUnread) {
-          speakNotification(latestUnread);
+        // Get the latest unread notification that hasn't been spoken yet
+        const unreadNotifications = data.filter(n => !n.isRead && !spokenNotifications.has(n.id));
+
+        if (unreadNotifications.length > 0) {
+          // Speak only the newest unplayed notification to avoid spam
+          const latestUnspoken = unreadNotifications[0];
+          speakNotification(latestUnspoken);
+          setSpokenNotifications(prev => new Set(prev.add(latestUnspoken.id)));
         }
       }
     } catch (err) {
@@ -521,8 +987,34 @@ const DeliveryApp = () => {
 
   const handlePublishOrder = async (e) => {
     e.preventDefault();
-    if (!formData.title || !formData.price || !formData.fromLocation || !formData.toLocation) {
-      setError('Please fill all required fields');
+
+    // Enhanced validation for new form structure
+    const requiredFieldsError = [];
+    if (!formData.title) requiredFieldsError.push('Order title');
+    if (!formData.price) requiredFieldsError.push('Price');
+
+    // Validate pickup location has coordinates and required address fields
+    if (!formData.pickupLocation.coordinates?.lat || !formData.pickupLocation.coordinates?.lng) {
+      requiredFieldsError.push('Pickup location on map');
+    }
+    if (!formData.pickupLocation.address.country) requiredFieldsError.push('Pickup country');
+    if (!formData.pickupLocation.address.city) requiredFieldsError.push('Pickup city');
+    if (!formData.pickupLocation.address.area) requiredFieldsError.push('Pickup area');
+    if (!formData.pickupLocation.address.street) requiredFieldsError.push('Pickup street');
+    if (!formData.pickupLocation.address.personName) requiredFieldsError.push('Pickup contact person');
+
+    // Validate dropoff location has coordinates and required address fields
+    if (!formData.dropoffLocation.coordinates?.lat || !formData.dropoffLocation.coordinates?.lng) {
+      requiredFieldsError.push('Dropoff location on map');
+    }
+    if (!formData.dropoffLocation.address.country) requiredFieldsError.push('Dropoff country');
+    if (!formData.dropoffLocation.address.city) requiredFieldsError.push('Dropoff city');
+    if (!formData.dropoffLocation.address.area) requiredFieldsError.push('Dropoff area');
+    if (!formData.dropoffLocation.address.street) requiredFieldsError.push('Dropoff street');
+    if (!formData.dropoffLocation.address.personName) requiredFieldsError.push('Dropoff contact person');
+
+    if (requiredFieldsError.length > 0) {
+      setError(`Please fill all required fields: ${requiredFieldsError.join(', ')}`);
       return;
     }
 
@@ -530,20 +1022,43 @@ const DeliveryApp = () => {
     setError('');
 
     try {
+      // Build the new structured order data
       const newOrder = {
         title: formData.title,
         description: formData.description,
-        pickup_address: formData.pickup_address || formData.fromLocation,
-        delivery_address: formData.delivery_address || formData.toLocation,
-        from: {
-          lat: 40.7128 + Math.random() * 0.1,
-          lng: -74.0060 + Math.random() * 0.1,
-          name: formData.fromLocation
+        // New structured location data for pickup
+        pickupLocation: {
+          coordinates: {
+            lat: parseFloat(formData.pickupLocation.coordinates.lat),
+            lng: parseFloat(formData.pickupLocation.coordinates.lng)
+          },
+          address: {
+            country: formData.pickupLocation.address.country,
+            city: formData.pickupLocation.address.city,
+            area: formData.pickupLocation.address.area,
+            street: formData.pickupLocation.address.street,
+            buildingNumber: formData.pickupLocation.address.buildingNumber || '',
+            floor: formData.pickupLocation.address.floor || '',
+            apartmentNumber: formData.pickupLocation.address.apartmentNumber || '',
+            personName: formData.pickupLocation.address.personName
+          }
         },
-        to: {
-          lat: 40.7589 + Math.random() * 0.1,
-          lng: -73.9851 + Math.random() * 0.1,
-          name: formData.toLocation
+        // New structured location data for dropoff
+        dropoffLocation: {
+          coordinates: {
+            lat: parseFloat(formData.dropoffLocation.coordinates.lat),
+            lng: parseFloat(formData.dropoffLocation.coordinates.lng)
+          },
+          address: {
+            country: formData.dropoffLocation.address.country,
+            city: formData.dropoffLocation.address.city,
+            area: formData.dropoffLocation.address.area,
+            street: formData.dropoffLocation.address.street,
+            buildingNumber: formData.dropoffLocation.address.buildingNumber || '',
+            floor: formData.dropoffLocation.address.floor || '',
+            apartmentNumber: formData.dropoffLocation.address.apartmentNumber || '',
+            personName: formData.dropoffLocation.address.personName
+          }
         },
         package_description: formData.package_description,
         package_weight: formData.package_weight ? parseFloat(formData.package_weight) : null,
@@ -567,15 +1082,47 @@ const DeliveryApp = () => {
         throw new Error(data.error || 'Failed to publish order');
       }
 
+      // Reset form to initial empty state
       setFormData({
-        title: '', description: '', pickup_address: '', delivery_address: '',
-        fromLocation: '', toLocation: '', package_description: '',
-        package_weight: '', estimated_value: '', special_instructions: '',
-        estimated_delivery_date: '', price: ''
+        title: '',
+        description: '',
+        pickupLocation: {
+          coordinates: { lat: null, lng: null },
+          address: {
+            country: '',
+            city: '',
+            area: '',
+            street: '',
+            buildingNumber: '',
+            floor: '',
+            apartmentNumber: '',
+            personName: ''
+          }
+        },
+        dropoffLocation: {
+          coordinates: { lat: null, lng: null },
+          address: {
+            country: '',
+            city: '',
+            area: '',
+            street: '',
+            buildingNumber: '',
+            floor: '',
+            apartmentNumber: '',
+            personName: ''
+          }
+        },
+        package_description: '',
+        package_weight: '',
+        estimated_value: '',
+        special_instructions: '',
+        estimated_delivery_date: '',
+        price: ''
       });
+
       setShowOrderForm(false);
       fetchOrders();
-      showSuccess('Order published successfully! Waiting for driver bids.');
+      showSuccess('Order published successfully! Waiting for drivers in your area.');
     } catch (err) {
       let errorMessage = 'Failed to publish order';
       if (err.message.includes('Service Unavailable')) {
@@ -1134,102 +1681,149 @@ const DeliveryApp = () => {
           </div>
         )}
 
+        {showMapSelector && (
+          <LocationSelector
+            isOpen={showMapSelector}
+            onClose={() => setShowMapSelector(false)}
+            onLocationSelect={handleLocationSelect}
+            initialCoordinates={mapSelectorType === 'pickup' ?
+              (formData.pickupLocation.coordinates?.lat ? [formData.pickupLocation.coordinates.lat, formData.pickupLocation.coordinates.lng] : null) :
+              (formData.dropoffLocation.coordinates?.lat ? [formData.dropoffLocation.coordinates.lat, formData.dropoffLocation.coordinates.lng] : null)
+            }
+          />
+        )}
+
         {showOrderForm && (
           <div style={{ background: 'white', borderRadius: '0.5rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)', padding: '1.5rem', marginBottom: '1.5rem' }}>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem' }}>Create New Delivery Order</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              <input
-                type="text"
-                placeholder="Order Title *"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem', gridColumn: '1 / -1' }}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1rem' }}>
+              {/* Basic Order Info */}
+              <div style={{ display: 'grid', gap: '1rem' }}>
+                <input
+                  type="text"
+                  placeholder="Order Title *"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  style={{ width: '100%', padding: '0.75rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem', fontSize: '0.875rem' }}
+                />
+                <textarea
+                  placeholder="Description (optional)"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  style={{ width: '100%', padding: '0.75rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem', minHeight: '100px', fontSize: '0.875rem', resize: 'vertical' }}
+                />
+                <textarea
+                  placeholder="Package Description"
+                  value={formData.package_description}
+                  onChange={(e) => setFormData({ ...formData, package_description: e.target.value })}
+                  style={{ width: '100%', padding: '0.75rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem', minHeight: '80px', fontSize: '0.875rem', resize: 'vertical' }}
+                />
+                <textarea
+                  placeholder="Special Instructions (optional)"
+                  value={formData.special_instructions}
+                  onChange={(e) => setFormData({ ...formData, special_instructions: e.target.value })}
+                  style={{ width: '100%', padding: '0.75rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem', minHeight: '60px', fontSize: '0.875rem', resize: 'vertical' }}
+                />
+              </div>
+
+              {/* Detailed Package & Pricing Info */}
+              <div style={{ display: 'grid', gap: '1rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+                      Package Weight (kg)
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="0.0"
+                      value={formData.package_weight}
+                      onChange={(e) => setFormData({ ...formData, package_weight: e.target.value })}
+                      style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem', fontSize: '0.875rem' }}
+                      step="0.1"
+                      min="0"
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+                      Estimated Value ($)
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.estimated_value}
+                      onChange={(e) => setFormData({ ...formData, estimated_value: e.target.value })}
+                      style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem', fontSize: '0.875rem' }}
+                      step="0.01"
+                      min="0"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+                    Estimated Delivery Date (optional)
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={formData.estimated_delivery_date}
+                    onChange={(e) => setFormData({ ...formData, estimated_delivery_date: e.target.value })}
+                    style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem', fontSize: '0.875rem' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+                    Offered Price ($) *
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="Enter price"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    style={{ width: '100%', padding: '0.75rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem', fontSize: '0.875rem', fontWeight: '600' }}
+                    step="0.01"
+                    min="0"
+                    required
+                  />
+                </div>
+
+                <button
+                  onClick={handlePublishOrder}
+                  disabled={loadingStates.createOrder}
+                  style={{
+                    width: '100%',
+                    background: '#10B981',
+                    color: 'white',
+                    padding: '0.75rem',
+                    borderRadius: '0.375rem',
+                    fontWeight: '600',
+                    border: 'none',
+                    cursor: loadingStates.createOrder ? 'not-allowed' : 'pointer',
+                    opacity: loadingStates.createOrder ? 0.5 : 1
+                  }}
+                >
+                  {loadingStates.createOrder ? 'Publishing Order...' : '📦 Publish Order'}
+                </button>
+              </div>
+            </div>
+
+            {/* Location Sections - Full Width */}
+            <div style={{ marginTop: '2rem' }}>
+              <AddressDetailsForm
+                type="Pickup"
+                location={formData.pickupLocation}
+                onLocationChange={(pickupData) => handleLocationChange('pickupLocation', pickupData)}
+                onOpenMap={() => handleOpenMap('pickup')}
               />
-              <textarea
-                placeholder="Description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem', minHeight: '80px', gridColumn: '1 / -1' }}
-              />
-              <input
-                type="text"
-                placeholder="Pickup Location *"
-                value={formData.fromLocation}
-                onChange={(e) => setFormData({ ...formData, fromLocation: e.target.value })}
-                style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
-              />
-              <input
-                type="text"
-                placeholder="Delivery Location *"
-                value={formData.toLocation}
-                onChange={(e) => setFormData({ ...formData, toLocation: e.target.value })}
-                style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
-              />
-              <input
-                type="text"
-                placeholder="Pickup Address"
-                value={formData.pickup_address}
-                onChange={(e) => setFormData({ ...formData, pickup_address: e.target.value })}
-                style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
-              />
-              <input
-                type="text"
-                placeholder="Delivery Address"
-                value={formData.delivery_address}
-                onChange={(e) => setFormData({ ...formData, delivery_address: e.target.value })}
-                style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
-              />
-              <input
-                type="text"
-                placeholder="Package Description"
-                value={formData.package_description}
-                onChange={(e) => setFormData({ ...formData, package_description: e.target.value })}
-                style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
-              />
-              <input
-                type="number"
-                placeholder="Package Weight (kg)"
-                value={formData.package_weight}
-                onChange={(e) => setFormData({ ...formData, package_weight: e.target.value })}
-                style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
-                step="0.1"
-              />
-              <input
-                type="number"
-                placeholder="Estimated Value ($)"
-                value={formData.estimated_value}
-                onChange={(e) => setFormData({ ...formData, estimated_value: e.target.value })}
-                style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
-                step="0.01"
-              />
-              <input
-                type="datetime-local"
-                placeholder="Estimated Delivery Date"
-                value={formData.estimated_delivery_date}
-                onChange={(e) => setFormData({ ...formData, estimated_delivery_date: e.target.value })}
-                style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
-              />
-              <textarea
-                placeholder="Special Instructions"
-                value={formData.special_instructions}
-                onChange={(e) => setFormData({ ...formData, special_instructions: e.target.value })}
-                style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem', minHeight: '60px', gridColumn: '1 / -1' }}
-              />
-              <input
-                type="number"
-                placeholder="Offered Price ($) *"
-                value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem', gridColumn: '1 / -1' }}
-                step="0.01"
-              />
-              <button
-                onClick={handlePublishOrder}
-                disabled={loading}
-                style={{ background: '#10B981', color: 'white', padding: '0.75rem', borderRadius: '0.375rem', fontWeight: '600', border: 'none', cursor: 'pointer', gridColumn: '1 / -1' }}
-              >
-                {loading ? 'Publishing...' : 'Publish Order'}
-              </button>
+
+              <div style={{ marginTop: '1.5rem' }}>
+                <AddressDetailsForm
+                  type="Delivery"
+                  location={formData.dropoffLocation}
+                  onLocationChange={(dropoffData) => handleLocationChange('dropoffLocation', dropoffData)}
+                  onOpenMap={() => handleOpenMap('dropoff')}
+                />
+              </div>
             </div>
           </div>
         )}
