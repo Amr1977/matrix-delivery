@@ -22,43 +22,6 @@ const DeliveryApp = () => {
     return null;
   });
 
-  // MapCenterController - handles initial center and location-based centering
-  const MapCenterController = ({ initialCoordinates, customerLocation, hasInitiallyCentered, onCenterSet }) => {
-    const map = useMap();
-    const hasCenteredRef = useRef(false);
-    const centeredCustomerRef = useRef(null);
-
-    useEffect(() => {
-      if (!map || hasCenteredRef.current) return;
-
-      // Set initial center based on coordinates first
-      if (initialCoordinates) {
-        map.setView(initialCoordinates, 13);
-        hasCenteredRef.current = true;
-        onCenterSet(true);
-      } else if (customerLocation &&
-                 !hasInitiallyCentered &&
-                 customerLocation.lat &&
-                 customerLocation.lng &&
-                 centeredCustomerRef.current !== customerLocation) {
-        // Only center on customer location once per customerLocation object
-        map.setView([customerLocation.lat, customerLocation.lng], 13);
-        hasCenteredRef.current = true;
-        centeredCustomerRef.current = customerLocation;
-        onCenterSet(true);
-      }
-    }, [map]); // Only depend on map to avoid frequent re-runs
-
-    // Reset centering state when unmounting
-    useEffect(() => {
-      return () => {
-        hasCenteredRef.current = false;
-        centeredCustomerRef.current = null;
-      };
-    }, []);
-
-    return null;
-  };
 
   // Location Selector Component
   const LocationSelector = ({ isOpen, onClose, onLocationSelect, initialCoordinates, customerLocation }) => {
@@ -160,7 +123,7 @@ const DeliveryApp = () => {
           </div>
           <div style={{ height: '400px' }}>
             <MapContainer
-              center={[40.7128, -74.0060]} // Default center, will be overridden by MapCenterController
+              center={[40.7128, -74.0060]} // Default center, stable center to prevent zoom resets
               zoom={13}
               style={{ height: '100%', width: '100%' }}
               whenReady={() => {
@@ -188,12 +151,6 @@ const DeliveryApp = () => {
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
               <LocationMarker />
-              <MapCenterController
-                initialCoordinates={initialCoordinates}
-                customerLocation={customerLocation}
-                hasInitiallyCentered={hasInitiallyCentered}
-                onCenterSet={setHasInitiallyCentered}
-              />
             </MapContainer>
           </div>
           <div style={{ padding: '1rem', borderTop: '1px solid #E5E7EB' }}>
