@@ -72,9 +72,30 @@ const DeliveryApp = () => {
           </div>
           <div style={{ height: '400px' }}>
             <MapContainer
+              key={JSON.stringify(initialCoordinates)} // Force re-render on coordinate changes
               center={initialCoordinates || [40.7128, -74.0060]}
               zoom={13}
               style={{ height: '100%', width: '100%' }}
+              whenReady={() => {
+                // Ensure map is fully loaded before interactions
+                setTimeout(() => {
+                  try {
+                    // Validate map container after rendering
+                    const mapElement = document.querySelector('.leaflet-container');
+                    if (mapElement && mapElement._leaflet_map) {
+                      // Force a map size recalculation
+                      mapElement._leaflet_map.invalidateSize();
+                    }
+                  } catch (e) {
+                    console.warn('Map initialization warning:', e);
+                  }
+                }, 200);
+              }}
+              // Error boundary for Leaflet
+              errorOverlay={{
+                message: 'Map failed to load. Please refresh the page.',
+                style: { background: '#f44336', color: 'white', padding: '10px' }
+              }}
             >
               <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
