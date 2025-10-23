@@ -378,8 +378,41 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
-// Registration rate limiting (stricter)
-app.post('/api/auth/register', rateLimit(5, 60 * 60 * 1000), async (req, res) => {
+app.post('/api/auth/register', async (req, res) => {
+  // Skip rate limiting in test mode
+  if (!IS_TEST) {
+    const rateLimited = await (async () => {
+      // Simple rate limiter check - simplified for test disable
+      if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing') {
+        return false; // Allow request in tests
+      }
+
+      const key = req.ip || req.connection.remoteAddress;
+      const now = Date.now();
+      const windowStart = now - (60 * 60 * 1000); // 1 hour
+
+      if (!rateLimitStore.has(key)) {
+        rateLimitStore.set(key, []);
+      }
+
+      const requests = rateLimitStore.get(key);
+      const validRequests = requests.filter(time => time > windowStart);
+
+      if (validRequests.length >= 5) {
+        return true; // Rate limited
+      }
+
+      validRequests.push(now);
+      rateLimitStore.set(key, validRequests);
+      return false; // Not rate limited
+    })();
+
+    if (rateLimited) {
+      return res.status(429).json({
+        error: 'Too many requests, please try again later'
+      });
+    }
+  }
   try {
     const { name, email, password, phone, role, vehicle_type } = req.body;
 
@@ -537,53 +570,118 @@ app.get('/api/auth/me', verifyToken, async (req, res) => {
 // ============ PART 3: Order Management & Bidding ============
 // Add this after Part 2
 
-// Create Order
+// Create Order (Updated for structured location data)
 app.post('/api/orders', verifyToken, async (req, res) => {
   try {
-    const { 
-      title, description, pickup_address, delivery_address, from, to, price,
-      package_description, package_weight, estimated_value, special_instructions, estimated_delivery_date
+    const {
+      title, description, price,
+      package_description, package_weight, estimated_value, special_instructions, estimated_delivery_date,
+      pickupLocation, dropoffLocation  // New structured location data
     } = req.body;
 
-    if (!title || !from || !to || !price) {
-      return res.status(400).json({ error: 'Title, locations, and price are required' });
+    // Validate required fields
+    if (!title || !price) {
+      return res.status(400).json({ error: 'Title and price are required' });
     }
 
     if (parseFloat(price) <= 0) {
       return res.status(400).json({ error: 'Price must be greater than 0' });
     }
 
+    // Validate location data
+    if (!pickupLocation || !pickupLocation.coordinates || !pickupLocation.address) {
+      return res.status(400).json({ error: 'Pickup location data is required' });
+    }
+
+    if (!dropoffLocation || !dropoffLocation.coordinates || !dropoffLocation.address) {
+      return res.status(400).json({ error: 'Dropoff location data is required' });
+    }
+
+    // Construct pickup address string from structured data
+    const pickupAddressParts = [
+      pickupLocation.address.personName,
+      pickupLocation.address.street,
+      pickupLocation.address.buildingNumber ? `Building ${pickupLocation.address.buildingNumber}` : '',
+      pickupLocation.address.floor ? `Floor ${pickupLocation.address.floor}` : '',
+      pickupLocation.address.apartmentNumber ? `Apartment ${pickupLocation.address.apartmentNumber}` : '',
+      pickupLocation.address.area,
+      pickupLocation.address.city,
+      pickupLocation.address.country
+    ].filter(Boolean);
+
+    const pickupAddress = pickupAddressParts.join(', ');
+
+    // Construct dropoff address string from structured data
+    const dropoffAddressParts = [
+      dropoffLocation.address.personName,
+      dropoffLocation.address.street,
+      dropoffLocation.address.buildingNumber ? `Building ${dropoffLocation.address.buildingNumber}` : '',
+      dropoffLocation.address.floor ? `Floor ${dropoffLocation.address.floor}` : '',
+      dropoffLocation.address.apartmentNumber ? `Apartment ${dropoffLocation.address.apartmentNumber}` : '',
+      dropoffLocation.address.area,
+      dropoffLocation.address.city,
+      dropoffLocation.address.country
+    ].filter(Boolean);
+
+    const dropoffAddress = dropoffAddressParts.join(', ');
+
     const orderId = generateId();
     const orderNumber = generateOrderNumber();
-    
+
     const result = await pool.query(
       `INSERT INTO orders (
         id, order_number, title, description, pickup_address, delivery_address,
-        from_lat, from_lng, from_name, to_lat, to_lng, to_name, 
-        package_description, package_weight, estimated_value, special_instructions, 
+        from_lat, from_lng, from_name, to_lat, to_lng, to_name,
+        package_description, package_weight, estimated_value, special_instructions,
         price, status, customer_id, customer_name, estimated_delivery_date
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
        RETURNING *`,
-      [orderId, orderNumber, title.trim(), description?.trim() || '', pickup_address || from.name, delivery_address || to.name,
-       parseFloat(from.lat), parseFloat(from.lng), from.name, parseFloat(to.lat), parseFloat(to.lng), to.name,
-       package_description || null, package_weight ? parseFloat(package_weight) : null, 
-       estimated_value ? parseFloat(estimated_value) : null, special_instructions || null, 
+      [orderId, orderNumber, title.trim(), description?.trim() || '', pickupAddress, dropoffAddress,
+       parseFloat(pickupLocation.coordinates.lat), parseFloat(pickupLocation.coordinates.lng),
+       pickupLocation.address.personName || pickupLocation.address.street,
+       parseFloat(dropoffLocation.coordinates.lat), parseFloat(dropoffLocation.coordinates.lng),
+       dropoffLocation.address.personName || dropoffLocation.address.street,
+       package_description || null, package_weight ? parseFloat(package_weight) : null,
+       estimated_value ? parseFloat(estimated_value) : null, special_instructions || null,
        parseFloat(price), 'pending_bids', req.user.userId, req.user.name, estimated_delivery_date || null]
     );
 
     const order = result.rows[0];
     console.log(`✅ Order created: "${order.title}" (${order.order_number}) by ${req.user.name}`);
-    
+
+    // Return order data in expected format
     res.status(201).json({
-      _id: order.id, orderNumber: order.order_number, title: order.title, description: order.description,
-      pickupAddress: order.pickup_address, deliveryAddress: order.delivery_address,
-      from: { lat: parseFloat(order.from_lat), lng: parseFloat(order.from_lng), name: order.from_name },
-      to: { lat: parseFloat(order.to_lat), lng: parseFloat(order.to_lng), name: order.to_name },
-      packageDescription: order.package_description, packageWeight: order.package_weight ? parseFloat(order.package_weight) : null,
+      _id: order.id,
+      orderNumber: order.order_number,
+      title: order.title,
+      description: order.description,
+      pickupAddress: order.pickup_address,
+      deliveryAddress: order.delivery_address,
+      from: {
+        lat: parseFloat(order.from_lat),
+        lng: parseFloat(order.from_lng),
+        name: order.from_name
+      },
+      to: {
+        lat: parseFloat(order.to_lat),
+        lng: parseFloat(order.to_lng),
+        name: order.to_name
+      },
+      packageDescription: order.package_description,
+      packageWeight: order.package_weight ? parseFloat(order.package_weight) : null,
       estimatedValue: order.estimated_value ? parseFloat(order.estimated_value) : null,
-      specialInstructions: order.special_instructions, price: parseFloat(order.price), status: order.status,
-      bids: [], customerId: order.customer_id, customerName: order.customer_name, assignedDriver: null,
-      estimatedDeliveryDate: order.estimated_delivery_date, createdAt: order.created_at
+      specialInstructions: order.special_instructions,
+      price: parseFloat(order.price),
+      status: order.status,
+      bids: [],
+      customerId: order.customer_id,
+      customerName: order.customer_name,
+      assignedDriver: null,
+      estimatedDeliveryDate: order.estimated_delivery_date,
+      createdAt: order.created_at,
+      // Also include structured location data for frontend
+      pickupLocation: pickupLocation,
+      dropoffLocation: dropoffLocation
     });
   } catch (error) {
     console.error('Create order error:', error);
@@ -627,36 +725,19 @@ app.get('/api/orders', verifyToken, async (req, res) => {
       `;
       const activeOrdersResult = await pool.query(activeOrdersQuery, [req.user.userId]);
 
-      // Get bidding orders (pending_bids) with distance filtering
-      let biddingOrders = [];
-      if (driverLocation) {
-        const biddingOrdersQuery = `
-          SELECT o.*,
-                 COALESCE(json_agg(json_build_object('userId', b.user_id, 'driverName', b.driver_name, 'bidPrice', b.bid_price, 'estimatedPickupTime', b.estimated_pickup_time, 'estimatedDeliveryTime', b.estimated_delivery_time, 'message', b.message, 'status', b.status, 'createdAt', b.created_at) ORDER BY b.created_at DESC) FILTER (WHERE b.id IS NOT NULL), '[]') as bids
-          FROM orders o
-          LEFT JOIN bids b ON o.id = b.order_id
-          WHERE o.status = 'pending_bids'
-          AND NOT EXISTS (SELECT 1 FROM bids WHERE order_id = o.id AND user_id = $1)
-          GROUP BY o.id
-          ORDER BY o.created_at DESC
-        `;
-        const biddingOrdersResult = await pool.query(biddingOrdersQuery, [req.user.userId]);
-
-        // Filter orders within 5km range
-        biddingOrders = biddingOrdersResult.rows.filter(order => {
-          const distance = getDistance(
-            { latitude: driverLocation.latitude, longitude: driverLocation.longitude },
-            { latitude: parseFloat(order.from_lat), longitude: parseFloat(order.from_lng) }
-          );
-          return distance <= 5000; // 5km in meters
-        }).map(order => ({
-          ...order,
-          distanceToPickup: getDistance(
-            { latitude: driverLocation.latitude, longitude: driverLocation.longitude },
-            { latitude: parseFloat(order.from_lat), longitude: parseFloat(order.from_lng) }
-          )
-        }));
-      }
+      // Get bidding orders (pending_bids) - no distance filtering
+      const biddingOrdersQuery = `
+        SELECT o.*,
+               COALESCE(json_agg(json_build_object('userId', b.user_id, 'driverName', b.driver_name, 'bidPrice', b.bid_price, 'estimatedPickupTime', b.estimated_pickup_time, 'estimatedDeliveryTime', b.estimated_delivery_time, 'message', b.message, 'status', b.status, 'createdAt', b.created_at) ORDER BY b.created_at DESC) FILTER (WHERE b.id IS NOT NULL), '[]') as bids
+        FROM orders o
+        LEFT JOIN bids b ON o.id = b.order_id
+        WHERE o.status = 'pending_bids'
+        AND NOT EXISTS (SELECT 1 FROM bids WHERE order_id = o.id AND user_id = $1)
+        GROUP BY o.id
+        ORDER BY o.created_at DESC
+      `;
+      const biddingOrdersResult = await pool.query(biddingOrdersQuery, [req.user.userId]);
+      const biddingOrders = biddingOrdersResult.rows;
 
       // Get completed orders (delivered) for history
       const historyQuery = `

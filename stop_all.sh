@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🛑 Stopping DeliverHub services..."
+echo "🛑 Stopping Matrix Delivery Platform services..."
 
 # Kill all Node processes
 pkill -f "node server"
@@ -10,4 +10,4 @@ echo "✅ Backend stopped"
 pkill -f "npm start"
 echo "✅ Frontend stopped"
 
-echo "✨ All services stopped"
+echo "✨ All Matrix Delivery Platform services stopped"
