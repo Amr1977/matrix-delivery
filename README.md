@@ -1,6 +1,6 @@
 # 🛍️ Matrix Delivery Platform
 
-A comprehensive peer-to-peer marketplace application where customers can post delivery requests and drivers can bid to complete deliveries. Built with React, Node.js, PostgreSQL, and powered by Text-to-Speech notifications and a robust test suite.
+A comprehensive peer-to-peer marketplace application where customers can post delivery requests and drivers can bid to complete deliveries. Built with React, Node.js, PostgreSQL, and powered by a robust test suite.
 
 ## 🌟 Open Source Project
 
@@ -48,7 +48,7 @@ This project was founded by **Amr Lotfy**, a software engineer and advocate for 
 - **Role-Based Access**: Separate registration for customers and drivers
 - **Secure Authentication**: JWT-based login with proper validation
 - **Profile Management**: User profiles with ratings and delivery history
-- **Account Verification**: Email verification and account status tracking
+- **Account Types**: Separate registration for customers and drivers
 
 ### 📦 Order & Bidding System
 - **Location-Based Filtering**: Orders filtered by 5km radius for drivers
@@ -57,23 +57,22 @@ This project was founded by **Amr Lotfy**, a software engineer and advocate for 
 - **Flexible Pricing**: Customer-defined pricing with driver bidding
 
 ### 💳 Payment Processing
-- **Secure Transactions**: Full payment processing for completed deliveries
-- **Automatic Refunds**: Cancellation handling with proper refund logic
-- **Transaction Records**: Complete payment history and receipts
+- **Cash on Delivery**: COD payment confirmation system for completed deliveries
+- **Transaction Records**: Complete payment history and records
 
 ### 🎁 Promotions & Rewards
-- **Referral Program**: Earn credits by inviting new users
-- **Loyalty Points**: Reward system for completed deliveries
-- **Promotional Campaigns**: Seasonal specials and first-time user bonuses
-- **Driver Incentives**: Weekend bonuses and performance rewards
+- **Referral Program**: Earn credits by inviting new users *(Planned)*
+- **Loyalty Points**: Reward system for completed deliveries *(Planned)*
+- **Promotional Campaigns**: Seasonal specials and first-time user bonuses *(Planned)*
+- **Driver Incentives**: Weekend bonuses and performance rewards *(Planned)*
 
-### 🔔 Accessibility Features
-- **Text-to-Speech Notifications**: Audio announcements for visually impaired users
+### 🔔 Notifications System
+- **Real-Time Notifications**: Status updates and alerts for all stakeholders
 - **Duplicate Prevention**: Smart notification filtering to avoid spam
-- **Real-Time Updates**: Live status updates and notifications
+- **Event-Driven Alerts**: Notifications triggered by order status changes
 
 ### 🧪 Comprehensive Testing
-- **98 BDD Test Scenarios**: Complete coverage with Cucumber.js
+- **60+ BDD Test Scenarios**: Comprehensive coverage with Cucumber.js
 - **Cross-Platform Testing**: E2E, API, and UI testing
 - **Automated Reporting**: HTML reports, screenshots, and video recordings
 - **Headless/Headed Modes**: Flexible testing configurations
@@ -91,7 +90,7 @@ This project was founded by **Amr Lotfy**, a software engineer and advocate for 
 - **Framework**: React.js with modern hooks
 - **State Management**: Context API and local state
 - **Styling**: CSS with responsive design
-- **Accessibility**: Screen reader support and TTS integration
+- **Accessibility**: Screen reader support and responsive design
 - **Browser Support**: Modern browsers (Chrome, Firefox, Edge)
 
 ### Testing Infrastructure
