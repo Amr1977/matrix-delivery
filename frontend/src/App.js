@@ -1,15 +1,51 @@
 // ============ APP.JS PART 1: Setup & State Management ============
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useImperativeHandle } from 'react';
 import L from 'leaflet';
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 
 const DeliveryApp = () => {
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
+  // MapController Component - handles map instance for programmatic control
+  const MapController = React.forwardRef((props, ref) => {
+    const map = useMap();
+
+    useImperativeHandle(ref, () => ({
+      setView: (coordinates, zoom) => {
+        if (map) {
+          map.setView(coordinates, zoom);
+        }
+      }
+    }));
+
+    return null;
+  });
+
+  // MapCenterController - handles initial center and location-based centering
+  const MapCenterController = ({ initialCoordinates, customerLocation, hasInitiallyCentered, onCenterSet }) => {
+    const map = useMap();
+
+    useEffect(() => {
+      if (!map) return;
+
+      // Set initial center based on coordinates or customer location
+      if (initialCoordinates) {
+        map.setView(initialCoordinates, 13);
+        onCenterSet(true);
+      } else if (customerLocation && !hasInitiallyCentered) {
+        map.setView([customerLocation.lat, customerLocation.lng], 13);
+        onCenterSet(true);
+      }
+    }, [map, initialCoordinates, customerLocation, hasInitiallyCentered, onCenterSet]);
+
+    return null;
+  };
+
   // Location Selector Component
   const LocationSelector = ({ isOpen, onClose, onLocationSelect, initialCoordinates, customerLocation }) => {
     const [selectedPosition, setSelectedPosition] = useState(initialCoordinates || null);
+    const [hasInitiallyCentered, setHasInitiallyCentered] = useState(false);
 
     const LocationMarker = () => {
       const map = useMapEvents({
@@ -106,11 +142,7 @@ const DeliveryApp = () => {
           </div>
           <div style={{ height: '400px' }}>
             <MapContainer
-              center={
-                // Priority: initialCoordinates > customerLocation > default NYC
-                initialCoordinates ||
-                (customerLocation ? [customerLocation.lat, customerLocation.lng] : [40.7128, -74.0060])
-              }
+              center={[40.7128, -74.0060]} // Default center, will be overridden by MapCenterController
               zoom={13}
               style={{ height: '100%', width: '100%' }}
               whenReady={() => {
@@ -133,6 +165,13 @@ const DeliveryApp = () => {
                 style: { background: '#f44336', color: 'white', padding: '10px' }
               }}
             >
+              <MapController ref={mapControllerRef} />
+              <MapCenterController
+                initialCoordinates={initialCoordinates}
+                customerLocation={customerLocation}
+                hasInitiallyCentered={hasInitiallyCentered}
+                onCenterSet={setHasInitiallyCentered}
+              />
               <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
