@@ -26,18 +26,13 @@ const DeliveryApp = () => {
   // Location Selector Component
   const LocationSelector = ({ isOpen, onClose, onLocationSelect, initialCoordinates, customerLocation }) => {
     const [selectedPosition, setSelectedPosition] = useState(initialCoordinates || null);
-    const [hasInitiallyCentered, setHasInitiallyCentered] = useState(false);
 
     const LocationMarker = () => {
       const map = useMapEvents({
         click(e) {
           const newPosition = [e.latlng.lat, e.latlng.lng];
           setSelectedPosition(newPosition);
-
-          // Center the map on the clicked location and zoom in slightly
-          setTimeout(() => {
-            map.setView(newPosition, Math.max(15, map.getZoom()));
-          }, 100);
+          // Removed automatic centering to prevent zoom reset issues
         },
       });
 
@@ -1779,13 +1774,10 @@ const DeliveryApp = () => {
 
         {showMapSelector && (
           <LocationSelector
+            key={`map-${mapSelectorType}`} // Stable key to prevent excessive re-mounting
             isOpen={showMapSelector}
             onClose={() => setShowMapSelector(false)}
             onLocationSelect={handleLocationSelect}
-            initialCoordinates={mapSelectorType === 'pickup' ?
-              (formData.pickupLocation.coordinates?.lat ? [formData.pickupLocation.coordinates.lat, formData.pickupLocation.coordinates.lng] : null) :
-              (formData.dropoffLocation.coordinates?.lat ? [formData.dropoffLocation.coordinates.lat, formData.dropoffLocation.coordinates.lng] : null)
-            }
             customerLocation={customerLocation}
           />
         )}
