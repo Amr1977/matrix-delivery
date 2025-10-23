@@ -25,19 +25,37 @@ const DeliveryApp = () => {
   // MapCenterController - handles initial center and location-based centering
   const MapCenterController = ({ initialCoordinates, customerLocation, hasInitiallyCentered, onCenterSet }) => {
     const map = useMap();
+    const hasCenteredRef = useRef(false);
+    const centeredCustomerRef = useRef(null);
 
     useEffect(() => {
-      if (!map) return;
+      if (!map || hasCenteredRef.current) return;
 
-      // Set initial center based on coordinates or customer location
+      // Set initial center based on coordinates first
       if (initialCoordinates) {
         map.setView(initialCoordinates, 13);
+        hasCenteredRef.current = true;
         onCenterSet(true);
-      } else if (customerLocation && !hasInitiallyCentered) {
+      } else if (customerLocation &&
+                 !hasInitiallyCentered &&
+                 customerLocation.lat &&
+                 customerLocation.lng &&
+                 centeredCustomerRef.current !== customerLocation) {
+        // Only center on customer location once per customerLocation object
         map.setView([customerLocation.lat, customerLocation.lng], 13);
+        hasCenteredRef.current = true;
+        centeredCustomerRef.current = customerLocation;
         onCenterSet(true);
       }
-    }, [map, initialCoordinates, customerLocation, hasInitiallyCentered, onCenterSet]);
+    }, [map]); // Only depend on map to avoid frequent re-runs
+
+    // Reset centering state when unmounting
+    useEffect(() => {
+      return () => {
+        hasCenteredRef.current = false;
+        centeredCustomerRef.current = null;
+      };
+    }, []);
 
     return null;
   };
@@ -165,18 +183,17 @@ const DeliveryApp = () => {
                 style: { background: '#f44336', color: 'white', padding: '10px' }
               }}
             >
-              <MapController ref={mapControllerRef} />
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              <LocationMarker />
               <MapCenterController
                 initialCoordinates={initialCoordinates}
                 customerLocation={customerLocation}
                 hasInitiallyCentered={hasInitiallyCentered}
                 onCenterSet={setHasInitiallyCentered}
               />
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
-              <LocationMarker />
             </MapContainer>
           </div>
           <div style={{ padding: '1rem', borderTop: '1px solid #E5E7EB' }}>
