@@ -14,7 +14,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 374119000
+              "duration": 522667799
             }
           },
           {
@@ -27,8 +27,8 @@
             },
             "result": {
               "status": "failed",
-              "duration": 44618800,
-              "error_message": "AssertionError\n    + expected - actual\n\n    -false\n    +true\n\n    at World.<anonymous> (D:\\matrix-delivery\\tests\\step_definitions\\authentication_steps.js:26:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)"
+              "duration": 42371399,
+              "error_message": "AssertionError\n    + expected - actual\n\n    -false\n    +true\n\n    at World.<anonymous> (D:\\matrix-delivery\\tests\\step_definitions\\authentication_steps.js:31:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)"
             }
           },
           {
@@ -37,7 +37,7 @@
             "line": 9,
             "name": "there is a registered driver account",
             "match": {
-              "location": "tests\\step_definitions\\authentication_steps.js:31"
+              "location": "tests\\step_definitions\\authentication_steps.js:35"
             },
             "result": {
               "status": "skipped",
@@ -50,7 +50,7 @@
             "line": 13,
             "name": "I am logged in as a driver",
             "match": {
-              "location": "tests\\step_definitions\\authentication_steps.js:216"
+              "location": "tests\\step_definitions\\authentication_steps.js:225"
             },
             "result": {
               "status": "skipped",
@@ -127,7 +127,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 1823411799
+              "duration": 1476066300
             },
             "embeddings": [
               {
@@ -169,7 +169,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 360241399
+              "duration": 704312900
             }
           },
           {
@@ -182,8 +182,8 @@
             },
             "result": {
               "status": "failed",
-              "duration": 6979800,
-              "error_message": "AssertionError\n    + expected - actual\n\n    -false\n    +true\n\n    at World.<anonymous> (D:\\matrix-delivery\\tests\\step_definitions\\authentication_steps.js:26:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)"
+              "duration": 17592300,
+              "error_message": "AssertionError\n    + expected - actual\n\n    -false\n    +true\n\n    at World.<anonymous> (D:\\matrix-delivery\\tests\\step_definitions\\authentication_steps.js:31:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)"
             }
           },
           {
@@ -192,7 +192,7 @@
             "line": 9,
             "name": "there is a registered driver account",
             "match": {
-              "location": "tests\\step_definitions\\authentication_steps.js:31"
+              "location": "tests\\step_definitions\\authentication_steps.js:35"
             },
             "result": {
               "status": "skipped",
@@ -218,7 +218,7 @@
             "line": 23,
             "name": "I am logged in as a driver",
             "match": {
-              "location": "tests\\step_definitions\\authentication_steps.js:216"
+              "location": "tests\\step_definitions\\authentication_steps.js:225"
             },
             "result": {
               "status": "skipped",
@@ -282,7 +282,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 1404110800
+              "duration": 2054924900
             },
             "embeddings": [
               {
@@ -324,7 +324,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 621833099
+              "duration": 563549599
             }
           },
           {
@@ -337,8 +337,8 @@
             },
             "result": {
               "status": "failed",
-              "duration": 7094399,
-              "error_message": "AssertionError\n    + expected - actual\n\n    -false\n    +true\n\n    at World.<anonymous> (D:\\matrix-delivery\\tests\\step_definitions\\authentication_steps.js:26:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)"
+              "duration": 35587199,
+              "error_message": "AssertionError\n    + expected - actual\n\n    -false\n    +true\n\n    at World.<anonymous> (D:\\matrix-delivery\\tests\\step_definitions\\authentication_steps.js:31:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)"
             }
           },
           {
@@ -347,7 +347,7 @@
             "line": 9,
             "name": "there is a registered driver account",
             "match": {
-              "location": "tests\\step_definitions\\authentication_steps.js:31"
+              "location": "tests\\step_definitions\\authentication_steps.js:35"
             },
             "result": {
               "status": "skipped",
@@ -360,7 +360,7 @@
             "line": 31,
             "name": "I am logged in as a driver",
             "match": {
-              "location": "tests\\step_definitions\\authentication_steps.js:216"
+              "location": "tests\\step_definitions\\authentication_steps.js:225"
             },
             "result": {
               "status": "skipped",
@@ -437,7 +437,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 1721586000
+              "duration": 384126899
             },
             "embeddings": [
               {
@@ -475,7 +475,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 415289799
+              "duration": 1051912200
             }
           },
           {
@@ -488,8 +488,8 @@
             },
             "result": {
               "status": "failed",
-              "duration": 6559600,
-              "error_message": "AssertionError\n    + expected - actual\n\n    -false\n    +true\n\n    at World.<anonymous> (D:\\matrix-delivery\\tests\\step_definitions\\authentication_steps.js:26:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)"
+              "duration": 12449500,
+              "error_message": "AssertionError\n    + expected - actual\n\n    -false\n    +true\n\n    at World.<anonymous> (D:\\matrix-delivery\\tests\\step_definitions\\authentication_steps.js:31:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)"
             }
           },
           {
@@ -498,7 +498,7 @@
             "line": 9,
             "name": "there is a registered driver account",
             "match": {
-              "location": "tests\\step_definitions\\authentication_steps.js:31"
+              "location": "tests\\step_definitions\\authentication_steps.js:35"
             },
             "result": {
               "status": "skipped",
@@ -575,7 +575,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 887477300
+              "duration": 917947599
             },
             "embeddings": [
               {
@@ -613,7 +613,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 613906299
+              "duration": 527429399
             }
           },
           {
@@ -626,8 +626,8 @@
             },
             "result": {
               "status": "failed",
-              "duration": 6480600,
-              "error_message": "AssertionError\n    + expected - actual\n\n    -false\n    +true\n\n    at World.<anonymous> (D:\\matrix-delivery\\tests\\step_definitions\\authentication_steps.js:26:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)"
+              "duration": 37452800,
+              "error_message": "AssertionError\n    + expected - actual\n\n    -false\n    +true\n\n    at World.<anonymous> (D:\\matrix-delivery\\tests\\step_definitions\\authentication_steps.js:31:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)"
             }
           },
           {
@@ -636,7 +636,7 @@
             "line": 9,
             "name": "there is a registered driver account",
             "match": {
-              "location": "tests\\step_definitions\\authentication_steps.js:31"
+              "location": "tests\\step_definitions\\authentication_steps.js:35"
             },
             "result": {
               "status": "skipped",
@@ -649,7 +649,7 @@
             "line": 48,
             "name": "I am logged in as a driver",
             "match": {
-              "location": "tests\\step_definitions\\authentication_steps.js:216"
+              "location": "tests\\step_definitions\\authentication_steps.js:225"
             },
             "result": {
               "status": "skipped",
@@ -752,7 +752,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 494571799
+              "duration": 1382650200
             },
             "embeddings": [
               {
@@ -790,7 +790,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 926329700
+              "duration": 338554599
             }
           },
           {
@@ -803,8 +803,8 @@
             },
             "result": {
               "status": "failed",
-              "duration": 5479499,
-              "error_message": "AssertionError\n    + expected - actual\n\n    -false\n    +true\n\n    at World.<anonymous> (D:\\matrix-delivery\\tests\\step_definitions\\authentication_steps.js:26:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)"
+              "duration": 7859499,
+              "error_message": "AssertionError\n    + expected - actual\n\n    -false\n    +true\n\n    at World.<anonymous> (D:\\matrix-delivery\\tests\\step_definitions\\authentication_steps.js:31:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)"
             }
           },
           {
@@ -813,7 +813,7 @@
             "line": 9,
             "name": "there is a registered driver account",
             "match": {
-              "location": "tests\\step_definitions\\authentication_steps.js:31"
+              "location": "tests\\step_definitions\\authentication_steps.js:35"
             },
             "result": {
               "status": "skipped",
@@ -826,7 +826,7 @@
             "line": 59,
             "name": "I am logged in as a driver",
             "match": {
-              "location": "tests\\step_definitions\\authentication_steps.js:216"
+              "location": "tests\\step_definitions\\authentication_steps.js:225"
             },
             "result": {
               "status": "skipped",
@@ -900,7 +900,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 754387199
+              "duration": 915330600
             },
             "embeddings": [
               {
@@ -938,7 +938,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 876784600
+              "duration": 349557600
             }
           },
           {
@@ -951,8 +951,8 @@
             },
             "result": {
               "status": "failed",
-              "duration": 6325600,
-              "error_message": "AssertionError\n    + expected - actual\n\n    -false\n    +true\n\n    at World.<anonymous> (D:\\matrix-delivery\\tests\\step_definitions\\authentication_steps.js:26:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)"
+              "duration": 12825600,
+              "error_message": "AssertionError\n    + expected - actual\n\n    -false\n    +true\n\n    at World.<anonymous> (D:\\matrix-delivery\\tests\\step_definitions\\authentication_steps.js:31:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)"
             }
           },
           {
@@ -961,7 +961,7 @@
             "line": 9,
             "name": "there is a registered driver account",
             "match": {
-              "location": "tests\\step_definitions\\authentication_steps.js:31"
+              "location": "tests\\step_definitions\\authentication_steps.js:35"
             },
             "result": {
               "status": "skipped",
@@ -1045,7 +1045,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 1030465400
+              "duration": 738916300
             },
             "embeddings": [
               {
@@ -1083,7 +1083,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 469461799
+              "duration": 615964100
             }
           },
           {
@@ -1096,8 +1096,8 @@
             },
             "result": {
               "status": "failed",
-              "duration": 8700000,
-              "error_message": "AssertionError\n    + expected - actual\n\n    -false\n    +true\n\n    at World.<anonymous> (D:\\matrix-delivery\\tests\\step_definitions\\authentication_steps.js:26:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)"
+              "duration": 48257499,
+              "error_message": "AssertionError\n    + expected - actual\n\n    -false\n    +true\n\n    at World.<anonymous> (D:\\matrix-delivery\\tests\\step_definitions\\authentication_steps.js:31:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)"
             }
           },
           {
@@ -1106,7 +1106,7 @@
             "line": 9,
             "name": "there is a registered driver account",
             "match": {
-              "location": "tests\\step_definitions\\authentication_steps.js:31"
+              "location": "tests\\step_definitions\\authentication_steps.js:35"
             },
             "result": {
               "status": "skipped",
@@ -1132,7 +1132,7 @@
             "line": 78,
             "name": "I am logged in as a driver",
             "match": {
-              "location": "tests\\step_definitions\\authentication_steps.js:216"
+              "location": "tests\\step_definitions\\authentication_steps.js:225"
             },
             "result": {
               "status": "skipped",
@@ -1196,7 +1196,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 1328219899
+              "duration": 872964400
             },
             "embeddings": [
               {
@@ -1234,7 +1234,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 448146300
+              "duration": 558626200
             }
           },
           {
@@ -1247,8 +1247,8 @@
             },
             "result": {
               "status": "failed",
-              "duration": 11993299,
-              "error_message": "AssertionError\n    + expected - actual\n\n    -false\n    +true\n\n    at World.<anonymous> (D:\\matrix-delivery\\tests\\step_definitions\\authentication_steps.js:26:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)"
+              "duration": 9704600,
+              "error_message": "AssertionError\n    + expected - actual\n\n    -false\n    +true\n\n    at World.<anonymous> (D:\\matrix-delivery\\tests\\step_definitions\\authentication_steps.js:31:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)"
             }
           },
           {
@@ -1257,7 +1257,7 @@
             "line": 9,
             "name": "there is a registered driver account",
             "match": {
-              "location": "tests\\step_definitions\\authentication_steps.js:31"
+              "location": "tests\\step_definitions\\authentication_steps.js:35"
             },
             "result": {
               "status": "skipped",
@@ -1270,7 +1270,7 @@
             "line": 86,
             "name": "I am logged in as a driver",
             "match": {
-              "location": "tests\\step_definitions\\authentication_steps.js:216"
+              "location": "tests\\step_definitions\\authentication_steps.js:225"
             },
             "result": {
               "status": "skipped",
@@ -1347,7 +1347,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 424303899
+              "duration": 461091099
             },
             "embeddings": [
               {
@@ -1389,7 +1389,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 1022289499
+              "duration": 334737900
             }
           },
           {
@@ -1402,8 +1402,8 @@
             },
             "result": {
               "status": "failed",
-              "duration": 9681200,
-              "error_message": "AssertionError\n    + expected - actual\n\n    -false\n    +true\n\n    at World.<anonymous> (D:\\matrix-delivery\\tests\\step_definitions\\authentication_steps.js:26:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)"
+              "duration": 7756000,
+              "error_message": "AssertionError\n    + expected - actual\n\n    -false\n    +true\n\n    at World.<anonymous> (D:\\matrix-delivery\\tests\\step_definitions\\authentication_steps.js:31:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)"
             }
           },
           {
@@ -1412,7 +1412,7 @@
             "line": 9,
             "name": "there is a registered driver account",
             "match": {
-              "location": "tests\\step_definitions\\authentication_steps.js:31"
+              "location": "tests\\step_definitions\\authentication_steps.js:35"
             },
             "result": {
               "status": "skipped",
@@ -1438,7 +1438,7 @@
             "line": 96,
             "name": "I am logged in as a driver",
             "match": {
-              "location": "tests\\step_definitions\\authentication_steps.js:216"
+              "location": "tests\\step_definitions\\authentication_steps.js:225"
             },
             "result": {
               "status": "skipped",
@@ -1502,7 +1502,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 742382099
+              "duration": 702911400
             },
             "embeddings": [
               {
@@ -1540,7 +1540,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 743600399
+              "duration": 588120500
             }
           },
           {
@@ -1553,8 +1553,8 @@
             },
             "result": {
               "status": "failed",
-              "duration": 12740300,
-              "error_message": "AssertionError\n    + expected - actual\n\n    -false\n    +true\n\n    at World.<anonymous> (D:\\matrix-delivery\\tests\\step_definitions\\authentication_steps.js:26:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)"
+              "duration": 15292000,
+              "error_message": "AssertionError\n    + expected - actual\n\n    -false\n    +true\n\n    at World.<anonymous> (D:\\matrix-delivery\\tests\\step_definitions\\authentication_steps.js:31:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)"
             }
           },
           {
@@ -1563,7 +1563,7 @@
             "line": 9,
             "name": "there is a registered driver account",
             "match": {
-              "location": "tests\\step_definitions\\authentication_steps.js:31"
+              "location": "tests\\step_definitions\\authentication_steps.js:35"
             },
             "result": {
               "status": "skipped",
@@ -1586,7 +1586,7 @@
             "line": 105,
             "name": "I am logged in as a driver",
             "match": {
-              "location": "tests\\step_definitions\\authentication_steps.js:216"
+              "location": "tests\\step_definitions\\authentication_steps.js:225"
             },
             "result": {
               "status": "skipped",
@@ -1650,7 +1650,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 1117308299
+              "duration": 1275452000
             },
             "embeddings": [
               {

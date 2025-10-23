@@ -14,6 +14,7 @@ Given('there is a registered customer account', async function() {
     name: 'Test Customer',
     email: `customer_${timestamp}@test.com`,
     password: 'test123',
+    phone: `+1${timestamp.toString().slice(-10)}`, // Generate phone number from timestamp
     role: 'customer'
   };
 
@@ -23,9 +24,12 @@ Given('there is a registered customer account', async function() {
     body: JSON.stringify(customerData)
   });
 
+  const result = await response.json();
+  if (!response.ok) {
+    console.error('Registration failed:', result.error);
+  }
   expect(response.ok).to.be.true;
-  const data = await response.json();
-  this.testData.customer = { ...customerData, id: data.user.id, token: data.token };
+  this.testData.customer = { ...customerData, id: result.user.id, token: result.token };
 });
 
 Given('there is a registered driver account', async function() {
@@ -35,7 +39,9 @@ Given('there is a registered driver account', async function() {
     name: 'Test Driver',
     email: `driver_${timestamp}@test.com`,
     password: 'test123',
-    role: 'driver'
+    phone: `+1${timestamp.toString().slice(-10)}`, // Generate phone number from timestamp
+    role: 'driver',
+    vehicle_type: 'car'
   };
 
   const response = await fetch(`${this.apiUrl}/auth/register`, {
@@ -44,9 +50,12 @@ Given('there is a registered driver account', async function() {
     body: JSON.stringify(driverData)
   });
 
+  const result = await response.json();
+  if (!response.ok) {
+    console.error('Driver registration failed:', result.error);
+  }
   expect(response.ok).to.be.true;
-  const data = await response.json();
-  this.testData.driver = { ...driverData, id: data.user.id, token: data.token };
+  this.testData.driver = { ...driverData, id: result.user.id, token: result.token };
 });
 
 // Authentication navigation steps

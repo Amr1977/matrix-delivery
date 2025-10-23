@@ -1,6 +1,20 @@
 # 🛍️ Matrix Delivery Platform
 
-A comprehensive peer-to-peer marketplace application where customers can post delivery requests and drivers can bid to complete deliveries. Built with React, Node.js, SQLite, and powered by Text-to-Speech notifications and a robust test suite.
+A comprehensive peer-to-peer marketplace application where customers can post delivery requests and drivers can bid to complete deliveries. Built with React, Node.js, PostgreSQL, and powered by Text-to-Speech notifications and a robust test suite.
+
+## 🌟 Open Source Project
+
+This is an open source project released under the MIT License. We welcome contributions from developers of all skill levels! Whether you're interested in fixing bugs, implementing new features, improving documentation, or enhancing our test suite, your contributions are highly appreciated.
+
+### How to Contribute
+- **🐛 Report Issues**: Found a bug? [Create an issue](https://github.com/Amr1977/matrix-delivery/issues) with detailed steps to reproduce
+- **💡 Suggest Features**: Have an idea? Open a feature request in our issues section
+- **🚀 Submit Pull Requests**: Ready to code? Check out our [Contributing Guidelines](#contributing) below
+- **📝 Improve Documentation**: Help make our docs clearer and more comprehensive
+- **🧪 Add Tests**: Enhance our test coverage by writing new test scenarios
+
+### Development Setup
+Get started quickly with our automated setup scripts. See the [Quick Start](#-quick-start) section below for detailed instructions.
 
 ## ✨ Key Features
 
@@ -42,7 +56,7 @@ A comprehensive peer-to-peer marketplace application where customers can post de
 
 ### Backend
 - **Runtime**: Node.js with Express.js
-- **Database**: SQLite with file-based storage
+- **Database**: PostgreSQL with client-server architecture
 - **Authentication**: JWT with bcrypt hashing
 - **Validation**: Input sanitization and rate limiting
 - **File Storage**: Local file system for logs and uploads
@@ -73,7 +87,7 @@ A comprehensive peer-to-peer marketplace application where customers can post de
 matrix-delivery/
 ├── backend/                           # Node.js API Server
 │   ├── server.js                      # Main application server
-│   ├── database/                      # SQLite database files
+│   ├── database/                      # PostgreSQL schemas and migrations
 │   ├── logs/                         # Application logs
 │   ├── ecosystem.config.js            # PM2 configuration
 │   ├── package.json                   # Backend dependencies
@@ -408,7 +422,7 @@ GET  /api/stats                     # Platform statistics
 ```
 
 ### Database Schema
-The application uses SQLite with the following main tables:
+The application uses PostgreSQL with the following main tables:
 - `users` - User accounts and profiles
 - `orders` - Delivery orders
 - `bids` - Driver bids on orders
@@ -432,16 +446,16 @@ The application uses SQLite with the following main tables:
 
 ## 📊 Database & Permissions
 
-### SQLite Database
-- **Location**: `backend/database/matrix-delivery.db`
-- **Automatic Creation**: Database created on first run
-- **Backup**: Regular export recommended for production
-- **Migrations**: Handle manually for schema changes
+### PostgreSQL Database
+- **Default Location**: Local PostgreSQL server (localhost:5432)
+- **Database Name**: matrix_delivery (development) / matrix_delivery_test (testing)
+- **Automatic Creation**: Database schema created on first run
+- **Backup**: pg_dump recommended for production backups
+- **Migrations**: Handle manually via SQL scripts for schema changes
 
 ### File System Permissions
 ```bash
 # Ensure write permissions for:
-backend/database/                  # Database files
 backend/logs/                     # Application logs
 reports/                          # Test reports and screenshots
 frontend/public/uploads/          # File uploads (if enabled)
@@ -453,8 +467,16 @@ frontend/public/uploads/          # File uploads (if enabled)
 Create `.env` file in backend root:
 ```bash
 JWT_SECRET=your-super-secure-jwt-secret-here
-NODE_ENV=production  # development | production
+NODE_ENV=production  # development | production | test
 PORT=5000
+
+# PostgreSQL Database Configuration
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres  # Your PostgreSQL username
+DB_PASSWORD=your_postgres_password
+DB_NAME=matrix_delivery  # Development database
+DB_NAME_TEST=matrix_delivery_test  # Test database
 
 # Email configuration (for verification)
 EMAIL_USER=your-email@gmail.com
@@ -532,7 +554,7 @@ STRIPE_PUBLISHABLE_KEY=pk_live_...
 ### Monitoring Tools
 - **Application Logs**: `tail -f backend/logs/app.log`
 - **Error Tracking**: Console output and error logs
-- **Database Health**: `SELECT name FROM sqlite_master` for schema check
+- **Database Health**: `SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';` for schema check
 - **Memory Usage**: `pm2 monit` for production monitoring
 
 ## 🐛 Common Issues & Troubleshooting
@@ -559,11 +581,13 @@ netstat -ano | findstr :3000
 taskkill /PID <PID> /F
 ```
 
-**Issue: "Database locked"**
-```sqlite
--- Check for long-running queries
-SELECT * FROM sqlite_schema;
--- Database file may need unlocking
+**Issue: "PostgreSQL connection errors"**
+```sql
+-- Check connection and active queries
+SELECT pid, state, query FROM pg_stat_activity WHERE state = 'active';
+-- Check if PostgreSQL service is running
+sudo service postgresql status  -- Linux
+-- Windows: Check PostgreSQL service in Services panel
 ```
 
 ## 🤝 Contributing
