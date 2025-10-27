@@ -1,23 +1,40 @@
 {
-  "name": "matrix-delivery-tests",
+  "name": "matrix-delivery-bdd-tests",
   "version": "1.0.0",
-  "description": "E2E Tests for Matrix Delivery Application",
-  "main": "index.js",
+  "description": "BDD test suite for P2P Delivery Platform",
   "scripts": {
     "test": "cucumber-js",
-    "test:smoke": "cucumber-js --tags @smoke",
-    "test:location": "cucumber-js --tags @location",
-    "driver-location-tests": "cucumber-js --tags '@location or @driver'",
-    "test:watch": "cucumber-js --watch",
-    "report": "node utils/generate-report.js"
-  },
-  "dependencies": {
-    "@cucumber/cucumber": "^9.0.5",
-    "playwright": "^1.40.1",
-    "chai": "^4.3.10",
-    "axios": "^1.5.0"
+    "test:smoke": "cucumber-js --profile smoke",
+    "test:critical": "cucumber-js --profile critical",
+    "test:api": "cucumber-js --profile api",
+    "test:ui": "cucumber-js --profile ui",
+    "test:integration": "cucumber-js --profile integration",
+    "test:implemented": "cucumber-js --profile implemented",
+    "test:auth": "cucumber-js --profile auth",
+    "test:orders": "cucumber-js --profile orders",
+    "test:bidding": "cucumber-js --profile bidding",
+    "test:delivery": "cucumber-js --profile delivery",
+    "test:payments": "cucumber-js --profile payments",
+    "test:reviews": "cucumber-js --profile reviews",
+    "test:notifications": "cucumber-js --profile notifications",
+    "test:debug": "cucumber-js --profile debug",
+    "test:ci": "cucumber-js --profile ci",
+    "test:report": "cucumber-js --format html:reports/report.html",
+    "test:watch": "nodemon --exec npm test",
+    "pretest": "node scripts/setup-test-db.js",
+    "posttest": "node scripts/generate-report.js"
   },
   "devDependencies": {
-    "@playwright/test": "^1.40.1"
+    "@cucumber/cucumber": "^10.0.1",
+    "@cucumber/pretty-formatter": "^1.0.0",
+    "chai": "^4.3.10",
+    "node-fetch": "^2.7.0",
+    "pg": "^8.11.3",
+    "cucumber-html-reporter": "^7.1.1",
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
   }
 }
