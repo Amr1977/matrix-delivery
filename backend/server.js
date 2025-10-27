@@ -5,6 +5,9 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { Pool } = require('pg');
 const { getDistance } = require('geolib');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs').promises;
 
 dotenv.config();
 const app = express();
@@ -174,6 +177,46 @@ const initDatabase = async () => {
       )
     `);
 
+    // Create identity_documents table for document verification
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS identity_documents (
+        id SERIAL PRIMARY KEY,
+        user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        document_type VARCHAR(50) NOT NULL CHECK (document_type IN ('drivers_license', 'passport', 'national_id', 'residence_permit', 'vehicle_registration')),
+        filename VARCHAR(255) NOT NULL,
+        original_name VARCHAR(255) NOT NULL,
+        file_path VARCHAR(500) NOT NULL,
+        file_size INTEGER NOT NULL,
+        mime_type VARCHAR(100) NOT NULL,
+        verification_status VARCHAR(50) NOT NULL DEFAULT 'pending' CHECK (verification_status IN ('pending', 'under_review', 'approved', 'rejected')),
+        submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        reviewed_at TIMESTAMP,
+        reviewed_by VARCHAR(255),
+        rejection_reason TEXT,
+        extracted_data JSONB,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Create user_verification_status table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS user_verification_status (
+        id SERIAL PRIMARY KEY,
+        user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE UNIQUE,
+        identity_verified BOOLEAN DEFAULT false,
+        identity_verified_at TIMESTAMP,
+        vehicle_verified BOOLEAN DEFAULT false,
+        vehicle_verified_at TIMESTAMP,
+        background_check_passed BOOLEAN DEFAULT false,
+        background_check_at TIMESTAMP,
+        overall_verification_status VARCHAR(50) NOT NULL DEFAULT 'unverified' CHECK (overall_verification_status IN ('unverified', 'pending', 'verified', 'suspended', 'rejected')),
+        verification_notes TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
     // Create driver_locations table for tracking driver locations
     await pool.query(`
       CREATE TABLE IF NOT EXISTS driver_locations (
@@ -258,6 +301,40 @@ const createNotification = async (userId, orderId, type, title, message) => {
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// ============ PART 7: Identity Document Verification ============
+// File upload configuration
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadDir = path.join(__dirname, 'uploads', 'documents');
+    fs.mkdir(uploadDir, { recursive: true }).then(() => cb(null, uploadDir));
+  },
+  filename: function (req, file, cb) {
+    const uniqueName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}${path.extname(file.originalname)}`;
+    cb(null, uniqueName);
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|pdf/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+
+    if (extname && mimetype) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only images (JPEG, PNG) and PDFs are allowed'));
+    }
+  }
+});
+
+// Ensure uploads directory exists
+fs.mkdir(path.join(__dirname, 'uploads', 'documents'), { recursive: true });
 
 // CORS Configuration
 app.use(cors({
@@ -1645,6 +1722,294 @@ app.get('/api/payments/history', verifyToken, async (req, res) => {
 });
 
 // ============ END OF PART 6 ============
+// ============ PART 7: Identity Document Verification ============
+
+// Upload identity document
+app.post('/api/verification/documents', verifyToken, upload.single('document'), async (req, res) => {
+  try {
+    const { documentType } = req.body;
+
+    if (!documentType || !['drivers_license', 'passport', 'national_id', 'residence_permit', 'vehicle_registration'].includes(documentType)) {
+      return res.status(400).json({ error: 'Invalid document type' });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: 'No document file provided' });
+    }
+
+    const file = req.file;
+
+    // Insert document record
+    const result = await pool.query(
+      `INSERT INTO identity_documents (user_id, document_type, filename, original_name, file_path, file_size, mime_type) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [req.user.userId, documentType, file.filename, file.originalname, file.path, file.size, file.mimetype]
+    );
+
+    // Update user's verification status to pending
+    await pool.query(
+      `INSERT INTO user_verification_status (user_id, overall_verification_status) VALUES ($1, $2)
+       ON CONFLICT (user_id) DO UPDATE SET overall_verification_status = CASE WHEN user_verification_status.overall_verification_status = 'unverified' THEN 'pending' ELSE user_verification_status.overall_verification_status END`,
+      [req.user.userId, 'pending']
+    );
+
+    const document = result.rows[0];
+    console.log(`✅ Document uploaded: ${req.user.name} uploaded ${documentType}`);
+
+    // Send notification
+    await createNotification(req.user.userId, null, 'document_uploaded', 'Document Uploaded', `Your ${documentType.replace('_', ' ')} has been submitted for verification`);
+
+    res.status(201).json({
+      message: 'Document uploaded successfully',
+      document: {
+        id: document.id,
+        documentType: document.document_type,
+        filename: document.filename,
+        originalName: document.original_name,
+        fileSize: document.file_size,
+        mimeType: document.mime_type,
+        verificationStatus: document.verification_status,
+        submittedAt: document.submitted_at
+      }
+    });
+  } catch (error) {
+    console.error('Document upload error:', error);
+    res.status(500).json({ error: 'Failed to upload document' });
+  }
+});
+
+// Get user's documents
+app.get('/api/verification/documents', verifyToken, async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT id, document_type, filename, original_name, file_size, mime_type, verification_status, submitted_at, reviewed_at, rejection_reason FROM identity_documents WHERE user_id = $1 ORDER BY submitted_at DESC',
+      [req.user.userId]
+    );
+
+    res.json(result.rows.map(doc => ({
+      id: doc.id,
+      documentType: doc.document_type,
+      filename: doc.filename,
+      originalName: doc.original_name,
+      fileSize: doc.file_size,
+      mimeType: doc.mime_type,
+      verificationStatus: doc.verification_status,
+      submittedAt: doc.submitted_at,
+      reviewedAt: doc.reviewed_at,
+      rejectionReason: doc.rejection_reason
+    })));
+  } catch (error) {
+    console.error('Get documents error:', error);
+    res.status(500).json({ error: 'Failed to get documents' });
+  }
+});
+
+// Serve document file (secured access)
+app.get('/api/verification/documents/:id/file', verifyToken, async (req, res) => {
+  try {
+    const documentResult = await pool.query(
+      'SELECT * FROM identity_documents WHERE id = $1',
+      [req.params.id]
+    );
+
+    if (documentResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+
+    const document = documentResult.rows[0];
+
+    // Check if user owns this document
+    if (document.user_id !== req.user.userId) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    // Check if file exists
+    try {
+      await fs.access(document.file_path);
+    } catch (fileError) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+
+    // Set appropriate headers
+    res.setHeader('Content-Type', document.mime_type);
+    res.setHeader('Content-Disposition', `inline; filename="${document.original_name}"`);
+
+    // Stream the file
+    res.sendFile(document.file_path);
+  } catch (error) {
+    console.error('Serve document error:', error);
+    res.status(500).json({ error: 'Failed to serve document' });
+  }
+});
+
+// Get user's verification status
+app.get('/api/verification/status', verifyToken, async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM user_verification_status WHERE user_id = $1',
+      [req.user.userId]
+    );
+
+    let verificationStatus = {
+      identityVerified: false,
+      vehicleVerified: false,
+      backgroundCheckPassed: false,
+      overallVerificationStatus: 'unverified',
+      verificationNotes: null,
+      identityVerifiedAt: null,
+      vehicleVerifiedAt: null,
+      backgroundCheckAt: null
+    };
+
+    if (result.rows.length > 0) {
+      const status = result.rows[0];
+      verificationStatus = {
+        identityVerified: status.identity_verified,
+        vehicleVerified: status.vehicle_verified,
+        backgroundCheckPassed: status.background_check_passed,
+        overallVerificationStatus: status.overall_verification_status,
+        verificationNotes: status.verification_notes,
+        identityVerifiedAt: status.identity_verified_at,
+        vehicleVerifiedAt: status.vehicle_verified_at,
+        backgroundCheckAt: status.background_check_at
+      };
+    }
+
+    res.json(verificationStatus);
+  } catch (error) {
+    console.error('Get verification status error:', error);
+    res.status(500).json({ error: 'Failed to get verification status' });
+  }
+});
+
+// Admin: Update document verification status
+app.put('/api/verification/documents/:id/status', verifyToken, async (req, res) => {
+  // For demo purposes, allowing any authenticated user to review documents
+  // In production, this should check for admin role
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const { verificationStatus, rejectionReason } = req.body;
+
+    if (!['approved', 'rejected'].includes(verificationStatus)) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'Invalid verification status' });
+    }
+
+    const documentResult = await client.query(
+      'SELECT * FROM identity_documents WHERE id = $1',
+      [req.params.id]
+    );
+
+    if (documentResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Document not found' });
+    }
+
+    const document = documentResult.rows[0];
+
+    // Update document status
+    await client.query(
+      'UPDATE identity_documents SET verification_status = $1, reviewed_at = CURRENT_TIMESTAMP, reviewed_by = $2, rejection_reason = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $4',
+      [verificationStatus, req.user.userId, verificationStatus === 'rejected' ? rejectionReason : null, req.params.id]
+    );
+
+    // Update user's verification status based on document type
+    if (verificationStatus === 'approved') {
+      if (['drivers_license', 'passport', 'national_id', 'residence_permit'].includes(document.document_type)) {
+        await client.query(
+          'INSERT INTO user_verification_status (user_id, identity_verified, identity_verified_at) VALUES ($1, $2, CURRENT_TIMESTAMP) ON CONFLICT (user_id) DO UPDATE SET identity_verified = $3, identity_verified_at = CURRENT_TIMESTAMP',
+          [document.user_id, true, true]
+        );
+      } else if (document.document_type === 'vehicle_registration') {
+        await client.query(
+          'INSERT INTO user_verification_status (user_id, vehicle_verified, vehicle_verified_at) VALUES ($1, $2, CURRENT_TIMESTAMP) ON CONFLICT (user_id) DO UPDATE SET vehicle_verified = $3, vehicle_verified_at = CURRENT_TIMESTAMP',
+          [document.user_id, true, true]
+        );
+      }
+
+      // Update overall status
+      await client.query(
+        'UPDATE user_verification_status SET overall_verification_status = $2 WHERE user_id = $1',
+        [document.user_id, 'verified']
+      );
+
+      await createNotification(document.user_id, null, 'document_approved', 'Document Approved', `Your ${document.document_type.replace('_', ' ')} has been verified successfully`);
+    } else {
+      await createNotification(document.user_id, null, 'document_rejected', 'Document Rejected', `Your ${document.document_type.replace('_', ' ')} was rejected: ${rejectionReason}`);
+    }
+
+    await client.query('COMMIT');
+
+    console.log(`✅ Document ${verificationStatus}: ${document.original_name} by ${req.user.name}`);
+    res.json({
+      message: `Document ${verificationStatus} successfully`,
+      verificationStatus,
+      rejectionReason: verificationStatus === 'rejected' ? rejectionReason : null
+    });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Update document status error:', error);
+    res.status(500).json({ error: 'Failed to update document status' });
+  } finally {
+    client.release();
+  }
+});
+
+// Delete document
+app.delete('/api/verification/documents/:id', verifyToken, async (req, res) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const documentResult = await client.query(
+      'SELECT * FROM identity_documents WHERE id = $1',
+      [req.params.id]
+    );
+
+    if (documentResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Document not found' });
+    }
+
+    const document = documentResult.rows[0];
+
+    // Check if user owns this document
+    if (document.user_id !== req.user.userId) {
+      await client.query('ROLLBACK');
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    // Cannot delete approved or under review documents
+    if (['approved', 'under_review'].includes(document.verification_status)) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'Cannot delete approved or under review documents' });
+    }
+
+    // Delete file from filesystem
+    try {
+      await fs.unlink(document.file_path);
+    } catch (fileError) {
+      console.warn(`Could not delete file ${document.file_path}:`, fileError);
+    }
+
+    // Delete database record
+    await client.query('DELETE FROM identity_documents WHERE id = $1', [req.params.id]);
+
+    await client.query('COMMIT');
+
+    console.log(`✅ Document deleted: ${req.user.name} deleted ${document.original_name}`);
+    res.json({ message: 'Document deleted successfully' });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Delete document error:', error);
+    res.status(500).json({ error: 'Failed to delete document' });
+  } finally {
+    client.release();
+  }
+});
+
+// ============ END OF PART 7 ============
 // Continue with Error Handling
 
 // Error handling
