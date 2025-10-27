@@ -72,10 +72,10 @@ This project was founded by **Amr Lotfy**, a software engineer and advocate for 
 - **Event-Driven Alerts**: Notifications triggered by order status changes
 
 ### 🧪 Comprehensive Testing
-- **60+ BDD Test Scenarios**: Comprehensive coverage with Cucumber.js
-- **Cross-Platform Testing**: E2E, API, and UI testing
-- **Automated Reporting**: HTML reports, screenshots, and video recordings
-- **Headless/Headed Modes**: Flexible testing configurations
+- **320+ BDD Test Scenarios**: Complete coverage with Cucumber.js featuring 400+ step definitions
+- **API-First Testing**: Focused testing with database state management and API utilities
+- **Automated Reporting**: HTML reports, JSON output, and comprehensive test profiles
+- **Parallel Execution**: Optimized test execution with multiple profiles for different needs
 
 ## 🚀 Tech Stack
 
@@ -127,21 +127,31 @@ matrix-delivery/
 │   ├── build/                        # Production build
 │   ├── package.json                   # Frontend dependencies
 │   └── ...more files
-├── tests/                            # Comprehensive Test Suite
-│   ├── features/                     # 11 Gherkin feature files
-│   │   ├── user_management.feature   # UR-001 to UR-005
-│   │   ├── detailed_order_management.feature # OM-001 to OM-003
-│   │   ├── driver_operations.feature # DB-001 to DB-003
-│   │   ├── payment_system.feature    # PP-001 to PP-002
-│   │   ├── promotions_and_rewards.feature # PR-001 to PR-010
-│   │   ├── driver_location.feature   # LOC-001 to LOC-011
-│   │   ├── driver_bidding.feature    # BID-001 to BID-008
-│   │   ├── and more...               # Total: 98 unique scenarios
-│   ├── step_definitions/             # Step implementation files
-│   ├── support/                      # Test support utilities
-│   ├── utils/                        # Test helper functions
+├── tests/                            # Comprehensive BDD Test Suite
+│   ├── cucumber.js                   # Test runner configuration with profiles
 │   ├── package.json                  # Test dependencies
-│   └── cucumber.js                   # Test runner configuration
+│   ├── features/                     # 10 Numbered Gherkin feature files
+│   │   ├── 01_user_authentication.feature      # Authentication workflows
+│   │   ├── 02_order_management.feature        # Order creation and management
+│   │   ├── 03_driver_location_tracking.feature # GPS tracking features
+│   │   ├── 04_driver_bidding_workflow.feature  # Competitive bidding system
+│   │   ├── 05_delivery_workflow.feature       # Delivery execution flow
+│   │   ├── 06_payment_cod_system.feature      # Cash on delivery processing
+│   │   ├── 07_review_rating_system.feature    # User feedback and ratings
+│   │   ├── 08_notifications_system.feature    # Real-time notifications
+│   │   ├── 09_order_tracking.feature          # Order status tracking
+│   │   ├── 10_end_to_end_integration.feature  # Complete user journeys
+│   │   ├── step_definitions/                  # 5 Consolidated step definition files
+│   │   │   ├── auth_steps.js                      # Authentication (60+ steps)
+│   │   │   ├── order_steps.js                    # Orders (70+ steps)
+│   │   │   ├── bidding_delivery_steps.js         # Bidding & delivery (100+ steps)
+│   │   │   ├── common_steps.js                   # Reusable utilities (80+ steps)
+│   │   │   └── notifications_reviews_payment_steps.js # Notifications & payments (90+ steps)
+│   │   └── support/                           # Test context and utilities
+│   │       └── world.js                        # CustomWorld class with API utilities
+│   ├── scripts/                        # Test environment management
+│   │   └── setup-test-environment.js   # Database and test setup
+│   └── reports/                        # Generated test reports
 └── scripts/                           # Deployment utilities
     └── update_ddns.sh                # DNS update script
 ```
@@ -238,10 +248,14 @@ cd frontend && npm start
 cd tests
 npm test
 
-# Or run specific test suites
-npm run test:smoke        # Fast critical tests
-npm run test:auth         # Authentication only
-npm run test:debug        # With visible browser
+# Or run specific test profiles
+npm run test:smoke        # Fast critical tests (~2 min)
+npm run test:critical     # Critical path tests (~10 min)
+npm run test:auth         # Authentication features only
+npm run test:orders       # Order management features only
+npm run test:bidding      # Driver bidding features only
+npm run test:delivery     # Delivery workflow features only
+npm run test:ci           # CI/CD optimized profile with retries
 ```
 
 ## Installation & Setup
@@ -263,47 +277,73 @@ npm run test:debug        # With visible browser
 npm test
 ```
 
-### Run Specific Feature Tests
+### Run Test Profiles
 ```bash
-# Authentication tests only
-npm run test:auth
-
-# Order management tests only
-npm run test:orders
-
-# Driver bidding tests only
-npm run test:bidding
-```
-
-### Run Smoke Tests Only
-```bash
+# Quick smoke tests (critical features, ~2 minutes)
 npm run test:smoke
-```
 
-### Debug Mode (Visible browser, slow motion)
-```bash
-npm run test:debug
-```
+# Critical path tests (~10 minutes)
+npm run test:critical
 
-### Headed Mode (Browser visible)
-```bash
-npm run test:headed
+# Feature-specific tests
+npm run test:auth         # Authentication and user management
+npm run test:orders       # Order creation and management
+npm run test:bidding      # Driver bidding system
+npm run test:delivery     # Delivery workflow execution
+npm run test:payments     # Payment and COD system
+npm run test:reviews      # Review and rating system
+npm run test:notifications # Notification system
+
+# Specialized test runs
+npm run test:api          # API-only tests (headless)
+npm run test:ui           # UI interaction tests (if implemented)
+npm run test:integration  # End-to-end integration scenarios
+npm run test:implemented  # Only implemented features
+
+# CI/CD optimized (with retries)
+npm run test:ci
 ```
 
 ## Test Configuration
 
-### Browser Options
-- **Headless**: Set `HEADLESS=false` environment variable for visible browser
-- **Slow Motion**: Set `SLOWMO=100` (milliseconds) for debugging
-- **Videos**: Set `VIDEO=true` to record test session videos
-
-### Custom Base URLs
+### Environment Variables
 ```bash
-# Custom frontend URL
-set BASE_URL=http://localhost:3001
+# Database Configuration (required)
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME_TEST=matrix_delivery_test
+DB_USER=postgres
+DB_PASSWORD=postgres
 
-# Custom API URL
-set API_URL=http://localhost:5001/api
+# API Configuration (required)
+API_BASE_URL=http://localhost:5000/api
+NODE_ENV=test
+
+# Optional: Custom test ports
+TEST_API_PORT=5000  # If running backend on different port
+
+# Optional: Test execution settings
+CUCUMBER_PARALLEL=2  # Number of parallel processes
+CUCUMBER_RETRY=1     # Number of retries for failed scenarios
+```
+
+### Custom Test Data
+```bash
+# Override default test user credentials
+TEST_CUSTOMER_EMAIL=custom@example.com
+TEST_DRIVER_EMAIL=driver@example.com
+```
+
+### Debug Configuration
+```bash
+# Enable verbose logging
+DEBUG=cucumber:*
+
+# Single scenario execution
+npx cucumber-js features/01_user_authentication.feature:5
+
+# Filter by tags
+npx cucumber-js --tags "@smoke and @critical"
 ```
 
 ## Generated Reports
@@ -352,34 +392,66 @@ This test suite is specifically designed for Windows 10:
    - Check if another application is using these ports
    - Verify backend dependencies are installed
 
-2. **Browser Launch Failures**
-   - Ensure Playwright browsers are installed: `npx playwright install`
-   - Try running in headed mode: `npm run test:headed`
+2. **Database Connection Errors**
+   - Verify PostgreSQL is running: `pg_isready -h localhost -p 5432`
+   - Check database credentials in environment variables
+   - Ensure `matrix_delivery_test` database exists: `createdb matrix_delivery_test`
+   - Reset test database if corrupted: `dropdb matrix_delivery_test && createdb matrix_delivery_test`
 
-3. **Authentication Failures**
+3. **API Connection Failures**
+   - Verify backend API is running on the expected port
+   - Check `API_BASE_URL` environment variable
+   - Test API health: `curl http://localhost:5000/api/health`
+
+4. **Authentication Failures**
    - Verify backend JWT_SECRET is set correctly
    - Check if backend database is accessible
+   - Ensure test users are created properly in `world.js`
 
-4. **Timeout Errors**
+5. **Timeout Errors**
    - Increase timeout in `cucumber.js` or individual steps
-   - Check if frontend/backend is responding slowly
+   - Check database query performance
+   - Verify API endpoints are responding promptly
 
 ### Debug Mode
-Use debug mode to see what's happening:
+Enable debug mode to see what's happening:
 ```bash
-# Headed + slow motion
-set HEADLESS=false
-set SLOWMO=500
-npm test
+# Verbose logging
+DEBUG=cucumber:* npm test
+
+# Test single scenario
+npx cucumber-js features/01_user_authentication.feature:5
+
+# Debug API calls
+DEBUG=api npm run test:auth
+```
+
+### Database Debugging
+```bash
+# Check test database contents
+psql -d matrix_delivery_test -c "SELECT * FROM users LIMIT 5;"
+
+# View active connections
+psql -d matrix_delivery_test -c "SELECT * FROM pg_stat_activity;"
+
+# Reset test database
+psql -d postgres -c "DROP DATABASE matrix_delivery_test;"
+psql -d postgres -c "CREATE DATABASE matrix_delivery_test;"
 ```
 
 ## Contributing
 
-1. Add new feature files in `tests/features/`
-2. Implement steps in `tests/step_definitions/`
-3. Follow existing naming conventions
-4. Add proper assertions and error handling
-5. Test on Windows platform
+1. Add new feature files in `tests/features/` with numbered naming (e.g., `11_new_feature.feature`)
+2. Implement steps in the appropriate `tests/features/step_definitions/` file:
+   - `auth_steps.js` - for authentication/user management features
+   - `order_steps.js` - for order creation and lifecycle features
+   - `bidding_delivery_steps.js` - for bidding and delivery workflow features
+   - `common_steps.js` - for reusable utility steps
+   - `notifications_reviews_payment_steps.js` - for notifications, reviews, and payments
+3. Follow existing Gherkin syntax and naming conventions
+4. Add proper assertions using Chai and verify API responses
+5. Test on Windows platform and ensure all profiles pass
+6. Update documentation in `tests/STEP_DEFINITIONS_README.md`
 
 ## Test Coverage
 

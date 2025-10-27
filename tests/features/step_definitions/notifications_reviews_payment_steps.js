@@ -370,7 +370,7 @@ Then('payment details should be:', function(dataTable) {
 Then('my earnings should show {string}', async function(amount) {
   await this.get('/payments/earnings');
   const earnings = this.response.data.summary.totalEarnings;
-  assert.equal(parseFloat(earnings), parseFloat(amount.replace(', '')));
+  assert.equal(parseFloat(earnings), parseFloat(amount.replace(',', '')));
 });
 
 Then('my earnings should reflect the payment', async function() {
@@ -681,11 +681,11 @@ Then('order should show assigned driver {string}', function(driverName) {
 
 Then('agreed price should be {string}', function(price) {
   const order = this.response.data;
-  assert.equal(parseFloat(order.assignedDriver.bidPrice), parseFloat(price.replace(', '')));
+  assert.equal(parseFloat(order.assignedDriver.bidPrice), parseFloat(price.replace(',', '')));
 });
 
 Then('final price is {string}', function(price) {
-  assert.equal(parseFloat(this.response.data.assignedDriver.bidPrice), parseFloat(price.replace(', '')));
+  assert.equal(parseFloat(this.response.data.assignedDriver.bidPrice), parseFloat(price.replace(',', '')));
 });
 
 Then('I should see list of recent payments', function() {

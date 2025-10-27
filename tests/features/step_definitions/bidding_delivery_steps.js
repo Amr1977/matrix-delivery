@@ -23,7 +23,7 @@ Given('driver has placed bid of {string} on order {string}', async function(amou
   await this.loginUser(driver.email, driver.password);
   
   await this.post(`/orders/${order._id}/bid`, {
-    bidPrice: parseFloat(amount.replace(', ''))
+bidPrice: parseFloat(amount.replace(',', ''))
   });
   
   this.authToken = originalToken;
@@ -49,7 +49,7 @@ Given('driver {string} has bid {string} on order {string}', async function(name,
   await this.loginUser(driver.email, driver.password);
   
   await this.post(`/orders/${order._id}/bid`, {
-    bidPrice: parseFloat(amount.replace(', ''))
+    bidPrice: parseFloat(amount.replace(',', ''))
   });
   
   this.authToken = originalToken;
@@ -91,7 +91,7 @@ When('driver views {string} tab', async function(tabName) {
 When('I place a bid of {string} on the order', async function(amount) {
   const order = this.currentOrder;
   await this.post(`/orders/${order._id}/bid`, {
-    bidPrice: parseFloat(amount.replace(', ''))
+    bidPrice: parseFloat(amount.replace(',', ''))
   });
 });
 
@@ -118,7 +118,7 @@ When('driver places bid:', async function(dataTable) {
 });
 
 When('I enter bid amount {string}', function(amount) {
-  this.bidAmount = parseFloat(amount.replace(', ''));
+  this.bidAmount = parseFloat(amount.replace(',', ''));
 });
 
 When('I fill in bid details:', function(dataTable) {
@@ -150,7 +150,7 @@ When('I view the order again', async function() {
 });
 
 When('I enter new bid amount {string}', function(amount) {
-  this.bidAmount = parseFloat(amount.replace(', ''));
+  this.bidAmount = parseFloat(amount.replace(',', ''));
 });
 
 When('multiple drivers place bids on the same order', async function() {
@@ -240,7 +240,7 @@ Then('I should see my bid listed in my active bids', function() {
 });
 
 Then('the bid amount should be {string}', function(amount) {
-  assert.equal(this.response.data.assignedDriver?.bidPrice || this.bidAmount, parseFloat(amount.replace(', '')));
+  assert.equal(this.response.data.assignedDriver?.bidPrice || this.bidAmount, parseFloat(amount.replace(',', '')));
 });
 
 Then('driver should see the order in their accepted deliveries', async function() {
