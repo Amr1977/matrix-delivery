@@ -5,7 +5,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 're
 import 'leaflet/dist/leaflet.css';
 
 const DeliveryApp = () => {
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
 
   // MapController Component - handles map instance for programmatic control
   const MapController = React.forwardRef((props, ref) => {
