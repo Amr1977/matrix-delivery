@@ -61,7 +61,7 @@ cd ..
 
 # Wait for backend to start and check health
 echo "⏳ Waiting for backend to initialize..."
-sleep 3
+sleep 7
 if ! curl -f http://localhost:5000/api/health > /dev/null 2>&1; then
     echo "⚠️  Warning: Backend health check failed. Check logs."
 fi

@@ -350,25 +350,50 @@ const validatePassword = (password) => {
 // reCAPTCHA verification
 const verifyRecaptcha = async (token) => {
   try {
-    if (!token) return false;
-
-    const recaptcha = new Recaptcha(process.env.RECAPTCHA_SECRET_KEY);
-    const result = await recaptcha.verify(token);
-
-    if (!result || !result.success) {
-      console.warn('reCAPTCHA verification failed:', result);
+    if (!token) {
+      console.warn('No reCAPTCHA token provided');
       return false;
     }
 
-    // Check score for reCAPTCHA v3 (optional, adjust threshold as needed)
-    if (result.score !== undefined && result.score < 0.5) {
-      console.warn('reCAPTCHA score too low:', result.score);
+    if (!process.env.RECAPTCHA_SECRET_KEY) {
+      console.error('RECAPTCHA_SECRET_KEY not configured');
       return false;
     }
 
+    // Use direct HTTP request to Google's API instead of the package
+    const axios = require('axios'); // Make sure to install: npm install axios
+    
+    const response = await axios.post(
+      'https://www.google.com/recaptcha/api/siteverify',
+      null,
+      {
+        params: {
+          secret: process.env.RECAPTCHA_SECRET_KEY,
+          response: token
+        }
+      }
+    );
+
+    const result = response.data;
+
+    if (!result.success) {
+      console.warn('reCAPTCHA verification failed:', result['error-codes']);
+      return false;
+    }
+
+    // For reCAPTCHA v3, check the score (optional)
+    if (result.score !== undefined) {
+      if (result.score < 0.5) {
+        console.warn('reCAPTCHA score too low:', result.score);
+        return false;
+      }
+      console.log('reCAPTCHA score:', result.score);
+    }
+
+    console.log('✅ reCAPTCHA verification successful');
     return true;
   } catch (error) {
-    console.error('reCAPTCHA verification error:', error);
+    console.error('reCAPTCHA verification error:', error.message);
     return false;
   }
 };
