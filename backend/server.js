@@ -356,44 +356,73 @@ const verifyRecaptcha = async (token) => {
     }
 
     if (!process.env.RECAPTCHA_SECRET_KEY) {
-      console.error('RECAPTCHA_SECRET_KEY not configured');
+      console.error('RECAPTCHA_SECRET_KEY not configured - please set RECAPTCHA_SECRET_KEY in .env file');
       return false;
     }
 
-    // Use direct HTTP request to Google's API instead of the package
-    const axios = require('axios'); // Make sure to install: npm install axios
-    
+    console.log('🔍 Verifying reCAPTCHA token...');
+
+    // Use axios for direct HTTP request to Google's API
+    const axios = require('axios');
+
+    // Increase timeout and add error handling
     const response = await axios.post(
       'https://www.google.com/recaptcha/api/siteverify',
       null,
       {
         params: {
-          secret: process.env.RECAPTCHA_SECRET_KEY,
+          secret: process.env.RECAPTCHA_SECRET_KEY.trim(),
           response: token
+        },
+        timeout: 10000, // 10 second timeout
+        headers: {
+          'User-Agent': 'Matrix-Delivery-Server/1.0'
         }
       }
     );
 
     const result = response.data;
 
+    console.log('Google reCAPTCHA API response:', {
+      success: result.success,
+      errorCodes: result['error-codes'] || [],
+      score: result.score,
+      challenge_ts: result.challenge_ts,
+      hostname: result.hostname
+    });
+
     if (!result.success) {
-      console.warn('reCAPTCHA verification failed:', result['error-codes']);
+      console.warn('reCAPTCHA verification failed with error codes:', result['error-codes']);
       return false;
     }
 
-    // For reCAPTCHA v3, check the score (optional)
+    // For reCAPTCHA v3, check the score (optional - you can disable this if not using v3)
     if (result.score !== undefined) {
-      if (result.score < 0.5) {
+      console.log('reCAPTCHA score:', result.score);
+
+      // Check if score is too low (threshold can be adjusted)
+      if (result.score < 0.3) {
         console.warn('reCAPTCHA score too low:', result.score);
         return false;
       }
-      console.log('reCAPTCHA score:', result.score);
     }
 
     console.log('✅ reCAPTCHA verification successful');
     return true;
+
   } catch (error) {
     console.error('reCAPTCHA verification error:', error.message);
+
+    // More detailed error logging
+    if (error.response) {
+      console.error('Google API responded with status:', error.response.status);
+      console.error('Response data:', error.response.data);
+    } else if (error.code === 'ENOTFOUND') {
+      console.error('Cannot reach Google reCAPTCHA API - check internet connection');
+    } else if (error.code === 'ETIMEDOUT') {
+      console.error('Google reCAPTCHA API request timed out');
+    }
+
     return false;
   }
 };
