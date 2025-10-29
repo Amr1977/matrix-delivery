@@ -1,8 +1,8 @@
-// ============ APP.JS PART 1: Setup & State Management ============
 import React, { useState, useEffect, useRef, useImperativeHandle } from 'react';
 import L from 'leaflet';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+import ReCAPTCHA from 'react-google-recaptcha';
 
 const DeliveryApp = () => {
 const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
@@ -540,6 +540,10 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
     vehicle_type: ''
   });
 
+  // Captcha refs
+  const registerCaptchaRef = useRef(null);
+  const loginCaptchaRef = useRef(null);
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -1032,12 +1036,21 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
       return;
     }
 
+    const captchaToken = process.env.REACT_APP_RECAPTCHA_SITE_KEY ? registerCaptchaRef.current?.getValue() : null;
+    if (process.env.REACT_APP_RECAPTCHA_SITE_KEY && !captchaToken) {
+      setError('Please complete the captcha');
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(authForm)
+        body: JSON.stringify({
+          ...authForm,
+          captchaToken
+        })
       });
 
       if (!response.ok) {
@@ -1065,6 +1078,12 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
       return;
     }
 
+    const captchaToken = process.env.REACT_APP_RECAPTCHA_SITE_KEY ? loginCaptchaRef.current?.getValue() : null;
+    if (process.env.REACT_APP_RECAPTCHA_SITE_KEY && !captchaToken) {
+      setError('Please complete the captcha');
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await fetch(`${API_URL}/auth/login`, {
@@ -1072,7 +1091,8 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: authForm.email,
-          password: authForm.password
+          password: authForm.password,
+          captchaToken
         })
       });
 
@@ -1521,6 +1541,14 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
                     {showPassword ? '👁️' : '👁️‍🗨️'}
                   </button>
                 </div>
+                {process.env.REACT_APP_RECAPTCHA_SITE_KEY && (
+                  <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem' }}>
+                    <ReCAPTCHA
+                      ref={loginCaptchaRef}
+                      sitekey={process.env.REACT_APP_RECAPTCHA_SITE_KEY}
+                    />
+                  </div>
+                )}
                 <button
                   onClick={handleLogin}
                   disabled={loading}
@@ -1597,6 +1625,14 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
                     <option value="van">Van</option>
                     <option value="truck">Truck</option>
                   </select>
+                )}
+                {process.env.REACT_APP_RECAPTCHA_SITE_KEY && (
+                  <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem' }}>
+                    <ReCAPTCHA
+                      ref={registerCaptchaRef}
+                      sitekey={process.env.REACT_APP_RECAPTCHA_SITE_KEY}
+                    />
+                  </div>
                 )}
                 <button
                   onClick={handleRegister}

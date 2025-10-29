@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { Pool } = require('pg');
 const { getDistance } = require('geolib');
+const Recaptcha = require('google-recaptcha-v2');
 
 dotenv.config();
 const app = express();
@@ -346,6 +347,32 @@ const validatePassword = (password) => {
   return sanitized && sanitized.length >= 8;
 };
 
+// reCAPTCHA verification
+const verifyRecaptcha = async (token) => {
+  try {
+    if (!token) return false;
+
+    const recaptcha = new Recaptcha(process.env.RECAPTCHA_SECRET_KEY);
+    const result = await recaptcha.verify(token);
+
+    if (!result || !result.success) {
+      console.warn('reCAPTCHA verification failed:', result);
+      return false;
+    }
+
+    // Check score for reCAPTCHA v3 (optional, adjust threshold as needed)
+    if (result.score !== undefined && result.score < 0.5) {
+      console.warn('reCAPTCHA score too low:', result.score);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('reCAPTCHA verification error:', error);
+    return false;
+  }
+};
+
 // ============ END OF PART 1 ============
 // Continue with Part 2 for Authentication Routes
 
@@ -418,7 +445,12 @@ app.post('/api/auth/register', async (req, res) => {
     }
   }
   try {
-    const { name, email, password, phone, role, vehicle_type } = req.body;
+    const { name, email, password, phone, role, vehicle_type, recaptchaToken } = req.body;
+
+    // Verify reCAPTCHA token if not in test mode
+    if (!IS_TEST && !(await verifyRecaptcha(recaptchaToken))) {
+      return res.status(400).json({ error: 'CAPTCHA verification failed' });
+    }
 
     if (!name || !email || !password || !phone || !role) {
       return res.status(400).json({ error: 'All fields required' });
@@ -490,7 +522,12 @@ app.post('/api/auth/register', async (req, res) => {
 // Login
 app.post('/api/auth/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, recaptchaToken } = req.body;
+
+    // Verify reCAPTCHA token if not in test mode
+    if (!IS_TEST && !(await verifyRecaptcha(recaptchaToken))) {
+      return res.status(400).json({ error: 'CAPTCHA verification failed' });
+    }
 
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password required' });
