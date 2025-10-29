@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { Pool } = require('pg');
 const { getDistance } = require('geolib');
-const Recaptcha = require('google-recaptcha-v2');
+// const Recaptcha = require('google-recaptcha-v2');
 
 dotenv.config();
 const app = express();

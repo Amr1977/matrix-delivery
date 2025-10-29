@@ -22,7 +22,6 @@
     "express-rate-limit": "^7.1.5",
     "express-validator": "^7.0.1",
     "geolib": "^3.3.4",
-    "google-recaptcha-v2": "^1.0.4",
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
