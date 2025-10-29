@@ -347,7 +347,7 @@ const validatePassword = (password) => {
   return sanitized && sanitized.length >= 8;
 };
 
-// reCAPTCHA verification
+// reCAPTCHA verification (using v2 checkbox)
 const verifyRecaptcha = async (token) => {
   try {
     if (!token) {
@@ -360,7 +360,7 @@ const verifyRecaptcha = async (token) => {
       return false;
     }
 
-    console.log('🔍 Verifying reCAPTCHA token...');
+    console.log('🔍 Verifying reCAPTCHA v2 token...');
 
     // Use axios for direct HTTP request to Google's API
     const axios = require('axios');
@@ -383,35 +383,27 @@ const verifyRecaptcha = async (token) => {
 
     const result = response.data;
 
-    console.log('Google reCAPTCHA API response:', {
+    console.log('Google reCAPTCHA v2 API response:', {
       success: result.success,
-      errorCodes: result['error-codes'] || [],
-      score: result.score,
-      challenge_ts: result.challenge_ts,
-      hostname: result.hostname
+      hostname: result.hostname,
+      challenge_ts: result.challenge_ts
     });
 
-    if (!result.success) {
-      console.warn('reCAPTCHA verification failed with error codes:', result['error-codes']);
+    if (result['error-codes'] && result['error-codes'].length > 0) {
+      console.warn('reCAPTCHA v2 verification failed with error codes:', result['error-codes']);
       return false;
     }
 
-    // For reCAPTCHA v3, check the score (optional - you can disable this if not using v3)
-    if (result.score !== undefined) {
-      console.log('reCAPTCHA score:', result.score);
-
-      // Check if score is too low (threshold can be adjusted)
-      if (result.score < 0.3) {
-        console.warn('reCAPTCHA score too low:', result.score);
-        return false;
-      }
+    if (result.success) {
+      console.log('✅ reCAPTCHA v2 verification successful');
+      return true;
+    } else {
+      console.warn('reCAPTCHA v2 verification failed: success = false');
+      return false;
     }
 
-    console.log('✅ reCAPTCHA verification successful');
-    return true;
-
   } catch (error) {
-    console.error('reCAPTCHA verification error:', error.message);
+    console.error('reCAPTCHA v2 verification error:', error.message);
 
     // More detailed error logging
     if (error.response) {
