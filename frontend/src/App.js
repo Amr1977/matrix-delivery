@@ -304,7 +304,7 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
             <input
               type="text"
               placeholder="Country (e.g., Iraq, USA, UK)"
-              value={location.address.country}
+              value={location?.address?.country || ''}
               onChange={(e) => updateAddressField('country', e.target.value)}
               style={{
                 width: '100%',
@@ -330,7 +330,7 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
               <input
                 type="text"
                 placeholder="City"
-                value={location.address.city}
+                value={location?.address?.city || ''}
                 onChange={(e) => updateAddressField('city', e.target.value)}
                 style={{
                   width: '100%',
@@ -354,7 +354,7 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
               <input
                 type="text"
                 placeholder="Area/District"
-                value={location.address.area}
+                value={location?.address?.area || ''}
                 onChange={(e) => updateAddressField('area', e.target.value)}
                 style={{
                   width: '100%',
@@ -380,7 +380,7 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
             <input
               type="text"
               placeholder="Street name and number"
-              value={location.address.street}
+              value={location?.address?.street || ''}
               onChange={(e) => updateAddressField('street', e.target.value)}
               style={{
                 width: '100%',
@@ -406,7 +406,7 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
               <input
                 type="text"
                 placeholder="Building number"
-                value={location.address.buildingNumber}
+                value={location?.address?.buildingNumber || ''}
                 onChange={(e) => updateAddressField('buildingNumber', e.target.value)}
                 style={{
                   width: '100%',
@@ -430,7 +430,7 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
               <input
                 type="text"
                 placeholder="Floor (optional)"
-                value={location.address.floor}
+                value={location?.address?.floor || ''}
                 onChange={(e) => updateAddressField('floor', e.target.value)}
                 style={{
                   width: '100%',
@@ -454,7 +454,7 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
               <input
                 type="text"
                 placeholder="Apartment (optional)"
-                value={location.address.apartmentNumber}
+                value={location?.address?.apartmentNumber || ''}
                 onChange={(e) => updateAddressField('apartmentNumber', e.target.value)}
                 style={{
                   width: '100%',
@@ -480,7 +480,7 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
             <input
               type="text"
               placeholder="Person to contact at this location"
-              value={location.address.personName}
+              value={location?.address?.personName || ''}
               onChange={(e) => updateAddressField('personName', e.target.value)}
               style={{
                 width: '100%',
