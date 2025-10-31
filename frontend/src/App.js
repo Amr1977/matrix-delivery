@@ -207,11 +207,29 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
   // Detailed Address Form Component
   const AddressDetailsForm = ({ type, location, onLocationChange, onOpenMap }) => {
     const updateAddressField = (field, value) => {
-      const updatedLocation = {
-        ...location,
+      // Ensure we have a valid location object with proper defaults
+      const currentLocation = location || {
+        coordinates: { lat: null, lng: null },
         address: {
-          ...location.address,
-          [field]: value
+          country: '',
+          city: '',
+          area: '',
+          street: '',
+          buildingNumber: '',
+          floor: '',
+          apartmentNumber: '',
+          personName: ''
+        }
+      };
+
+      // Sanitize input value
+      const sanitizedValue = typeof value === 'string' ? value.trim() : value;
+
+      const updatedLocation = {
+        ...currentLocation,
+        address: {
+          ...currentLocation.address,
+          [field]: sanitizedValue
         }
       };
       onLocationChange(updatedLocation);
