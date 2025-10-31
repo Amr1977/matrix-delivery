@@ -266,22 +266,32 @@ const corsOrigins = process.env.CORS_ORIGIN
 
 console.log('🔒 CORS Origins configured:', corsOrigins);
 
-app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
+// CORS middleware with proper error handling
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
 
-    if (corsOrigins.includes(origin)) {
-      return callback(null, true);
-    } else {
-      console.log('🚫 CORS blocked origin:', origin);
-      return callback(new Error('Not allowed by CORS'));
+  // Check if origin is allowed
+  const isAllowed = !origin || corsOrigins.includes(origin);
+
+  if (isAllowed) {
+    // Set CORS headers for allowed origins
+    res.header('Access-Control-Allow-Origin', origin || '*');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Origin, X-Requested-With');
+
+    // Handle preflight requests
+    if (req.method === 'OPTIONS') {
+      res.sendStatus(200);
+      return;
     }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With']
-}));
+  } else {
+    console.log('🚫 CORS blocked origin:', origin);
+    // For blocked origins, don't set CORS headers and let the request fail naturally
+  }
+
+  next();
+});
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
