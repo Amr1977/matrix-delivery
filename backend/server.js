@@ -265,10 +265,34 @@ const corsOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
   : ['http://localhost:3000', 'http://localhost:3001', 'http://127.0.0.1:3000'];
 
-app.use(cors({
-  origin: corsOrigins,
-  credentials: true
-}));
+console.log('🔒 CORS Origins configured:', corsOrigins);
+
+// CORS middleware with proper error handling
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+
+  // Check if origin is allowed
+  const isAllowed = !origin || corsOrigins.includes(origin);
+
+  if (isAllowed) {
+    // Set CORS headers for allowed origins
+    res.header('Access-Control-Allow-Origin', origin || '*');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Origin, X-Requested-With');
+
+    // Handle preflight requests
+    if (req.method === 'OPTIONS') {
+      res.sendStatus(200);
+      return;
+    }
+  } else {
+    console.log('🚫 CORS blocked origin:', origin);
+    // For blocked origins, don't set CORS headers and let the request fail naturally
+  }
+
+  next();
+});
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
