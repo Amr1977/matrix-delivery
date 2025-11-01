@@ -14,6 +14,10 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "build:dev": "REACT_APP_ENV=development react-scripts build",
+    "build:staging": "REACT_APP_ENV=staging react-scripts build",
+    "build:test": "REACT_APP_ENV=test react-scripts build",
+    "build:prod": "REACT_APP_ENV=production react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
