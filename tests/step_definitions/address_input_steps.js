@@ -1,12 +1,8 @@
 const { Given, When, Then } = require('@cucumber/cucumber');
 const { expect } = require('chai');
+const { expect: playwrightExpect } = require('@playwright/test');
 
 // Address input validation steps
-When('I click on {string}', async function(buttonText) {
-  const button = this.page.locator(`button:has-text("${buttonText}")`);
-  await button.click();
-  await this.page.waitForTimeout(500);
-});
 
 When('I open the pickup location details', async function() {
   // Click on the pickup location section or map button
@@ -39,7 +35,7 @@ When('I fill in the pickup address fields:', async function(dataTable) {
 
   // Fill in each address field
   for (const [field, value] of Object.entries(addressData)) {
-    const fieldSelector = this.getAddressFieldSelector('pickup', field);
+    const fieldSelector = getAddressFieldSelector(field);
     await this.page.fill(fieldSelector, value);
     await this.page.waitForTimeout(100); // Allow input to process
   }
@@ -53,7 +49,7 @@ When('I fill in the delivery address fields:', async function(dataTable) {
 
   // Fill in each address field
   for (const [field, value] of Object.entries(addressData)) {
-    const fieldSelector = this.getAddressFieldSelector('delivery', field);
+    const fieldSelector = getAddressFieldSelector(field);
     await this.page.fill(fieldSelector, value);
     await this.page.waitForTimeout(100); // Allow input to process
   }
@@ -63,14 +59,14 @@ When('I fill in the delivery address fields:', async function(dataTable) {
 });
 
 When('I enter a long street address {string}', async function(streetAddress) {
-  const streetField = this.page.locator('input[placeholder="Street name and number"]');
+  const streetField = this.page.locator('input[placeholder="Street name and number"]').first();
   await streetField.fill(streetAddress);
   await this.page.waitForTimeout(200);
   this.testData.longStreetAddress = streetAddress;
 });
 
 When('I enter a long person name {string}', async function(personName) {
-  const personField = this.page.locator('input[placeholder="Person to contact at this location"]');
+  const personField = this.page.locator('input[placeholder="Person to contact at this location"]').first();
   await personField.fill(personName);
   await this.page.waitForTimeout(200);
   this.testData.longPersonName = personName;
@@ -80,7 +76,7 @@ When('I fill in address fields with special characters:', async function(dataTab
   const specialCharData = dataTable.rowsHash();
 
   for (const [field, value] of Object.entries(specialCharData)) {
-    const fieldSelector = this.getAddressFieldSelector('pickup', field);
+    const fieldSelector = getAddressFieldSelector(field);
     await this.page.fill(fieldSelector, value);
     await this.page.waitForTimeout(100);
   }
@@ -101,7 +97,7 @@ When('I fill in pickup address fields', async function() {
   };
 
   for (const [field, value] of Object.entries(testData)) {
-    const fieldSelector = this.getAddressFieldSelector('pickup', field);
+    const fieldSelector = getAddressFieldSelector(field);
     await this.page.fill(fieldSelector, value);
     await this.page.waitForTimeout(100);
   }
@@ -134,7 +130,7 @@ When('I attempt to submit the order without filling required address fields', as
 
 Then('all pickup address fields should contain the entered values', async function() {
   for (const [field, expectedValue] of Object.entries(this.testData.pickupAddress)) {
-    const fieldSelector = this.getAddressFieldSelector('pickup', field);
+    const fieldSelector = getAddressFieldSelector(field);
     const actualValue = await this.page.inputValue(fieldSelector);
     expect(actualValue).to.equal(expectedValue, `Field ${field} should contain "${expectedValue}" but got "${actualValue}"`);
   }
@@ -142,7 +138,7 @@ Then('all pickup address fields should contain the entered values', async functi
 
 Then('all delivery address fields should contain the entered values', async function() {
   for (const [field, expectedValue] of Object.entries(this.testData.deliveryAddress)) {
-    const fieldSelector = this.getAddressFieldSelector('delivery', field);
+    const fieldSelector = getAddressFieldSelector(field);
     const actualValue = await this.page.inputValue(fieldSelector);
     expect(actualValue).to.equal(expectedValue, `Field ${field} should contain "${expectedValue}" but got "${actualValue}"`);
   }
@@ -154,7 +150,7 @@ Then('no field should be truncated to first letter only', async function() {
 
   for (const [field, expectedValue] of Object.entries(allAddressData)) {
     if (expectedValue.length > 1) {
-      const fieldSelector = this.getAddressFieldSelector('pickup', field);
+      const fieldSelector = getAddressFieldSelector(field);
       const actualValue = await this.page.inputValue(fieldSelector);
 
       expect(actualValue.length).to.be.greaterThan(1,
@@ -182,7 +178,7 @@ Then('the person name field should contain the full long text', async function()
 
 Then('all fields should accept and display special characters correctly', async function() {
   for (const [field, expectedValue] of Object.entries(this.testData.specialCharsData)) {
-    const fieldSelector = this.getAddressFieldSelector('pickup', field);
+    const fieldSelector = getAddressFieldSelector(field);
     const actualValue = await this.page.inputValue(fieldSelector);
     expect(actualValue).to.equal(expectedValue, `Special characters not handled correctly in ${field}`);
   }
@@ -190,33 +186,59 @@ Then('all fields should accept and display special characters correctly', async 
 
 Then('I should see validation errors for empty required fields', async function() {
   // Look for error messages or validation indicators
-  const errorMessages = this.page.locator('.error, [class*="error"], text=/required|empty|fill/i');
-  const errorCount = await errorMessages.count();
+  const errorSelectors = [
+    '.error',
+    '[class*="error"]',
+    'text=/required/i',
+    'text=/empty/i',
+    'text=/fill/i',
+    'text=/mandatory/i'
+  ];
 
-  // Should have at least some validation errors for required fields
-  expect(errorCount).to.be.greaterThan(0, 'Should show validation errors for empty required fields');
+  let errorFound = false;
+  for (const selector of errorSelectors) {
+    try {
+      const elements = this.page.locator(selector);
+      const count = await elements.count();
+      if (count > 0) {
+        // Check if any are visible
+        for (let i = 0; i < count; i++) {
+          if (await elements.nth(i).isVisible()) {
+            errorFound = true;
+            break;
+          }
+        }
+        if (errorFound) break;
+      }
+    } catch (e) {
+      // Continue to next selector if this one fails
+      continue;
+    }
+  }
+
+  expect(errorFound).to.be.true;
 });
 
 Then('the order should not be created', async function() {
   // Verify we're still on the create order form
   const createForm = this.page.locator('h2:has-text("Create New Delivery Order")');
-  await expect(createForm).toBeVisible();
+  await playwrightExpect(createForm).toBeVisible();
 
   // Verify no success message
   const successMessage = this.page.locator('text=/Order.*created|success/i');
-  await expect(successMessage).toHaveCount(0);
+  await playwrightExpect(successMessage).toHaveCount(0);
 });
 
 Then('all previously entered address values should be preserved', async function() {
   for (const [field, expectedValue] of Object.entries(this.testData.preserveTestData)) {
-    const fieldSelector = this.getAddressFieldSelector('pickup', field);
+    const fieldSelector = getAddressFieldSelector(field);
     const actualValue = await this.page.inputValue(fieldSelector);
     expect(actualValue).to.equal(expectedValue, `Field ${field} value was not preserved after navigation`);
   }
 });
 
 // Helper method to get field selectors based on field type
-Given.prototype.getAddressFieldSelector = function(locationType, fieldName) {
+const getAddressFieldSelector = function(fieldName) {
   const fieldSelectors = {
     'Country': 'input[placeholder="Country (e.g., Iraq, USA, UK)"]',
     'City': 'input[placeholder="City"]',
@@ -228,5 +250,11 @@ Given.prototype.getAddressFieldSelector = function(locationType, fieldName) {
     'Person Name': 'input[placeholder="Person to contact at this location"]'
   };
 
-  return fieldSelectors[fieldName] || `input[placeholder*="${fieldName}"]`;
+  const selector = fieldSelectors[fieldName];
+  if (selector) {
+    return selector;
+  }
+
+  // Fallback: try to find input with placeholder containing the field name
+  return `input[placeholder*="${fieldName}"]`;
 };

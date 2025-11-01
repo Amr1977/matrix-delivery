@@ -12,7 +12,7 @@
     "report": "node utils/generate-report.js"
   },
   "dependencies": {
-    "@cucumber/cucumber": "^9.0.5",
+    "@cucumber/cucumber": "^10.0.0",
     "playwright": "^1.40.1",
     "chai": "^4.3.10",
     "axios": "^1.5.0"

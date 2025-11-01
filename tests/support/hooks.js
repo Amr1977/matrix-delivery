@@ -135,9 +135,10 @@ Before(async function({ pickle }) {
   
   this.page = await this.context.newPage();
   
-  // Set base URLs
-  this.baseUrl = 'http://localhost:3000';
-  this.apiUrl = 'http://localhost:5000/api';
+  // Set base URLs - use Firebase for deployed tests, localhost for local development
+  const useFirebase = process.env.TEST_ENV === 'firebase' || process.env.FIREBASE_TEST === 'true';
+  this.baseUrl = useFirebase ? 'https://badr-delivery-dev.web.app' : 'http://localhost:3000';
+  this.apiUrl = useFirebase ? 'https://matrix-api.oldantique50.com/api' : 'http://localhost:5000/api';
   
   // Initialize test data storage
   this.testData = {};

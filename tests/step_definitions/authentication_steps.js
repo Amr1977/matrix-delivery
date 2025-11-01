@@ -13,7 +13,7 @@ Given('there is a registered customer account', async function() {
   const customerData = {
     name: 'Test Customer',
     email: `customer_${timestamp}@test.com`,
-    password: 'test123',
+    password: 'test1234',
     phone: `+1${timestamp.toString().slice(-10)}`, // Generate phone number from timestamp
     role: 'customer'
   };
@@ -38,7 +38,7 @@ Given('there is a registered driver account', async function() {
   const driverData = {
     name: 'Test Driver',
     email: `driver_${timestamp}@test.com`,
-    password: 'test123',
+    password: 'test1234',
     phone: `+1${timestamp.toString().slice(-10)}`, // Generate phone number from timestamp
     role: 'driver',
     vehicle_type: 'car'
@@ -243,7 +243,7 @@ Given('I am logged in as customer {string}', async function(email) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       email: email,
-      password: 'test123' // Use standard test password
+      password: 'test1234' // Use standard test password
     })
   });
 
@@ -385,7 +385,7 @@ Given('setup test driver', async function() {
       body: JSON.stringify({
         name: 'Test Driver',
         email: `driver_${Date.now()}@test.com`,
-        password: 'test123',
+        password: 'test1234',
         phone: '+1987654321',
         role: 'driver',
         vehicle_type: 'bike'

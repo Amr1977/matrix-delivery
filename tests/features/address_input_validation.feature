@@ -6,6 +6,7 @@ Feature: Address Input Validation
 
   Background:
     Given the P2P delivery platform is running
+    And there is a registered customer account
     And I am logged in as a customer
 
   @ADDR-001
