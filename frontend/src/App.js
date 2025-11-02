@@ -1036,8 +1036,8 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
       return;
     }
 
-    const captchaToken = process.env.REACT_APP_RECAPTCHA_SITE_KEY ? registerCaptchaRef.current?.getValue() : null;
-    if (process.env.REACT_APP_RECAPTCHA_SITE_KEY && !captchaToken) {
+    const recaptchaToken = process.env.REACT_APP_RECAPTCHA_SITE_KEY ? registerCaptchaRef.current?.getValue() : null;
+    if (process.env.REACT_APP_RECAPTCHA_SITE_KEY && !recaptchaToken) {
       setError('Please complete the captcha');
       return;
     }
@@ -1049,7 +1049,7 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...authForm,
-          captchaToken
+          recaptchaToken
         })
       });
 
@@ -1078,8 +1078,8 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
       return;
     }
 
-    const captchaToken = process.env.REACT_APP_RECAPTCHA_SITE_KEY ? loginCaptchaRef.current?.getValue() : null;
-    if (process.env.REACT_APP_RECAPTCHA_SITE_KEY && !captchaToken) {
+    const recaptchaToken = process.env.REACT_APP_RECAPTCHA_SITE_KEY ? loginCaptchaRef.current?.getValue() : null;
+    if (process.env.REACT_APP_RECAPTCHA_SITE_KEY && !recaptchaToken) {
       setError('Please complete the captcha');
       return;
     }
@@ -1092,7 +1092,7 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
         body: JSON.stringify({
           email: authForm.email,
           password: authForm.password,
-          captchaToken
+          recaptchaToken
         })
       });
 
