@@ -16,6 +16,10 @@ echo "📦 Installing dependencies..."
 npm ci --silent
 
 echo "🏗️ Building project..."
+# Set production API URL
+export REACT_APP_API_URL=https://matrix-api.oldantique50.com/api
+export NODE_ENV=production
+export CI=false
 npm run build
 
 # Step 2: Remove old build
@@ -42,4 +46,3 @@ if [ -d "$WEB_ROOT" ]; then
         systemctl restart apache2
 
         echo "✅ Frontend deployed successfully!"
-        

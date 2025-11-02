@@ -7,7 +7,28 @@ module.exports = {
     exec_mode: 'cluster',
     env: {
       NODE_ENV: 'production',
-      PORT: 5000
+      PORT: 5000,
+      ENV_FILE: '.env.production'
+    },
+    env_develop: {
+      NODE_ENV: 'development',
+      PORT: 5000,
+      ENV_FILE: '.env.develop'
+    },
+    env_staging: {
+      NODE_ENV: 'staging',
+      PORT: 5000,
+      ENV_FILE: '.env.staging'
+    },
+    env_test: {
+      NODE_ENV: 'test',
+      PORT: 5000,
+      ENV_FILE: '.env.test'
+    },
+    env_production: {
+      NODE_ENV: 'production',
+      PORT: 5000,
+      ENV_FILE: '.env.production'
     },
     error_file: './logs/pm2-error.log',
     out_file: './logs/pm2-out.log',
