@@ -7,7 +7,10 @@ const { Pool } = require('pg');
 const { getDistance } = require('geolib');
 // const Recaptcha = require('google-recaptcha-v2');
 
-dotenv.config();
+// Load environment-specific .env file
+const envFile = process.env.ENV_FILE || '.env';
+dotenv.config({ path: envFile });
+console.log(`🔧 Loading environment from: ${envFile}`);
 const app = express();
 
 // Add security middleware for production

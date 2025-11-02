@@ -46,19 +46,19 @@ check_dependencies() {
 
 # Sync environment variables
 sync_env() {
-    print_status "Syncing environment variables..."
+    print_status "Syncing environment variables for $ENVIRONMENT environment..."
 
     # Create .env file on server if it doesn't exist
     ssh $SERVER_USER@$SERVER_HOST "mkdir -p $PROJECT_PATH"
 
-    # Upload .env file (you'll need to create this with actual values)
+    # Upload environment-specific .env file
     if [ -f "backend/.env.$ENVIRONMENT" ]; then
         scp "backend/.env.$ENVIRONMENT" "$SERVER_USER@$SERVER_HOST:$PROJECT_PATH/.env"
         print_status "Environment file synced for $ENVIRONMENT"
     else
-        print_warning "Environment file backend/.env.$ENVIRONMENT not found"
-        print_warning "Using default .env file"
-        scp "backend/.env" "$SERVER_USER@$SERVER_HOST:$PROJECT_PATH/.env" 2>/dev/null || print_warning "Could not copy .env file"
+        print_error "Environment file backend/.env.$ENVIRONMENT not found!"
+        print_error "Please create the environment file first."
+        exit 1
     fi
 }
 
