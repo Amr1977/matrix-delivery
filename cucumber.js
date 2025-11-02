@@ -11,7 +11,8 @@ module.exports = {
     ],
     parallel: 1,
     paths: [
-      'tests/features/driver_location.feature'
+      'tests/features/driver_location.feature',
+      'tests/features/address_input_validation.feature'
     ],
     tags: undefined
   }
