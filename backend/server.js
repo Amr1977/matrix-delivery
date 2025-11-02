@@ -5,8 +5,12 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { Pool } = require('pg');
 const { getDistance } = require('geolib');
+// const Recaptcha = require('google-recaptcha-v2');
 
-dotenv.config();
+// Load environment-specific .env file
+const envFile = process.env.ENV_FILE || '.env';
+dotenv.config({ path: envFile });
+console.log(`🔧 Loading environment from: ${envFile}`);
 const app = express();
 
 // Add security middleware for production
@@ -370,6 +374,78 @@ const validatePassword = (password) => {
   return sanitized && sanitized.length >= 8;
 };
 
+// reCAPTCHA verification (using v2 checkbox)
+const verifyRecaptcha = async (token) => {
+  try {
+    if (!token) {
+      console.warn('No reCAPTCHA token provided');
+      return false;
+    }
+
+    if (!process.env.RECAPTCHA_SECRET_KEY) {
+      console.error('RECAPTCHA_SECRET_KEY not configured - please set RECAPTCHA_SECRET_KEY in .env file');
+      return false;
+    }
+
+    console.log('🔍 Verifying reCAPTCHA v2 token...');
+
+    // Use axios for direct HTTP request to Google's API
+    const axios = require('axios');
+
+    // Increase timeout and add error handling
+    const response = await axios.post(
+      'https://www.google.com/recaptcha/api/siteverify',
+      null,
+      {
+        params: {
+          secret: process.env.RECAPTCHA_SECRET_KEY.trim(),
+          response: token
+        },
+        timeout: 10000, // 10 second timeout
+        headers: {
+          'User-Agent': 'Matrix-Delivery-Server/1.0'
+        }
+      }
+    );
+
+    const result = response.data;
+
+    console.log('Google reCAPTCHA v2 API response:', {
+      success: result.success,
+      hostname: result.hostname,
+      challenge_ts: result.challenge_ts
+    });
+
+    if (result['error-codes'] && result['error-codes'].length > 0) {
+      console.warn('reCAPTCHA v2 verification failed with error codes:', result['error-codes']);
+      return false;
+    }
+
+    if (result.success) {
+      console.log('✅ reCAPTCHA v2 verification successful');
+      return true;
+    } else {
+      console.warn('reCAPTCHA v2 verification failed: success = false');
+      return false;
+    }
+
+  } catch (error) {
+    console.error('reCAPTCHA v2 verification error:', error.message);
+
+    // More detailed error logging
+    if (error.response) {
+      console.error('Google API responded with status:', error.response.status);
+      console.error('Response data:', error.response.data);
+    } else if (error.code === 'ENOTFOUND') {
+      console.error('Cannot reach Google reCAPTCHA API - check internet connection');
+    } else if (error.code === 'ETIMEDOUT') {
+      console.error('Google reCAPTCHA API request timed out');
+    }
+
+    return false;
+  }
+};
+
 // ============ END OF PART 1 ============
 // Continue with Part 2 for Authentication Routes
 
@@ -442,7 +518,12 @@ app.post('/api/auth/register', async (req, res) => {
     }
   }
   try {
-    const { name, email, password, phone, role, vehicle_type } = req.body;
+    const { name, email, password, phone, role, vehicle_type, recaptchaToken } = req.body;
+
+    // Verify reCAPTCHA token if not in test mode
+    if (!IS_TEST && !(await verifyRecaptcha(recaptchaToken))) {
+      return res.status(400).json({ error: 'CAPTCHA verification failed' });
+    }
 
     if (!name || !email || !password || !phone || !role) {
       return res.status(400).json({ error: 'All fields required' });
@@ -514,7 +595,12 @@ app.post('/api/auth/register', async (req, res) => {
 // Login
 app.post('/api/auth/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, recaptchaToken } = req.body;
+
+    // Verify reCAPTCHA token if not in test mode
+    if (!IS_TEST && !(await verifyRecaptcha(recaptchaToken))) {
+      return res.status(400).json({ error: 'CAPTCHA verification failed' });
+    }
 
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password required' });
