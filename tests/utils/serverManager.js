@@ -24,7 +24,8 @@ class ServerManager {
         env: {
           ...process.env,
           PORT: 5000,
-          JWT_SECRET: 'test-secret-key-12345'
+          JWT_SECRET: 'test-secret-key-12345',
+          CUCUMBER_TEST: 'true'
         }
       });
 

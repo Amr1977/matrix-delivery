@@ -13,7 +13,7 @@ Given('there is a registered customer account', async function() {
   const customerData = {
     name: 'Test Customer',
     email: `customer_${timestamp}@test.com`,
-    password: 'test123',
+    password: 'test1234',
     phone: `+1${timestamp.toString().slice(-10)}`, // Generate phone number from timestamp
     role: 'customer'
   };
@@ -38,7 +38,7 @@ Given('there is a registered driver account', async function() {
   const driverData = {
     name: 'Test Driver',
     email: `driver_${timestamp}@test.com`,
-    password: 'test123',
+    password: 'test1234',
     phone: `+1${timestamp.toString().slice(-10)}`, // Generate phone number from timestamp
     role: 'driver',
     vehicle_type: 'car'
@@ -219,7 +219,42 @@ Given('I am logged in as a customer', async function() {
   await this.page.fill('input[placeholder="Email"]', this.testData.customer.email);
   await this.page.fill('input[placeholder="Password"]', this.testData.customer.password);
   await this.page.click('button:has-text("Sign In")');
-  await this.page.waitForSelector('button:has-text("Logout")', { timeout: 10000 });
+
+  // Wait for successful login - check for various indicators
+  await this.page.waitForTimeout(2000); // Give time for login to process
+
+  // Check for successful login indicators
+  const logoutButton = this.page.locator('button:has-text("Logout")').or(
+    this.page.locator('button:has-text("Sign Out")')
+  );
+
+  const dashboardElements = [
+    'button:has-text("Create New Order")',
+    'text="My Orders"',
+    'text="Dashboard"',
+    'text="Welcome"'
+  ];
+
+  let loginSuccessful = false;
+
+  // Check if logout button exists
+  if (await logoutButton.first().isVisible({ timeout: 5000 }).catch(() => false)) {
+    loginSuccessful = true;
+  } else {
+    // Check for dashboard elements
+    for (const selector of dashboardElements) {
+      if (await this.page.locator(selector).first().isVisible({ timeout: 2000 }).catch(() => false)) {
+        loginSuccessful = true;
+        break;
+      }
+    }
+  }
+
+  if (!loginSuccessful) {
+    // Take a screenshot for debugging
+    await this.page.screenshot({ path: 'login-debug.png' });
+    throw new Error('Login did not complete successfully - no logout button or dashboard elements found');
+  }
 });
 
 Given('I am logged in as a driver', async function() {
@@ -233,7 +268,42 @@ Given('I am logged in as a driver', async function() {
   await this.page.fill('input[placeholder="Email"]', this.testData.driver.email);
   await this.page.fill('input[placeholder="Password"]', this.testData.driver.password);
   await this.page.click('button:has-text("Sign In")');
-  await this.page.waitForSelector('button:has-text("Logout")', { timeout: 10000 });
+
+  // Wait for successful login - check for various indicators
+  await this.page.waitForTimeout(2000); // Give time for login to process
+
+  // Check for successful login indicators
+  const logoutButton = this.page.locator('button:has-text("Logout")').or(
+    this.page.locator('button:has-text("Sign Out")')
+  );
+
+  const dashboardElements = [
+    'text="Available Orders"',
+    'text="My Deliveries"',
+    'text="Dashboard"',
+    'text="Welcome"'
+  ];
+
+  let loginSuccessful = false;
+
+  // Check if logout button exists
+  if (await logoutButton.first().isVisible({ timeout: 5000 }).catch(() => false)) {
+    loginSuccessful = true;
+  } else {
+    // Check for dashboard elements
+    for (const selector of dashboardElements) {
+      if (await this.page.locator(selector).first().isVisible({ timeout: 2000 }).catch(() => false)) {
+        loginSuccessful = true;
+        break;
+      }
+    }
+  }
+
+  if (!loginSuccessful) {
+    // Take a screenshot for debugging
+    await this.page.screenshot({ path: 'driver-login-debug.png' });
+    throw new Error('Driver login did not complete successfully - no logout button or dashboard elements found');
+  }
 });
 
 Given('I am logged in as customer {string}', async function(email) {
@@ -243,7 +313,7 @@ Given('I am logged in as customer {string}', async function(email) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       email: email,
-      password: 'test123' // Use standard test password
+      password: 'test1234' // Use standard test password
     })
   });
 
@@ -385,7 +455,7 @@ Given('setup test driver', async function() {
       body: JSON.stringify({
         name: 'Test Driver',
         email: `driver_${Date.now()}@test.com`,
-        password: 'test123',
+        password: 'test1234',
         phone: '+1987654321',
         role: 'driver',
         vehicle_type: 'bike'

@@ -4,11 +4,11 @@
   "description": "E2E Tests for Matrix Delivery Application",
   "main": "index.js",
   "scripts": {
-    "test": "cucumber-js",
-    "test:smoke": "cucumber-js --tags @smoke",
-    "test:location": "cucumber-js --tags @location",
-    "driver-location-tests": "cucumber-js --tags '@location or @driver'",
-    "test:watch": "cucumber-js --watch",
+    "test": "set CUCUMBER_TEST=true&& cucumber-js",
+    "test:smoke": "set CUCUMBER_TEST=true&& cucumber-js --tags @smoke",
+    "test:location": "set CUCUMBER_TEST=true&& cucumber-js --tags @location",
+    "driver-location-tests": "set CUCUMBER_TEST=true&& cucumber-js --tags '@location or @driver'",
+    "test:watch": "set CUCUMBER_TEST=true&& cucumber-js --watch",
     "report": "node utils/generate-report.js"
   },
   "dependencies": {

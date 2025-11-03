@@ -14,7 +14,7 @@ const app = express();
 // NOT USED: helmet, rateLimit packages - using custom implementation for demo
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
-const IS_TEST = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing';
+const IS_TEST = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing' || process.env.CUCUMBER_TEST === 'true';
 
 // PostgreSQL Connection Pool
 const pool = new Pool({
