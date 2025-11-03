@@ -1,6 +1,5 @@
 const { Given, When, Then } = require('@cucumber/cucumber');
 const { expect } = require('chai');
-const { expect: playwrightExpect } = require('@playwright/test');
 
 // Address input validation steps
 
@@ -236,11 +235,13 @@ Then('I should see validation errors for empty required fields', async function(
 Then('the order should not be created', async function() {
   // Verify we're still on the create order form
   const createForm = this.page.locator('h2:has-text("Create New Delivery Order")');
-  await playwrightExpect(createForm).toBeVisible();
+  const isVisible = await createForm.isVisible();
+  expect(isVisible).to.be.true;
 
   // Verify no success message
   const successMessage = this.page.locator('text=/Order.*created|success/i');
-  await playwrightExpect(successMessage).toHaveCount(0);
+  const count = await successMessage.count();
+  expect(count).to.equal(0);
 });
 
 Then('all previously entered address values should be preserved', async function() {

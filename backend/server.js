@@ -652,7 +652,7 @@ app.post('/api/auth/login', async (req, res) => {
 app.get('/api/auth/me', verifyToken, async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, name, email, role, rating, completed_deliveries FROM users WHERE id = $1',
+      'SELECT id, name, email, role, rating, completed_deliveries, country, city FROM users WHERE id = $1',
       [req.user.userId]
     );
 
@@ -667,11 +667,35 @@ app.get('/api/auth/me', verifyToken, async (req, res) => {
       email: user.email,
       role: user.role,
       rating: parseFloat(user.rating),
-      completedDeliveries: user.completed_deliveries
+      completedDeliveries: user.completed_deliveries,
+      country: user.country,
+      city: user.city
     });
   } catch (error) {
     console.error('Get user error:', error);
     res.status(500).json({ error: 'Failed to get user' });
+  }
+});
+
+// Update user location
+app.post('/api/auth/update-location', verifyToken, async (req, res) => {
+  try {
+    const { country, city } = req.body;
+
+    if (!country || !city) {
+      return res.status(400).json({ error: 'Country and city are required' });
+    }
+
+    await pool.query(
+      'UPDATE users SET country = $1, city = $2, last_location_update = CURRENT_TIMESTAMP WHERE id = $3',
+      [country.trim(), city.trim(), req.user.userId]
+    );
+
+    console.log(`✅ User location updated: ${req.user.name} - ${country}, ${city}`);
+    res.json({ message: 'Location updated successfully' });
+  } catch (error) {
+    console.error('Update location error:', error);
+    res.status(500).json({ error: 'Failed to update location' });
   }
 });
 
@@ -743,15 +767,17 @@ app.post('/api/orders', verifyToken, async (req, res) => {
       `INSERT INTO orders (
         id, order_number, title, description, pickup_address, delivery_address,
         from_lat, from_lng, from_name, to_lat, to_lng, to_name,
+        pickup_city, delivery_city,
         package_description, package_weight, estimated_value, special_instructions,
         price, status, customer_id, customer_name, estimated_delivery_date
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
        RETURNING *`,
       [orderId, orderNumber, title.trim(), description?.trim() || '', pickupAddress, dropoffAddress,
        parseFloat(pickupLocation.coordinates.lat), parseFloat(pickupLocation.coordinates.lng),
        pickupLocation.address.personName || pickupLocation.address.street,
        parseFloat(dropoffLocation.coordinates.lat), parseFloat(dropoffLocation.coordinates.lng),
        dropoffLocation.address.personName || dropoffLocation.address.street,
+       pickupLocation.address.city || null, dropoffLocation.address.city || null,
        package_description || null, package_weight ? parseFloat(package_weight) : null,
        estimated_value ? parseFloat(estimated_value) : null, special_instructions || null,
        parseFloat(price), 'pending_bids', req.user.userId, req.user.name, estimated_delivery_date || null]
@@ -836,18 +862,41 @@ app.get('/api/orders', verifyToken, async (req, res) => {
       `;
       const activeOrdersResult = await pool.query(activeOrdersQuery, [req.user.userId]);
 
-      // Get bidding orders (pending_bids) - no distance filtering
-      const biddingOrdersQuery = `
-        SELECT o.*,
-               COALESCE(json_agg(json_build_object('userId', b.user_id, 'driverName', b.driver_name, 'bidPrice', b.bid_price, 'estimatedPickupTime', b.estimated_pickup_time, 'estimatedDeliveryTime', b.estimated_delivery_time, 'message', b.message, 'status', b.status, 'createdAt', b.created_at) ORDER BY b.created_at DESC) FILTER (WHERE b.id IS NOT NULL), '[]') as bids
-        FROM orders o
-        LEFT JOIN bids b ON o.id = b.order_id
-        WHERE o.status = 'pending_bids'
-        AND NOT EXISTS (SELECT 1 FROM bids WHERE order_id = o.id AND user_id = $1)
-        GROUP BY o.id
-        ORDER BY o.created_at DESC
-      `;
-      const biddingOrdersResult = await pool.query(biddingOrdersQuery, [req.user.userId]);
+      // Get driver's city for filtering
+      const driverCityResult = await pool.query('SELECT city FROM users WHERE id = $1', [req.user.userId]);
+      const driverCity = driverCityResult.rows[0]?.city;
+
+      // Get bidding orders (pending_bids) - city-based filtering
+      let biddingOrdersQuery, biddingOrdersParams;
+      if (driverCity) {
+        biddingOrdersQuery = `
+          SELECT o.*,
+                 COALESCE(json_agg(json_build_object('userId', b.user_id, 'driverName', b.driver_name, 'bidPrice', b.bid_price, 'estimatedPickupTime', b.estimated_pickup_time, 'estimatedDeliveryTime', b.estimated_delivery_time, 'message', b.message, 'status', b.status, 'createdAt', b.created_at) ORDER BY b.created_at DESC) FILTER (WHERE b.id IS NOT NULL), '[]') as bids
+          FROM orders o
+          LEFT JOIN bids b ON o.id = b.order_id
+          WHERE o.status = 'pending_bids'
+          AND o.pickup_city = $2
+          AND NOT EXISTS (SELECT 1 FROM bids WHERE order_id = o.id AND user_id = $1)
+          GROUP BY o.id
+          ORDER BY o.created_at DESC
+        `;
+        biddingOrdersParams = [req.user.userId, driverCity];
+      } else {
+        // Fallback: no city filtering if driver has no city set
+        biddingOrdersQuery = `
+          SELECT o.*,
+                 COALESCE(json_agg(json_build_object('userId', b.user_id, 'driverName', b.driver_name, 'bidPrice', b.bid_price, 'estimatedPickupTime', b.estimated_pickup_time, 'estimatedDeliveryTime', b.estimated_delivery_time, 'message', b.message, 'status', b.status, 'createdAt', b.created_at) ORDER BY b.created_at DESC) FILTER (WHERE b.id IS NOT NULL), '[]') as bids
+          FROM orders o
+          LEFT JOIN bids b ON o.id = b.order_id
+          WHERE o.status = 'pending_bids'
+          AND NOT EXISTS (SELECT 1 FROM bids WHERE order_id = o.id AND user_id = $1)
+          GROUP BY o.id
+          ORDER BY o.created_at DESC
+        `;
+        biddingOrdersParams = [req.user.userId];
+      }
+
+      const biddingOrdersResult = await pool.query(biddingOrdersQuery, biddingOrdersParams);
       const biddingOrders = biddingOrdersResult.rows;
 
       // Get completed orders (delivered) for history

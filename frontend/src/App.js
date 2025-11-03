@@ -7,6 +7,54 @@ import ReCAPTCHA from 'react-google-recaptcha';
 const DeliveryApp = () => {
 const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
 
+// Reverse geocoding utility
+const reverseGeocode = async (lat, lng) => {
+  try {
+    const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
+    const data = await response.json();
+
+    if (data && data.address) {
+      return {
+        country: data.address.country,
+        city: data.address.city || data.address.town || data.address.village || data.address.hamlet,
+        area: data.address.suburb || data.address.neighbourhood || data.address.district,
+        street: data.address.road || data.address.footway || data.address.pedestrian,
+        buildingNumber: data.address.house_number,
+        personName: '' // Will be filled by user
+      };
+    }
+    return { country: '', city: '', area: '', street: '', buildingNumber: '', personName: '' };
+  } catch (error) {
+    console.warn('Reverse geocoding failed:', error);
+    return { country: '', city: '', area: '', street: '', buildingNumber: '', personName: '' };
+  }
+};
+
+// Update user location
+const updateUserLocation = async (userId, locationData) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const response = await fetch(`${API_URL}/auth/update-location`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(locationData)
+    });
+
+    if (response.ok) {
+      console.log('✅ User location updated successfully');
+    } else {
+      console.warn('Failed to update user location');
+    }
+  } catch (error) {
+    console.warn('Error updating user location:', error);
+  }
+};
+
   // MapController Component - handles map instance for programmatic control
   const MapController = React.forwardRef((props, ref) => {
     const map = useMap();
@@ -613,24 +661,33 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
   };
 
   // Map event handlers
-  const handleLocationSelect = (lat, lng) => {
+  const handleLocationSelect = async (lat, lng) => {
     const coordinates = { lat: parseFloat(lat), lng: parseFloat(lng) };
+
+    // Auto-fill address details from coordinates
+    const addressDetails = await reverseGeocode(lat, lng);
+
+    const locationData = {
+      coordinates,
+      address: {
+        country: currentUser?.country || addressDetails.country,
+        city: currentUser?.city || addressDetails.city,
+        area: addressDetails.area,
+        street: addressDetails.street,
+        buildingNumber: addressDetails.buildingNumber,
+        personName: mapSelectorType === 'pickup' ? (currentUser?.name || '') : ''
+      }
+    };
 
     if (mapSelectorType === 'pickup') {
       setFormData(prev => ({
         ...prev,
-        pickupLocation: {
-          ...prev.pickupLocation,
-          coordinates: coordinates
-        }
+        pickupLocation: locationData
       }));
     } else {
       setFormData(prev => ({
         ...prev,
-        dropoffLocation: {
-          ...prev.dropoffLocation,
-          coordinates: coordinates
-        }
+        dropoffLocation: locationData
       }));
     }
     setShowMapSelector(false);
@@ -664,6 +721,23 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
       return () => clearInterval(interval);
     }
   }, [token, showMapSelector]); // Added showMapSelector as dependency
+
+  // Pre-fill order form with user location when form opens
+  useEffect(() => {
+    if (showOrderForm && currentUser?.country && currentUser?.city) {
+      setFormData(prev => ({
+        ...prev,
+        pickupLocation: {
+          ...prev.pickupLocation,
+          address: {
+            ...prev.pickupLocation.address,
+            country: currentUser.country,
+            city: currentUser.city
+          }
+        }
+      }));
+    }
+  }, [showOrderForm, currentUser]);
 
   // Driver location effect
   useEffect(() => {
@@ -1107,6 +1181,26 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
       setCurrentUser(data.user);
       setAuthForm({ name: '', email: '', password: '', phone: '', role: 'customer', vehicle_type: '' });
       setError('');
+
+      // Detect and store user location after successful login
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            const { latitude, longitude } = position.coords;
+            const locationData = await reverseGeocode(latitude, longitude);
+            await updateUserLocation(data.user.id, locationData);
+            console.log('✅ User location detected and stored:', locationData);
+          },
+          (error) => {
+            console.warn('Could not detect user location:', error);
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 300000 // 5 minutes
+          }
+        );
+      }
     } catch (err) {
       setError(err.message);
     } finally {
