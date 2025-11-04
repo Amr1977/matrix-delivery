@@ -266,7 +266,14 @@ app.use(express.urlencoded({ extended: true }));
 // CORS Configuration
 const corsOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
-  : ['http://localhost:3000', 'http://localhost:3001', 'http://127.0.0.1:3000'];
+  : [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://127.0.0.1:3000',
+      'https://matrix-delivery-dev.web.app',
+      'https://matrix-delivery-staging.web.app',
+      'https://matrix-delivery.web.app'
+    ];
 
 console.log('🔒 CORS Origins configured:', corsOrigins);
 
