@@ -70,7 +70,7 @@ backend/
    JWT_SECRET=your_secure_jwt_secret
 
    # CORS (include all your domains)
-   CORS_ORIGIN=https://matrix-delivery.oldantique50.com,https://badr-delivery-dev.web.app,http://localhost:3000
+   CORS_ORIGIN=https://matrix-delivery.oldantique50.com,https://matrix-delivery.web.app,http://localhost:3000
 
    # reCAPTCHA
    RECAPTCHA_SECRET_KEY=your_recaptcha_secret
