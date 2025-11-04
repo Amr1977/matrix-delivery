@@ -14,8 +14,8 @@ cd "$FRONTEND_DIR"
 echo "📦 Installing dependencies..."
 npm ci --silent
 
-echo "🏗️ Building project..."
-npm run build
+echo "🏗️ Building project for development..."
+npm run build:dev
 
 echo "🔥 Deploying to Firebase hosting..."
 firebase deploy --only hosting

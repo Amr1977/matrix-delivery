@@ -1110,8 +1110,8 @@ const updateUserLocation = async (userId, locationData) => {
       return;
     }
 
-    const captchaToken = process.env.REACT_APP_RECAPTCHA_SITE_KEY ? registerCaptchaRef.current?.getValue() : null;
-    if (process.env.REACT_APP_RECAPTCHA_SITE_KEY && !captchaToken) {
+    const captchaToken = process.env.REACT_APP_RECAPTCHA_SITE_KEY && process.env.REACT_APP_ENV === 'production' ? registerCaptchaRef.current?.getValue() : null;
+    if (process.env.REACT_APP_RECAPTCHA_SITE_KEY && process.env.REACT_APP_ENV === 'production' && !captchaToken) {
       setError('Please complete the captcha');
       return;
     }
@@ -1152,8 +1152,8 @@ const updateUserLocation = async (userId, locationData) => {
       return;
     }
 
-    const captchaToken = process.env.REACT_APP_RECAPTCHA_SITE_KEY ? loginCaptchaRef.current?.getValue() : null;
-    if (process.env.REACT_APP_RECAPTCHA_SITE_KEY && !captchaToken) {
+    const captchaToken = process.env.REACT_APP_RECAPTCHA_SITE_KEY && process.env.REACT_APP_ENV === 'production' ? loginCaptchaRef.current?.getValue() : null;
+    if (process.env.REACT_APP_RECAPTCHA_SITE_KEY && process.env.REACT_APP_ENV === 'production' && !captchaToken) {
       setError('Please complete the captcha');
       return;
     }
@@ -1635,7 +1635,7 @@ const updateUserLocation = async (userId, locationData) => {
                     {showPassword ? '👁️' : '👁️‍🗨️'}
                   </button>
                 </div>
-                {process.env.REACT_APP_RECAPTCHA_SITE_KEY && (
+                {process.env.REACT_APP_RECAPTCHA_SITE_KEY && process.env.REACT_APP_ENV === 'production' && (
                   <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem' }}>
                     <ReCAPTCHA
                       ref={loginCaptchaRef}
@@ -1720,7 +1720,7 @@ const updateUserLocation = async (userId, locationData) => {
                     <option value="truck">Truck</option>
                   </select>
                 )}
-                {process.env.REACT_APP_RECAPTCHA_SITE_KEY && (
+                {process.env.REACT_APP_RECAPTCHA_SITE_KEY && process.env.REACT_APP_ENV === 'production' && (
                   <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem' }}>
                     <ReCAPTCHA
                       ref={registerCaptchaRef}
