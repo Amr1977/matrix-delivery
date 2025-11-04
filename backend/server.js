@@ -520,8 +520,8 @@ app.post('/api/auth/register', async (req, res) => {
   try {
     const { name, email, password, phone, role, vehicle_type, recaptchaToken } = req.body;
 
-    // Verify reCAPTCHA token if not in test mode
-    if (!IS_TEST && !(await verifyRecaptcha(recaptchaToken))) {
+    // Verify reCAPTCHA token only in development/staging (not in production)
+    if (!IS_TEST && !IS_PRODUCTION && !(await verifyRecaptcha(recaptchaToken))) {
       return res.status(400).json({ error: 'CAPTCHA verification failed' });
     }
 
@@ -597,8 +597,8 @@ app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password, recaptchaToken } = req.body;
 
-    // Verify reCAPTCHA token if not in test mode
-    if (!IS_TEST && !(await verifyRecaptcha(recaptchaToken))) {
+    // Verify reCAPTCHA token only in development/staging (not in production)
+    if (!IS_TEST && !IS_PRODUCTION && !(await verifyRecaptcha(recaptchaToken))) {
       return res.status(400).json({ error: 'CAPTCHA verification failed' });
     }
 
