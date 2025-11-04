@@ -55,3 +55,5 @@ reports/cucumber-report.html
 reports/cucumber-report.json
 reports/cucumber-report.html
 reports/cucumber-report.json
+
+backend/nohup.out
