@@ -1541,7 +1541,7 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
                     {showPassword ? '👁️' : '👁️‍🗨️'}
                   </button>
                 </div>
-                {process.env.REACT_APP_ENV === 'production' && process.env.REACT_APP_RECAPTCHA_SITE_KEY && (
+                {process.env.REACT_APP_RECAPTCHA_SITE_KEY && (
                   <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem' }}>
                     <ReCAPTCHA
                       ref={loginCaptchaRef}
@@ -1626,7 +1626,7 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
                     <option value="truck">Truck</option>
                   </select>
                 )}
-                {process.env.REACT_APP_ENV === 'production' && process.env.REACT_APP_RECAPTCHA_SITE_KEY && (
+                {process.env.REACT_APP_RECAPTCHA_SITE_KEY && (
                   <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem' }}>
                     <ReCAPTCHA
                       ref={registerCaptchaRef}
