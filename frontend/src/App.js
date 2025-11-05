@@ -690,7 +690,14 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
       const response = await fetch(`${API_URL}/auth/me`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      if (!response.ok) throw new Error('Failed to fetch user');
+      if (!response.ok) {
+        // Only logout for authentication errors (401/403), not network/server errors
+        if (response.status === 401 || response.status === 403) {
+          logout();
+          return;
+        }
+        throw new Error(`Failed to fetch user: ${response.status}`);
+      }
       const data = await response.json();
       setCurrentUser(data);
       setError('');
@@ -715,8 +722,14 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
         );
       }
     } catch (err) {
-      console.error(err);
-      logout();
+      console.error('fetchCurrentUser error:', err);
+      // Only show error for network/server issues, don't logout automatically
+      if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError') || err.message.includes('500')) {
+        setError('Connection issue: Failed to get user (500). Please try refreshing the page.');
+      } else {
+        // For other errors, still logout
+        logout();
+      }
     }
   };
 
@@ -1503,157 +1516,175 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
 
   if (!token) {
     return (
-      <div style={{ minHeight: '100vh', background: '#090909', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-        <div className="card-matrix" style={{ borderRadius: '0.5rem', boxShadow: '0 20px 25px -5px rgba(0, 48, 0, 0.2), inset 0 0 20px rgba(48, 255, 48, 0.1)', padding: '2rem', maxWidth: '28rem', width: '100%', background: 'linear-gradient(135deg, #000000 0%, #111111 100%)' }}>
-          <div style={{ fontSize: '3rem', textAlign: 'center', marginBottom: '1.5rem' }}>📦</div>
-          <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#30FF30', marginBottom: '0.5rem', textAlign: 'center', textShadow: '0 0 10px #30FF30' }}>Matrix Delivery</h1>
-          <p style={{ color: '#22BB22', marginBottom: '1.5rem', textAlign: 'center' }}>P2P Delivery Marketplace</p>
+      <div style={{ minHeight: '100vh', background: '#090909', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+          <div className="card-matrix" style={{ borderRadius: '0.5rem', boxShadow: '0 20px 25px -5px rgba(0, 48, 0, 0.2), inset 0 0 20px rgba(48, 255, 48, 0.1)', padding: '2rem', maxWidth: '28rem', width: '100%', background: 'linear-gradient(135deg, #000000 0%, #111111 100%)' }}>
+            <div style={{ fontSize: '3rem', textAlign: 'center', marginBottom: '1.5rem' }}>📦</div>
+            <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#30FF30', marginBottom: '0.5rem', textAlign: 'center', textShadow: '0 0 10px #30FF30' }}>Matrix Delivery</h1>
+            <p style={{ color: '#22BB22', marginBottom: '1.5rem', textAlign: 'center' }}>P2P Delivery Marketplace</p>
 
-          {error && (
-            <div style={{ background: '#FEF2F2', color: '#991B1B', padding: '0.75rem', borderRadius: '0.375rem', marginBottom: '1rem', fontSize: '0.875rem', border: '1px solid #FEE2E2' }}>
-              ⚠️ {error}
-            </div>
-          )}
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {authState === 'login' ? (
-              <>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1F2937' }}>Sign In</h2>
-                <input
-                  type="email"
-                  placeholder="Email"
-                  value={authForm.email}
-                  onChange={(e) => setAuthForm({ ...authForm, email: e.target.value })}
-                  style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
-                />
-                <div style={{ position: 'relative' }}>
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Password"
-                    value={authForm.password}
-                    onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })}
-                    style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
-                  />
-                  <button
-                    onClick={() => setShowPassword(!showPassword)}
-                    style={{ position: 'absolute', right: '0.75rem', top: '0.75rem', background: 'none', border: 'none', color: '#6B7280', cursor: 'pointer' }}
-                  >
-                    {showPassword ? '👁️' : '👁️‍🗨️'}
-                  </button>
-                </div>
-                {process.env.REACT_APP_RECAPTCHA_SITE_KEY && (
-                  <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem' }}>
-                    <ReCAPTCHA
-                      ref={loginCaptchaRef}
-                      sitekey={process.env.REACT_APP_RECAPTCHA_SITE_KEY}
-                    />
-                  </div>
-                )}
-                <button
-                  onClick={handleLogin}
-                  disabled={loading}
-                  style={{ width: '100%', background: '#4F46E5', color: 'white', padding: '0.5rem', borderRadius: '0.5rem', fontWeight: '600', border: 'none', cursor: 'pointer', opacity: loading ? 0.5 : 1 }}
-                >
-                  {loading ? 'Loading...' : 'Sign In'}
-                </button>
-                <p style={{ textAlign: 'center', color: '#6B7280', fontSize: '0.875rem' }}>
-                  Don't have an account?{' '}
-                  <button
-                    onClick={() => { setAuthState('register'); setError(''); }}
-                    style={{ color: '#4F46E5', textDecoration: 'underline', fontWeight: '600', background: 'none', border: 'none', cursor: 'pointer' }}
-                  >
-                    Sign Up
-                  </button>
-                </p>
-              </>
-            ) : (
-              <>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1F2937' }}>Create Account</h2>
-                <input
-                  type="text"
-                  placeholder="Full Name"
-                  value={authForm.name}
-                  onChange={(e) => setAuthForm({ ...authForm, name: e.target.value })}
-                  style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
-                />
-                <input
-                  type="email"
-                  placeholder="Email"
-                  value={authForm.email}
-                  onChange={(e) => setAuthForm({ ...authForm, email: e.target.value })}
-                  style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
-                />
-                <input
-                  type="tel"
-                  placeholder="Phone Number"
-                  value={authForm.phone}
-                  onChange={(e) => setAuthForm({ ...authForm, phone: e.target.value })}
-                  style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
-                />
-                <div style={{ position: 'relative' }}>
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Password"
-                    value={authForm.password}
-                    onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })}
-                    style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
-                  />
-                  <button
-                    onClick={() => setShowPassword(!showPassword)}
-                    style={{ position: 'absolute', right: '0.75rem', top: '0.75rem', background: 'none', border: 'none', color: '#6B7280', cursor: 'pointer' }}
-                  >
-                    {showPassword ? '👁️' : '👁️‍🗨️'}
-                  </button>
-                </div>
-                <select
-                  value={authForm.role}
-                  onChange={(e) => setAuthForm({ ...authForm, role: e.target.value })}
-                  style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
-                >
-                  <option value="customer">Customer</option>
-                  <option value="driver">Driver</option>
-                </select>
-                {authForm.role === 'driver' && (
-                  <select
-                    value={authForm.vehicle_type}
-                    onChange={(e) => setAuthForm({ ...authForm, vehicle_type: e.target.value })}
-                    style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
-                  >
-                    <option value="">Select Vehicle Type</option>
-                    <option value="bike">Bike</option>
-                    <option value="car">Car</option>
-                    <option value="van">Van</option>
-                    <option value="truck">Truck</option>
-                  </select>
-                )}
-                {process.env.REACT_APP_RECAPTCHA_SITE_KEY && (
-                  <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem' }}>
-                    <ReCAPTCHA
-                      ref={registerCaptchaRef}
-                      sitekey={process.env.REACT_APP_RECAPTCHA_SITE_KEY}
-                    />
-                  </div>
-                )}
-                <button
-                  onClick={handleRegister}
-                  disabled={loading}
-                  style={{ width: '100%', background: '#4F46E5', color: 'white', padding: '0.5rem', borderRadius: '0.5rem', fontWeight: '600', border: 'none', cursor: 'pointer', opacity: loading ? 0.5 : 1 }}
-                >
-                  {loading ? 'Loading...' : 'Create Account'}
-                </button>
-                <p style={{ textAlign: 'center', color: '#6B7280', fontSize: '0.875rem' }}>
-                  Already have an account?{' '}
-                  <button
-                    onClick={() => { setAuthState('login'); setError(''); }}
-                    style={{ color: '#4F46E5', textDecoration: 'underline', fontWeight: '600', background: 'none', border: 'none', cursor: 'pointer' }}
-                  >
-                    Sign In
-                  </button>
-                </p>
-              </>
+            {error && (
+              <div style={{ background: '#FEF2F2', color: '#991B1B', padding: '0.75rem', borderRadius: '0.375rem', marginBottom: '1rem', fontSize: '0.875rem', border: '1px solid #FEE2E2' }}>
+                ⚠️ {error}
+              </div>
             )}
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {authState === 'login' ? (
+                <>
+                  <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1F2937' }}>Sign In</h2>
+                  <input
+                    type="email"
+                    placeholder="Email"
+                    value={authForm.email}
+                    onChange={(e) => setAuthForm({ ...authForm, email: e.target.value })}
+                    style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
+                  />
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="Password"
+                      value={authForm.password}
+                      onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })}
+                      style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
+                    />
+                    <button
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{ position: 'absolute', right: '0.75rem', top: '0.75rem', background: 'none', border: 'none', color: '#6B7280', cursor: 'pointer' }}
+                    >
+                      {showPassword ? '👁️' : '👁️‍🗨️'}
+                    </button>
+                  </div>
+                  {process.env.REACT_APP_RECAPTCHA_SITE_KEY && (
+                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem' }}>
+                      <ReCAPTCHA
+                        ref={loginCaptchaRef}
+                        sitekey={process.env.REACT_APP_RECAPTCHA_SITE_KEY}
+                      />
+                    </div>
+                  )}
+                  <button
+                    onClick={handleLogin}
+                    disabled={loading}
+                    style={{ width: '100%', background: '#4F46E5', color: 'white', padding: '0.5rem', borderRadius: '0.5rem', fontWeight: '600', border: 'none', cursor: 'pointer', opacity: loading ? 0.5 : 1 }}
+                  >
+                    {loading ? 'Loading...' : 'Sign In'}
+                  </button>
+                  <p style={{ textAlign: 'center', color: '#6B7280', fontSize: '0.875rem' }}>
+                    Don't have an account?{' '}
+                    <button
+                      onClick={() => { setAuthState('register'); setError(''); }}
+                      style={{ color: '#4F46E5', textDecoration: 'underline', fontWeight: '600', background: 'none', border: 'none', cursor: 'pointer' }}
+                    >
+                      Sign Up
+                    </button>
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1F2937' }}>Create Account</h2>
+                  <input
+                    type="text"
+                    placeholder="Full Name"
+                    value={authForm.name}
+                    onChange={(e) => setAuthForm({ ...authForm, name: e.target.value })}
+                    style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
+                  />
+                  <input
+                    type="email"
+                    placeholder="Email"
+                    value={authForm.email}
+                    onChange={(e) => setAuthForm({ ...authForm, email: e.target.value })}
+                    style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
+                  />
+                  <input
+                    type="tel"
+                    placeholder="Phone Number"
+                    value={authForm.phone}
+                    onChange={(e) => setAuthForm({ ...authForm, phone: e.target.value })}
+                    style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
+                  />
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="Password"
+                      value={authForm.password}
+                      onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })}
+                      style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
+                    />
+                    <button
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{ position: 'absolute', right: '0.75rem', top: '0.75rem', background: 'none', border: 'none', color: '#6B7280', cursor: 'pointer' }}
+                    >
+                      {showPassword ? '👁️' : '👁️‍🗨️'}
+                    </button>
+                  </div>
+                  <select
+                    value={authForm.role}
+                    onChange={(e) => setAuthForm({ ...authForm, role: e.target.value })}
+                    style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
+                  >
+                    <option value="customer">Customer</option>
+                    <option value="driver">Driver</option>
+                  </select>
+                  {authForm.role === 'driver' && (
+                    <select
+                      value={authForm.vehicle_type}
+                      onChange={(e) => setAuthForm({ ...authForm, vehicle_type: e.target.value })}
+                      style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
+                    >
+                      <option value="">Select Vehicle Type</option>
+                      <option value="bike">Bike</option>
+                      <option value="car">Car</option>
+                      <option value="van">Van</option>
+                      <option value="truck">Truck</option>
+                    </select>
+                  )}
+                  {process.env.REACT_APP_RECAPTCHA_SITE_KEY && (
+                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem' }}>
+                      <ReCAPTCHA
+                        ref={registerCaptchaRef}
+                        sitekey={process.env.REACT_APP_RECAPTCHA_SITE_KEY}
+                      />
+                    </div>
+                  )}
+                  <button
+                    onClick={handleRegister}
+                    disabled={loading}
+                    style={{ width: '100%', background: '#4F46E5', color: 'white', padding: '0.5rem', borderRadius: '0.5rem', fontWeight: '600', border: 'none', cursor: 'pointer', opacity: loading ? 0.5 : 1 }}
+                  >
+                    {loading ? 'Loading...' : 'Create Account'}
+                  </button>
+                  <p style={{ textAlign: 'center', color: '#6B7280', fontSize: '0.875rem' }}>
+                    Already have an account?{' '}
+                    <button
+                      onClick={() => { setAuthState('login'); setError(''); }}
+                      style={{ color: '#4F46E5', textDecoration: 'underline', fontWeight: '600', background: 'none', border: 'none', cursor: 'pointer' }}
+                    >
+                      Sign In
+                    </button>
+                  </p>
+                </>
+              )}
+            </div>
           </div>
         </div>
+
+        {/* Version Footer */}
+        <footer style={{
+          padding: '1rem',
+          textAlign: 'center',
+          fontSize: '0.75rem',
+          color: '#6B7280',
+          borderTop: '1px solid #E5E7EB',
+          background: '#F9FAFB'
+        }}>
+          <div style={{ maxWidth: '80rem', margin: '0 auto' }}>
+            <p style={{ margin: 0 }}>
+              Matrix Delivery v1.0.0 | Commit: 0cc5c8d | {new Date().toLocaleDateString()}
+            </p>
+          </div>
+        </footer>
       </div>
     );
   }
@@ -2486,6 +2517,23 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
           })()}
         </div>
       </main>
+
+      {/* Version Footer */}
+      <footer style={{
+        marginTop: '2rem',
+        padding: '1rem',
+        textAlign: 'center',
+        fontSize: '0.75rem',
+        color: '#6B7280',
+        borderTop: '1px solid #E5E7EB',
+        background: '#F9FAFB'
+      }}>
+        <div style={{ maxWidth: '80rem', margin: '0 auto' }}>
+          <p style={{ margin: 0 }}>
+            Matrix Delivery v1.0.0 | Commit: 0cc5c8d | {new Date().toLocaleDateString()}
+          </p>
+        </div>
+      </footer>
     </div>
   );
 };

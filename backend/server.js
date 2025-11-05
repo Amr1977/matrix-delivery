@@ -1778,12 +1778,12 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log('         🚚 Matrix Delivery Server (PostgreSQL)');
   console.log('╚════════════════════════════════════════════════════╝');
   console.log('');
-  console.log(`✅ Server running on: http://localhost:${PORT}`);
-  console.log(`📍 API Base URL: http://localhost:${PORT}/api`);
-  console.log(`💾 Database: PostgreSQL`);
-  console.log(`🔒 Environment: ${IS_TEST ? 'Testing' : (IS_PRODUCTION ? 'Production' : 'Development')}`);
-  console.log('');
-  console.log('📊 API Endpoints:');
+console.log(`✅ Server running on: http://localhost:${PORT}`);
+console.log(`📍 API Base URL: http://localhost:${PORT}/api`);
+console.log(`💾 Database: PostgreSQL (Updated Schema)`);
+console.log(`🔒 Environment: ${IS_TEST ? 'Testing' : (IS_PRODUCTION ? 'Production' : 'Development')}`);
+console.log('');
+console.log('📊 API Endpoints:');
   console.log('   POST   /api/auth/register');
   console.log('   POST   /api/auth/login');
   console.log('   GET    /api/auth/me');
