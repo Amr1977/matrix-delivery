@@ -1729,12 +1729,24 @@ app.get('/api/payments/history', verifyToken, async (req, res) => {
 // ============ END OF PART 6 ============
 // Continue with Error Handling
 
-// Error handling
+// Error handling with CORS headers
 app.use((req, res) => {
+  // Ensure CORS headers are set even for 404 errors
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma');
+
   res.status(404).json({ error: 'Endpoint not found' });
 });
 
 app.use((err, req, res, next) => {
+  // Ensure CORS headers are set even for 500 errors
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma');
+
   console.error('Server error:', err);
   res.status(500).json({ error: IS_PRODUCTION ? 'Internal server error' : err.message });
 });
