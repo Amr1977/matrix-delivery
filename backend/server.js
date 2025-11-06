@@ -274,8 +274,16 @@ console.log('🔒 CORS Origins configured:', corsOrigins);
 app.use((req, res, next) => {
   const origin = req.headers.origin;
 
+  console.log('🔍 CORS Debug:');
+  console.log('   Origin:', origin);
+  console.log('   Method:', req.method);
+  console.log('   Path:', req.path);
+  console.log('   CORS Origins configured:', corsOrigins);
+
   // Check if origin is allowed
   const isAllowed = !origin || corsOrigins.includes(origin);
+
+  console.log('   Is origin allowed:', isAllowed);
 
   if (isAllowed) {
     // Set CORS headers for allowed origins
@@ -284,13 +292,17 @@ app.use((req, res, next) => {
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Origin, X-Requested-With');
 
+    console.log('   ✅ CORS headers set for allowed origin');
+
     // Handle preflight requests
     if (req.method === 'OPTIONS') {
+      console.log('   📋 Handling preflight OPTIONS request');
       res.sendStatus(200);
       return;
     }
   } else {
     console.log('🚫 CORS blocked origin:', origin);
+    console.log('   Allowed origins:', corsOrigins);
     // For blocked origins, don't set CORS headers and let the request fail naturally
   }
 
