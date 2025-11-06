@@ -19,6 +19,20 @@ const app = express();
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 const IS_TEST = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing';
 
+// CORS Configuration - Must be before other middleware
+const corsOptions = {
+  origin: '*', // Allow all origins (you can restrict this to specific domains in production)
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization', 'Cache-Control', 'Pragma'],
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
+
+// Handle preflight requests
+app.options('*', cors(corsOptions));
+
 // PostgreSQL Connection Pool
 const pool = new Pool({
   host: process.env.DB_HOST || 'localhost',
@@ -260,19 +274,6 @@ const createNotification = async (userId, orderId, type, title, message) => {
   }
 };
 
-// CORS Configuration - Must be before other middleware
-const corsOptions = {
-  origin: '*', // Allow all origins (you can restrict this to specific domains in production)
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization', 'Cache-Control', 'Pragma'],
-  credentials: true,
-  optionsSuccessStatus: 200
-};
-
-app.use(cors(corsOptions));
-
-// Handle preflight requests
-app.options('*', cors(corsOptions));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
