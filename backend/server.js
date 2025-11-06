@@ -263,22 +263,12 @@ const createNotification = async (userId, orderId, type, title, message) => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// CORS middleware - ALLOW ALL ORIGINS (no restrictions)
-app.use((req, res, next) => {
-  // Allow all origins - no restrictions
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma');
-
-  // Handle preflight OPTIONS requests
-  if (req.method === 'OPTIONS') {
-    res.sendStatus(200);
-    return;
-  }
-
-  next();
-});
+app.use(cors({
+  origin: 'https://matrix-delivery.web.app', // Replace with your actual domain
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
