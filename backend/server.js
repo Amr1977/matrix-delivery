@@ -263,12 +263,7 @@ const createNotification = async (userId, orderId, type, title, message) => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(cors({
-  origin: 'https://matrix-delivery.web.app', // Replace with your actual domain
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}));
+app.use(cors());
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
