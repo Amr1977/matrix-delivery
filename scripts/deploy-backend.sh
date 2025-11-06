@@ -7,8 +7,8 @@ set -e
 
 ENVIRONMENT=${1:-production}
 SERVER_HOST="matrix-api.oldantique50.com"
-SERVER_USER="your_server_user"
-PROJECT_PATH="/path/to/your/backend"
+SERVER_USER="root"
+PROJECT_PATH="/root/matrix-delivery/backend"
 
 echo "🚀 Deploying backend to $ENVIRONMENT environment..."
 

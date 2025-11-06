@@ -9,7 +9,7 @@ set -e
 ENVIRONMENT=${1:-production}
 SERVER_HOST="matrix-api.oldantique50.com"
 SERVER_USER="root"  # Update this with your actual server username
-PROJECT_PATH="/var/www/matrix-delivery/backend"  # Update this with your actual project path
+PROJECT_PATH="/root/matrix-delivery/backend"  # Update this with your actual project path
 
 # Colors
 GREEN='\033[0;32m'

@@ -2,7 +2,7 @@ module.exports = {
   apps: [{
     name: 'matrix-delivery-backend',
     script: './server.js',
-    cwd: 'D:\\matrix-delivery\\backend',
+    cwd: '/root/matrix-delivery/backend',
     instances: 2, // CPU cores
     exec_mode: 'cluster',
     env: {
