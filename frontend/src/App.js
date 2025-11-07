@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useImperativeHandle } from 'react';
+import React, { useState, useEffect, useRef, useImperativeHandle, useCallback } from 'react';
 import L from 'leaflet';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -82,97 +82,8 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
 
 
 
-  // Detailed Address Form Component with Search/Autocomplete
-  const AddressDetailsForm = ({ type, location, onLocationChange, onOpenMap }) => {
-    const [searchQuery, setSearchQuery] = useState('');
-    const [searchResults, setSearchResults] = useState([]);
-    const [isSearching, setIsSearching] = useState(false);
-    const [showSuggestions, setShowSuggestions] = useState(false);
-
-    const updateAddressField = (field, value) => {
-      const updatedLocation = {
-        ...location,
-        address: {
-          ...location.address,
-          [field]: value
-        }
-      };
-      onLocationChange(updatedLocation);
-    };
-
-    // Search locations using Nominatim API
-    const searchLocations = async (query) => {
-      if (query.length < 2) {
-        setSearchResults([]);
-        return;
-      }
-
-      setIsSearching(true);
-      try {
-        const response = await fetch(`${API_URL}/locations/search?q=${encodeURIComponent(query)}&limit=10`);
-        if (response.ok) {
-          const results = await response.json();
-          setSearchResults(results);
-          setShowSuggestions(true);
-        }
-      } catch (error) {
-        console.error('Location search error:', error);
-      } finally {
-        setIsSearching(false);
-      }
-    };
-
-    // Handle search input change
-    const handleSearchChange = (e) => {
-      const query = e.target.value;
-      setSearchQuery(query);
-      searchLocations(query);
-    };
-
-    // Select a location from search results
-    const selectLocation = (result) => {
-      const newLocation = {
-        ...location,
-        coordinates: { lat: result.lat, lng: result.lng },
-        address: {
-          country: result.address.country,
-          city: result.address.city,
-          area: result.address.area,
-          street: result.address.street,
-          buildingNumber: result.address.buildingNumber || '',
-          personName: location.address.personName || ''
-        }
-      };
-      onLocationChange(newLocation);
-      setSearchQuery(result.displayName);
-      setShowSuggestions(false);
-    };
-
-    // Reverse geocode coordinates to address
-    const reverseGeocode = async (lat, lng) => {
-      try {
-        const response = await fetch(`${API_URL}/locations/reverse?lat=${lat}&lng=${lng}`);
-        if (response.ok) {
-          const result = await response.json();
-          const newLocation = {
-            ...location,
-            coordinates: { lat, lng },
-            address: {
-              country: result.address.country,
-              city: result.address.city,
-              area: result.address.area,
-              street: result.address.street,
-              buildingNumber: result.address.buildingNumber || '',
-              personName: location.address.personName || ''
-            }
-          };
-          onLocationChange(newLocation);
-        }
-      } catch (error) {
-        console.error('Reverse geocoding error:', error);
-      }
-    };
-
+  // Simple Address Form Component
+  const AddressDetailsForm = React.memo(({ type, location, onLocationChange }) => {
     return (
       <div style={{
         border: '1px solid #E5E7EB',
@@ -180,358 +91,49 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
         padding: '1rem',
         background: '#F9FAFB'
       }}>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
+        <h4 style={{
+          fontSize: '1.125rem',
+          fontWeight: '600',
+          color: '#1F2937',
+          textTransform: 'capitalize',
           marginBottom: '1rem'
         }}>
-          <h4 style={{
-            fontSize: '1.125rem',
-            fontWeight: '600',
-            color: '#1F2937',
-            textTransform: 'capitalize'
-          }}>
-            {type} Location
-          </h4>
-        </div>
+          {type} Address *
+        </h4>
 
-        {/* Inline Map */}
-        <div style={{
-          height: '300px',
-          border: '1px solid #D1D5DB',
-          borderRadius: '0.375rem',
-          overflow: 'hidden',
-          marginBottom: '1rem'
-        }}>
-          <MapContainer
-            center={location.coordinates?.lat ? [location.coordinates.lat, location.coordinates.lng] : [33.3152, 44.3661]}
-            zoom={location.coordinates?.lat ? 15 : 10}
-            style={{ height: '100%', width: '100%' }}
-          >
-            <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            />
-            <LocationMarker
-              selectedPosition={location.coordinates?.lat ? [location.coordinates.lat, location.coordinates.lng] : null}
-              setSelectedPosition={async (coords) => {
-                const lat = coords[0];
-                const lng = coords[1];
-
-                // Reverse geocode to get address
-                await reverseGeocode(lat, lng);
-              }}
-            />
-          </MapContainer>
-        </div>
-
-        {location.coordinates?.lat && (
-          <div style={{
-            background: '#D1FAE5',
-            color: '#065F46',
+        <textarea
+          placeholder={`Enter complete ${type.toLowerCase()} address (street, building, city, etc.)`}
+          value={location.fullAddress || ''}
+          onChange={(e) => onLocationChange({
+            ...location,
+            fullAddress: e.target.value,
+            coordinates: { lat: 40.7128, lng: -74.0060 }, // Default NYC coordinates
+            address: {
+              country: 'United States',
+              city: 'New York',
+              area: 'Manhattan',
+              street: e.target.value,
+              buildingNumber: '',
+              floor: '',
+              apartmentNumber: '',
+              personName: 'Contact Person'
+            }
+          })}
+          required
+          style={{
+            width: '100%',
             padding: '0.75rem',
+            border: '1px solid #D1D5DB',
             borderRadius: '0.375rem',
-            marginBottom: '1rem',
-            fontSize: '0.875rem'
-          }}>
-            ✅ Map location selected: {location.coordinates.lat.toFixed(6)}, {location.coordinates.lng.toFixed(6)}
-          </div>
-        )}
-
-        {/* Location Search */}
-        <div style={{ marginBottom: '1rem' }}>
-          <label style={{
-            display: 'block',
             fontSize: '0.875rem',
-            fontWeight: '600',
-            color: '#374151',
-            marginBottom: '0.25rem'
-          }}>
-            Search Location *
-          </label>
-          <div style={{ position: 'relative' }}>
-            <input
-              type="text"
-              placeholder="Type to search for any location worldwide..."
-              value={searchQuery}
-              onChange={handleSearchChange}
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                border: '1px solid #D1D5DB',
-                borderRadius: '0.375rem',
-                fontSize: '0.875rem',
-                background: 'white'
-              }}
-            />
-            {isSearching && (
-              <div style={{
-                position: 'absolute',
-                right: '0.75rem',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                fontSize: '0.875rem',
-                color: '#6B7280'
-              }}>
-                🔍
-              </div>
-            )}
-          </div>
-
-          {/* Search Suggestions */}
-          {showSuggestions && searchResults.length > 0 && (
-            <div style={{
-              position: 'absolute',
-              top: '100%',
-              left: 0,
-              right: 0,
-              background: 'white',
-              border: '1px solid #D1D5DB',
-              borderRadius: '0.375rem',
-              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-              maxHeight: '200px',
-              overflowY: 'auto',
-              zIndex: 1000,
-              marginTop: '0.25rem'
-            }}>
-              {searchResults.map((result, index) => (
-                <div
-                  key={index}
-                  onClick={() => selectLocation(result)}
-                  style={{
-                    padding: '0.75rem',
-                    cursor: 'pointer',
-                    borderBottom: index < searchResults.length - 1 ? '1px solid #F3F4F6' : 'none',
-                    hover: { background: '#F9FAFB' }
-                  }}
-                  onMouseEnter={(e) => e.target.style.background = '#F9FAFB'}
-                  onMouseLeave={(e) => e.target.style.background = 'white'}
-                >
-                  <div style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.25rem' }}>
-                    {result.displayName.split(',')[0]}
-                  </div>
-                  <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>
-                    {result.address.city && `${result.address.city}, `}
-                    {result.address.country}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Address Fields */}
-        <div style={{ display: 'grid', gap: '0.75rem' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-            <div>
-              <label style={{
-                display: 'block',
-                fontSize: '0.875rem',
-                fontWeight: '600',
-                color: '#374151',
-                marginBottom: '0.25rem'
-              }}>
-                Country
-              </label>
-              <input
-                type="text"
-                value={location.address.country}
-                onChange={(e) => updateAddressField('country', e.target.value)}
-                placeholder="Country"
-                style={{
-                  width: '100%',
-                  padding: '0.5rem',
-                  border: '1px solid #D1D5DB',
-                  borderRadius: '0.375rem',
-                  fontSize: '0.875rem',
-                  background: 'white'
-                }}
-              />
-            </div>
-            <div>
-              <label style={{
-                display: 'block',
-                fontSize: '0.875rem',
-                fontWeight: '600',
-                color: '#374151',
-                marginBottom: '0.25rem'
-              }}>
-                City
-              </label>
-              <input
-                type="text"
-                value={location.address.city}
-                onChange={(e) => updateAddressField('city', e.target.value)}
-                placeholder="City"
-                style={{
-                  width: '100%',
-                  padding: '0.5rem',
-                  border: '1px solid #D1D5DB',
-                  borderRadius: '0.375rem',
-                  fontSize: '0.875rem',
-                  background: 'white'
-                }}
-              />
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-            <div>
-              <label style={{
-                display: 'block',
-                fontSize: '0.875rem',
-                fontWeight: '600',
-                color: '#374151',
-                marginBottom: '0.25rem'
-              }}>
-                Area/District
-              </label>
-              <input
-                type="text"
-                value={location.address.area}
-                onChange={(e) => updateAddressField('area', e.target.value)}
-                placeholder="Area/District"
-                style={{
-                  width: '100%',
-                  padding: '0.5rem',
-                  border: '1px solid #D1D5DB',
-                  borderRadius: '0.375rem',
-                  fontSize: '0.875rem',
-                  background: 'white'
-                }}
-              />
-            </div>
-            <div>
-              <label style={{
-                display: 'block',
-                fontSize: '0.875rem',
-                fontWeight: '600',
-                color: '#374151',
-                marginBottom: '0.25rem'
-              }}>
-                Street
-              </label>
-              <input
-                type="text"
-                value={location.address.street}
-                onChange={(e) => updateAddressField('street', e.target.value)}
-                placeholder="Street"
-                style={{
-                  width: '100%',
-                  padding: '0.5rem',
-                  border: '1px solid #D1D5DB',
-                  borderRadius: '0.375rem',
-                  fontSize: '0.875rem',
-                  background: 'white'
-                }}
-              />
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
-            <div>
-              <label style={{
-                display: 'block',
-                fontSize: '0.875rem',
-                fontWeight: '600',
-                color: '#374151',
-                marginBottom: '0.25rem'
-              }}>
-                Building #
-              </label>
-              <input
-                type="text"
-                placeholder="Building number"
-                value={location.address.buildingNumber}
-                onChange={(e) => updateAddressField('buildingNumber', e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.5rem',
-                  border: '1px solid #D1D5DB',
-                  borderRadius: '0.375rem',
-                  fontSize: '0.875rem'
-                }}
-              />
-            </div>
-            <div>
-              <label style={{
-                display: 'block',
-                fontSize: '0.875rem',
-                fontWeight: '600',
-                color: '#374151',
-                marginBottom: '0.25rem'
-              }}>
-                Floor
-              </label>
-              <input
-                type="text"
-                placeholder="Floor (optional)"
-                value={location.address.floor}
-                onChange={(e) => updateAddressField('floor', e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.5rem',
-                  border: '1px solid #D1D5DB',
-                  borderRadius: '0.375rem',
-                  fontSize: '0.875rem'
-                }}
-              />
-            </div>
-            <div>
-              <label style={{
-                display: 'block',
-                fontSize: '0.875rem',
-                fontWeight: '600',
-                color: '#374151',
-                marginBottom: '0.25rem'
-              }}>
-                Apt #
-              </label>
-              <input
-                type="text"
-                placeholder="Apartment (optional)"
-                value={location.address.apartmentNumber}
-                onChange={(e) => updateAddressField('apartmentNumber', e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.5rem',
-                  border: '1px solid #D1D5DB',
-                  borderRadius: '0.375rem',
-                  fontSize: '0.875rem'
-                }}
-              />
-            </div>
-          </div>
-
-          <div>
-            <label style={{
-              display: 'block',
-              fontSize: '0.875rem',
-              fontWeight: '600',
-              color: '#374151',
-              marginBottom: '0.25rem'
-            }}>
-              Person Name *
-            </label>
-            <input
-              type="text"
-              placeholder="Person to contact at this location"
-              value={location.address.personName}
-              onChange={(e) => updateAddressField('personName', e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                border: '1px solid #D1D5DB',
-                borderRadius: '0.375rem',
-                fontSize: '0.875rem'
-              }}
-            />
-          </div>
-        </div>
+            background: 'white',
+            minHeight: '80px',
+            resize: 'vertical'
+          }}
+        />
       </div>
     );
-  };
+  });
 
   // State variables
   const [authState, setAuthState] = useState('login');
@@ -603,7 +205,7 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
     title: '',
     description: '',
     pickupLocation: {
-      coordinates: { lat: null, lng: null },
+      coordinates: { lat: 40.7128, lng: -74.0060 }, // Default to NYC
       address: {
         country: '',
         city: '',
@@ -616,7 +218,7 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
       }
     },
     dropoffLocation: {
-      coordinates: { lat: null, lng: null },
+      coordinates: { lat: 40.7128, lng: -74.0060 }, // Default to NYC
       address: {
         country: '',
         city: '',
@@ -643,18 +245,18 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
 
 
 
-  const handleLocationChange = (locationType, newLocationData) => {
+  const handleLocationChange = useCallback((locationType, newLocationData) => {
     setFormData(prev => ({
       ...prev,
       [locationType]: newLocationData
     }));
-  };
+  }, []);
 
-  const handleOpenMap = (type) => {
+  const handleOpenMap = useCallback((type) => {
     // Since maps are now inline, this function can be used for future enhancements
     // such as scrolling to the map or providing visual feedback
     console.log(`Opening map for ${type} location`);
-  };
+  }, []);
 
   // Effects
   useEffect(() => {
@@ -1127,43 +729,15 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
   const handlePublishOrder = async (e) => {
     e.preventDefault();
 
-    // Enhanced validation for new form structure
+    // Simplified validation for text area addresses
     const requiredFieldsError = [];
     if (!formData.title) requiredFieldsError.push('Order title');
     if (!formData.price) requiredFieldsError.push('Price');
-
-    // Validate pickup location has coordinates and required address fields
-    if (!formData.pickupLocation.coordinates?.lat || !formData.pickupLocation.coordinates?.lng) {
-      requiredFieldsError.push('Pickup location on map');
-    }
-    if (!formData.pickupLocation.address.country) requiredFieldsError.push('Pickup country');
-    if (!formData.pickupLocation.address.city) requiredFieldsError.push('Pickup city');
-    if (!formData.pickupLocation.address.area) requiredFieldsError.push('Pickup area');
-    if (!formData.pickupLocation.address.street) requiredFieldsError.push('Pickup street');
-    if (!formData.pickupLocation.address.personName) requiredFieldsError.push('Pickup contact person');
-
-    // Validate dropoff location has coordinates and required address fields
-    if (!formData.dropoffLocation.coordinates?.lat || !formData.dropoffLocation.coordinates?.lng) {
-      requiredFieldsError.push('Dropoff location on map');
-    }
-    if (!formData.dropoffLocation.address.country) requiredFieldsError.push('Dropoff country');
-    if (!formData.dropoffLocation.address.city) requiredFieldsError.push('Dropoff city');
-    if (!formData.dropoffLocation.address.area) requiredFieldsError.push('Dropoff area');
-    if (!formData.dropoffLocation.address.street) requiredFieldsError.push('Dropoff street');
-    if (!formData.dropoffLocation.address.personName) requiredFieldsError.push('Dropoff contact person');
+    if (!formData.pickupLocation.fullAddress?.trim()) requiredFieldsError.push('Pickup address');
+    if (!formData.dropoffLocation.fullAddress?.trim()) requiredFieldsError.push('Dropoff address');
 
     if (requiredFieldsError.length > 0) {
       setError(`Please fill all required fields: ${requiredFieldsError.join(', ')}`);
-      return;
-    }
-
-    // Validate that pickup and delivery are in the same country and city
-    if (formData.pickupLocation.address.country !== formData.dropoffLocation.address.country) {
-      setError('Pickup and delivery locations must be in the same country');
-      return;
-    }
-    if (formData.pickupLocation.address.city !== formData.dropoffLocation.address.city) {
-      setError('Pickup and delivery locations must be in the same city');
       return;
     }
 
@@ -1270,7 +844,10 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
       });
 
       setShowOrderForm(false);
-      fetchOrders();
+      // Add a small delay to ensure database consistency
+      setTimeout(() => {
+        fetchOrders();
+      }, 500);
       showSuccess('Order published successfully! Waiting for drivers in your area.');
     } catch (err) {
       let errorMessage = 'Failed to publish order';
@@ -2372,6 +1949,44 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
 
                     {order.status === 'pending_bids' && currentUser?.role === 'driver' && (
                       <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
+                        {/* Customer Reputation Section */}
+                        <div style={{ background: '#F0F9FF', padding: '1rem', borderRadius: '0.5rem', marginBottom: '1rem', border: '1px solid #DBEAFE' }}>
+                          <h4 style={{ fontSize: '0.875rem', fontWeight: '600', color: '#1E40AF', marginBottom: '0.75rem' }}>
+                            👤 Customer Reputation
+                          </h4>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                            <div>
+                              <p style={{ fontSize: '0.75rem', color: '#6B7280', marginBottom: '0.25rem' }}>Customer Rating</p>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                {renderStars(order.customerRating || 0)}
+                                <span style={{ fontSize: '0.875rem', fontWeight: '600', color: '#1F2937' }}>
+                                  {order.customerRating ? order.customerRating.toFixed(1) : 'New'}
+                                </span>
+                              </div>
+                            </div>
+                            <div>
+                              <p style={{ fontSize: '0.75rem', color: '#6B7280', marginBottom: '0.25rem' }}>Completed Orders</p>
+                              <p style={{ fontSize: '0.875rem', fontWeight: '600', color: '#1F2937' }}>
+                                {order.customerCompletedOrders || 0} deliveries
+                              </p>
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button
+                              onClick={() => openReviewModal(order._id, 'view_customer_reviews')}
+                              style={{ padding: '0.25rem 0.75rem', background: '#3B82F6', color: 'white', borderRadius: '0.25rem', border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: '500' }}
+                            >
+                              📝 View Reviews ({order.customerReviewCount || 0})
+                            </button>
+                            <button
+                              onClick={() => openReviewModal(order._id, 'view_customer_given_reviews')}
+                              style={{ padding: '0.25rem 0.75rem', background: '#6366F1', color: 'white', borderRadius: '0.25rem', border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: '500' }}
+                            >
+                              ⭐ Reviews Given ({order.customerGivenReviewCount || 0})
+                            </button>
+                          </div>
+                        </div>
+
                         {order.distance && (
                           <div style={{ marginBottom: '0.75rem', fontSize: '0.875rem', color: '#6B7280' }}>
                             📍 Distance from pickup: {order.distance ? `${order.distance.toFixed(2)} km` : 'Unknown'}
