@@ -83,7 +83,24 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
 
 
   // Simple Address Form Component
-  const AddressDetailsForm = React.memo(({ type, location, onLocationChange }) => {
+  const AddressDetailsForm = React.memo(({ type, value, onChange }) => {
+    const handleChange = React.useCallback((e) => {
+      onChange({
+        fullAddress: e.target.value,
+        coordinates: { lat: 40.7128, lng: -74.0060 }, // Default NYC coordinates
+        address: {
+          country: 'United States',
+          city: 'New York',
+          area: 'Manhattan',
+          street: e.target.value,
+          buildingNumber: '',
+          floor: '',
+          apartmentNumber: '',
+          personName: 'Contact Person'
+        }
+      });
+    }, [onChange]);
+
     return (
       <div style={{
         border: '1px solid #E5E7EB',
@@ -103,22 +120,8 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
 
         <textarea
           placeholder={`Enter complete ${type.toLowerCase()} address (street, building, city, etc.)`}
-          value={location.fullAddress || ''}
-          onChange={(e) => onLocationChange({
-            ...location,
-            fullAddress: e.target.value,
-            coordinates: { lat: 40.7128, lng: -74.0060 }, // Default NYC coordinates
-            address: {
-              country: 'United States',
-              city: 'New York',
-              area: 'Manhattan',
-              street: e.target.value,
-              buildingNumber: '',
-              floor: '',
-              apartmentNumber: '',
-              personName: 'Contact Person'
-            }
-          })}
+          value={value || ''}
+          onChange={handleChange}
           required
           style={{
             width: '100%',
@@ -1573,8 +1576,8 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
                 <div>
                   <AddressDetailsForm
                     type="Pickup"
-                    location={formData.pickupLocation}
-                    onLocationChange={handlePickupLocationChange}
+                    value={formData.pickupLocation.fullAddress || ''}
+                    onChange={handlePickupLocationChange}
                   />
                 </div>
 
@@ -1582,8 +1585,8 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
                 <div>
                   <AddressDetailsForm
                     type="Delivery"
-                    location={formData.dropoffLocation}
-                    onLocationChange={handleDropoffLocationChange}
+                    value={formData.dropoffLocation.fullAddress || ''}
+                    onChange={handleDropoffLocationChange}
                   />
                 </div>
               </div>
