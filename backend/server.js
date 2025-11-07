@@ -224,6 +224,34 @@ const initDatabase = async () => {
       )
     `);
 
+    // Create locations table for country/city/area/street data
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS locations (
+        id SERIAL PRIMARY KEY,
+        country VARCHAR(100) NOT NULL,
+        city VARCHAR(100) NOT NULL,
+        area VARCHAR(100) NOT NULL,
+        street VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(country, city, area, street)
+      )
+    `);
+
+    // Create coordinate_mappings table for reverse geocoding
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS coordinate_mappings (
+        id SERIAL PRIMARY KEY,
+        location_key VARCHAR(100) NOT NULL UNIQUE,
+        country VARCHAR(100) NOT NULL,
+        city VARCHAR(100) NOT NULL,
+        lat_min DECIMAL(10,8) NOT NULL,
+        lat_max DECIMAL(10,8) NOT NULL,
+        lng_min DECIMAL(11,8) NOT NULL,
+        lng_max DECIMAL(11,8) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
     // Create indexes
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_orders_customer ON orders(customer_id)`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_orders_driver ON orders(assigned_driver_user_id)`);
@@ -1741,7 +1769,276 @@ app.get('/api/payments/history', verifyToken, async (req, res) => {
   }
 });
 
-// ============ END OF PART 6 ============
+// ============ PART 7: Location Data Management (Hybrid: Database + Geocoding API) ============
+// Add this after Part 6
+
+// Get all countries (hybrid approach)
+app.get('/api/locations/countries', async (req, res) => {
+  try {
+    // First try to get from database
+    const dbResult = await pool.query('SELECT DISTINCT country FROM locations ORDER BY country');
+    if (dbResult.rows.length > 0) {
+      res.json(dbResult.rows.map(row => row.country));
+      return;
+    }
+
+    // Fallback to common countries if database is empty
+    const commonCountries = [
+      'Egypt', 'Saudi Arabia', 'UAE', 'Qatar', 'Kuwait', 'Bahrain', 'Oman',
+      'Jordan', 'Lebanon', 'Iraq', 'Syria', 'Turkey', 'Iran',
+      'USA', 'Canada', 'UK', 'Germany', 'France', 'Italy', 'Spain',
+      'Australia', 'New Zealand', 'Japan', 'South Korea', 'Singapore',
+      'India', 'China', 'Russia', 'Brazil', 'Mexico', 'Argentina',
+      'South Africa', 'Nigeria', 'Kenya', 'Morocco', 'Algeria'
+    ];
+    res.json(commonCountries);
+  } catch (error) {
+    console.error('Get countries error:', error);
+    res.status(500).json({ error: 'Failed to get countries' });
+  }
+});
+
+// Get cities for a country
+app.get('/api/locations/countries/:country/cities', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT DISTINCT city FROM locations WHERE country = $1 ORDER BY city',
+      [req.params.country]
+    );
+    res.json(result.rows.map(row => row.city));
+  } catch (error) {
+    console.error('Get cities error:', error);
+    res.status(500).json({ error: 'Failed to get cities' });
+  }
+});
+
+// Get areas for a country and city
+app.get('/api/locations/countries/:country/cities/:city/areas', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT DISTINCT area FROM locations WHERE country = $1 AND city = $2 ORDER BY area',
+      [req.params.country, req.params.city]
+    );
+    res.json(result.rows.map(row => row.area));
+  } catch (error) {
+    console.error('Get areas error:', error);
+    res.status(500).json({ error: 'Failed to get areas' });
+  }
+});
+
+// Get streets for a country, city, and area
+app.get('/api/locations/countries/:country/cities/:city/areas/:area/streets', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT street FROM locations WHERE country = $1 AND city = $2 AND area = $3 ORDER BY street',
+      [req.params.country, req.params.city, req.params.area]
+    );
+    res.json(result.rows.map(row => row.street));
+  } catch (error) {
+    console.error('Get streets error:', error);
+    res.status(500).json({ error: 'Failed to get streets' });
+  }
+});
+
+// Get coordinate mappings for reverse geocoding
+app.get('/api/locations/coordinates', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM coordinate_mappings');
+    const mappings = {};
+    result.rows.forEach(row => {
+      mappings[row.location_key] = {
+        lat: [parseFloat(row.lat_min), parseFloat(row.lat_max)],
+        lng: [parseFloat(row.lng_min), parseFloat(row.lng_max)],
+        country: row.country,
+        city: row.city
+      };
+    });
+    res.json(mappings);
+  } catch (error) {
+    console.error('Get coordinate mappings error:', error);
+    res.status(500).json({ error: 'Failed to get coordinate mappings' });
+  }
+});
+
+// Location search using Nominatim API (worldwide coverage)
+app.get('/api/locations/search', async (req, res) => {
+  try {
+    const { q, country, city, limit = 10 } = req.query;
+
+    if (!q || q.length < 2) {
+      return res.status(400).json({ error: 'Search query must be at least 2 characters' });
+    }
+
+    // Build Nominatim query
+    let nominatimQuery = `q=${encodeURIComponent(q)}&format=json&addressdetails=1&limit=${Math.min(parseInt(limit), 50)}&dedupe=1`;
+
+    if (country) {
+      nominatimQuery += `&country=${encodeURIComponent(country)}`;
+    }
+    if (city) {
+      nominatimQuery += `&city=${encodeURIComponent(city)}`;
+    }
+
+    const nominatimUrl = `https://nominatim.openstreetmap.org/search?${nominatimQuery}`;
+
+    console.log('🌍 Nominatim search:', nominatimUrl);
+
+    const response = await fetch(nominatimUrl, {
+      headers: {
+        'User-Agent': 'Matrix-Delivery-App/1.0'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Nominatim API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // Transform Nominatim results to our format
+    const results = data.map(item => ({
+      placeId: item.place_id,
+      displayName: item.display_name,
+      lat: parseFloat(item.lat),
+      lng: parseFloat(item.lon),
+      type: item.type,
+      importance: item.importance,
+      address: {
+        country: item.address?.country || '',
+        city: item.address?.city || item.address?.town || item.address?.village || '',
+        area: item.address?.suburb || item.address?.neighbourhood || item.address?.district || '',
+        street: item.address?.road || item.address?.street || item.address?.pedestrian || '',
+        buildingNumber: item.address?.house_number || '',
+        postcode: item.address?.postcode || ''
+      }
+    }));
+
+    // Cache popular results in database (optional)
+    if (results.length > 0 && q.length > 3) {
+      // Cache top result for future use
+      const topResult = results[0];
+      try {
+        await pool.query(
+          `INSERT INTO locations (country, city, area, street)
+           VALUES ($1, $2, $3, $4)
+           ON CONFLICT (country, city, area, street) DO NOTHING`,
+          [
+            topResult.address.country || 'Unknown',
+            topResult.address.city || 'Unknown',
+            topResult.address.area || 'Unknown',
+            topResult.address.street || 'Unknown'
+          ]
+        );
+      } catch (cacheError) {
+        // Ignore cache errors
+        console.log('Cache error (non-critical):', cacheError.message);
+      }
+    }
+
+    res.json(results);
+
+  } catch (error) {
+    console.error('Location search error:', error);
+    res.status(500).json({ error: 'Failed to search locations' });
+  }
+});
+
+// Reverse geocoding using Nominatim API
+app.get('/api/locations/reverse', async (req, res) => {
+  try {
+    const { lat, lng } = req.query;
+
+    if (!lat || !lng) {
+      return res.status(400).json({ error: 'Latitude and longitude are required' });
+    }
+
+    const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`;
+
+    console.log('🌍 Nominatim reverse:', nominatimUrl);
+
+    const response = await fetch(nominatimUrl, {
+      headers: {
+        'User-Agent': 'Matrix-Delivery-App/1.0'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Nominatim API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (!data || data.error) {
+      return res.status(404).json({ error: 'Location not found' });
+    }
+
+    const result = {
+      displayName: data.display_name,
+      lat: parseFloat(data.lat),
+      lng: parseFloat(data.lon),
+      address: {
+        country: data.address?.country || '',
+        city: data.address?.city || data.address?.town || data.address?.village || '',
+        area: data.address?.suburb || data.address?.neighbourhood || data.address?.district || '',
+        street: data.address?.road || data.address?.street || data.address?.pedestrian || '',
+        buildingNumber: data.address?.house_number || '',
+        postcode: data.address?.postcode || ''
+      }
+    };
+
+    res.json(result);
+
+  } catch (error) {
+    console.error('Reverse geocoding error:', error);
+    res.status(500).json({ error: 'Failed to reverse geocode location' });
+  }
+});
+
+// Get popular cities for a country using Nominatim
+app.get('/api/locations/countries/:country/cities/search', async (req, res) => {
+  try {
+    const { country } = req.params;
+    const { limit = 20 } = req.query;
+
+    // First check database
+    const dbResult = await pool.query(
+      'SELECT DISTINCT city FROM locations WHERE country = $1 ORDER BY city LIMIT $2',
+      [country, Math.min(parseInt(limit), 50)]
+    );
+
+    if (dbResult.rows.length > 0) {
+      res.json(dbResult.rows.map(row => row.city));
+      return;
+    }
+
+    // Fallback to Nominatim API
+    const nominatimUrl = `https://nominatim.openstreetmap.org/search?country=${encodeURIComponent(country)}&format=json&addressdetails=1&limit=${Math.min(parseInt(limit), 50)}&dedupe=1&type=city`;
+
+    const response = await fetch(nominatimUrl, {
+      headers: {
+        'User-Agent': 'Matrix-Delivery-App/1.0'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Nominatim API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const cities = [...new Set(data
+      .filter(item => item.address && (item.address.city || item.address.town || item.address.village))
+      .map(item => item.address.city || item.address.town || item.address.village)
+    )].sort();
+
+    res.json(cities);
+
+  } catch (error) {
+    console.error('Get cities search error:', error);
+    res.status(500).json({ error: 'Failed to search cities' });
+  }
+});
+
+// ============ END OF PART 7 ============
 // Continue with Error Handling
 
 // Error handling with CORS headers
