@@ -5,8 +5,10 @@ class ServerManager {
   constructor() {
     this.backendProcess = null;
     this.frontendProcess = null;
-    this.backendUrl = 'http://localhost:5000';
-    this.frontendUrl = 'http://localhost:3000';
+    this.backendPort = process.env.BACKEND_PORT || '5000';
+    this.frontendPort = process.env.FRONTEND_PORT || '3000';
+    this.backendUrl = `http://localhost:${this.backendPort}`;
+    this.frontendUrl = `http://localhost:${this.frontendPort}`;
   }
 
   async startBackend() {
@@ -23,7 +25,7 @@ class ServerManager {
         shell: true,
         env: {
           ...process.env,
-          PORT: 5000,
+          PORT: this.backendPort,
           JWT_SECRET: 'test-secret-key-12345'
         }
       });
@@ -70,9 +72,10 @@ class ServerManager {
         shell: true,
         env: {
           ...process.env,
-          PORT: 3000,
+          PORT: this.frontendPort,
+          HOST: 'localhost',
           BROWSER: 'none',
-          REACT_APP_API_URL: 'http://localhost:5000/api'
+          REACT_APP_API_URL: `${this.backendUrl}/api`
         }
       });
 
