@@ -4,8 +4,19 @@ import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 're
 import 'leaflet/dist/leaflet.css';
 import ReCAPTCHA from 'react-google-recaptcha';
 
+// Location data state and API functions
 const DeliveryApp = () => {
-const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
+  const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
+
+  // Location data state
+  const [locationData, setLocationData] = useState({
+    countries: [],
+    cities: {},
+    areas: {},
+    streets: {},
+    coordinateMappings: {}
+  });
+  const [locationLoading, setLocationLoading] = useState(false);
 
   // MapController Component - handles map instance for programmatic control
   const MapController = React.forwardRef((props, ref) => {
@@ -23,189 +34,61 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
   });
 
 
-// Location Selector Component
-  const LocationSelector = React.memo(({ isOpen, onClose, onLocationSelect, initialCoordinates, customerLocation }) => {
-    const [selectedPosition, setSelectedPosition] = useState(initialCoordinates || null);
-    const [hasCentered, setHasCentered] = useState(false);
-
-    const LocationMarker = React.memo(() => {
-      const map = useMapEvents({
-        click(e) {
-          const newPosition = [e.latlng.lat, e.latlng.lng];
-          setSelectedPosition(newPosition);
-        },
-      });
-
-      return selectedPosition ? (
-        <Marker position={selectedPosition}>
-          <Popup>
-            <div style={{ textAlign: 'center', fontSize: '0.875rem' }}>
-              <div style={{ fontWeight: '600', marginBottom: '0.5rem' }}>
-                📍 Selected Location
-              </div>
-              <div style={{ color: '#6B7280', marginBottom: '0.5rem' }}>
-                Coordinates: {selectedPosition[0].toFixed(6)}, {selectedPosition[1].toFixed(6)}
-              </div>
-              <button
-                onClick={() => {
-                  navigator.share({
-                    text: `Location: ${selectedPosition[0].toFixed(6)}, ${selectedPosition[1].toFixed(6)}`,
-                    url: `https://www.openstreetmap.org/?mlat=${selectedPosition[0]}&mlon=${selectedPosition[1]}`
-                  }).catch(() => {
-                    navigator.clipboard.writeText(`${selectedPosition[0].toFixed(6)}, ${selectedPosition[1].toFixed(6)}`);
-                  });
-                }}
-                style={{
-                  background: '#4F46E5',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '0.25rem',
-                  padding: '0.25rem 0.5rem',
-                  fontSize: '0.75rem',
-                  cursor: 'pointer'
-                }}
-              >
-                Copy Coordinates
-              </button>
-            </div>
-          </Popup>
-        </Marker>
-      ) : null;
-    });
-
-    // Reset state when modal closes
-    React.useEffect(() => {
-      if (!isOpen) {
-        setHasCentered(false);
-      }
-    }, [isOpen]);
-
-    return (
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: 'rgba(0, 0, 0, 0.5)',
-        display: isOpen ? 'flex' : 'none',
-        justifyContent: 'center',
-        alignItems: 'center',
-        zIndex: 1000,
-        padding: '1rem'
-      }}>
-        <div style={{
-          background: 'white',
-          borderRadius: '0.5rem',
-          width: '100%',
-          maxWidth: '48rem',
-          maxHeight: '90vh',
-          overflow: 'hidden'
-        }}>
-          <div style={{
-            padding: '1rem',
-            borderBottom: '1px solid #E5E7EB',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center'
-          }}>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: '600' }}>Select Location on Map</h3>
-            <button
-              onClick={onClose}
-              style={{
-                background: 'none',
-                border: 'none',
-                fontSize: '1.5rem',
-                cursor: 'pointer',
-                color: '#6B7280'
-              }}
-            >
-              ×
-            </button>
-          </div>
-          <div style={{ height: '400px' }}>
-            <MapContainer
-              center={customerLocation ? [customerLocation.lat, customerLocation.lng] : [40.7128, -74.0060]}
-              zoom={13}
-              style={{ height: '100%', width: '100%' }}
-              whenReady={() => {
-                // Ensure map is fully loaded before interactions
-                setTimeout(() => {
-                  try {
-                    // Force a map size recalculation only once
-                    const mapElement = document.querySelector('.leaflet-container');
-                    if (mapElement && mapElement._leaflet_map) {
-                      mapElement._leaflet_map.invalidateSize();
-                    }
-                  } catch (e) {
-                    console.warn('Map initialization warning:', e);
-                  }
-                }, 200);
-              }}
-              // Error boundary for Leaflet
-              errorOverlay={{
-                message: 'Map failed to load. Please refresh the page.',
-                style: { background: '#f44336', color: 'white', padding: '10px' }
-              }}
-            >
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
-              <LocationMarker />
-            </MapContainer>
-          </div>
-          <div style={{ padding: '1rem', borderTop: '1px solid #E5E7EB' }}>
-            <p style={{ fontSize: '0.875rem', color: '#6B7280', marginBottom: '1rem' }}>
-              Click on the map to select your location. Make sure to position the marker accurately.
-            </p>
-            <div style={{ display: 'flex', gap: '0.75rem' }}>
-              <button
-                onClick={onClose}
-                style={{
-                  padding: '0.5rem 1rem',
-                  background: '#F3F4F6',
-                  color: '#374151',
-                  borderRadius: '0.375rem',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontWeight: '600',
-                  flex: 1
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  if (selectedPosition) {
-                    onLocationSelect(selectedPosition[0], selectedPosition[1]);
-                    onClose();
-                  }
-                }}
-                disabled={!selectedPosition}
-                style={{
-                  padding: '0.5rem 1rem',
-                  background: '#4F46E5',
-                  color: 'white',
-                  borderRadius: '0.375rem',
-                  border: 'none',
-                  cursor: !selectedPosition ? 'not-allowed' : 'pointer',
-                  fontWeight: '600',
-                  flex: 1,
-                  opacity: !selectedPosition ? 0.5 : 1
-                }}
-              >
-                Confirm Location
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+// LocationMarker Component
+const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) => {
+  const map = useMapEvents({
+    click(e) {
+      const newPosition = [e.latlng.lat, e.latlng.lng];
+      setSelectedPosition(newPosition);
+    },
   });
 
-  // Detailed Address Form Component
+  return selectedPosition ? (
+    <Marker position={selectedPosition}>
+      <Popup>
+        <div style={{ textAlign: 'center', fontSize: '0.875rem' }}>
+          <div style={{ fontWeight: '600', marginBottom: '0.5rem' }}>
+            📍 Selected Location
+          </div>
+          <div style={{ color: '#6B7280', marginBottom: '0.5rem' }}>
+            Coordinates: {selectedPosition[0].toFixed(6)}, {selectedPosition[1].toFixed(6)}
+          </div>
+          <button
+            onClick={() => {
+              navigator.share({
+                text: `Location: ${selectedPosition[0].toFixed(6)}, ${selectedPosition[1].toFixed(6)}`,
+                url: `https://www.openstreetmap.org/?mlat=${selectedPosition[0]}&mlon=${selectedPosition[1]}`
+              }).catch(() => {
+                navigator.clipboard.writeText(`${selectedPosition[0].toFixed(6)}, ${selectedPosition[1].toFixed(6)}`);
+              });
+            }}
+            style={{
+              background: '#4F46E5',
+              color: 'white',
+              border: 'none',
+              borderRadius: '0.25rem',
+              padding: '0.25rem 0.5rem',
+              fontSize: '0.75rem',
+              cursor: 'pointer'
+            }}
+          >
+            Copy Coordinates
+          </button>
+        </div>
+      </Popup>
+    </Marker>
+  ) : null;
+});
+
+
+
+  // Detailed Address Form Component with Search/Autocomplete
   const AddressDetailsForm = ({ type, location, onLocationChange, onOpenMap }) => {
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+
     const updateAddressField = (field, value) => {
       const updatedLocation = {
         ...location,
@@ -215,6 +98,79 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
         }
       };
       onLocationChange(updatedLocation);
+    };
+
+    // Search locations using Nominatim API
+    const searchLocations = async (query) => {
+      if (query.length < 2) {
+        setSearchResults([]);
+        return;
+      }
+
+      setIsSearching(true);
+      try {
+        const response = await fetch(`${API_URL}/locations/search?q=${encodeURIComponent(query)}&limit=10`);
+        if (response.ok) {
+          const results = await response.json();
+          setSearchResults(results);
+          setShowSuggestions(true);
+        }
+      } catch (error) {
+        console.error('Location search error:', error);
+      } finally {
+        setIsSearching(false);
+      }
+    };
+
+    // Handle search input change
+    const handleSearchChange = (e) => {
+      const query = e.target.value;
+      setSearchQuery(query);
+      searchLocations(query);
+    };
+
+    // Select a location from search results
+    const selectLocation = (result) => {
+      const newLocation = {
+        ...location,
+        coordinates: { lat: result.lat, lng: result.lng },
+        address: {
+          country: result.address.country,
+          city: result.address.city,
+          area: result.address.area,
+          street: result.address.street,
+          buildingNumber: result.address.buildingNumber || '',
+          personName: location.address.personName || ''
+        }
+      };
+      onLocationChange(newLocation);
+      setSearchQuery(result.displayName);
+      setShowSuggestions(false);
+    };
+
+    // Reverse geocode coordinates to address
+    const reverseGeocode = async (lat, lng) => {
+      try {
+        const response = await fetch(`${API_URL}/locations/reverse?lat=${lat}&lng=${lng}`);
+        if (response.ok) {
+          const result = await response.json();
+          const newLocation = {
+            ...location,
+            coordinates: { lat, lng },
+            address: {
+              country: result.address.country,
+              city: result.address.city,
+              area: result.address.area,
+              street: result.address.street,
+              buildingNumber: result.address.buildingNumber || '',
+              personName: location.address.personName || ''
+            }
+          };
+          onLocationChange(newLocation);
+        }
+      } catch (error) {
+        console.error('Reverse geocoding error:', error);
+      }
     };
 
     return (
@@ -240,23 +196,35 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
           </h4>
         </div>
 
-        {/* Map Selection Button */}
-        <button
-          onClick={onOpenMap}
-          style={{
-            width: '100%',
-            padding: '0.75rem',
-            background: location.coordinates?.lat ? '#10B981' : '#4F46E5',
-            color: 'white',
-            border: 'none',
-            borderRadius: '0.375rem',
-            cursor: 'pointer',
-            fontWeight: '600',
-            marginBottom: '1rem'
-          }}
-        >
-          {location.coordinates?.lat ? '📍 Update Location on Map' : '🗺️ Select Location on Map'}
-        </button>
+        {/* Inline Map */}
+        <div style={{
+          height: '300px',
+          border: '1px solid #D1D5DB',
+          borderRadius: '0.375rem',
+          overflow: 'hidden',
+          marginBottom: '1rem'
+        }}>
+          <MapContainer
+            center={location.coordinates?.lat ? [location.coordinates.lat, location.coordinates.lng] : [33.3152, 44.3661]}
+            zoom={location.coordinates?.lat ? 15 : 10}
+            style={{ height: '100%', width: '100%' }}
+          >
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            />
+            <LocationMarker
+              selectedPosition={location.coordinates?.lat ? [location.coordinates.lat, location.coordinates.lng] : null}
+              setSelectedPosition={async (coords) => {
+                const lat = coords[0];
+                const lng = coords[1];
+
+                // Reverse geocode to get address
+                await reverseGeocode(lat, lng);
+              }}
+            />
+          </MapContainer>
+        </div>
 
         {location.coordinates?.lat && (
           <div style={{
@@ -271,31 +239,141 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
           </div>
         )}
 
-        {/* Address Fields */}
-        <div style={{ display: 'grid', gap: '0.75rem' }}>
-          <div>
-            <label style={{
-              display: 'block',
-              fontSize: '0.875rem',
-              fontWeight: '600',
-              color: '#374151',
-              marginBottom: '0.25rem'
-            }}>
-              Country *
-            </label>
+        {/* Location Search */}
+        <div style={{ marginBottom: '1rem' }}>
+          <label style={{
+            display: 'block',
+            fontSize: '0.875rem',
+            fontWeight: '600',
+            color: '#374151',
+            marginBottom: '0.25rem'
+          }}>
+            Search Location *
+          </label>
+          <div style={{ position: 'relative' }}>
             <input
               type="text"
-              placeholder="Country (e.g., Iraq, USA, UK)"
-              value={location.address.country}
-              onChange={(e) => updateAddressField('country', e.target.value)}
+              placeholder="Type to search for any location worldwide..."
+              value={searchQuery}
+              onChange={handleSearchChange}
               style={{
                 width: '100%',
-                padding: '0.5rem',
+                padding: '0.75rem',
                 border: '1px solid #D1D5DB',
                 borderRadius: '0.375rem',
-                fontSize: '0.875rem'
+                fontSize: '0.875rem',
+                background: 'white'
               }}
             />
+            {isSearching && (
+              <div style={{
+                position: 'absolute',
+                right: '0.75rem',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                fontSize: '0.875rem',
+                color: '#6B7280'
+              }}>
+                🔍
+              </div>
+            )}
+          </div>
+
+          {/* Search Suggestions */}
+          {showSuggestions && searchResults.length > 0 && (
+            <div style={{
+              position: 'absolute',
+              top: '100%',
+              left: 0,
+              right: 0,
+              background: 'white',
+              border: '1px solid #D1D5DB',
+              borderRadius: '0.375rem',
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+              maxHeight: '200px',
+              overflowY: 'auto',
+              zIndex: 1000,
+              marginTop: '0.25rem'
+            }}>
+              {searchResults.map((result, index) => (
+                <div
+                  key={index}
+                  onClick={() => selectLocation(result)}
+                  style={{
+                    padding: '0.75rem',
+                    cursor: 'pointer',
+                    borderBottom: index < searchResults.length - 1 ? '1px solid #F3F4F6' : 'none',
+                    hover: { background: '#F9FAFB' }
+                  }}
+                  onMouseEnter={(e) => e.target.style.background = '#F9FAFB'}
+                  onMouseLeave={(e) => e.target.style.background = 'white'}
+                >
+                  <div style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.25rem' }}>
+                    {result.displayName.split(',')[0]}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>
+                    {result.address.city && `${result.address.city}, `}
+                    {result.address.country}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Address Fields */}
+        <div style={{ display: 'grid', gap: '0.75rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+            <div>
+              <label style={{
+                display: 'block',
+                fontSize: '0.875rem',
+                fontWeight: '600',
+                color: '#374151',
+                marginBottom: '0.25rem'
+              }}>
+                Country
+              </label>
+              <input
+                type="text"
+                value={location.address.country}
+                onChange={(e) => updateAddressField('country', e.target.value)}
+                placeholder="Country"
+                style={{
+                  width: '100%',
+                  padding: '0.5rem',
+                  border: '1px solid #D1D5DB',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.875rem',
+                  background: 'white'
+                }}
+              />
+            </div>
+            <div>
+              <label style={{
+                display: 'block',
+                fontSize: '0.875rem',
+                fontWeight: '600',
+                color: '#374151',
+                marginBottom: '0.25rem'
+              }}>
+                City
+              </label>
+              <input
+                type="text"
+                value={location.address.city}
+                onChange={(e) => updateAddressField('city', e.target.value)}
+                placeholder="City"
+                style={{
+                  width: '100%',
+                  padding: '0.5rem',
+                  border: '1px solid #D1D5DB',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.875rem',
+                  background: 'white'
+                }}
+              />
+            </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
@@ -307,19 +385,20 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
                 color: '#374151',
                 marginBottom: '0.25rem'
               }}>
-                City *
+                Area/District
               </label>
               <input
                 type="text"
-                placeholder="City"
-                value={location.address.city}
-                onChange={(e) => updateAddressField('city', e.target.value)}
+                value={location.address.area}
+                onChange={(e) => updateAddressField('area', e.target.value)}
+                placeholder="Area/District"
                 style={{
                   width: '100%',
                   padding: '0.5rem',
                   border: '1px solid #D1D5DB',
                   borderRadius: '0.375rem',
-                  fontSize: '0.875rem'
+                  fontSize: '0.875rem',
+                  background: 'white'
                 }}
               />
             </div>
@@ -331,47 +410,23 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
                 color: '#374151',
                 marginBottom: '0.25rem'
               }}>
-                Area *
+                Street
               </label>
               <input
                 type="text"
-                placeholder="Area/District"
-                value={location.address.area}
-                onChange={(e) => updateAddressField('area', e.target.value)}
+                value={location.address.street}
+                onChange={(e) => updateAddressField('street', e.target.value)}
+                placeholder="Street"
                 style={{
                   width: '100%',
                   padding: '0.5rem',
                   border: '1px solid #D1D5DB',
                   borderRadius: '0.375rem',
-                  fontSize: '0.875rem'
+                  fontSize: '0.875rem',
+                  background: 'white'
                 }}
               />
             </div>
-          </div>
-
-          <div>
-            <label style={{
-              display: 'block',
-              fontSize: '0.875rem',
-              fontWeight: '600',
-              color: '#374151',
-              marginBottom: '0.25rem'
-            }}>
-              Street *
-            </label>
-            <input
-              type="text"
-              placeholder="Street name and number"
-              value={location.address.street}
-              onChange={(e) => updateAddressField('street', e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                border: '1px solid #D1D5DB',
-                borderRadius: '0.375rem',
-                fontSize: '0.875rem'
-              }}
-            />
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
@@ -584,63 +639,9 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
   const [bidInput, setBidInput] = useState({});
   const [bidDetails, setBidDetails] = useState({});
 
-  // Map selector state
-  const [showMapSelector, setShowMapSelector] = useState(false);
-  const [mapSelectorType, setMapSelectorType] = useState('pickup'); // 'pickup' or 'dropoff'
-  const [customerLocation, setCustomerLocation] = useState(null); // Customer's current location for map centering
 
-  // Get customer's current location for map centering
-  const getCustomerLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setCustomerLocation({ lat: latitude, lng: longitude });
-        },
-        (error) => {
-          console.warn('Could not get customer location:', error);
-          setCustomerLocation(null); // Fall back to default center
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 300000 // 5 minutes
-        }
-      );
-    } else {
-      setCustomerLocation(null);
-    }
-  };
 
-  // Map event handlers
-  const handleLocationSelect = (lat, lng) => {
-    const coordinates = { lat: parseFloat(lat), lng: parseFloat(lng) };
 
-    if (mapSelectorType === 'pickup') {
-      setFormData(prev => ({
-        ...prev,
-        pickupLocation: {
-          ...prev.pickupLocation,
-          coordinates: coordinates
-        }
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        dropoffLocation: {
-          ...prev.dropoffLocation,
-          coordinates: coordinates
-        }
-      }));
-    }
-    setShowMapSelector(false);
-  };
-
-  const handleOpenMap = (type) => {
-    setMapSelectorType(type);
-    setShowMapSelector(true);
-    // Location is fetched on auth and stored globally to prevent re-fetching
-  };
 
   const handleLocationChange = (locationType, newLocationData) => {
     setFormData(prev => ({
@@ -649,21 +650,24 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
     }));
   };
 
+  const handleOpenMap = (type) => {
+    // Since maps are now inline, this function can be used for future enhancements
+    // such as scrolling to the map or providing visual feedback
+    console.log(`Opening map for ${type} location`);
+  };
+
   // Effects
   useEffect(() => {
     if (token) {
       fetchCurrentUser();
       fetchNotifications();
       const interval = setInterval(() => {
-        // Skip polling when map selector is open to prevent map zoom resets
-        if (!showMapSelector) {
-          fetchOrders();
-          fetchNotifications();
-        }
+        fetchOrders();
+        fetchNotifications();
       }, 30000);
       return () => clearInterval(interval);
     }
-  }, [token, showMapSelector]); // Added showMapSelector as dependency
+  }, [token]);
 
   // Driver location effect
   useEffect(() => {
@@ -703,24 +707,7 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
       setError('');
       fetchOrders();
 
-      // Get user's current location once for map centering
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const { latitude, longitude } = position.coords;
-            setCustomerLocation({ lat: latitude, lng: longitude });
-          },
-          (error) => {
-            console.warn('Could not get customer location for map:', error);
-            setCustomerLocation(null);
-          },
-          {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 300000 // 5 minutes cache
-          }
-        );
-      }
+
     } catch (err) {
       console.error('fetchCurrentUser error:', err);
       // Only show error for network/server issues, don't logout automatically
@@ -1167,6 +1154,16 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
 
     if (requiredFieldsError.length > 0) {
       setError(`Please fill all required fields: ${requiredFieldsError.join(', ')}`);
+      return;
+    }
+
+    // Validate that pickup and delivery are in the same country and city
+    if (formData.pickupLocation.address.country !== formData.dropoffLocation.address.country) {
+      setError('Pickup and delivery locations must be in the same country');
+      return;
+    }
+    if (formData.pickupLocation.address.city !== formData.dropoffLocation.address.city) {
+      setError('Pickup and delivery locations must be in the same city');
       return;
     }
 
@@ -1867,15 +1864,7 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
           </div>
         )}
 
-        {showMapSelector && (
-          <LocationSelector
-            key={`map-${mapSelectorType}`} // Stable key to prevent excessive re-mounting
-            isOpen={showMapSelector}
-            onClose={() => setShowMapSelector(false)}
-            onLocationSelect={handleLocationSelect}
-            customerLocation={customerLocation}
-          />
-        )}
+
 
         {showOrderForm && (
           <div style={{ background: 'white', borderRadius: '0.5rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)', padding: '1.5rem', marginBottom: '1.5rem' }}>
@@ -1991,22 +1980,28 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique5
               </div>
             </div>
 
-            {/* Location Sections - Full Width */}
+            {/* Location Sections - Side-by-Side Maps */}
             <div style={{ marginTop: '2rem' }}>
-              <AddressDetailsForm
-                type="Pickup"
-                location={formData.pickupLocation}
-                onLocationChange={(pickupData) => handleLocationChange('pickupLocation', pickupData)}
-                onOpenMap={() => handleOpenMap('pickup')}
-              />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                {/* Pickup Location */}
+                <div>
+                  <AddressDetailsForm
+                    type="Pickup"
+                    location={formData.pickupLocation}
+                    onLocationChange={(pickupData) => handleLocationChange('pickupLocation', pickupData)}
+                    onOpenMap={() => handleOpenMap('pickup')}
+                  />
+                </div>
 
-              <div style={{ marginTop: '1.5rem' }}>
-                <AddressDetailsForm
-                  type="Delivery"
-                  location={formData.dropoffLocation}
-                  onLocationChange={(dropoffData) => handleLocationChange('dropoffLocation', dropoffData)}
-                  onOpenMap={() => handleOpenMap('dropoff')}
-                />
+                {/* Delivery Location */}
+                <div>
+                  <AddressDetailsForm
+                    type="Delivery"
+                    location={formData.dropoffLocation}
+                    onLocationChange={(dropoffData) => handleLocationChange('dropoffLocation', dropoffData)}
+                    onOpenMap={() => handleOpenMap('dropoff')}
+                  />
+                </div>
               </div>
             </div>
           </div>
