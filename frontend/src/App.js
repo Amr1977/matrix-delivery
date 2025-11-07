@@ -258,6 +258,15 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
     console.log(`Opening map for ${type} location`);
   }, []);
 
+  // Memoize location change handlers to prevent re-renders
+  const handlePickupLocationChange = useCallback((newLocationData) => {
+    handleLocationChange('pickupLocation', newLocationData);
+  }, [handleLocationChange]);
+
+  const handleDropoffLocationChange = useCallback((newLocationData) => {
+    handleLocationChange('dropoffLocation', newLocationData);
+  }, [handleLocationChange]);
+
   // Effects
   useEffect(() => {
     if (token) {
@@ -1565,8 +1574,7 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
                   <AddressDetailsForm
                     type="Pickup"
                     location={formData.pickupLocation}
-                    onLocationChange={(pickupData) => handleLocationChange('pickupLocation', pickupData)}
-                    onOpenMap={() => handleOpenMap('pickup')}
+                    onLocationChange={handlePickupLocationChange}
                   />
                 </div>
 
@@ -1575,8 +1583,7 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
                   <AddressDetailsForm
                     type="Delivery"
                     location={formData.dropoffLocation}
-                    onLocationChange={(dropoffData) => handleLocationChange('dropoffLocation', dropoffData)}
-                    onOpenMap={() => handleOpenMap('dropoff')}
+                    onLocationChange={handleDropoffLocationChange}
                   />
                 </div>
               </div>
