@@ -814,6 +814,9 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
   const [reviewStatus, setReviewStatus] = useState(null);
   const [orderReviews, setOrderReviews] = useState([]);
   const [showReviewsModal, setShowReviewsModal] = useState(false);
+  const [showUserReviewsModal, setShowUserReviewsModal] = useState(false);
+  const [userReviews, setUserReviews] = useState([]);
+  const [userReviewsType, setUserReviewsType] = useState('');
   const [showLiveTracking, setShowLiveTracking] = useState(false);
 
   // Enhanced location state
@@ -1118,6 +1121,55 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
     }
   };
 
+  const fetchUserReviews = async (orderId, type) => {
+    try {
+      let userId;
+      let endpoint;
+
+      if (type === 'view_customer_reviews') {
+        // Get customer reviews received
+        const order = orders.find(o => o._id === orderId);
+        if (order) {
+          userId = order.customerId;
+          endpoint = `/users/${userId}/reviews/received`;
+        }
+      } else if (type === 'view_customer_given_reviews') {
+        // Get customer reviews given
+        const order = orders.find(o => o._id === orderId);
+        if (order) {
+          userId = order.customerId;
+          endpoint = `/users/${userId}/reviews/given`;
+        }
+      } else if (type === 'view_driver_reviews') {
+        // Get driver reviews received
+        const order = orders.find(o => o._id === orderId);
+        if (order && order.assignedDriver) {
+          userId = order.assignedDriver.userId;
+          endpoint = `/users/${userId}/reviews/received`;
+        }
+      } else if (type === 'view_driver_given_reviews') {
+        // Get driver reviews given
+        const order = orders.find(o => o._id === orderId);
+        if (order && order.assignedDriver) {
+          userId = order.assignedDriver.userId;
+          endpoint = `/users/${userId}/reviews/given`;
+        }
+      }
+
+      if (endpoint) {
+        const response = await fetch(`${API_URL}${endpoint}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) return;
+        const data = await response.json();
+        setUserReviews(data.reviews);
+        setUserReviewsType(type);
+      }
+    } catch (err) {
+      console.error('fetchUserReviews error:', err);
+    }
+  };
+
   const openReviewModal = async (orderId, type) => {
     setReviewOrderId(orderId);
     setReviewType(type);
@@ -1129,8 +1181,15 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
       timelinessRating: 0,
       conditionRating: 0
     });
-    await fetchReviewStatus(orderId);
-    setShowReviewModal(true);
+
+    // Handle viewing user reviews
+    if (type === 'view_customer_reviews' || type === 'view_customer_given_reviews' || type === 'view_driver_reviews' || type === 'view_driver_given_reviews') {
+      setShowUserReviewsModal(true);
+      await fetchUserReviews(orderId, type);
+    } else {
+      await fetchReviewStatus(orderId);
+      setShowReviewModal(true);
+    }
   };
 
   const handleSubmitReview = async () => {
@@ -2746,6 +2805,91 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
                               Reviewing: {review.revieweeName}
                             </p>
                           )}
+                        </div>
+
+                        {review.professionalismRating && (
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                            <div>
+                              <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>Professionalism</p>
+                              {renderStars(review.professionalismRating)}
+                            </div>
+                            <div>
+                              <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>Communication</p>
+                              {renderStars(review.communicationRating)}
+                            </div>
+                            <div>
+                              <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>Timeliness</p>
+                              {renderStars(review.timelinessRating)}
+                            </div>
+                            <div>
+                              <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>Condition</p>
+                              {renderStars(review.conditionRating)}
+                            </div>
+                          </div>
+                        )}
+
+                        {review.comment && (
+                          <div style={{ background: 'white', padding: '1rem', borderRadius: '0.375rem', border: '1px solid #E5E7EB' }}>
+                            <p style={{ fontStyle: 'italic', color: '#374151' }}>"{review.comment}"</p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showUserReviewsModal && (
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '1rem' }}>
+            <div style={{ background: 'white', borderRadius: '0.5rem', maxWidth: '48rem', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
+              <div style={{ padding: '1.5rem', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>
+                  {userReviewsType === 'view_customer_reviews' && 'Customer Reviews Received'}
+                  {userReviewsType === 'view_customer_given_reviews' && 'Customer Reviews Given'}
+                  {userReviewsType === 'view_driver_reviews' && 'Driver Reviews Received'}
+                  {userReviewsType === 'view_driver_given_reviews' && 'Driver Reviews Given'}
+                </h2>
+                <button onClick={() => setShowUserReviewsModal(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
+              </div>
+              <div style={{ padding: '1.5rem' }}>
+                {userReviews.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '3rem', color: '#6B7280' }}>
+                    <p style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📝</p>
+                    <p>No reviews found</p>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    {userReviews.map((review, idx) => (
+                      <div key={idx} style={{ border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1rem', background: '#F9FAFB' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.75rem' }}>
+                          <div>
+                            <p style={{ fontWeight: '600', color: '#1F2937' }}>
+                              {userReviewsType.includes('given') ? review.revieweeName : review.reviewerName}
+                            </p>
+                            <p style={{ fontSize: '0.75rem', color: '#6B7280', textTransform: 'capitalize' }}>
+                              {userReviewsType.includes('given') ? review.revieweeRole : review.reviewerRole}
+                            </p>
+                            {review.orderTitle && (
+                              <p style={{ fontSize: '0.75rem', color: '#6B7280', marginTop: '0.25rem' }}>
+                                Order: {review.orderTitle} ({review.orderNumber})
+                              </p>
+                            )}
+                          </div>
+                          <div style={{ textAlign: 'right' }}>
+                            {renderStars(review.rating)}
+                            <p style={{ fontSize: '0.75rem', color: '#6B7280', marginTop: '0.25rem' }}>
+                              {new Date(review.createdAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div style={{ marginBottom: '0.75rem' }}>
+                          <p style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+                            Review Type: {review.reviewType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                          </p>
                         </div>
 
                         {review.professionalismRating && (
