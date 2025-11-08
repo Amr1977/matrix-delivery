@@ -63,6 +63,7 @@ const initDatabase = async () => {
         rating DECIMAL(3,2) DEFAULT 5.00,
         completed_deliveries INTEGER DEFAULT 0,
         is_available BOOLEAN DEFAULT true,
+        is_verified BOOLEAN DEFAULT false,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
@@ -268,7 +269,21 @@ const initDatabase = async () => {
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_reviews_reviewer ON reviews(reviewer_id)`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_reviews_reviewee ON reviews(reviewee_id)`);
 
-    console.log('✅ PostgreSQL Database initialized');
+    // Recalculate ratings and completed deliveries for existing users
+    console.log('🔄 Recalculating user statistics...');
+    await pool.query(`
+      UPDATE users SET rating = COALESCE((
+        SELECT AVG(rating) FROM reviews WHERE reviewee_id = users.id
+      ), 5.0)
+    `);
+
+    await pool.query(`
+      UPDATE users SET completed_deliveries = (
+        SELECT COUNT(*) FROM orders WHERE assigned_driver_user_id = users.id AND status = 'delivered'
+      )
+    `);
+
+    console.log('✅ PostgreSQL Database initialized and user statistics recalculated');
   } catch (error) {
     console.error('❌ Database initialization error:', error);
     throw error;
@@ -668,7 +683,7 @@ app.post('/api/auth/login', async (req, res) => {
 app.get('/api/auth/me', verifyToken, async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, name, email, role, rating, completed_deliveries FROM users WHERE id = $1',
+      'SELECT id, name, email, role, rating, completed_deliveries, is_verified, created_at FROM users WHERE id = $1',
       [req.user.userId]
     );
 
@@ -683,11 +698,116 @@ app.get('/api/auth/me', verifyToken, async (req, res) => {
       email: user.email,
       role: user.role,
       rating: parseFloat(user.rating),
-      completedDeliveries: user.completed_deliveries
+      completedDeliveries: user.completed_deliveries,
+      isVerified: user.is_verified,
+      joinedAt: user.created_at
     });
   } catch (error) {
     console.error('Get user error:', error);
     res.status(500).json({ error: 'Failed to get user' });
+  }
+});
+
+// Verify user by email (for testing purposes)
+app.post('/api/auth/verify-user', async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    const result = await pool.query(
+      'UPDATE users SET is_verified = true WHERE LOWER(email) = LOWER($1) RETURNING id, name, email, role',
+      [email.trim()]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const user = result.rows[0];
+    console.log(`✅ User verified via API: ${user.email} (${user.role})`);
+
+    res.json({
+      success: true,
+      message: 'User verified successfully',
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    console.error('Verify user error:', error);
+    res.status(500).json({ error: 'Failed to verify user' });
+  }
+});
+
+// Get user reputation data
+app.get('/api/users/:id/reputation', verifyToken, async (req, res) => {
+  try {
+    const userResult = await pool.query(
+      'SELECT id, name, role, rating, completed_deliveries, is_verified, created_at FROM users WHERE id = $1',
+      [req.params.id]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const user = userResult.rows[0];
+
+    // Get review statistics
+    const reviewStatsResult = await pool.query(
+      `SELECT
+        COUNT(*) as total_reviews,
+        AVG(rating) as avg_rating,
+        COUNT(CASE WHEN rating >= 4 THEN 1 END) as positive_reviews,
+        COUNT(CASE WHEN rating <= 2 THEN 1 END) as negative_reviews
+       FROM reviews WHERE reviewee_id = $1`,
+      [req.params.id]
+    );
+
+    const reviewStats = reviewStatsResult.rows[0];
+
+    // Get recent reviews (last 10)
+    const recentReviewsResult = await pool.query(
+      `SELECT r.rating, r.comment, r.created_at, reviewer.name as reviewer_name
+       FROM reviews r
+       JOIN users reviewer ON r.reviewer_id = reviewer.id
+       WHERE r.reviewee_id = $1
+       ORDER BY r.created_at DESC LIMIT 10`,
+      [req.params.id]
+    );
+
+    res.json({
+      user: {
+        id: user.id,
+        name: user.name,
+        role: user.role,
+        rating: parseFloat(user.rating),
+        completedDeliveries: user.completed_deliveries,
+        isVerified: user.is_verified,
+        joinedAt: user.created_at
+      },
+      stats: {
+        totalReviews: parseInt(reviewStats.total_reviews),
+        averageRating: parseFloat(reviewStats.avg_rating) || 0,
+        positiveReviews: parseInt(reviewStats.positive_reviews),
+        negativeReviews: parseInt(reviewStats.negative_reviews)
+      },
+      recentReviews: recentReviewsResult.rows.map(review => ({
+        rating: review.rating,
+        comment: review.comment,
+        createdAt: review.created_at,
+        reviewerName: review.reviewer_name
+      }))
+    });
+  } catch (error) {
+    console.error('Get user reputation error:', error);
+    res.status(500).json({ error: 'Failed to get user reputation' });
   }
 });
 
@@ -822,7 +942,26 @@ app.get('/api/orders', verifyToken, async (req, res) => {
     let query, params;
 
     if (req.user.role === 'customer') {
-      query = `SELECT o.*, COALESCE(json_agg(json_build_object('userId', b.user_id, 'driverName', b.driver_name, 'bidPrice', b.bid_price, 'estimatedPickupTime', b.estimated_pickup_time, 'estimatedDeliveryTime', b.estimated_delivery_time, 'message', b.message, 'status', b.status, 'createdAt', b.created_at) ORDER BY b.created_at DESC) FILTER (WHERE b.id IS NOT NULL), '[]') as bids FROM orders o LEFT JOIN bids b ON o.id = b.order_id WHERE o.customer_id = $1 GROUP BY o.id ORDER BY o.created_at DESC`;
+      query = `SELECT o.*,
+               COALESCE(json_agg(json_build_object(
+                 'userId', b.user_id,
+                 'driverName', b.driver_name,
+                 'bidPrice', b.bid_price,
+                 'estimatedPickupTime', b.estimated_pickup_time,
+                 'estimatedDeliveryTime', b.estimated_delivery_time,
+                 'message', b.message,
+                 'status', b.status,
+                 'createdAt', b.created_at,
+                 'driverRating', u.rating,
+                 'driverCompletedDeliveries', u.completed_deliveries,
+                 'driverIsVerified', u.is_verified,
+                 'driverJoinedAt', u.created_at
+               ) ORDER BY b.created_at DESC) FILTER (WHERE b.id IS NOT NULL), '[]') as bids
+               FROM orders o
+               LEFT JOIN bids b ON o.id = b.order_id
+               LEFT JOIN users u ON b.user_id = u.id
+               WHERE o.customer_id = $1
+               GROUP BY o.id ORDER BY o.created_at DESC`;
       params = [req.user.userId];
     } else if (req.user.role === 'driver') {
       // First get driver's location
@@ -842,12 +981,14 @@ app.get('/api/orders', verifyToken, async (req, res) => {
       // Get active orders first (assigned or bid on)
       const activeOrdersQuery = `
         SELECT o.*,
-               COALESCE(json_agg(json_build_object('userId', b.user_id, 'driverName', b.driver_name, 'bidPrice', b.bid_price, 'estimatedPickupTime', b.estimated_pickup_time, 'estimatedDeliveryTime', b.estimated_delivery_time, 'message', b.message, 'status', b.status, 'createdAt', b.created_at) ORDER BY b.created_at DESC) FILTER (WHERE b.id IS NOT NULL), '[]') as bids
+               COALESCE(json_agg(json_build_object('userId', b.user_id, 'driverName', b.driver_name, 'bidPrice', b.bid_price, 'estimatedPickupTime', b.estimated_pickup_time, 'estimatedDeliveryTime', b.estimated_delivery_time, 'message', b.message, 'status', b.status, 'createdAt', b.created_at) ORDER BY b.created_at DESC) FILTER (WHERE b.id IS NOT NULL), '[]') as bids,
+               u.rating as customerRating, u.completed_deliveries as customerCompletedOrders, u.is_verified as customerIsVerified, u.created_at as customerJoinedAt
         FROM orders o
         LEFT JOIN bids b ON o.id = b.order_id
+        LEFT JOIN users u ON o.customer_id = u.id
         WHERE (o.assigned_driver_user_id = $1 OR EXISTS (SELECT 1 FROM bids WHERE order_id = o.id AND user_id = $1))
         AND o.status != 'delivered' AND o.status != 'cancelled'
-        GROUP BY o.id
+        GROUP BY o.id, u.rating, u.completed_deliveries, u.is_verified, u.created_at
         ORDER BY o.created_at DESC
       `;
       const activeOrdersResult = await pool.query(activeOrdersQuery, [req.user.userId]);
@@ -1493,7 +1634,8 @@ app.post('/api/orders/:id/review', verifyToken, async (req, res) => {
 
     if (revieweeId) {
       const ratingsResult = await client.query('SELECT AVG(rating) as avg_rating FROM reviews WHERE reviewee_id = $1', [revieweeId]);
-      const newRating = parseFloat(ratingsResult.rows[0].avg_rating);
+      const avgRating = ratingsResult.rows[0].avg_rating;
+      const newRating = avgRating ? parseFloat(avgRating) : 5.0; // Default to 5.0 if no reviews
       await client.query('UPDATE users SET rating = $1 WHERE id = $2', [newRating, revieweeId]);
       await createNotification(revieweeId, order.id, 'new_review', 'New Review Received', `You received a ${rating}-star review for order ${order.order_number}`);
     }

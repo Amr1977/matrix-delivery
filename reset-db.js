@@ -43,6 +43,7 @@ async function resetDatabase() {
         rating DECIMAL(3,2) DEFAULT 5.00,
         completed_deliveries INTEGER DEFAULT 0,
         is_available BOOLEAN DEFAULT true,
+        is_verified BOOLEAN DEFAULT false,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
