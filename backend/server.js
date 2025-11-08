@@ -38,7 +38,7 @@ app.options('*', cors(corsOptions));
 // PostgreSQL Connection Pool
 const pool = new Pool({
   host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 5432,
+   port: process.env.DB_PORT || 5432,
   database: IS_TEST ? (process.env.DB_NAME_TEST || 'matrix_delivery_test') : (process.env.DB_NAME || 'matrix_delivery'),
   user: process.env.DB_USER || 'postgres',
   password: process.env.DB_PASSWORD || 'postgres',
@@ -1944,14 +1944,64 @@ app.get('/api/locations/countries', async (req, res) => {
   }
 });
 
-// Get cities for a country
+// Get cities for a country (hybrid: database + Nominatim API fallback)
 app.get('/api/locations/countries/:country/cities', async (req, res) => {
   try {
-    const result = await pool.query(
+    // First try to get from database
+    const dbResult = await pool.query(
       'SELECT DISTINCT city FROM locations WHERE country = $1 ORDER BY city',
       [req.params.country]
     );
-    res.json(result.rows.map(row => row.city));
+
+    if (dbResult.rows.length > 0) {
+      res.json(dbResult.rows.map(row => row.city));
+      return;
+    }
+
+    // Fallback to Nominatim API for worldwide coverage
+    console.log(`🌍 Fetching cities for ${req.params.country} from Nominatim API...`);
+
+    const nominatimUrl = `https://nominatim.openstreetmap.org/search?country=${encodeURIComponent(req.params.country)}&format=json&addressdetails=1&limit=50&dedupe=1&type=city`;
+
+    const response = await fetch(nominatimUrl, {
+      headers: {
+        'User-Agent': 'Matrix-Delivery-App/1.0'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Nominatim API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const cities = [...new Set(data
+      .filter(item => item.address && (item.address.city || item.address.town || item.address.village))
+      .map(item => item.address.city || item.address.town || item.address.village)
+    )].sort();
+
+    // Cache the results in database for future use
+    if (cities.length > 0) {
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        for (const city of cities.slice(0, 100)) { // Increased limit to 100 cities
+          await client.query(
+            'INSERT INTO locations (country, city, area, street) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING',
+            [req.params.country, city, 'Unknown', 'Unknown']
+          );
+        }
+        await client.query('COMMIT');
+        console.log(`✅ Cached ${cities.slice(0, 100).length} cities for ${req.params.country}`);
+      } catch (cacheError) {
+        await client.query('ROLLBACK');
+        console.log('Cache error (non-critical):', cacheError.message);
+      } finally {
+        client.release();
+      }
+    }
+
+    res.json(cities);
+
   } catch (error) {
     console.error('Get cities error:', error);
     res.status(500).json({ error: 'Failed to get cities' });
@@ -1961,11 +2011,61 @@ app.get('/api/locations/countries/:country/cities', async (req, res) => {
 // Get areas for a country and city
 app.get('/api/locations/countries/:country/cities/:city/areas', async (req, res) => {
   try {
-    const result = await pool.query(
+    // First try to get from database
+    const dbResult = await pool.query(
       'SELECT DISTINCT area FROM locations WHERE country = $1 AND city = $2 ORDER BY area',
       [req.params.country, req.params.city]
     );
-    res.json(result.rows.map(row => row.area));
+
+    if (dbResult.rows.length > 0) {
+      res.json(dbResult.rows.map(row => row.area));
+      return;
+    }
+
+    // Fallback to Nominatim API
+    console.log(`🌍 Fetching areas for ${req.params.city}, ${req.params.country} from Nominatim API...`);
+
+    const nominatimUrl = `https://nominatim.openstreetmap.org/search?city=${encodeURIComponent(req.params.city)}&country=${encodeURIComponent(req.params.country)}&format=json&addressdetails=1&limit=50&dedupe=1`;
+
+    const response = await fetch(nominatimUrl, {
+      headers: {
+        'User-Agent': 'Matrix-Delivery-App/1.0'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Nominatim API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const areas = [...new Set(data
+      .filter(item => item.address && (item.address.suburb || item.address.neighbourhood || item.address.district))
+      .map(item => item.address.suburb || item.address.neighbourhood || item.address.district)
+    )].sort();
+
+    // Cache the results in database for future use
+    if (areas.length > 0) {
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        for (const area of areas.slice(0, 50)) {
+          await client.query(
+            'INSERT INTO locations (country, city, area, street) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING',
+            [req.params.country, req.params.city, area, 'Unknown']
+          );
+        }
+        await client.query('COMMIT');
+        console.log(`✅ Cached ${areas.slice(0, 50).length} areas for ${req.params.city}`);
+      } catch (cacheError) {
+        await client.query('ROLLBACK');
+        console.log('Cache error (non-critical):', cacheError.message);
+      } finally {
+        client.release();
+      }
+    }
+
+    res.json(areas);
+
   } catch (error) {
     console.error('Get areas error:', error);
     res.status(500).json({ error: 'Failed to get areas' });
@@ -1975,11 +2075,61 @@ app.get('/api/locations/countries/:country/cities/:city/areas', async (req, res)
 // Get streets for a country, city, and area
 app.get('/api/locations/countries/:country/cities/:city/areas/:area/streets', async (req, res) => {
   try {
-    const result = await pool.query(
-      'SELECT street FROM locations WHERE country = $1 AND city = $2 AND area = $3 ORDER BY street',
+    // First try to get from database
+    const dbResult = await pool.query(
+      'SELECT DISTINCT street FROM locations WHERE country = $1 AND city = $2 AND area = $3 ORDER BY street',
       [req.params.country, req.params.city, req.params.area]
     );
-    res.json(result.rows.map(row => row.street));
+
+    if (dbResult.rows.length > 0) {
+      res.json(dbResult.rows.map(row => row.street));
+      return;
+    }
+
+    // Fallback to Nominatim API
+    console.log(`🌍 Fetching streets for ${req.params.area}, ${req.params.city}, ${req.params.country} from Nominatim API...`);
+
+    const nominatimUrl = `https://nominatim.openstreetmap.org/search?city=${encodeURIComponent(req.params.city)}&country=${encodeURIComponent(req.params.country)}&format=json&addressdetails=1&limit=50&dedupe=1`;
+
+    const response = await fetch(nominatimUrl, {
+      headers: {
+        'User-Agent': 'Matrix-Delivery-App/1.0'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Nominatim API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const streets = [...new Set(data
+      .filter(item => item.address && (item.address.road || item.address.street || item.address.pedestrian))
+      .map(item => item.address.road || item.address.street || item.address.pedestrian)
+    )].sort();
+
+    // Cache the results in database for future use
+    if (streets.length > 0) {
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        for (const street of streets.slice(0, 50)) {
+          await client.query(
+            'INSERT INTO locations (country, city, area, street) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING',
+            [req.params.country, req.params.city, req.params.area, street]
+          );
+        }
+        await client.query('COMMIT');
+        console.log(`✅ Cached ${streets.slice(0, 50).length} streets for ${req.params.area}`);
+      } catch (cacheError) {
+        await client.query('ROLLBACK');
+        console.log('Cache error (non-critical):', cacheError.message);
+      } finally {
+        client.release();
+      }
+    }
+
+    res.json(streets);
+
   } catch (error) {
     console.error('Get streets error:', error);
     res.status(500).json({ error: 'Failed to get streets' });
