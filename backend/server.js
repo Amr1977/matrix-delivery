@@ -277,10 +277,18 @@ const initDatabase = async () => {
       ), 5.0)
     `);
 
+    // For drivers: count delivered orders where they were the assigned driver
     await pool.query(`
       UPDATE users SET completed_deliveries = (
         SELECT COUNT(*) FROM orders WHERE assigned_driver_user_id = users.id AND status = 'delivered'
-      )
+      ) WHERE role = 'driver'
+    `);
+
+    // For customers: count delivered orders they created
+    await pool.query(`
+      UPDATE users SET completed_deliveries = (
+        SELECT COUNT(*) FROM orders WHERE customer_id = users.id AND status = 'delivered'
+      ) WHERE role = 'customer'
     `);
 
     console.log('✅ PostgreSQL Database initialized and user statistics recalculated');
@@ -998,12 +1006,16 @@ app.get('/api/orders', verifyToken, async (req, res) => {
       // Get bidding orders (pending_bids) - no distance filtering
       const biddingOrdersQuery = `
         SELECT o.*,
-               COALESCE(json_agg(json_build_object('userId', b.user_id, 'driverName', b.driver_name, 'bidPrice', b.bid_price, 'estimatedPickupTime', b.estimated_pickup_time, 'estimatedDeliveryTime', b.estimated_delivery_time, 'message', b.message, 'status', b.status, 'createdAt', b.created_at) ORDER BY b.created_at DESC) FILTER (WHERE b.id IS NOT NULL), '[]') as bids
+               COALESCE(json_agg(json_build_object('userId', b.user_id, 'driverName', b.driver_name, 'bidPrice', b.bid_price, 'estimatedPickupTime', b.estimated_pickup_time, 'estimatedDeliveryTime', b.estimated_delivery_time, 'message', b.message, 'status', b.status, 'createdAt', b.created_at) ORDER BY b.created_at DESC) FILTER (WHERE b.id IS NOT NULL), '[]') as bids,
+               u.rating as customerRating, u.completed_deliveries as customerCompletedOrders, u.is_verified as customerIsVerified, u.created_at as customerJoinedAt,
+               (SELECT COUNT(*) FROM reviews WHERE reviewee_id = u.id) as customerReviewCount,
+               (SELECT COUNT(*) FROM reviews WHERE reviewer_id = u.id) as customerGivenReviewCount
         FROM orders o
         LEFT JOIN bids b ON o.id = b.order_id
+        LEFT JOIN users u ON o.customer_id = u.id
         WHERE o.status = 'pending_bids'
         AND NOT EXISTS (SELECT 1 FROM bids WHERE order_id = o.id AND user_id = $1)
-        GROUP BY o.id
+        GROUP BY o.id, u.rating, u.completed_deliveries, u.is_verified, u.created_at, u.id
         ORDER BY o.created_at DESC
       `;
       const biddingOrdersResult = await pool.query(biddingOrdersQuery, [req.user.userId]);
@@ -1047,6 +1059,13 @@ app.get('/api/orders', verifyToken, async (req, res) => {
         isActiveOrder: order.isActiveOrder,
         isBiddingOrder: order.isBiddingOrder,
         isHistoryOrder: order.isHistoryOrder,
+        // Customer reputation data
+        customerRating: order.customerrating ? parseFloat(order.customerrating) : 5.0,
+        customerCompletedOrders: order.customercompletedorders || 0,
+        customerIsVerified: order.customerisverified || false,
+        customerJoinedAt: order.customerjoinedat,
+        customerReviewCount: parseInt(order.customerreviewcount) || 0,
+        customerGivenReviewCount: parseInt(order.customergivenreviewcount) || 0,
         createdAt: order.created_at, acceptedAt: order.accepted_at, pickedUpAt: order.picked_up_at, deliveredAt: order.delivered_at
       }));
 
