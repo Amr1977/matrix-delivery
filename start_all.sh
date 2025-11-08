@@ -53,7 +53,7 @@ install_deps frontend "Frontend"
 # Start Backend
 echo "🔧 Starting Backend Server..."
 cd backend
-export NODE_ENV=production
+export NODE_ENV=development
 nohup node server.js > ../logs/backend.log 2>&1 &
 BACKEND_PID=$!
 echo "✅ Backend PID: $BACKEND_PID"
