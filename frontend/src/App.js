@@ -5,6 +5,636 @@ import 'leaflet/dist/leaflet.css';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { Polyline } from 'react-leaflet';
 import io from 'socket.io-client';
+import { useForm, Controller } from 'react-hook-form';
+
+// Order Creation Form Component using React Hook Form - moved outside to prevent re-creation
+const OrderCreationForm = React.memo(({ onSubmit, countries }) => {
+  const onSubmitRef = React.useRef(onSubmit);
+  const [internalLoading, setInternalLoading] = React.useState(false);
+  const [internalCountries, setInternalCountries] = React.useState(countries);
+
+  // Update refs and internal state when props change
+  React.useEffect(() => {
+    onSubmitRef.current = onSubmit;
+  }, [onSubmit]);
+
+  React.useEffect(() => {
+    setInternalCountries(countries);
+  }, [countries]);
+
+  const { register, handleSubmit, control, formState: { errors }, watch, setValue, reset } = useForm({
+    defaultValues: {
+      title: '',
+      description: '',
+      package_description: '',
+      package_weight: '',
+      estimated_value: '',
+      special_instructions: '',
+      estimated_delivery_date: '',
+      price: '',
+      pickup_country: '',
+      pickup_city: '',
+      pickup_area: '',
+      pickup_street: '',
+      pickup_building: '',
+      pickup_floor: '',
+      pickup_apartment: '',
+      pickup_personName: '',
+      dropoff_country: '',
+      dropoff_city: '',
+      dropoff_area: '',
+      dropoff_street: '',
+      dropoff_building: '',
+      dropoff_floor: '',
+      dropoff_apartment: '',
+      dropoff_personName: ''
+    },
+    mode: 'onBlur', // Use onBlur to prevent excessive re-renders
+    shouldUnregister: false, // Keep form values even when fields are unmounted
+    reValidateMode: 'onBlur' // Only re-validate on blur
+  });
+
+  const onFormSubmit = async (data) => {
+    setInternalLoading(true);
+    try {
+      // Transform the flat form data into the nested structure expected by the API
+      const orderData = {
+        title: data.title,
+        description: data.description,
+        package_description: data.package_description,
+        package_weight: data.package_weight ? parseFloat(data.package_weight) : null,
+        estimated_value: data.estimated_value ? parseFloat(data.estimated_value) : null,
+        special_instructions: data.special_instructions,
+        estimated_delivery_date: data.estimated_delivery_date || null,
+        price: parseFloat(data.price),
+        pickup_country: data.pickup_country,
+        pickup_city: data.pickup_city,
+        pickup_area: data.pickup_area,
+        pickup_street: data.pickup_street,
+        pickup_building: data.pickup_building,
+        pickup_floor: data.pickup_floor,
+        pickup_apartment: data.pickup_apartment,
+        pickup_personName: data.pickup_personName,
+        dropoff_country: data.dropoff_country,
+        dropoff_city: data.dropoff_city,
+        dropoff_area: data.dropoff_area,
+        dropoff_street: data.dropoff_street,
+        dropoff_building: data.dropoff_building,
+        dropoff_floor: data.dropoff_floor,
+        dropoff_apartment: data.dropoff_apartment,
+        dropoff_personName: data.dropoff_personName
+      };
+
+      await onSubmitRef.current(orderData);
+    } finally {
+      setInternalLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ background: 'white', borderRadius: '0.5rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)', padding: '1.5rem', marginBottom: '1.5rem' }}>
+      <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem' }}>Create New Delivery Order</h2>
+
+      <form onSubmit={handleSubmit(onFormSubmit)} autoComplete="off">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1rem' }}>
+          {/* Basic Order Info */}
+          <div style={{ display: 'grid', gap: '1rem' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+                Order Title *
+              </label>
+              <input
+                {...register('title', { required: 'Order title is required' })}
+                type="text"
+                placeholder="Order Title"
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  border: errors.title ? '1px solid #EF4444' : '1px solid #D1D5DB',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.875rem'
+                }}
+              />
+              {errors.title && <p style={{ color: '#EF4444', fontSize: '0.75rem', marginTop: '0.25rem' }}>{errors.title.message}</p>}
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+                Description
+              </label>
+              <textarea
+                {...register('description')}
+                placeholder="Description (optional)"
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  border: '1px solid #D1D5DB',
+                  borderRadius: '0.375rem',
+                  minHeight: '100px',
+                  fontSize: '0.875rem',
+                  resize: 'vertical'
+                }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+                Package Description
+              </label>
+              <textarea
+                {...register('package_description')}
+                placeholder="Package Description"
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  border: '1px solid #D1D5DB',
+                  borderRadius: '0.375rem',
+                  minHeight: '80px',
+                  fontSize: '0.875rem',
+                  resize: 'vertical'
+                }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+                Special Instructions
+              </label>
+              <textarea
+                {...register('special_instructions')}
+                placeholder="Special Instructions (optional)"
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  border: '1px solid #D1D5DB',
+                  borderRadius: '0.375rem',
+                  minHeight: '60px',
+                  fontSize: '0.875rem',
+                  resize: 'vertical'
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Detailed Package & Pricing Info */}
+          <div style={{ display: 'grid', gap: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+                  Package Weight (kg)
+                </label>
+                <input
+                  {...register('package_weight')}
+                  type="number"
+                  placeholder="0.0"
+                  step="0.1"
+                  min="0"
+                  style={{
+                    width: '100%',
+                    padding: '0.5rem',
+                    border: '1px solid #D1D5DB',
+                    borderRadius: '0.375rem',
+                    fontSize: '0.875rem'
+                  }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+                  Estimated Value ($)
+                </label>
+                <input
+                  {...register('estimated_value')}
+                  type="number"
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0"
+                  style={{
+                    width: '100%',
+                    padding: '0.5rem',
+                    border: '1px solid #D1D5DB',
+                    borderRadius: '0.375rem',
+                    fontSize: '0.875rem'
+                  }}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+                Estimated Delivery Date
+              </label>
+              <input
+                {...register('estimated_delivery_date')}
+                type="datetime-local"
+                style={{
+                  width: '100%',
+                  padding: '0.5rem',
+                  border: '1px solid #D1D5DB',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.875rem'
+                }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+                Offered Price ($) *
+              </label>
+              <input
+                {...register('price', { required: 'Price is required' })}
+                type="number"
+                placeholder="Enter price"
+                step="0.01"
+                min="0"
+                required
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  border: errors.price ? '1px solid #EF4444' : '1px solid #D1D5DB',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.875rem',
+                  fontWeight: '600'
+                }}
+              />
+              {errors.price && <p style={{ color: '#EF4444', fontSize: '0.75rem', marginTop: '0.25rem' }}>{errors.price.message}</p>}
+            </div>
+
+            <button
+              type="submit"
+              disabled={internalLoading}
+              style={{
+                width: '100%',
+                background: '#10B981',
+                color: 'white',
+                padding: '0.75rem',
+                borderRadius: '0.375rem',
+                fontWeight: '600',
+                border: 'none',
+                cursor: internalLoading ? 'not-allowed' : 'pointer',
+                opacity: internalLoading ? 0.5 : 1
+              }}
+            >
+              {internalLoading ? 'Publishing Order...' : '📦 Publish Order'}
+            </button>
+          </div>
+        </div>
+
+        {/* Location Sections */}
+        <div style={{ marginTop: '2rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+            {/* Pickup Location */}
+            <div style={{
+              border: '1px solid #E5E7EB',
+              borderRadius: '0.75rem',
+              padding: '1.5rem',
+              background: 'white'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                <span style={{ fontSize: '1.25rem' }}>📤</span>
+                <h4 style={{
+                  fontSize: '1.25rem',
+                  fontWeight: '700',
+                  color: '#1F2937',
+                  margin: 0
+                }}>
+                  Pickup Location
+                </h4>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+                    Country *
+                  </label>
+                  <select
+                    {...register('pickup_country', { required: 'Pickup country is required' })}
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem',
+                      border: errors.pickup_country ? '1px solid #EF4444' : '1px solid #D1D5DB',
+                      borderRadius: '0.375rem',
+                      fontSize: '0.875rem',
+                      background: 'white'
+                    }}
+                  >
+                    <option value="">Select Country</option>
+                    {countries.map(country => (
+                      <option key={country} value={country}>{country}</option>
+                    ))}
+                  </select>
+                  {errors.pickup_country && <p style={{ color: '#EF4444', fontSize: '0.75rem', marginTop: '0.25rem' }}>{errors.pickup_country.message}</p>}
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+                    City *
+                  </label>
+                  <input
+                    {...register('pickup_city', { required: 'Pickup city is required' })}
+                    type="text"
+                    placeholder="Enter city"
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem',
+                      border: errors.pickup_city ? '1px solid #EF4444' : '1px solid #D1D5DB',
+                      borderRadius: '0.375rem',
+                      fontSize: '0.875rem'
+                    }}
+                  />
+                  {errors.pickup_city && <p style={{ color: '#EF4444', fontSize: '0.75rem', marginTop: '0.25rem' }}>{errors.pickup_city.message}</p>}
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+                    Area
+                  </label>
+                  <input
+                    {...register('pickup_area')}
+                    type="text"
+                    placeholder="Enter area"
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem',
+                      border: '1px solid #D1D5DB',
+                      borderRadius: '0.375rem',
+                      fontSize: '0.875rem'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+                    Street
+                  </label>
+                  <input
+                    {...register('pickup_street')}
+                    type="text"
+                    placeholder="Enter street"
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem',
+                      border: '1px solid #D1D5DB',
+                      borderRadius: '0.375rem',
+                      fontSize: '0.875rem'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+                    Building
+                  </label>
+                  <input
+                    {...register('pickup_building')}
+                    type="text"
+                    placeholder="Building #"
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem',
+                      border: '1px solid #D1D5DB',
+                      borderRadius: '0.375rem',
+                      fontSize: '0.875rem'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+                    Floor
+                  </label>
+                  <input
+                    {...register('pickup_floor')}
+                    type="text"
+                    placeholder="Floor"
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem',
+                      border: '1px solid #D1D5DB',
+                      borderRadius: '0.375rem',
+                      fontSize: '0.875rem'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+                    Apartment
+                  </label>
+                  <input
+                    {...register('pickup_apartment')}
+                    type="text"
+                    placeholder="Apt #"
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem',
+                      border: '1px solid #D1D5DB',
+                      borderRadius: '0.375rem',
+                      fontSize: '0.875rem'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+                    Contact Name *
+                  </label>
+                  <input
+                    {...register('pickup_personName', { required: 'Pickup contact name is required' })}
+                    type="text"
+                    placeholder="Contact person"
+                    required
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem',
+                      border: errors.pickup_personName ? '1px solid #EF4444' : '1px solid #D1D5DB',
+                      borderRadius: '0.375rem',
+                      fontSize: '0.875rem'
+                    }}
+                  />
+                  {errors.pickup_personName && <p style={{ color: '#EF4444', fontSize: '0.75rem', marginTop: '0.25rem' }}>{errors.pickup_personName.message}</p>}
+                </div>
+              </div>
+            </div>
+
+            {/* Delivery Location */}
+            <div style={{
+              border: '1px solid #E5E7EB',
+              borderRadius: '0.75rem',
+              padding: '1.5rem',
+              background: 'white'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                <span style={{ fontSize: '1.25rem' }}>📥</span>
+                <h4 style={{
+                  fontSize: '1.25rem',
+                  fontWeight: '700',
+                  color: '#1F2937',
+                  margin: 0
+                }}>
+                  Delivery Location
+                </h4>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+                    Country *
+                  </label>
+                  <select
+                    {...register('dropoff_country', { required: 'Delivery country is required' })}
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem',
+                      border: errors.dropoff_country ? '1px solid #EF4444' : '1px solid #D1D5DB',
+                      borderRadius: '0.375rem',
+                      fontSize: '0.875rem',
+                      background: 'white'
+                    }}
+                  >
+                    <option value="">Select Country</option>
+                    {countries.map(country => (
+                      <option key={country} value={country}>{country}</option>
+                    ))}
+                  </select>
+                  {errors.dropoff_country && <p style={{ color: '#EF4444', fontSize: '0.75rem', marginTop: '0.25rem' }}>{errors.dropoff_country.message}</p>}
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+                    City *
+                  </label>
+                  <input
+                    {...register('dropoff_city', { required: 'Delivery city is required' })}
+                    type="text"
+                    placeholder="Enter city"
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem',
+                      border: errors.dropoff_city ? '1px solid #EF4444' : '1px solid #D1D5DB',
+                      borderRadius: '0.375rem',
+                      fontSize: '0.875rem'
+                    }}
+                  />
+                  {errors.dropoff_city && <p style={{ color: '#EF4444', fontSize: '0.75rem', marginTop: '0.25rem' }}>{errors.dropoff_city.message}</p>}
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+                    Area
+                  </label>
+                  <input
+                    {...register('dropoff_area')}
+                    type="text"
+                    placeholder="Enter area"
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem',
+                      border: '1px solid #D1D5DB',
+                      borderRadius: '0.375rem',
+                      fontSize: '0.875rem'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+                    Street
+                  </label>
+                  <input
+                    {...register('dropoff_street')}
+                    type="text"
+                    placeholder="Enter street"
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem',
+                      border: '1px solid #D1D5DB',
+                      borderRadius: '0.375rem',
+                      fontSize: '0.875rem'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+                    Building
+                  </label>
+                  <input
+                    {...register('dropoff_building')}
+                    type="text"
+                    placeholder="Building #"
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem',
+                      border: '1px solid #D1D5DB',
+                      borderRadius: '0.375rem',
+                      fontSize: '0.875rem'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+                    Floor
+                  </label>
+                  <input
+                    {...register('dropoff_floor')}
+                    type="text"
+                    placeholder="Floor"
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem',
+                      border: '1px solid #D1D5DB',
+                      borderRadius: '0.375rem',
+                      fontSize: '0.875rem'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+                    Apartment
+                  </label>
+                  <input
+                    {...register('dropoff_apartment')}
+                    type="text"
+                    placeholder="Apt #"
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem',
+                      border: '1px solid #D1D5DB',
+                      borderRadius: '0.375rem',
+                      fontSize: '0.875rem'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+                    Contact Name *
+                  </label>
+                  <input
+                    {...register('dropoff_personName', { required: 'Delivery contact name is required' })}
+                    type="text"
+                    placeholder="Contact person"
+                    required
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem',
+                      border: errors.dropoff_personName ? '1px solid #EF4444' : '1px solid #D1D5DB',
+                      borderRadius: '0.375rem',
+                      fontSize: '0.875rem'
+                    }}
+                  />
+                  {errors.dropoff_personName && <p style={{ color: '#EF4444', fontSize: '0.75rem', marginTop: '0.25rem' }}>{errors.dropoff_personName.message}</p>}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  );
+});
 
 // Location data state and API functions
 const DeliveryApp = () => {
@@ -83,457 +713,7 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
 
 
 
-  // Enhanced Address Form Component with Map Integration
-  const EnhancedAddressForm = React.memo(({ type, onChange }) => {
-    const isPickup = type === 'Pickup';
-    const locationKey = isPickup ? 'pickupLocation' : 'dropoffLocation';
 
-    // Local state for this form
-    const [searchQuery, setSearchQuery] = React.useState('');
-    const [showMap, setShowMap] = React.useState(false);
-    const [mapCenter, setMapCenter] = React.useState([40.7128, -74.0060]); // Default NYC
-    const [mapZoom, setMapZoom] = React.useState(13);
-    const [localMarker, setLocalMarker] = React.useState(null);
-
-    // Get current form data
-    const currentData = formData[locationKey];
-    const currentAddress = currentData.address;
-    const currentCoordinates = currentData.coordinates;
-
-    // Get dropdown options
-    const availableCities = isPickup ? pickupCities : dropoffCities;
-    const availableAreas = isPickup ? pickupAreas : dropoffAreas;
-    const availableStreets = isPickup ? pickupStreets : dropoffStreets;
-    const searchResults = isPickup ? pickupSearchResults : dropoffSearchResults;
-
-    // Update parent when local changes occur
-    const updateParent = React.useCallback((updates) => {
-      onChange({
-        ...currentData,
-        ...updates
-      });
-    }, [currentData, onChange]);
-
-    // Handle search input
-    const handleSearchChange = React.useCallback((e) => {
-      const query = e.target.value;
-      setSearchQuery(query);
-      if (isPickup) {
-        setPickupSearchQuery(query);
-      } else {
-        setDropoffSearchQuery(query);
-      }
-      searchLocations(isPickup ? 'pickup' : 'dropoff', query);
-    }, [isPickup]);
-
-    // Handle map click
-    const handleMapClick = React.useCallback((latlng) => {
-      setLocalMarker(latlng);
-      handleMapClick(type, latlng);
-    }, [type]);
-
-    // Get current location
-    const handleUseCurrentLocation = React.useCallback(() => {
-      if (locationPermission === 'granted' && currentLocation) {
-        const coords = [currentLocation.coordinates.lat, currentLocation.coordinates.lng];
-        setLocalMarker(coords);
-        setMapCenter(coords);
-        setMapZoom(15);
-        updateParent({
-          coordinates: currentLocation.coordinates,
-          address: {
-            ...currentAddress,
-            ...currentLocation.address,
-            personName: currentUser?.name || currentAddress.personName
-          }
-        });
-      } else {
-        getCurrentLocation();
-      }
-    }, [locationPermission, currentLocation, currentAddress, currentUser, updateParent]);
-
-    // Initialize map center when coordinates change
-    React.useEffect(() => {
-      if (currentCoordinates?.lat && currentCoordinates?.lng) {
-        setMapCenter([currentCoordinates.lat, currentCoordinates.lng]);
-        setLocalMarker([currentCoordinates.lat, currentCoordinates.lng]);
-        setMapZoom(15);
-      }
-    }, [currentCoordinates]);
-
-    return (
-      <div style={{
-        border: '1px solid #E5E7EB',
-        borderRadius: '0.75rem',
-        padding: '1.5rem',
-        background: 'white',
-        boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
-          <span style={{ fontSize: '1.25rem' }}>{isPickup ? '📤' : '📥'}</span>
-          <h4 style={{
-            fontSize: '1.25rem',
-            fontWeight: '700',
-            color: '#1F2937',
-            margin: 0
-          }}>
-            {type} Location
-          </h4>
-        </div>
-
-        {/* Search Bar */}
-        <div style={{ marginBottom: '1rem' }}>
-          <div style={{ position: 'relative' }}>
-            <input
-              type="text"
-              placeholder={`Search for ${type.toLowerCase()} location...`}
-              value={searchQuery}
-              onChange={handleSearchChange}
-              style={{
-                width: '100%',
-                padding: '0.75rem 1rem',
-                paddingRight: '3rem',
-                border: '1px solid #D1D5DB',
-                borderRadius: '0.5rem',
-                fontSize: '0.875rem',
-                background: 'white'
-              }}
-            />
-            <button
-              onClick={handleUseCurrentLocation}
-              disabled={locationLoading}
-              style={{
-                position: 'absolute',
-                right: '0.5rem',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                background: 'none',
-                border: 'none',
-                cursor: locationLoading ? 'not-allowed' : 'pointer',
-                padding: '0.5rem',
-                borderRadius: '0.25rem',
-                color: locationPermission === 'granted' ? '#10B981' : '#6B7280'
-              }}
-              title="Use current location"
-            >
-              {locationLoading ? '⏳' : '📍'}
-            </button>
-          </div>
-
-          {/* Search Results */}
-          {searchResults.length > 0 && (
-            <div style={{
-              position: 'absolute',
-              top: '100%',
-              left: 0,
-              right: 0,
-              background: 'white',
-              border: '1px solid #D1D5DB',
-              borderRadius: '0.5rem',
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-              zIndex: 10,
-              maxHeight: '12rem',
-              overflowY: 'auto'
-            }}>
-              {searchResults.map((result, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => selectSearchResult(isPickup ? 'pickup' : 'dropoff', result)}
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem 1rem',
-                    border: 'none',
-                    background: 'none',
-                    textAlign: 'left',
-                    cursor: 'pointer',
-                    borderBottom: idx < searchResults.length - 1 ? '1px solid #F3F4F6' : 'none'
-                  }}
-                  onMouseEnter={(e) => e.target.style.background = '#F9FAFB'}
-                  onMouseLeave={(e) => e.target.style.background = 'none'}
-                >
-                  <div style={{ fontWeight: '600', fontSize: '0.875rem', color: '#1F2937' }}>
-                    {result.display_name || `${result.address.street || ''} ${result.address.city || ''}`.trim()}
-                  </div>
-                  <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>
-                    {result.address.city}, {result.address.country}
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Cascading Dropdowns */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
-          {/* Country */}
-          <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-              Country *
-            </label>
-            <select
-              value={currentAddress.country || ''}
-              onChange={(e) => handleCountryChange(isPickup ? 'pickup' : 'dropoff', e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                border: '1px solid #D1D5DB',
-                borderRadius: '0.375rem',
-                fontSize: '0.875rem',
-                background: 'white'
-              }}
-            >
-              <option value="">Select Country</option>
-              {countries.map(country => (
-                <option key={country} value={country}>{country}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* City */}
-          <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-              City *
-            </label>
-            <select
-              value={currentAddress.city || ''}
-              onChange={(e) => handleCityChange(isPickup ? 'pickup' : 'dropoff', e.target.value)}
-              disabled={!currentAddress.country}
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                border: '1px solid #D1D5DB',
-                borderRadius: '0.375rem',
-                fontSize: '0.875rem',
-                background: 'white',
-                opacity: !currentAddress.country ? 0.5 : 1
-              }}
-            >
-              <option value="">Select City</option>
-              {availableCities.map(city => (
-                <option key={city} value={city}>{city}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Area */}
-          <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-              Area
-            </label>
-            <select
-              value={currentAddress.area || ''}
-              onChange={(e) => handleAreaChange(isPickup ? 'pickup' : 'dropoff', e.target.value)}
-              disabled={!currentAddress.city}
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                border: '1px solid #D1D5DB',
-                borderRadius: '0.375rem',
-                fontSize: '0.875rem',
-                background: 'white',
-                opacity: !currentAddress.city ? 0.5 : 1
-              }}
-            >
-              <option value="">Select Area</option>
-              {availableAreas.map(area => (
-                <option key={area} value={area}>{area}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Street */}
-          <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-              Street
-            </label>
-            <select
-              value={currentAddress.street || ''}
-              onChange={(e) => handleStreetChange(isPickup ? 'pickup' : 'dropoff', e.target.value)}
-              disabled={!currentAddress.area}
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                border: '1px solid #D1D5DB',
-                borderRadius: '0.375rem',
-                fontSize: '0.875rem',
-                background: 'white',
-                opacity: !currentAddress.area ? 0.5 : 1
-              }}
-            >
-              <option value="">Select Street</option>
-              {availableStreets.map(street => (
-                <option key={street} value={street}>{street}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Address Details */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
-          <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-              Building
-            </label>
-            <input
-              type="text"
-              placeholder="Building #"
-              value={currentAddress.buildingNumber || ''}
-              onChange={(e) => updateParent({
-                address: { ...currentAddress, buildingNumber: e.target.value }
-              })}
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                border: '1px solid #D1D5DB',
-                borderRadius: '0.375rem',
-                fontSize: '0.875rem'
-              }}
-            />
-          </div>
-          <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-              Floor
-            </label>
-            <input
-              type="text"
-              placeholder="Floor"
-              value={currentAddress.floor || ''}
-              onChange={(e) => updateParent({
-                address: { ...currentAddress, floor: e.target.value }
-              })}
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                border: '1px solid #D1D5DB',
-                borderRadius: '0.375rem',
-                fontSize: '0.875rem'
-              }}
-            />
-          </div>
-          <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-              Apartment
-            </label>
-            <input
-              type="text"
-              placeholder="Apt #"
-              value={currentAddress.apartmentNumber || ''}
-              onChange={(e) => updateParent({
-                address: { ...currentAddress, apartmentNumber: e.target.value }
-              })}
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                border: '1px solid #D1D5DB',
-                borderRadius: '0.375rem',
-                fontSize: '0.875rem'
-              }}
-            />
-          </div>
-          <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-              Contact Name *
-            </label>
-            <input
-              type="text"
-              placeholder="Contact person"
-              value={currentAddress.personName || ''}
-              onChange={(e) => updateParent({
-                address: { ...currentAddress, personName: e.target.value }
-              })}
-              required
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                border: '1px solid #D1D5DB',
-                borderRadius: '0.375rem',
-                fontSize: '0.875rem'
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Map Toggle */}
-        <div style={{ marginBottom: '1rem' }}>
-          <button
-            onClick={() => setShowMap(!showMap)}
-            style={{
-              padding: '0.5rem 1rem',
-              background: showMap ? '#4F46E5' : '#F3F4F6',
-              color: showMap ? 'white' : '#374151',
-              border: 'none',
-              borderRadius: '0.375rem',
-              cursor: 'pointer',
-              fontSize: '0.875rem',
-              fontWeight: '500',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem'
-            }}
-          >
-            🗺️ {showMap ? 'Hide Map' : 'Show Map'}
-          </button>
-        </div>
-
-        {/* Interactive Map */}
-        {showMap && (
-          <div style={{
-            height: '300px',
-            borderRadius: '0.5rem',
-            overflow: 'hidden',
-            border: '1px solid #E5E7EB',
-            marginBottom: '1rem'
-          }}>
-            <MapContainer
-              center={mapCenter}
-              zoom={mapZoom}
-              style={{ height: '100%', width: '100%' }}
-            >
-              <TileLayer
-                attribution='&copy; OpenStreetMap contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
-              <LocationMarker
-                selectedPosition={localMarker}
-                setSelectedPosition={handleMapClick}
-              />
-            </MapContainer>
-          </div>
-        )}
-
-        {/* Coordinates Display */}
-        {currentCoordinates?.lat && currentCoordinates?.lng && (
-          <div style={{
-            padding: '0.75rem',
-            background: '#F0F9FF',
-            borderRadius: '0.375rem',
-            border: '1px solid #DBEAFE',
-            fontSize: '0.75rem',
-            color: '#1E40AF'
-          }}>
-            📍 Coordinates: {currentCoordinates.lat.toFixed(6)}, {currentCoordinates.lng.toFixed(6)}
-          </div>
-        )}
-
-        {/* Full Address Preview */}
-        {(currentAddress.street || currentAddress.city) && (
-          <div style={{
-            padding: '0.75rem',
-            background: '#F9FAFB',
-            borderRadius: '0.375rem',
-            border: '1px solid #E5E7EB',
-            fontSize: '0.875rem',
-            color: '#374151'
-          }}>
-            <strong>Address Preview:</strong><br />
-            {[currentAddress.buildingNumber, currentAddress.street, currentAddress.area, currentAddress.city, currentAddress.country]
-              .filter(Boolean)
-              .join(', ')}
-          </div>
-        )}
-      </div>
-    );
-  });
 
 
   // Live Tracking Map Component
@@ -688,7 +868,7 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
     timelinessRating: 0,
     conditionRating: 0
   });
-  
+
   const [authForm, setAuthForm] = useState({
     name: '',
     email: '',
@@ -1338,7 +1518,7 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
     }
   };
 
-  const handleCountryChange = (type, country) => {
+  const handleCountryChange = useCallback((type, country) => {
     const locationKey = type === 'pickup' ? 'pickupLocation' : 'dropoffLocation';
 
     setFormData(prev => ({
@@ -1366,27 +1546,29 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
       setDropoffAreas([]);
       setDropoffStreets([]);
     }
-  };
+  }, []);
 
-  const handleCityChange = (type, city) => {
+  const handleCityChange = useCallback((type, city) => {
     const locationKey = type === 'pickup' ? 'pickupLocation' : 'dropoffLocation';
-    const country = formData[locationKey].address.country;
 
-    setFormData(prev => ({
-      ...prev,
-      [locationKey]: {
-        ...prev[locationKey],
-        address: {
-          ...prev[locationKey].address,
-          city: city,
-          area: '',
-          street: ''
+    setFormData(prev => {
+      const country = prev[locationKey].address.country;
+      // Load areas for selected city
+      loadAreas(type, country, city);
+
+      return {
+        ...prev,
+        [locationKey]: {
+          ...prev[locationKey],
+          address: {
+            ...prev[locationKey].address,
+            city: city,
+            area: '',
+            street: ''
+          }
         }
-      }
-    }));
-
-    // Load areas for selected city
-    loadAreas(type, country, city);
+      };
+    });
 
     // Reset dependent dropdowns
     if (type === 'pickup') {
@@ -1394,30 +1576,32 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
     } else {
       setDropoffStreets([]);
     }
-  };
+  }, []);
 
-  const handleAreaChange = (type, area) => {
+  const handleAreaChange = useCallback((type, area) => {
     const locationKey = type === 'pickup' ? 'pickupLocation' : 'dropoffLocation';
-    const country = formData[locationKey].address.country;
-    const city = formData[locationKey].address.city;
 
-    setFormData(prev => ({
-      ...prev,
-      [locationKey]: {
-        ...prev[locationKey],
-        address: {
-          ...prev[locationKey].address,
-          area: area,
-          street: ''
+    setFormData(prev => {
+      const country = prev[locationKey].address.country;
+      const city = prev[locationKey].address.city;
+      // Load streets for selected area
+      loadStreets(type, country, city, area);
+
+      return {
+        ...prev,
+        [locationKey]: {
+          ...prev[locationKey],
+          address: {
+            ...prev[locationKey].address,
+            area: area,
+            street: ''
+          }
         }
-      }
-    }));
+      };
+    });
+  }, []);
 
-    // Load streets for selected area
-    loadStreets(type, country, city, area);
-  };
-
-  const handleStreetChange = (type, street) => {
+  const handleStreetChange = useCallback((type, street) => {
     const locationKey = type === 'pickup' ? 'pickupLocation' : 'dropoffLocation';
 
     setFormData(prev => ({
@@ -1430,7 +1614,7 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
         }
       }
     }));
-  };
+  }, []);
 
   const selectSearchResult = (type, result) => {
     const locationKey = type === 'pickup' ? 'pickupLocation' : 'dropoffLocation';
@@ -1633,15 +1817,21 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
     setError('');
   };
 
-  const handlePublishOrder = async (e) => {
-    e.preventDefault();
-
-    // Simplified validation for text area addresses
+  const handlePublishOrder = useCallback(async (orderData) => {
+    // Simplified validation for structured addresses
     const requiredFieldsError = [];
-    if (!formData.title) requiredFieldsError.push('Order title');
-    if (!formData.price) requiredFieldsError.push('Price');
-    if (!formData.pickupLocation.fullAddress?.trim()) requiredFieldsError.push('Pickup address');
-    if (!formData.dropoffLocation.fullAddress?.trim()) requiredFieldsError.push('Dropoff address');
+    if (!orderData.title) requiredFieldsError.push('Order title');
+    if (!orderData.price) requiredFieldsError.push('Price');
+
+    // Check pickup location
+    if (!orderData.pickup_country || !orderData.pickup_city || !orderData.pickup_personName) {
+      requiredFieldsError.push('Pickup location (country, city, contact name)');
+    }
+
+    // Check dropoff location
+    if (!orderData.dropoff_country || !orderData.dropoff_city || !orderData.dropoff_personName) {
+      requiredFieldsError.push('Delivery location (country, city, contact name)');
+    }
 
     if (requiredFieldsError.length > 0) {
       setError(`Please fill all required fields: ${requiredFieldsError.join(', ')}`);
@@ -1654,48 +1844,42 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
     try {
       // Build the new structured order data
       const newOrder = {
-        title: formData.title,
-        description: formData.description,
+        title: orderData.title,
+        description: orderData.description,
         // New structured location data for pickup
         pickupLocation: {
-          coordinates: {
-            lat: parseFloat(formData.pickupLocation.coordinates.lat),
-            lng: parseFloat(formData.pickupLocation.coordinates.lng)
-          },
+          coordinates: { lat: 40.7128, lng: -74.0060 }, // Default coordinates
           address: {
-            country: formData.pickupLocation.address.country,
-            city: formData.pickupLocation.address.city,
-            area: formData.pickupLocation.address.area,
-            street: formData.pickupLocation.address.street,
-            buildingNumber: formData.pickupLocation.address.buildingNumber || '',
-            floor: formData.pickupLocation.address.floor || '',
-            apartmentNumber: formData.pickupLocation.address.apartmentNumber || '',
-            personName: formData.pickupLocation.address.personName
+            country: orderData.pickup_country,
+            city: orderData.pickup_city,
+            area: orderData.pickup_area,
+            street: orderData.pickup_street,
+            buildingNumber: orderData.pickup_building || '',
+            floor: orderData.pickup_floor || '',
+            apartmentNumber: orderData.pickup_apartment || '',
+            personName: orderData.pickup_personName
           }
         },
         // New structured location data for dropoff
         dropoffLocation: {
-          coordinates: {
-            lat: parseFloat(formData.dropoffLocation.coordinates.lat),
-            lng: parseFloat(formData.dropoffLocation.coordinates.lng)
-          },
+          coordinates: { lat: 40.7128, lng: -74.0060 }, // Default coordinates
           address: {
-            country: formData.dropoffLocation.address.country,
-            city: formData.dropoffLocation.address.city,
-            area: formData.dropoffLocation.address.area,
-            street: formData.dropoffLocation.address.street,
-            buildingNumber: formData.dropoffLocation.address.buildingNumber || '',
-            floor: formData.dropoffLocation.address.floor || '',
-            apartmentNumber: formData.dropoffLocation.address.apartmentNumber || '',
-            personName: formData.dropoffLocation.address.personName
+            country: orderData.dropoff_country,
+            city: orderData.dropoff_city,
+            area: orderData.dropoff_area,
+            street: orderData.dropoff_street,
+            buildingNumber: orderData.dropoff_building || '',
+            floor: orderData.dropoff_floor || '',
+            apartmentNumber: orderData.dropoff_apartment || '',
+            personName: orderData.dropoff_personName
           }
         },
-        package_description: formData.package_description,
-        package_weight: formData.package_weight ? parseFloat(formData.package_weight) : null,
-        estimated_value: formData.estimated_value ? parseFloat(formData.estimated_value) : null,
-        special_instructions: formData.special_instructions,
-        estimated_delivery_date: formData.estimated_delivery_date || null,
-        price: parseFloat(formData.price)
+        package_description: orderData.package_description,
+        package_weight: orderData.package_weight ? parseFloat(orderData.package_weight) : null,
+        estimated_value: orderData.estimated_value ? parseFloat(orderData.estimated_value) : null,
+        special_instructions: orderData.special_instructions,
+        estimated_delivery_date: orderData.estimated_delivery_date || null,
+        price: parseFloat(orderData.price)
       };
 
       const response = await fetch(`${API_URL}/orders`, {
@@ -1711,44 +1895,6 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
         const data = await response.json();
         throw new Error(data.error || 'Failed to publish order');
       }
-
-      // Reset form to initial empty state
-      setFormData({
-        title: '',
-        description: '',
-        pickupLocation: {
-          coordinates: { lat: null, lng: null },
-          address: {
-            country: '',
-            city: '',
-            area: '',
-            street: '',
-            buildingNumber: '',
-            floor: '',
-            apartmentNumber: '',
-            personName: ''
-          }
-        },
-        dropoffLocation: {
-          coordinates: { lat: null, lng: null },
-          address: {
-            country: '',
-            city: '',
-            area: '',
-            street: '',
-            buildingNumber: '',
-            floor: '',
-            apartmentNumber: '',
-            personName: ''
-          }
-        },
-        package_description: '',
-        package_weight: '',
-        estimated_value: '',
-        special_instructions: '',
-        estimated_delivery_date: '',
-        price: ''
-      });
 
       setShowOrderForm(false);
       // Add a small delay to ensure database consistency
@@ -1772,13 +1918,13 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
       if (retryCount < 2) {
         setRetryCount(prev => prev + 1);
         setTimeout(() => {
-          handlePublishOrder(e);
+          handlePublishOrder(orderData);
         }, 2000);
       }
     } finally {
       setLoadingState('createOrder', false);
     }
-  };
+  }, [token, retryCount]);
 
   const handleBidOnOrder = async (orderId) => {
     const bidPrice = bidInput[orderId];
@@ -2152,7 +2298,7 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
         </div>
 
         {/* Version Footer */}
-  
+
         {showLiveTracking && selectedOrder && (
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '1rem' }}>
             <div style={{ background: 'white', borderRadius: '0.5rem', maxWidth: '64rem', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
@@ -2391,136 +2537,10 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
 
 
         {showOrderForm && (
-          <div style={{ background: 'white', borderRadius: '0.5rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)', padding: '1.5rem', marginBottom: '1.5rem' }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem' }}>Create New Delivery Order</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1rem' }}>
-              {/* Basic Order Info */}
-              <div style={{ display: 'grid', gap: '1rem' }}>
-                <input
-                  type="text"
-                  placeholder="Order Title *"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  style={{ width: '100%', padding: '0.75rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem', fontSize: '0.875rem' }}
-                />
-                <textarea
-                  placeholder="Description (optional)"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  style={{ width: '100%', padding: '0.75rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem', minHeight: '100px', fontSize: '0.875rem', resize: 'vertical' }}
-                />
-                <textarea
-                  placeholder="Package Description"
-                  value={formData.package_description}
-                  onChange={(e) => setFormData({ ...formData, package_description: e.target.value })}
-                  style={{ width: '100%', padding: '0.75rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem', minHeight: '80px', fontSize: '0.875rem', resize: 'vertical' }}
-                />
-                <textarea
-                  placeholder="Special Instructions (optional)"
-                  value={formData.special_instructions}
-                  onChange={(e) => setFormData({ ...formData, special_instructions: e.target.value })}
-                  style={{ width: '100%', padding: '0.75rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem', minHeight: '60px', fontSize: '0.875rem', resize: 'vertical' }}
-                />
-              </div>
-
-              {/* Detailed Package & Pricing Info */}
-              <div style={{ display: 'grid', gap: '1rem' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-                      Package Weight (kg)
-                    </label>
-                    <input
-                      type="number"
-                      placeholder="0.0"
-                      value={formData.package_weight}
-                      onChange={(e) => setFormData({ ...formData, package_weight: e.target.value })}
-                      style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem', fontSize: '0.875rem' }}
-                      step="0.1"
-                      min="0"
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-                      Estimated Value ($)
-                    </label>
-                    <input
-                      type="number"
-                      placeholder="0.00"
-                      value={formData.estimated_value}
-                      onChange={(e) => setFormData({ ...formData, estimated_value: e.target.value })}
-                      style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem', fontSize: '0.875rem' }}
-                      step="0.01"
-                      min="0"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-                    Estimated Delivery Date (optional)
-                  </label>
-                  <input
-                    type="datetime-local"
-                    value={formData.estimated_delivery_date}
-                    onChange={(e) => setFormData({ ...formData, estimated_delivery_date: e.target.value })}
-                    style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem', fontSize: '0.875rem' }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-                    Offered Price ($) *
-                  </label>
-                  <input
-                    type="number"
-                    placeholder="Enter price"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    style={{ width: '100%', padding: '0.75rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem', fontSize: '0.875rem', fontWeight: '600' }}
-                    step="0.01"
-                    min="0"
-                    required
-                  />
-                </div>
-
-                <button
-                  onClick={handlePublishOrder}
-                  disabled={loadingStates.createOrder}
-                  style={{
-                    width: '100%',
-                    background: '#10B981',
-                    color: 'white',
-                    padding: '0.75rem',
-                    borderRadius: '0.375rem',
-                    fontWeight: '600',
-                    border: 'none',
-                    cursor: loadingStates.createOrder ? 'not-allowed' : 'pointer',
-                    opacity: loadingStates.createOrder ? 0.5 : 1
-                  }}
-                >
-                  {loadingStates.createOrder ? 'Publishing Order...' : '📦 Publish Order'}
-                </button>
-              </div>
-            </div>
-
-            {/* Location Sections - Enhanced Forms with Maps */}
-            <div style={{ marginTop: '2rem' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-                {/* Pickup Location */}
-                <EnhancedAddressForm
-                  type="Pickup"
-                  onChange={handlePickupLocationChange}
-                />
-
-                {/* Delivery Location */}
-                <EnhancedAddressForm
-                  type="Delivery"
-                  onChange={handleDropoffLocationChange}
-                />
-              </div>
-            </div>
-          </div>
+          <OrderCreationForm
+            onSubmit={handlePublishOrder}
+            countries={countries}
+          />
         )}
 
         {showTracking && trackingData && (
@@ -2539,7 +2559,7 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
                       <p style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1F2937' }}>{getStatusLabel(trackingData.status)}</p>
                     </div>
                   </div>
-                  
+
                   {trackingData.currentLocation && (
                     <div style={{ background: '#F0F9FF', padding: '1rem', borderRadius: '0.375rem', marginBottom: '1rem' }}>
                       <p style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.25rem' }}>Current Location</p>
@@ -2643,15 +2663,15 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
                       {renderStars(reviewForm.professionalismRating, (rating) => setReviewForm({ ...reviewForm, professionalismRating: rating }))}
                     </div>
                     <div style={{ marginBottom: '1rem' }}>
-                      <label style={{ display: 'block', fontWeight: '600', fontSize: '0.875rem', color: '#374151', marginBottom: '0.5rem' }}>Communication</label>
+                      <label style={{ display: 'block', fontWeight: '600', fontSize: '0.875rem', color: '#374151', marginBottom: '0.25rem' }}>Communication</label>
                       {renderStars(reviewForm.communicationRating, (rating) => setReviewForm({ ...reviewForm, communicationRating: rating }))}
                     </div>
                     <div style={{ marginBottom: '1rem' }}>
-                      <label style={{ display: 'block', fontWeight: '600', fontSize: '0.875rem', color: '#374151', marginBottom: '0.5rem' }}>Timeliness</label>
+                      <label style={{ display: 'block', fontWeight: '600', fontSize: '0.875rem', color: '#374151', marginBottom: '0.25rem' }}>Timeliness</label>
                       {renderStars(reviewForm.timelinessRating, (rating) => setReviewForm({ ...reviewForm, timelinessRating: rating }))}
                     </div>
                     <div style={{ marginBottom: '1rem' }}>
-                      <label style={{ display: 'block', fontWeight: '600', fontSize: '0.875rem', color: '#374151', marginBottom: '0.5rem' }}>Package Condition</label>
+                      <label style={{ display: 'block', fontWeight: '600', fontSize: '0.875rem', color: '#374151', marginBottom: '0.25rem' }}>Package Condition</label>
                       {renderStars(reviewForm.conditionRating, (rating) => setReviewForm({ ...reviewForm, conditionRating: rating }))}
                     </div>
                   </>
@@ -2975,168 +2995,138 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
                             onChange={(e) => setBidDetails({ ...bidDetails, [order._id]: { ...bidDetails[order._id], pickupTime: e.target.value } })}
                             style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
                           />
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
                           <input
-                            type="datetime-local"
-                            placeholder="Delivery Time"
-                            value={bidDetails[order._id]?.deliveryTime || ''}
-                            onChange={(e) => setBidDetails({ ...bidDetails, [order._id]: { ...bidDetails[order._id], deliveryTime: e.target.value } })}
-                            style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
-                          />
-                          <textarea
+                            type="text"
                             placeholder="Message (optional)"
                             value={bidDetails[order._id]?.message || ''}
                             onChange={(e) => setBidDetails({ ...bidDetails, [order._id]: { ...bidDetails[order._id], message: e.target.value } })}
-                            style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem', minHeight: '60px', gridColumn: '1 / -1' }}
+                            style={{ flex: 1, padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
                           />
+                          <button
+                            onClick={() => handleBidOnOrder(order._id)}
+                            disabled={loadingStates.placeBid}
+                            style={{ padding: '0.5rem 1rem', background: '#4F46E5', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: loadingStates.placeBid ? 'not-allowed' : 'pointer', fontWeight: '600', opacity: loadingStates.placeBid ? 0.5 : 1 }}
+                          >
+                            {loadingStates.placeBid ? 'Bidding...' : 'Place Bid'}
+                          </button>
                         </div>
-                        <button
-                          onClick={() => handleBidOnOrder(order._id)}
-                          disabled={loading}
-                          style={{ width: '100%', background: '#10B981', color: 'white', padding: '0.75rem', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600' }}
-                        >
-                          {loading ? 'Placing Bid...' : 'Place Bid'}
-                        </button>
                       </div>
                     )}
 
-                    {order.status === 'pending_bids' && order.bids && order.bids.length > 0 && currentUser?.role === 'customer' && (
+                    {order.status === 'accepted' && currentUser?.role === 'customer' && order.bids && order.bids.length > 0 && (
                       <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
-                        <p style={{ fontWeight: '600', marginBottom: '0.75rem' }}>Bids Received ({order.bids.filter(b => b.status === 'pending').length})</p>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                          {order.bids.filter(b => b.status === 'pending').map((bid, idx) => (
-                            <div key={idx} style={{ padding: '1rem', background: '#F9FAFB', borderRadius: '0.5rem', border: '1px solid #E5E7EB', marginBottom: '1rem' }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
-                                <div style={{ flex: 1 }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                                    <p style={{ fontWeight: '600', fontSize: '1rem' }}>{bid.driverName}</p>
-                                    {bid.driverIsVerified && (
-                                      <span style={{ background: '#10B981', color: 'white', padding: '0.125rem 0.5rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: '600' }}>
-                                        ✓ Verified
-                                      </span>
-                                    )}
-                                  </div>
-                                  <p style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#10B981', marginBottom: '0.5rem' }}>
-                                    ${parseFloat(bid.bidPrice).toFixed(2)}
-                                  </p>
-
-                                  {/* Driver Reputation Section */}
-                                  <div style={{ background: '#F0F9FF', padding: '0.75rem', borderRadius: '0.375rem', marginBottom: '0.75rem', border: '1px solid #DBEAFE' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                                      <h5 style={{ fontSize: '0.75rem', fontWeight: '600', color: '#1E40AF' }}>
-                                        🚗 Driver Reputation
-                                      </h5>
-                                      {bid.driverIsVerified && (
-                                        <span style={{ background: '#10B981', color: 'white', padding: '0.125rem 0.375rem', borderRadius: '9999px', fontSize: '0.625rem', fontWeight: '600' }}>
-                                          ✓ Verified
-                                        </span>
-                                      )}
-                                    </div>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                                      <div>
-                                        <p style={{ fontSize: '0.625rem', color: '#6B7280', marginBottom: '0.125rem' }}>Rating</p>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                          {renderStars(bid.driverRating || 0)}
-                                          <span style={{ fontSize: '0.75rem', fontWeight: '600', color: '#1F2937' }}>
-                                            {bid.driverRating ? bid.driverRating.toFixed(1) : 'New'}
-                                          </span>
-                                        </div>
-                                      </div>
-                                      <div>
-                                        <p style={{ fontSize: '0.625rem', color: '#6B7280', marginBottom: '0.125rem' }}>Deliveries</p>
-                                        <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#1F2937' }}>
-                                          {bid.driverCompletedDeliveries || 0}
-                                        </p>
-                                      </div>
-                                      <div>
-                                        <p style={{ fontSize: '0.625rem', color: '#6B7280', marginBottom: '0.125rem' }}>Reviews</p>
-                                        <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#1F2937' }}>
-                                          {bid.driverReviewCount || 0}
-                                        </p>
-                                      </div>
-                                      <div style={{ gridColumn: '1 / -1' }}>
-                                        <p style={{ fontSize: '0.625rem', color: '#6B7280', marginBottom: '0.125rem' }}>Member Since</p>
-                                        <p style={{ fontSize: '0.75rem', color: '#6B7280' }}>
-                                          {bid.driverJoinedAt ? new Date(bid.driverJoinedAt).toLocaleDateString() : 'Unknown'}
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  {bid.estimatedPickupTime && (
-                                    <p style={{ fontSize: '0.75rem', color: '#6B7280', marginBottom: '0.25rem' }}>
-                                      🕐 Pickup: {new Date(bid.estimatedPickupTime).toLocaleString()}
-                                    </p>
-                                  )}
-                                  {bid.estimatedDeliveryTime && (
-                                    <p style={{ fontSize: '0.75rem', color: '#6B7280', marginBottom: '0.25rem' }}>
-                                      🕐 Delivery: {new Date(bid.estimatedDeliveryTime).toLocaleString()}
-                                    </p>
-                                  )}
-                                  {bid.message && (
-                                    <p style={{ fontSize: '0.875rem', color: '#6B7280', fontStyle: 'italic', marginBottom: '0.5rem' }}>
-                                      "{bid.message}"
-                                    </p>
-                                  )}
-                                </div>
-                                <button
-                                  onClick={() => handleAcceptBid(order._id, bid.userId)}
-                                  disabled={loading}
-                                  style={{ padding: '0.75rem 1.5rem', background: '#10B981', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600', fontSize: '0.875rem' }}
-                                >
-                                  Accept Bid
-                                </button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {order.assignedDriver && (
-                      <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem', marginTop: '1rem' }}>
-                        <p style={{ fontSize: '0.875rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.5rem' }}>
-                          🚗 Assigned Driver
-                        </p>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <div>
-                            <p style={{ fontWeight: '600' }}>{order.assignedDriver.driverName}</p>
-                            <p style={{ fontSize: '0.875rem', color: '#10B981', fontWeight: '600' }}>
-                              Agreed Price: ${parseFloat(order.assignedDriver.bidPrice).toFixed(2)}
-                            </p>
+                        <h4 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.75rem' }}>Accepted Bid</h4>
+                        <div style={{ background: '#F0F9FF', padding: '1rem', borderRadius: '0.375rem', border: '1px solid #DBEAFE' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                            <p style={{ fontWeight: '600', color: '#1E40AF' }}>{order.assignedDriver?.name || 'Driver'}</p>
+                            <p style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1E40AF' }}>${order.acceptedBid?.bidPrice || order.price}</p>
                           </div>
+                          {order.acceptedBid?.message && (
+                            <p style={{ fontSize: '0.875rem', color: '#6B7280', marginBottom: '0.5rem' }}>{order.acceptedBid.message}</p>
+                          )}
+                          {order.acceptedBid?.estimatedPickupTime && (
+                            <p style={{ fontSize: '0.875rem', color: '#6B7280' }}>
+                              Estimated pickup: {new Date(order.acceptedBid.estimatedPickupTime).toLocaleString()}
+                            </p>
+                          )}
                         </div>
                       </div>
                     )}
 
-                    {isDriverAssigned && (
-                      <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem', marginTop: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                        {order.status === 'accepted' && (
+                    {order.status === 'accepted' && currentUser?.role === 'driver' && isDriverAssigned && (
+                      <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
                           <button
                             onClick={() => handlePickupOrder(order._id)}
-                            disabled={loading}
-                            style={{ flex: 1, minWidth: '200px', background: '#F59E0B', color: 'white', padding: '0.75rem', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600' }}
+                            disabled={loadingStates.pickupOrder}
+                            style={{ flex: 1, padding: '0.75rem', background: '#10B981', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: loadingStates.pickupOrder ? 'not-allowed' : 'pointer', fontWeight: '600', opacity: loadingStates.pickupOrder ? 0.5 : 1 }}
                           >
-                            📦 Mark as Picked Up
+                            {loadingStates.pickupOrder ? 'Picking Up...' : '📦 Mark as Picked Up'}
                           </button>
-                        )}
-                        {order.status === 'picked_up' && (
+                        </div>
+                      </div>
+                    )}
+
+                    {order.status === 'picked_up' && currentUser?.role === 'driver' && isDriverAssigned && (
+                      <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
                           <button
                             onClick={() => handleInTransit(order._id)}
-                            disabled={loading}
-                            style={{ flex: 1, minWidth: '200px', background: '#8B5CF6', color: 'white', padding: '0.75rem', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600' }}
+                            disabled={loadingStates.updateInTransit}
+                            style={{ flex: 1, padding: '0.75rem', background: '#F59E0B', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: loadingStates.updateInTransit ? 'not-allowed' : 'pointer', fontWeight: '600', opacity: loadingStates.updateInTransit ? 0.5 : 1 }}
                           >
-                            🚚 Mark as In Transit
+                            {loadingStates.updateInTransit ? 'Updating...' : '🚚 Mark as In Transit'}
                           </button>
-                        )}
-                        {(order.status === 'in_transit' || order.status === 'picked_up') && (
+                        </div>
+                      </div>
+                    )}
+
+                    {order.status === 'in_transit' && currentUser?.role === 'driver' && isDriverAssigned && (
+                      <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
                           <button
                             onClick={() => handleCompleteOrder(order._id)}
-                            disabled={loading}
-                            style={{ flex: 1, minWidth: '200px', background: '#10B981', color: 'white', padding: '0.75rem', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600' }}
+                            disabled={loadingStates.completeOrder}
+                            style={{ flex: 1, padding: '0.75rem', background: '#10B981', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: loadingStates.completeOrder ? 'not-allowed' : 'pointer', fontWeight: '600', opacity: loadingStates.completeOrder ? 0.5 : 1 }}
                           >
-                            ✅ Mark as Delivered
+                            {loadingStates.completeOrder ? 'Completing...' : '✅ Mark as Delivered'}
                           </button>
-                        )}
+                        </div>
+                      </div>
+                    )}
+
+                    {order.status === 'accepted' && currentUser?.role === 'customer' && (
+                      <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
+                        <div style={{ background: '#FEF3C7', padding: '1rem', borderRadius: '0.375rem', border: '1px solid #FCD34D' }}>
+                          <p style={{ fontSize: '0.875rem', color: '#92400E', marginBottom: '0.5rem' }}>
+                            <strong>Driver:</strong> {order.assignedDriver?.name || 'Assigned driver'}
+                          </p>
+                          <p style={{ fontSize: '0.875rem', color: '#92400E' }}>
+                            Your order has been accepted. The driver will pick it up soon.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {order.status === 'picked_up' && currentUser?.role === 'customer' && (
+                      <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
+                        <div style={{ background: '#E0E7FF', padding: '1rem', borderRadius: '0.375rem', border: '1px solid #C7D2FE' }}>
+                          <p style={{ fontSize: '0.875rem', color: '#3730A3' }}>
+                            Your package has been picked up and is on the way!
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {order.status === 'in_transit' && currentUser?.role === 'customer' && (
+                      <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
+                        <div style={{ background: '#FCE7F3', padding: '1rem', borderRadius: '0.375rem', border: '1px solid #F9A8D4' }}>
+                          <p style={{ fontSize: '0.875rem', color: '#831843' }}>
+                            Your package is in transit and will be delivered soon!
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {order.status === 'delivered' && (
+                      <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
+                        <div style={{ background: '#D1FAE5', padding: '1rem', borderRadius: '0.375rem', border: '1px solid #A7F3D0' }}>
+                          <p style={{ fontSize: '0.875rem', color: '#065F46' }}>
+                            ✅ Order completed successfully!
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {order.status === 'cancelled' && (
+                      <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
+                        <div style={{ background: '#FEE2E2', padding: '1rem', borderRadius: '0.375rem', border: '1px solid #FECACA' }}>
+                          <p style={{ fontSize: '0.875rem', color: '#991B1B' }}>
+                            ❌ Order was cancelled.
+                          </p>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -3147,25 +3137,7 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
         </div>
       </main>
 
-      {/* Version Footer */}
-
-        {showLiveTracking && selectedOrder && (
-          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '1rem' }}>
-            <div style={{ background: 'white', borderRadius: '0.5rem', maxWidth: '64rem', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
-              <div style={{ padding: '1.5rem', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Live Tracking - {selectedOrder.orderNumber}</h2>
-                <button onClick={() => setShowLiveTracking(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
-              </div>
-              <div style={{ padding: '1.5rem' }}>
-                <LiveTrackingMap order={selectedOrder} token={token} />
-                <button onClick={() => setShowLiveTracking(false)} style={{ width: '100%', marginTop: '1rem', padding: '0.75rem', background: '#F3F4F6', color: '#374151', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600' }}>Close</button>
-              </div>
-            </div>
-          </div>
-        )}
-
       <footer style={{
-        marginTop: '2rem',
         padding: '1rem',
         textAlign: 'center',
         fontSize: '0.75rem',
