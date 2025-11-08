@@ -819,6 +819,114 @@ app.get('/api/users/:id/reputation', verifyToken, async (req, res) => {
   }
 });
 
+// Get all reviews received by a user
+app.get('/api/users/:id/reviews/received', verifyToken, async (req, res) => {
+  try {
+    const userResult = await pool.query(
+      'SELECT id, name, role FROM users WHERE id = $1',
+      [req.params.id]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const user = userResult.rows[0];
+
+    // Get all reviews received by this user
+    const reviewsResult = await pool.query(
+      `SELECT r.*, reviewer.name as reviewer_name, reviewer.role as reviewer_role,
+              o.title as order_title, o.order_number
+       FROM reviews r
+       JOIN users reviewer ON r.reviewer_id = reviewer.id
+       LEFT JOIN orders o ON r.order_id = o.id
+       WHERE r.reviewee_id = $1
+       ORDER BY r.created_at DESC`,
+      [req.params.id]
+    );
+
+    res.json({
+      user: {
+        id: user.id,
+        name: user.name,
+        role: user.role
+      },
+      reviews: reviewsResult.rows.map(review => ({
+        id: review.id,
+        reviewType: review.review_type,
+        rating: review.rating,
+        comment: review.comment,
+        professionalismRating: review.professionalism_rating,
+        communicationRating: review.communication_rating,
+        timelinessRating: review.timeliness_rating,
+        conditionRating: review.condition_rating,
+        createdAt: review.created_at,
+        reviewerName: review.reviewer_name,
+        reviewerRole: review.reviewer_role,
+        orderTitle: review.order_title,
+        orderNumber: review.order_number
+      }))
+    });
+  } catch (error) {
+    console.error('Get user received reviews error:', error);
+    res.status(500).json({ error: 'Failed to get user reviews' });
+  }
+});
+
+// Get all reviews given by a user
+app.get('/api/users/:id/reviews/given', verifyToken, async (req, res) => {
+  try {
+    const userResult = await pool.query(
+      'SELECT id, name, role FROM users WHERE id = $1',
+      [req.params.id]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const user = userResult.rows[0];
+
+    // Get all reviews given by this user
+    const reviewsResult = await pool.query(
+      `SELECT r.*, reviewee.name as reviewee_name, reviewee.role as reviewee_role,
+              o.title as order_title, o.order_number
+       FROM reviews r
+       LEFT JOIN users reviewee ON r.reviewee_id = reviewee.id
+       LEFT JOIN orders o ON r.order_id = o.id
+       WHERE r.reviewer_id = $1
+       ORDER BY r.created_at DESC`,
+      [req.params.id]
+    );
+
+    res.json({
+      user: {
+        id: user.id,
+        name: user.name,
+        role: user.role
+      },
+      reviews: reviewsResult.rows.map(review => ({
+        id: review.id,
+        reviewType: review.review_type,
+        rating: review.rating,
+        comment: review.comment,
+        professionalismRating: review.professionalism_rating,
+        communicationRating: review.communication_rating,
+        timelinessRating: review.timeliness_rating,
+        conditionRating: review.condition_rating,
+        createdAt: review.created_at,
+        revieweeName: review.reviewee_name,
+        revieweeRole: review.reviewee_role,
+        orderTitle: review.order_title,
+        orderNumber: review.order_number
+      }))
+    });
+  } catch (error) {
+    console.error('Get user given reviews error:', error);
+    res.status(500).json({ error: 'Failed to get user reviews' });
+  }
+});
+
 // ============ END OF PART 2 ============
 // Continue with Part 3 for Order Management
 
@@ -992,13 +1100,15 @@ app.get('/api/orders', verifyToken, async (req, res) => {
       const activeOrdersQuery = `
         SELECT o.*,
                COALESCE(json_agg(json_build_object('userId', b.user_id, 'driverName', b.driver_name, 'bidPrice', b.bid_price, 'estimatedPickupTime', b.estimated_pickup_time, 'estimatedDeliveryTime', b.estimated_delivery_time, 'message', b.message, 'status', b.status, 'createdAt', b.created_at) ORDER BY b.created_at DESC) FILTER (WHERE b.id IS NOT NULL), '[]') as bids,
-               u.rating as customerRating, u.completed_deliveries as customerCompletedOrders, u.is_verified as customerIsVerified, u.created_at as customerJoinedAt
+               u.rating as customerRating, u.completed_deliveries as customerCompletedOrders, u.is_verified as customerIsVerified, u.created_at as customerJoinedAt,
+               (SELECT COUNT(*) FROM reviews WHERE reviewee_id = u.id) as customerReviewCount,
+               (SELECT COUNT(*) FROM reviews WHERE reviewer_id = u.id) as customerGivenReviewCount
         FROM orders o
         LEFT JOIN bids b ON o.id = b.order_id
         LEFT JOIN users u ON o.customer_id = u.id
         WHERE (o.assigned_driver_user_id = $1 OR EXISTS (SELECT 1 FROM bids WHERE order_id = o.id AND user_id = $1))
         AND o.status != 'delivered' AND o.status != 'cancelled'
-        GROUP BY o.id, u.rating, u.completed_deliveries, u.is_verified, u.created_at
+        GROUP BY o.id, u.rating, u.completed_deliveries, u.is_verified, u.created_at, u.id
         ORDER BY o.created_at DESC
       `;
       const activeOrdersResult = await pool.query(activeOrdersQuery, [req.user.userId]);
