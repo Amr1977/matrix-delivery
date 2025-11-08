@@ -18,7 +18,6 @@ const DeliveryApp = () => {
     streets: {},
     coordinateMappings: {}
   });
-  const [locationLoading, setLocationLoading] = useState(false);
 
   // MapController Component - handles map instance for programmatic control
   const MapController = React.forwardRef((props, ref) => {
@@ -84,58 +83,454 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
 
 
 
-  // Simple Address Form Component
-  const AddressDetailsForm = React.memo(({ type, value, onChange }) => {
-    const handleChange = React.useCallback((e) => {
+  // Enhanced Address Form Component with Map Integration
+  const EnhancedAddressForm = React.memo(({ type, onChange }) => {
+    const isPickup = type === 'Pickup';
+    const locationKey = isPickup ? 'pickupLocation' : 'dropoffLocation';
+
+    // Local state for this form
+    const [searchQuery, setSearchQuery] = React.useState('');
+    const [showMap, setShowMap] = React.useState(false);
+    const [mapCenter, setMapCenter] = React.useState([40.7128, -74.0060]); // Default NYC
+    const [mapZoom, setMapZoom] = React.useState(13);
+    const [localMarker, setLocalMarker] = React.useState(null);
+
+    // Get current form data
+    const currentData = formData[locationKey];
+    const currentAddress = currentData.address;
+    const currentCoordinates = currentData.coordinates;
+
+    // Get dropdown options
+    const availableCities = isPickup ? pickupCities : dropoffCities;
+    const availableAreas = isPickup ? pickupAreas : dropoffAreas;
+    const availableStreets = isPickup ? pickupStreets : dropoffStreets;
+    const searchResults = isPickup ? pickupSearchResults : dropoffSearchResults;
+
+    // Update parent when local changes occur
+    const updateParent = React.useCallback((updates) => {
       onChange({
-        fullAddress: e.target.value,
-        coordinates: { lat: 40.7128, lng: -74.0060 }, // Default NYC coordinates
-        address: {
-          country: 'United States',
-          city: 'New York',
-          area: 'Manhattan',
-          street: e.target.value,
-          buildingNumber: '',
-          floor: '',
-          apartmentNumber: '',
-          personName: 'Contact Person'
-        }
+        ...currentData,
+        ...updates
       });
-    }, [onChange]);
+    }, [currentData, onChange]);
+
+    // Handle search input
+    const handleSearchChange = React.useCallback((e) => {
+      const query = e.target.value;
+      setSearchQuery(query);
+      if (isPickup) {
+        setPickupSearchQuery(query);
+      } else {
+        setDropoffSearchQuery(query);
+      }
+      searchLocations(isPickup ? 'pickup' : 'dropoff', query);
+    }, [isPickup]);
+
+    // Handle map click
+    const handleMapClick = React.useCallback((latlng) => {
+      setLocalMarker(latlng);
+      handleMapClick(type, latlng);
+    }, [type]);
+
+    // Get current location
+    const handleUseCurrentLocation = React.useCallback(() => {
+      if (locationPermission === 'granted' && currentLocation) {
+        const coords = [currentLocation.coordinates.lat, currentLocation.coordinates.lng];
+        setLocalMarker(coords);
+        setMapCenter(coords);
+        setMapZoom(15);
+        updateParent({
+          coordinates: currentLocation.coordinates,
+          address: {
+            ...currentAddress,
+            ...currentLocation.address,
+            personName: currentUser?.name || currentAddress.personName
+          }
+        });
+      } else {
+        getCurrentLocation();
+      }
+    }, [locationPermission, currentLocation, currentAddress, currentUser, updateParent]);
+
+    // Initialize map center when coordinates change
+    React.useEffect(() => {
+      if (currentCoordinates?.lat && currentCoordinates?.lng) {
+        setMapCenter([currentCoordinates.lat, currentCoordinates.lng]);
+        setLocalMarker([currentCoordinates.lat, currentCoordinates.lng]);
+        setMapZoom(15);
+      }
+    }, [currentCoordinates]);
 
     return (
       <div style={{
         border: '1px solid #E5E7EB',
-        borderRadius: '0.5rem',
-        padding: '1rem',
-        background: '#F9FAFB'
+        borderRadius: '0.75rem',
+        padding: '1.5rem',
+        background: 'white',
+        boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)'
       }}>
-        <h4 style={{
-          fontSize: '1.125rem',
-          fontWeight: '600',
-          color: '#1F2937',
-          textTransform: 'capitalize',
-          marginBottom: '1rem'
-        }}>
-          {type} Address *
-        </h4>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
+          <span style={{ fontSize: '1.25rem' }}>{isPickup ? '📤' : '📥'}</span>
+          <h4 style={{
+            fontSize: '1.25rem',
+            fontWeight: '700',
+            color: '#1F2937',
+            margin: 0
+          }}>
+            {type} Location
+          </h4>
+        </div>
 
-        <textarea
-          placeholder={`Enter complete ${type.toLowerCase()} address (street, building, city, etc.)`}
-          value={value || ''}
-          onChange={handleChange}
-          required
-          style={{
-            width: '100%',
+        {/* Search Bar */}
+        <div style={{ marginBottom: '1rem' }}>
+          <div style={{ position: 'relative' }}>
+            <input
+              type="text"
+              placeholder={`Search for ${type.toLowerCase()} location...`}
+              value={searchQuery}
+              onChange={handleSearchChange}
+              style={{
+                width: '100%',
+                padding: '0.75rem 1rem',
+                paddingRight: '3rem',
+                border: '1px solid #D1D5DB',
+                borderRadius: '0.5rem',
+                fontSize: '0.875rem',
+                background: 'white'
+              }}
+            />
+            <button
+              onClick={handleUseCurrentLocation}
+              disabled={locationLoading}
+              style={{
+                position: 'absolute',
+                right: '0.5rem',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                background: 'none',
+                border: 'none',
+                cursor: locationLoading ? 'not-allowed' : 'pointer',
+                padding: '0.5rem',
+                borderRadius: '0.25rem',
+                color: locationPermission === 'granted' ? '#10B981' : '#6B7280'
+              }}
+              title="Use current location"
+            >
+              {locationLoading ? '⏳' : '📍'}
+            </button>
+          </div>
+
+          {/* Search Results */}
+          {searchResults.length > 0 && (
+            <div style={{
+              position: 'absolute',
+              top: '100%',
+              left: 0,
+              right: 0,
+              background: 'white',
+              border: '1px solid #D1D5DB',
+              borderRadius: '0.5rem',
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+              zIndex: 10,
+              maxHeight: '12rem',
+              overflowY: 'auto'
+            }}>
+              {searchResults.map((result, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => selectSearchResult(isPickup ? 'pickup' : 'dropoff', result)}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem 1rem',
+                    border: 'none',
+                    background: 'none',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    borderBottom: idx < searchResults.length - 1 ? '1px solid #F3F4F6' : 'none'
+                  }}
+                  onMouseEnter={(e) => e.target.style.background = '#F9FAFB'}
+                  onMouseLeave={(e) => e.target.style.background = 'none'}
+                >
+                  <div style={{ fontWeight: '600', fontSize: '0.875rem', color: '#1F2937' }}>
+                    {result.display_name || `${result.address.street || ''} ${result.address.city || ''}`.trim()}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>
+                    {result.address.city}, {result.address.country}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Cascading Dropdowns */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
+          {/* Country */}
+          <div>
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+              Country *
+            </label>
+            <select
+              value={currentAddress.country || ''}
+              onChange={(e) => handleCountryChange(isPickup ? 'pickup' : 'dropoff', e.target.value)}
+              style={{
+                width: '100%',
+                padding: '0.5rem',
+                border: '1px solid #D1D5DB',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem',
+                background: 'white'
+              }}
+            >
+              <option value="">Select Country</option>
+              {countries.map(country => (
+                <option key={country} value={country}>{country}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* City */}
+          <div>
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+              City *
+            </label>
+            <select
+              value={currentAddress.city || ''}
+              onChange={(e) => handleCityChange(isPickup ? 'pickup' : 'dropoff', e.target.value)}
+              disabled={!currentAddress.country}
+              style={{
+                width: '100%',
+                padding: '0.5rem',
+                border: '1px solid #D1D5DB',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem',
+                background: 'white',
+                opacity: !currentAddress.country ? 0.5 : 1
+              }}
+            >
+              <option value="">Select City</option>
+              {availableCities.map(city => (
+                <option key={city} value={city}>{city}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Area */}
+          <div>
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+              Area
+            </label>
+            <select
+              value={currentAddress.area || ''}
+              onChange={(e) => handleAreaChange(isPickup ? 'pickup' : 'dropoff', e.target.value)}
+              disabled={!currentAddress.city}
+              style={{
+                width: '100%',
+                padding: '0.5rem',
+                border: '1px solid #D1D5DB',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem',
+                background: 'white',
+                opacity: !currentAddress.city ? 0.5 : 1
+              }}
+            >
+              <option value="">Select Area</option>
+              {availableAreas.map(area => (
+                <option key={area} value={area}>{area}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Street */}
+          <div>
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+              Street
+            </label>
+            <select
+              value={currentAddress.street || ''}
+              onChange={(e) => handleStreetChange(isPickup ? 'pickup' : 'dropoff', e.target.value)}
+              disabled={!currentAddress.area}
+              style={{
+                width: '100%',
+                padding: '0.5rem',
+                border: '1px solid #D1D5DB',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem',
+                background: 'white',
+                opacity: !currentAddress.area ? 0.5 : 1
+              }}
+            >
+              <option value="">Select Street</option>
+              {availableStreets.map(street => (
+                <option key={street} value={street}>{street}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Address Details */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+              Building
+            </label>
+            <input
+              type="text"
+              placeholder="Building #"
+              value={currentAddress.buildingNumber || ''}
+              onChange={(e) => updateParent({
+                address: { ...currentAddress, buildingNumber: e.target.value }
+              })}
+              style={{
+                width: '100%',
+                padding: '0.5rem',
+                border: '1px solid #D1D5DB',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem'
+              }}
+            />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+              Floor
+            </label>
+            <input
+              type="text"
+              placeholder="Floor"
+              value={currentAddress.floor || ''}
+              onChange={(e) => updateParent({
+                address: { ...currentAddress, floor: e.target.value }
+              })}
+              style={{
+                width: '100%',
+                padding: '0.5rem',
+                border: '1px solid #D1D5DB',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem'
+              }}
+            />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+              Apartment
+            </label>
+            <input
+              type="text"
+              placeholder="Apt #"
+              value={currentAddress.apartmentNumber || ''}
+              onChange={(e) => updateParent({
+                address: { ...currentAddress, apartmentNumber: e.target.value }
+              })}
+              style={{
+                width: '100%',
+                padding: '0.5rem',
+                border: '1px solid #D1D5DB',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem'
+              }}
+            />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
+              Contact Name *
+            </label>
+            <input
+              type="text"
+              placeholder="Contact person"
+              value={currentAddress.personName || ''}
+              onChange={(e) => updateParent({
+                address: { ...currentAddress, personName: e.target.value }
+              })}
+              required
+              style={{
+                width: '100%',
+                padding: '0.5rem',
+                border: '1px solid #D1D5DB',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem'
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Map Toggle */}
+        <div style={{ marginBottom: '1rem' }}>
+          <button
+            onClick={() => setShowMap(!showMap)}
+            style={{
+              padding: '0.5rem 1rem',
+              background: showMap ? '#4F46E5' : '#F3F4F6',
+              color: showMap ? 'white' : '#374151',
+              border: 'none',
+              borderRadius: '0.375rem',
+              cursor: 'pointer',
+              fontSize: '0.875rem',
+              fontWeight: '500',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}
+          >
+            🗺️ {showMap ? 'Hide Map' : 'Show Map'}
+          </button>
+        </div>
+
+        {/* Interactive Map */}
+        {showMap && (
+          <div style={{
+            height: '300px',
+            borderRadius: '0.5rem',
+            overflow: 'hidden',
+            border: '1px solid #E5E7EB',
+            marginBottom: '1rem'
+          }}>
+            <MapContainer
+              center={mapCenter}
+              zoom={mapZoom}
+              style={{ height: '100%', width: '100%' }}
+            >
+              <TileLayer
+                attribution='&copy; OpenStreetMap contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              <LocationMarker
+                selectedPosition={localMarker}
+                setSelectedPosition={handleMapClick}
+              />
+            </MapContainer>
+          </div>
+        )}
+
+        {/* Coordinates Display */}
+        {currentCoordinates?.lat && currentCoordinates?.lng && (
+          <div style={{
             padding: '0.75rem',
-            border: '1px solid #D1D5DB',
+            background: '#F0F9FF',
             borderRadius: '0.375rem',
+            border: '1px solid #DBEAFE',
+            fontSize: '0.75rem',
+            color: '#1E40AF'
+          }}>
+            📍 Coordinates: {currentCoordinates.lat.toFixed(6)}, {currentCoordinates.lng.toFixed(6)}
+          </div>
+        )}
+
+        {/* Full Address Preview */}
+        {(currentAddress.street || currentAddress.city) && (
+          <div style={{
+            padding: '0.75rem',
+            background: '#F9FAFB',
+            borderRadius: '0.375rem',
+            border: '1px solid #E5E7EB',
             fontSize: '0.875rem',
-            background: 'white',
-            minHeight: '80px',
-            resize: 'vertical'
-          }}
-        />
+            color: '#374151'
+          }}>
+            <strong>Address Preview:</strong><br />
+            {[currentAddress.buildingNumber, currentAddress.street, currentAddress.area, currentAddress.city, currentAddress.country]
+              .filter(Boolean)
+              .join(', ')}
+          </div>
+        )}
       </div>
     );
   });
@@ -241,6 +636,28 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
   const [showReviewsModal, setShowReviewsModal] = useState(false);
   const [showLiveTracking, setShowLiveTracking] = useState(false);
 
+  // Enhanced location state
+  const [locationPermission, setLocationPermission] = useState('unknown'); // 'unknown', 'granted', 'denied', 'prompt'
+  const [currentLocation, setCurrentLocation] = useState(null);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [selectedPickupMarker, setSelectedPickupMarker] = useState(null);
+  const [selectedDropoffMarker, setSelectedDropoffMarker] = useState(null);
+
+  // Cascading dropdown state
+  const [countries, setCountries] = useState([]);
+  const [pickupCities, setPickupCities] = useState([]);
+  const [pickupAreas, setPickupAreas] = useState([]);
+  const [pickupStreets, setPickupStreets] = useState([]);
+  const [dropoffCities, setDropoffCities] = useState([]);
+  const [dropoffAreas, setDropoffAreas] = useState([]);
+  const [dropoffStreets, setDropoffStreets] = useState([]);
+
+  // Autocomplete state
+  const [pickupSearchResults, setPickupSearchResults] = useState([]);
+  const [dropoffSearchResults, setDropoffSearchResults] = useState([]);
+  const [pickupSearchQuery, setPickupSearchQuery] = useState('');
+  const [dropoffSearchQuery, setDropoffSearchQuery] = useState('');
+
   // Enhanced UX states
   const [loadingStates, setLoadingStates] = useState({
     userFetch: false,
@@ -262,7 +679,6 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
   // Driver location functionality
   const [viewType, setViewType] = useState('active'); // 'active', 'bidding', 'history'
   const [driverLocation, setDriverLocation] = useState({ latitude: null, longitude: null, lastUpdated: null });
-  const [locationPermission, setLocationPermission] = useState('unknown'); // 'unknown', 'granted', 'denied'
 
   const [reviewForm, setReviewForm] = useState({
     rating: 0,
@@ -723,7 +1139,397 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
   );
 
   // ============ END OF PART 2 ============
-  // Continue with Part 3 for Event Handlers
+  // Continue with Part 3 for Location Functions
+
+  // Location permission management and cascading dropdown functions
+  useEffect(() => {
+    requestLocationPermission();
+    fetchCountries();
+  }, []);
+
+  const requestLocationPermission = async () => {
+    if (!navigator.geolocation) {
+      setLocationPermission('denied');
+      return;
+    }
+
+    try {
+      const result = await navigator.permissions.query({ name: 'geolocation' });
+      setLocationPermission(result.state);
+
+      result.addEventListener('change', () => {
+        setLocationPermission(result.state);
+      });
+
+      // If granted, get current location
+      if (result.state === 'granted') {
+        getCurrentLocation();
+      }
+    } catch (error) {
+      console.warn('Permissions API not supported, trying direct access:', error);
+      // Fallback: try to get location directly
+      getCurrentLocation();
+    }
+  };
+
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setError('Geolocation is not supported by your browser');
+      return;
+    }
+
+    setLocationLoading(true);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+
+        try {
+          const response = await fetch(`${API_URL}/location/current`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ latitude, longitude })
+          });
+
+          if (!response.ok) throw new Error('Failed to get location details');
+
+          const data = await response.json();
+          setCurrentLocation(data);
+          setLocationPermission('granted');
+
+          // Pre-fill pickup location with current location
+          setFormData(prev => ({
+            ...prev,
+            pickupLocation: {
+              coordinates: data.coordinates,
+              address: {
+                ...data.address,
+                personName: currentUser?.name || '',
+                buildingNumber: '',
+                floor: '',
+                apartmentNumber: ''
+              }
+            }
+          }));
+
+          // Load cities for the detected country
+          if (data.address.country) {
+            loadCities('pickup', data.address.country);
+          }
+
+        } catch (error) {
+          console.error('Location details error:', error);
+          setCurrentLocation({
+            coordinates: { lat: latitude, lng: longitude },
+            address: { country: '', city: '', area: '', street: '' }
+          });
+        } finally {
+          setLocationLoading(false);
+        }
+      },
+      (error) => {
+        console.error('Geolocation error:', error);
+        setLocationPermission('denied');
+        setLocationLoading(false);
+        setError('Location access denied. Please enable location services.');
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000 // Cache for 5 minutes
+      }
+    );
+  };
+
+  const fetchCountries = async () => {
+    try {
+      const response = await fetch(`${API_URL}/locations/countries`);
+      if (!response.ok) throw new Error('Failed to fetch countries');
+      const data = await response.json();
+      setCountries(data);
+    } catch (error) {
+      console.error('Fetch countries error:', error);
+    }
+  };
+
+  const loadCities = async (type, country) => {
+    if (!country) return;
+
+    try {
+      const response = await fetch(`${API_URL}/locations/countries/${encodeURIComponent(country)}/cities`);
+      if (!response.ok) throw new Error('Failed to fetch cities');
+      const data = await response.json();
+
+      if (type === 'pickup') {
+        setPickupCities(data);
+      } else {
+        setDropoffCities(data);
+      }
+    } catch (error) {
+      console.error('Load cities error:', error);
+    }
+  };
+
+  const loadAreas = async (type, country, city) => {
+    if (!country || !city) return;
+
+    try {
+      const response = await fetch(`${API_URL}/location/areas?country=${encodeURIComponent(country)}&city=${encodeURIComponent(city)}`);
+      if (!response.ok) throw new Error('Failed to fetch areas');
+      const data = await response.json();
+
+      if (type === 'pickup') {
+        setPickupAreas(data);
+      } else {
+        setDropoffAreas(data);
+      }
+    } catch (error) {
+      console.error('Load areas error:', error);
+    }
+  };
+
+  const loadStreets = async (type, country, city, area) => {
+    if (!country || !city || !area) return;
+
+    try {
+      const response = await fetch(`${API_URL}/location/streets?country=${encodeURIComponent(country)}&city=${encodeURIComponent(city)}&area=${encodeURIComponent(area)}`);
+      if (!response.ok) throw new Error('Failed to fetch streets');
+      const data = await response.json();
+
+      if (type === 'pickup') {
+        setPickupStreets(data);
+      } else {
+        setDropoffStreets(data);
+      }
+    } catch (error) {
+      console.error('Load streets error:', error);
+    }
+  };
+
+  const searchLocations = async (type, query) => {
+    if (query.length < 2) {
+      if (type === 'pickup') {
+        setPickupSearchResults([]);
+      } else {
+        setDropoffSearchResults([]);
+      }
+      return;
+    }
+
+    try {
+      const countryParam = type === 'pickup'
+        ? formData.pickupLocation.address.country
+        : formData.dropoffLocation.address.country;
+
+      const response = await fetch(`${API_URL}/location/autocomplete?query=${encodeURIComponent(query)}&country=${countryParam || ''}`);
+      if (!response.ok) throw new Error('Failed to search locations');
+      const data = await response.json();
+
+      if (type === 'pickup') {
+        setPickupSearchResults(data);
+      } else {
+        setDropoffSearchResults(data);
+      }
+    } catch (error) {
+      console.error('Search locations error:', error);
+    }
+  };
+
+  const handleCountryChange = (type, country) => {
+    const locationKey = type === 'pickup' ? 'pickupLocation' : 'dropoffLocation';
+
+    setFormData(prev => ({
+      ...prev,
+      [locationKey]: {
+        ...prev[locationKey],
+        address: {
+          ...prev[locationKey].address,
+          country: country,
+          city: '',
+          area: '',
+          street: ''
+        }
+      }
+    }));
+
+    // Load cities for selected country
+    loadCities(type, country);
+
+    // Reset dependent dropdowns
+    if (type === 'pickup') {
+      setPickupAreas([]);
+      setPickupStreets([]);
+    } else {
+      setDropoffAreas([]);
+      setDropoffStreets([]);
+    }
+  };
+
+  const handleCityChange = (type, city) => {
+    const locationKey = type === 'pickup' ? 'pickupLocation' : 'dropoffLocation';
+    const country = formData[locationKey].address.country;
+
+    setFormData(prev => ({
+      ...prev,
+      [locationKey]: {
+        ...prev[locationKey],
+        address: {
+          ...prev[locationKey].address,
+          city: city,
+          area: '',
+          street: ''
+        }
+      }
+    }));
+
+    // Load areas for selected city
+    loadAreas(type, country, city);
+
+    // Reset dependent dropdowns
+    if (type === 'pickup') {
+      setPickupStreets([]);
+    } else {
+      setDropoffStreets([]);
+    }
+  };
+
+  const handleAreaChange = (type, area) => {
+    const locationKey = type === 'pickup' ? 'pickupLocation' : 'dropoffLocation';
+    const country = formData[locationKey].address.country;
+    const city = formData[locationKey].address.city;
+
+    setFormData(prev => ({
+      ...prev,
+      [locationKey]: {
+        ...prev[locationKey],
+        address: {
+          ...prev[locationKey].address,
+          area: area,
+          street: ''
+        }
+      }
+    }));
+
+    // Load streets for selected area
+    loadStreets(type, country, city, area);
+  };
+
+  const handleStreetChange = (type, street) => {
+    const locationKey = type === 'pickup' ? 'pickupLocation' : 'dropoffLocation';
+
+    setFormData(prev => ({
+      ...prev,
+      [locationKey]: {
+        ...prev[locationKey],
+        address: {
+          ...prev[locationKey].address,
+          street: street
+        }
+      }
+    }));
+  };
+
+  const selectSearchResult = (type, result) => {
+    const locationKey = type === 'pickup' ? 'pickupLocation' : 'dropoffLocation';
+
+    setFormData(prev => ({
+      ...prev,
+      [locationKey]: {
+        coordinates: {
+          lat: result.lat,
+          lng: result.lng
+        },
+        address: {
+          ...result.address,
+          personName: prev[locationKey].address.personName,
+          buildingNumber: result.address.buildingNumber || '',
+          floor: prev[locationKey].address.floor || '',
+          apartmentNumber: prev[locationKey].address.apartmentNumber || ''
+        }
+      }
+    }));
+
+    // Update map marker
+    if (type === 'pickup') {
+      setSelectedPickupMarker([result.lat, result.lng]);
+      setPickupSearchQuery('');
+      setPickupSearchResults([]);
+      // Load cascading data
+      loadCities('pickup', result.address.country);
+      loadAreas('pickup', result.address.country, result.address.city);
+    } else {
+      setSelectedDropoffMarker([result.lat, result.lng]);
+      setDropoffSearchQuery('');
+      setDropoffSearchResults([]);
+      // Load cascading data
+      loadCities('dropoff', result.address.country);
+      loadAreas('dropoff', result.address.country, result.address.city);
+    }
+  };
+
+  const handleMapClick = async (type, latlng) => {
+    const locationKey = type === 'pickup' ? 'pickupLocation' : 'dropoffLocation';
+
+    // Update marker position
+    if (type === 'pickup') {
+      setSelectedPickupMarker(latlng);
+    } else {
+      setSelectedDropoffMarker(latlng);
+    }
+
+    try {
+      // Reverse geocode
+      const response = await fetch(`${API_URL}/locations/reverse?lat=${latlng[0]}&lng=${latlng[1]}`);
+      if (!response.ok) throw new Error('Reverse geocoding failed');
+
+      const data = await response.json();
+
+      setFormData(prev => ({
+        ...prev,
+        [locationKey]: {
+          coordinates: {
+            lat: data.lat,
+            lng: data.lng
+          },
+          address: {
+            ...data.address,
+            personName: prev[locationKey].address.personName,
+            buildingNumber: data.address.buildingNumber || '',
+            floor: prev[locationKey].address.floor || '',
+            apartmentNumber: prev[locationKey].address.apartmentNumber || ''
+          }
+        }
+      }));
+
+      // Load cascading data
+      if (data.address.country) {
+        loadCities(type, data.address.country);
+        if (data.address.city) {
+          loadAreas(type, data.address.country, data.address.city);
+        }
+      }
+
+    } catch (error) {
+      console.error('Reverse geocoding error:', error);
+      // Just update coordinates without address
+      setFormData(prev => ({
+        ...prev,
+        [locationKey]: {
+          ...prev[locationKey],
+          coordinates: {
+            lat: latlng[0],
+            lng: latlng[1]
+          }
+        }
+      }));
+    }
+  };
+
+  // ============ END OF PART 3 ============
+  // Continue with Part 4 for Event Handlers
 
 // ============ APP.JS PART 3: Event Handlers ============
 // Add this after Part 2
@@ -1698,26 +2504,20 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
               </div>
             </div>
 
-            {/* Location Sections - Side-by-Side Maps */}
+            {/* Location Sections - Enhanced Forms with Maps */}
             <div style={{ marginTop: '2rem' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
                 {/* Pickup Location */}
-                <div>
-                  <AddressDetailsForm
-                    type="Pickup"
-                    value={formData.pickupLocation.fullAddress || ''}
-                    onChange={handlePickupLocationChange}
-                  />
-                </div>
+                <EnhancedAddressForm
+                  type="Pickup"
+                  onChange={handlePickupLocationChange}
+                />
 
                 {/* Delivery Location */}
-                <div>
-                  <AddressDetailsForm
-                    type="Delivery"
-                    value={formData.dropoffLocation.fullAddress || ''}
-                    onChange={handleDropoffLocationChange}
-                  />
-                </div>
+                <EnhancedAddressForm
+                  type="Delivery"
+                  onChange={handleDropoffLocationChange}
+                />
               </div>
             </div>
           </div>
@@ -2100,9 +2900,9 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
                               </span>
                             )}
                           </div>
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
                             <div>
-                              <p style={{ fontSize: '0.75rem', color: '#6B7280', marginBottom: '0.25rem' }}>Customer Rating</p>
+                              <p style={{ fontSize: '0.75rem', color: '#6B7280', marginBottom: '0.25rem' }}>Rating</p>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                                 {renderStars(order.customerRating || 0)}
                                 <span style={{ fontSize: '0.875rem', fontWeight: '600', color: '#1F2937' }}>
@@ -2111,9 +2911,15 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
                               </div>
                             </div>
                             <div>
-                              <p style={{ fontSize: '0.75rem', color: '#6B7280', marginBottom: '0.25rem' }}>Completed Orders</p>
+                              <p style={{ fontSize: '0.75rem', color: '#6B7280', marginBottom: '0.25rem' }}>Deliveries</p>
                               <p style={{ fontSize: '0.875rem', fontWeight: '600', color: '#1F2937' }}>
-                                {order.customerCompletedOrders || 0} deliveries
+                                {order.customerCompletedOrders || 0}
+                              </p>
+                            </div>
+                            <div>
+                              <p style={{ fontSize: '0.75rem', color: '#6B7280', marginBottom: '0.25rem' }}>Reviews</p>
+                              <p style={{ fontSize: '0.875rem', fontWeight: '600', color: '#1F2937' }}>
+                                {order.customerReviewCount || 0}
                               </p>
                             </div>
                             <div style={{ gridColumn: '1 / -1' }}>
@@ -2225,7 +3031,7 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
                                         </span>
                                       )}
                                     </div>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem', marginBottom: '0.5rem' }}>
                                       <div>
                                         <p style={{ fontSize: '0.625rem', color: '#6B7280', marginBottom: '0.125rem' }}>Rating</p>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
@@ -2239,6 +3045,12 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
                                         <p style={{ fontSize: '0.625rem', color: '#6B7280', marginBottom: '0.125rem' }}>Deliveries</p>
                                         <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#1F2937' }}>
                                           {bid.driverCompletedDeliveries || 0}
+                                        </p>
+                                      </div>
+                                      <div>
+                                        <p style={{ fontSize: '0.625rem', color: '#6B7280', marginBottom: '0.125rem' }}>Reviews</p>
+                                        <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#1F2937' }}>
+                                          {bid.driverReviewCount || 0}
                                         </p>
                                       </div>
                                       <div style={{ gridColumn: '1 / -1' }}>
