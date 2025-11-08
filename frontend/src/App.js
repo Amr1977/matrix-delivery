@@ -416,6 +416,13 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
     }
   };
 
+  // Refresh user data (useful after verification)
+  const refreshUserData = async () => {
+    if (token) {
+      await fetchCurrentUser();
+    }
+  };
+
   const fetchOrders = async () => {
     try {
       const response = await fetch(`${API_URL}/orders`, {
@@ -1405,7 +1412,31 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
               )}
             </button>
             <div style={{ textAlign: 'right' }}>
-              <p style={{ fontWeight: '600', color: '#1F2937' }}>{currentUser?.name}</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                <p style={{ fontWeight: '600', color: '#1F2937' }}>{currentUser?.name}</p>
+                {currentUser?.isVerified && (
+                  <span style={{ background: '#10B981', color: 'white', padding: '0.125rem 0.5rem', borderRadius: '9999px', fontSize: '0.625rem', fontWeight: '600' }}>
+                    ✓ Verified
+                  </span>
+                )}
+                {!currentUser?.isVerified && (
+                  <button
+                    onClick={() => {
+                      const message = `Hello, I would like to verify my account. My user ID is: ${currentUser?.id}`;
+                      const whatsappUrl = `https://wa.me/${process.env.REACT_APP_WHATSAPP_ADMIN_NUMBER}?text=${encodeURIComponent(message)}`;
+                      window.open(whatsappUrl, '_blank');
+                      // Show message to refresh after verification
+                      setTimeout(() => {
+                        alert('After admin verifies your account, please refresh this page to see the verification badge.');
+                      }, 1000);
+                    }}
+                    style={{ background: '#25D366', color: 'white', padding: '0.125rem 0.5rem', borderRadius: '9999px', border: 'none', cursor: 'pointer', fontSize: '0.625rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                    title="Contact admin to verify account"
+                  >
+                    📱 Verify
+                  </button>
+                )}
+              </div>
               <p style={{ fontSize: '0.875rem', color: '#6B7280', textTransform: 'capitalize' }}>
                 {currentUser?.role} {currentUser?.completedDeliveries > 0 && `• ${currentUser.completedDeliveries} deliveries`}
               </p>
@@ -2059,9 +2090,16 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
                       <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
                         {/* Customer Reputation Section */}
                         <div style={{ background: '#F0F9FF', padding: '1rem', borderRadius: '0.5rem', marginBottom: '1rem', border: '1px solid #DBEAFE' }}>
-                          <h4 style={{ fontSize: '0.875rem', fontWeight: '600', color: '#1E40AF', marginBottom: '0.75rem' }}>
-                            👤 Customer Reputation
-                          </h4>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                            <h4 style={{ fontSize: '0.875rem', fontWeight: '600', color: '#1E40AF' }}>
+                              👤 Customer Reputation
+                            </h4>
+                            {order.customerIsVerified && (
+                              <span style={{ background: '#10B981', color: 'white', padding: '0.125rem 0.5rem', borderRadius: '9999px', fontSize: '0.625rem', fontWeight: '600' }}>
+                                ✓ Verified
+                              </span>
+                            )}
+                          </div>
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
                             <div>
                               <p style={{ fontSize: '0.75rem', color: '#6B7280', marginBottom: '0.25rem' }}>Customer Rating</p>
@@ -2078,8 +2116,14 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
                                 {order.customerCompletedOrders || 0} deliveries
                               </p>
                             </div>
+                            <div style={{ gridColumn: '1 / -1' }}>
+                              <p style={{ fontSize: '0.75rem', color: '#6B7280', marginBottom: '0.25rem' }}>Member Since</p>
+                              <p style={{ fontSize: '0.875rem', color: '#6B7280' }}>
+                                {order.customerJoinedAt ? new Date(order.customerJoinedAt).toLocaleDateString() : 'Unknown'}
+                              </p>
+                            </div>
                           </div>
-                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                             <button
                               onClick={() => openReviewModal(order._id, 'view_customer_reviews')}
                               style={{ padding: '0.25rem 0.75rem', background: '#3B82F6', color: 'white', borderRadius: '0.25rem', border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: '500' }}
@@ -2092,6 +2136,14 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
                             >
                               ⭐ Reviews Given ({order.customerGivenReviewCount || 0})
                             </button>
+                            {!order.customerIsVerified && (
+                              <button
+                                onClick={() => window.open(`https://wa.me/1234567890?text=Hello, I would like to verify my account for order ${order.orderNumber}`, '_blank')}
+                                style={{ padding: '0.25rem 0.75rem', background: '#25D366', color: 'white', borderRadius: '0.25rem', border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                              >
+                                📱 Verify Account
+                              </button>
+                            )}
                           </div>
                         </div>
 
@@ -2146,35 +2198,82 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
                         <p style={{ fontWeight: '600', marginBottom: '0.75rem' }}>Bids Received ({order.bids.filter(b => b.status === 'pending').length})</p>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                           {order.bids.filter(b => b.status === 'pending').map((bid, idx) => (
-                            <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', background: '#F9FAFB', borderRadius: '0.375rem', border: '1px solid #E5E7EB' }}>
-                              <div style={{ flex: 1 }}>
-                                <p style={{ fontWeight: '600', fontSize: '0.875rem' }}>{bid.driverName}</p>
-                                <p style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#10B981', marginTop: '0.25rem' }}>
-                                  ${parseFloat(bid.bidPrice).toFixed(2)}
-                                </p>
-                                {bid.estimatedPickupTime && (
-                                  <p style={{ fontSize: '0.75rem', color: '#6B7280', marginTop: '0.25rem' }}>
-                                    🕐 Pickup: {new Date(bid.estimatedPickupTime).toLocaleString()}
+                            <div key={idx} style={{ padding: '1rem', background: '#F9FAFB', borderRadius: '0.5rem', border: '1px solid #E5E7EB', marginBottom: '1rem' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
+                                <div style={{ flex: 1 }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                    <p style={{ fontWeight: '600', fontSize: '1rem' }}>{bid.driverName}</p>
+                                    {bid.driverIsVerified && (
+                                      <span style={{ background: '#10B981', color: 'white', padding: '0.125rem 0.5rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: '600' }}>
+                                        ✓ Verified
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#10B981', marginBottom: '0.5rem' }}>
+                                    ${parseFloat(bid.bidPrice).toFixed(2)}
                                   </p>
-                                )}
-                                {bid.estimatedDeliveryTime && (
-                                  <p style={{ fontSize: '0.75rem', color: '#6B7280' }}>
-                                    🕐 Delivery: {new Date(bid.estimatedDeliveryTime).toLocaleString()}
-                                  </p>
-                                )}
-                                {bid.message && (
-                                  <p style={{ fontSize: '0.875rem', color: '#6B7280', marginTop: '0.5rem', fontStyle: 'italic' }}>
-                                    "{bid.message}"
-                                  </p>
-                                )}
+
+                                  {/* Driver Reputation Section */}
+                                  <div style={{ background: '#F0F9FF', padding: '0.75rem', borderRadius: '0.375rem', marginBottom: '0.75rem', border: '1px solid #DBEAFE' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                      <h5 style={{ fontSize: '0.75rem', fontWeight: '600', color: '#1E40AF' }}>
+                                        🚗 Driver Reputation
+                                      </h5>
+                                      {bid.driverIsVerified && (
+                                        <span style={{ background: '#10B981', color: 'white', padding: '0.125rem 0.375rem', borderRadius: '9999px', fontSize: '0.625rem', fontWeight: '600' }}>
+                                          ✓ Verified
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                      <div>
+                                        <p style={{ fontSize: '0.625rem', color: '#6B7280', marginBottom: '0.125rem' }}>Rating</p>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                          {renderStars(bid.driverRating || 0)}
+                                          <span style={{ fontSize: '0.75rem', fontWeight: '600', color: '#1F2937' }}>
+                                            {bid.driverRating ? bid.driverRating.toFixed(1) : 'New'}
+                                          </span>
+                                        </div>
+                                      </div>
+                                      <div>
+                                        <p style={{ fontSize: '0.625rem', color: '#6B7280', marginBottom: '0.125rem' }}>Deliveries</p>
+                                        <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#1F2937' }}>
+                                          {bid.driverCompletedDeliveries || 0}
+                                        </p>
+                                      </div>
+                                      <div style={{ gridColumn: '1 / -1' }}>
+                                        <p style={{ fontSize: '0.625rem', color: '#6B7280', marginBottom: '0.125rem' }}>Member Since</p>
+                                        <p style={{ fontSize: '0.75rem', color: '#6B7280' }}>
+                                          {bid.driverJoinedAt ? new Date(bid.driverJoinedAt).toLocaleDateString() : 'Unknown'}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {bid.estimatedPickupTime && (
+                                    <p style={{ fontSize: '0.75rem', color: '#6B7280', marginBottom: '0.25rem' }}>
+                                      🕐 Pickup: {new Date(bid.estimatedPickupTime).toLocaleString()}
+                                    </p>
+                                  )}
+                                  {bid.estimatedDeliveryTime && (
+                                    <p style={{ fontSize: '0.75rem', color: '#6B7280', marginBottom: '0.25rem' }}>
+                                      🕐 Delivery: {new Date(bid.estimatedDeliveryTime).toLocaleString()}
+                                    </p>
+                                  )}
+                                  {bid.message && (
+                                    <p style={{ fontSize: '0.875rem', color: '#6B7280', fontStyle: 'italic', marginBottom: '0.5rem' }}>
+                                      "{bid.message}"
+                                    </p>
+                                  )}
+                                </div>
+                                <button
+                                  onClick={() => handleAcceptBid(order._id, bid.userId)}
+                                  disabled={loading}
+                                  style={{ padding: '0.75rem 1.5rem', background: '#10B981', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600', fontSize: '0.875rem' }}
+                                >
+                                  Accept Bid
+                                </button>
                               </div>
-                              <button
-                                onClick={() => handleAcceptBid(order._id, bid.userId)}
-                                disabled={loading}
-                                style={{ padding: '0.5rem 1rem', background: '#10B981', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600', marginLeft: '1rem' }}
-                              >
-                                Accept
-                              </button>
                             </div>
                           ))}
                         </div>

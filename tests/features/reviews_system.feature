@@ -171,12 +171,7 @@ Scenario: Viewing user's review history
     | 4-star reviews     | 4     |
     | 3-star reviews     | 1     |
   And reviews should be sorted by most recent first
-  And each review should show:
-    - Rating stars
-    - Review date
-    - Order number (anonymized)
-    - Comment
-    - Detailed ratings breakdown
+  And each review should show rating stars, review date, order number, comment, and detailed ratings breakdown
 
 @REV-012
 Scenario: Filtering reviews by rating
@@ -191,10 +186,7 @@ Scenario: Viewing mutual reviews for an order
   Given I am logged in as customer "John Doe"
   And both parties have reviewed each other for order "ORD-001"
   When I view the order details
-  Then I should see:
-    - My review of the driver
-    - Driver's review of me
-    - Both platform reviews
+  Then I should see my review of the driver, driver's review of me, and both platform reviews
   And all reviews should be timestamped
   And I should see rating breakdowns for each review
 
@@ -381,12 +373,7 @@ Scenario: Detailed rating breakdown for driver
     | Timeliness        | 5 stars |
     | Package Handling  | 5 stars |
     | Overall           | 5 stars |
-  Then driver profile should display:
-    - Overall: 5.0
-    - Professionalism: 5.0
-    - Communication: 4.0
-    - Timeliness: 5.0
-    - Package Handling: 5.0
+  Then driver profile should display overall rating 5.0, professionalism 5.0, communication 4.0, timeliness 5.0, and package handling 5.0
   And customers can filter by specific criteria
 
 @REV-030
@@ -624,11 +611,7 @@ Scenario: GDPR-compliant review data handling
 @REV-049
 Scenario: Review content moderation
   Given automated system scans all reviews
-  When review contains:
-    - Personal contact information
-    - Discriminatory language
-    - Threats or harassment
-    - False claims
+  When review contains personal contact information, discriminatory language, threats or harassment, or false claims
   Then review should be auto-flagged
   And held for manual moderation
   And submitter notified of guidelines violation
