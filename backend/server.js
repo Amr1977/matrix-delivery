@@ -21,12 +21,15 @@ const app = express();
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 const IS_TEST = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing';
 
-// CORS Configuration - Must be before other middleware
-// TEMPORARILY DISABLED CORS RESTRICTIONS FOR DEBUGGING
+// CORS Configuration - DISABLED because Apache2 handles CORS
+// Apache2 reverse proxy is already configured with CORS headers
+// Uncomment below only if running Node.js directly without Apache2
+
+/*
 const corsOptions = {
   origin: true, // Allow all origins
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization', 'Cache-Control', 'Pragma'],
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization', 'Cache-Control, Pragma'],
   credentials: true,
   optionsSuccessStatus: 200
 };
@@ -35,6 +38,7 @@ app.use(cors(corsOptions));
 
 // Handle preflight requests
 app.options('*', cors(corsOptions));
+*/
 
 // PostgreSQL Connection Pool
 const pool = new Pool({
