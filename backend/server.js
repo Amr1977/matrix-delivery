@@ -2573,13 +2573,17 @@ app.get('/api/locations/countries/:country/cities/search', async (req, res) => {
 // ============ WEBSOCKET INTEGRATION FOR LIVE TRACKING ============
 // Socket.IO CORS - Allow all for development, Apache2 handles in production
 const httpServer = http.createServer(app);
-const io = socketIo(httpServer, {
-  cors: {
-    origin: "*",  // Allow all origins
-    methods: ["GET", "POST"],
-    credentials: true
-  }
-});
+// const io = socketIo(httpServer, {
+//   cors: {
+//     origin: "*",  // Allow all origins
+//     methods: ["GET", "POST"],
+//     credentials: true
+//   }
+// });
+const io = socketIo(httpServer);
+// Then configure transports only (no CORS)
+io.engine.opts.cors = null; // Force disable CORS
+io.engine.opts.transports = ['polling', 'websocket'];
 
 io.on('connection', (socket) => {
   console.log('Connected client:', socket.id);
