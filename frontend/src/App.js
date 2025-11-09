@@ -1489,11 +1489,28 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
         console.error('Geolocation error:', error);
         setLocationPermission('denied');
         setLocationLoading(false);
-        setError('Location access denied. Please enable location services.');
+
+        // Provide more specific error messages
+        let errorMessage = 'Location access failed. ';
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage += 'Please enable location services in your browser settings.';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage += 'Location information is unavailable. Please try again later.';
+            break;
+          case error.TIMEOUT:
+            errorMessage += 'Location request timed out. Please try again or check your network connection.';
+            break;
+          default:
+            errorMessage += 'Please enable location services and try again.';
+            break;
+        }
+        setError(errorMessage);
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000,
+        timeout: 30000, // Increased from 10 to 30 seconds
         maximumAge: 300000 // Cache for 5 minutes
       }
     );
