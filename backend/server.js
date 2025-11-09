@@ -314,14 +314,33 @@ const generateOrderNumber = () => {
   return `ORD-${timestamp}-${random}`;
 };
 
-// Helper function to create notification
+// Helper function to create notification with real-time WebSocket emission
 const createNotification = async (userId, orderId, type, title, message) => {
   try {
-    await pool.query(
+    const result = await pool.query(
       `INSERT INTO notifications (user_id, order_id, type, title, message)
-       VALUES ($1, $2, $3, $4, $5)`,
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id, user_id, order_id, type, title, message, created_at`,
       [userId, orderId, type, title, message]
     );
+
+    const notification = result.rows[0];
+
+    // Emit real-time notification via WebSocket
+    if (io) {
+      io.to(`user_${userId}`).emit('notification', {
+        id: notification.id,
+        orderId: notification.order_id,
+        type: notification.type,
+        title: notification.title,
+        message: notification.message,
+        isRead: false,
+        createdAt: notification.created_at
+      });
+      console.log(`📡 Real-time notification sent to user ${userId}: ${title}`);
+    }
+
+    return notification;
   } catch (error) {
     console.error('Error creating notification:', error);
   }

@@ -959,10 +959,11 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
     if (token) {
       fetchCurrentUser();
       fetchNotifications();
+      // Reduced polling interval to 60 seconds since we now have real-time notifications
       const interval = setInterval(() => {
         fetchOrders();
         fetchNotifications();
-      }, 30000);
+      }, 60000); // Changed from 30000 to 60000
       return () => clearInterval(interval);
     }
   }, [token]);
@@ -979,6 +980,43 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
       return () => clearInterval(locationInterval);
     }
   }, [currentUser, token]);
+
+  // Real-time notifications via WebSocket
+  useEffect(() => {
+    if (token && currentUser) {
+      const apiUrl = API_URL.replace('/api', '');
+      const socket = io(apiUrl, {
+        auth: { token }
+      });
+
+      socket.on('connect', () => {
+        console.log('📡 Connected to real-time notifications');
+      });
+
+      socket.on('notification', (notification) => {
+        console.log('📡 Real-time notification received:', notification);
+
+        // Add to notifications list
+        setNotifications(prev => [notification, ...prev]);
+
+        // Play notification sound
+        playNotificationSound();
+
+        // Speak notification (only for new unread ones)
+        if (!notification.isRead) {
+          speakNotification(notification);
+        }
+      });
+
+      socket.on('disconnect', () => {
+        console.log('📡 Disconnected from real-time notifications');
+      });
+
+      return () => {
+        socket.disconnect();
+      };
+    }
+  }, [token, currentUser]);
 
   // ============ END OF PART 1 ============
   // Continue with Part 2 for API Functions
