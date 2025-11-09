@@ -2,7 +2,7 @@
 
 > “An open-source global delivery platform promoting freedom, transparency, fairness, and collaboration.”
 
-![License: MIT](https://img.shields.io/github/license/Amr1977/matrix-delivery)
+![License: MIT](https://img.shields.io/github/license/Amr1977/matrix-delivery?label=license)
 ![Stars](https://img.shields.io/github/stars/Amr1977/matrix-delivery?style=social)
 ![Forks](https://img.shields.io/github/forks/Amr1977/matrix-delivery?style=social)
 ![Build](https://img.shields.io/github/actions/workflow/status/Amr1977/matrix-delivery/.github/workflows/firebase-hosting-deploy.yml?label=build)
