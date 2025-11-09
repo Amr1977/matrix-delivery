@@ -1440,8 +1440,18 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
   const speakNotification = (notification) => {
     if ('speechSynthesis' in window) {
       try {
+        let message = notification.message;
+
+        // Extract and shorten order numbers to last 3 digits only
+        const orderNumberRegex = /order\s+(\w+)/gi;
+        message = message.replace(orderNumberRegex, (match, orderNum) => {
+          // Extract last 3 digits/numbers from order number
+          const lastThree = orderNum.replace(/\D/g, '').slice(-3);
+          return `order ${lastThree}`;
+        });
+
         const utterance = new SpeechSynthesisUtterance();
-        utterance.text = `New notification: ${notification.title}. ${notification.message}`;
+        utterance.text = `New notification: ${notification.title}. ${message}`;
         utterance.volume = 0.8;
         utterance.rate = 1;
         utterance.pitch = 0.7; // Lower pitch for deeper, more authoritative male voice
