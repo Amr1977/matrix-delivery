@@ -3051,7 +3051,7 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {(() => {
-            const filteredOrders = currentUser?.role === 'driver' ? filterDriverOrders(orders, viewType) : orders;
+            const filteredOrders = currentUser?.role === 'driver' ? filterDriverOrders(orders, viewType, cityFilter) : orders;
             return filteredOrders.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '3rem', background: 'white', borderRadius: '0.5rem' }}>
                 <p style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>📦</p>
