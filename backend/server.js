@@ -2530,8 +2530,28 @@ app.get('/api/locations/countries/:country/cities/search', async (req, res) => {
 const httpServer = http.createServer(app);
 const io = socketIo(httpServer, {
   cors: {
-    origin: '*',
-    methods: ['GET', 'POST']
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+
+      // Allow specific origins
+      const allowedOrigins = [
+        'https://matrix-delivery.web.app',  // Firebase production
+        'http://localhost:3000',            // Local development
+        'http://localhost:3001',            // Alternative local port
+        'http://127.0.0.1:3000',           // Localhost IP
+        'http://127.0.0.1:3001'            // Alternative localhost IP
+      ];
+
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        console.log(`🚫 WebSocket CORS blocked origin: ${origin}`);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    methods: ['GET', 'POST'],
+    credentials: true
   }
 });
 
