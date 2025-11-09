@@ -2571,29 +2571,11 @@ app.get('/api/locations/countries/:country/cities/search', async (req, res) => {
 // });
 
 // ============ WEBSOCKET INTEGRATION FOR LIVE TRACKING ============
+// DISABLED Socket.IO CORS - Apache2 handles all CORS
 const httpServer = http.createServer(app);
 const io = socketIo(httpServer, {
   cors: {
-    origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) return callback(null, true);
-
-      // Allow specific origins
-      const allowedOrigins = [
-        'https://matrix-delivery.web.app',  // Firebase production
-        'http://localhost:3000',            // Local development
-        'http://localhost:3001',            // Alternative local port
-        'http://127.0.0.1:3000',           // Localhost IP
-        'http://127.0.0.1:3001'            // Alternative localhost IP
-      ];
-
-      if (allowedOrigins.indexOf(origin) !== -1) {
-        callback(null, true);
-      } else {
-        console.log(`🚫 WebSocket CORS blocked origin: ${origin}`);
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
+    origin: true, // Allow all origins - Apache2 handles CORS
     methods: ['GET', 'POST'],
     credentials: true
   }
