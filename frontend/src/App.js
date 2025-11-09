@@ -864,6 +864,7 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
   // Driver location functionality
   const [viewType, setViewType] = useState('active'); // 'active', 'bidding', 'history'
   const [driverLocation, setDriverLocation] = useState({ latitude: null, longitude: null, lastUpdated: null });
+  const [cityFilter, setCityFilter] = useState(''); // City filter for bidding orders
 
   const [reviewForm, setReviewForm] = useState({
     rating: 0,
@@ -1304,29 +1305,69 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
     }
   };
 
-  // Filter orders based on driver view type
-  const filterDriverOrders = (orders, viewType) => {
+  // Extract city from address string
+  const extractCityFromAddress = (address) => {
+    if (!address) return '';
+    // Address format: "personName, street, buildingNumber, floor, apartmentNumber, area, city, country"
+    const parts = address.split(',').map(part => part.trim());
+    // City is typically the second last part before country
+    if (parts.length >= 2) {
+      return parts[parts.length - 2] || '';
+    }
+    return '';
+  };
+
+  // Get available cities from bidding orders
+  const getAvailableCities = (orders) => {
+    const cities = new Set();
+    orders.forEach(order => {
+      if (order.status === 'pending_bids') {
+        const pickupCity = extractCityFromAddress(order.pickupAddress);
+        const deliveryCity = extractCityFromAddress(order.deliveryAddress);
+        if (pickupCity) cities.add(pickupCity);
+        if (deliveryCity) cities.add(deliveryCity);
+      }
+    });
+    return Array.from(cities).sort();
+  };
+
+  // Filter orders based on driver view type and city filter
+  const filterDriverOrders = (orders, viewType, cityFilter = '') => {
     if (currentUser?.role !== 'driver') return orders;
 
+    let filteredOrders;
     switch (viewType) {
       case 'active':
-        return orders.filter(order =>
+        filteredOrders = orders.filter(order =>
           order.assignedDriver?.userId === currentUser.id &&
           ['accepted', 'picked_up', 'in_transit'].includes(order.status)
         );
+        break;
       case 'bidding':
-        return orders.filter(order =>
+        filteredOrders = orders.filter(order =>
           order.status === 'pending_bids' &&
           !order.assignedDriver
         );
+        // Apply city filter for bidding orders
+        if (cityFilter) {
+          filteredOrders = filteredOrders.filter(order => {
+            const pickupCity = extractCityFromAddress(order.pickupAddress);
+            const deliveryCity = extractCityFromAddress(order.deliveryAddress);
+            return pickupCity === cityFilter || deliveryCity === cityFilter;
+          });
+        }
+        break;
       case 'history':
-        return orders.filter(order =>
+        filteredOrders = orders.filter(order =>
           order.status === 'delivered' ||
           (order.assignedDriver?.userId === currentUser.id && order.status === 'cancelled')
         );
+        break;
       default:
-        return orders;
+        filteredOrders = orders;
     }
+
+    return filteredOrders;
   };
 
   // Get title for driver view
@@ -2963,6 +3004,50 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
         <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>
           {currentUser?.role === 'customer' ? 'My Orders' : getDriverViewTitle(viewType)}
         </h2>
+
+        {currentUser?.role === 'driver' && viewType === 'bidding' && (
+          <div style={{ marginBottom: '1rem', padding: '1rem', background: 'white', borderRadius: '0.5rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <label style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>
+                Filter by City:
+              </label>
+              <select
+                value={cityFilter}
+                onChange={(e) => setCityFilter(e.target.value)}
+                style={{
+                  padding: '0.5rem 1rem',
+                  border: '1px solid #D1D5DB',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.875rem',
+                  background: 'white',
+                  minWidth: '200px'
+                }}
+              >
+                <option value="">All Cities</option>
+                {getAvailableCities(orders).map(city => (
+                  <option key={city} value={city}>{city}</option>
+                ))}
+              </select>
+              {cityFilter && (
+                <button
+                  onClick={() => setCityFilter('')}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    background: '#6B7280',
+                    color: 'white',
+                    borderRadius: '0.375rem',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: '0.875rem',
+                    fontWeight: '500'
+                  }}
+                >
+                  Clear Filter
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {(() => {
