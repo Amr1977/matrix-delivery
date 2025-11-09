@@ -2571,12 +2571,12 @@ app.get('/api/locations/countries/:country/cities/search', async (req, res) => {
 // });
 
 // ============ WEBSOCKET INTEGRATION FOR LIVE TRACKING ============
-// DISABLED Socket.IO CORS - Apache2 handles all CORS
+// Socket.IO CORS - Allow all for development, Apache2 handles in production
 const httpServer = http.createServer(app);
 const io = socketIo(httpServer, {
   cors: {
-    origin: true, // Allow all origins - Apache2 handles CORS
-    methods: ['GET', 'POST'],
+    origin: "*",  // Allow all origins
+    methods: ["GET", "POST"],
     credentials: true
   }
 });
