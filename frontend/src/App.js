@@ -1123,7 +1123,7 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
     }
   };
 
-  const fetchUserReviews = async (orderId, type) => {
+  const fetchUserReviews = async (orderId, type, bid = null) => {
     try {
       let userId;
       let endpoint;
@@ -1144,17 +1144,31 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
         }
       } else if (type === 'view_driver_reviews') {
         // Get driver reviews received
-        const order = orders.find(o => o._id === orderId);
-        if (order && order.assignedDriver) {
-          userId = order.assignedDriver.userId;
+        if (bid && bid.userId) {
+          // For pending bids, use the bid's userId
+          userId = bid.userId;
           endpoint = `/users/${userId}/reviews/received`;
+        } else {
+          // For assigned orders, use the assigned driver's userId
+          const order = orders.find(o => o._id === orderId);
+          if (order && order.assignedDriver) {
+            userId = order.assignedDriver.userId;
+            endpoint = `/users/${userId}/reviews/received`;
+          }
         }
       } else if (type === 'view_driver_given_reviews') {
         // Get driver reviews given
-        const order = orders.find(o => o._id === orderId);
-        if (order && order.assignedDriver) {
-          userId = order.assignedDriver.userId;
+        if (bid && bid.userId) {
+          // For pending bids, use the bid's userId
+          userId = bid.userId;
           endpoint = `/users/${userId}/reviews/given`;
+        } else {
+          // For assigned orders, use the assigned driver's userId
+          const order = orders.find(o => o._id === orderId);
+          if (order && order.assignedDriver) {
+            userId = order.assignedDriver.userId;
+            endpoint = `/users/${userId}/reviews/given`;
+          }
         }
       }
 
@@ -1172,7 +1186,7 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
     }
   };
 
-  const openReviewModal = async (orderId, type) => {
+  const openReviewModal = async (orderId, type, bid = null) => {
     setReviewOrderId(orderId);
     setReviewType(type);
     setReviewForm({
@@ -1187,7 +1201,7 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
     // Handle viewing user reviews
     if (type === 'view_customer_reviews' || type === 'view_customer_given_reviews' || type === 'view_driver_reviews' || type === 'view_driver_given_reviews') {
       setShowUserReviewsModal(true);
-      await fetchUserReviews(orderId, type);
+      await fetchUserReviews(orderId, type, bid);
     } else {
       await fetchReviewStatus(orderId);
       setShowReviewModal(true);
@@ -3230,7 +3244,7 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
                                   <div>
                                     <p style={{ fontSize: '0.625rem', color: '#64748B', marginBottom: '0.125rem' }}>Deliveries</p>
                                     <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#1E293B' }}>
-                                      {bid.driverCompletedOrders || 0}
+                                      {bid.driverCompletedDeliveries || 0}
                                     </p>
                                   </div>
                                   <div>
@@ -3242,13 +3256,13 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
                                 </div>
                                 <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
                                   <button
-                                    onClick={() => openReviewModal(order._id, 'view_driver_reviews')}
+                                    onClick={() => openReviewModal(order._id, 'view_driver_reviews', bid)}
                                     style={{ padding: '0.25rem 0.5rem', background: '#3B82F6', color: 'white', borderRadius: '0.25rem', border: 'none', cursor: 'pointer', fontSize: '0.625rem', fontWeight: '500' }}
                                   >
                                     📝 Reviews ({bid.driverReviewCount || 0})
                                   </button>
                                   <button
-                                    onClick={() => openReviewModal(order._id, 'view_driver_given_reviews')}
+                                    onClick={() => openReviewModal(order._id, 'view_driver_given_reviews', bid)}
                                     style={{ padding: '0.25rem 0.5rem', background: '#6366F1', color: 'white', borderRadius: '0.25rem', border: 'none', cursor: 'pointer', fontSize: '0.625rem', fontWeight: '500' }}
                                   >
                                     ⭐ Given ({bid.driverGivenReviewCount || 0})
