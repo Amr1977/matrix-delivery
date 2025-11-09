@@ -11,7 +11,8 @@ module.exports = {
     ],
     parallel: 1,
     paths: [
-      'tests/features/ui_verification.feature'
+      'tests/features/ui_verification.feature',
+      'tests/features/driver_bidding.feature'
     ],
     tags: undefined
   }
