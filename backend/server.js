@@ -2085,6 +2085,64 @@ app.get('/api/payments/history', verifyToken, async (req, res) => {
 // ============ PART 7: Location Data Management (Hybrid: Database + Geocoding API) ============
 // Add this after Part 6
 
+// Get current location details (reverse geocoding)
+app.post('/api/location/current', verifyToken, async (req, res) => {
+  try {
+    const { latitude, longitude } = req.body;
+
+    if (!latitude || !longitude) {
+      return res.status(400).json({ error: 'Latitude and longitude are required' });
+    }
+
+    // Use Nominatim API for reverse geocoding
+    const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&addressdetails=1`;
+
+    console.log('🌍 Reverse geocoding:', nominatimUrl);
+
+    const response = await fetch(nominatimUrl, {
+      headers: {
+        'User-Agent': 'Matrix-Delivery-App/1.0'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Nominatim API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (!data || data.error) {
+      return res.status(404).json({ error: 'Location not found' });
+    }
+
+    // Transform to expected format
+    const result = {
+      coordinates: {
+        lat: parseFloat(data.lat),
+        lng: parseFloat(data.lon)
+      },
+      address: {
+        country: data.address?.country || '',
+        city: data.address?.city || data.address?.town || data.address?.village || '',
+        area: data.address?.suburb || data.address?.neighbourhood || data.address?.district || '',
+        street: data.address?.road || data.address?.street || data.address?.pedestrian || '',
+        buildingNumber: data.address?.house_number || '',
+        floor: '',
+        apartmentNumber: '',
+        personName: '',
+        postcode: data.address?.postcode || ''
+      }
+    };
+
+    console.log(`✅ Reverse geocoded location: ${result.address.city}, ${result.address.country}`);
+    res.json(result);
+
+  } catch (error) {
+    console.error('Reverse geocoding error:', error);
+    res.status(500).json({ error: 'Failed to get location details' });
+  }
+});
+
 // Get all countries (hybrid approach)
 app.get('/api/locations/countries', async (req, res) => {
   try {
