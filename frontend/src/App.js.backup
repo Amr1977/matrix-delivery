@@ -7,7 +7,6 @@ import ReCAPTCHA from 'react-google-recaptcha';
 import { Polyline } from 'react-leaflet';
 import io from 'socket.io-client';
 import { useForm } from 'react-hook-form';
-import './Mobile.css';
 
 // ============ ORDER CREATION FORM COMPONENT ============
 // Order Creation Form Component using React Hook Form - moved outside to prevent re-creation
@@ -94,7 +93,7 @@ const OrderCreationForm = React.memo(({ onSubmit, countries }) => {
       <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem' }}>Create New Delivery Order</h2>
 
       <form onSubmit={handleSubmit(onFormSubmit)} autoComplete="off">
-        <div className="order-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1rem' }}>
           {/* Basic Order Info */}
           <div style={{ display: 'grid', gap: '1rem' }}>
             <div>
@@ -279,7 +278,7 @@ const OrderCreationForm = React.memo(({ onSubmit, countries }) => {
 
         {/* Location Sections */}
         <div style={{ marginTop: '2rem' }}>
-          <div className="location-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
             {/* Pickup Location */}
             <div style={{
               border: '1px solid #E5E7EB',
@@ -299,7 +298,7 @@ const OrderCreationForm = React.memo(({ onSubmit, countries }) => {
                 </h4>
               </div>
 
-              <div className="address-fields-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
                     Country *
@@ -473,7 +472,7 @@ const OrderCreationForm = React.memo(({ onSubmit, countries }) => {
                 </h4>
               </div>
 
-              <div className="address-fields-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
                     Country *
@@ -816,29 +815,6 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
   const [userReviews, setUserReviews] = useState([]);
   const [userReviewsType, setUserReviewsType] = useState('');
   const [showLiveTracking, setShowLiveTracking] = useState(false);
-
-// Add viewport meta tag if not present
-useEffect(() => {
-  let metaTag = document.querySelector('meta[name="viewport"]');
-  if (!metaTag) {
-    metaTag = document.createElement('meta');
-    metaTag.name = 'viewport';
-    document.head.appendChild(metaTag);
-  }
-  metaTag.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
-}, []);
-
-// Mobile touch optimization
-const isMobile = () => window.innerWidth <= 768;
-const [mobileView, setMobileView] = useState(isMobile());
-
-useEffect(() => {
-  const handleResize = () => setMobileView(isMobile());
-  window.addEventListener('resize', handleResize);
-  return () => window.removeEventListener('resize', handleResize);
-}, []);
-
-const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText;
 
   // Enhanced location state
   const [locationPermission, setLocationPermission] = useState('unknown'); // 'unknown', 'granted', 'denied', 'prompt'
@@ -2491,7 +2467,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
 
         {showLiveTracking && selectedOrder && (
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '1rem' }}>
-            <div className="modal-content" style={{ background: 'white', borderRadius: '0.5rem', maxWidth: '42rem', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ background: 'white', borderRadius: '0.5rem', maxWidth: '64rem', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
               <div style={{ padding: '1.5rem', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Live Tracking - {selectedOrder.orderNumber}</h2>
                 <button onClick={() => setShowLiveTracking(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
@@ -2533,7 +2509,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
     return (
       <div style={{ minHeight: '100vh', background: '#090909' }}>
         <header className="glow" style={{ background: 'linear-gradient(135deg, #000 0%, #111 100%)', boxShadow: '0 0 20px rgba(48, 255, 48, 0.3)', position: 'sticky', top: 0, zIndex: 10, borderBottom: '1px solid #30FF30' }}>
-          <div className="header-content" style={{ maxWidth: '80rem', margin: '0 auto', padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ maxWidth: '80rem', margin: '0 auto', padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <span style={{ fontSize: '1.5rem', color: '#30FF30', textShadow: '0 0 10px #30FF30' }}>📦</span>
               <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#30FF30', textShadow: '0 0 10px #30FF30' }}>Matrix Delivery</h1>
@@ -2593,7 +2569,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
         </div>
 
         {showNotifications && (
-          <div className="notification-panel" style={{ position: 'absolute', right: '1rem', top: '4rem', background: 'white', borderRadius: '0.5rem', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', width: '24rem', maxHeight: '24rem', overflowY: 'auto', zIndex: 20 }}>
+          <div style={{ position: 'absolute', right: '1rem', top: '4rem', background: 'white', borderRadius: '0.5rem', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', width: '24rem', maxHeight: '24rem', overflowY: 'auto', zIndex: 20 }}>
             <div style={{ padding: '1rem', borderBottom: '1px solid #E5E7EB' }}>
               <h3 style={{ fontWeight: '600', fontSize: '1rem' }}>Notifications</h3>
             </div>
@@ -2618,7 +2594,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
         )}
       </header>
 
-      <main style={{ maxWidth: '80rem', margin: '0 auto', padding: mobileView ? '1rem 0.5rem' : '2rem 1rem' }}>
+      <main style={{ maxWidth: '80rem', margin: '0 auto', padding: '2rem 1rem' }}>
         {error && (
           <div className="error-matrix" style={{ padding: '1rem', borderRadius: '0.5rem', marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: 'Consolas, Monaco, monospace' }}>
             <span style={{ textShadow: '0 0 5px #FF3030' }}>⚠️ {error}</span>
@@ -2678,7 +2654,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
               </div>
             </div>
 
-            <div className="driver-tabs" style={{ display: 'flex', gap: '0.25rem', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', gap: '0.25rem', marginBottom: '1rem' }}>
               <button
                 onClick={() => setViewType('active')}
                 style={{
@@ -2735,7 +2711,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
 
         {showTracking && trackingData && (
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '1rem' }}>
-            <div className="modal-content" style={{ background: 'white', borderRadius: '0.5rem', maxWidth: '42rem', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ background: 'white', borderRadius: '0.5rem', maxWidth: '42rem', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
               <div style={{ padding: '1.5rem', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Order Tracking - {trackingData.orderNumber}</h2>
                 <button onClick={() => setShowTracking(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
@@ -2833,7 +2809,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
 
         {showReviewModal && (
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '1rem' }}>
-            <div className="modal-content" style={{ background: 'white', borderRadius: '0.5rem', maxWidth: '42rem', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ background: 'white', borderRadius: '0.5rem', maxWidth: '32rem', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
               <div style={{ padding: '1.5rem', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Submit Review</h2>
                 <button onClick={() => setShowReviewModal(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
@@ -2899,7 +2875,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
 
         {showReviewsModal && (
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '1rem' }}>
-            <div className="modal-content" style={{ background: 'white', borderRadius: '0.5rem', maxWidth: '42rem', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ background: 'white', borderRadius: '0.5rem', maxWidth: '48rem', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
               <div style={{ padding: '1.5rem', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Order Reviews</h2>
                 <button onClick={() => setShowReviewsModal(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
@@ -2975,7 +2951,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
 
         {showUserReviewsModal && (
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '1rem' }}>
-            <div className="modal-content" style={{ background: 'white', borderRadius: '0.5rem', maxWidth: '42rem', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ background: 'white', borderRadius: '0.5rem', maxWidth: '48rem', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
               <div style={{ padding: '1.5rem', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>
                   {userReviewsType === 'view_customer_reviews' && 'Customer Reviews Received'}
@@ -3125,7 +3101,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
                 const isDriverAssigned = order.assignedDriver?.userId === currentUser?.id;
 
                 return (
-                  <div key={order._id} className="order-card" style={{ background: 'white', borderRadius: '0.5rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)', padding: '1.5rem' }}>
+                  <div key={order._id} style={{ background: 'white', borderRadius: '0.5rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)', padding: '1.5rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
                       <div>
                         <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.25rem' }}>{order.title}</h3>
@@ -3298,7 +3274,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
                           </div>
                         )}
                         <p style={{ fontWeight: '600', marginBottom: '0.75rem', fontSize: '0.875rem' }}>Place Your Bid</p>
-                        <div className="bid-inputs" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.5rem' }}>
                           <input
                             type="number"
                             placeholder="Bid Amount ($)"
