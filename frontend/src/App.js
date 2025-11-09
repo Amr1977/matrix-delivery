@@ -6,25 +6,20 @@ import 'leaflet/dist/leaflet.css';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { Polyline } from 'react-leaflet';
 import io from 'socket.io-client';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 
 // ============ ORDER CREATION FORM COMPONENT ============
 // Order Creation Form Component using React Hook Form - moved outside to prevent re-creation
 const OrderCreationForm = React.memo(({ onSubmit, countries }) => {
   const onSubmitRef = React.useRef(onSubmit);
   const [internalLoading, setInternalLoading] = React.useState(false);
-  const [internalCountries, setInternalCountries] = React.useState(countries);
 
-  // Update refs and internal state when props change
+  // Update refs when props change
   React.useEffect(() => {
     onSubmitRef.current = onSubmit;
   }, [onSubmit]);
 
-  React.useEffect(() => {
-    setInternalCountries(countries);
-  }, [countries]);
-
-  const { register, handleSubmit, control, formState: { errors }, watch, setValue, reset } = useForm({
+  const { register, handleSubmit, formState: { errors } } = useForm({
     defaultValues: {
       title: '',
       description: '',
@@ -966,7 +961,7 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
       }, 60000); // Changed from 30000 to 60000
       return () => clearInterval(interval);
     }
-  }, [token]);
+  }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Driver location effect
   useEffect(() => {
@@ -979,7 +974,7 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
 
       return () => clearInterval(locationInterval);
     }
-  }, [currentUser, token]);
+  }, [currentUser, token]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Real-time notifications via WebSocket
   useEffect(() => {
@@ -1988,7 +1983,7 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
     setError('');
   };
 
-  const handlePublishOrder = useCallback(async (orderData) => {
+  const handlePublishOrder = useCallback(async (orderData) => { // eslint-disable-line react-hooks/exhaustive-deps
     // Simplified validation for structured addresses
     const requiredFieldsError = [];
     if (!orderData.title) requiredFieldsError.push('Order title');
