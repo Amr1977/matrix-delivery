@@ -30,11 +30,17 @@ const corsOptions = {
     // Allow specific origins
     const allowedOrigins = [
       'https://matrix-delivery.web.app',  // Firebase production
+      'https://matrix-api.oldantique50.com', // Backend domain (for potential redirects)
       'http://localhost:3000',            // Local development
       'http://localhost:3001',            // Alternative local port
       'http://127.0.0.1:3000',           // Localhost IP
       'http://127.0.0.1:3001'            // Alternative localhost IP
     ];
+
+    // In production, allow all origins for now to fix CORS issues
+    if (IS_PRODUCTION) {
+      return callback(null, true);
+    }
 
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
