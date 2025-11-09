@@ -23,7 +23,26 @@ const IS_TEST = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'tes
 
 // CORS Configuration - Must be before other middleware
 const corsOptions = {
-  origin: '*', // Allow all origins (you can restrict this to specific domains in production)
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+
+    // Allow specific origins
+    const allowedOrigins = [
+      'https://matrix-delivery.web.app',  // Firebase production
+      'http://localhost:3000',            // Local development
+      'http://localhost:3001',            // Alternative local port
+      'http://127.0.0.1:3000',           // Localhost IP
+      'http://127.0.0.1:3001'            // Alternative localhost IP
+    ];
+
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log(`🚫 CORS blocked origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization', 'Cache-Control', 'Pragma'],
   credentials: true,
