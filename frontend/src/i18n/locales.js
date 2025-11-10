@@ -79,7 +79,23 @@ const translations = {
       pickupContactRequired: 'Pickup contact name is required',
       deliveryCountryRequired: 'Delivery country is required',
       deliveryCityRequired: 'Delivery city is required',
-      deliveryContactRequired: 'Delivery contact name is required'
+      deliveryContactRequired: 'Delivery contact name is required',
+      placeYourBid: 'Place Your Bid',
+      messageOptional: 'Message (Optional)',
+      bidding: 'Bidding...',
+      pickingUp: 'Picking Up...',
+      updating: 'Updating...',
+      completing: 'Completing...',
+      markAsPickedUp: 'Mark as Picked Up',
+      markAsInTransit: 'Mark as In Transit',
+      markAsDelivered: 'Mark as Delivered',
+      acceptedBid: 'Accepted Bid',
+      assignedDriver: 'Assigned Driver',
+      orderAccepted: 'Your order has been accepted. The driver will pick it up soon.',
+      packagePickedUp: 'Your package has been picked up and is on the way!',
+      packageInTransit: 'Your package is in transit and will be delivered soon!',
+      orderCompletedSuccessfully: 'Order completed successfully!',
+      orderCancelled: 'Order was cancelled.'
     },
 
     // Order Status
@@ -330,7 +346,23 @@ const translations = {
       pickupContactRequired: 'اسم جهة اتصال الاستلام مطلوب',
       deliveryCountryRequired: 'بلد التسليم مطلوب',
       deliveryCityRequired: 'مدينة التسليم مطلوبة',
-      deliveryContactRequired: 'اسم جهة اتصال التسليم مطلوب'
+      deliveryContactRequired: 'اسم جهة اتصال التسليم مطلوب',
+      placeYourBid: 'ضع عرضك',
+      messageOptional: 'رسالة (اختياري)',
+      bidding: 'تقديم عرض...',
+      pickingUp: 'جارٍ الاستلام...',
+      updating: 'جارٍ التحديث...',
+      completing: 'جارٍ الإكمال...',
+      markAsPickedUp: 'تحديد كمستلم',
+      markAsInTransit: 'تحديد قيد التوصيل',
+      markAsDelivered: 'تحديد كمسلّم',
+      acceptedBid: 'العرض المقبول',
+      assignedDriver: 'السائق المعين',
+      orderAccepted: 'تم قبول طلبك. سيقوم السائق باستلامه قريباً.',
+      packagePickedUp: 'تم استلام طردك وهو في الطريق!',
+      packageInTransit: 'طردك قيد التوصيل وسيتم تسليمه قريباً!',
+      orderCompletedSuccessfully: 'تم إكمال الطلب بنجاح!',
+      orderCancelled: 'تم إلغاء الطلب.'
     },
 
     // حالة الطلب
@@ -581,7 +613,23 @@ const translations = {
       pickupContactRequired: 'El nombre de contacto de recogida es requerido',
       deliveryCountryRequired: 'El país de entrega es requerido',
       deliveryCityRequired: 'La ciudad de entrega es requerida',
-      deliveryContactRequired: 'El nombre de contacto de entrega es requerido'
+      deliveryContactRequired: 'El nombre de contacto de entrega es requerido',
+      placeYourBid: 'Coloca tu oferta',
+      messageOptional: 'Mensaje (Opcional)',
+      bidding: 'Ofertando...',
+      pickingUp: 'Recogiendo...',
+      updating: 'Actualizando...',
+      completing: 'Completando...',
+      markAsPickedUp: 'Marcar como Recogido',
+      markAsInTransit: 'Marcar como En Tránsito',
+      markAsDelivered: 'Marcar como Entregado',
+      acceptedBid: 'Oferta Aceptada',
+      assignedDriver: 'Conductor Asignado',
+      orderAccepted: 'Tu pedido ha sido aceptado. El conductor lo recogerá pronto.',
+      packagePickedUp: 'Tu paquete ha sido recogido y está en camino.',
+      packageInTransit: 'Tu paquete está en tránsito y será entregado pronto.',
+      orderCompletedSuccessfully: 'Pedido completado exitosamente.',
+      orderCancelled: 'El pedido fue cancelado.'
     },
 
     // Estado del Pedido
@@ -832,7 +880,23 @@ const translations = {
       pickupContactRequired: 'Le nom du contact de ramassage est requis',
       deliveryCountryRequired: 'Le pays de livraison est requis',
       deliveryCityRequired: 'La ville de livraison est requise',
-      deliveryContactRequired: 'Le nom du contact de livraison est requis'
+      deliveryContactRequired: 'Le nom du contact de livraison est requis',
+      placeYourBid: 'Placez votre offre',
+      messageOptional: 'Message (optionnel)',
+      bidding: 'Enchérissant...',
+      pickingUp: 'Ramassant...',
+      updating: 'Mise à jour...',
+      completing: 'Finalisation...',
+      markAsPickedUp: 'Marquer comme ramassé',
+      markAsInTransit: 'Marquer comme en transit',
+      markAsDelivered: 'Marquer comme livré',
+      acceptedBid: 'Offre acceptée',
+      assignedDriver: 'Chauffeur assigné',
+      orderAccepted: 'Votre commande a été acceptée. Le chauffeur la ramassera bientôt.',
+      packagePickedUp: 'Votre colis a été ramassé et est en route !',
+      packageInTransit: 'Votre colis est en transit et sera livré bientôt !',
+      orderCompletedSuccessfully: 'Commande terminée avec succès !',
+      orderCancelled: 'La commande a été annulée.'
     },
 
     // Statut de la Commande
@@ -1083,7 +1147,23 @@ const translations = {
       pickupContactRequired: '取货联系人姓名为必填项',
       deliveryCountryRequired: '交付国家为必填项',
       deliveryCityRequired: '交付城市为必填项',
-      deliveryContactRequired: '交付联系人姓名为必填项'
+      deliveryContactRequired: '交付联系人姓名为必填项',
+      placeYourBid: '下单',
+      messageOptional: '消息（可选）',
+      bidding: '竞标中...',
+      pickingUp: '取货中...',
+      updating: '更新中...',
+      completing: '完成中...',
+      markAsPickedUp: '标记为已取货',
+      markAsInTransit: '标记为运输中',
+      markAsDelivered: '标记为已交付',
+      acceptedBid: '已接受报价',
+      assignedDriver: '已分配司机',
+      orderAccepted: '您的订单已被接受。司机将很快取货。',
+      packagePickedUp: '您的包裹已被取货，正在运送中！',
+      packageInTransit: '您的包裹正在运输中，即将交付！',
+      orderCompletedSuccessfully: '订单完成成功！',
+      orderCancelled: '订单已被取消。'
     },
 
     // 订单状态
@@ -1334,7 +1414,23 @@ const translations = {
       pickupContactRequired: 'Abholkontaktname ist erforderlich',
       deliveryCountryRequired: 'Lieferland ist erforderlich',
       deliveryCityRequired: 'Lieferstadt ist erforderlich',
-      deliveryContactRequired: 'Lieferkontaktname ist erforderlich'
+      deliveryContactRequired: 'Lieferkontaktname ist erforderlich',
+      placeYourBid: 'Geben Sie Ihr Gebot ab',
+      messageOptional: 'Nachricht (optional)',
+      bidding: 'Biete...',
+      pickingUp: 'Hole ab...',
+      updating: 'Aktualisiere...',
+      completing: 'Schließe ab...',
+      markAsPickedUp: 'Als abgeholt markieren',
+      markAsInTransit: 'Als unterwegs markieren',
+      markAsDelivered: 'Als geliefert markieren',
+      acceptedBid: 'Akzeptiertes Gebot',
+      assignedDriver: 'Zugewiesener Fahrer',
+      orderAccepted: 'Ihre Bestellung wurde akzeptiert. Der Fahrer wird sie bald abholen.',
+      packagePickedUp: 'Ihr Paket wurde abgeholt und ist unterwegs!',
+      packageInTransit: 'Ihr Paket ist unterwegs und wird bald geliefert!',
+      orderCompletedSuccessfully: 'Bestellung erfolgreich abgeschlossen!',
+      orderCancelled: 'Die Bestellung wurde storniert.'
     },
 
     // Bestellungsstatus
@@ -1585,7 +1681,23 @@ const translations = {
       pickupContactRequired: 'Nome do contato de coleta é obrigatório',
       deliveryCountryRequired: 'País de entrega é obrigatório',
       deliveryCityRequired: 'Cidade de entrega é obrigatória',
-      deliveryContactRequired: 'Nome do contato de entrega é obrigatório'
+      deliveryContactRequired: 'Nome do contato de entrega é obrigatório',
+      placeYourBid: 'Faça sua oferta',
+      messageOptional: 'Mensagem (opcional)',
+      bidding: 'Fazendo oferta...',
+      pickingUp: 'Coletando...',
+      updating: 'Atualizando...',
+      completing: 'Finalizando...',
+      markAsPickedUp: 'Marcar como coletado',
+      markAsInTransit: 'Marcar como em trânsito',
+      markAsDelivered: 'Marcar como entregue',
+      acceptedBid: 'Oferta aceita',
+      assignedDriver: 'Motorista atribuído',
+      orderAccepted: 'Seu pedido foi aceito. O motorista irá coletá-lo em breve.',
+      packagePickedUp: 'Seu pacote foi coletado e está a caminho!',
+      packageInTransit: 'Seu pacote está em trânsito e será entregue em breve!',
+      orderCompletedSuccessfully: 'Pedido concluído com sucesso!',
+      orderCancelled: 'O pedido foi cancelado.'
     },
 
     // Status do Pedido
@@ -1836,7 +1948,23 @@ const translations = {
       pickupContactRequired: 'Имя контактного лица для получения обязательно',
       deliveryCountryRequired: 'Страна доставки обязательна',
       deliveryCityRequired: 'Город доставки обязателен',
-      deliveryContactRequired: 'Имя контактного лица для доставки обязательно'
+      deliveryContactRequired: 'Имя контактного лица для доставки обязательно',
+      placeYourBid: 'Сделайте свое предложение',
+      messageOptional: 'Сообщение (необязательно)',
+      bidding: 'Делаю предложение...',
+      pickingUp: 'Получаю...',
+      updating: 'Обновляю...',
+      completing: 'Завершаю...',
+      markAsPickedUp: 'Отметить как полученный',
+      markAsInTransit: 'Отметить как в пути',
+      markAsDelivered: 'Отметить как доставленный',
+      acceptedBid: 'Принятое предложение',
+      assignedDriver: 'Назначенный водитель',
+      orderAccepted: 'Ваш заказ принят. Водитель скоро заберет его.',
+      packagePickedUp: 'Ваша посылка получена и находится в пути!',
+      packageInTransit: 'Ваша посылка в пути и скоро будет доставлена!',
+      orderCompletedSuccessfully: 'Заказ успешно завершен!',
+      orderCancelled: 'Заказ был отменен.'
     },
 
     // Статус заказа
@@ -2087,7 +2215,23 @@ const translations = {
       pickupContactRequired: '集荷連絡先名は必須です',
       deliveryCountryRequired: '配送国は必須です',
       deliveryCityRequired: '配送都市は必須です',
-      deliveryContactRequired: '配送連絡先名は必須です'
+      deliveryContactRequired: '配送連絡先名は必須です',
+      placeYourBid: '入札してください',
+      messageOptional: 'メッセージ（任意）',
+      bidding: '入札中...',
+      pickingUp: '集荷中...',
+      updating: '更新中...',
+      completing: '完了中...',
+      markAsPickedUp: '集荷済みとしてマーク',
+      markAsInTransit: '配送中としてマーク',
+      markAsDelivered: '配送完了としてマーク',
+      acceptedBid: '承認された入札',
+      assignedDriver: '割り当てられたドライバー',
+      orderAccepted: '注文が承認されました。ドライバーがすぐに集荷します。',
+      packagePickedUp: '荷物が集荷され、配送中です！',
+      packageInTransit: '荷物が配送中です。まもなくお届けします！',
+      orderCompletedSuccessfully: '注文が正常に完了しました！',
+      orderCancelled: '注文がキャンセルされました。'
     },
 
     // 注文ステータス
@@ -2338,7 +2482,23 @@ const translations = {
       pickupContactRequired: 'Alış iletişim adı gerekli',
       deliveryCountryRequired: 'Teslimat ülkesi gerekli',
       deliveryCityRequired: 'Teslimat şehri gerekli',
-      deliveryContactRequired: 'Teslimat iletişim adı gerekli'
+      deliveryContactRequired: 'Teslimat iletişim adı gerekli',
+      placeYourBid: 'Teklifinizi verin',
+      messageOptional: 'Mesaj (isteğe bağlı)',
+      bidding: 'Teklif veriliyor...',
+      pickingUp: 'Alınıyor...',
+      updating: 'Güncelleniyor...',
+      completing: 'Tamamlanıyor...',
+      markAsPickedUp: 'Alındı olarak işaretle',
+      markAsInTransit: 'Yolda olarak işaretle',
+      markAsDelivered: 'Teslim edildi olarak işaretle',
+      acceptedBid: 'Kabul edilen teklif',
+      assignedDriver: 'Atanan sürücü',
+      orderAccepted: 'Siparişiniz kabul edildi. Sürücü yakında alacak.',
+      packagePickedUp: 'Paketiniz alındı ve yolda!',
+      packageInTransit: 'Paketiniz yolda ve yakında teslim edilecek!',
+      orderCompletedSuccessfully: 'Sipariş başarıyla tamamlandı!',
+      orderCancelled: 'Sipariş iptal edildi.'
     },
 
     // Sipariş Durumu
@@ -2589,7 +2749,23 @@ const translations = {
       pickupContactRequired: 'پک اپ رابطہ نام ضروری ہے',
       deliveryCountryRequired: 'ڈیلیوری ملک ضروری ہے',
       deliveryCityRequired: 'ڈیلیوری شہر ضروری ہے',
-      deliveryContactRequired: 'ڈیلیوری رابطہ نام ضروری ہے'
+      deliveryContactRequired: 'ڈیلیوری رابطہ نام ضروری ہے',
+      placeYourBid: 'اپنی بولی لگائیں',
+      messageOptional: 'پیغام (اختیاری)',
+      bidding: 'بولی لگا رہے ہیں...',
+      pickingUp: 'پک اپ کر رہے ہیں...',
+      updating: 'اپ ڈیٹ کر رہے ہیں...',
+      completing: 'مکمل کر رہے ہیں...',
+      markAsPickedUp: 'پک اپ شدہ کے طور پر نشان زد کریں',
+      markAsInTransit: 'راستے میں کے طور پر نشان زد کریں',
+      markAsDelivered: 'ڈیلیور شدہ کے طور پر نشان زد کریں',
+      acceptedBid: 'قبول شدہ بولی',
+      assignedDriver: 'تفویض کردہ ڈرائیور',
+      orderAccepted: 'آپ کا آرڈر قبول کر لیا گیا ہے۔ ڈرائیور جلد پک اپ کرے گا۔',
+      packagePickedUp: 'آپ کا پیکیج پک اپ کر لیا گیا ہے اور راستے میں ہے!',
+      packageInTransit: 'آپ کا پیکیج راستے میں ہے اور جلد ڈیلیور کر دیا جائے گا!',
+      orderCompletedSuccessfully: 'آرڈر کامیابی سے مکمل کر دیا گیا!',
+      orderCancelled: 'آرڈر منسوخ کر دیا گیا۔'
     },
 
     // آرڈر کی حیثیت
@@ -2824,7 +3000,23 @@ const translations = {
       pickupContactRequired: 'पिकअप संपर्क नाम आवश्यक है',
       deliveryCountryRequired: 'डिलीवरी देश आवश्यक है',
       deliveryCityRequired: 'डिलीवरी शहर आवश्यक है',
-      deliveryContactRequired: 'डिलीवरी संपर्क नाम आवश्यक है'
+      deliveryContactRequired: 'डिलीवरी संपर्क नाम आवश्यक है',
+      placeYourBid: 'अपनी बोली लगाएं',
+      messageOptional: 'संदेश (वैकल्पिक)',
+      bidding: 'बोली लगा रहे हैं...',
+      pickingUp: 'पिकअप कर रहे हैं...',
+      updating: 'अपडेट कर रहे हैं...',
+      completing: 'पूर्ण कर रहे हैं...',
+      markAsPickedUp: 'पिकअप किए गए के रूप में चिह्नित करें',
+      markAsInTransit: 'मार्ग में के रूप में चिह्नित करें',
+      markAsDelivered: 'डिलीवर किए गए के रूप में चिह्नित करें',
+      acceptedBid: 'स्वीकार की गई बोली',
+      assignedDriver: 'सौंपा गया ड्राइवर',
+      orderAccepted: 'आपका ऑर्डर स्वीकार कर लिया गया है। ड्राइवर जल्द ही पिकअप करेगा।',
+      packagePickedUp: 'आपका पैकेज पिकअप कर लिया गया है और मार्ग में है!',
+      packageInTransit: 'आपका पैकेज मार्ग में है और जल्द ही डिलीवर किया जाएगा!',
+      orderCompletedSuccessfully: 'ऑर्डर सफलतापूर्वक पूरा किया गया!',
+      orderCancelled: 'ऑर्डर रद्द कर दिया गया।'
     },
 
     // ऑर्डर स्थिति
