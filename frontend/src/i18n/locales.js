@@ -27,7 +27,7 @@ const translations = {
       verify: 'Verify',
       verified: 'Verified'
     },
-    
+
     // Orders
     orders: {
       myOrders: 'My Orders',
@@ -81,7 +81,7 @@ const translations = {
       deliveryCityRequired: 'Delivery city is required',
       deliveryContactRequired: 'Delivery contact name is required'
     },
-    
+
     // Order Status
     status: {
       pendingBids: 'Pending Bids',
@@ -91,7 +91,7 @@ const translations = {
       delivered: 'Delivered',
       cancelled: 'Cancelled'
     },
-    
+
     // Driver
     driver: {
       activeOrders: 'Active Orders',
@@ -123,7 +123,7 @@ const translations = {
       noAvailableBids: 'No available bids',
       noOrderHistory: 'No order history'
     },
-    
+
     // Reputation
     reputation: {
       customerReputation: 'Customer Reputation',
@@ -137,7 +137,7 @@ const translations = {
       given: 'Given',
       verifyAccount: 'Verify Account'
     },
-    
+
     // Reviews
     reviews: {
       submitReview: 'Submit Review',
@@ -160,14 +160,14 @@ const translations = {
       reviewType: 'Review Type',
       reviewing: 'Reviewing'
     },
-    
+
     // Notifications
     notifications: {
       notifications: 'Notifications',
       noNotifications: 'No notifications',
       newNotification: 'New notification'
     },
-    
+
     // Tracking
     tracking: {
       orderTracking: 'Order Tracking',
@@ -186,7 +186,7 @@ const translations = {
       coordinates: 'Coordinates',
       copyCoordinates: 'Copy Coordinates'
     },
-    
+
     // Messages
     messages: {
       orderPublished: 'Order published successfully! Waiting for drivers in your area.',
@@ -207,7 +207,7 @@ const translations = {
       locationAccessFailed: 'Location access failed. Please enable location services.',
       afterVerification: 'After admin verifies your account, please refresh this page to see the verification badge.'
     },
-    
+
     // Common
     common: {
       loading: 'Loading...',
@@ -233,7 +233,7 @@ const translations = {
       subtitle: 'P2P Delivery Marketplace'
     }
   },
-  
+
   ar: {
     // المصادقة
     auth: {
@@ -262,7 +262,7 @@ const translations = {
       verify: 'توثيق',
       verified: 'موثق'
     },
-    
+
     // الطلبات
     orders: {
       myOrders: 'طلباتي',
@@ -316,7 +316,7 @@ const translations = {
       deliveryCityRequired: 'مدينة التسليم مطلوبة',
       deliveryContactRequired: 'اسم جهة اتصال التسليم مطلوب'
     },
-    
+
     // حالة الطلب
     status: {
       pendingBids: 'في انتظار العروض',
@@ -326,7 +326,7 @@ const translations = {
       delivered: 'تم التسليم',
       cancelled: 'ملغى'
     },
-    
+
     // السائق
     driver: {
       activeOrders: 'الطلبات النشطة',
@@ -358,7 +358,7 @@ const translations = {
       noAvailableBids: 'لا توجد عروض متاحة',
       noOrderHistory: 'لا يوجد سجل للطلبات'
     },
-    
+
     // السمعة
     reputation: {
       customerReputation: 'سمعة العميل',
@@ -372,7 +372,7 @@ const translations = {
       given: 'معطى',
       verifyAccount: 'توثيق الحساب'
     },
-    
+
     // التقييمات
     reviews: {
       submitReview: 'إرسال تقييم',
@@ -395,14 +395,14 @@ const translations = {
       reviewType: 'نوع التقييم',
       reviewing: 'تقييم'
     },
-    
+
     // الإشعارات
     notifications: {
       notifications: 'الإشعارات',
       noNotifications: 'لا توجد إشعارات',
       newNotification: 'إشعار جديد'
     },
-    
+
     // التتبع
     tracking: {
       orderTracking: 'تتبع الطلب',
@@ -421,7 +421,7 @@ const translations = {
       coordinates: 'الإحداثيات',
       copyCoordinates: 'نسخ الإحداثيات'
     },
-    
+
     // الرسائل
     messages: {
       orderPublished: 'تم نشر الطلب بنجاح! في انتظار السائقين في منطقتك.',
@@ -442,7 +442,7 @@ const translations = {
       locationAccessFailed: 'فشل الوصول إلى الموقع. يرجى تفعيل خدمات الموقع.',
       afterVerification: 'بعد أن يقوم المسؤول بتوثيق حسابك، يرجى تحديث هذه الصفحة لرؤية شارة التوثيق.'
     },
-    
+
     // عام
     common: {
       loading: 'جارٍ التحميل...',
@@ -466,6 +466,1181 @@ const translations = {
       required: 'مطلوب',
       appName: 'ماتريكس ديليفري',
       subtitle: 'السوق الحرة للتوصيل '
+    }
+  },
+
+  es: {
+    // Autenticación
+    auth: {
+      signIn: 'Iniciar Sesión',
+      signUp: 'Registrarse',
+      createAccount: 'Crear Cuenta',
+      email: 'Correo Electrónico',
+      password: 'Contraseña',
+      fullName: 'Nombre Completo',
+      phoneNumber: 'Número de Teléfono',
+      role: 'Rol',
+      customer: 'Cliente',
+      driver: 'Conductor',
+      vehicleType: 'Tipo de Vehículo',
+      selectVehicleType: 'Seleccionar Tipo de Vehículo',
+      bike: 'Moto',
+      car: 'Coche',
+      van: 'Furgoneta',
+      truck: 'Camión',
+      login: 'Iniciar Sesión',
+      register: 'Crear Cuenta',
+      logout: 'Cerrar Sesión',
+      dontHaveAccount: '¿No tienes cuenta?',
+      alreadyHaveAccount: '¿Ya tienes cuenta?',
+      loading: 'Cargando...',
+      verify: 'Verificar',
+      verified: 'Verificado'
+    },
+
+    // Pedidos
+    orders: {
+      myOrders: 'Mis Pedidos',
+      createOrder: 'Crear Nuevo Pedido',
+      cancel: 'Cancelar',
+      orderTitle: 'Título del Pedido',
+      description: 'Descripción',
+      packageDescription: 'Descripción del Paquete',
+      packageWeight: 'Peso del Paquete (kg)',
+      estimatedValue: 'Valor Estimado ($)',
+      specialInstructions: 'Instrucciones Especiales',
+      estimatedDelivery: 'Fecha de Entrega Estimada',
+      price: 'Precio Ofrecido ($)',
+      publishOrder: 'Publicar Pedido',
+      publishingOrder: 'Publicando Pedido...',
+      pickupLocation: 'Ubicación de Recogida',
+      deliveryLocation: 'Ubicación de Entrega',
+      country: 'País',
+      city: 'Ciudad',
+      area: 'Área',
+      street: 'Calle',
+      building: 'Edificio',
+      floor: 'Piso',
+      apartment: 'Apartamento',
+      contactName: 'Nombre de Contacto',
+      selectCountry: 'Seleccionar País',
+      enterCity: 'Ingresar ciudad',
+      enterArea: 'Ingresar área',
+      enterStreet: 'Ingresar calle',
+      buildingNumber: 'N° Edificio',
+      aptNumber: 'N° Apt',
+      contactPerson: 'Persona de contacto',
+      orderNumber: 'Pedido N°',
+      pickup: 'Recogida',
+      delivery: 'Entrega',
+      package: 'Paquete',
+      weight: 'Peso',
+      value: 'Valor',
+      instructions: 'Instrucciones',
+      trackOrder: 'Rastrear Pedido',
+      viewReviews: 'Ver Reseñas',
+      noOrders: 'No hay pedidos disponibles',
+      required: 'Requerido',
+      optional: 'Opcional',
+      orderTitleRequired: 'El título del pedido es requerido',
+      priceRequired: 'El precio es requerido',
+      pickupCountryRequired: 'El país de recogida es requerido',
+      pickupCityRequired: 'La ciudad de recogida es requerida',
+      pickupContactRequired: 'El nombre de contacto de recogida es requerido',
+      deliveryCountryRequired: 'El país de entrega es requerido',
+      deliveryCityRequired: 'La ciudad de entrega es requerida',
+      deliveryContactRequired: 'El nombre de contacto de entrega es requerido'
+    },
+
+    // Estado del Pedido
+    status: {
+      pendingBids: 'Ofertas Pendientes',
+      accepted: 'Aceptado',
+      pickedUp: 'Recogido',
+      inTransit: 'En Tránsito',
+      delivered: 'Entregado',
+      cancelled: 'Cancelado'
+    },
+
+    // Conductor
+    driver: {
+      activeOrders: 'Pedidos Activos',
+      availableBids: 'Ofertas Disponibles',
+      myHistory: 'Mi Historial',
+      updateLocation: 'Actualizar Ubicación',
+      locationUpdated: 'Ubicación Actualizada',
+      enableLocation: 'Habilitar ubicación para mejor visibilidad de pedidos',
+      locationDenied: 'Acceso a ubicación denegado',
+      placeBid: 'Hacer Oferta',
+      placingBid: 'Ofertando...',
+      bidAmount: 'Monto de Oferta ($)',
+      pickupTime: 'Hora de Recogida',
+      message: 'Mensaje (opcional)',
+      driverBids: 'Ofertas de Conductores',
+      acceptBid: 'Aceptar Oferta',
+      acceptingBid: 'Aceptando...',
+      markPickedUp: 'Marcar como Recogido',
+      markInTransit: 'Marcar como En Tránsito',
+      markDelivered: 'Marcar como Entregado',
+      pickingUp: 'Recogiendo...',
+      updating: 'Actualizando...',
+      completing: 'Completando...',
+      distanceFromPickup: 'Distancia desde recogida',
+      filterByCity: 'Filtrar por Ciudad:',
+      allCities: 'Todas las Ciudades',
+      clearFilter: 'Limpiar Filtro',
+      noActiveOrders: 'No se encontraron pedidos activos',
+      noAvailableBids: 'No hay ofertas disponibles',
+      noOrderHistory: 'No hay historial de pedidos'
+    },
+
+    // Reputación
+    reputation: {
+      customerReputation: 'Reputación del Cliente',
+      driverReputation: 'Reputación del Conductor',
+      rating: 'Calificación',
+      deliveries: 'Entregas',
+      reviews: 'Reseñas',
+      memberSince: 'Miembro Desde',
+      reviewsGiven: 'Reseñas Dadas',
+      viewReviews: 'Ver Reseñas',
+      given: 'Dado',
+      verifyAccount: 'Verificar Cuenta'
+    },
+
+    // Reseñas
+    reviews: {
+      submitReview: 'Enviar Reseña',
+      reviewDriver: 'Reseñar Conductor',
+      reviewCustomer: 'Reseñar Cliente',
+      reviewPlatform: 'Reseñar Plataforma',
+      overallRating: 'Calificación General',
+      professionalism: 'Profesionalismo',
+      communication: 'Comunicación',
+      timeliness: 'Puntualidad',
+      packageCondition: 'Condición del Paquete',
+      comment: 'Comentario (Opcional)',
+      shareExperience: 'Comparte tu experiencia...',
+      cancel: 'Cancelar',
+      submit: 'Enviar Reseña',
+      submitting: 'Enviando...',
+      provideRating: 'Por favor proporciona una calificación general',
+      orderReviews: 'Reseñas del Pedido',
+      noReviews: 'Aún no hay reseñas para este pedido',
+      reviewType: 'Tipo de Reseña',
+      reviewing: 'Reseñando'
+    },
+
+    // Notificaciones
+    notifications: {
+      notifications: 'Notificaciones',
+      noNotifications: 'No hay notificaciones',
+      newNotification: 'Nueva notificación'
+    },
+
+    // Seguimiento
+    tracking: {
+      orderTracking: 'Seguimiento de Pedido',
+      liveTracking: 'Seguimiento en Vivo',
+      currentStatus: 'Estado Actual',
+      currentLocation: 'Ubicación Actual',
+      timeline: 'Cronograma',
+      orderCreated: 'Pedido Creado',
+      bidAccepted: 'Oferta Aceptada',
+      packagePickedUp: 'Paquete Recogido',
+      locationHistory: 'Historial de Ubicación',
+      close: 'Cerrar',
+      liveTrackingActive: 'Seguimiento en Vivo Activo',
+      connecting: 'Conectando...',
+      selectedLocation: 'Ubicación Seleccionada',
+      coordinates: 'Coordenadas',
+      copyCoordinates: 'Copiar Coordenadas'
+    },
+
+    // Mensajes
+    messages: {
+      orderPublished: '¡Pedido publicado exitosamente! Esperando conductores en tu área.',
+      bidPlaced: '¡Oferta realizada exitosamente!',
+      bidAccepted: '¡Oferta aceptada exitosamente! Conductor notificado.',
+      orderAccepted: 'Tu pedido ha sido aceptado. El conductor lo recogerá pronto.',
+      orderPickedUp: '¡Tu paquete ha sido recogido y está en camino!',
+      orderInTransit: '¡Tu paquete está en tránsito y será entregado pronto!',
+      orderCompleted: '¡Pedido completado exitosamente!',
+      orderCancelled: 'El pedido fue cancelado.',
+      reviewSubmitted: '¡Reseña enviada exitosamente!',
+      allFieldsRequired: 'Todos los campos son requeridos',
+      vehicleTypeRequired: 'El tipo de vehículo es requerido para conductores',
+      completeCaptcha: 'Por favor completa el captcha',
+      enterValidBid: 'Ingresa un precio de oferta válido',
+      fillRequiredFields: 'Por favor llena todos los campos requeridos',
+      connectionIssue: 'Problema de conexión: Error al obtener usuario. Por favor intenta refrescar la página.',
+      locationAccessFailed: 'Error de acceso a ubicación. Por favor habilita los servicios de ubicación.',
+      afterVerification: 'Después de que el administrador verifique tu cuenta, por favor refresca esta página para ver el distintivo de verificación.'
+    },
+
+    // Común
+    common: {
+      loading: 'Cargando...',
+      error: 'Error',
+      success: 'Éxito',
+      confirm: 'Confirmar',
+      cancel: 'Cancelar',
+      save: 'Guardar',
+      delete: 'Eliminar',
+      edit: 'Editar',
+      search: 'Buscar',
+      filter: 'Filtrar',
+      clear: 'Limpiar',
+      close: 'Cerrar',
+      back: 'Atrás',
+      next: 'Siguiente',
+      previous: 'Anterior',
+      yes: 'Sí',
+      no: 'No',
+      optional: 'Opcional',
+      required: 'Requerido',
+      appName: 'Matrix Delivery',
+      subtitle: 'Mercado P2P de Entregas'
+    }
+  },
+
+  fr: {
+    // Authentification
+    auth: {
+      signIn: 'Se Connecter',
+      signUp: 'S\'inscrire',
+      createAccount: 'Créer un Compte',
+      email: 'E-mail',
+      password: 'Mot de Passe',
+      fullName: 'Nom Complet',
+      phoneNumber: 'Numéro de Téléphone',
+      role: 'Rôle',
+      customer: 'Client',
+      driver: 'Chauffeur',
+      vehicleType: 'Type de Véhicule',
+      selectVehicleType: 'Sélectionner le Type de Véhicule',
+      bike: 'Moto',
+      car: 'Voiture',
+      van: 'Camionnette',
+      truck: 'Camion',
+      login: 'Se Connecter',
+      register: 'Créer un Compte',
+      logout: 'Se Déconnecter',
+      dontHaveAccount: 'Vous n\'avez pas de compte ?',
+      alreadyHaveAccount: 'Vous avez déjà un compte ?',
+      loading: 'Chargement...',
+      verify: 'Vérifier',
+      verified: 'Vérifié'
+    },
+
+    // Commandes
+    orders: {
+      myOrders: 'Mes Commandes',
+      createOrder: 'Créer une Nouvelle Commande',
+      cancel: 'Annuler',
+      orderTitle: 'Titre de la Commande',
+      description: 'Description',
+      packageDescription: 'Description du Colis',
+      packageWeight: 'Poids du Colis (kg)',
+      estimatedValue: 'Valeur Estimée ($)',
+      specialInstructions: 'Instructions Spéciales',
+      estimatedDelivery: 'Date de Livraison Estimée',
+      price: 'Prix Proposé ($)',
+      publishOrder: 'Publier la Commande',
+      publishingOrder: 'Publication de la commande...',
+      pickupLocation: 'Lieu de Ramassage',
+      deliveryLocation: 'Lieu de Livraison',
+      country: 'Pays',
+      city: 'Ville',
+      area: 'Zone',
+      street: 'Rue',
+      building: 'Bâtiment',
+      floor: 'Étage',
+      apartment: 'Appartement',
+      contactName: 'Nom du Contact',
+      selectCountry: 'Sélectionner le Pays',
+      enterCity: 'Entrer la ville',
+      enterArea: 'Entrer la zone',
+      enterStreet: 'Entrer la rue',
+      buildingNumber: 'N° Bâtiment',
+      aptNumber: 'N° Appart',
+      contactPerson: 'Personne de contact',
+      orderNumber: 'Commande N°',
+      pickup: 'Ramassage',
+      delivery: 'Livraison',
+      package: 'Colis',
+      weight: 'Poids',
+      value: 'Valeur',
+      instructions: 'Instructions',
+      trackOrder: 'Suivre la Commande',
+      viewReviews: 'Voir les Avis',
+      noOrders: 'Aucune commande disponible',
+      required: 'Requis',
+      optional: 'Optionnel',
+      orderTitleRequired: 'Le titre de la commande est requis',
+      priceRequired: 'Le prix est requis',
+      pickupCountryRequired: 'Le pays de ramassage est requis',
+      pickupCityRequired: 'La ville de ramassage est requise',
+      pickupContactRequired: 'Le nom du contact de ramassage est requis',
+      deliveryCountryRequired: 'Le pays de livraison est requis',
+      deliveryCityRequired: 'La ville de livraison est requise',
+      deliveryContactRequired: 'Le nom du contact de livraison est requis'
+    },
+
+    // Statut de la Commande
+    status: {
+      pendingBids: 'Offres en Attente',
+      accepted: 'Accepté',
+      pickedUp: 'Ramassé',
+      inTransit: 'En Transit',
+      delivered: 'Livré',
+      cancelled: 'Annulé'
+    },
+
+    // Chauffeur
+    driver: {
+      activeOrders: 'Commandes Actives',
+      availableBids: 'Offres Disponibles',
+      myHistory: 'Mon Historique',
+      updateLocation: 'Mettre à Jour la Localisation',
+      locationUpdated: 'Localisation Mise à Jour',
+      enableLocation: 'Activer la localisation pour une meilleure visibilité des commandes',
+      locationDenied: 'Accès à la localisation refusé',
+      placeBid: 'Faire une Offre',
+      placingBid: 'Offre en cours...',
+      bidAmount: 'Montant de l\'Offre ($)',
+      pickupTime: 'Heure de Ramassage',
+      message: 'Message (optionnel)',
+      driverBids: 'Offres des Chauffeurs',
+      acceptBid: 'Accepter l\'Offre',
+      acceptingBid: 'Acceptation en cours...',
+      markPickedUp: 'Marquer comme Ramassé',
+      markInTransit: 'Marquer comme En Transit',
+      markDelivered: 'Marquer comme Livré',
+      pickingUp: 'Ramassage en cours...',
+      updating: 'Mise à jour...',
+      completing: 'Finalisation...',
+      distanceFromPickup: 'Distance depuis le ramassage',
+      filterByCity: 'Filtrer par Ville :',
+      allCities: 'Toutes les Villes',
+      clearFilter: 'Effacer le Filtre',
+      noActiveOrders: 'Aucune commande active trouvée',
+      noAvailableBids: 'Aucune offre disponible',
+      noOrderHistory: 'Aucun historique de commandes'
+    },
+
+    // Réputation
+    reputation: {
+      customerReputation: 'Réputation du Client',
+      driverReputation: 'Réputation du Chauffeur',
+      rating: 'Évaluation',
+      deliveries: 'Livraisons',
+      reviews: 'Avis',
+      memberSince: 'Membre Depuis',
+      reviewsGiven: 'Avis Donnés',
+      viewReviews: 'Voir les Avis',
+      given: 'Donné',
+      verifyAccount: 'Vérifier le Compte'
+    },
+
+    // Avis
+    reviews: {
+      submitReview: 'Soumettre un Avis',
+      reviewDriver: 'Évaluer le Chauffeur',
+      reviewCustomer: 'Évaluer le Client',
+      reviewPlatform: 'Évaluer la Plateforme',
+      overallRating: 'Évaluation Globale',
+      professionalism: 'Professionnalisme',
+      communication: 'Communication',
+      timeliness: 'Ponctualité',
+      packageCondition: 'État du Colis',
+      comment: 'Commentaire (Optionnel)',
+      shareExperience: 'Partagez votre expérience...',
+      cancel: 'Annuler',
+      submit: 'Soumettre l\'Avis',
+      submitting: 'Soumission en cours...',
+      provideRating: 'Veuillez fournir une évaluation globale',
+      orderReviews: 'Avis sur la Commande',
+      noReviews: 'Aucun avis pour cette commande encore',
+      reviewType: 'Type d\'Avis',
+      reviewing: 'Évaluation'
+    },
+
+    // Notifications
+    notifications: {
+      notifications: 'Notifications',
+      noNotifications: 'Aucune notification',
+      newNotification: 'Nouvelle notification'
+    },
+
+    // Suivi
+    tracking: {
+      orderTracking: 'Suivi de Commande',
+      liveTracking: 'Suivi en Direct',
+      currentStatus: 'Statut Actuel',
+      currentLocation: 'Localisation Actuelle',
+      timeline: 'Chronologie',
+      orderCreated: 'Commande Créée',
+      bidAccepted: 'Offre Acceptée',
+      packagePickedUp: 'Colis Ramassé',
+      locationHistory: 'Historique des Localisations',
+      close: 'Fermer',
+      liveTrackingActive: 'Suivi en Direct Actif',
+      connecting: 'Connexion...',
+      selectedLocation: 'Localisation Sélectionnée',
+      coordinates: 'Coordonnées',
+      copyCoordinates: 'Copier les Coordonnées'
+    },
+
+    // Messages
+    messages: {
+      orderPublished: 'Commande publiée avec succès ! En attente de chauffeurs dans votre région.',
+      bidPlaced: 'Offre réalisée avec succès !',
+      bidAccepted: 'Offre acceptée avec succès ! Chauffeur notifié.',
+      orderAccepted: 'Votre commande a été acceptée. Le chauffeur la ramassera bientôt.',
+      orderPickedUp: 'Votre colis a été ramassé et est en route !',
+      orderInTransit: 'Votre colis est en transit et sera livré bientôt !',
+      orderCompleted: 'Commande terminée avec succès !',
+      orderCancelled: 'La commande a été annulée.',
+      reviewSubmitted: 'Avis soumis avec succès !',
+      allFieldsRequired: 'Tous les champs sont requis',
+      vehicleTypeRequired: 'Le type de véhicule est requis pour les chauffeurs',
+      completeCaptcha: 'Veuillez compléter le captcha',
+      enterValidBid: 'Entrez un prix d\'offre valide',
+      fillRequiredFields: 'Veuillez remplir tous les champs requis',
+      connectionIssue: 'Problème de connexion : Échec de récupération des informations utilisateur. Veuillez rafraîchir la page.',
+      locationAccessFailed: 'Échec d\'accès à la localisation. Veuillez activer les services de localisation.',
+      afterVerification: 'Après que l\'administrateur ait vérifié votre compte, veuillez rafraîchir cette page pour voir le badge de vérification.'
+    },
+
+    // Commun
+    common: {
+      loading: 'Chargement...',
+      error: 'Erreur',
+      success: 'Succès',
+      confirm: 'Confirmer',
+      cancel: 'Annuler',
+      save: 'Sauvegarder',
+      delete: 'Supprimer',
+      edit: 'Modifier',
+      search: 'Rechercher',
+      filter: 'Filtrer',
+      clear: 'Effacer',
+      close: 'Fermer',
+      back: 'Retour',
+      next: 'Suivant',
+      previous: 'Précédent',
+      yes: 'Oui',
+      no: 'Non',
+      optional: 'Optionnel',
+      required: 'Requis',
+      appName: 'Matrix Delivery',
+      subtitle: 'Marché P2P de Livraison'
+    }
+  },
+
+  zh: {
+    // 认证
+    auth: {
+      signIn: '登录',
+      signUp: '注册',
+      createAccount: '创建账户',
+      email: '电子邮件',
+      password: '密码',
+      fullName: '全名',
+      phoneNumber: '电话号码',
+      role: '角色',
+      customer: '客户',
+      driver: '司机',
+      vehicleType: '车辆类型',
+      selectVehicleType: '选择车辆类型',
+      bike: '摩托车',
+      car: '汽车',
+      van: '货车',
+      truck: '卡车',
+      login: '登录',
+      register: '创建账户',
+      logout: '登出',
+      dontHaveAccount: '还没有账户？',
+      alreadyHaveAccount: '已有账户？',
+      loading: '加载中...',
+      verify: '验证',
+      verified: '已验证'
+    },
+
+    // 订单
+    orders: {
+      myOrders: '我的订单',
+      createOrder: '创建新订单',
+      cancel: '取消',
+      orderTitle: '订单标题',
+      description: '描述',
+      packageDescription: '包裹描述',
+      packageWeight: '包裹重量 (kg)',
+      estimatedValue: '预估价值 ($)',
+      specialInstructions: '特殊说明',
+      estimatedDelivery: '预估交付日期',
+      price: '报价 ($)',
+      publishOrder: '发布订单',
+      publishingOrder: '发布订单中...',
+      pickupLocation: '取货地点',
+      deliveryLocation: '交付地点',
+      country: '国家',
+      city: '城市',
+      area: '区域',
+      street: '街道',
+      building: '建筑',
+      floor: '楼层',
+      apartment: '公寓',
+      contactName: '联系人姓名',
+      selectCountry: '选择国家',
+      enterCity: '输入城市',
+      enterArea: '输入区域',
+      enterStreet: '输入街道',
+      buildingNumber: '建筑号',
+      aptNumber: '公寓号',
+      contactPerson: '联系人',
+      orderNumber: '订单号',
+      pickup: '取货',
+      delivery: '交付',
+      package: '包裹',
+      weight: '重量',
+      value: '价值',
+      instructions: '说明',
+      trackOrder: '跟踪订单',
+      viewReviews: '查看评价',
+      noOrders: '没有可用的订单',
+      required: '必填',
+      optional: '可选',
+      orderTitleRequired: '订单标题为必填项',
+      priceRequired: '价格为必填项',
+      pickupCountryRequired: '取货国家为必填项',
+      pickupCityRequired: '取货城市为必填项',
+      pickupContactRequired: '取货联系人姓名为必填项',
+      deliveryCountryRequired: '交付国家为必填项',
+      deliveryCityRequired: '交付城市为必填项',
+      deliveryContactRequired: '交付联系人姓名为必填项'
+    },
+
+    // 订单状态
+    status: {
+      pendingBids: '等待报价',
+      accepted: '已接受',
+      pickedUp: '已取货',
+      inTransit: '运输中',
+      delivered: '已交付',
+      cancelled: '已取消'
+    },
+
+    // 司机
+    driver: {
+      activeOrders: '活跃订单',
+      availableBids: '可用报价',
+      myHistory: '我的历史',
+      updateLocation: '更新位置',
+      locationUpdated: '位置已更新',
+      enableLocation: '启用位置以获得更好的订单可见性',
+      locationDenied: '位置访问被拒绝',
+      placeBid: '出价',
+      placingBid: '出价中...',
+      bidAmount: '出价金额 ($)',
+      pickupTime: '取货时间',
+      message: '消息（可选）',
+      driverBids: '司机报价',
+      acceptBid: '接受报价',
+      acceptingBid: '接受中...',
+      markPickedUp: '标记为已取货',
+      markInTransit: '标记为运输中',
+      markDelivered: '标记为已交付',
+      pickingUp: '取货中...',
+      updating: '更新中...',
+      completing: '完成中...',
+      distanceFromPickup: '距取货点的距离',
+      filterByCity: '按城市筛选：',
+      allCities: '所有城市',
+      clearFilter: '清除筛选',
+      noActiveOrders: '未找到活跃订单',
+      noAvailableBids: '没有可用报价',
+      noOrderHistory: '没有订单历史'
+    },
+
+    // 声誉
+    reputation: {
+      customerReputation: '客户声誉',
+      driverReputation: '司机声誉',
+      rating: '评分',
+      deliveries: '交付',
+      reviews: '评价',
+      memberSince: '注册时间',
+      reviewsGiven: '已给评价',
+      viewReviews: '查看评价',
+      given: '已给',
+      verifyAccount: '验证账户'
+    },
+
+    // 评价
+    reviews: {
+      submitReview: '提交评价',
+      reviewDriver: '评价司机',
+      reviewCustomer: '评价客户',
+      reviewPlatform: '评价平台',
+      overallRating: '总体评分',
+      professionalism: '专业性',
+      communication: '沟通',
+      timeliness: '及时性',
+      packageCondition: '包裹状况',
+      comment: '评论（可选）',
+      shareExperience: '分享您的体验...',
+      cancel: '取消',
+      submit: '提交评价',
+      submitting: '提交中...',
+      provideRating: '请提供总体评分',
+      orderReviews: '订单评价',
+      noReviews: '此订单暂无评价',
+      reviewType: '评价类型',
+      reviewing: '评价中'
+    },
+
+    // 通知
+    notifications: {
+      notifications: '通知',
+      noNotifications: '没有通知',
+      newNotification: '新通知'
+    },
+
+    // 跟踪
+    tracking: {
+      orderTracking: '订单跟踪',
+      liveTracking: '实时跟踪',
+      currentStatus: '当前状态',
+      currentLocation: '当前位置',
+      timeline: '时间线',
+      orderCreated: '订单已创建',
+      bidAccepted: '报价已接受',
+      packagePickedUp: '包裹已取货',
+      locationHistory: '位置历史',
+      close: '关闭',
+      liveTrackingActive: '实时跟踪激活',
+      connecting: '连接中...',
+      selectedLocation: '选定位置',
+      coordinates: '坐标',
+      copyCoordinates: '复制坐标'
+    },
+
+    // 消息
+    messages: {
+      orderPublished: '订单发布成功！等待您所在地区的司机。',
+      bidPlaced: '报价成功！',
+      bidAccepted: '报价接受成功！司机已收到通知。',
+      orderAccepted: '您的订单已被接受。司机将很快取货。',
+      orderPickedUp: '您的包裹已被取货，正在运送中！',
+      orderInTransit: '您的包裹正在运输中，即将交付！',
+      orderCompleted: '订单完成成功！',
+      orderCancelled: '订单已被取消。',
+      reviewSubmitted: '评价提交成功！',
+      allFieldsRequired: '所有字段均为必填项',
+      vehicleTypeRequired: '司机需要选择车辆类型',
+      completeCaptcha: '请完成验证码',
+      enterValidBid: '请输入有效的报价价格',
+      fillRequiredFields: '请填写所有必填字段',
+      connectionIssue: '连接问题：获取用户信息失败。请刷新页面。',
+      locationAccessFailed: '位置访问失败。请启用位置服务。',
+      afterVerification: '管理员验证您的账户后，请刷新此页面查看验证徽章。'
+    },
+
+    // 通用
+    common: {
+      loading: '加载中...',
+      error: '错误',
+      success: '成功',
+      confirm: '确认',
+      cancel: '取消',
+      save: '保存',
+      delete: '删除',
+      edit: '编辑',
+      search: '搜索',
+      filter: '筛选',
+      clear: '清除',
+      close: '关闭',
+      back: '返回',
+      next: '下一步',
+      previous: '上一步',
+      yes: '是',
+      no: '否',
+      optional: '可选',
+      required: '必填',
+      appName: 'Matrix Delivery',
+      subtitle: 'P2P 交付市场'
+    }
+  },
+
+  de: {
+    // Authentifizierung
+    auth: {
+      signIn: 'Anmelden',
+      signUp: 'Registrieren',
+      createAccount: 'Konto Erstellen',
+      email: 'E-Mail',
+      password: 'Passwort',
+      fullName: 'Vollständiger Name',
+      phoneNumber: 'Telefonnummer',
+      role: 'Rolle',
+      customer: 'Kunde',
+      driver: 'Fahrer',
+      vehicleType: 'Fahrzeugtyp',
+      selectVehicleType: 'Fahrzeugtyp Auswählen',
+      bike: 'Motorrad',
+      car: 'Auto',
+      van: 'Transporter',
+      truck: 'LKW',
+      login: 'Anmelden',
+      register: 'Konto Erstellen',
+      logout: 'Abmelden',
+      dontHaveAccount: 'Haben Sie noch kein Konto?',
+      alreadyHaveAccount: 'Haben Sie bereits ein Konto?',
+      loading: 'Laden...',
+      verify: 'Verifizieren',
+      verified: 'Verifiziert'
+    },
+
+    // Bestellungen
+    orders: {
+      myOrders: 'Meine Bestellungen',
+      createOrder: 'Neue Bestellung Erstellen',
+      cancel: 'Abbrechen',
+      orderTitle: 'Bestellungstitel',
+      description: 'Beschreibung',
+      packageDescription: 'Paketbeschreibung',
+      packageWeight: 'Paketgewicht (kg)',
+      estimatedValue: 'Geschätzter Wert ($)',
+      specialInstructions: 'Besondere Anweisungen',
+      estimatedDelivery: 'Geschätztes Lieferdatum',
+      price: 'Angebotener Preis ($)',
+      publishOrder: 'Bestellung Veröffentlichen',
+      publishingOrder: 'Bestellung wird veröffentlicht...',
+      pickupLocation: 'Abholort',
+      deliveryLocation: 'Lieferort',
+      country: 'Land',
+      city: 'Stadt',
+      area: 'Bereich',
+      street: 'Straße',
+      building: 'Gebäude',
+      floor: 'Etage',
+      apartment: 'Wohnung',
+      contactName: 'Kontaktname',
+      selectCountry: 'Land Auswählen',
+      enterCity: 'Stadt eingeben',
+      enterArea: 'Bereich eingeben',
+      enterStreet: 'Straße eingeben',
+      buildingNumber: 'Gebäude Nr.',
+      aptNumber: 'Wohnung Nr.',
+      contactPerson: 'Kontaktperson',
+      orderNumber: 'Bestellung Nr.',
+      pickup: 'Abholung',
+      delivery: 'Lieferung',
+      package: 'Paket',
+      weight: 'Gewicht',
+      value: 'Wert',
+      instructions: 'Anweisungen',
+      trackOrder: 'Bestellung Verfolgen',
+      viewReviews: 'Bewertungen Ansehen',
+      noOrders: 'Keine Bestellungen verfügbar',
+      required: 'Erforderlich',
+      optional: 'Optional',
+      orderTitleRequired: 'Bestellungstitel ist erforderlich',
+      priceRequired: 'Preis ist erforderlich',
+      pickupCountryRequired: 'Abholland ist erforderlich',
+      pickupCityRequired: 'Abholstadt ist erforderlich',
+      pickupContactRequired: 'Abholkontaktname ist erforderlich',
+      deliveryCountryRequired: 'Lieferland ist erforderlich',
+      deliveryCityRequired: 'Lieferstadt ist erforderlich',
+      deliveryContactRequired: 'Lieferkontaktname ist erforderlich'
+    },
+
+    // Bestellungsstatus
+    status: {
+      pendingBids: 'Ausstehende Angebote',
+      accepted: 'Akzeptiert',
+      pickedUp: 'Abgeholt',
+      inTransit: 'Unterwegs',
+      delivered: 'Geliefert',
+      cancelled: 'Storniert'
+    },
+
+    // Fahrer
+    driver: {
+      activeOrders: 'Aktive Bestellungen',
+      availableBids: 'Verfügbare Angebote',
+      myHistory: 'Mein Verlauf',
+      updateLocation: 'Standort Aktualisieren',
+      locationUpdated: 'Standort Aktualisiert',
+      enableLocation: 'Standort aktivieren für bessere Bestellungssichtbarkeit',
+      locationDenied: 'Standortzugriff verweigert',
+      placeBid: 'Angebot Abgeben',
+      placingBid: 'Angebot wird abgegeben...',
+      bidAmount: 'Angebotsbetrag ($)',
+      pickupTime: 'Abholzeit',
+      message: 'Nachricht (optional)',
+      driverBids: 'Fahrerangebote',
+      acceptBid: 'Angebot Akzeptieren',
+      acceptingBid: 'Wird akzeptiert...',
+      markPickedUp: 'Als Abgeholt Markieren',
+      markInTransit: 'Als Unterwegs Markieren',
+      markDelivered: 'Als Geliefert Markieren',
+      pickingUp: 'Wird abgeholt...',
+      updating: 'Wird aktualisiert...',
+      completing: 'Wird abgeschlossen...',
+      distanceFromPickup: 'Entfernung von Abholort',
+      filterByCity: 'Nach Stadt Filtern:',
+      allCities: 'Alle Städte',
+      clearFilter: 'Filter Löschen',
+      noActiveOrders: 'Keine aktiven Bestellungen gefunden',
+      noAvailableBids: 'Keine verfügbaren Angebote',
+      noOrderHistory: 'Kein Bestellungsverlauf'
+    },
+
+    // Ruf
+    reputation: {
+      customerReputation: 'Kundenruf',
+      driverReputation: 'Fahrerruf',
+      rating: 'Bewertung',
+      deliveries: 'Lieferungen',
+      reviews: 'Bewertungen',
+      memberSince: 'Mitglied Seit',
+      reviewsGiven: 'Abgegebene Bewertungen',
+      viewReviews: 'Bewertungen Ansehen',
+      given: 'Abgegeben',
+      verifyAccount: 'Konto Verifizieren'
+    },
+
+    // Bewertungen
+    reviews: {
+      submitReview: 'Bewertung Abgeben',
+      reviewDriver: 'Fahrer Bewerten',
+      reviewCustomer: 'Kunden Bewerten',
+      reviewPlatform: 'Plattform Bewerten',
+      overallRating: 'Gesamtbewertung',
+      professionalism: 'Professionalität',
+      communication: 'Kommunikation',
+      timeliness: 'Pünktlichkeit',
+      packageCondition: 'Paketzustand',
+      comment: 'Kommentar (Optional)',
+      shareExperience: 'Teilen Sie Ihre Erfahrung...',
+      cancel: 'Abbrechen',
+      submit: 'Bewertung Abgeben',
+      submitting: 'Wird übermittelt...',
+      provideRating: 'Bitte geben Sie eine Gesamtbewertung ab',
+      orderReviews: 'Bestellungsbewertungen',
+      noReviews: 'Noch keine Bewertungen für diese Bestellung',
+      reviewType: 'Bewertungstyp',
+      reviewing: 'Bewertung'
+    },
+
+    // Benachrichtigungen
+    notifications: {
+      notifications: 'Benachrichtigungen',
+      noNotifications: 'Keine Benachrichtigungen',
+      newNotification: 'Neue Benachrichtigung'
+    },
+
+    // Verfolgung
+    tracking: {
+      orderTracking: 'Bestellungsverfolgung',
+      liveTracking: 'Live-Verfolgung',
+      currentStatus: 'Aktueller Status',
+      currentLocation: 'Aktueller Standort',
+      timeline: 'Zeitachse',
+      orderCreated: 'Bestellung Erstellt',
+      bidAccepted: 'Angebot Akzeptiert',
+      packagePickedUp: 'Paket Abgeholt',
+      locationHistory: 'Standortverlauf',
+      close: 'Schließen',
+      liveTrackingActive: 'Live-Verfolgung Aktiv',
+      connecting: 'Verbindung wird hergestellt...',
+      selectedLocation: 'Ausgewählter Standort',
+      coordinates: 'Koordinaten',
+      copyCoordinates: 'Koordinaten Kopieren'
+    },
+
+    // Nachrichten
+    messages: {
+      orderPublished: 'Bestellung erfolgreich veröffentlicht! Warte auf Fahrer in Ihrer Region.',
+      bidPlaced: 'Angebot erfolgreich abgegeben!',
+      bidAccepted: 'Angebot erfolgreich akzeptiert! Fahrer benachrichtigt.',
+      orderAccepted: 'Ihre Bestellung wurde akzeptiert. Der Fahrer wird sie bald abholen.',
+      orderPickedUp: 'Ihr Paket wurde abgeholt und ist unterwegs!',
+      orderInTransit: 'Ihr Paket ist unterwegs und wird bald geliefert!',
+      orderCompleted: 'Bestellung erfolgreich abgeschlossen!',
+      orderCancelled: 'Die Bestellung wurde storniert.',
+      reviewSubmitted: 'Bewertung erfolgreich übermittelt!',
+      allFieldsRequired: 'Alle Felder sind erforderlich',
+      vehicleTypeRequired: 'Fahrzeugtyp ist für Fahrer erforderlich',
+      completeCaptcha: 'Bitte vervollständigen Sie das Captcha',
+      enterValidBid: 'Geben Sie einen gültigen Angebotspreis ein',
+      fillRequiredFields: 'Bitte füllen Sie alle erforderlichen Felder aus',
+      connectionIssue: 'Verbindungsproblem: Fehler beim Abrufen der Benutzerinformationen. Bitte aktualisieren Sie die Seite.',
+      locationAccessFailed: 'Standortzugriff fehlgeschlagen. Bitte aktivieren Sie die Standortdienste.',
+      afterVerification: 'Nachdem der Administrator Ihr Konto verifiziert hat, aktualisieren Sie bitte diese Seite, um das Verifizierungsabzeichen zu sehen.'
+    },
+
+    // Allgemein
+    common: {
+      loading: 'Laden...',
+      error: 'Fehler',
+      success: 'Erfolg',
+      confirm: 'Bestätigen',
+      cancel: 'Abbrechen',
+      save: 'Speichern',
+      delete: 'Löschen',
+      edit: 'Bearbeiten',
+      search: 'Suchen',
+      filter: 'Filtern',
+      clear: 'Löschen',
+      close: 'Schließen',
+      back: 'Zurück',
+      next: 'Weiter',
+      previous: 'Vorherige',
+      yes: 'Ja',
+      no: 'Nein',
+      optional: 'Optional',
+      required: 'Erforderlich',
+      appName: 'Matrix Delivery',
+      subtitle: 'P2P Liefermarkt'
+    }
+  },
+
+  pt: {
+    // Autenticação
+    auth: {
+      signIn: 'Entrar',
+      signUp: 'Cadastrar',
+      createAccount: 'Criar Conta',
+      email: 'E-mail',
+      password: 'Senha',
+      fullName: 'Nome Completo',
+      phoneNumber: 'Número de Telefone',
+      role: 'Função',
+      customer: 'Cliente',
+      driver: 'Motorista',
+      vehicleType: 'Tipo de Veículo',
+      selectVehicleType: 'Selecionar Tipo de Veículo',
+      bike: 'Moto',
+      car: 'Carro',
+      van: 'Van',
+      truck: 'Caminhão',
+      login: 'Entrar',
+      register: 'Criar Conta',
+      logout: 'Sair',
+      dontHaveAccount: 'Não tem uma conta?',
+      alreadyHaveAccount: 'Já tem uma conta?',
+      loading: 'Carregando...',
+      verify: 'Verificar',
+      verified: 'Verificado'
+    },
+
+    // Pedidos
+    orders: {
+      myOrders: 'Meus Pedidos',
+      createOrder: 'Criar Novo Pedido',
+      cancel: 'Cancelar',
+      orderTitle: 'Título do Pedido',
+      description: 'Descrição',
+      packageDescription: 'Descrição do Pacote',
+      packageWeight: 'Peso do Pacote (kg)',
+      estimatedValue: 'Valor Estimado ($)',
+      specialInstructions: 'Instruções Especiais',
+      estimatedDelivery: 'Data de Entrega Estimada',
+      price: 'Preço Oferecido ($)',
+      publishOrder: 'Publicar Pedido',
+      publishingOrder: 'Publicando pedido...',
+      pickupLocation: 'Local de Coleta',
+      deliveryLocation: 'Local de Entrega',
+      country: 'País',
+      city: 'Cidade',
+      area: 'Área',
+      street: 'Rua',
+      building: 'Prédio',
+      floor: 'Andar',
+      apartment: 'Apartamento',
+      contactName: 'Nome do Contato',
+      selectCountry: 'Selecionar País',
+      enterCity: 'Digite a cidade',
+      enterArea: 'Digite a área',
+      enterStreet: 'Digite a rua',
+      buildingNumber: 'N° Prédio',
+      aptNumber: 'N° Apt',
+      contactPerson: 'Pessoa de contato',
+      orderNumber: 'Pedido N°',
+      pickup: 'Coleta',
+      delivery: 'Entrega',
+      package: 'Pacote',
+      weight: 'Peso',
+      value: 'Valor',
+      instructions: 'Instruções',
+      trackOrder: 'Rastrear Pedido',
+      viewReviews: 'Ver Avaliações',
+      noOrders: 'Nenhum pedido disponível',
+      required: 'Obrigatório',
+      optional: 'Opcional',
+      orderTitleRequired: 'Título do pedido é obrigatório',
+      priceRequired: 'Preço é obrigatório',
+      pickupCountryRequired: 'País de coleta é obrigatório',
+      pickupCityRequired: 'Cidade de coleta é obrigatória',
+      pickupContactRequired: 'Nome do contato de coleta é obrigatório',
+      deliveryCountryRequired: 'País de entrega é obrigatório',
+      deliveryCityRequired: 'Cidade de entrega é obrigatória',
+      deliveryContactRequired: 'Nome do contato de entrega é obrigatório'
+    },
+
+    // Status do Pedido
+    status: {
+      pendingBids: 'Ofertas Pendentes',
+      accepted: 'Aceito',
+      pickedUp: 'Coletado',
+      inTransit: 'Em Trânsito',
+      delivered: 'Entregue',
+      cancelled: 'Cancelado'
+    },
+
+    // Motorista
+    driver: {
+      activeOrders: 'Pedidos Ativos',
+      availableBids: 'Ofertas Disponíveis',
+      myHistory: 'Meu Histórico',
+      updateLocation: 'Atualizar Localização',
+      locationUpdated: 'Localização Atualizada',
+      enableLocation: 'Habilitar localização para melhor visibilidade de pedidos',
+      locationDenied: 'Acesso à localização negado',
+      placeBid: 'Fazer Oferta',
+      placingBid: 'Fazendo oferta...',
+      bidAmount: 'Valor da Oferta ($)',
+      pickupTime: 'Horário de Coleta',
+      message: 'Mensagem (opcional)',
+      driverBids: 'Ofertas de Motoristas',
+      acceptBid: 'Aceitar Oferta',
+      acceptingBid: 'Aceitando...',
+      markPickedUp: 'Marcar como Coletado',
+      markInTransit: 'Marcar como Em Trânsito',
+      markDelivered: 'Marcar como Entregue',
+      pickingUp: 'Coletando...',
+      updating: 'Atualizando...',
+      completing: 'Finalizando...',
+      distanceFromPickup: 'Distância da coleta',
+      filterByCity: 'Filtrar por Cidade:',
+      allCities: 'Todas as Cidades',
+      clearFilter: 'Limpar Filtro',
+      noActiveOrders: 'Nenhum pedido ativo encontrado',
+      noAvailableBids: 'Nenhuma oferta disponível',
+      noOrderHistory: 'Nenhum histórico de pedidos'
+    },
+
+    // Reputação
+    reputation: {
+      customerReputation: 'Reputação do Cliente',
+      driverReputation: 'Reputação do Motorista',
+      rating: 'Avaliação',
+      deliveries: 'Entregas',
+      reviews: 'Avaliações',
+      memberSince: 'Membro Desde',
+      reviewsGiven: 'Avaliações Dadas',
+      viewReviews: 'Ver Avaliações',
+      given: 'Dado',
+      verifyAccount: 'Verificar Conta'
+    },
+
+    // Avaliações
+    reviews: {
+      submitReview: 'Enviar Avaliação',
+      reviewDriver: 'Avaliar Motorista',
+      reviewCustomer: 'Avaliar Cliente',
+      reviewPlatform: 'Avaliar Plataforma',
+      overallRating: 'Avaliação Geral',
+      professionalism: 'Profissionalismo',
+      communication: 'Comunicação',
+      timeliness: 'Pontualidade',
+      packageCondition: 'Condição do Pacote',
+      comment: 'Comentário (Opcional)',
+      shareExperience: 'Compartilhe sua experiência...',
+      cancel: 'Cancelar',
+      submit: 'Enviar Avaliação',
+      submitting: 'Enviando...',
+      provideRating: 'Por favor forneça uma avaliação geral',
+      orderReviews: 'Avaliações do Pedido',
+      noReviews: 'Ainda não há avaliações para este pedido',
+      reviewType: 'Tipo de Avaliação',
+      reviewing: 'Avaliando'
+    },
+
+    // Notificações
+    notifications: {
+      notifications: 'Notificações',
+      noNotifications: 'Nenhuma notificação',
+      newNotification: 'Nova notificação'
+    },
+
+    // Rastreamento
+    tracking: {
+      orderTracking: 'Rastreamento de Pedido',
+      liveTracking: 'Rastreamento ao Vivo',
+      currentStatus: 'Status Atual',
+      currentLocation: 'Localização Atual',
+      timeline: 'Cronograma',
+      orderCreated: 'Pedido Criado',
+      bidAccepted: 'Oferta Aceita',
+      packagePickedUp: 'Pacote Coletado',
+      locationHistory: 'Histórico de Localização',
+      close: 'Fechar',
+      liveTrackingActive: 'Rastreamento ao Vivo Ativo',
+      connecting: 'Conectando...',
+      selectedLocation: 'Localização Selecionada',
+      coordinates: 'Coordenadas',
+      copyCoordinates: 'Copiar Coordenadas'
+    },
+
+    // Mensagens
+    messages: {
+      orderPublished: 'Pedido publicado com sucesso! Aguardando motoristas em sua região.',
+      bidPlaced: 'Oferta feita com sucesso!',
+      bidAccepted: 'Oferta aceita com sucesso! Motorista notificado.',
+      orderAccepted: 'Seu pedido foi aceito. O motorista irá coletá-lo em breve.',
+      orderPickedUp: 'Seu pacote foi coletado e está a caminho!',
+      orderInTransit: 'Seu pacote está em trânsito e será entregue em breve!',
+      orderCompleted: 'Pedido concluído com sucesso!',
+      orderCancelled: 'O pedido foi cancelado.',
+      reviewSubmitted: 'Avaliação enviada com sucesso!',
+      allFieldsRequired: 'Todos os campos são obrigatórios',
+      vehicleTypeRequired: 'Tipo de veículo é obrigatório para motoristas',
+      completeCaptcha: 'Por favor complete o captcha',
+      enterValidBid: 'Digite um preço de oferta válido',
+      fillRequiredFields: 'Por favor preencha todos os campos obrigatórios',
+      connectionIssue: 'Problema de conexão: Falha ao obter informações do usuário. Por favor atualize a página.',
+      locationAccessFailed: 'Falha no acesso à localização. Por favor ative os serviços de localização.',
+      afterVerification: 'Depois que o administrador verificar sua conta, por favor atualize esta página para ver o distintivo de verificação.'
+    },
+
+    // Comum
+    common: {
+      loading: 'Carregando...',
+      error: 'Erro',
+      success: 'Sucesso',
+      confirm: 'Confirmar',
+      cancel: 'Cancelar',
+      save: 'Salvar',
+      delete: 'Excluir',
+      edit: 'Editar',
+      search: 'Buscar',
+      filter: 'Filtrar',
+      clear: 'Limpar',
+      close: 'Fechar',
+      back: 'Voltar',
+      next: 'Próximo',
+      previous: 'Anterior',
+      yes: 'Sim',
+      no: 'Não',
+      optional: 'Opcional',
+      required: 'Obrigatório',
+      appName: 'Matrix Delivery',
+      subtitle: 'Mercado P2P de Entregas'
     }
   }
 };
