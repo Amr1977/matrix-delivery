@@ -1,4 +1,5 @@
 // ============ COMPONENT IMPORTS ============
+import { useI18n } from './i18n/i18nContext';
 import React, { useState, useEffect, useRef, useImperativeHandle, useCallback } from 'react';
 import L from 'leaflet';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
@@ -7,11 +8,12 @@ import ReCAPTCHA from 'react-google-recaptcha';
 import { Polyline } from 'react-leaflet';
 import io from 'socket.io-client';
 import { useForm } from 'react-hook-form';
+import LanguageSwitcher from './LanguageSwitcher';
 import './Mobile.css';
 
 // ============ ORDER CREATION FORM COMPONENT ============
 // Order Creation Form Component using React Hook Form - moved outside to prevent re-creation
-const OrderCreationForm = React.memo(({ onSubmit, countries }) => {
+const OrderCreationForm = React.memo(({ onSubmit, countries, t }) => {
   const onSubmitRef = React.useRef(onSubmit);
   const [internalLoading, setInternalLoading] = React.useState(false);
 
@@ -91,7 +93,7 @@ const OrderCreationForm = React.memo(({ onSubmit, countries }) => {
 
   return (
     <div style={{ background: 'white', borderRadius: '0.5rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)', padding: '1.5rem', marginBottom: '1.5rem' }}>
-      <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem' }}>Create New Delivery Order</h2>
+      <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem' }}>{t('orders.createOrder')}</h2>
 
       <form onSubmit={handleSubmit(onFormSubmit)} autoComplete="off">
         <div className="order-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1rem' }}>
@@ -99,12 +101,12 @@ const OrderCreationForm = React.memo(({ onSubmit, countries }) => {
           <div style={{ display: 'grid', gap: '1rem' }}>
             <div>
               <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-                Order Title *
+                {t('orders.orderTitle')} *
               </label>
               <input
-                {...register('title', { required: 'Order title is required' })}
+                {...register('title', { required: t('orders.orderTitleRequired') })}
                 type="text"
-                placeholder="Order Title"
+                placeholder={t('orders.orderTitle')}
                 style={{
                   width: '100%',
                   padding: '0.75rem',
@@ -118,11 +120,11 @@ const OrderCreationForm = React.memo(({ onSubmit, countries }) => {
 
             <div>
               <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-                Description
+                {t('orders.description')}
               </label>
               <textarea
                 {...register('description')}
-                placeholder="Description (optional)"
+                placeholder={`${t('orders.description')} (${t('orders.optional')})`}
                 style={{
                   width: '100%',
                   padding: '0.75rem',
@@ -137,11 +139,11 @@ const OrderCreationForm = React.memo(({ onSubmit, countries }) => {
 
             <div>
               <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-                Package Description
+                {t('orders.packageDescription')}
               </label>
               <textarea
                 {...register('package_description')}
-                placeholder="Package Description"
+                placeholder={t('orders.packageDescription')}
                 style={{
                   width: '100%',
                   padding: '0.75rem',
@@ -156,11 +158,11 @@ const OrderCreationForm = React.memo(({ onSubmit, countries }) => {
 
             <div>
               <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-                Special Instructions
+                {t('orders.specialInstructions')}
               </label>
               <textarea
                 {...register('special_instructions')}
-                placeholder="Special Instructions (optional)"
+                placeholder={`${t('orders.specialInstructions')} (${t('orders.optional')})`}
                 style={{
                   width: '100%',
                   padding: '0.75rem',
@@ -179,7 +181,7 @@ const OrderCreationForm = React.memo(({ onSubmit, countries }) => {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-                  Package Weight (kg)
+                  {t('orders.packageWeight')}
                 </label>
                 <input
                   {...register('package_weight')}
@@ -198,7 +200,7 @@ const OrderCreationForm = React.memo(({ onSubmit, countries }) => {
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-                  Estimated Value ($)
+                  {t('orders.estimatedValue')}
                 </label>
                 <input
                   {...register('estimated_value')}
@@ -219,7 +221,7 @@ const OrderCreationForm = React.memo(({ onSubmit, countries }) => {
 
             <div>
               <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-                Estimated Delivery Date
+                {t('orders.estimatedDelivery')}
               </label>
               <input
                 {...register('estimated_delivery_date')}
@@ -236,12 +238,12 @@ const OrderCreationForm = React.memo(({ onSubmit, countries }) => {
 
             <div>
               <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-                Offered Price ($) *
+                {t('orders.price')} *
               </label>
               <input
-                {...register('price', { required: 'Price is required' })}
+                {...register('price', { required: t('orders.priceRequired') })}
                 type="number"
-                placeholder="Enter price"
+                placeholder={t('orders.price')}
                 step="0.01"
                 min="0"
                 required
@@ -272,7 +274,7 @@ const OrderCreationForm = React.memo(({ onSubmit, countries }) => {
                 opacity: internalLoading ? 0.5 : 1
               }}
             >
-              {internalLoading ? 'Publishing Order...' : '📦 Publish Order'}
+              {internalLoading ? t('orders.publishingOrder') : t('orders.publishOrder')}
             </button>
           </div>
         </div>
@@ -295,17 +297,17 @@ const OrderCreationForm = React.memo(({ onSubmit, countries }) => {
                   color: '#1F2937',
                   margin: 0
                 }}>
-                  Pickup Location
+                  {t('orders.pickupLocation')}
                 </h4>
               </div>
 
               <div className="address-fields-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-                    Country *
+                    {t('orders.country')} *
                   </label>
                   <select
-                    {...register('pickup_country', { required: 'Pickup country is required' })}
+                    {...register('pickup_country', { required: t('orders.pickupCountryRequired') })}
                     style={{
                       width: '100%',
                       padding: '0.5rem',
@@ -315,7 +317,7 @@ const OrderCreationForm = React.memo(({ onSubmit, countries }) => {
                       background: 'white'
                     }}
                   >
-                    <option value="">Select Country</option>
+                    <option value="">{t('orders.selectCountry')}</option>
                     {countries.map(country => (
                       <option key={country} value={country}>{country}</option>
                     ))}
@@ -325,12 +327,12 @@ const OrderCreationForm = React.memo(({ onSubmit, countries }) => {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-                    City *
+                    {t('orders.city')} *
                   </label>
                   <input
-                    {...register('pickup_city', { required: 'Pickup city is required' })}
+                    {...register('pickup_city', { required: t('orders.pickupCityRequired') })}
                     type="text"
-                    placeholder="Enter city"
+                    placeholder={t('orders.enterCity')}
                     style={{
                       width: '100%',
                       padding: '0.5rem',
@@ -344,12 +346,12 @@ const OrderCreationForm = React.memo(({ onSubmit, countries }) => {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-                    Area
+                    {t('orders.area')}
                   </label>
                   <input
                     {...register('pickup_area')}
                     type="text"
-                    placeholder="Enter area"
+                    placeholder={t('orders.enterArea')}
                     style={{
                       width: '100%',
                       padding: '0.5rem',
@@ -362,12 +364,12 @@ const OrderCreationForm = React.memo(({ onSubmit, countries }) => {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-                    Street
+                    {t('orders.street')}
                   </label>
                   <input
                     {...register('pickup_street')}
                     type="text"
-                    placeholder="Enter street"
+                    placeholder={t('orders.enterStreet')}
                     style={{
                       width: '100%',
                       padding: '0.5rem',
@@ -380,12 +382,12 @@ const OrderCreationForm = React.memo(({ onSubmit, countries }) => {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-                    Building
+                    {t('orders.building')}
                   </label>
                   <input
                     {...register('pickup_building')}
                     type="text"
-                    placeholder="Building #"
+                    placeholder={t('orders.buildingNumber')}
                     style={{
                       width: '100%',
                       padding: '0.5rem',
@@ -398,12 +400,12 @@ const OrderCreationForm = React.memo(({ onSubmit, countries }) => {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-                    Floor
+                    {t('orders.floor')}
                   </label>
                   <input
                     {...register('pickup_floor')}
                     type="text"
-                    placeholder="Floor"
+                    placeholder={t('orders.floor')}
                     style={{
                       width: '100%',
                       padding: '0.5rem',
@@ -416,12 +418,12 @@ const OrderCreationForm = React.memo(({ onSubmit, countries }) => {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-                    Apartment
+                    {t('orders.apartment')}
                   </label>
                   <input
                     {...register('pickup_apartment')}
                     type="text"
-                    placeholder="Apt #"
+                    placeholder={t('orders.aptNumber')}
                     style={{
                       width: '100%',
                       padding: '0.5rem',
@@ -434,12 +436,12 @@ const OrderCreationForm = React.memo(({ onSubmit, countries }) => {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-                    Contact Name *
+                    {t('orders.contactName')} *
                   </label>
                   <input
-                    {...register('pickup_personName', { required: 'Pickup contact name is required' })}
+                    {...register('pickup_personName', { required: t('orders.pickupContactRequired') })}
                     type="text"
-                    placeholder="Contact person"
+                    placeholder={t('orders.contactPerson')}
                     required
                     style={{
                       width: '100%',
@@ -469,17 +471,17 @@ const OrderCreationForm = React.memo(({ onSubmit, countries }) => {
                   color: '#1F2937',
                   margin: 0
                 }}>
-                  Delivery Location
+                  {t('orders.deliveryLocation')}
                 </h4>
               </div>
 
               <div className="address-fields-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-                    Country *
+                    {t('orders.country')} *
                   </label>
                   <select
-                    {...register('dropoff_country', { required: 'Delivery country is required' })}
+                    {...register('dropoff_country', { required: t('orders.deliveryCountryRequired') })}
                     style={{
                       width: '100%',
                       padding: '0.5rem',
@@ -489,7 +491,7 @@ const OrderCreationForm = React.memo(({ onSubmit, countries }) => {
                       background: 'white'
                     }}
                   >
-                    <option value="">Select Country</option>
+                    <option value="">{t('orders.selectCountry')}</option>
                     {countries.map(country => (
                       <option key={country} value={country}>{country}</option>
                     ))}
@@ -499,12 +501,12 @@ const OrderCreationForm = React.memo(({ onSubmit, countries }) => {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-                    City *
+                    {t('orders.city')} *
                   </label>
                   <input
-                    {...register('dropoff_city', { required: 'Delivery city is required' })}
+                    {...register('dropoff_city', { required: t('orders.deliveryCityRequired') })}
                     type="text"
-                    placeholder="Enter city"
+                    placeholder={t('orders.enterCity')}
                     style={{
                       width: '100%',
                       padding: '0.5rem',
@@ -518,12 +520,12 @@ const OrderCreationForm = React.memo(({ onSubmit, countries }) => {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-                    Area
+                    {t('orders.area')}
                   </label>
                   <input
                     {...register('dropoff_area')}
                     type="text"
-                    placeholder="Enter area"
+                    placeholder={t('orders.enterArea')}
                     style={{
                       width: '100%',
                       padding: '0.5rem',
@@ -536,12 +538,12 @@ const OrderCreationForm = React.memo(({ onSubmit, countries }) => {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-                    Street
+                    {t('orders.street')}
                   </label>
                   <input
                     {...register('dropoff_street')}
                     type="text"
-                    placeholder="Enter street"
+                    placeholder={t('orders.enterStreet')}
                     style={{
                       width: '100%',
                       padding: '0.5rem',
@@ -554,12 +556,12 @@ const OrderCreationForm = React.memo(({ onSubmit, countries }) => {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-                    Building
+                    {t('orders.building')}
                   </label>
                   <input
                     {...register('dropoff_building')}
                     type="text"
-                    placeholder="Building #"
+                    placeholder={t('orders.buildingNumber')}
                     style={{
                       width: '100%',
                       padding: '0.5rem',
@@ -572,12 +574,12 @@ const OrderCreationForm = React.memo(({ onSubmit, countries }) => {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-                    Floor
+                    {t('orders.floor')}
                   </label>
                   <input
                     {...register('dropoff_floor')}
                     type="text"
-                    placeholder="Floor"
+                    placeholder={t('orders.floor')}
                     style={{
                       width: '100%',
                       padding: '0.5rem',
@@ -590,12 +592,12 @@ const OrderCreationForm = React.memo(({ onSubmit, countries }) => {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-                    Apartment
+                    {t('orders.apartment')}
                   </label>
                   <input
                     {...register('dropoff_apartment')}
                     type="text"
-                    placeholder="Apt #"
+                    placeholder={t('orders.aptNumber')}
                     style={{
                       width: '100%',
                       padding: '0.5rem',
@@ -608,12 +610,12 @@ const OrderCreationForm = React.memo(({ onSubmit, countries }) => {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-                    Contact Name *
+                    {t('orders.contactName')} *
                   </label>
                   <input
-                    {...register('dropoff_personName', { required: 'Delivery contact name is required' })}
+                    {...register('dropoff_personName', { required: t('orders.deliveryContactRequired') })}
                     type="text"
-                    placeholder="Contact person"
+                    placeholder={t('orders.contactPerson')}
                     required
                     style={{
                       width: '100%',
@@ -636,6 +638,7 @@ const OrderCreationForm = React.memo(({ onSubmit, countries }) => {
 
 // Location data state and API functions
 const DeliveryApp = () => {
+   const { t, locale, direction, changeLocale } = useI18n();
   const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
 
   // Location data state
@@ -2344,11 +2347,14 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
   if (!token) {
     return (
       <div style={{ minHeight: '100vh', background: '#090909', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ position: 'absolute', top: '1rem', right: '1rem' }}>
+          <LanguageSwitcher locale={locale} changeLocale={changeLocale} />
+        </div>
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
           <div className="card-matrix" style={{ borderRadius: '0.5rem', boxShadow: '0 20px 25px -5px rgba(0, 48, 0, 0.2), inset 0 0 20px rgba(48, 255, 48, 0.1)', padding: '2rem', maxWidth: '28rem', width: '100%', background: 'linear-gradient(135deg, #000000 0%, #111111 100%)' }}>
             <div style={{ fontSize: '3rem', textAlign: 'center', marginBottom: '1.5rem' }}>📦</div>
-            <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#30FF30', marginBottom: '0.5rem', textAlign: 'center', textShadow: '0 0 10px #30FF30' }}>Matrix Delivery</h1>
-            <p style={{ color: '#22BB22', marginBottom: '1.5rem', textAlign: 'center' }}>P2P Delivery Marketplace</p>
+            <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#30FF30', marginBottom: '0.5rem', textAlign: 'center', textShadow: '0 0 10px #30FF30' }}>{t('common.appName')}</h1>
+            <p style={{ color: '#22BB22', marginBottom: '1.5rem', textAlign: 'center' }}>{t('common.subtitle')}</p>
 
             {error && (
               <div style={{ background: '#FEF2F2', color: '#991B1B', padding: '0.75rem', borderRadius: '0.375rem', marginBottom: '1rem', fontSize: '0.875rem', border: '1px solid #FEE2E2' }}>
@@ -2359,10 +2365,10 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {authState === 'login' ? (
                 <>
-                  <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1F2937' }}>Sign In</h2>
+                  <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1F2937' }}>{t('auth.signIn')}</h2>
                   <input
                     type="email"
-                    placeholder="Email"
+                    placeholder={t('auth.email')}
                     value={authForm.email}
                     onChange={(e) => setAuthForm({ ...authForm, email: e.target.value })}
                     style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
@@ -2370,7 +2376,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
                   <div style={{ position: 'relative' }}>
                     <input
                       type={showPassword ? 'text' : 'password'}
-                      placeholder="Password"
+                      placeholder={t('auth.password')}
                       value={authForm.password}
                       onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })}
                       style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
@@ -2395,38 +2401,38 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
                     disabled={loading}
                     style={{ width: '100%', background: '#4F46E5', color: 'white', padding: '0.5rem', borderRadius: '0.5rem', fontWeight: '600', border: 'none', cursor: 'pointer', opacity: loading ? 0.5 : 1 }}
                   >
-                    {loading ? 'Loading...' : 'Sign In'}
+                    {loading ? t('auth.loading') : t('auth.login')}
                   </button>
                   <p style={{ textAlign: 'center', color: '#6B7280', fontSize: '0.875rem' }}>
-                    Don't have an account?{' '}
+                    {t('auth.dontHaveAccount')}{' '}
                     <button
                       onClick={() => { setAuthState('register'); setError(''); }}
                       style={{ color: '#4F46E5', textDecoration: 'underline', fontWeight: '600', background: 'none', border: 'none', cursor: 'pointer' }}
                     >
-                      Sign Up
+                      {t('auth.signUp')}
                     </button>
                   </p>
                 </>
               ) : (
                 <>
-                  <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1F2937' }}>Create Account</h2>
+                  <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1F2937' }}>{t('auth.createAccount')}</h2>
                   <input
                     type="text"
-                    placeholder="Full Name"
+                    placeholder={t('auth.fullName')}
                     value={authForm.name}
                     onChange={(e) => setAuthForm({ ...authForm, name: e.target.value })}
                     style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
                   />
                   <input
                     type="email"
-                    placeholder="Email"
+                    placeholder={t('auth.email')}
                     value={authForm.email}
                     onChange={(e) => setAuthForm({ ...authForm, email: e.target.value })}
                     style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
                   />
                   <input
                     type="tel"
-                    placeholder="Phone Number"
+                    placeholder={t('auth.phoneNumber')}
                     value={authForm.phone}
                     onChange={(e) => setAuthForm({ ...authForm, phone: e.target.value })}
                     style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
@@ -2434,7 +2440,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
                   <div style={{ position: 'relative' }}>
                     <input
                       type={showPassword ? 'text' : 'password'}
-                      placeholder="Password"
+                      placeholder={t('auth.password')}
                       value={authForm.password}
                       onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })}
                       style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
@@ -2451,8 +2457,8 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
                     onChange={(e) => setAuthForm({ ...authForm, role: e.target.value })}
                     style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
                   >
-                    <option value="customer">Customer</option>
-                    <option value="driver">Driver</option>
+                    <option value="customer">{t('auth.customer')}</option>
+                    <option value="driver">{t('auth.driver')}</option>
                   </select>
                   {authForm.role === 'driver' && (
                     <select
@@ -2460,11 +2466,11 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
                       onChange={(e) => setAuthForm({ ...authForm, vehicle_type: e.target.value })}
                       style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
                     >
-                      <option value="">Select Vehicle Type</option>
-                      <option value="bike">Bike</option>
-                      <option value="car">Car</option>
-                      <option value="van">Van</option>
-                      <option value="truck">Truck</option>
+                      <option value="">{t('auth.selectVehicleType')}</option>
+                      <option value="bike">{t('auth.bike')}</option>
+                      <option value="car">{t('auth.car')}</option>
+                      <option value="van">{t('auth.van')}</option>
+                      <option value="truck">{t('auth.truck')}</option>
                     </select>
                   )}
                   {process.env.REACT_APP_RECAPTCHA_SITE_KEY && (
@@ -2480,15 +2486,15 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
                     disabled={loading}
                     style={{ width: '100%', background: '#4F46E5', color: 'white', padding: '0.5rem', borderRadius: '0.5rem', fontWeight: '600', border: 'none', cursor: 'pointer', opacity: loading ? 0.5 : 1 }}
                   >
-                    {loading ? 'Loading...' : 'Create Account'}
+                    {loading ? t('auth.loading') : t('auth.register')}
                   </button>
                   <p style={{ textAlign: 'center', color: '#6B7280', fontSize: '0.875rem' }}>
-                    Already have an account?{' '}
+                    {t('auth.alreadyHaveAccount')}{' '}
                     <button
                       onClick={() => { setAuthState('login'); setError(''); }}
                       style={{ color: '#4F46E5', textDecoration: 'underline', fontWeight: '600', background: 'none', border: 'none', cursor: 'pointer' }}
                     >
-                      Sign In
+                      {t('auth.signIn')}
                     </button>
                   </p>
                 </>
@@ -2546,9 +2552,11 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
           <div className="header-content" style={{ maxWidth: '80rem', margin: '0 auto', padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <span style={{ fontSize: '1.5rem', color: '#30FF30', textShadow: '0 0 10px #30FF30' }}>📦</span>
-              <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#30FF30', textShadow: '0 0 10px #30FF30' }}>Matrix Delivery</h1>
+              <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#30FF30', textShadow: '0 0 10px #30FF30' }}>{t('common.appName')}</h1>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              {/* Language Switcher */}
+              <LanguageSwitcher locale={locale} changeLocale={changeLocale} />
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
                 className={`${unreadCount > 0 ? 'bell-notification' : ''}`}
@@ -2557,77 +2565,77 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
                 onMouseLeave={(e) => e.target.style.textShadow = 'none'}
               >
                 🔔
-              {unreadCount > 0 && (
-                <span style={{ position: 'absolute', top: '-0.25rem', right: '-0.25rem', background: '#DC2626', color: 'white', borderRadius: '9999px', width: '1.25rem', height: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold' }}>
-                  {unreadCount}
-                </span>
-              )}
-            </button>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                <p style={{ fontWeight: '600', color: '#1F2937' }}>{currentUser?.name}</p>
-                {currentUser?.isVerified && (
-                  <span style={{ background: '#10B981', color: 'white', padding: '0.125rem 0.5rem', borderRadius: '9999px', fontSize: '0.625rem', fontWeight: '600' }}>
-                    ✓ Verified
+                {unreadCount > 0 && (
+                  <span style={{ position: 'absolute', top: '-0.25rem', right: '-0.25rem', background: '#DC2626', color: 'white', borderRadius: '9999px', width: '1.25rem', height: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                    {unreadCount}
                   </span>
                 )}
-                {!currentUser?.isVerified && (
-                  <button
-                    onClick={() => {
-                      const message = `Hello, I would like to verify my account. My user ID is: ${currentUser?.id}`;
-                      const whatsappUrl = `https://wa.me/${process.env.REACT_APP_WHATSAPP_ADMIN_NUMBER}?text=${encodeURIComponent(message)}`;
-                      window.open(whatsappUrl, '_blank');
-                      // Show message to refresh after verification
-                      setTimeout(() => {
-                        alert('After admin verifies your account, please refresh this page to see the verification badge.');
-                      }, 1000);
-                    }}
-                    style={{ background: '#25D366', color: 'white', padding: '0.125rem 0.5rem', borderRadius: '9999px', border: 'none', cursor: 'pointer', fontSize: '0.625rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
-                    title="Contact admin to verify account"
-                  >
-                    📱 Verify
-                  </button>
-                )}
-              </div>
-              <p style={{ fontSize: '0.875rem', color: '#6B7280', textTransform: 'capitalize' }}>
-                {currentUser?.role} {currentUser?.completedDeliveries > 0 && `• ${currentUser.completedDeliveries} deliveries`}
-              </p>
-            </div>
-            <button
-              onClick={logout}
-              style={{ padding: '0.5rem 1rem', background: '#DC2626', color: 'white', borderRadius: '0.5rem', border: 'none', cursor: 'pointer', fontWeight: '600' }}
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-
-        {showNotifications && (
-          <div className="notification-panel" style={{ position: 'absolute', right: '1rem', top: '4rem', background: 'white', borderRadius: '0.5rem', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', width: '24rem', maxHeight: '24rem', overflowY: 'auto', zIndex: 20 }}>
-            <div style={{ padding: '1rem', borderBottom: '1px solid #E5E7EB' }}>
-              <h3 style={{ fontWeight: '600', fontSize: '1rem' }}>Notifications</h3>
-            </div>
-            {notifications.length === 0 ? (
-              <p style={{ padding: '1rem', textAlign: 'center', color: '#6B7280' }}>No notifications</p>
-            ) : (
-              notifications.map((notif) => (
-                <div
-                  key={notif.id}
-                  onClick={() => markNotificationRead(notif.id)}
-                  style={{ padding: '1rem', borderBottom: '1px solid #F3F4F6', cursor: 'pointer', background: notif.isRead ? 'white' : '#F0F9FF' }}
-                >
-                  <p style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.25rem' }}>{notif.title}</p>
-                  <p style={{ fontSize: '0.875rem', color: '#6B7280' }}>{notif.message}</p>
-                  <p style={{ fontSize: '0.75rem', color: '#9CA3AF', marginTop: '0.25rem' }}>
-                    {new Date(notif.createdAt).toLocaleString()}
-                  </p>
+              </button>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                  <p style={{ fontWeight: '600', color: '#1F2937' }}>{currentUser?.name}</p>
+                  {currentUser?.isVerified && (
+                    <span style={{ background: '#10B981', color: 'white', padding: '0.125rem 0.5rem', borderRadius: '9999px', fontSize: '0.625rem', fontWeight: '600' }}>
+                      ✓ Verified
+                    </span>
+                  )}
+                  {!currentUser?.isVerified && (
+                    <button
+                      onClick={() => {
+                        const message = `Hello, I would like to verify my account. My user ID is: ${currentUser?.id}`;
+                        const whatsappUrl = `https://wa.me/${process.env.REACT_APP_WHATSAPP_ADMIN_NUMBER}?text=${encodeURIComponent(message)}`;
+                        window.open(whatsappUrl, '_blank');
+                        // Show message to refresh after verification
+                        setTimeout(() => {
+                          alert('After admin verifies your account, please refresh this page to see the verification badge.');
+                        }, 1000);
+                      }}
+                      style={{ background: '#25D366', color: 'white', padding: '0.125rem 0.5rem', borderRadius: '9999px', border: 'none', cursor: 'pointer', fontSize: '0.625rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                      title="Contact admin to verify account"
+                    >
+                      📱 Verify
+                    </button>
+                  )}
                 </div>
-              ))
-            )}
+                <p style={{ fontSize: '0.875rem', color: '#6B7280', textTransform: 'capitalize' }}>
+                  {currentUser?.role} {currentUser?.completedDeliveries > 0 && `• ${currentUser.completedDeliveries} deliveries`}
+                </p>
+              </div>
+              <button
+                onClick={logout}
+                style={{ padding: '0.5rem 1rem', background: '#DC2626', color: 'white', borderRadius: '0.5rem', border: 'none', cursor: 'pointer', fontWeight: '600' }}
+              >
+                Logout
+              </button>
+            </div>
           </div>
-        )}
-      </header>
+        
 
+      {showNotifications && (
+        <div className="notification-panel" style={{ position: 'absolute', right: '1rem', top: '4rem', background: 'white', borderRadius: '0.5rem', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', width: '24rem', maxHeight: '24rem', overflowY: 'auto', zIndex: 20 }}>
+          <div style={{ padding: '1rem', borderBottom: '1px solid #E5E7EB' }}>
+            <h3 style={{ fontWeight: '600', fontSize: '1rem' }}>Notifications</h3>
+          </div>
+          {notifications.length === 0 ? (
+            <p style={{ padding: '1rem', textAlign: 'center', color: '#6B7280' }}>No notifications</p>
+          ) : (
+            notifications.map((notif) => (
+              <div
+                key={notif.id}
+                onClick={() => markNotificationRead(notif.id)}
+                style={{ padding: '1rem', borderBottom: '1px solid #F3F4F6', cursor: 'pointer', background: notif.isRead ? 'white' : '#F0F9FF' }}
+              >
+                <p style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.25rem' }}>{notif.title}</p>
+                <p style={{ fontSize: '0.875rem', color: '#6B7280' }}>{notif.message}</p>
+                <p style={{ fontSize: '0.75rem', color: '#9CA3AF', marginTop: '0.25rem' }}>
+                  {new Date(notif.createdAt).toLocaleString()}
+                </p>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+    </header>
       <main style={{ maxWidth: '80rem', margin: '0 auto', padding: mobileView ? '1rem 0.5rem' : '2rem 1rem' }}>
         {error && (
           <div className="error-matrix" style={{ padding: '1rem', borderRadius: '0.5rem', marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: 'Consolas, Monaco, monospace' }}>
@@ -2740,6 +2748,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
           <OrderCreationForm
             onSubmit={handlePublishOrder}
             countries={countries}
+            t={t}
           />
         )}
 

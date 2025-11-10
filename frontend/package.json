@@ -14,6 +14,8 @@
     "socket.io-client": "^4.8.1"
   },
   "scripts": {
+    "dev": "node ../../start-dev.js",
+    "dev:stop": "node ../../stop-dev.js",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "build:dev": "node -e \"require('fs').copyFileSync('.env.develop', '.env')\" && set REACT_APP_ENV=development && react-scripts build",
