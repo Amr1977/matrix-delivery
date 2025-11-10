@@ -12,7 +12,8 @@ const LanguageSwitcher = ({ locale, changeLocale }) => {
     { code: 'ru', label: 'RU', name: 'Русский' },
     { code: 'ja', label: 'JA', name: '日本語' },
     { code: 'tr', label: 'TR', name: 'Türkçe' },
-    { code: 'ur', label: 'UR', name: 'اردو' }
+    { code: 'ur', label: 'UR', name: 'اردو' },
+    { code: 'hi', label: 'HI', name: 'हिन्दी' }
   ];
 
   return (

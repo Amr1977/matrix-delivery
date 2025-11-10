@@ -2582,6 +2582,241 @@ const translations = {
       appName: 'میٹرکس ڈیلیوری',
       subtitle: 'P2P ڈیلیوری مارکیٹ'
     }
+  },
+
+  hi: {
+    // प्रमाणीकरण
+    auth: {
+      signIn: 'साइन इन करें',
+      signUp: 'साइन अप करें',
+      createAccount: 'खाता बनाएं',
+      email: 'ईमेल',
+      password: 'पासवर्ड',
+      fullName: 'पूरा नाम',
+      phoneNumber: 'फोन नंबर',
+      role: 'भूमिका',
+      customer: 'ग्राहक',
+      driver: 'ड्राइवर',
+      vehicleType: 'वाहन प्रकार',
+      selectVehicleType: 'वाहन प्रकार चुनें',
+      bike: 'मोटरसाइकिल',
+      car: 'कार',
+      van: 'वैन',
+      truck: 'ट्रक',
+      login: 'लॉग इन करें',
+      register: 'खाता बनाएं',
+      logout: 'लॉग आउट करें',
+      dontHaveAccount: 'क्या आपके पास खाता नहीं है?',
+      alreadyHaveAccount: 'क्या आपके पास पहले से खाता है?',
+      loading: 'लोड हो रहा है...',
+      verify: 'सत्यापित करें',
+      verified: 'सत्यापित'
+    },
+
+    // ऑर्डर
+    orders: {
+      myOrders: 'मेरे ऑर्डर',
+      createOrder: 'नया ऑर्डर बनाएं',
+      cancel: 'रद्द करें',
+      orderTitle: 'ऑर्डर का शीर्षक',
+      description: 'विवरण',
+      packageDescription: 'पैकेज विवरण',
+      packageWeight: 'पैकेज का वजन (kg)',
+      estimatedValue: 'अनुमानित मूल्य ($)',
+      specialInstructions: 'विशेष निर्देश',
+      estimatedDelivery: 'अनुमानित डिलीवरी तिथि',
+      price: 'प्रस्तावित मूल्य ($)',
+      publishOrder: 'ऑर्डर प्रकाशित करें',
+      publishingOrder: 'ऑर्डर प्रकाशित हो रहा है...',
+      pickupLocation: 'पिकअप स्थान',
+      deliveryLocation: 'डिलीवरी स्थान',
+      country: 'देश',
+      city: 'शहर',
+      area: 'क्षेत्र',
+      street: 'सड़क',
+      building: 'इमारत',
+      floor: 'मंजिल',
+      apartment: 'अपार्टमेंट',
+      contactName: 'संपर्क नाम',
+      selectCountry: 'देश चुनें',
+      enterCity: 'शहर दर्ज करें',
+      enterArea: 'क्षेत्र दर्ज करें',
+      enterStreet: 'सड़क दर्ज करें',
+      buildingNumber: 'इमारत संख्या',
+      aptNumber: 'अपार्टमेंट संख्या',
+      contactPerson: 'संपर्क व्यक्ति',
+      orderNumber: 'ऑर्डर संख्या',
+      pickup: 'पिकअप',
+      delivery: 'डिलीवरी',
+      package: 'पैकेज',
+      weight: 'वजन',
+      value: 'मूल्य',
+      instructions: 'निर्देश',
+      trackOrder: 'ऑर्डर ट्रैक करें',
+      viewReviews: 'समीक्षाएं देखें',
+      noOrders: 'कोई ऑर्डर उपलब्ध नहीं',
+      required: 'आवश्यक',
+      optional: 'वैकल्पिक',
+      orderTitleRequired: 'ऑर्डर का शीर्षक आवश्यक है',
+      priceRequired: 'मूल्य आवश्यक है',
+      pickupCountryRequired: 'पिकअप देश आवश्यक है',
+      pickupCityRequired: 'पिकअप शहर आवश्यक है',
+      pickupContactRequired: 'पिकअप संपर्क नाम आवश्यक है',
+      deliveryCountryRequired: 'डिलीवरी देश आवश्यक है',
+      deliveryCityRequired: 'डिलीवरी शहर आवश्यक है',
+      deliveryContactRequired: 'डिलीवरी संपर्क नाम आवश्यक है'
+    },
+
+    // ऑर्डर स्थिति
+    status: {
+      pendingBids: 'बोली लंबित',
+      accepted: 'स्वीकार किया गया',
+      pickedUp: 'पिकअप किया गया',
+      inTransit: 'मार्ग में',
+      delivered: 'डिलीवर किया गया',
+      cancelled: 'रद्द किया गया'
+    },
+
+    // ड्राइवर
+    driver: {
+      activeOrders: 'सक्रिय ऑर्डर',
+      availableBids: 'उपलब्ध बोली',
+      myHistory: 'मेरा इतिहास',
+      updateLocation: 'स्थान अपडेट करें',
+      locationUpdated: 'स्थान अपडेट किया गया',
+      enableLocation: 'ऑर्डर की बेहतर दृश्यता के लिए स्थान सक्षम करें',
+      locationDenied: 'स्थान पहुंच अस्वीकृत',
+      placeBid: 'बोली लगाएं',
+      placingBid: 'बोली लगा रहे हैं...',
+      bidAmount: 'बोली राशि ($)',
+      pickupTime: 'पिकअप समय',
+      message: 'संदेश (वैकल्पिक)',
+      driverBids: 'ड्राइवर की बोली',
+      acceptBid: 'बोली स्वीकार करें',
+      acceptingBid: 'स्वीकार कर रहे हैं...',
+      markPickedUp: 'पिकअप किए गए के रूप में चिह्नित करें',
+      markInTransit: 'मार्ग में के रूप में चिह्नित करें',
+      markDelivered: 'डिलीवर किए गए के रूप में चिह्नित करें',
+      pickingUp: 'पिकअप कर रहे हैं...',
+      updating: 'अपडेट कर रहे हैं...',
+      completing: 'पूर्ण कर रहे हैं...',
+      distanceFromPickup: 'पिकअप स्थान से दूरी',
+      filterByCity: 'शहर के अनुसार फ़िल्टर करें:',
+      allCities: 'सभी शहर',
+      clearFilter: 'फ़िल्टर साफ़ करें',
+      noActiveOrders: 'कोई सक्रिय ऑर्डर नहीं मिले',
+      noAvailableBids: 'कोई उपलब्ध बोली नहीं',
+      noOrderHistory: 'ऑर्डर का कोई इतिहास नहीं'
+    },
+
+    // प्रतिष्ठा
+    reputation: {
+      customerReputation: 'ग्राहक प्रतिष्ठा',
+      driverReputation: 'ड्राइवर प्रतिष्ठा',
+      rating: 'रेटिंग',
+      deliveries: 'डिलीवरी',
+      reviews: 'समीक्षाएं',
+      memberSince: 'सदस्यता तिथि',
+      reviewsGiven: 'दी गई समीक्षाएं',
+      viewReviews: 'समीक्षाएं देखें',
+      given: 'दी गई',
+      verifyAccount: 'खाता सत्यापित करें'
+    },
+
+    // समीक्षाएं
+    reviews: {
+      submitReview: 'समीक्षा सबमिट करें',
+      reviewDriver: 'ड्राइवर की समीक्षा करें',
+      reviewCustomer: 'ग्राहक की समीक्षा करें',
+      reviewPlatform: 'प्लेटफॉर्म की समीक्षा करें',
+      overallRating: 'समग्र रेटिंग',
+      professionalism: 'पेशेवरता',
+      communication: 'संचार',
+      timeliness: 'समय पर डिलीवरी',
+      packageCondition: 'पैकेज की स्थिति',
+      comment: 'टिप्पणी (वैकल्पिक)',
+      shareExperience: 'अपना अनुभव साझा करें...',
+      cancel: 'रद्द करें',
+      submit: 'समीक्षा सबमिट करें',
+      submitting: 'सबमिट कर रहे हैं...',
+      provideRating: 'कृपया समग्र रेटिंग प्रदान करें',
+      orderReviews: 'ऑर्डर समीक्षाएं',
+      noReviews: 'इस ऑर्डर के लिए अभी कोई समीक्षा नहीं',
+      reviewType: 'समीक्षा प्रकार',
+      reviewing: 'समीक्षा कर रहे हैं'
+    },
+
+    // सूचनाएं
+    notifications: {
+      notifications: 'सूचनाएं',
+      noNotifications: 'कोई सूचना नहीं',
+      newNotification: 'नई सूचना'
+    },
+
+    // ट्रैकिंग
+    tracking: {
+      orderTracking: 'ऑर्डर ट्रैकिंग',
+      liveTracking: 'लाइव ट्रैकिंग',
+      currentStatus: 'वर्तमान स्थिति',
+      currentLocation: 'वर्तमान स्थान',
+      timeline: 'समयरेखा',
+      orderCreated: 'ऑर्डर बनाया गया',
+      bidAccepted: 'बोली स्वीकार की गई',
+      packagePickedUp: 'पैकेज पिकअप किया गया',
+      locationHistory: 'स्थान इतिहास',
+      close: 'बंद करें',
+      liveTrackingActive: 'लाइव ट्रैकिंग सक्रिय',
+      connecting: 'कनेक्ट हो रहा है...',
+      selectedLocation: 'चयनित स्थान',
+      coordinates: 'निर्देशांक',
+      copyCoordinates: 'निर्देशांक कॉपी करें'
+    },
+
+    // संदेश
+    messages: {
+      orderPublished: 'ऑर्डर सफलतापूर्वक प्रकाशित किया गया! आपके क्षेत्र के ड्राइवरों का इंतजार कर रहे हैं।',
+      bidPlaced: 'बोली सफलतापूर्वक लगाई गई!',
+      bidAccepted: 'बोली सफलतापूर्वक स्वीकार की गई! ड्राइवर को सूचित किया गया।',
+      orderAccepted: 'आपका ऑर्डर स्वीकार कर लिया गया है। ड्राइवर जल्द ही पिकअप करेगा।',
+      orderPickedUp: 'आपका पैकेज पिकअप कर लिया गया है और मार्ग में है!',
+      orderInTransit: 'आपका पैकेज मार्ग में है और जल्द ही डिलीवर किया जाएगा!',
+      orderCompleted: 'ऑर्डर सफलतापूर्वक पूरा किया गया!',
+      orderCancelled: 'ऑर्डर रद्द कर दिया गया।',
+      reviewSubmitted: 'समीक्षा सफलतापूर्वक सबमिट की गई!',
+      allFieldsRequired: 'सभी फ़ील्ड आवश्यक हैं',
+      vehicleTypeRequired: 'ड्राइवरों के लिए वाहन प्रकार आवश्यक है',
+      completeCaptcha: 'कृपया कैप्चा पूरा करें',
+      enterValidBid: 'मान्य बोली मूल्य दर्ज करें',
+      fillRequiredFields: 'कृपया सभी आवश्यक फ़ील्ड भरें',
+      connectionIssue: 'कनेक्शन समस्या: उपयोगकर्ता जानकारी प्राप्त नहीं की जा सकी। कृपया पृष्ठ रिफ्रेश करें।',
+      locationAccessFailed: 'स्थान पहुंच विफल हुई। कृपया स्थान सेवाएं सक्षम करें।',
+      afterVerification: 'व्यवस्थापक ने आपके खाते को सत्यापित कर दिया है, कृपया इस पृष्ठ को रिफ्रेश करें ताकि सत्यापन बैज दिखाई दे।'
+    },
+
+    // सामान्य
+    common: {
+      loading: 'लोड हो रहा है...',
+      error: 'त्रुटि',
+      success: 'सफलता',
+      confirm: 'पुष्टि करें',
+      cancel: 'रद्द करें',
+      save: 'सहेजें',
+      delete: 'हटाएं',
+      edit: 'संपादित करें',
+      search: 'खोजें',
+      filter: 'फ़िल्टर करें',
+      clear: 'साफ़ करें',
+      close: 'बंद करें',
+      back: 'पीछे',
+      next: 'अगला',
+      previous: 'पिछला',
+      yes: 'हाँ',
+      no: 'नहीं',
+      optional: 'वैकल्पिक',
+      required: 'आवश्यक',
+      appName: 'मैट्रिक्स डिलीवरी',
+      subtitle: 'P2P डिलीवरी बाजार'
+    }
   }
 };
 
