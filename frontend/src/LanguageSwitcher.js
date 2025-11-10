@@ -1,19 +1,22 @@
 import React from 'react';
+import { useI18n } from './i18n/i18nContext';
 
 const LanguageSwitcher = ({ locale, changeLocale }) => {
+  const { t } = useI18n();
+
   const languages = [
-    { code: 'en', label: 'EN', name: 'English' },
-    { code: 'es', label: 'ES', name: 'Español' },
-    { code: 'fr', label: 'FR', name: 'Français' },
-    { code: 'zh', label: '中文', name: '中文' },
-    { code: 'de', label: 'DE', name: 'Deutsch' },
-    { code: 'pt', label: 'PT', name: 'Português' },
-    { code: 'ar', label: 'ع', name: 'العربية' },
-    { code: 'ru', label: 'RU', name: 'Русский' },
-    { code: 'ja', label: 'JA', name: '日本語' },
-    { code: 'tr', label: 'TR', name: 'Türkçe' },
-    { code: 'ur', label: 'UR', name: 'اردو' },
-    { code: 'hi', label: 'HI', name: 'हिन्दी' }
+    { code: 'en', label: 'EN', nameKey: 'languages.english' },
+    { code: 'es', label: 'ES', nameKey: 'languages.spanish' },
+    { code: 'fr', label: 'FR', nameKey: 'languages.french' },
+    { code: 'zh', label: '中文', nameKey: 'languages.chinese' },
+    { code: 'de', label: 'DE', nameKey: 'languages.german' },
+    { code: 'pt', label: 'PT', nameKey: 'languages.portuguese' },
+    { code: 'ar', label: 'ع', nameKey: 'languages.arabic' },
+    { code: 'ru', label: 'RU', nameKey: 'languages.russian' },
+    { code: 'ja', label: 'JA', nameKey: 'languages.japanese' },
+    { code: 'tr', label: 'TR', nameKey: 'languages.turkish' },
+    { code: 'ur', label: 'UR', nameKey: 'languages.urdu' },
+    { code: 'hi', label: 'HI', nameKey: 'languages.hindi' }
   ];
 
   return (
@@ -37,13 +40,13 @@ const LanguageSwitcher = ({ locale, changeLocale }) => {
         <option
           key={lang.code}
           value={lang.code}
-          title={lang.name}
+          title={t(lang.nameKey)}
           style={{
             background: '#000',
             color: '#30FF30'
           }}
         >
-          {lang.label} - {lang.name}
+          {lang.label} - {t(lang.nameKey)}
         </option>
       ))}
     </select>
