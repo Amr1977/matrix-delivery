@@ -1642,6 +1642,241 @@ const translations = {
       appName: 'Matrix Delivery',
       subtitle: 'Mercado P2P de Entregas'
     }
+  },
+
+  ru: {
+    // Аутентификация
+    auth: {
+      signIn: 'Войти',
+      signUp: 'Регистрация',
+      createAccount: 'Создать аккаунт',
+      email: 'Электронная почта',
+      password: 'Пароль',
+      fullName: 'Полное имя',
+      phoneNumber: 'Номер телефона',
+      role: 'Роль',
+      customer: 'Клиент',
+      driver: 'Водитель',
+      vehicleType: 'Тип транспортного средства',
+      selectVehicleType: 'Выберите тип транспортного средства',
+      bike: 'Мотоцикл',
+      car: 'Автомобиль',
+      van: 'Фургон',
+      truck: 'Грузовик',
+      login: 'Войти',
+      register: 'Создать аккаунт',
+      logout: 'Выйти',
+      dontHaveAccount: 'У вас нет аккаунта?',
+      alreadyHaveAccount: 'У вас уже есть аккаунт?',
+      loading: 'Загрузка...',
+      verify: 'Проверить',
+      verified: 'Проверено'
+    },
+
+    // Заказы
+    orders: {
+      myOrders: 'Мои заказы',
+      createOrder: 'Создать новый заказ',
+      cancel: 'Отмена',
+      orderTitle: 'Название заказа',
+      description: 'Описание',
+      packageDescription: 'Описание посылки',
+      packageWeight: 'Вес посылки (кг)',
+      estimatedValue: 'Ориентировочная стоимость ($)',
+      specialInstructions: 'Особые указания',
+      estimatedDelivery: 'Ориентировочная дата доставки',
+      price: 'Предлагаемая цена ($)',
+      publishOrder: 'Опубликовать заказ',
+      publishingOrder: 'Публикация заказа...',
+      pickupLocation: 'Место получения',
+      deliveryLocation: 'Место доставки',
+      country: 'Страна',
+      city: 'Город',
+      area: 'Район',
+      street: 'Улица',
+      building: 'Здание',
+      floor: 'Этаж',
+      apartment: 'Квартира',
+      contactName: 'Имя контактного лица',
+      selectCountry: 'Выберите страну',
+      enterCity: 'Введите город',
+      enterArea: 'Введите район',
+      enterStreet: 'Введите улицу',
+      buildingNumber: 'Номер здания',
+      aptNumber: 'Номер квартиры',
+      contactPerson: 'Контактное лицо',
+      orderNumber: 'Заказ №',
+      pickup: 'Получение',
+      delivery: 'Доставка',
+      package: 'Посылка',
+      weight: 'Вес',
+      value: 'Стоимость',
+      instructions: 'Указания',
+      trackOrder: 'Отследить заказ',
+      viewReviews: 'Посмотреть отзывы',
+      noOrders: 'Нет доступных заказов',
+      required: 'Обязательно',
+      optional: 'Необязательно',
+      orderTitleRequired: 'Название заказа обязательно',
+      priceRequired: 'Цена обязательна',
+      pickupCountryRequired: 'Страна получения обязательна',
+      pickupCityRequired: 'Город получения обязателен',
+      pickupContactRequired: 'Имя контактного лица для получения обязательно',
+      deliveryCountryRequired: 'Страна доставки обязательна',
+      deliveryCityRequired: 'Город доставки обязателен',
+      deliveryContactRequired: 'Имя контактного лица для доставки обязательно'
+    },
+
+    // Статус заказа
+    status: {
+      pendingBids: 'Ожидают предложений',
+      accepted: 'Принят',
+      pickedUp: 'Получен',
+      inTransit: 'В пути',
+      delivered: 'Доставлен',
+      cancelled: 'Отменен'
+    },
+
+    // Водитель
+    driver: {
+      activeOrders: 'Активные заказы',
+      availableBids: 'Доступные предложения',
+      myHistory: 'Моя история',
+      updateLocation: 'Обновить местоположение',
+      locationUpdated: 'Местоположение обновлено',
+      enableLocation: 'Включите местоположение для лучшей видимости заказов',
+      locationDenied: 'Доступ к местоположению запрещен',
+      placeBid: 'Сделать предложение',
+      placingBid: 'Делаю предложение...',
+      bidAmount: 'Сумма предложения ($)',
+      pickupTime: 'Время получения',
+      message: 'Сообщение (необязательно)',
+      driverBids: 'Предложения водителей',
+      acceptBid: 'Принять предложение',
+      acceptingBid: 'Принимаю...',
+      markPickedUp: 'Отметить как полученный',
+      markInTransit: 'Отметить как в пути',
+      markDelivered: 'Отметить как доставленный',
+      pickingUp: 'Получаю...',
+      updating: 'Обновляю...',
+      completing: 'Завершаю...',
+      distanceFromPickup: 'Расстояние от места получения',
+      filterByCity: 'Фильтр по городу:',
+      allCities: 'Все города',
+      clearFilter: 'Очистить фильтр',
+      noActiveOrders: 'Активных заказов не найдено',
+      noAvailableBids: 'Нет доступных предложений',
+      noOrderHistory: 'Нет истории заказов'
+    },
+
+    // Репутация
+    reputation: {
+      customerReputation: 'Репутация клиента',
+      driverReputation: 'Репутация водителя',
+      rating: 'Рейтинг',
+      deliveries: 'Доставки',
+      reviews: 'Отзывы',
+      memberSince: 'Участник с',
+      reviewsGiven: 'Отданные отзывы',
+      viewReviews: 'Посмотреть отзывы',
+      given: 'Отдан',
+      verifyAccount: 'Проверить аккаунт'
+    },
+
+    // Отзывы
+    reviews: {
+      submitReview: 'Отправить отзыв',
+      reviewDriver: 'Оценить водителя',
+      reviewCustomer: 'Оценить клиента',
+      reviewPlatform: 'Оценить платформу',
+      overallRating: 'Общий рейтинг',
+      professionalism: 'Профессионализм',
+      communication: 'Общение',
+      timeliness: 'Своевременность',
+      packageCondition: 'Состояние посылки',
+      comment: 'Комментарий (необязательно)',
+      shareExperience: 'Поделитесь своим опытом...',
+      cancel: 'Отмена',
+      submit: 'Отправить отзыв',
+      submitting: 'Отправляю...',
+      provideRating: 'Пожалуйста, предоставьте общий рейтинг',
+      orderReviews: 'Отзывы о заказе',
+      noReviews: 'Пока нет отзывов об этом заказе',
+      reviewType: 'Тип отзыва',
+      reviewing: 'Оцениваю'
+    },
+
+    // Уведомления
+    notifications: {
+      notifications: 'Уведомления',
+      noNotifications: 'Нет уведомлений',
+      newNotification: 'Новое уведомление'
+    },
+
+    // Отслеживание
+    tracking: {
+      orderTracking: 'Отслеживание заказа',
+      liveTracking: 'Живое отслеживание',
+      currentStatus: 'Текущий статус',
+      currentLocation: 'Текущее местоположение',
+      timeline: 'Хронология',
+      orderCreated: 'Заказ создан',
+      bidAccepted: 'Предложение принято',
+      packagePickedUp: 'Посылка получена',
+      locationHistory: 'История местоположения',
+      close: 'Закрыть',
+      liveTrackingActive: 'Живое отслеживание активно',
+      connecting: 'Подключение...',
+      selectedLocation: 'Выбранное местоположение',
+      coordinates: 'Координаты',
+      copyCoordinates: 'Копировать координаты'
+    },
+
+    // Сообщения
+    messages: {
+      orderPublished: 'Заказ успешно опубликован! Ожидаем водителей в вашем регионе.',
+      bidPlaced: 'Предложение успешно сделано!',
+      bidAccepted: 'Предложение успешно принято! Водитель уведомлен.',
+      orderAccepted: 'Ваш заказ принят. Водитель скоро заберет его.',
+      orderPickedUp: 'Ваша посылка получена и находится в пути!',
+      orderInTransit: 'Ваша посылка в пути и скоро будет доставлена!',
+      orderCompleted: 'Заказ успешно завершен!',
+      orderCancelled: 'Заказ был отменен.',
+      reviewSubmitted: 'Отзыв успешно отправлен!',
+      allFieldsRequired: 'Все поля обязательны',
+      vehicleTypeRequired: 'Тип транспортного средства обязателен для водителей',
+      completeCaptcha: 'Пожалуйста, заполните капчу',
+      enterValidBid: 'Введите действительную сумму предложения',
+      fillRequiredFields: 'Пожалуйста, заполните все обязательные поля',
+      connectionIssue: 'Проблема с подключением: Не удалось получить информацию о пользователе. Пожалуйста, обновите страницу.',
+      locationAccessFailed: 'Не удалось получить доступ к местоположению. Пожалуйста, включите службы геолокации.',
+      afterVerification: 'После того, как администратор проверит ваш аккаунт, пожалуйста, обновите эту страницу, чтобы увидеть значок проверки.'
+    },
+
+    // Общее
+    common: {
+      loading: 'Загрузка...',
+      error: 'Ошибка',
+      success: 'Успех',
+      confirm: 'Подтвердить',
+      cancel: 'Отмена',
+      save: 'Сохранить',
+      delete: 'Удалить',
+      edit: 'Редактировать',
+      search: 'Поиск',
+      filter: 'Фильтр',
+      clear: 'Очистить',
+      close: 'Закрыть',
+      back: 'Назад',
+      next: 'Далее',
+      previous: 'Предыдущий',
+      yes: 'Да',
+      no: 'Нет',
+      optional: 'Необязательно',
+      required: 'Обязательно',
+      appName: 'Matrix Delivery',
+      subtitle: 'P2P рынок доставки'
+    }
   }
 };
 
