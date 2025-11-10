@@ -7,7 +7,7 @@ import ReCAPTCHA from 'react-google-recaptcha';
 import { Polyline } from 'react-leaflet';
 import io from 'socket.io-client';
 import { useForm } from 'react-hook-form';
-import '../Mobile.css';
+import './Mobile.css';
 
 // ============ ORDER CREATION FORM COMPONENT ============
 // Order Creation Form Component using React Hook Form - moved outside to prevent re-creation
