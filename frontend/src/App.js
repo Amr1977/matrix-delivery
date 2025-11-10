@@ -10,6 +10,7 @@ import io from 'socket.io-client';
 import { useForm } from 'react-hook-form';
 import LanguageSwitcher from './LanguageSwitcher';
 import './Mobile.css';
+import './MatrixTheme.css';
 
 // ============ ORDER CREATION FORM COMPONENT ============
 // Order Creation Form Component using React Hook Form - moved outside to prevent re-creation
@@ -807,6 +808,7 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition, t })
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [trackingData, setTrackingData] = useState(null);
   const [showTracking, setShowTracking] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
@@ -2019,6 +2021,24 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
     setAuthState('login');
     setError('');
   };
+
+  // Hamburger menu handler
+  const toggleMobileMenu = () => {
+    setShowMobileMenu(!showMobileMenu);
+  };
+
+  // Add effect to close menu when clicking backdrop
+  useEffect(() => {
+    if (showMobileMenu) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [showMobileMenu]);
 
   const handlePublishOrder = useCallback(async (orderData) => { // eslint-disable-line react-hooks/exhaustive-deps
     // Simplified validation for structured addresses
