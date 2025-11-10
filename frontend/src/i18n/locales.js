@@ -231,6 +231,22 @@ const translations = {
       required: 'Required',
       appName: 'Matrix Delivery',
       subtitle: 'P2P Delivery Marketplace'
+    },
+
+    // Languages
+    languages: {
+      english: 'English',
+      spanish: 'Español',
+      french: 'Français',
+      chinese: '中文',
+      german: 'Deutsch',
+      portuguese: 'Português',
+      arabic: 'العربية',
+      russian: 'Русский',
+      japanese: '日本語',
+      turkish: 'Türkçe',
+      urdu: 'اردو',
+      hindi: 'हिन्दी'
     }
   },
 
@@ -466,6 +482,22 @@ const translations = {
       required: 'مطلوب',
       appName: 'ماتريكس ديليفري',
       subtitle: 'السوق الحرة للتوصيل '
+    },
+
+    // اللغات
+    languages: {
+      english: 'الإنجليزية',
+      spanish: 'الإسبانية',
+      french: 'الفرنسية',
+      chinese: 'الصينية',
+      german: 'الألمانية',
+      portuguese: 'البرتغالية',
+      arabic: 'العربية',
+      russian: 'الروسية',
+      japanese: 'اليابانية',
+      turkish: 'التركية',
+      urdu: 'الأردية',
+      hindi: 'الهندية'
     }
   },
 
@@ -701,6 +733,22 @@ const translations = {
       required: 'Requerido',
       appName: 'Matrix Delivery',
       subtitle: 'Mercado P2P de Entregas'
+    },
+
+    // Idiomas
+    languages: {
+      english: 'Inglés',
+      spanish: 'Español',
+      french: 'Francés',
+      chinese: 'Chino',
+      german: 'Alemán',
+      portuguese: 'Portugués',
+      arabic: 'Árabe',
+      russian: 'Ruso',
+      japanese: 'Japonés',
+      turkish: 'Turco',
+      urdu: 'Urdu',
+      hindi: 'Hindi'
     }
   },
 
@@ -936,6 +984,22 @@ const translations = {
       required: 'Requis',
       appName: 'Matrix Delivery',
       subtitle: 'Marché P2P de Livraison'
+    },
+
+    // Langues
+    languages: {
+      english: 'Anglais',
+      spanish: 'Espagnol',
+      french: 'Français',
+      chinese: 'Chinois',
+      german: 'Allemand',
+      portuguese: 'Portugais',
+      arabic: 'Arabe',
+      russian: 'Russe',
+      japanese: 'Japonais',
+      turkish: 'Turc',
+      urdu: 'Ourdou',
+      hindi: 'Hindi'
     }
   },
 
@@ -1171,6 +1235,22 @@ const translations = {
       required: '必填',
       appName: 'Matrix Delivery',
       subtitle: 'P2P 交付市场'
+    },
+
+    // 语言
+    languages: {
+      english: '英语',
+      spanish: '西班牙语',
+      french: '法语',
+      chinese: '中文',
+      german: '德语',
+      portuguese: '葡萄牙语',
+      arabic: '阿拉伯语',
+      russian: '俄语',
+      japanese: '日语',
+      turkish: '土耳其语',
+      urdu: '乌尔都语',
+      hindi: '印地语'
     }
   },
 
@@ -1406,6 +1486,22 @@ const translations = {
       required: 'Erforderlich',
       appName: 'Matrix Delivery',
       subtitle: 'P2P Liefermarkt'
+    },
+
+    // Sprachen
+    languages: {
+      english: 'Englisch',
+      spanish: 'Spanisch',
+      french: 'Französisch',
+      chinese: 'Chinesisch',
+      german: 'Deutsch',
+      portuguese: 'Portugiesisch',
+      arabic: 'Arabisch',
+      russian: 'Russisch',
+      japanese: 'Japanisch',
+      turkish: 'Türkisch',
+      urdu: 'Urdu',
+      hindi: 'Hindi'
     }
   },
 
@@ -1641,6 +1737,22 @@ const translations = {
       required: 'Obrigatório',
       appName: 'Matrix Delivery',
       subtitle: 'Mercado P2P de Entregas'
+    },
+
+    // Idiomas
+    languages: {
+      english: 'Inglês',
+      spanish: 'Espanhol',
+      french: 'Francês',
+      chinese: 'Chinês',
+      german: 'Alemão',
+      portuguese: 'Português',
+      arabic: 'Árabe',
+      russian: 'Russo',
+      japanese: 'Japonês',
+      turkish: 'Turco',
+      urdu: 'Urdu',
+      hindi: 'Hindi'
     }
   },
 
@@ -1876,6 +1988,22 @@ const translations = {
       required: 'Обязательно',
       appName: 'Matrix Delivery',
       subtitle: 'P2P рынок доставки'
+    },
+
+    // Языки
+    languages: {
+      english: 'Английский',
+      spanish: 'Испанский',
+      french: 'Французский',
+      chinese: 'Китайский',
+      german: 'Немецкий',
+      portuguese: 'Португальский',
+      arabic: 'Арабский',
+      russian: 'Русский',
+      japanese: 'Японский',
+      turkish: 'Турецкий',
+      urdu: 'Урду',
+      hindi: 'Хинди'
     }
   },
 
@@ -2111,6 +2239,22 @@ const translations = {
       required: '必須',
       appName: 'Matrix Delivery',
       subtitle: 'P2P 配送マーケット'
+    },
+
+    // 言語
+    languages: {
+      english: '英語',
+      spanish: 'スペイン語',
+      french: 'フランス語',
+      chinese: '中国語',
+      german: 'ドイツ語',
+      portuguese: 'ポルトガル語',
+      arabic: 'アラビア語',
+      russian: 'ロシア語',
+      japanese: '日本語',
+      turkish: 'トルコ語',
+      urdu: 'ウルドゥー語',
+      hindi: 'ヒンディー語'
     }
   },
 
@@ -2346,6 +2490,22 @@ const translations = {
       required: 'Zorunlu',
       appName: 'Matrix Delivery',
       subtitle: 'P2P Teslimat Pazarı'
+    },
+
+    // Diller
+    languages: {
+      english: 'İngilizce',
+      spanish: 'İspanyolca',
+      french: 'Fransızca',
+      chinese: 'Çince',
+      german: 'Almanca',
+      portuguese: 'Portekizce',
+      arabic: 'Arapça',
+      russian: 'Rusça',
+      japanese: 'Japonca',
+      turkish: 'Türkçe',
+      urdu: 'Urduca',
+      hindi: 'Hintçe'
     }
   },
 
@@ -2819,6 +2979,22 @@ const translations = {
       required: 'आवश्यक',
       appName: 'मैट्रिक्स डिलीवरी',
       subtitle: 'P2P डिलीवरी बाजार'
+    },
+
+    // भाषाएं
+    languages: {
+      english: 'अंग्रेजी',
+      spanish: 'स्पेनिश',
+      french: 'फ्रेंच',
+      chinese: 'चीनी',
+      german: 'जर्मन',
+      portuguese: 'पुर्तगाली',
+      arabic: 'अरबी',
+      russian: 'रूसी',
+      japanese: 'जापानी',
+      turkish: 'तुर्की',
+      urdu: 'उर्दू',
+      hindi: 'हिंदी'
     }
   }
 };
