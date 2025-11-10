@@ -2769,7 +2769,10 @@ const translations = {
       connecting: 'कनेक्ट हो रहा है...',
       selectedLocation: 'चयनित स्थान',
       coordinates: 'निर्देशांक',
-      copyCoordinates: 'निर्देशांक कॉपी करें'
+      copyCoordinates: 'निर्देशांक कॉपी करें',
+      pickup: 'पिकअप',
+      delivery: 'डिलीवरी',
+      driver: 'ड्राइवर'
     },
 
     // संदेश
