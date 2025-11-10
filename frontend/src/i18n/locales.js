@@ -2347,6 +2347,241 @@ const translations = {
       appName: 'Matrix Delivery',
       subtitle: 'P2P Teslimat Pazarı'
     }
+  },
+
+  ur: {
+    // توثیق
+    auth: {
+      signIn: 'سائن ان کریں',
+      signUp: 'سائن اپ کریں',
+      createAccount: 'اکاؤنٹ بنائیں',
+      email: 'ای میل',
+      password: 'پاس ورڈ',
+      fullName: 'پورا نام',
+      phoneNumber: 'فون نمبر',
+      role: 'کردار',
+      customer: 'کسٹمر',
+      driver: 'ڈرائیور',
+      vehicleType: 'گاڑی کی قسم',
+      selectVehicleType: 'گاڑی کی قسم منتخب کریں',
+      bike: 'موٹر سائیکل',
+      car: 'کار',
+      van: 'وین',
+      truck: 'ٹرک',
+      login: 'لاگ ان کریں',
+      register: 'اکاؤنٹ بنائیں',
+      logout: 'لاگ آؤٹ کریں',
+      dontHaveAccount: 'کیا آپ کا اکاؤنٹ نہیں ہے؟',
+      alreadyHaveAccount: 'کیا آپ کا پہلے سے اکاؤنٹ ہے؟',
+      loading: 'لوڈ ہو رہا ہے...',
+      verify: 'تصدیق کریں',
+      verified: 'تصدیق شدہ'
+    },
+
+    // آرڈرز
+    orders: {
+      myOrders: 'میرے آرڈرز',
+      createOrder: 'نیا آرڈر بنائیں',
+      cancel: 'منسوخ کریں',
+      orderTitle: 'آرڈر کا عنوان',
+      description: 'تفصیل',
+      packageDescription: 'پیکیج کی تفصیل',
+      packageWeight: 'پیکیج کا وزن (kg)',
+      estimatedValue: 'تخمینی قیمت ($)',
+      specialInstructions: 'خصوصی ہدایات',
+      estimatedDelivery: 'تخمینی ڈیلیوری تاریخ',
+      price: 'پیش کردہ قیمت ($)',
+      publishOrder: 'آرڈر شائع کریں',
+      publishingOrder: 'آرڈر شائع ہو رہا ہے...',
+      pickupLocation: 'پک اپ لوکیشن',
+      deliveryLocation: 'ڈیلیوری لوکیشن',
+      country: 'ملک',
+      city: 'شہر',
+      area: 'علاقہ',
+      street: 'گلی',
+      building: 'عمارت',
+      floor: 'منزل',
+      apartment: 'اپارٹمنٹ',
+      contactName: 'رابطہ نام',
+      selectCountry: 'ملک منتخب کریں',
+      enterCity: 'شہر درج کریں',
+      enterArea: 'علاقہ درج کریں',
+      enterStreet: 'گلی درج کریں',
+      buildingNumber: 'عمارت نمبر',
+      aptNumber: 'اپارٹمنٹ نمبر',
+      contactPerson: 'رابطہ شخص',
+      orderNumber: 'آرڈر نمبر',
+      pickup: 'پک اپ',
+      delivery: 'ڈیلیوری',
+      package: 'پیکیج',
+      weight: 'وزن',
+      value: 'قیمت',
+      instructions: 'ہدایات',
+      trackOrder: 'آرڈر ٹریک کریں',
+      viewReviews: 'جائزے دیکھیں',
+      noOrders: 'کوئی آرڈرز دستیاب نہیں',
+      required: 'ضروری',
+      optional: 'اختیاری',
+      orderTitleRequired: 'آرڈر کا عنوان ضروری ہے',
+      priceRequired: 'قیمت ضروری ہے',
+      pickupCountryRequired: 'پک اپ ملک ضروری ہے',
+      pickupCityRequired: 'پک اپ شہر ضروری ہے',
+      pickupContactRequired: 'پک اپ رابطہ نام ضروری ہے',
+      deliveryCountryRequired: 'ڈیلیوری ملک ضروری ہے',
+      deliveryCityRequired: 'ڈیلیوری شہر ضروری ہے',
+      deliveryContactRequired: 'ڈیلیوری رابطہ نام ضروری ہے'
+    },
+
+    // آرڈر کی حیثیت
+    status: {
+      pendingBids: 'بولیاں زیر التواء',
+      accepted: 'قبول کر لیا گیا',
+      pickedUp: 'پک اپ کر لیا گیا',
+      inTransit: 'راستے میں',
+      delivered: 'ڈیلیور کر دیا گیا',
+      cancelled: 'منسوخ کر دیا گیا'
+    },
+
+    // ڈرائیور
+    driver: {
+      activeOrders: 'فعال آرڈرز',
+      availableBids: 'دستیاب بولیاں',
+      myHistory: 'میری تاریخ',
+      updateLocation: 'لوکیشن اپ ڈیٹ کریں',
+      locationUpdated: 'لوکیشن اپ ڈیٹ کر دی گئی',
+      enableLocation: 'آرڈر کی بہتر مرئیت کے لیے لوکیشن فعال کریں',
+      locationDenied: 'لوکیشن تک رسائی مسترد کر دی گئی',
+      placeBid: 'بولی لگائیں',
+      placingBid: 'بولی لگا رہے ہیں...',
+      bidAmount: 'بولی کی رقم ($)',
+      pickupTime: 'پک اپ کا وقت',
+      message: 'پیغام (اختیاری)',
+      driverBids: 'ڈرائیور کی بولیاں',
+      acceptBid: 'بولی قبول کریں',
+      acceptingBid: 'قبول کر رہے ہیں...',
+      markPickedUp: 'پک اپ شدہ کے طور پر نشان زد کریں',
+      markInTransit: 'راستے میں کے طور پر نشان زد کریں',
+      markDelivered: 'ڈیلیور شدہ کے طور پر نشان زد کریں',
+      pickingUp: 'پک اپ کر رہے ہیں...',
+      updating: 'اپ ڈیٹ کر رہے ہیں...',
+      completing: 'مکمل کر رہے ہیں...',
+      distanceFromPickup: 'پک اپ لوکیشن سے فاصلہ',
+      filterByCity: 'شہر کے مطابق فلٹر کریں:',
+      allCities: 'تمام شہر',
+      clearFilter: 'فلٹر صاف کریں',
+      noActiveOrders: 'کوئی فعال آرڈرز نہیں ملے',
+      noAvailableBids: 'کوئی دستیاب بولیاں نہیں',
+      noOrderHistory: 'آرڈر کی کوئی تاریخ نہیں'
+    },
+
+    // ساکھ
+    reputation: {
+      customerReputation: 'کسٹمر کی ساکھ',
+      driverReputation: 'ڈرائیور کی ساکھ',
+      rating: 'درجہ بندی',
+      deliveries: 'ڈیلیوریز',
+      reviews: 'جائزے',
+      memberSince: 'رکنیت کی تاریخ',
+      reviewsGiven: 'دیے گئے جائزے',
+      viewReviews: 'جائزے دیکھیں',
+      given: 'دیے گئے',
+      verifyAccount: 'اکاؤنٹ کی تصدیق کریں'
+    },
+
+    // جائزے
+    reviews: {
+      submitReview: 'جائزہ جمع کرائیں',
+      reviewDriver: 'ڈرائیور کا جائزہ لیں',
+      reviewCustomer: 'کسٹمر کا جائزہ لیں',
+      reviewPlatform: 'پلیٹ فارم کا جائزہ لیں',
+      overallRating: 'مجموعی درجہ بندی',
+      professionalism: 'پیشہ ورانہ پن',
+      communication: 'رابطہ',
+      timeliness: 'وقت پر ڈیلیوری',
+      packageCondition: 'پیکیج کی حالت',
+      comment: 'تبصرہ (اختیاری)',
+      shareExperience: 'اپنا تجربہ شیئر کریں...',
+      cancel: 'منسوخ کریں',
+      submit: 'جائزہ جمع کرائیں',
+      submitting: 'جمع کرا رہے ہیں...',
+      provideRating: 'براہ کرم مجموعی درجہ بندی فراہم کریں',
+      orderReviews: 'آرڈر کے جائزے',
+      noReviews: 'اس آرڈر کے لیے ابھی کوئی جائزہ نہیں',
+      reviewType: 'جائزے کی قسم',
+      reviewing: 'جائزہ لے رہے ہیں'
+    },
+
+    // اطلاعات
+    notifications: {
+      notifications: 'اطلاعات',
+      noNotifications: 'کوئی اطلاع نہیں',
+      newNotification: 'نئی اطلاع'
+    },
+
+    // ٹریکنگ
+    tracking: {
+      orderTracking: 'آرڈر ٹریکنگ',
+      liveTracking: 'لائیو ٹریکنگ',
+      currentStatus: 'موجودہ حیثیت',
+      currentLocation: 'موجودہ لوکیشن',
+      timeline: 'ٹائم لائن',
+      orderCreated: 'آرڈر بنایا گیا',
+      bidAccepted: 'بولی قبول کر لی گئی',
+      packagePickedUp: 'پیکیج پک اپ کر لیا گیا',
+      locationHistory: 'لوکیشن کی تاریخ',
+      close: 'بند کریں',
+      liveTrackingActive: 'لائیو ٹریکنگ فعال',
+      connecting: 'کنیکٹ ہو رہے ہیں...',
+      selectedLocation: 'منتخب کردہ لوکیشن',
+      coordinates: 'کوآرڈینیٹس',
+      copyCoordinates: 'کوآرڈینیٹس کاپی کریں'
+    },
+
+    // پیغامات
+    messages: {
+      orderPublished: 'آرڈر کامیابی سے شائع کر دیا گیا! آپ کے علاقے کے ڈرائیورز کا انتظار کر رہے ہیں۔',
+      bidPlaced: 'بولی کامیابی سے لگا دی گئی!',
+      bidAccepted: 'بولی کامیابی سے قبول کر لی گئی! ڈرائیور کو مطلع کر دیا گیا۔',
+      orderAccepted: 'آپ کا آرڈر قبول کر لیا گیا ہے۔ ڈرائیور جلد پک اپ کرے گا۔',
+      orderPickedUp: 'آپ کا پیکیج پک اپ کر لیا گیا ہے اور راستے میں ہے!',
+      orderInTransit: 'آپ کا پیکیج راستے میں ہے اور جلد ڈیلیور کر دیا جائے گا!',
+      orderCompleted: 'آرڈر کامیابی سے مکمل کر دیا گیا!',
+      orderCancelled: 'آرڈر منسوخ کر دیا گیا۔',
+      reviewSubmitted: 'جائزہ کامیابی سے جمع کرا دیا گیا!',
+      allFieldsRequired: 'تمام فیلڈز ضروری ہیں',
+      vehicleTypeRequired: 'ڈرائیورز کے لیے گاڑی کی قسم ضروری ہے',
+      completeCaptcha: 'براہ کرم کیپچا مکمل کریں',
+      enterValidBid: 'درست بولی کی قیمت درج کریں',
+      fillRequiredFields: 'براہ کرم تمام ضروری فیلڈز بھریں',
+      connectionIssue: 'کنکشن کا مسئلہ: صارف کی معلومات حاصل نہیں کی جا سکیں۔ براہ کرم صفحہ ریفریش کریں۔',
+      locationAccessFailed: 'لوکیشن تک رسائی ناکام ہو گئی۔ براہ کرم لوکیشن سروسز فعال کریں۔',
+      afterVerification: 'ایڈمن نے آپ کے اکاؤنٹ کی تصدیق کر دی ہے، براہ کرم اس صفحے کو ریفریش کریں تاکہ تصدیقی بیج نظر آئے۔'
+    },
+
+    // عام
+    common: {
+      loading: 'لوڈ ہو رہا ہے...',
+      error: 'خرابی',
+      success: 'کامیابی',
+      confirm: 'تصدیق کریں',
+      cancel: 'منسوخ کریں',
+      save: 'محفوظ کریں',
+      delete: 'حذف کریں',
+      edit: 'ترمیم کریں',
+      search: 'تلاش کریں',
+      filter: 'فلٹر کریں',
+      clear: 'صاف کریں',
+      close: 'بند کریں',
+      back: 'پیچھے',
+      next: 'اگلا',
+      previous: 'پچھلا',
+      yes: 'ہاں',
+      no: 'نہیں',
+      optional: 'اختیاری',
+      required: 'ضروری',
+      appName: 'میٹرکس ڈیلیوری',
+      subtitle: 'P2P ڈیلیوری مارکیٹ'
+    }
   }
 };
 
