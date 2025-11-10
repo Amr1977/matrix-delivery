@@ -2112,6 +2112,241 @@ const translations = {
       appName: 'Matrix Delivery',
       subtitle: 'P2P 配送マーケット'
     }
+  },
+
+  tr: {
+    // Kimlik Doğrulama
+    auth: {
+      signIn: 'Giriş Yap',
+      signUp: 'Kaydol',
+      createAccount: 'Hesap Oluştur',
+      email: 'E-posta',
+      password: 'Şifre',
+      fullName: 'Tam Ad',
+      phoneNumber: 'Telefon Numarası',
+      role: 'Rol',
+      customer: 'Müşteri',
+      driver: 'Sürücü',
+      vehicleType: 'Araç Tipi',
+      selectVehicleType: 'Araç Tipi Seç',
+      bike: 'Bisiklet',
+      car: 'Araba',
+      van: 'Van',
+      truck: 'Kamyon',
+      login: 'Giriş Yap',
+      register: 'Hesap Oluştur',
+      logout: 'Çıkış Yap',
+      dontHaveAccount: 'Hesabınız yok mu?',
+      alreadyHaveAccount: 'Zaten hesabınız var mı?',
+      loading: 'Yükleniyor...',
+      verify: 'Doğrula',
+      verified: 'Doğrulandı'
+    },
+
+    // Siparişler
+    orders: {
+      myOrders: 'Siparişlerim',
+      createOrder: 'Yeni Sipariş Oluştur',
+      cancel: 'İptal',
+      orderTitle: 'Sipariş Başlığı',
+      description: 'Açıklama',
+      packageDescription: 'Paket Açıklaması',
+      packageWeight: 'Paket Ağırlığı (kg)',
+      estimatedValue: 'Tahmini Değer ($)',
+      specialInstructions: 'Özel Talimatlar',
+      estimatedDelivery: 'Tahmini Teslimat Tarihi',
+      price: 'Teklif Edilen Fiyat ($)',
+      publishOrder: 'Siparişi Yayınla',
+      publishingOrder: 'Sipariş yayınlanıyor...',
+      pickupLocation: 'Alış Yeri',
+      deliveryLocation: 'Teslimat Yeri',
+      country: 'Ülke',
+      city: 'Şehir',
+      area: 'Bölge',
+      street: 'Sokak',
+      building: 'Bina',
+      floor: 'Kat',
+      apartment: 'Daire',
+      contactName: 'İletişim Adı',
+      selectCountry: 'Ülke Seç',
+      enterCity: 'Şehir girin',
+      enterArea: 'Bölge girin',
+      enterStreet: 'Sokak girin',
+      buildingNumber: 'Bina No',
+      aptNumber: 'Daire No',
+      contactPerson: 'İletişim kişisi',
+      orderNumber: 'Sipariş No',
+      pickup: 'Alış',
+      delivery: 'Teslimat',
+      package: 'Paket',
+      weight: 'Ağırlık',
+      value: 'Değer',
+      instructions: 'Talimatlar',
+      trackOrder: 'Siparişi Takip Et',
+      viewReviews: 'Değerlendirmeleri Görüntüle',
+      noOrders: 'Kullanılabilir sipariş yok',
+      required: 'Gerekli',
+      optional: 'İsteğe bağlı',
+      orderTitleRequired: 'Sipariş başlığı gerekli',
+      priceRequired: 'Fiyat gerekli',
+      pickupCountryRequired: 'Alış ülkesi gerekli',
+      pickupCityRequired: 'Alış şehri gerekli',
+      pickupContactRequired: 'Alış iletişim adı gerekli',
+      deliveryCountryRequired: 'Teslimat ülkesi gerekli',
+      deliveryCityRequired: 'Teslimat şehri gerekli',
+      deliveryContactRequired: 'Teslimat iletişim adı gerekli'
+    },
+
+    // Sipariş Durumu
+    status: {
+      pendingBids: 'Teklif Bekleniyor',
+      accepted: 'Kabul Edildi',
+      pickedUp: 'Alındı',
+      inTransit: 'Yolda',
+      delivered: 'Teslim Edildi',
+      cancelled: 'İptal Edildi'
+    },
+
+    // Sürücü
+    driver: {
+      activeOrders: 'Aktif Siparişler',
+      availableBids: 'Mevcut Teklifler',
+      myHistory: 'Geçmişim',
+      updateLocation: 'Konumu Güncelle',
+      locationUpdated: 'Konum Güncellendi',
+      enableLocation: 'Sipariş görünürlüğünü artırmak için konumu etkinleştir',
+      locationDenied: 'Konum erişimi reddedildi',
+      placeBid: 'Teklif Ver',
+      placingBid: 'Teklif veriliyor...',
+      bidAmount: 'Teklif Tutarı ($)',
+      pickupTime: 'Alış Zamanı',
+      message: 'Mesaj (isteğe bağlı)',
+      driverBids: 'Sürücü Teklifleri',
+      acceptBid: 'Teklifi Kabul Et',
+      acceptingBid: 'Kabul ediliyor...',
+      markPickedUp: 'Alındı Olarak İşaretle',
+      markInTransit: 'Yolda Olarak İşaretle',
+      markDelivered: 'Teslim Edildi Olarak İşaretle',
+      pickingUp: 'Alınıyor...',
+      updating: 'Güncelleniyor...',
+      completing: 'Tamamlanıyor...',
+      distanceFromPickup: 'Alış yerinden uzaklık',
+      filterByCity: 'Şehre göre filtrele:',
+      allCities: 'Tüm Şehirler',
+      clearFilter: 'Filtreyi Temizle',
+      noActiveOrders: 'Aktif sipariş bulunamadı',
+      noAvailableBids: 'Mevcut teklif yok',
+      noOrderHistory: 'Sipariş geçmişi yok'
+    },
+
+    // İtibar
+    reputation: {
+      customerReputation: 'Müşteri İtibarı',
+      driverReputation: 'Sürücü İtibarı',
+      rating: 'Değerlendirme',
+      deliveries: 'Teslimatlar',
+      reviews: 'Değerlendirmeler',
+      memberSince: 'Üyelik Tarihi',
+      reviewsGiven: 'Verilen Değerlendirmeler',
+      viewReviews: 'Değerlendirmeleri Görüntüle',
+      given: 'Verildi',
+      verifyAccount: 'Hesabı Doğrula'
+    },
+
+    // Değerlendirmeler
+    reviews: {
+      submitReview: 'Değerlendirme Gönder',
+      reviewDriver: 'Sürücüyü Değerlendir',
+      reviewCustomer: 'Müşteriyi Değerlendir',
+      reviewPlatform: 'Platformu Değerlendir',
+      overallRating: 'Genel Değerlendirme',
+      professionalism: 'Profesyonellik',
+      communication: 'İletişim',
+      timeliness: 'Zamanında Teslimat',
+      packageCondition: 'Paket Durumu',
+      comment: 'Yorum (İsteğe bağlı)',
+      shareExperience: 'Deneyiminizi paylaşın...',
+      cancel: 'İptal',
+      submit: 'Değerlendirme Gönder',
+      submitting: 'Gönderiliyor...',
+      provideRating: 'Lütfen genel bir değerlendirme sağlayın',
+      orderReviews: 'Sipariş Değerlendirmeleri',
+      noReviews: 'Bu sipariş için henüz değerlendirme yok',
+      reviewType: 'Değerlendirme Tipi',
+      reviewing: 'Değerlendiriliyor'
+    },
+
+    // Bildirimler
+    notifications: {
+      notifications: 'Bildirimler',
+      noNotifications: 'Bildirim yok',
+      newNotification: 'Yeni bildirim'
+    },
+
+    // Takip
+    tracking: {
+      orderTracking: 'Sipariş Takibi',
+      liveTracking: 'Canlı Takip',
+      currentStatus: 'Mevcut Durum',
+      currentLocation: 'Mevcut Konum',
+      timeline: 'Zaman Çizelgesi',
+      orderCreated: 'Sipariş Oluşturuldu',
+      bidAccepted: 'Teklif Kabul Edildi',
+      packagePickedUp: 'Paket Alındı',
+      locationHistory: 'Konum Geçmişi',
+      close: 'Kapat',
+      liveTrackingActive: 'Canlı Takip Aktif',
+      connecting: 'Bağlanıyor...',
+      selectedLocation: 'Seçilen Konum',
+      coordinates: 'Koordinatlar',
+      copyCoordinates: 'Koordinatları Kopyala'
+    },
+
+    // Mesajlar
+    messages: {
+      orderPublished: 'Sipariş başarıyla yayınlandı! Bölgenizdeki sürücüleri bekliyor.',
+      bidPlaced: 'Teklif başarıyla verildi!',
+      bidAccepted: 'Teklif başarıyla kabul edildi! Sürücü bilgilendirildi.',
+      orderAccepted: 'Siparişiniz kabul edildi. Sürücü yakında alacak.',
+      orderPickedUp: 'Paketiniz alındı ve yolda!',
+      orderInTransit: 'Paketiniz yolda ve yakında teslim edilecek!',
+      orderCompleted: 'Sipariş başarıyla tamamlandı!',
+      orderCancelled: 'Sipariş iptal edildi.',
+      reviewSubmitted: 'Değerlendirme başarıyla gönderildi!',
+      allFieldsRequired: 'Tüm alanlar zorunludur',
+      vehicleTypeRequired: 'Sürücüler için araç tipi zorunludur',
+      completeCaptcha: 'Lütfen captcha\'yı tamamlayın',
+      enterValidBid: 'Geçerli bir teklif fiyatı girin',
+      fillRequiredFields: 'Lütfen tüm zorunlu alanları doldurun',
+      connectionIssue: 'Bağlantı sorunu: Kullanıcı bilgileri alınamadı. Lütfen sayfayı yenileyin.',
+      locationAccessFailed: 'Konum erişimi başarısız oldu. Lütfen konum servislerini etkinleştirin.',
+      afterVerification: 'Yönetici hesabınızı doğruladıktan sonra, lütfen bu sayfayı yenileyerek doğrulama rozetini görün.'
+    },
+
+    // Genel
+    common: {
+      loading: 'Yükleniyor...',
+      error: 'Hata',
+      success: 'Başarılı',
+      confirm: 'Onayla',
+      cancel: 'İptal',
+      save: 'Kaydet',
+      delete: 'Sil',
+      edit: 'Düzenle',
+      search: 'Ara',
+      filter: 'Filtre',
+      clear: 'Temizle',
+      close: 'Kapat',
+      back: 'Geri',
+      next: 'İleri',
+      previous: 'Önceki',
+      yes: 'Evet',
+      no: 'Hayır',
+      optional: 'İsteğe bağlı',
+      required: 'Zorunlu',
+      appName: 'Matrix Delivery',
+      subtitle: 'P2P Teslimat Pazarı'
+    }
   }
 };
 
