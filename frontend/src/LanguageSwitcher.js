@@ -12,28 +12,36 @@ const LanguageSwitcher = ({ locale, changeLocale }) => {
   ];
 
   return (
-    <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+    <select
+      value={locale}
+      onChange={(e) => changeLocale(e.target.value)}
+      title="Select Language"
+      style={{
+        padding: '0.5rem 0.75rem',
+        background: 'rgba(48, 255, 48, 0.1)',
+        color: '#30FF30',
+        border: '1px solid #30FF30',
+        borderRadius: '0.375rem',
+        cursor: 'pointer',
+        fontSize: '0.875rem',
+        fontWeight: '600',
+        minWidth: '4rem'
+      }}
+    >
       {languages.map((lang) => (
-        <button
+        <option
           key={lang.code}
-          onClick={() => changeLocale(lang.code)}
+          value={lang.code}
           title={lang.name}
           style={{
-            padding: '0.5rem 0.75rem',
-            background: locale === lang.code ? '#4F46E5' : 'rgba(48, 255, 48, 0.1)',
-            color: locale === lang.code ? 'white' : '#30FF30',
-            border: '1px solid #30FF30',
-            borderRadius: '0.375rem',
-            cursor: 'pointer',
-            fontSize: '0.875rem',
-            fontWeight: '600',
-            minWidth: '2.5rem'
+            background: '#000',
+            color: '#30FF30'
           }}
         >
-          {lang.label}
-        </button>
+          {lang.label} - {lang.name}
+        </option>
       ))}
-    </div>
+    </select>
   );
 };
 
