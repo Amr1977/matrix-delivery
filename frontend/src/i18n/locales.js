@@ -181,7 +181,10 @@ const translations = {
       locationHistory: 'Location History',
       close: 'Close',
       liveTrackingActive: 'Live Tracking Active',
-      connecting: 'Connecting...'
+      connecting: 'Connecting...',
+      selectedLocation: 'Selected Location',
+      coordinates: 'Coordinates',
+      copyCoordinates: 'Copy Coordinates'
     },
     
     // Messages
@@ -413,7 +416,10 @@ const translations = {
       locationHistory: 'سجل المواقع',
       close: 'إغلاق',
       liveTrackingActive: 'التتبع المباشر نشط',
-      connecting: 'جارٍ الاتصال...'
+      connecting: 'جارٍ الاتصال...',
+      selectedLocation: 'الموقع المحدد',
+      coordinates: 'الإحداثيات',
+      copyCoordinates: 'نسخ الإحداثيات'
     },
     
     // الرسائل

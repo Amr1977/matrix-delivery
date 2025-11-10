@@ -782,7 +782,7 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition }) =>
     return (
       <div style={{ height: '500px', width: '100%', borderRadius: '0.5rem', overflow: 'hidden', marginBottom: '1rem' }}>
         <div style={{ background: isConnected ? '#10B981' : '#EF4444', color: 'white', padding: '0.5rem', textAlign: 'center', fontSize: '0.875rem', fontWeight: '600' }}>
-          {isConnected ? 'Live Tracking Active' : 'Connecting...'}
+          {isConnected ? t('tracking.liveTrackingActive') : t('tracking.connecting')}
         </div>
         <MapContainer center={driverLocation ? [driverLocation.lat, driverLocation.lng] : [order.from.lat, order.from.lng]} zoom={13} style={{ height: 'calc(100% - 40px)', width: '100%' }}>
           <MapUpdater />
@@ -1433,10 +1433,10 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
   // Get title for driver view
   const getDriverViewTitle = (viewType) => {
     switch (viewType) {
-      case 'active': return 'Active Orders';
-      case 'bidding': return 'Available Bids';
-      case 'history': return 'My History';
-      default: return 'Available Orders';
+      case 'active': return t('orders.activeOrders');
+      case 'bidding': return t('orders.availableBids');
+      case 'history': return t('orders.myHistory');
+      default: return t('orders.availableOrders');
     }
   };
 
@@ -2514,7 +2514,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
               </div>
               <div style={{ padding: '1.5rem' }}>
                 <LiveTrackingMap order={selectedOrder} token={token} />
-                <button onClick={() => setShowLiveTracking(false)} style={{ width: '100%', marginTop: '1rem', padding: '0.75rem', background: '#F3F4F6', color: '#374151', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600' }}>Close</button>
+                <button onClick={() => setShowLiveTracking(false)} style={{ width: '100%', marginTop: '1rem', padding: '0.75rem', background: '#F3F4F6', color: '#374151', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600' }}>{t('common.close')}</button>
               </div>
             </div>
           </div>
@@ -2709,7 +2709,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
                   fontWeight: '500'
                 }}
               >
-                Active Orders
+                {t('orders.activeOrders')}
               </button>
               <button
                 onClick={() => setViewType('bidding')}
@@ -2722,7 +2722,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
                   fontWeight: '500'
                 }}
               >
-                Available Bids
+                {t('orders.availableBids')}
               </button>
               <button
                 onClick={() => setViewType('history')}
@@ -2736,7 +2736,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
                   fontWeight: '500'
                 }}
               >
-                My History
+                {t('orders.myHistory')}
               </button>
             </div>
           </div>
@@ -2756,7 +2756,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '1rem' }}>
             <div className="modal-content" style={{ background: 'white', borderRadius: '0.5rem', maxWidth: '42rem', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
               <div style={{ padding: '1.5rem', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Order Tracking - {trackingData.orderNumber}</h2>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>{t('tracking.orderTracking')} - {trackingData.orderNumber}</h2>
                 <button onClick={() => setShowTracking(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
               </div>
               <div style={{ padding: '1.5rem' }}>
@@ -2764,14 +2764,14 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
                     <span style={{ fontSize: '1.5rem' }}>📍</span>
                     <div>
-                      <p style={{ fontWeight: '600', fontSize: '0.875rem', color: '#6B7280' }}>Current Status</p>
+                      <p style={{ fontWeight: '600', fontSize: '0.875rem', color: '#6B7280' }}>{t('tracking.currentStatus')}</p>
                       <p style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1F2937' }}>{getStatusLabel(trackingData.status)}</p>
                     </div>
                   </div>
 
                   {trackingData.currentLocation && (
                     <div style={{ background: '#F0F9FF', padding: '1rem', borderRadius: '0.375rem', marginBottom: '1rem' }}>
-                      <p style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.25rem' }}>Current Location</p>
+                      <p style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.25rem' }}>{t('tracking.currentLocation')}</p>
                       <p style={{ fontSize: '0.875rem', color: '#6B7280' }}>
                         Lat: {trackingData.currentLocation.lat.toFixed(6)}, Lng: {trackingData.currentLocation.lng.toFixed(6)}
                       </p>
@@ -2790,13 +2790,13 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
                   </div>
 
                   <div style={{ background: '#F9FAFB', padding: '1rem', borderRadius: '0.375rem' }}>
-                    <h3 style={{ fontWeight: '600', marginBottom: '1rem' }}>Timeline</h3>
+                    <h3 style={{ fontWeight: '600', marginBottom: '1rem' }}>{t('tracking.timeline')}</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                       {trackingData.createdAt && (
                         <div style={{ display: 'flex', alignItems: 'start', gap: '0.75rem' }}>
                           <div style={{ width: '2rem', height: '2rem', borderRadius: '9999px', background: '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '0.875rem', flexShrink: 0 }}>✓</div>
                           <div>
-                            <p style={{ fontWeight: '600', fontSize: '0.875rem' }}>Order Created</p>
+                            <p style={{ fontWeight: '600', fontSize: '0.875rem' }}>{t('tracking.orderCreated')}</p>
                             <p style={{ fontSize: '0.75rem', color: '#6B7280' }}>{new Date(trackingData.createdAt).toLocaleString()}</p>
                           </div>
                         </div>
@@ -2805,7 +2805,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
                         <div style={{ display: 'flex', alignItems: 'start', gap: '0.75rem' }}>
                           <div style={{ width: '2rem', height: '2rem', borderRadius: '9999px', background: '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '0.875rem', flexShrink: 0 }}>✓</div>
                           <div>
-                            <p style={{ fontWeight: '600', fontSize: '0.875rem' }}>Bid Accepted</p>
+                            <p style={{ fontWeight: '600', fontSize: '0.875rem' }}>{t('tracking.bidAccepted')}</p>
                             <p style={{ fontSize: '0.75rem', color: '#6B7280' }}>{new Date(trackingData.acceptedAt).toLocaleString()}</p>
                           </div>
                         </div>
@@ -2814,7 +2814,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
                         <div style={{ display: 'flex', alignItems: 'start', gap: '0.75rem' }}>
                           <div style={{ width: '2rem', height: '2rem', borderRadius: '9999px', background: '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '0.875rem', flexShrink: 0 }}>✓</div>
                           <div>
-                            <p style={{ fontWeight: '600', fontSize: '0.875rem' }}>Package Picked Up</p>
+                            <p style={{ fontWeight: '600', fontSize: '0.875rem' }}>{t('tracking.packagePickedUp')}</p>
                             <p style={{ fontSize: '0.75rem', color: '#6B7280' }}>{new Date(trackingData.pickedUpAt).toLocaleString()}</p>
                           </div>
                         </div>
@@ -2823,7 +2823,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
                         <div style={{ display: 'flex', alignItems: 'start', gap: '0.75rem' }}>
                           <div style={{ width: '2rem', height: '2rem', borderRadius: '9999px', background: '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '0.875rem', flexShrink: 0 }}>✓</div>
                           <div>
-                            <p style={{ fontWeight: '600', fontSize: '0.875rem' }}>Delivered</p>
+                            <p style={{ fontWeight: '600', fontSize: '0.875rem' }}>{t('tracking.delivered')}</p>
                             <p style={{ fontSize: '0.75rem', color: '#6B7280' }}>{new Date(trackingData.deliveredAt).toLocaleString()}</p>
                           </div>
                         </div>
@@ -2833,7 +2833,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
 
                   {trackingData.locationHistory && trackingData.locationHistory.length > 0 && (
                     <div style={{ marginTop: '1rem' }}>
-                      <h3 style={{ fontWeight: '600', marginBottom: '0.5rem' }}>Location History</h3>
+                      <h3 style={{ fontWeight: '600', marginBottom: '0.5rem' }}>{t('tracking.locationHistory')}</h3>
                       <div style={{ maxHeight: '12rem', overflowY: 'auto', background: '#F9FAFB', padding: '0.75rem', borderRadius: '0.375rem' }}>
                         {trackingData.locationHistory.map((loc, idx) => (
                           <div key={idx} style={{ fontSize: '0.75rem', marginBottom: '0.5rem', paddingBottom: '0.5rem', borderBottom: idx < trackingData.locationHistory.length - 1 ? '1px solid #E5E7EB' : 'none' }}>
@@ -2854,12 +2854,12 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '1rem' }}>
             <div className="modal-content" style={{ background: 'white', borderRadius: '0.5rem', maxWidth: '42rem', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
               <div style={{ padding: '1.5rem', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Submit Review</h2>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>{t('reviews.submitReview')}</h2>
                 <button onClick={() => setShowReviewModal(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
               </div>
               <div style={{ padding: '1.5rem' }}>
                 <div style={{ marginBottom: '1.5rem' }}>
-                  <label style={{ display: 'block', fontWeight: '600', fontSize: '0.875rem', color: '#374151', marginBottom: '0.5rem' }}>Overall Rating *</label>
+                  <label style={{ display: 'block', fontWeight: '600', fontSize: '0.875rem', color: '#374151', marginBottom: '0.5rem' }}>{t('reviews.overallRating')} *</label>
                   <div style={{ marginBottom: '1rem' }}>
                     {renderStars(reviewForm.rating, (rating) => setReviewForm({ ...reviewForm, rating: rating }))}
                   </div>
@@ -2868,30 +2868,30 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
                 {reviewType === 'customer_to_driver' && (
                   <>
                     <div style={{ marginBottom: '1rem' }}>
-                      <label style={{ display: 'block', fontWeight: '600', fontSize: '0.875rem', color: '#374151', marginBottom: '0.5rem' }}>Professionalism</label>
+                      <label style={{ display: 'block', fontWeight: '600', fontSize: '0.875rem', color: '#374151', marginBottom: '0.5rem' }}>{t('reviews.professionalism')}</label>
                       {renderStars(reviewForm.professionalismRating, (rating) => setReviewForm({ ...reviewForm, professionalismRating: rating }))}
                     </div>
                     <div style={{ marginBottom: '1rem' }}>
-                      <label style={{ display: 'block', fontWeight: '600', fontSize: '0.875rem', color: '#374151', marginBottom: '0.25rem' }}>Communication</label>
+                      <label style={{ display: 'block', fontWeight: '600', fontSize: '0.875rem', color: '#374151', marginBottom: '0.25rem' }}>{t('reviews.communication')}</label>
                       {renderStars(reviewForm.communicationRating, (rating) => setReviewForm({ ...reviewForm, communicationRating: rating }))}
                     </div>
                     <div style={{ marginBottom: '1rem' }}>
-                      <label style={{ display: 'block', fontWeight: '600', fontSize: '0.875rem', color: '#374151', marginBottom: '0.25rem' }}>Timeliness</label>
+                      <label style={{ display: 'block', fontWeight: '600', fontSize: '0.875rem', color: '#374151', marginBottom: '0.25rem' }}>{t('reviews.timeliness')}</label>
                       {renderStars(reviewForm.timelinessRating, (rating) => setReviewForm({ ...reviewForm, timelinessRating: rating }))}
                     </div>
                     <div style={{ marginBottom: '1rem' }}>
-                      <label style={{ display: 'block', fontWeight: '600', fontSize: '0.875rem', color: '#374151', marginBottom: '0.25rem' }}>Package Condition</label>
+                      <label style={{ display: 'block', fontWeight: '600', fontSize: '0.875rem', color: '#374151', marginBottom: '0.25rem' }}>{t('reviews.packageCondition')}</label>
                       {renderStars(reviewForm.conditionRating, (rating) => setReviewForm({ ...reviewForm, conditionRating: rating }))}
                     </div>
                   </>
                 )}
 
                 <div style={{ marginBottom: '1.5rem' }}>
-                  <label style={{ display: 'block', fontWeight: '600', fontSize: '0.875rem', color: '#374151', marginBottom: '0.5rem' }}>Comment (Optional)</label>
+                  <label style={{ display: 'block', fontWeight: '600', fontSize: '0.875rem', color: '#374151', marginBottom: '0.5rem' }}>{t('reviews.commentOptional')}</label>
                   <textarea
                     value={reviewForm.comment}
                     onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })}
-                    placeholder="Share your experience..."
+                    placeholder={t('reviews.shareExperience')}
                     style={{ width: '100%', padding: '0.75rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem', minHeight: '100px', resize: 'vertical' }}
                   />
                 </div>
@@ -2901,14 +2901,14 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
                     onClick={() => setShowReviewModal(false)}
                     style={{ flex: 1, padding: '0.75rem', background: '#F3F4F6', color: '#374151', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600' }}
                   >
-                    Cancel
+                    {t('common.cancel')}
                   </button>
                   <button
                     onClick={handleSubmitReview}
                     disabled={loading || reviewForm.rating === 0}
                     style={{ flex: 1, padding: '0.75rem', background: '#4F46E5', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: reviewForm.rating === 0 || loading ? 'not-allowed' : 'pointer', fontWeight: '600', opacity: reviewForm.rating === 0 || loading ? 0.5 : 1 }}
                   >
-                    {loading ? 'Submitting...' : 'Submit Review'}
+                    {loading ? t('reviews.submitting') : t('reviews.submitReview')}
                   </button>
                 </div>
               </div>
@@ -2920,14 +2920,14 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '1rem' }}>
             <div className="modal-content" style={{ background: 'white', borderRadius: '0.5rem', maxWidth: '42rem', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
               <div style={{ padding: '1.5rem', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Order Reviews</h2>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>{t('reviews.orderReviews')}</h2>
                 <button onClick={() => setShowReviewsModal(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
               </div>
               <div style={{ padding: '1.5rem' }}>
                 {orderReviews.length === 0 ? (
                   <div style={{ textAlign: 'center', padding: '3rem', color: '#6B7280' }}>
                     <p style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📝</p>
-                    <p>No reviews yet for this order</p>
+                    <p>{t('reviews.noReviewsYet')}</p>
                   </div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -3078,14 +3078,14 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
         )}
 
         <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>
-          {currentUser?.role === 'customer' ? 'My Orders' : getDriverViewTitle(viewType)}
+          {currentUser?.role === 'customer' ? t('orders.myOrders') : getDriverViewTitle(viewType)}
         </h2>
 
         {currentUser?.role === 'driver' && viewType === 'bidding' && (
           <div style={{ marginBottom: '1rem', padding: '1rem', background: 'white', borderRadius: '0.5rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
               <label style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>
-                Filter by City:
+                {t('orders.filterByCity')}:
               </label>
               <select
                 value={cityFilter}
@@ -3099,7 +3099,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
                   minWidth: '200px'
                 }}
               >
-                <option value="">All Cities</option>
+                <option value="">{t('orders.allCities')}</option>
                 {getAvailableCities(orders).map(city => (
                   <option key={city} value={city}>{city}</option>
                 ))}
@@ -3118,7 +3118,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
                     fontWeight: '500'
                   }}
                 >
-                  Clear Filter
+                  {t('orders.clearFilter')}
                 </button>
               )}
             </div>
@@ -3133,8 +3133,10 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
                 <p style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>📦</p>
                 <p style={{ color: '#6B7280' }}>
                   {currentUser?.role === 'driver'
-                    ? `No ${viewType === 'active' ? 'active orders' : viewType === 'bidding' ? 'available bids' : 'order history'} found`
-                    : 'No orders available'
+                    ? viewType === 'active' ? t('orders.noActiveOrders')
+                      : viewType === 'bidding' ? t('orders.noAvailableBids')
+                      : t('orders.noOrderHistory')
+                    : t('orders.noOrdersAvailable')
                   }
                 </p>
               </div>
@@ -3316,11 +3318,11 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
                             📍 Distance from pickup: {order.distance ? `${order.distance.toFixed(2)} km` : 'Unknown'}
                           </div>
                         )}
-                        <p style={{ fontWeight: '600', marginBottom: '0.75rem', fontSize: '0.875rem' }}>Place Your Bid</p>
+                        <p style={{ fontWeight: '600', marginBottom: '0.75rem', fontSize: '0.875rem' }}>{t('orders.placeYourBid')}</p>
                         <div className="bid-inputs" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.5rem' }}>
                           <input
                             type="number"
-                            placeholder="Bid Amount ($)"
+                            placeholder={t('orders.bidAmount')}
                             value={bidInput[order._id] || ''}
                             onChange={(e) => setBidInput({ ...bidInput, [order._id]: e.target.value })}
                             style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
@@ -3328,7 +3330,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
                           />
                           <input
                             type="datetime-local"
-                            placeholder="Pickup Time"
+                            placeholder={t('orders.pickupTime')}
                             value={bidDetails[order._id]?.pickupTime || ''}
                             onChange={(e) => setBidDetails({ ...bidDetails, [order._id]: { ...bidDetails[order._id], pickupTime: e.target.value } })}
                             style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
@@ -3337,7 +3339,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
                         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
                           <input
                             type="text"
-                            placeholder="Message (optional)"
+                            placeholder={t('orders.messageOptional')}
                             value={bidDetails[order._id]?.message || ''}
                             onChange={(e) => setBidDetails({ ...bidDetails, [order._id]: { ...bidDetails[order._id], message: e.target.value } })}
                             style={{ flex: 1, padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
@@ -3347,7 +3349,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
                             disabled={loadingStates.placeBid}
                             style={{ padding: '0.5rem 1rem', background: '#4F46E5', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: loadingStates.placeBid ? 'not-allowed' : 'pointer', fontWeight: '600', opacity: loadingStates.placeBid ? 0.5 : 1 }}
                           >
-                            {loadingStates.placeBid ? 'Bidding...' : 'Place Bid'}
+                            {loadingStates.placeBid ? t('orders.bidding') : t('orders.placeBid')}
                           </button>
                         </div>
                       </div>
@@ -3355,7 +3357,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
 
                     {order.status === 'pending_bids' && currentUser?.role === 'customer' && order.bids && order.bids.length > 0 && (
                       <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
-                        <h4 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.75rem' }}>Driver Bids ({order.bids.length})</h4>
+                        <h4 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.75rem' }}>{t('orders.driverBids')} ({order.bids.length})</h4>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                           {order.bids.map((bid, index) => (
                             <div key={index} style={{ background: '#F0F9FF', padding: '1rem', borderRadius: '0.375rem', border: '1px solid #DBEAFE' }}>
@@ -3392,7 +3394,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
                                       opacity: loadingStates.acceptBid ? 0.5 : 1
                                     }}
                                   >
-                                    {loadingStates.acceptBid ? 'Accepting...' : 'Accept Bid'}
+                                    {loadingStates.acceptBid ? t('orders.acceptingBid') : t('orders.acceptBid')}
                                   </button>
                                 </div>
                               </div>
@@ -3463,7 +3465,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
 
                     {order.status === 'accepted' && currentUser?.role === 'customer' && order.bids && order.bids.length > 0 && (
                       <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
-                        <h4 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.75rem' }}>Accepted Bid</h4>
+                        <h4 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.75rem' }}>{t('orders.acceptedBid')}</h4>
                         <div style={{ background: '#F0F9FF', padding: '1rem', borderRadius: '0.375rem', border: '1px solid #DBEAFE' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                             <p style={{ fontWeight: '600', color: '#1E40AF' }}>{order.assignedDriver?.name || 'Driver'}</p>
@@ -3489,7 +3491,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
                             disabled={loadingStates.pickupOrder}
                             style={{ flex: 1, padding: '0.75rem', background: '#10B981', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: loadingStates.pickupOrder ? 'not-allowed' : 'pointer', fontWeight: '600', opacity: loadingStates.pickupOrder ? 0.5 : 1 }}
                           >
-                            {loadingStates.pickupOrder ? 'Picking Up...' : '📦 Mark as Picked Up'}
+                            {loadingStates.pickupOrder ? t('orders.pickingUp') : t('orders.markAsPickedUp')}
                           </button>
                         </div>
                       </div>
@@ -3503,7 +3505,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
                             disabled={loadingStates.updateInTransit}
                             style={{ flex: 1, padding: '0.75rem', background: '#F59E0B', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: loadingStates.updateInTransit ? 'not-allowed' : 'pointer', fontWeight: '600', opacity: loadingStates.updateInTransit ? 0.5 : 1 }}
                           >
-                            {loadingStates.updateInTransit ? 'Updating...' : '🚚 Mark as In Transit'}
+                            {loadingStates.updateInTransit ? t('orders.updating') : t('orders.markAsInTransit')}
                           </button>
                         </div>
                       </div>
@@ -3517,7 +3519,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
                             disabled={loadingStates.completeOrder}
                             style={{ flex: 1, padding: '0.75rem', background: '#10B981', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: loadingStates.completeOrder ? 'not-allowed' : 'pointer', fontWeight: '600', opacity: loadingStates.completeOrder ? 0.5 : 1 }}
                           >
-                            {loadingStates.completeOrder ? 'Completing...' : '✅ Mark as Delivered'}
+                            {loadingStates.completeOrder ? t('orders.completing') : t('orders.markAsDelivered')}
                           </button>
                         </div>
                       </div>
@@ -3527,10 +3529,10 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
                       <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
                         <div style={{ background: '#FEF3C7', padding: '1rem', borderRadius: '0.375rem', border: '1px solid #FCD34D' }}>
                           <p style={{ fontSize: '0.875rem', color: '#92400E', marginBottom: '0.5rem' }}>
-                            <strong>Driver:</strong> {order.assignedDriver?.name || 'Assigned driver'}
+                            <strong>{t('orders.driver')}:</strong> {order.assignedDriver?.name || t('orders.assignedDriver')}
                           </p>
                           <p style={{ fontSize: '0.875rem', color: '#92400E' }}>
-                            Your order has been accepted. The driver will pick it up soon.
+                            {t('orders.orderAccepted')}
                           </p>
                         </div>
                       </div>
@@ -3540,7 +3542,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
                       <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
                         <div style={{ background: '#E0E7FF', padding: '1rem', borderRadius: '0.375rem', border: '1px solid #C7D2FE' }}>
                           <p style={{ fontSize: '0.875rem', color: '#3730A3' }}>
-                            Your package has been picked up and is on the way!
+                            {t('orders.packagePickedUp')}
                           </p>
                         </div>
                       </div>
@@ -3550,7 +3552,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
                       <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
                         <div style={{ background: '#FCE7F3', padding: '1rem', borderRadius: '0.375rem', border: '1px solid #F9A8D4' }}>
                           <p style={{ fontSize: '0.875rem', color: '#831843' }}>
-                            Your package is in transit and will be delivered soon!
+                            {t('orders.packageInTransit')}
                           </p>
                         </div>
                       </div>
@@ -3560,7 +3562,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
                       <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
                         <div style={{ background: '#D1FAE5', padding: '1rem', borderRadius: '0.375rem', border: '1px solid #A7F3D0' }}>
                           <p style={{ fontSize: '0.875rem', color: '#065F46' }}>
-                            ✅ Order completed successfully!
+                            {t('orders.orderCompletedSuccessfully')}
                           </p>
                         </div>
                       </div>
@@ -3570,7 +3572,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
                       <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
                         <div style={{ background: '#FEE2E2', padding: '1rem', borderRadius: '0.375rem', border: '1px solid #FECACA' }}>
                           <p style={{ fontSize: '0.875rem', color: '#991B1B' }}>
-                            ❌ Order was cancelled.
+                            {t('orders.orderCancelled')}
                           </p>
                         </div>
                       </div>
