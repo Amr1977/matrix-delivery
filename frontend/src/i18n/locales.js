@@ -1877,6 +1877,241 @@ const translations = {
       appName: 'Matrix Delivery',
       subtitle: 'P2P рынок доставки'
     }
+  },
+
+  ja: {
+    // 認証
+    auth: {
+      signIn: 'サインイン',
+      signUp: 'サインアップ',
+      createAccount: 'アカウント作成',
+      email: 'メールアドレス',
+      password: 'パスワード',
+      fullName: 'フルネーム',
+      phoneNumber: '電話番号',
+      role: '役割',
+      customer: '顧客',
+      driver: 'ドライバー',
+      vehicleType: '車両タイプ',
+      selectVehicleType: '車両タイプを選択',
+      bike: 'バイク',
+      car: '車',
+      van: 'バン',
+      truck: 'トラック',
+      login: 'サインイン',
+      register: 'アカウント作成',
+      logout: 'ログアウト',
+      dontHaveAccount: 'アカウントをお持ちですか？',
+      alreadyHaveAccount: 'すでにアカウントをお持ちですか？',
+      loading: '読み込み中...',
+      verify: '確認',
+      verified: '確認済み'
+    },
+
+    // 注文
+    orders: {
+      myOrders: 'マイ注文',
+      createOrder: '新規注文作成',
+      cancel: 'キャンセル',
+      orderTitle: '注文タイトル',
+      description: '説明',
+      packageDescription: '荷物説明',
+      packageWeight: '荷物の重量 (kg)',
+      estimatedValue: '推定価値 ($)',
+      specialInstructions: '特別指示',
+      estimatedDelivery: '推定配送日',
+      price: '提示価格 ($)',
+      publishOrder: '注文を公開',
+      publishingOrder: '注文を公開中...',
+      pickupLocation: '集荷場所',
+      deliveryLocation: '配送場所',
+      country: '国',
+      city: '都市',
+      area: '地域',
+      street: '通り',
+      building: '建物',
+      floor: '階',
+      apartment: 'アパート',
+      contactName: '連絡先名',
+      selectCountry: '国を選択',
+      enterCity: '都市を入力',
+      enterArea: '地域を入力',
+      enterStreet: '通りを入力',
+      buildingNumber: '建物番号',
+      aptNumber: 'アパート番号',
+      contactPerson: '連絡先',
+      orderNumber: '注文番号',
+      pickup: '集荷',
+      delivery: '配送',
+      package: '荷物',
+      weight: '重量',
+      value: '価値',
+      instructions: '指示',
+      trackOrder: '注文を追跡',
+      viewReviews: 'レビューを見る',
+      noOrders: '利用可能な注文がありません',
+      required: '必須',
+      optional: '任意',
+      orderTitleRequired: '注文タイトルは必須です',
+      priceRequired: '価格は必須です',
+      pickupCountryRequired: '集荷国は必須です',
+      pickupCityRequired: '集荷都市は必須です',
+      pickupContactRequired: '集荷連絡先名は必須です',
+      deliveryCountryRequired: '配送国は必須です',
+      deliveryCityRequired: '配送都市は必須です',
+      deliveryContactRequired: '配送連絡先名は必須です'
+    },
+
+    // 注文ステータス
+    status: {
+      pendingBids: '入札待ち',
+      accepted: '承認済み',
+      pickedUp: '集荷済み',
+      inTransit: '配送中',
+      delivered: '配送完了',
+      cancelled: 'キャンセル済み'
+    },
+
+    // ドライバー
+    driver: {
+      activeOrders: 'アクティブ注文',
+      availableBids: '利用可能な入札',
+      myHistory: '履歴',
+      updateLocation: '位置情報を更新',
+      locationUpdated: '位置情報が更新されました',
+      enableLocation: '注文の視認性を高めるために位置情報を有効化',
+      locationDenied: '位置情報アクセスが拒否されました',
+      placeBid: '入札する',
+      placingBid: '入札中...',
+      bidAmount: '入札金額 ($)',
+      pickupTime: '集荷時間',
+      message: 'メッセージ（任意）',
+      driverBids: 'ドライバー入札',
+      acceptBid: '入札を承認',
+      acceptingBid: '承認中...',
+      markPickedUp: '集荷済みとしてマーク',
+      markInTransit: '配送中としてマーク',
+      markDelivered: '配送完了としてマーク',
+      pickingUp: '集荷中...',
+      updating: '更新中...',
+      completing: '完了中...',
+      distanceFromPickup: '集荷場所からの距離',
+      filterByCity: '都市でフィルター：',
+      allCities: 'すべての都市',
+      clearFilter: 'フィルターをクリア',
+      noActiveOrders: 'アクティブな注文が見つかりません',
+      noAvailableBids: '利用可能な入札がありません',
+      noOrderHistory: '注文履歴がありません'
+    },
+
+    // 評価
+    reputation: {
+      customerReputation: '顧客評価',
+      driverReputation: 'ドライバー評価',
+      rating: '評価',
+      deliveries: '配送',
+      reviews: 'レビュー',
+      memberSince: 'メンバー登録日',
+      reviewsGiven: '与えたレビュー',
+      viewReviews: 'レビューを見る',
+      given: '与えた',
+      verifyAccount: 'アカウントを確認'
+    },
+
+    // レビュー
+    reviews: {
+      submitReview: 'レビューを送信',
+      reviewDriver: 'ドライバーを評価',
+      reviewCustomer: '顧客を評価',
+      reviewPlatform: 'プラットフォームを評価',
+      overallRating: '全体評価',
+      professionalism: 'プロフェッショナリズム',
+      communication: 'コミュニケーション',
+      timeliness: '時間厳守',
+      packageCondition: '荷物の状態',
+      comment: 'コメント（任意）',
+      shareExperience: '体験を共有してください...',
+      cancel: 'キャンセル',
+      submit: 'レビューを送信',
+      submitting: '送信中...',
+      provideRating: '全体評価を提供してください',
+      orderReviews: '注文レビュー',
+      noReviews: 'この注文のレビューはまだありません',
+      reviewType: 'レビュータイプ',
+      reviewing: '評価中'
+    },
+
+    // 通知
+    notifications: {
+      notifications: '通知',
+      noNotifications: '通知がありません',
+      newNotification: '新しい通知'
+    },
+
+    // 追跡
+    tracking: {
+      orderTracking: '注文追跡',
+      liveTracking: 'ライブ追跡',
+      currentStatus: '現在のステータス',
+      currentLocation: '現在の位置',
+      timeline: 'タイムライン',
+      orderCreated: '注文が作成されました',
+      bidAccepted: '入札が承認されました',
+      packagePickedUp: '荷物が集荷されました',
+      locationHistory: '位置履歴',
+      close: '閉じる',
+      liveTrackingActive: 'ライブ追跡がアクティブ',
+      connecting: '接続中...',
+      selectedLocation: '選択された位置',
+      coordinates: '座標',
+      copyCoordinates: '座標をコピー'
+    },
+
+    // メッセージ
+    messages: {
+      orderPublished: '注文が正常に公開されました！あなたの地域のドライバーを待っています。',
+      bidPlaced: '入札が正常に行われました！',
+      bidAccepted: '入札が正常に承認されました！ドライバーに通知されました。',
+      orderAccepted: 'あなたの注文が承認されました。ドライバーがすぐに集荷します。',
+      orderPickedUp: 'あなたの荷物が集荷され、配送中です！',
+      orderInTransit: 'あなたの荷物が配送中です。まもなくお届けします！',
+      orderCompleted: '注文が正常に完了しました！',
+      orderCancelled: '注文がキャンセルされました。',
+      reviewSubmitted: 'レビューが正常に送信されました！',
+      allFieldsRequired: 'すべてのフィールドが必須です',
+      vehicleTypeRequired: 'ドライバーには車両タイプが必須です',
+      completeCaptcha: 'CAPTCHAを完了してください',
+      enterValidBid: '有効な入札価格を入力してください',
+      fillRequiredFields: 'すべての必須フィールドを入力してください',
+      connectionIssue: '接続の問題：ユーザー情報を取得できませんでした。ページを更新してください。',
+      locationAccessFailed: '位置情報アクセスに失敗しました。位置情報サービスを有効にしてください。',
+      afterVerification: '管理者があなたのアカウントを確認した後、このページを更新して確認バッジを表示してください。'
+    },
+
+    // 共通
+    common: {
+      loading: '読み込み中...',
+      error: 'エラー',
+      success: '成功',
+      confirm: '確認',
+      cancel: 'キャンセル',
+      save: '保存',
+      delete: '削除',
+      edit: '編集',
+      search: '検索',
+      filter: 'フィルター',
+      clear: 'クリア',
+      close: '閉じる',
+      back: '戻る',
+      next: '次へ',
+      previous: '前へ',
+      yes: 'はい',
+      no: 'いいえ',
+      optional: '任意',
+      required: '必須',
+      appName: 'Matrix Delivery',
+      subtitle: 'P2P 配送マーケット'
+    }
   }
 };
 
