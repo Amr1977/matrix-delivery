@@ -95,7 +95,23 @@ const translations = {
       packagePickedUp: 'Your package has been picked up and is on the way!',
       packageInTransit: 'Your package is in transit and will be delivered soon!',
       orderCompletedSuccessfully: 'Order completed successfully!',
-      orderCancelled: 'Order was cancelled.'
+      orderCancelled: 'Order was cancelled.',
+      // Additional missing keys
+      clearFilter: 'Clear Filter',
+      allCities: 'All Cities',
+      filterByCity: 'Filter by City:',
+      noActiveOrders: 'No active orders found',
+      noAvailableBids: 'No available bids',
+      noOrderHistory: 'No order history',
+      bidAmount: 'Bid Amount ($)',
+      pickupTime: 'Pickup Time',
+      estimatedPickupTime: 'Estimated Pickup Time',
+      estimatedDeliveryTime: 'Estimated Delivery Time',
+      acceptingBid: 'Accepting...',
+      bidLabel: 'Bid',
+      pickupLocationFields: 'Pickup location (country, city, contact name)',
+      deliveryLocationFields: 'Delivery location (country, city, contact name)',
+      driver: 'Driver'
     },
 
     // Order Status

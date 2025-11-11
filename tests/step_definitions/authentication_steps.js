@@ -2,6 +2,37 @@ const { Given, When, Then } = require('@cucumber/cucumber');
 const { expect } = require('chai');
 
 // Common step definitions
+
+// Background steps for translation testing
+Given('I am using the production environment', async function() {
+  // Set environment to production for testing
+  this.environment = 'production';
+  console.log('Using production environment for testing');
+});
+
+Given('I have a driver account {string} with password {string}', async function(email, password) {
+  // Store driver credentials for testing
+  this.testData.driver = {
+    email: email,
+    password: password
+  };
+  console.log(`Driver account set: ${email}`);
+});
+
+Given('I have a customer account {string} with password {string}', async function(email, password) {
+  // Store customer credentials for testing
+  this.testData.customer = {
+    email: email,
+    password: password
+  };
+  console.log(`Customer account set: ${email}`);
+});
+
+Given('I am on the login page', async function() {
+  await this.page.goto(this.baseUrl);
+  await this.page.waitForLoadState('networkidle');
+  console.log('On login page');
+});
 Given('I am on the home page', async function() {
   await this.page.goto(this.baseUrl);
   await this.page.waitForLoadState('networkidle');
