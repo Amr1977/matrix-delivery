@@ -1433,14 +1433,14 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
   };
 
   // Get title for driver view
-  const getDriverViewTitle = (viewType) => {
-    switch (viewType) {
-      case 'active': return t('orders.activeOrders');
-      case 'bidding': return t('orders.availableBids');
-      case 'history': return t('orders.myHistory');
-      default: return t('orders.availableOrders');
-    }
-  };
+const getDriverViewTitle = (viewType) => {
+  switch (viewType) {
+    case 'active': return t('driver.activeOrders');
+    case 'bidding': return t('driver.availableBids');
+    case 'history': return t('driver.myHistory');
+    default: return t('driver.availableBids');
+  }
+};
 
   const speakNotification = (notification) => {
     if ('speechSynthesis' in window) {
