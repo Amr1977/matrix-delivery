@@ -2347,15 +2347,16 @@ const getDriverViewTitle = (viewType) => {
   };
 
   const getStatusLabel = (status) => {
-    const labels = {
-      'pending_bids': 'Pending Bids',
-      'accepted': 'Accepted',
-      'picked_up': 'Picked Up',
-      'in_transit': 'In Transit',
-      'delivered': 'Delivered',
-      'cancelled': 'Cancelled'
+    const statusKeyMap = {
+      'pending_bids': 'status.pendingBids',
+      'accepted': 'status.accepted',
+      'picked_up': 'status.pickedUp',
+      'in_transit': 'status.inTransit',
+      'delivered': 'status.delivered',
+      'cancelled': 'status.cancelled'
     };
-    return labels[status] || status;
+    const translationKey = statusKeyMap[status];
+    return translationKey ? t(translationKey) : status;
   };
 
 // ============ END OF PART 3 ============
