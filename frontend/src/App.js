@@ -2756,7 +2756,7 @@ const getDriverViewTitle = (viewType) => {
                   fontWeight: '500'
                 }}
               >
-                {t('orders.myHistory')}
+                {t('driver.myHistory')}
               </button>
             </div>
           </div>
