@@ -3474,7 +3474,7 @@ const getDriverViewTitle = (viewType) => {
                             disabled={loadingStates.placeBid}
                             style={{ padding: '0.5rem 1rem', background: '#4F46E5', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: loadingStates.placeBid ? 'not-allowed' : 'pointer', fontWeight: '600', opacity: loadingStates.placeBid ? 0.5 : 1 }}
                           >
-                            {loadingStates.placeBid ? t('orders.bidding') : t('orders.placeBid')}
+                            {loadingStates.placeBid ? t('driver.bidding') : t('driver.placeBid')}
                           </button>
                         </div>
                       </div>
@@ -3482,7 +3482,7 @@ const getDriverViewTitle = (viewType) => {
 
                     {order.status === 'pending_bids' && currentUser?.role === 'customer' && order.bids && order.bids.length > 0 && (
                       <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
-                        <h4 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.75rem' }}>{t('orders.driverBids')} ({order.bids.length})</h4>
+                        <h4 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.75rem' }}>{t('driver.driverBids')} ({order.bids.length})</h4>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                           {order.bids.map((bid, index) => (
                             <div key={index} style={{ background: '#F0F9FF', padding: '1rem', borderRadius: '0.375rem', border: '1px solid #DBEAFE' }}>
