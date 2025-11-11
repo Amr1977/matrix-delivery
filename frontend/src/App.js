@@ -3447,7 +3447,7 @@ const getDriverViewTitle = (viewType) => {
                         <div className="bid-inputs" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.5rem' }}>
                           <input
                             type="number"
-                            placeholder={t('orders.bidAmount')}
+                            placeholder={t('driver.bidAmount')}
                             value={bidInput[order._id] || ''}
                             onChange={(e) => setBidInput({ ...bidInput, [order._id]: e.target.value })}
                             style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
