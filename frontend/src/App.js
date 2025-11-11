@@ -2704,7 +2704,7 @@ const getDriverViewTitle = (viewType) => {
                   gap: '0.5rem'
                 }}
               >
-                📍 {loading ? t('common.updating') : locationPermission === 'granted' ? t('location.locationUpdated') : t('location.updateLocation')}
+                📍 {loading ? t('common.updating') : locationPermission === 'granted' ? t('driver.locationUpdated') : t('driver.updateLocation')}
               </button>
               <div style={{ fontSize: '0.875rem', color: '#6B7280' }}>
                 {locationPermission === 'granted' && driverLocation.latitude ? (
@@ -3106,7 +3106,7 @@ const getDriverViewTitle = (viewType) => {
           <div style={{ marginBottom: '1rem', padding: '1rem', background: 'white', borderRadius: '0.5rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
               <label style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>
-                {t('orders.filterByCity')}:
+                {t('driver.filterByCity')}:
               </label>
               <select
                 value={cityFilter}
@@ -3120,7 +3120,7 @@ const getDriverViewTitle = (viewType) => {
                   minWidth: '200px'
                 }}
               >
-                <option value="">{t('orders.allCities')}</option>
+                <option value="">{t('driver.allCities')}</option>
                 {getAvailableCities(orders).map(city => (
                   <option key={city} value={city}>{city}</option>
                 ))}
