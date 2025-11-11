@@ -833,6 +833,24 @@ useEffect(() => {
   metaTag.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
 }, []);
 
+// Hamburger menu handler
+const toggleMobileMenu = () => {
+  setShowMobileMenu(!showMobileMenu);
+};
+
+// Add effect to close menu when clicking backdrop
+useEffect(() => {
+  if (showMobileMenu) {
+    document.body.style.overflow = 'hidden';
+  } else {
+    document.body.style.overflow = 'unset';
+  }
+
+  return () => {
+    document.body.style.overflow = 'unset';
+  };
+}, [showMobileMenu]);
+
 // Mobile touch optimization
 const isMobile = () => window.innerWidth <= 768;
 const [mobileView, setMobileView] = useState(isMobile());
@@ -2022,11 +2040,6 @@ const getDriverViewTitle = (viewType) => {
     setError('');
   };
 
-  // Hamburger menu handler
-  const toggleMobileMenu = () => {
-    setShowMobileMenu(!showMobileMenu);
-  };
-
   // Add effect to close menu when clicking backdrop
   useEffect(() => {
     if (showMobileMenu) {
@@ -2569,32 +2582,31 @@ const getDriverViewTitle = (viewType) => {
 
     return (
       <div style={{ minHeight: '100vh', background: '#090909' }}>
-        <header className="glow" style={{ background: 'linear-gradient(135deg, #000 0%, #111 100%)', boxShadow: '0 0 20px rgba(48, 255, 48, 0.3)', position: 'sticky', top: 0, zIndex: 10, borderBottom: '1px solid #30FF30' }}>
-          <div className="header-content" style={{ maxWidth: '80rem', margin: '0 auto', padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span style={{ fontSize: '1.5rem', color: '#30FF30', textShadow: '0 0 10px #30FF30' }}>📦</span>
-              <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#30FF30', textShadow: '0 0 10px #30FF30' }}>{t('common.appName')}</h1>
+        <header className="glow">
+          <div className="header-content">
+            {/* Logo */}
+            <div className="header-logo">
+              <span className="pulse">📦</span>
+              <h1>{t('common.appName')}</h1>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              {/* Language Switcher */}
+
+            {/* Desktop Actions - Hidden on Mobile */}
+            <div className="header-actions">
               <LanguageSwitcher locale={locale} changeLocale={changeLocale} />
+
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
-                className={`${unreadCount > 0 ? 'bell-notification' : ''}`}
-                style={{ position: 'relative', padding: '0.5rem', background: 'rgba(48, 255, 48, 0.1)', border: '1px solid #30FF30', borderRadius: '0.5rem', cursor: 'pointer', fontSize: '1.25rem', color: '#30FF30', transition: 'all 0.3s ease' }}
-                onMouseEnter={(e) => e.target.style.textShadow = '0 0 10px #30FF30'}
-                onMouseLeave={(e) => e.target.style.textShadow = 'none'}
+                className={`notification-bell ${unreadCount > 0 ? 'bell-notification' : ''}`}
               >
                 🔔
                 {unreadCount > 0 && (
-                  <span style={{ position: 'absolute', top: '-0.25rem', right: '-0.25rem', background: '#DC2626', color: 'white', borderRadius: '9999px', width: '1.25rem', height: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold' }}>
-                    {unreadCount}
-                  </span>
+                  <span className="notification-badge">{unreadCount}</span>
                 )}
               </button>
+
               <div style={{ textAlign: 'right' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                  <p style={{ fontWeight: '600', color: '#1F2937' }}>{currentUser?.name}</p>
+                  <p style={{ fontWeight: '600', color: 'var(--matrix-bright-green)' }}>{currentUser?.name}</p>
                   {currentUser?.isVerified && (
                     <span style={{ background: '#10B981', color: 'white', padding: '0.125rem 0.5rem', borderRadius: '9999px', fontSize: '0.625rem', fontWeight: '600' }}>
                       ✓ Verified
@@ -2618,45 +2630,137 @@ const getDriverViewTitle = (viewType) => {
                     </button>
                   )}
                 </div>
-                <p style={{ fontSize: '0.875rem', color: '#6B7280', textTransform: 'capitalize' }}>
+                <p style={{ fontSize: '0.875rem', color: 'var(--matrix-green)', textTransform: 'capitalize' }}>
                   {currentUser?.role} {currentUser?.completedDeliveries > 0 && `• ${currentUser.completedDeliveries} deliveries`}
                 </p>
               </div>
-              <button
-                onClick={logout}
-                style={{ padding: '0.5rem 1rem', background: '#DC2626', color: 'white', borderRadius: '0.5rem', border: 'none', cursor: 'pointer', fontWeight: '600' }}
-              >
+
+              <button onClick={logout} className="btn-danger">
                 {t('auth.logout')}
               </button>
             </div>
-          </div>
-        
 
-      {showNotifications && (
-        <div className="notification-panel" style={{ position: 'absolute', right: '1rem', top: '4rem', background: 'white', borderRadius: '0.5rem', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', width: '24rem', maxHeight: '24rem', overflowY: 'auto', zIndex: 20 }}>
-          <div style={{ padding: '1rem', borderBottom: '1px solid #E5E7EB' }}>
-            <h3 style={{ fontWeight: '600', fontSize: '1rem' }}>Notifications</h3>
+            {/* Hamburger Menu Button - Mobile Only */}
+            <button
+              className={`hamburger-btn ${showMobileMenu ? 'open' : ''}`}
+              onClick={toggleMobileMenu}
+              aria-label="Toggle menu"
+            >
+              <span></span>
+              <span></span>
+              <span></span>
+            </button>
           </div>
-          {notifications.length === 0 ? (
-            <p style={{ padding: '1rem', textAlign: 'center', color: '#6B7280' }}>No notifications</p>
-          ) : (
-            notifications.map((notif) => (
-              <div
-                key={notif.id}
-                onClick={() => markNotificationRead(notif.id)}
-                style={{ padding: '1rem', borderBottom: '1px solid #F3F4F6', cursor: 'pointer', background: notif.isRead ? 'white' : '#F0F9FF' }}
-              >
-                <p style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.25rem' }}>{notif.title}</p>
-                <p style={{ fontSize: '0.875rem', color: '#6B7280' }}>{notif.message}</p>
-                <p style={{ fontSize: '0.75rem', color: '#9CA3AF', marginTop: '0.25rem' }}>
-                  {new Date(notif.createdAt).toLocaleString()}
-                </p>
+
+          {/* Desktop Notification Panel */}
+          {showNotifications && (
+            <div className="notification-panel">
+              <div style={{ padding: 'var(--spacing-md)', borderBottom: '2px solid var(--matrix-border)' }}>
+                <h3 style={{ fontWeight: '600', fontSize: '1rem', color: 'var(--matrix-bright-green)' }}>Notifications</h3>
               </div>
-            ))
+              {notifications.length === 0 ? (
+                <p style={{ padding: 'var(--spacing-md)', textAlign: 'center', color: 'var(--matrix-green)' }}>No notifications</p>
+              ) : (
+                notifications.map((notif) => (
+                  <div
+                    key={notif.id}
+                    onClick={() => markNotificationRead(notif.id)}
+                    className={`notification-item ${!notif.isRead ? 'unread' : ''}`}
+                  >
+                    <p style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.25rem', color: 'var(--matrix-bright-green)' }}>{notif.title}</p>
+                    <p style={{ fontSize: '0.875rem', color: 'var(--matrix-green)' }}>{notif.message}</p>
+                    <p style={{ fontSize: '0.75rem', color: 'rgba(0, 255, 0, 0.6)', marginTop: '0.25rem' }}>
+                      {new Date(notif.createdAt).toLocaleString()}
+                    </p>
+                  </div>
+                ))
+              )}
+            </div>
           )}
-        </div>
-      )}
-    </header>
+
+          {/* Mobile Menu */}
+          <>
+            <div
+              className={`mobile-menu-backdrop ${showMobileMenu ? 'open' : ''}`}
+              onClick={toggleMobileMenu}
+            />
+            <nav className={`mobile-menu ${showMobileMenu ? 'open' : ''}`}>
+              <div className="mobile-menu-items">
+                {/* User Info Section */}
+                <div className="mobile-menu-section">
+                  <div className="mobile-user-info">
+                    <div className="mobile-user-name">
+                      {currentUser?.name}
+                      {currentUser?.isVerified && (
+                        <span style={{ background: '#10B981', color: 'white', padding: '0.125rem 0.5rem', borderRadius: '9999px', fontSize: '0.625rem', fontWeight: '600' }}>
+                          ✓ Verified
+                        </span>
+                      )}
+                    </div>
+                    <div className="mobile-user-role">
+                      {currentUser?.role}
+                      {currentUser?.completedDeliveries > 0 && ` • ${currentUser.completedDeliveries} deliveries`}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Language Selector */}
+                <div className="mobile-menu-section">
+                  <h4 style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--matrix-bright-green)', marginBottom: 'var(--spacing-sm)' }}>
+                    Language
+                  </h4>
+                  <LanguageSwitcher locale={locale} changeLocale={changeLocale} />
+                </div>
+
+                {/* Notifications */}
+                <div className="mobile-menu-section">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-sm)' }}>
+                    <h4 style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--matrix-bright-green)' }}>
+                      Notifications
+                    </h4>
+                    {unreadCount > 0 && (
+                      <span className="notification-badge">{unreadCount}</span>
+                    )}
+                  </div>
+                  {notifications.length === 0 ? (
+                    <p style={{ fontSize: '0.875rem', color: 'var(--matrix-green)' }}>No notifications</p>
+                  ) : (
+                    <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                      {notifications.slice(0, 5).map((notif) => (
+                        <div
+                          key={notif.id}
+                          onClick={() => {
+                            markNotificationRead(notif.id);
+                            setShowMobileMenu(false);
+                          }}
+                          className={`notification-item ${!notif.isRead ? 'unread' : ''}`}
+                          style={{ padding: 'var(--spacing-sm)', marginBottom: 'var(--spacing-xs)' }}
+                        >
+                          <p style={{ fontWeight: '600', fontSize: '0.75rem', color: 'var(--matrix-bright-green)' }}>{notif.title}</p>
+                          <p style={{ fontSize: '0.75rem', color: 'var(--matrix-green)' }}>{notif.message}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Logout Button */}
+                <div className="mobile-menu-section">
+                  <button
+                    onClick={() => {
+                      logout();
+                      setShowMobileMenu(false);
+                    }}
+                    className="btn-danger"
+                    style={{ width: '100%' }}
+                  >
+                    {t('auth.logout')}
+                  </button>
+                </div>
+              </div>
+            </nav>
+          </>
+        </header>
       <main style={{ maxWidth: '80rem', margin: '0 auto', padding: mobileView ? '1rem 0.5rem' : '2rem 1rem' }}>
         {error && (
           <div className="error-matrix" style={{ padding: '1rem', borderRadius: '0.5rem', marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: 'Consolas, Monaco, monospace' }}>
@@ -2677,7 +2781,7 @@ const getDriverViewTitle = (viewType) => {
             <button
               onClick={() => setShowOrderForm(!showOrderForm)}
               disabled={loading}
-              style={{ background: '#4F46E5', color: 'white', padding: '0.75rem 1.5rem', borderRadius: '0.5rem', fontWeight: '600', border: 'none', cursor: 'pointer', opacity: loading ? 0.5 : 1 }}
+              className="btn-primary"
             >
               📦 {showOrderForm ? t('common.cancel') : t('orders.createOrder')}
             </button>
@@ -3175,7 +3279,7 @@ const getDriverViewTitle = (viewType) => {
                           <p style={{ fontSize: '0.875rem', color: '#6B7280' }}>Order #{order.orderNumber}</p>
                         )}
                       </div>
-                      <span style={{ display: 'inline-block', padding: '0.25rem 0.75rem', borderRadius: '9999px', fontSize: '0.875rem', fontWeight: '600', background: statusColor.bg, color: statusColor.text }}>
+                      <span className={`status-badge status-${order.status}`}>
                         {getStatusLabel(order.status)}
                       </span>
                     </div>
