@@ -3154,7 +3154,7 @@ const getDriverViewTitle = (viewType) => {
                 <p style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>📦</p>
                 <p style={{ color: '#6B7280' }}>
                   {currentUser?.role === 'driver'
-                    ? viewType === 'active' ? t('orders.noActiveOrders')
+                    ? viewType === 'active' ? t('driver.noActiveOrders')
                       : viewType === 'bidding' ? t('orders.noAvailableBids')
                       : t('orders.noOrderHistory')
                     : t('orders.noOrdersAvailable')
