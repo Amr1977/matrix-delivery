@@ -61,66 +61,8 @@ async function assertElementText(page, element, expectedText, language) {
   }
 }
 
-Given('I am using the production environment', async function() {
-  // Set production URLs
-  this.baseUrl = 'https://matrix-delivery.web.app'; // Production frontend
-  this.apiUrl = 'https://matrix-api.oldantique50.com'; // Production backend
-  console.log('Using production environment:', this.baseUrl, this.apiUrl);
-});
-
-Given('I have a driver account {string} with password {string}', async function(email, password) {
-  this.testData = this.testData || {};
-  this.testData.driver = { email, password };
-});
-
-Given('I have a customer account {string} with password {string}', async function(email, password) {
-  this.testData = this.testData || {};
-  this.testData.customer = { email, password };
-});
-
-Given('I am on the login page', async function() {
-  await this.page.goto(this.baseUrl);
-  await this.page.waitForLoadState('networkidle');
-  console.log('Navigated to login page');
-});
-
-Given('I am logged in as driver {string} with password {string}', async function(email, password) {
-  await this.page.goto(this.baseUrl);
-  await this.page.waitForLoadState('networkidle');
-
-  // Fill login form
-  await this.page.fill('input[placeholder="Email"]', email);
-  await this.page.fill('input[placeholder="Password"]', password);
-
-  // Click sign in button
-  await this.page.click('button:has-text("Sign In")');
-
-  // Wait for dashboard to load
-  await this.page.waitForSelector('button:has-text("Logout")', { timeout: 15000 });
-  console.log('Successfully logged in as driver');
-});
-
-Given('I am logged in as customer {string} with password {string}', async function(email, password) {
-  await this.page.goto(this.baseUrl);
-  await this.page.waitForLoadState('networkidle');
-
-  // Select customer role first
-  const customerRadio = this.page.locator('input[value="customer"]').or(this.page.locator('label:has-text("Customer")'));
-  if (await customerRadio.isVisible()) {
-    await customerRadio.click();
-  }
-
-  // Fill login form
-  await this.page.fill('input[placeholder="Email"]', email);
-  await this.page.fill('input[placeholder="Password"]', password);
-
-  // Click sign in button
-  await this.page.click('button:has-text("Sign In")');
-
-  // Wait for dashboard to load
-  await this.page.waitForSelector('button:has-text("Logout")', { timeout: 15000 });
-  console.log('Successfully logged in as customer');
-});
+// Note: Common authentication steps are defined in authentication_steps.js
+// This file focuses on translation-specific step definitions
 
 When('I switch to {string} language', async function(language) {
   // Click on language selector

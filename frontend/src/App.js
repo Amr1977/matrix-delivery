@@ -1303,7 +1303,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
 
       setShowReviewModal(false);
       setError('');
-      alert('Review submitted successfully!');
+      alert(t('messages.reviewSubmitted'));
       fetchOrders();
     } catch (err) {
       setError(err.message);
@@ -1452,11 +1452,11 @@ const getDriverViewTitle = (viewType) => {
         message = message.replace(orderNumberRegex, (match, orderNum) => {
           // Extract last 3 digits/numbers from order number
           const lastThree = orderNum.replace(/\D/g, '').slice(-3);
-          return `order ${lastThree}`;
+          return `${t('tracking.orderNumber')} ${lastThree}`;
         });
 
         const utterance = new SpeechSynthesisUtterance();
-        utterance.text = `New notification: ${notification.title}. ${message}`;
+        utterance.text = `${t('notifications.newNotification')}: ${notification.title}. ${message}`;
         utterance.volume = 0.8;
         utterance.rate = 1;
         utterance.pitch = 0.7; // Lower pitch for deeper, more authoritative male voice
@@ -2729,7 +2729,7 @@ const getDriverViewTitle = (viewType) => {
                   fontWeight: '500'
                 }}
               >
-                {t('orders.activeOrders')}
+                {t('driver.activeOrders')}
               </button>
               <button
                 onClick={() => setViewType('bidding')}
@@ -2742,7 +2742,7 @@ const getDriverViewTitle = (viewType) => {
                   fontWeight: '500'
                 }}
               >
-                {t('orders.availableBids')}
+                {t('driver.availableBids')}
               </button>
               <button
                 onClick={() => setViewType('history')}
