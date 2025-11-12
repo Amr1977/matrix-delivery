@@ -9,6 +9,9 @@ const http = require('http');
 const socketIo = require('socket.io');
 // const Recaptcha = require('google-recaptcha-v2');
 
+// Load admin panel endpoints
+require('./admin-panel.js');
+
 // Load environment-specific .env file
 const envFile = process.env.ENV_FILE || '.env';
 dotenv.config({ path: envFile });
