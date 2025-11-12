@@ -52,9 +52,6 @@ const pool = new Pool({
   connectionTimeoutMillis: 2000,
 });
 
-// Load admin panel endpoints
-require('./admin-panel.js')(app, pool, jwt, createNotification, generateId, JWT_SECRET);
-
 // Database initialization
 const initDatabase = async () => {
   try {
@@ -357,13 +354,15 @@ const createNotification = async (userId, orderId, type, title, message) => {
   }
 };
 
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 
 
 const JWT_SECRET = process.env.JWT_SECRET;
+
+// Load admin panel endpoints
+require('./admin-panel.js')(app, pool, jwt, createNotification, generateId, JWT_SECRET);
 
 if (!JWT_SECRET) {
   console.error('❌ JWT_SECRET environment variable is required');
