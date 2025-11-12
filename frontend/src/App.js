@@ -9,6 +9,7 @@ import { Polyline } from 'react-leaflet';
 import io from 'socket.io-client';
 import { useForm } from 'react-hook-form';
 import LanguageSwitcher from './LanguageSwitcher';
+import AdminPanel from './AdminPanel';
 import './Mobile.css';
 import './MatrixTheme.css';
 
@@ -821,6 +822,7 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition, t })
   const [userReviews, setUserReviews] = useState([]);
   const [userReviewsType, setUserReviewsType] = useState('');
   const [showLiveTracking, setShowLiveTracking] = useState(false);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
 
 // Add viewport meta tag if not present
 useEffect(() => {
@@ -2635,6 +2637,27 @@ const getDriverViewTitle = (viewType) => {
                 )}
               </button>
 
+              {currentUser?.role === 'admin' && (
+                <button
+                  onClick={() => setShowAdminPanel(!showAdminPanel)}
+                  style={{
+                    background: showAdminPanel ? '#DC2626' : '#7C3AED',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '0.375rem',
+                    padding: '0.5rem 1rem',
+                    cursor: 'pointer',
+                    fontSize: '0.875rem',
+                    fontWeight: '600',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.25rem'
+                  }}
+                >
+                  ⚙️ {showAdminPanel ? 'Close Admin' : 'Admin Panel'}
+                </button>
+              )}
+
               <div style={{ textAlign: 'right' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
                   <p style={{ fontWeight: '600', color: 'var(--matrix-bright-green)' }}>{currentUser?.name}</p>
@@ -3740,6 +3763,10 @@ const getDriverViewTitle = (viewType) => {
           })()}
         </div>
       </main>
+
+      {showAdminPanel && currentUser?.role === 'admin' && (
+        <AdminPanel token={token} onClose={() => setShowAdminPanel(false)} />
+      )}
 
       <footer style={{
         padding: '1rem',
