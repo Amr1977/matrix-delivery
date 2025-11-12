@@ -15,9 +15,6 @@ dotenv.config({ path: envFile });
 console.log(`🔧 Loading environment from: ${envFile}`);
 const app = express();
 
-// Load admin panel endpoints
-require('./admin-panel.js')(app, pool, jwt, createNotification, generateId, JWT_SECRET);
-
 // Add security middleware for production
 // NOT USED: helmet, rateLimit packages - using custom implementation for demo
 
@@ -54,6 +51,9 @@ const pool = new Pool({
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
 });
+
+// Load admin panel endpoints
+require('./admin-panel.js')(app, pool, jwt, createNotification, generateId, JWT_SECRET);
 
 // Database initialization
 const initDatabase = async () => {
