@@ -923,7 +923,10 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
     password: '',
     phone: '',
     role: 'customer',
-    vehicle_type: ''
+    vehicle_type: '',
+    country: '',
+    city: '',
+    area: ''
   });
 
   // Captcha refs
@@ -1943,8 +1946,8 @@ const getDriverViewTitle = (viewType) => {
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    if (!authForm.name || !authForm.email || !authForm.password || !authForm.phone) {
-      setError('All fields required');
+    if (!authForm.name || !authForm.email || !authForm.password || !authForm.phone || !authForm.country || !authForm.city) {
+      setError('All required fields must be filled');
       return;
     }
     if (authForm.role === 'driver' && !authForm.vehicle_type) {
@@ -1978,7 +1981,7 @@ const getDriverViewTitle = (viewType) => {
       localStorage.setItem('token', data.token);
       setToken(data.token);
       setCurrentUser(data.user);
-      setAuthForm({ name: '', email: '', password: '', phone: '', role: 'customer', vehicle_type: '' });
+      setAuthForm({ name: '', email: '', password: '', phone: '', role: 'customer', vehicle_type: '', country: '', city: '', area: '' });
       setError('');
     } catch (err) {
       setError(err.message);
@@ -2507,6 +2510,34 @@ const getDriverViewTitle = (viewType) => {
                       <option value="truck">{t('auth.truck')}</option>
                     </select>
                   )}
+
+                  {/* Location Fields */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                    <select
+                      value={authForm.country}
+                      onChange={(e) => setAuthForm({ ...authForm, country: e.target.value, city: '', area: '' })}
+                      style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
+                    >
+                      <option value="">{t('orders.selectCountry')}</option>
+                      {countries.map(country => (
+                        <option key={country} value={country}>{country}</option>
+                      ))}
+                    </select>
+                    <input
+                      type="text"
+                      placeholder={t('orders.city')}
+                      value={authForm.city}
+                      onChange={(e) => setAuthForm({ ...authForm, city: e.target.value })}
+                      style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
+                    />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder={t('orders.area')}
+                    value={authForm.area}
+                    onChange={(e) => setAuthForm({ ...authForm, area: e.target.value })}
+                    style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
+                  />
                   {process.env.REACT_APP_RECAPTCHA_SITE_KEY && (
                     <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem' }}>
                       <ReCAPTCHA

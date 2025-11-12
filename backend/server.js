@@ -578,15 +578,15 @@ app.post('/api/auth/register', async (req, res) => {
     }
   }
   try {
-    const { name, email, password, phone, role, vehicle_type, recaptchaToken } = req.body;
+    const { name, email, password, phone, role, vehicle_type, country, city, area, recaptchaToken } = req.body;
 
     // Verify reCAPTCHA token only in production (skip for development/testing)
     if (IS_PRODUCTION && !(await verifyRecaptcha(recaptchaToken))) {
       return res.status(400).json({ error: 'CAPTCHA verification failed' });
     }
 
-    if (!name || !email || !password || !phone || !role) {
-      return res.status(400).json({ error: 'All fields required' });
+    if (!name || !email || !password || !phone || !role || !country || !city || !area) {
+      return res.status(400).json({ error: 'All fields required: name, email, password, phone, role, country, city, and area' });
     }
 
     if (role === 'driver' && !vehicle_type) {
@@ -618,11 +618,11 @@ app.post('/api/auth/register', async (req, res) => {
     const userId = generateId();
 
     const result = await pool.query(
-      `INSERT INTO users (id, name, email, password, phone, role, vehicle_type, rating, completed_deliveries)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-       RETURNING id, name, email, phone, role, vehicle_type`,
-      [userId, name.trim(), email.toLowerCase().trim(), hashedPassword, phone.trim(), role, 
-       role === 'driver' ? vehicle_type : null, 5, 0]
+      `INSERT INTO users (id, name, email, password, phone, role, vehicle_type, country, city, area, rating, completed_deliveries)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+       RETURNING id, name, email, phone, role, vehicle_type, country, city, area`,
+      [userId, name.trim(), email.toLowerCase().trim(), hashedPassword, phone.trim(), role,
+       role === 'driver' ? vehicle_type : null, country.trim(), city.trim(), area.trim(), 5, 0]
     );
 
     const user = result.rows[0];
@@ -643,7 +643,10 @@ app.post('/api/auth/register', async (req, res) => {
         email: user.email,
         phone: user.phone,
         role: user.role,
-        vehicle_type: user.vehicle_type
+        vehicle_type: user.vehicle_type,
+        country: user.country,
+        city: user.city,
+        area: user.area
       }
     });
   } catch (error) {
@@ -702,7 +705,10 @@ app.post('/api/auth/login', async (req, res) => {
         email: user.email,
         role: user.role,
         rating: parseFloat(user.rating),
-        completedDeliveries: user.completed_deliveries
+        completedDeliveries: user.completed_deliveries,
+        country: user.country,
+        city: user.city,
+        area: user.area
       }
     });
   } catch (error) {
@@ -715,7 +721,7 @@ app.post('/api/auth/login', async (req, res) => {
 app.get('/api/auth/me', verifyToken, async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, name, email, role, rating, completed_deliveries, is_verified, created_at FROM users WHERE id = $1',
+      'SELECT id, name, email, role, rating, completed_deliveries, is_verified, country, city, area, created_at FROM users WHERE id = $1',
       [req.user.userId]
     );
 
@@ -732,6 +738,9 @@ app.get('/api/auth/me', verifyToken, async (req, res) => {
       rating: parseFloat(user.rating),
       completedDeliveries: user.completed_deliveries,
       isVerified: user.is_verified,
+      country: user.country,
+      city: user.city,
+      area: user.area,
       joinedAt: user.created_at
     });
   } catch (error) {
