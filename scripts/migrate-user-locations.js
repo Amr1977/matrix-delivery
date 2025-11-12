@@ -1,31 +1,34 @@
-const mysql = require('mysql2/promise');
+const { Pool } = require('pg');
 require('dotenv').config();
 
 // Database configuration
-const dbConfig = {
+const pool = new Pool({
   host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
+  user: process.env.DB_USER || 'postgres',
   password: process.env.DB_PASSWORD || '***REDACTED***',
   database: process.env.DB_NAME || 'matrix_delivery',
-  port: process.env.DB_PORT || 3306
-};
+  port: process.env.DB_PORT || 5432,
+  max: 5,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
+});
 
 async function migrateUserLocations() {
-  let connection;
+  let client;
 
   try {
-    console.log('🔄 Connecting to database...');
-    connection = await mysql.createConnection(dbConfig);
+    console.log('🔄 Connecting to PostgreSQL database...');
+    client = await pool.connect();
 
     console.log('📊 Checking existing users without location data...');
 
     // Check how many users need migration
-    const [rows] = await connection.execute(`
+    const countResult = await client.query(`
       SELECT COUNT(*) as count FROM users
       WHERE country IS NULL OR city IS NULL
     `);
 
-    const usersToMigrate = rows[0].count;
+    const usersToMigrate = parseInt(countResult.rows[0].count);
     console.log(`👥 Found ${usersToMigrate} users that need location data migration`);
 
     if (usersToMigrate === 0) {
@@ -36,7 +39,7 @@ async function migrateUserLocations() {
     console.log('🏛️ Updating existing users with default location data...');
 
     // Update existing users with default location data
-    const [updateResult] = await connection.execute(`
+    const updateResult = await client.query(`
       UPDATE users
       SET country = 'Egypt',
           city = 'Cairo',
@@ -44,15 +47,15 @@ async function migrateUserLocations() {
       WHERE country IS NULL OR city IS NULL
     `);
 
-    console.log(`✅ Successfully updated ${updateResult.affectedRows} users with default location data`);
+    console.log(`✅ Successfully updated ${updateResult.rowCount} users with default location data`);
 
     // Verify the migration
-    const [verifyRows] = await connection.execute(`
+    const verifyResult = await client.query(`
       SELECT COUNT(*) as count FROM users
       WHERE country IS NULL OR city IS NULL
     `);
 
-    const remainingUsers = verifyRows[0].count;
+    const remainingUsers = parseInt(verifyResult.rows[0].count);
 
     if (remainingUsers === 0) {
       console.log('🎉 Migration completed successfully! All users now have location data.');
@@ -64,10 +67,11 @@ async function migrateUserLocations() {
     console.error('❌ Migration failed:', error);
     process.exit(1);
   } finally {
-    if (connection) {
-      await connection.end();
-      console.log('🔌 Database connection closed.');
+    if (client) {
+      client.release();
+      console.log('🔌 Database connection released.');
     }
+    await pool.end();
   }
 }
 
