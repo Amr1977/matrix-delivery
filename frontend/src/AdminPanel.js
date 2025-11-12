@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-const AdminPanel = () => {
+const AdminPanel = ({ token, onClose }) => {
   const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
 
-  // Authentication
-  const [adminToken, setAdminToken] = useState(localStorage.getItem('adminToken'));
-  const [loginForm, setLoginForm] = useState({ email: '', password: '' });
-  const [error, setError] = useState('');
+  // Use the token passed from parent component
+  const adminToken = token;
 
   // Dashboard State
   const [activeTab, setActiveTab] = useState('overview');
@@ -19,6 +17,7 @@ const AdminPanel = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterRole, setFilterRole] = useState('all');
   const [dateRange, setDateRange] = useState('7d');
+  const [error, setError] = useState('');
 
   // User Management
   const [selectedUser, setSelectedUser] = useState(null);
@@ -35,36 +34,6 @@ const AdminPanel = () => {
       return () => clearInterval(interval);
     }
   }, [adminToken, dateRange]);
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-
-    try {
-      const response = await fetch(`${API_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(loginForm)
-      });
-
-      if (!response.ok) throw new Error('Login failed');
-
-      const data = await response.json();
-
-      // Check if user is admin (you'll need to add admin role to your system)
-      if (data.user.role !== 'admin') {
-        throw new Error('Unauthorized: Admin access only');
-      }
-
-      localStorage.setItem('adminToken', data.token);
-      setAdminToken(data.token);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const fetchDashboardData = async () => {
     try {
@@ -144,142 +113,6 @@ const AdminPanel = () => {
   };
 
   const displayStats = stats || mockStats;
-
-  if (!adminToken) {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '1rem'
-      }}>
-        <div style={{
-          background: 'rgba(255, 255, 255, 0.95)',
-          borderRadius: '1rem',
-          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
-          padding: '3rem',
-          maxWidth: '28rem',
-          width: '100%'
-        }}>
-          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-            <h1 style={{
-              fontSize: '2rem',
-              fontWeight: 'bold',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              marginBottom: '0.5rem'
-            }}>
-              🛡️ Admin Dashboard
-            </h1>
-            <p style={{ color: '#6B7280', fontSize: '0.875rem' }}>
-              Matrix Delivery System Control
-            </p>
-          </div>
-
-          {error && (
-            <div style={{
-              background: '#FEE2E2',
-              color: '#991B1B',
-              padding: '1rem',
-              borderRadius: '0.5rem',
-              marginBottom: '1rem',
-              fontSize: '0.875rem'
-            }}>
-              ⚠️ {error}
-            </div>
-          )}
-
-          <form onSubmit={handleLogin}>
-            <div style={{ marginBottom: '1rem' }}>
-              <label style={{
-                display: 'block',
-                fontSize: '0.875rem',
-                fontWeight: '600',
-                color: '#374151',
-                marginBottom: '0.5rem'
-              }}>
-                Admin Email
-              </label>
-              <input
-                type="email"
-                value={loginForm.email}
-                onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
-                placeholder="admin@matrix-delivery.com"
-                required
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  border: '2px solid #E5E7EB',
-                  borderRadius: '0.5rem',
-                  fontSize: '0.875rem',
-                  outline: 'none',
-                  transition: 'border-color 0.2s'
-                }}
-              />
-            </div>
-
-            <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{
-                display: 'block',
-                fontSize: '0.875rem',
-                fontWeight: '600',
-                color: '#374151',
-                marginBottom: '0.5rem'
-              }}>
-                Password
-              </label>
-              <input
-                type="password"
-                value={loginForm.password}
-                onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-                placeholder="••••••••"
-                required
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  border: '2px solid #E5E7EB',
-                  borderRadius: '0.5rem',
-                  fontSize: '0.875rem',
-                  outline: 'none'
-                }}
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                width: '100%',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                color: 'white',
-                padding: '0.875rem',
-                borderRadius: '0.5rem',
-                fontWeight: '600',
-                border: 'none',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                opacity: loading ? 0.7 : 1,
-                transition: 'opacity 0.2s'
-              }}
-            >
-              {loading ? '🔄 Authenticating...' : '🔐 Sign In'}
-            </button>
-          </form>
-
-          <p style={{
-            textAlign: 'center',
-            color: '#6B7280',
-            fontSize: '0.75rem',
-            marginTop: '1.5rem'
-          }}>
-            ⚡ Secured with end-to-end encryption
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   const StatCard = ({ title, value, change, icon, color }) => (
     <div style={{
