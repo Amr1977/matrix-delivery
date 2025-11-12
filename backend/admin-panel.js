@@ -1,5 +1,7 @@
 // ============ ADMIN BACKEND API ENDPOINTS - PART 1 ============
-// Add these endpoints to your server.js file after the existing routes
+// Module for admin panel endpoints
+
+module.exports = (app, pool, jwt, createNotification, generateId, JWT_SECRET) => {
 
 // Admin authentication middleware
 const verifyAdmin = async (req, res, next) => {
@@ -1386,3 +1388,5 @@ const createAdminTables = async () => {
 // await createAdminTables();
 
 console.log('✅ Admin API endpoints loaded successfully - All 3 parts complete');
+
+};
