@@ -19,8 +19,5 @@
     "dotenv": "^16.6.1",
     "pg": "^8.16.3",
     "playwright": "^1.40.0"
-  },
-  "dependencies": {
-    "mysql2": "^3.15.3"
   }
 }
