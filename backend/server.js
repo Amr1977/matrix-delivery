@@ -7,12 +7,14 @@ const { Pool } = require('pg');
 const { getDistance } = require('geolib');
 const http = require('http');
 const socketIo = require('socket.io');
+const morgan = require('morgan');
+const logger = require('./logger');
 // const Recaptcha = require('google-recaptcha-v2');
 
 // Load environment-specific .env file
 const envFile = process.env.ENV_FILE || '.env';
 dotenv.config({ path: envFile });
-console.log(`🔧 Loading environment from: ${envFile}`);
+logger.info(`🔧 Loading environment from: ${envFile}`, { envFile });
 const app = express();
 
 // Add security middleware for production
@@ -275,7 +277,7 @@ const initDatabase = async () => {
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_reviews_reviewee ON reviews(reviewee_id)`);
 
     // Recalculate ratings and completed deliveries for existing users
-    console.log('🔄 Recalculating user statistics...');
+    logger.info('🔄 Recalculating user statistics...', { category: 'database' });
     await pool.query(`
       UPDATE users SET rating = COALESCE((
         SELECT AVG(rating) FROM reviews WHERE reviewee_id = users.id
@@ -299,7 +301,7 @@ const initDatabase = async () => {
     // Initialize admin tables
     await createAdminTables();
 
-    console.log('✅ PostgreSQL Database initialized and user statistics recalculated');
+    logger.info('✅ PostgreSQL Database initialized and user statistics recalculated', { category: 'database' });
   } catch (error) {
     console.error('❌ Database initialization error:', error);
     throw error;
@@ -345,7 +347,11 @@ const createNotification = async (userId, orderId, type, title, message) => {
         isRead: false,
         createdAt: notification.created_at
       });
-      console.log(`📡 Real-time notification sent to user ${userId}: ${title}`);
+      logger.info(`Real-time notification sent`, {
+        userId,
+        title,
+        category: 'notification'
+      });
     }
 
     return notification;
@@ -356,6 +362,30 @@ const createNotification = async (userId, orderId, type, title, message) => {
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// HTTP request logging with Morgan
+app.use(morgan('combined', {
+  stream: {
+    write: (message) => {
+      // Parse Morgan log and convert to structured log
+      const parts = message.trim().split(' ');
+      if (parts.length >= 9) {
+        logger.http('HTTP_REQUEST', {
+          method: parts[0],
+          url: parts[1],
+          status: parseInt(parts[2]),
+          responseTime: parts[3],
+          ip: parts[6],
+          userAgent: parts[8],
+          category: 'http'
+        });
+      }
+    }
+  }
+}));
+
+// Request logging middleware
+app.use(logger.requestLogger);
 
 
 
@@ -637,7 +667,12 @@ app.post('/api/auth/register', async (req, res) => {
       { expiresIn: '30d' }
     );
 
-    console.log(`✅ User registered: ${user.email} (${user.role})`);
+    logger.info(`User registered successfully`, {
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      category: 'auth'
+    });
 
     res.status(201).json({
       message: 'User registered successfully',
@@ -700,7 +735,12 @@ app.post('/api/auth/login', async (req, res) => {
       { expiresIn: '30d' }
     );
 
-    console.log(`✅ User logged in: ${user.email}`);
+    logger.info(`User logged in successfully`, {
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      category: 'auth'
+    });
     res.json({
       message: 'Login successful',
       token,
@@ -773,7 +813,12 @@ app.post('/api/auth/verify-user', async (req, res) => {
     }
 
     const user = result.rows[0];
-    console.log(`✅ User verified via API: ${user.email} (${user.role})`);
+    logger.info(`User verified via API`, {
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      category: 'auth'
+    });
 
     res.json({
       success: true,
@@ -1048,7 +1093,13 @@ app.post('/api/orders', verifyToken, async (req, res) => {
     );
 
     const order = result.rows[0];
-    console.log(`✅ Order created: "${order.title}" (${order.order_number}) by ${req.user.name}`);
+    logger.info(`Order created`, {
+      orderId: order.id,
+      orderNumber: order.order_number,
+      title: order.title,
+      userId: req.user.userId,
+      category: 'order'
+    });
 
     // Return order data in expected format
     res.status(201).json({
@@ -1328,7 +1379,12 @@ app.post('/api/orders/:id/bid', verifyToken, async (req, res) => {
     await client.query('COMMIT');
 
     const updatedOrder = updatedOrderResult.rows[0];
-    console.log(`✅ Bid placed: ${req.user.name} bid $${bidPrice} on "${updatedOrder.title}" (${updatedOrder.order_number})`);
+    logger.info(`Bid placed`, {
+      userId: req.user.userId,
+      orderId: req.params.id,
+      bidPrice: parseFloat(bidPrice),
+      category: 'order'
+    });
 
     res.json({
       _id: updatedOrder.id, orderNumber: updatedOrder.order_number, title: updatedOrder.title,
@@ -1394,7 +1450,13 @@ app.post('/api/orders/:id/accept-bid', verifyToken, async (req, res) => {
     await client.query('COMMIT');
 
     const updatedOrder = updatedOrderResult.rows[0];
-    console.log(`✅ Bid accepted: ${acceptedBid.driver_name} ($${acceptedBid.bid_price}) for "${updatedOrder.title}"`);
+    logger.info(`Bid accepted`, {
+      orderId: req.params.id,
+      driverId: acceptedBid.user_id,
+      driverName: acceptedBid.driver_name,
+      bidPrice: parseFloat(acceptedBid.bid_price),
+      category: 'order'
+    });
 
     res.json({
       _id: updatedOrder.id, orderNumber: updatedOrder.order_number, title: updatedOrder.title,
@@ -1467,7 +1529,13 @@ app.post('/api/orders/:id/pickup', verifyToken, async (req, res) => {
     await createNotification(order.customer_id, order.id, 'order_picked_up', 'Package Picked Up', `${req.user.name} has picked up your package for order ${order.order_number}`);
     await client.query('COMMIT');
 
-    console.log(`✅ Order picked up: "${order.title}" (${order.order_number}) by ${req.user.name}`);
+    logger.info(`Order picked up`, {
+      orderId: req.params.id,
+      orderNumber: order.order_number,
+      title: order.title,
+      driverId: req.user.userId,
+      category: 'order'
+    });
     res.json({ _id: order.id, orderNumber: order.order_number, status: 'picked_up', pickedUpAt: new Date().toISOString() });
   } catch (error) {
     await client.query('ROLLBACK');
@@ -1504,7 +1572,13 @@ app.post('/api/orders/:id/in-transit', verifyToken, async (req, res) => {
     await createNotification(order.customer_id, order.id, 'order_in_transit', 'Package In Transit', `Your package for order ${order.order_number} is now in transit`);
     await client.query('COMMIT');
 
-    console.log(`✅ Order in transit: "${order.title}" (${order.order_number})`);
+    logger.info(`Order in transit`, {
+      orderId: req.params.id,
+      orderNumber: order.order_number,
+      title: order.title,
+      driverId: req.user.userId,
+      category: 'order'
+    });
     res.json({ _id: order.id, orderNumber: order.order_number, status: 'in_transit' });
   } catch (error) {
     await client.query('ROLLBACK');
@@ -1542,7 +1616,13 @@ app.post('/api/orders/:id/complete', verifyToken, async (req, res) => {
     await createNotification(order.customer_id, order.id, 'order_delivered', 'Order Delivered', `Your order ${order.order_number} has been delivered successfully!`);
     await client.query('COMMIT');
 
-    console.log(`✅ Order delivered: "${order.title}" (${order.order_number}) by ${req.user.name}`);
+    logger.info(`Order delivered`, {
+      orderId: req.params.id,
+      orderNumber: order.order_number,
+      title: order.title,
+      driverId: req.user.userId,
+      category: 'order'
+    });
     res.json({ _id: order.id, orderNumber: order.order_number, status: 'delivered', deliveredAt: new Date().toISOString() });
   } catch (error) {
     await client.query('ROLLBACK');
@@ -1660,7 +1740,13 @@ app.post('/api/drivers/location', verifyToken, async (req, res) => {
       [req.user.userId, lat, lng]
     );
 
-    console.log(`✅ Driver location updated: ${req.user.name} (${lat.toFixed(6)}, ${lng.toFixed(6)})`);
+    logger.info(`Driver location updated`, {
+      userId: req.user.userId,
+      name: req.user.name,
+      latitude: lat,
+      longitude: lng,
+      category: 'location'
+    });
     res.json({ message: 'Location updated successfully', location: { latitude: lat, longitude: lng } });
   } catch (error) {
     console.error('Update driver location error:', error);
@@ -1812,7 +1898,14 @@ app.post('/api/orders/:id/review', verifyToken, async (req, res) => {
     }
 
     await client.query('COMMIT');
-    console.log(`✅ Review submitted: ${reviewType} for order ${order.order_number} by ${req.user.name}`);
+    logger.info(`Review submitted`, {
+      orderId: req.params.id,
+      orderNumber: order.order_number,
+      reviewType,
+      reviewerId: req.user.userId,
+      reviewerName: req.user.name,
+      category: 'review'
+    });
     res.status(201).json({ message: 'Review submitted successfully', review: { id: reviewResult.rows[0].id, reviewType, rating, createdAt: reviewResult.rows[0].created_at } });
   } catch (error) {
     await client.query('ROLLBACK');
@@ -1935,7 +2028,13 @@ app.post('/api/orders/:id/payment/cod', verifyToken, async (req, res) => {
 
     await client.query('COMMIT');
 
-    console.log(`✅ COD Payment confirmed: $${totalAmount.toFixed(2)} for order ${order.order_number}`);
+    logger.info(`COD payment confirmed`, {
+      orderId: req.params.id,
+      orderNumber: order.order_number,
+      amount: totalAmount,
+      driverId: req.user.userId,
+      category: 'payment'
+    });
     res.json({
       message: 'COD payment confirmed successfully',
       payment: {
@@ -2972,7 +3071,13 @@ app.post('/api/admin/users/:id/verify', verifyAdmin, async (req, res) => {
       'Your account has been verified by an administrator.'
     );
 
-    console.log(`✅ Admin ${req.admin.name} verified user: ${user.email}`);
+    logger.info(`Admin verified user`, {
+      adminId: req.admin.id,
+      adminName: req.admin.name,
+      userId: user.id,
+      userEmail: user.email,
+      category: 'admin'
+    });
     await logAdminAction(req.admin.id, 'VERIFY_USER', 'user', req.params.id, {
       userName: user.name,
       userEmail: user.email,
@@ -3018,7 +3123,14 @@ app.post('/api/admin/users/:id/suspend', verifyAdmin, async (req, res) => {
       `Your account has been suspended. ${reason ? `Reason: ${reason}` : 'Please contact support.'}`
     );
 
-    console.log(`⚠️ Admin ${req.admin.name} suspended user: ${user.email}`);
+    logger.info(`Admin suspended user`, {
+      adminId: req.admin.id,
+      adminName: req.admin.name,
+      userId: user.id,
+      userEmail: user.email,
+      reason,
+      category: 'admin'
+    });
     await logAdminAction(req.admin.id, 'SUSPEND_USER', 'user', req.params.id, {
       userName: user.name,
       userEmail: user.email,
@@ -3063,7 +3175,13 @@ app.post('/api/admin/users/:id/unsuspend', verifyAdmin, async (req, res) => {
       'Your account has been reactivated.'
     );
 
-    console.log(`✅ Admin ${req.admin.name} unsuspended user: ${user.email}`);
+    logger.info(`Admin unsuspended user`, {
+      adminId: req.admin.id,
+      adminName: req.admin.name,
+      userId: user.id,
+      userEmail: user.email,
+      category: 'admin'
+    });
     await logAdminAction(req.admin.id, 'UNSUSPEND_USER', 'user', req.params.id, {
       userName: user.name,
       userEmail: user.email,
@@ -3120,7 +3238,13 @@ app.delete('/api/admin/users/:id', verifyAdmin, async (req, res) => {
     await client.query('DELETE FROM users WHERE id = $1', [req.params.id]);
     await client.query('COMMIT');
 
-    console.log(`🗑️ Admin ${req.admin.name} deleted user: ${user.email}`);
+    logger.info(`Admin deleted user`, {
+      adminId: req.admin.id,
+      adminName: req.admin.name,
+      userId: user.id,
+      userEmail: user.email,
+      category: 'admin'
+    });
     await logAdminAction(req.admin.id, 'DELETE_USER', 'user', req.params.id, {
       userName: user.name,
       userEmail: user.email,
@@ -3388,7 +3512,14 @@ app.post('/api/admin/orders/:id/cancel', verifyAdmin, async (req, res) => {
 
     await client.query('COMMIT');
 
-    console.log(`❌ Admin ${req.admin.name} cancelled order: ${order.order_number}`);
+    logger.info(`Admin cancelled order`, {
+      adminId: req.admin.id,
+      adminName: req.admin.name,
+      orderId: req.params.id,
+      orderNumber: order.order_number,
+      reason,
+      category: 'admin'
+    });
     await logAdminAction(req.admin.id, 'CANCEL_ORDER', 'order', req.params.id, {
       orderNumber: order.order_number,
       reason,
@@ -3615,7 +3746,13 @@ app.delete('/api/admin/logs/clear', verifyAdmin, async (req, res) => {
       [dateThreshold]
     );
 
-    console.log(`🗑️ Admin ${req.admin.name} cleared ${result.rowCount} old logs`);
+    logger.info(`Admin cleared old logs`, {
+      adminId: req.admin.id,
+      adminName: req.admin.name,
+      deletedCount: result.rowCount,
+      olderThan,
+      category: 'admin'
+    });
     await logAdminAction(req.admin.id, 'CLEAR_LOGS', 'system', null, {
       olderThan,
       deletedCount: result.rowCount,
@@ -3672,7 +3809,13 @@ app.put('/api/admin/settings/:key', verifyAdmin, async (req, res) => {
       [req.params.key, value, req.admin.id]
     );
 
-    console.log(`⚙️ Admin ${req.admin.name} updated setting: ${req.params.key} = ${value}`);
+    logger.info(`Admin updated setting`, {
+      adminId: req.admin.id,
+      adminName: req.admin.name,
+      settingKey: req.params.key,
+      newValue: value,
+      category: 'admin'
+    });
     await logAdminAction(req.admin.id, 'UPDATE_SETTING', 'system', req.params.key, {
       key: req.params.key,
       value,
@@ -3721,7 +3864,12 @@ app.post('/api/admin/users/bulk/verify', verifyAdmin, async (req, res) => {
 
     await client.query('COMMIT');
 
-    console.log(`✅ Admin ${req.admin.name} bulk verified ${result.rowCount} users`);
+    logger.info(`Admin bulk verified users`, {
+      adminId: req.admin.id,
+      adminName: req.admin.name,
+      count: result.rowCount,
+      category: 'admin'
+    });
     await logAdminAction(req.admin.id, 'BULK_VERIFY_USERS', 'users', null, {
       count: result.rowCount,
       userIds,
@@ -3762,7 +3910,13 @@ app.post('/api/admin/backup/create', verifyAdmin, async (req, res) => {
       [backupId, req.admin.id, JSON.stringify(tableCounts), 'completed']
     );
 
-    console.log(`💾 Admin ${req.admin.name} created database backup: ${backupId}`);
+    logger.info(`Admin created database backup`, {
+      adminId: req.admin.id,
+      adminName: req.admin.name,
+      backupId,
+      tableCounts,
+      category: 'admin'
+    });
     await logAdminAction(req.admin.id, 'CREATE_BACKUP', 'system', backupId, {
       backupId,
       tableCounts,
@@ -3928,7 +4082,7 @@ const createAdminTables = async () => {
       ON CONFLICT (key) DO NOTHING
     `);
 
-    console.log('✅ Admin tables created successfully');
+    logger.info('Admin tables created successfully', { category: 'database' });
   } catch (error) {
     console.error('❌ Admin tables creation error:', error);
     throw error;
@@ -3938,27 +4092,40 @@ const createAdminTables = async () => {
 // ============ END OF ADMIN BACKEND API ENDPOINTS ============
 // Continue with Error Handling
 
-// Error handling with CORS headers
-// app.use((req, res) => {
-//   // Ensure CORS headers are set even for 404 errors
-//   res.header('Access-Control-Allow-Origin', '*');
-//   res.header('Access-Control-Allow-Credentials', 'true');
-//   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-//   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma');
+// Error handling middleware
+app.use(logger.errorLogger);
 
-//   res.status(404).json({ error: 'Endpoint not found' });
-// });
+// 404 handler
+app.use((req, res) => {
+  logger.warn(`404 Not Found: ${req.method} ${req.originalUrl}`, {
+    method: req.method,
+    url: req.originalUrl,
+    ip: req.ip,
+    userAgent: req.get('User-Agent'),
+    category: 'http'
+  });
+  res.status(404).json({ error: 'Endpoint not found' });
+});
 
-// app.use((err, req, res, next) => {
-//   // Ensure CORS headers are set even for 500 errors
-//   res.header('Access-Control-Allow-Origin', '*');
-//   res.header('Access-Control-Allow-Credentials', 'true');
-//   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-//   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma');
+// Global error handler
+app.use((err, req, res, next) => {
+  logger.error(`Unhandled error: ${err.message}`, {
+    stack: err.stack,
+    method: req.method,
+    url: req.originalUrl,
+    ip: req.ip,
+    userAgent: req.get('User-Agent'),
+    category: 'error'
+  });
 
-//   console.error('Server error:', err);
-//   res.status(500).json({ error: IS_PRODUCTION ? 'Internal server error' : err.message });
-// });
+  // Don't leak error details in production
+  const errorMessage = IS_PRODUCTION ? 'Internal server error' : err.message;
+
+  res.status(500).json({
+    error: errorMessage,
+    ...(IS_TEST && { stack: err.stack }) // Include stack trace in test mode
+  });
+});
 
 // ============ WEBSOCKET INTEGRATION FOR LIVE TRACKING ============
 // Socket.IO CORS - Allow all for development, Apache2 handles in production
