@@ -3370,7 +3370,7 @@ const getDriverViewTitle = (viewType) => {
                       </div>
                       {order.packageDescription && (
                         <div style={{ gridColumn: '1 / -1' }}>
-                          <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>📦 Package</p>
+                          <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>📦 {t('orders.package')}</p>
                           <p style={{ fontSize: '0.875rem' }}>{order.packageDescription}</p>
                         </div>
                       )}
@@ -3406,7 +3406,7 @@ const getDriverViewTitle = (viewType) => {
                                 onClick={() => openReviewModal(order._id, 'customer_to_driver')}
                                 style={{ padding: '0.5rem 1rem', background: '#10B981', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
                               >
-                                ⭐ Review Driver
+                                ⭐ {t('reviews.reviewDriver')}
                               </button>
                             )}
                             {currentUser?.role === 'driver' && order.assignedDriver?.userId === currentUser?.id && !reviewStatus?.reviews.toCustomer && (
@@ -3414,7 +3414,7 @@ const getDriverViewTitle = (viewType) => {
                                 onClick={() => openReviewModal(order._id, 'driver_to_customer')}
                                 style={{ padding: '0.5rem 1rem', background: '#10B981', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
                               >
-                                ⭐ Review Customer
+                                ⭐ {t('reviews.reviewCustomer')}
                               </button>
                             )}
                             {!reviewStatus?.reviews.toPlatform && (
@@ -3422,14 +3422,14 @@ const getDriverViewTitle = (viewType) => {
                                 onClick={() => openReviewModal(order._id, `${currentUser?.role}_to_platform`)}
                                 style={{ padding: '0.5rem 1rem', background: '#6366F1', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
                               >
-                                🌟 Review Platform
+                                🌟 {t('reviews.reviewPlatform')}
                               </button>
                             )}
                             <button
                               onClick={() => fetchOrderReviews(order._id)}
                               style={{ padding: '0.5rem 1rem', background: '#F59E0B', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
                             >
-                              📝 View Reviews
+                              📝 {t('orders.viewReviews')}
                             </button>
                           </>
                         )}
@@ -3437,7 +3437,7 @@ const getDriverViewTitle = (viewType) => {
                           onClick={() => { setSelectedOrder(order); setShowLiveTracking(true); }}
                           style={{ padding: '0.5rem 1rem', background: '#6366F1', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
                         >
-                          🗺️ Track Order
+                          🗺️ {t('orders.trackOrder')}
                         </button>
                       </div>
                     </div>
