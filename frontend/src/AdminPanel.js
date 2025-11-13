@@ -37,6 +37,7 @@ const AdminPanel = ({ token, onClose }) => {
 
   const fetchDashboardData = async () => {
     try {
+      setLoading(true);
       const headers = { 'Authorization': `Bearer ${adminToken}` };
 
       // Fetch all data in parallel
@@ -46,11 +47,34 @@ const AdminPanel = ({ token, onClose }) => {
         fetch(`${API_URL}/admin/orders?page=${currentPage}&limit=${itemsPerPage}`, { headers })
       ]);
 
-      if (statsRes.ok) setStats(await statsRes.json());
-      if (usersRes.ok) setUsers(await usersRes.json());
-      if (ordersRes.ok) setOrders(await ordersRes.json());
+      if (statsRes.ok) {
+        const statsData = await statsRes.json();
+        setStats(statsData);
+      } else {
+        console.error('Stats API error:', statsRes.status, statsRes.statusText);
+        setError('Failed to load dashboard statistics');
+      }
+
+      if (usersRes.ok) {
+        const usersData = await usersRes.json();
+        setUsers(usersData.users || []);
+      } else {
+        console.error('Users API error:', usersRes.status, usersRes.statusText);
+        setError('Failed to load users data');
+      }
+
+      if (ordersRes.ok) {
+        const ordersData = await ordersRes.json();
+        setOrders(ordersData.orders || []);
+      } else {
+        console.error('Orders API error:', ordersRes.status, ordersRes.statusText);
+        setError('Failed to load orders data');
+      }
     } catch (err) {
       console.error('Fetch error:', err);
+      setError('Network error: Unable to connect to server');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -239,6 +263,45 @@ const AdminPanel = ({ token, onClose }) => {
           ))}
         </div>
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <div style={{
+          maxWidth: '1400px',
+          margin: '0 auto',
+          padding: '1rem 2rem',
+          marginBottom: '1rem'
+        }}>
+          <div style={{
+            background: '#FEE2E2',
+            color: '#991B1B',
+            padding: '1rem',
+            borderRadius: '0.5rem',
+            border: '1px solid #FCA5A5',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ fontSize: '1.25rem' }}>⚠️</span>
+              <span style={{ fontWeight: '600' }}>{error}</span>
+            </div>
+            <button
+              onClick={() => setError('')}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#991B1B',
+                cursor: 'pointer',
+                fontSize: '1.25rem',
+                padding: '0.25rem'
+              }}
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <main style={{ maxWidth: '1400px', margin: '0 auto', padding: '2rem' }}>
@@ -471,107 +534,124 @@ const AdminPanel = ({ token, onClose }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {[...Array(10)].map((_, i) => (
-                    <tr key={i} style={{ borderBottom: '1px solid #E5E7EB' }}>
-                      <td style={{ padding: '1rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                          <div style={{
-                            width: '40px',
-                            height: '40px',
-                            borderRadius: '50%',
-                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: 'white',
-                            fontWeight: 'bold'
-                          }}>
-                            {String.fromCharCode(65 + i)}
-                          </div>
-                          <div>
-                            <p style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.125rem' }}>
-                              User Name {i + 1}
-                            </p>
-                            <p style={{ fontSize: '0.75rem', color: '#6B7280' }}>user{i + 1}@example.com</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td style={{ padding: '1rem' }}>
-                        <span style={{
-                          padding: '0.25rem 0.75rem',
-                          borderRadius: '9999px',
-                          fontSize: '0.75rem',
-                          fontWeight: '600',
-                          background: i % 2 === 0 ? '#DBEAFE' : '#FEF3C7',
-                          color: i % 2 === 0 ? '#1E40AF' : '#92400E'
-                        }}>
-                          {i % 2 === 0 ? 'Customer' : 'Driver'}
-                        </span>
-                      </td>
-                      <td style={{ padding: '1rem' }}>
-                        <span style={{
-                          padding: '0.25rem 0.75rem',
-                          borderRadius: '9999px',
-                          fontSize: '0.75rem',
-                          fontWeight: '600',
-                          background: i % 3 === 0 ? '#D1FAE5' : '#FEE2E2',
-                          color: i % 3 === 0 ? '#065F46' : '#991B1B'
-                        }}>
-                          {i % 3 === 0 ? '✓ Verified' : '⏳ Pending'}
-                        </span>
-                      </td>
-                      <td style={{ padding: '1rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                          <span style={{ color: '#FCD34D', fontSize: '1rem' }}>★</span>
-                          <span style={{ fontWeight: '600', fontSize: '0.875rem' }}>
-                            {(4.0 + Math.random()).toFixed(1)}
-                          </span>
-                        </div>
-                      </td>
-                      <td style={{ padding: '1rem', fontWeight: '600', fontSize: '0.875rem' }}>
-                        {Math.floor(Math.random() * 50)}
-                      </td>
-                      <td style={{ padding: '1rem', fontSize: '0.75rem', color: '#6B7280' }}>
-                        {new Date(Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000).toLocaleDateString()}
-                      </td>
-                      <td style={{ padding: '1rem' }}>
-                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                          <button
-                            onClick={() => {
-                              setSelectedUser({ id: i + 1, name: `User ${i + 1}` });
-                              setShowUserModal(true);
-                            }}
-                            style={{
-                              padding: '0.375rem 0.75rem',
-                              background: '#667eea',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '0.375rem',
-                              cursor: 'pointer',
-                              fontSize: '0.75rem',
-                              fontWeight: '600'
-                            }}
-                          >
-                            View
-                          </button>
-                          <button
-                            style={{
-                              padding: '0.375rem 0.75rem',
-                              background: i % 3 === 0 ? '#EF4444' : '#10B981',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '0.375rem',
-                              cursor: 'pointer',
-                              fontSize: '0.75rem',
-                              fontWeight: '600'
-                            }}
-                          >
-                            {i % 3 === 0 ? 'Suspend' : 'Verify'}
-                          </button>
-                        </div>
+                  {loading ? (
+                    <tr>
+                      <td colSpan="7" style={{ padding: '2rem', textAlign: 'center', color: '#6B7280' }}>
+                        🔄 Loading users...
                       </td>
                     </tr>
-                  ))}
+                  ) : users.length === 0 ? (
+                    <tr>
+                      <td colSpan="7" style={{ padding: '2rem', textAlign: 'center', color: '#6B7280' }}>
+                        📭 No users found
+                      </td>
+                    </tr>
+                  ) : (
+                    users.map((user) => (
+                      <tr key={user.id} style={{ borderBottom: '1px solid #E5E7EB' }}>
+                        <td style={{ padding: '1rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <div style={{
+                              width: '40px',
+                              height: '40px',
+                              borderRadius: '50%',
+                              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: 'white',
+                              fontWeight: 'bold'
+                            }}>
+                              {user.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <p style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.125rem' }}>
+                                {user.name}
+                              </p>
+                              <p style={{ fontSize: '0.75rem', color: '#6B7280' }}>{user.email}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td style={{ padding: '1rem' }}>
+                          <span style={{
+                            padding: '0.25rem 0.75rem',
+                            borderRadius: '9999px',
+                            fontSize: '0.75rem',
+                            fontWeight: '600',
+                            background: user.role === 'customer' ? '#DBEAFE' : '#FEF3C7',
+                            color: user.role === 'customer' ? '#1E40AF' : '#92400E'
+                          }}>
+                            {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                          </span>
+                        </td>
+                        <td style={{ padding: '1rem' }}>
+                          <span style={{
+                            padding: '0.25rem 0.75rem',
+                            borderRadius: '9999px',
+                            fontSize: '0.75rem',
+                            fontWeight: '600',
+                            background: user.isVerified ? '#D1FAE5' : '#FEE2E2',
+                            color: user.isVerified ? '#065F46' : '#991B1B'
+                          }}>
+                            {user.isVerified ? '✓ Verified' : '⏳ Pending'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '1rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <span style={{ color: '#FCD34D', fontSize: '1rem' }}>★</span>
+                            <span style={{ fontWeight: '600', fontSize: '0.875rem' }}>
+                              {user.rating ? user.rating.toFixed(1) : 'N/A'}
+                            </span>
+                          </div>
+                        </td>
+                        <td style={{ padding: '1rem', fontWeight: '600', fontSize: '0.875rem' }}>
+                          {user.totalOrders || 0}
+                        </td>
+                        <td style={{ padding: '1rem', fontSize: '0.75rem', color: '#6B7280' }}>
+                          {new Date(user.createdAt).toLocaleDateString()}
+                        </td>
+                        <td style={{ padding: '1rem' }}>
+                          <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                            <button
+                              onClick={() => {
+                                setSelectedUser(user);
+                                setShowUserModal(true);
+                              }}
+                              style={{
+                                padding: '0.375rem 0.75rem',
+                                background: '#667eea',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '0.375rem',
+                                cursor: 'pointer',
+                                fontSize: '0.75rem',
+                                fontWeight: '600'
+                              }}
+                            >
+                              View
+                            </button>
+                            <button
+                              onClick={() => handleUserAction(user.isVerified ? 'suspend' : 'verify', user.id)}
+                              disabled={loading}
+                              style={{
+                                padding: '0.375rem 0.75rem',
+                                background: user.isVerified ? '#EF4444' : '#10B981',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '0.375rem',
+                                cursor: loading ? 'not-allowed' : 'pointer',
+                                fontSize: '0.75rem',
+                                fontWeight: '600',
+                                opacity: loading ? 0.5 : 1
+                              }}
+                            >
+                              {user.isVerified ? 'Suspend' : 'Verify'}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -624,64 +704,80 @@ const AdminPanel = ({ token, onClose }) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {[...Array(15)].map((_, i) => {
-                      const statuses = ['pending_bids', 'accepted', 'in_transit', 'delivered'];
-                      const status = statuses[i % statuses.length];
-                      const statusColors = {
-                        pending_bids: { bg: '#FEF3C7', text: '#92400E' },
-                        accepted: { bg: '#DBEAFE', text: '#1E40AF' },
-                        in_transit: { bg: '#FCE7F3', text: '#831843' },
-                        delivered: { bg: '#D1FAE5', text: '#065F46' }
-                      };
+                    {loading ? (
+                      <tr>
+                        <td colSpan="7" style={{ padding: '2rem', textAlign: 'center', color: '#6B7280' }}>
+                          🔄 Loading orders...
+                        </td>
+                      </tr>
+                    ) : orders.length === 0 ? (
+                      <tr>
+                        <td colSpan="7" style={{ padding: '2rem', textAlign: 'center', color: '#6B7280' }}>
+                          📭 No orders found
+                        </td>
+                      </tr>
+                    ) : (
+                      orders.map((order) => {
+                        const statusColors = {
+                          pending_bids: { bg: '#FEF3C7', text: '#92400E' },
+                          accepted: { bg: '#DBEAFE', text: '#1E40AF' },
+                          picked_up: { bg: '#C084FC', text: '#6B21A8' },
+                          in_transit: { bg: '#FCE7F3', text: '#831843' },
+                          delivered: { bg: '#D1FAE5', text: '#065F46' },
+                          cancelled: { bg: '#FEE2E2', text: '#991B1B' }
+                        };
 
-                      return (
-                        <tr key={i} style={{ borderBottom: '1px solid #E5E7EB' }}>
-                          <td style={{ padding: '1rem', fontWeight: '600', fontSize: '0.875rem' }}>
-                            ORD-{1700000000000 + i}-{String(i).padStart(3, '0')}
-                          </td>
-                          <td style={{ padding: '1rem', fontSize: '0.875rem' }}>Customer {i + 1}</td>
-                          <td style={{ padding: '1rem', fontSize: '0.875rem' }}>
-                            {status === 'pending_bids' ? '—' : `Driver ${i + 1}`}
-                          </td>
-                          <td style={{ padding: '1rem' }}>
-                            <span style={{
-                              padding: '0.25rem 0.75rem',
-                              borderRadius: '9999px',
-                              fontSize: '0.75rem',
-                              fontWeight: '600',
-                              background: statusColors[status].bg,
-                              color: statusColors[status].text
-                            }}>
-                              {status.replace('_', ' ')}
-                            </span>
-                          </td>
-                          <td style={{ padding: '1rem', fontWeight: '600', fontSize: '0.875rem' }}>
-                            ${(50 + Math.random() * 150).toFixed(2)}
-                          </td>
-                          <td style={{ padding: '1rem', fontSize: '0.75rem', color: '#6B7280' }}>
-                            {new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toLocaleDateString()}
-                          </td>
-                          <td style={{ padding: '1rem' }}>
-                            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                              <button
-                                style={{
-                                  padding: '0.375rem 0.75rem',
-                                  background: '#667eea',
-                                  color: 'white',
-                                  border: 'none',
-                                  borderRadius: '0.375rem',
-                                  cursor: 'pointer',
-                                  fontSize: '0.75rem',
-                                  fontWeight: '600'
-                                }}
-                              >
-                                View
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                        return (
+                          <tr key={order.id} style={{ borderBottom: '1px solid #E5E7EB' }}>
+                            <td style={{ padding: '1rem', fontWeight: '600', fontSize: '0.875rem' }}>
+                              {order.orderNumber || order.id}
+                            </td>
+                            <td style={{ padding: '1rem', fontSize: '0.875rem' }}>
+                              {order.customerName || 'N/A'}
+                            </td>
+                            <td style={{ padding: '1rem', fontSize: '0.875rem' }}>
+                              {order.driverName || '—'}
+                            </td>
+                            <td style={{ padding: '1rem' }}>
+                              <span style={{
+                                padding: '0.25rem 0.75rem',
+                                borderRadius: '9999px',
+                                fontSize: '0.75rem',
+                                fontWeight: '600',
+                                background: statusColors[order.status]?.bg || '#F3F4F6',
+                                color: statusColors[order.status]?.text || '#6B7280'
+                              }}>
+                                {order.status ? order.status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Unknown'}
+                              </span>
+                            </td>
+                            <td style={{ padding: '1rem', fontWeight: '600', fontSize: '0.875rem' }}>
+                              ${order.assignedDriverBidPrice ? parseFloat(order.assignedDriverBidPrice).toFixed(2) : order.price ? parseFloat(order.price).toFixed(2) : 'N/A'}
+                            </td>
+                            <td style={{ padding: '1rem', fontSize: '0.75rem', color: '#6B7280' }}>
+                              {new Date(order.createdAt).toLocaleDateString()}
+                            </td>
+                            <td style={{ padding: '1rem' }}>
+                              <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                                <button
+                                  style={{
+                                    padding: '0.375rem 0.75rem',
+                                    background: '#667eea',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '0.375rem',
+                                    cursor: 'pointer',
+                                    fontSize: '0.75rem',
+                                    fontWeight: '600'
+                                  }}
+                                >
+                                  View
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
                   </tbody>
                 </table>
               </div>
