@@ -1,0 +1,682 @@
+const { Pool } = require('pg');
+const logger = require('../logger');
+
+// Load environment-specific .env file
+const envFile = process.env.ENV_FILE || '.env';
+require('dotenv').config({ path: envFile });
+
+const IS_TEST = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing';
+
+// PostgreSQL Connection Pool
+const pool = new Pool({
+  host: process.env.DB_HOST || 'localhost',
+  port: process.env.DB_PORT || 5432,
+  database: IS_TEST ? (process.env.DB_NAME_TEST || 'matrix_delivery_test') : (process.env.DB_NAME || 'matrix_delivery'),
+  user: process.env.DB_USER || 'postgres',
+  password: process.env.DB_PASSWORD || 'postgres',
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
+});
+
+class OrderService {
+  /**
+   * Generate a unique ID
+   */
+  generateId() {
+    return Date.now().toString() + Math.random().toString(36).substr(2, 9);
+  }
+
+  /**
+   * Sanitize string input
+   */
+  sanitizeString(str, maxLength = 1000) {
+    if (typeof str !== 'string') return '';
+    return str.trim().substring(0, maxLength).replace(/[<>\"'&]/g, '');
+  }
+
+  /**
+   * Get orders for a user based on their role
+   */
+  async getOrders(userId, userRole) {
+    let query;
+    let params = [];
+
+    if (userRole === 'customer') {
+      // Customers see their own orders
+      query = `
+        SELECT
+          o.*,
+          json_build_object(
+            'userId', d.id,
+            'name', d.name,
+            'rating', d.rating,
+            'completedDeliveries', d.completed_deliveries
+          ) as assignedDriver,
+          json_agg(
+            json_build_object(
+              'userId', b.user_id,
+              'driverName', u.name,
+              'bidPrice', b.bid_price,
+              'estimatedPickupTime', b.estimated_pickup_time,
+              'estimatedDeliveryTime', b.estimated_delivery_time,
+              'message', b.message,
+              'driverRating', u.rating,
+              'driverCompletedDeliveries', u.completed_deliveries,
+              'driverReviewCount', COALESCE(dr.review_count, 0),
+              'driverIsVerified', u.is_verified
+            )
+          ) FILTER (WHERE b.id IS NOT NULL) as bids,
+          json_build_object(
+            'reviews', json_build_object(
+              'toDriver', CASE WHEN r.id IS NOT NULL THEN true ELSE false END,
+              'toCustomer', false,
+              'toPlatform', false
+            )
+          ) as reviewStatus
+        FROM orders o
+        LEFT JOIN users d ON o.assigned_driver_id = d.id
+        LEFT JOIN bids b ON o.id = b.order_id
+        LEFT JOIN users u ON b.user_id = u.id
+        LEFT JOIN reviews r ON o.id = r.order_id AND r.reviewer_id = $1 AND r.reviewee_id = d.id
+        LEFT JOIN (
+          SELECT reviewee_id, COUNT(*) as review_count
+          FROM reviews
+          GROUP BY reviewee_id
+        ) dr ON dr.reviewee_id = u.id
+        WHERE o.customer_id = $1
+        GROUP BY o.id, d.id, d.name, d.rating, d.completed_deliveries, r.id
+        ORDER BY o.created_at DESC
+      `;
+      params = [userId];
+    } else if (userRole === 'driver') {
+      // Drivers see available orders and their assigned orders
+      query = `
+        SELECT
+          o.*,
+          json_build_object(
+            'userId', d.id,
+            'name', d.name,
+            'rating', d.rating,
+            'completedDeliveries', d.completed_deliveries
+          ) as assignedDriver,
+          json_agg(
+            json_build_object(
+              'userId', b.user_id,
+              'driverName', u.name,
+              'bidPrice', b.bid_price,
+              'estimatedPickupTime', b.estimated_pickup_time,
+              'estimatedDeliveryTime', b.estimated_delivery_time,
+              'message', b.message,
+              'driverRating', u.rating,
+              'driverCompletedDeliveries', u.completed_deliveries,
+              'driverReviewCount', COALESCE(dr.review_count, 0),
+              'driverIsVerified', u.is_verified
+            )
+          ) FILTER (WHERE b.id IS NOT NULL) as bids,
+          json_build_object(
+            'reviews', json_build_object(
+              'toDriver', false,
+              'toCustomer', CASE WHEN r.id IS NOT NULL THEN true ELSE false END,
+              'toPlatform', false
+            )
+          ) as reviewStatus,
+          CASE
+            WHEN o.assigned_driver_id = $1 THEN 0
+            WHEN o.status = 'pending_bids' THEN 1
+            ELSE 2
+          END as sort_priority
+        FROM orders o
+        LEFT JOIN users d ON o.assigned_driver_id = d.id
+        LEFT JOIN bids b ON o.id = b.order_id
+        LEFT JOIN users u ON b.user_id = u.id
+        LEFT JOIN reviews r ON o.id = r.order_id AND r.reviewer_id = $1 AND r.reviewee_id = o.customer_id
+        LEFT JOIN (
+          SELECT reviewee_id, COUNT(*) as review_count
+          FROM reviews
+          GROUP BY reviewee_id
+        ) dr ON dr.reviewee_id = u.id
+        WHERE (o.status = 'pending_bids' AND o.assigned_driver_id IS NULL)
+           OR o.assigned_driver_id = $1
+        GROUP BY o.id, d.id, d.name, d.rating, d.completed_deliveries, r.id
+        ORDER BY sort_priority, o.created_at DESC
+      `;
+      params = [userId];
+    } else {
+      // Admin sees all orders
+      query = `
+        SELECT
+          o.*,
+          json_build_object(
+            'userId', d.id,
+            'name', d.name,
+            'rating', d.rating,
+            'completedDeliveries', d.completed_deliveries
+          ) as assignedDriver,
+          json_agg(
+            json_build_object(
+              'userId', b.user_id,
+              'driverName', u.name,
+              'bidPrice', b.bid_price,
+              'estimatedPickupTime', b.estimated_pickup_time,
+              'estimatedDeliveryTime', b.estimated_delivery_time,
+              'message', b.message
+            )
+          ) FILTER (WHERE b.id IS NOT NULL) as bids
+        FROM orders o
+        LEFT JOIN users d ON o.assigned_driver_id = d.id
+        LEFT JOIN bids b ON o.id = b.order_id
+        LEFT JOIN users u ON b.user_id = u.id
+        GROUP BY o.id, d.id, d.name, d.rating, d.completed_deliveries
+        ORDER BY o.created_at DESC
+      `;
+    }
+
+    const result = await pool.query(query, params);
+
+    return result.rows.map(order => ({
+      _id: order.id,
+      title: order.title,
+      description: order.description,
+      pickupAddress: order.pickup_address,
+      deliveryAddress: order.delivery_address,
+      packageDescription: order.package_description,
+      packageWeight: order.package_weight,
+      estimatedValue: order.estimated_value,
+      specialInstructions: order.special_instructions,
+      price: parseFloat(order.price),
+      status: order.status,
+      orderNumber: order.order_number,
+      createdAt: order.created_at,
+      assignedDriver: order.assigneddriver,
+      bids: order.bids || [],
+      reviewStatus: order.reviewstatus || { reviews: { toDriver: false, toCustomer: false, toPlatform: false } },
+      customerId: order.customer_id,
+      from: order.from_coordinates ? {
+        lat: parseFloat(order.from_coordinates.split(',')[0]),
+        lng: parseFloat(order.from_coordinates.split(',')[1])
+      } : null,
+      to: order.to_coordinates ? {
+        lat: parseFloat(order.to_coordinates.split(',')[0]),
+        lng: parseFloat(order.to_coordinates.split(',')[1])
+      } : null
+    }));
+  }
+
+  /**
+   * Create a new order
+   */
+  async createOrder(orderData, customerId) {
+    const {
+      title,
+      description,
+      pickupLocation,
+      dropoffLocation,
+      package_description,
+      package_weight,
+      estimated_value,
+      special_instructions,
+      price
+    } = orderData;
+
+    const orderId = this.generateId();
+    const orderNumber = `ORD-${Date.now()}`;
+
+    // Build addresses from structured location data
+    const pickupAddress = `${pickupLocation.address.personName}, ${pickupLocation.address.street || ''} ${pickupLocation.address.buildingNumber || ''}, ${pickupLocation.address.area || ''}, ${pickupLocation.address.city}, ${pickupLocation.address.country}`.replace(/, ,/g, ',').replace(/^,|,$/g, '');
+    const deliveryAddress = `${dropoffLocation.address.personName}, ${dropoffLocation.address.street || ''} ${dropoffLocation.address.buildingNumber || ''}, ${dropoffLocation.address.area || ''}, ${dropoffLocation.address.city}, ${dropoffLocation.address.country}`.replace(/, ,/g, ',').replace(/^,|,$/g, '');
+
+    const result = await pool.query(
+      `INSERT INTO orders (
+        id, customer_id, title, description, pickup_address, delivery_address,
+        from_coordinates, to_coordinates, package_description, package_weight,
+        estimated_value, special_instructions, price, status, order_number,
+        created_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW())
+      RETURNING *`,
+      [
+        orderId,
+        customerId,
+        this.sanitizeString(title, 200),
+        this.sanitizeString(description, 1000),
+        pickupAddress,
+        deliveryAddress,
+        pickupLocation.coordinates ? `${pickupLocation.coordinates.lat},${pickupLocation.coordinates.lng}` : null,
+        dropoffLocation.coordinates ? `${dropoffLocation.coordinates.lat},${dropoffLocation.coordinates.lng}` : null,
+        this.sanitizeString(package_description, 500),
+        package_weight ? parseFloat(package_weight) : null,
+        estimated_value ? parseFloat(estimated_value) : null,
+        this.sanitizeString(special_instructions, 500),
+        parseFloat(price),
+        'pending_bids',
+        orderNumber
+      ]
+    );
+
+    const order = result.rows[0];
+
+    logger.order('Order created successfully', {
+      orderId: order.id,
+      orderNumber: order.order_number,
+      customerId,
+      price: order.price,
+      category: 'order'
+    });
+
+    return {
+      _id: order.id,
+      title: order.title,
+      description: order.description,
+      pickupAddress: order.pickup_address,
+      deliveryAddress: order.delivery_address,
+      packageDescription: order.package_description,
+      packageWeight: order.package_weight,
+      estimatedValue: order.estimated_value,
+      specialInstructions: order.special_instructions,
+      price: parseFloat(order.price),
+      status: order.status,
+      orderNumber: order.order_number,
+      createdAt: order.created_at
+    };
+  }
+
+  /**
+   * Place a bid on an order
+   */
+  async placeBid(orderId, driverId, bidData) {
+    const { bidPrice, estimatedPickupTime, estimatedDeliveryTime, message } = bidData;
+
+    // Check if order exists and is available for bidding
+    const orderCheck = await pool.query(
+      'SELECT status, assigned_driver_id FROM orders WHERE id = $1',
+      [orderId]
+    );
+
+    if (orderCheck.rows.length === 0) {
+      throw new Error('Order not found');
+    }
+
+    const order = orderCheck.rows[0];
+    if (order.status !== 'pending_bids' || order.assigned_driver_id) {
+      throw new Error('Order is not available for bidding');
+    }
+
+    // Check if driver already bid on this order
+    const existingBid = await pool.query(
+      'SELECT id FROM bids WHERE order_id = $1 AND user_id = $2',
+      [orderId, driverId]
+    );
+
+    if (existingBid.rows.length > 0) {
+      throw new Error('You have already placed a bid on this order');
+    }
+
+    const bidId = this.generateId();
+    await pool.query(
+      `INSERT INTO bids (
+        id, order_id, user_id, bid_price, estimated_pickup_time,
+        estimated_delivery_time, message, created_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
+      [
+        bidId,
+        orderId,
+        driverId,
+        parseFloat(bidPrice),
+        estimatedPickupTime || null,
+        estimatedDeliveryTime || null,
+        this.sanitizeString(message, 500)
+      ]
+    );
+
+    logger.order('Bid placed successfully', {
+      bidId,
+      orderId,
+      driverId,
+      bidPrice,
+      category: 'order'
+    });
+
+    return { message: 'Bid placed successfully' };
+  }
+
+  /**
+   * Accept a bid on an order
+   */
+  async acceptBid(orderId, customerId, driverId) {
+    // Check if order belongs to customer and is in correct state
+    const orderCheck = await pool.query(
+      'SELECT customer_id, status FROM orders WHERE id = $1',
+      [orderId]
+    );
+
+    if (orderCheck.rows.length === 0) {
+      throw new Error('Order not found');
+    }
+
+    const order = orderCheck.rows[0];
+    if (order.customer_id !== customerId) {
+      throw new Error('Unauthorized');
+    }
+
+    if (order.status !== 'pending_bids') {
+      throw new Error('Order is not available for bid acceptance');
+    }
+
+    // Check if bid exists
+    const bidCheck = await pool.query(
+      'SELECT id FROM bids WHERE order_id = $1 AND user_id = $2',
+      [orderId, driverId]
+    );
+
+    if (bidCheck.rows.length === 0) {
+      throw new Error('Bid not found');
+    }
+
+    // Update order with accepted bid
+    await pool.query(
+      'UPDATE orders SET status = $1, assigned_driver_id = $2, accepted_at = NOW() WHERE id = $3',
+      ['accepted', driverId, orderId]
+    );
+
+    logger.order('Bid accepted successfully', {
+      orderId,
+      customerId,
+      driverId,
+      category: 'order'
+    });
+
+    return { message: 'Bid accepted successfully' };
+  }
+
+  /**
+   * Update order status
+   */
+  async updateOrderStatus(orderId, driverId, action) {
+    const validActions = ['pickup', 'in-transit', 'complete'];
+
+    if (!validActions.includes(action)) {
+      throw new Error('Invalid action');
+    }
+
+    // Check order ownership/assignment
+    const orderCheck = await pool.query(
+      'SELECT customer_id, assigned_driver_id, status FROM orders WHERE id = $1',
+      [orderId]
+    );
+
+    if (orderCheck.rows.length === 0) {
+      throw new Error('Order not found');
+    }
+
+    const order = orderCheck.rows[0];
+
+    // Validate permissions
+    if (order.assigned_driver_id !== driverId) {
+      throw new Error('Only assigned driver can perform this action');
+    }
+
+    // Validate status transitions
+    const statusMap = {
+      pickup: { from: 'accepted', to: 'picked_up' },
+      'in-transit': { from: 'picked_up', to: 'in_transit' },
+      complete: { from: 'in_transit', to: 'delivered' }
+    };
+
+    if (order.status !== statusMap[action].from) {
+      throw new Error(`Order must be in ${statusMap[action].from} status`);
+    }
+
+    // Update order status
+    const updateFields = {
+      pickup: 'picked_up_at = NOW()',
+      'in-transit': 'in_transit_at = NOW()',
+      complete: 'delivered_at = NOW()'
+    };
+
+    await pool.query(
+      `UPDATE orders SET status = $1, ${updateFields[action]} WHERE id = $2`,
+      [statusMap[action].to, orderId]
+    );
+
+    // If order is completed, update driver stats
+    if (action === 'complete') {
+      await pool.query(
+        'UPDATE users SET completed_deliveries = completed_deliveries + 1 WHERE id = $1',
+        [driverId]
+      );
+    }
+
+    logger.order('Order status updated successfully', {
+      orderId,
+      action,
+      newStatus: statusMap[action].to,
+      driverId,
+      category: 'order'
+    });
+
+    return { message: `Order ${action} successful` };
+  }
+
+  /**
+   * Get order tracking information
+   */
+  async getOrderTracking(orderId, userId) {
+    const orderResult = await pool.query(
+      `SELECT
+        o.*,
+        json_build_object(
+          'userId', d.id,
+          'name', d.name
+        ) as assignedDriver
+      FROM orders o
+      LEFT JOIN users d ON o.assigned_driver_id = d.id
+      WHERE o.id = $1`,
+      [orderId]
+    );
+
+    if (orderResult.rows.length === 0) {
+      throw new Error('Order not found');
+    }
+
+    const order = orderResult.rows[0];
+
+    // Check if user has permission to view this order
+    if (order.customer_id !== userId && order.assigned_driver_id !== userId) {
+      throw new Error('Unauthorized');
+    }
+
+    // Get location history
+    const locationHistory = await pool.query(
+      'SELECT latitude, longitude, timestamp FROM driver_locations WHERE order_id = $1 ORDER BY timestamp',
+      [orderId]
+    );
+
+    return {
+      orderNumber: order.order_number,
+      status: order.status,
+      pickup: {
+        address: order.pickup_address,
+        coordinates: order.from_coordinates ? {
+          lat: parseFloat(order.from_coordinates.split(',')[0]),
+          lng: parseFloat(order.from_coordinates.split(',')[1])
+        } : null
+      },
+      delivery: {
+        address: order.delivery_address,
+        coordinates: order.to_coordinates ? {
+          lat: parseFloat(order.to_coordinates.split(',')[0]),
+          lng: parseFloat(order.to_coordinates.split(',')[1])
+        } : null
+      },
+      currentLocation: locationHistory.rows.length > 0 ? {
+        lat: parseFloat(locationHistory.rows[locationHistory.rows.length - 1].latitude),
+        lng: parseFloat(locationHistory.rows[locationHistory.rows.length - 1].longitude)
+      } : null,
+      locationHistory: locationHistory.rows.map(loc => ({
+        lat: parseFloat(loc.latitude),
+        lng: parseFloat(loc.longitude),
+        timestamp: loc.timestamp
+      })),
+      createdAt: order.created_at,
+      acceptedAt: order.accepted_at,
+      pickedUpAt: order.picked_up_at,
+      inTransitAt: order.in_transit_at,
+      deliveredAt: order.delivered_at
+    };
+  }
+
+  /**
+   * Submit a review for an order
+   */
+  async submitReview(orderId, reviewerId, reviewData) {
+    const {
+      reviewType,
+      rating,
+      comment,
+      professionalismRating,
+      communicationRating,
+      timelinessRating,
+      conditionRating
+    } = reviewData;
+
+    if (!rating || rating < 1 || rating > 5) {
+      throw new Error('Rating must be between 1 and 5');
+    }
+
+    // Check if order exists and user has permission
+    const orderCheck = await pool.query(
+      'SELECT customer_id, assigned_driver_id, status FROM orders WHERE id = $1',
+      [orderId]
+    );
+
+    if (orderCheck.rows.length === 0) {
+      throw new Error('Order not found');
+    }
+
+    const order = orderCheck.rows[0];
+    if (order.status !== 'delivered') {
+      throw new Error('Can only review delivered orders');
+    }
+
+    let reviewerIdFinal, revieweeId, revieweeRole;
+
+    if (reviewType === 'customer_to_driver') {
+      if (order.customer_id !== reviewerId) {
+        throw new Error('Unauthorized');
+      }
+      reviewerIdFinal = reviewerId;
+      revieweeId = order.assigned_driver_id;
+      revieweeRole = 'driver';
+    } else if (reviewType === 'driver_to_customer') {
+      if (order.assigned_driver_id !== reviewerId) {
+        throw new Error('Unauthorized');
+      }
+      reviewerIdFinal = reviewerId;
+      revieweeId = order.customer_id;
+      revieweeRole = 'customer';
+    } else if (reviewType.includes('_to_platform')) {
+      reviewerIdFinal = reviewerId;
+      revieweeId = null; // Platform reviews don't have a specific reviewee
+      revieweeRole = 'platform';
+    } else {
+      throw new Error('Invalid review type');
+    }
+
+    // Check if review already exists
+    const existingReview = await pool.query(
+      'SELECT id FROM reviews WHERE order_id = $1 AND reviewer_id = $2 AND review_type = $3',
+      [orderId, reviewerIdFinal, reviewType]
+    );
+
+    if (existingReview.rows.length > 0) {
+      throw new Error('Review already submitted for this order');
+    }
+
+    const reviewId = this.generateId();
+    await pool.query(
+      `INSERT INTO reviews (
+        id, order_id, reviewer_id, reviewee_id, review_type, rating,
+        comment, professionalism_rating, communication_rating,
+        timeliness_rating, condition_rating, created_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())`,
+      [
+        reviewId,
+        orderId,
+        reviewerIdFinal,
+        revieweeId,
+        reviewType,
+        rating,
+        this.sanitizeString(comment, 1000),
+        professionalismRating || null,
+        communicationRating || null,
+        timelinessRating || null,
+        conditionRating || null
+      ]
+    );
+
+    // Update user rating if reviewing a user (not platform)
+    if (revieweeId) {
+      const avgRating = await pool.query(
+        'SELECT AVG(rating) as avg_rating FROM reviews WHERE reviewee_id = $1',
+        [revieweeId]
+      );
+
+      if (avgRating.rows[0].avg_rating) {
+        await pool.query(
+          'UPDATE users SET rating = $1 WHERE id = $2',
+          [parseFloat(avgRating.rows[0].avg_rating), revieweeId]
+        );
+      }
+    }
+
+    logger.order('Review submitted successfully', {
+      reviewId,
+      orderId,
+      reviewType,
+      reviewerId: reviewerIdFinal,
+      revieweeId,
+      rating,
+      category: 'order'
+    });
+
+    return { message: 'Review submitted successfully' };
+  }
+
+  /**
+   * Get reviews for an order
+   */
+  async getOrderReviews(orderId) {
+    const reviews = await pool.query(
+      `SELECT
+        r.*,
+        ru.name as reviewer_name,
+        ru.role as reviewer_role,
+        re.name as reviewee_name,
+        re.role as reviewee_role
+      FROM reviews r
+      LEFT JOIN users ru ON r.reviewer_id = ru.id
+      LEFT JOIN users re ON r.reviewee_id = re.id
+      WHERE r.order_id = $1
+      ORDER BY r.created_at DESC`,
+      [orderId]
+    );
+
+    return reviews.rows.map(review => ({
+      id: review.id,
+      reviewerName: review.reviewer_name,
+      reviewerRole: review.reviewer_role,
+      revieweeName: review.reviewee_name,
+      revieweeRole: review.reviewee_role,
+      reviewType: review.review_type,
+      rating: review.rating,
+      comment: review.comment,
+      professionalismRating: review.professionalism_rating,
+      communicationRating: review.communication_rating,
+      timelinessRating: review.timeliness_rating,
+      conditionRating: review.condition_rating,
+      createdAt: review.created_at
+    }));
+  }
+}
+
+module.exports = new OrderService();
