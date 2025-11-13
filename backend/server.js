@@ -578,6 +578,15 @@ app.get('/api/health', async (req, res) => {
 });
 
 app.post('/api/auth/register', async (req, res) => {
+  const startTime = Date.now();
+  const clientIP = req.ip || req.connection.remoteAddress;
+
+  logger.auth(`Registration attempt`, {
+    ip: clientIP,
+    userAgent: req.get('User-Agent'),
+    category: 'auth'
+  });
+
   // Skip rate limiting in test mode
   if (!IS_TEST) {
     const rateLimited = await (async () => {
@@ -598,6 +607,11 @@ app.post('/api/auth/register', async (req, res) => {
       const validRequests = requests.filter(time => time > windowStart);
 
       if (validRequests.length >= 5) {
+        logger.security(`Rate limit exceeded for registration`, {
+          ip: clientIP,
+          attempts: validRequests.length,
+          category: 'security'
+        });
         return true; // Rate limited
       }
 
@@ -617,26 +631,64 @@ app.post('/api/auth/register', async (req, res) => {
 
     // Verify reCAPTCHA token only in production (skip for development/testing)
     if (IS_PRODUCTION && !(await verifyRecaptcha(recaptchaToken))) {
+      logger.security(`reCAPTCHA verification failed`, {
+        ip: clientIP,
+        email: email?.substring(0, 3) + '***', // Partial email for privacy
+        category: 'security'
+      });
       return res.status(400).json({ error: 'CAPTCHA verification failed' });
     }
 
     if (!name || !email || !password || !phone || !role || !country || !city || !area) {
+      logger.warn(`Registration validation failed: missing required fields`, {
+        ip: clientIP,
+        hasName: !!name,
+        hasEmail: !!email,
+        hasPassword: !!password,
+        hasPhone: !!phone,
+        hasRole: !!role,
+        hasCountry: !!country,
+        hasCity: !!city,
+        hasArea: !!area,
+        category: 'auth'
+      });
       return res.status(400).json({ error: 'All fields required: name, email, password, phone, role, country, city, and area' });
     }
 
     if (role === 'driver' && !vehicle_type) {
+      logger.warn(`Registration validation failed: missing vehicle type for driver`, {
+        ip: clientIP,
+        email: email?.substring(0, 3) + '***',
+        category: 'auth'
+      });
       return res.status(400).json({ error: 'Vehicle type is required for drivers' });
     }
 
     if (!validateEmail(email)) {
+      logger.warn(`Registration validation failed: invalid email format`, {
+        ip: clientIP,
+        email: email?.substring(0, 3) + '***',
+        category: 'auth'
+      });
       return res.status(400).json({ error: 'Invalid email format' });
     }
 
     if (!validatePassword(password)) {
+      logger.warn(`Registration validation failed: weak password`, {
+        ip: clientIP,
+        email: email?.substring(0, 3) + '***',
+        category: 'auth'
+      });
       return res.status(400).json({ error: 'Password must be at least 8 characters' });
     }
 
     if (!['customer', 'driver'].includes(role)) {
+      logger.warn(`Registration validation failed: invalid role`, {
+        ip: clientIP,
+        email: email?.substring(0, 3) + '***',
+        role,
+        category: 'auth'
+      });
       return res.status(400).json({ error: 'Invalid role' });
     }
 
@@ -646,6 +698,11 @@ app.post('/api/auth/register', async (req, res) => {
     );
 
     if (existingUser.rows.length > 0) {
+      logger.warn(`Registration failed: email already exists`, {
+        ip: clientIP,
+        email: email?.substring(0, 3) + '***',
+        category: 'auth'
+      });
       return res.status(400).json({ error: 'Email already registered' });
     }
 
@@ -667,11 +724,20 @@ app.post('/api/auth/register', async (req, res) => {
       { expiresIn: '30d' }
     );
 
-    logger.info(`User registered successfully`, {
+    const duration = Date.now() - startTime;
+    logger.auth(`User registered successfully`, {
       userId: user.id,
       email: user.email,
       role: user.role,
+      ip: clientIP,
+      duration: `${duration}ms`,
       category: 'auth'
+    });
+
+    logger.performance(`Registration completed`, {
+      userId: user.id,
+      duration: `${duration}ms`,
+      category: 'performance'
     });
 
     res.status(201).json({
@@ -690,26 +756,59 @@ app.post('/api/auth/register', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Registration error:', error);
+    const duration = Date.now() - startTime;
+    logger.error(`Registration error: ${error.message}`, {
+      stack: error.stack,
+      ip: clientIP,
+      email: req.body.email?.substring(0, 3) + '***',
+      duration: `${duration}ms`,
+      category: 'error'
+    });
     res.status(500).json({ error: 'Registration failed' });
   }
 });
 
 // Login
 app.post('/api/auth/login', async (req, res) => {
+  const startTime = Date.now();
+  const clientIP = req.ip || req.connection.remoteAddress;
+
+  logger.auth(`Login attempt`, {
+    ip: clientIP,
+    userAgent: req.get('User-Agent'),
+    email: req.body.email?.substring(0, 3) + '***', // Partial email for privacy
+    category: 'auth'
+  });
+
   try {
     const { email, password, recaptchaToken } = req.body;
 
     // Verify reCAPTCHA token only in production (skip for development/testing)
     if (IS_PRODUCTION && !(await verifyRecaptcha(recaptchaToken))) {
+      logger.security(`Login reCAPTCHA verification failed`, {
+        ip: clientIP,
+        email: email?.substring(0, 3) + '***',
+        category: 'security'
+      });
       return res.status(400).json({ error: 'CAPTCHA verification failed' });
     }
 
     if (!email || !password) {
+      logger.warn(`Login validation failed: missing credentials`, {
+        ip: clientIP,
+        hasEmail: !!email,
+        hasPassword: !!password,
+        category: 'auth'
+      });
       return res.status(400).json({ error: 'Email and password required' });
     }
 
     if (!validateEmail(email)) {
+      logger.warn(`Login validation failed: invalid email format`, {
+        ip: clientIP,
+        email: email?.substring(0, 3) + '***',
+        category: 'auth'
+      });
       return res.status(400).json({ error: 'Invalid email format' });
     }
 
@@ -719,14 +818,36 @@ app.post('/api/auth/login', async (req, res) => {
     );
 
     if (result.rows.length === 0) {
+      logger.security(`Login failed: user not found`, {
+        ip: clientIP,
+        email: email?.substring(0, 3) + '***',
+        category: 'security'
+      });
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
     const user = result.rows[0];
     const isPasswordValid = await bcrypt.compare(password, user.password);
-    
+
     if (!isPasswordValid) {
+      logger.security(`Login failed: invalid password`, {
+        ip: clientIP,
+        userId: user.id,
+        email: email?.substring(0, 3) + '***',
+        category: 'security'
+      });
       return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    // Check if user is available/suspended
+    if (!user.is_available) {
+      logger.security(`Login blocked: user suspended`, {
+        ip: clientIP,
+        userId: user.id,
+        email: email?.substring(0, 3) + '***',
+        category: 'security'
+      });
+      return res.status(401).json({ error: 'Account is suspended. Please contact support.' });
     }
 
     const token = jwt.sign(
@@ -735,12 +856,22 @@ app.post('/api/auth/login', async (req, res) => {
       { expiresIn: '30d' }
     );
 
-    logger.info(`User logged in successfully`, {
+    const duration = Date.now() - startTime;
+    logger.auth(`User logged in successfully`, {
       userId: user.id,
       email: user.email,
       role: user.role,
+      ip: clientIP,
+      duration: `${duration}ms`,
       category: 'auth'
     });
+
+    logger.performance(`Login completed`, {
+      userId: user.id,
+      duration: `${duration}ms`,
+      category: 'performance'
+    });
+
     res.json({
       message: 'Login successful',
       token,
@@ -757,7 +888,14 @@ app.post('/api/auth/login', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Login error:', error);
+    const duration = Date.now() - startTime;
+    logger.error(`Login error: ${error.message}`, {
+      stack: error.stack,
+      ip: clientIP,
+      email: req.body.email?.substring(0, 3) + '***',
+      duration: `${duration}ms`,
+      category: 'error'
+    });
     res.status(500).json({ error: 'Login failed' });
   }
 });
@@ -1018,6 +1156,15 @@ app.get('/api/users/:id/reviews/given', verifyToken, async (req, res) => {
 
 // Create Order (Updated for structured location data)
 app.post('/api/orders', verifyToken, async (req, res) => {
+  const startTime = Date.now();
+
+  logger.order(`Order creation attempt`, {
+    userId: req.user.userId,
+    userName: req.user.name,
+    ip: req.ip,
+    category: 'order'
+  });
+
   try {
     const {
       title, description, price,
@@ -1027,19 +1174,38 @@ app.post('/api/orders', verifyToken, async (req, res) => {
 
     // Validate required fields
     if (!title || !price) {
+      logger.warn(`Order creation validation failed: missing required fields`, {
+        userId: req.user.userId,
+        hasTitle: !!title,
+        hasPrice: !!price,
+        category: 'order'
+      });
       return res.status(400).json({ error: 'Title and price are required' });
     }
 
     if (parseFloat(price) <= 0) {
+      logger.warn(`Order creation validation failed: invalid price`, {
+        userId: req.user.userId,
+        price,
+        category: 'order'
+      });
       return res.status(400).json({ error: 'Price must be greater than 0' });
     }
 
     // Validate location data
     if (!pickupLocation || !pickupLocation.coordinates || !pickupLocation.address) {
+      logger.warn(`Order creation validation failed: invalid pickup location`, {
+        userId: req.user.userId,
+        category: 'order'
+      });
       return res.status(400).json({ error: 'Pickup location data is required' });
     }
 
     if (!dropoffLocation || !dropoffLocation.coordinates || !dropoffLocation.address) {
+      logger.warn(`Order creation validation failed: invalid dropoff location`, {
+        userId: req.user.userId,
+        category: 'order'
+      });
       return res.status(400).json({ error: 'Dropoff location data is required' });
     }
 
@@ -1093,12 +1259,24 @@ app.post('/api/orders', verifyToken, async (req, res) => {
     );
 
     const order = result.rows[0];
-    logger.info(`Order created`, {
+    const duration = Date.now() - startTime;
+
+    logger.order(`Order created successfully`, {
       orderId: order.id,
       orderNumber: order.order_number,
       title: order.title,
+      price: parseFloat(order.price),
       userId: req.user.userId,
+      userName: req.user.name,
+      duration: `${duration}ms`,
       category: 'order'
+    });
+
+    logger.performance(`Order creation completed`, {
+      orderId: order.id,
+      userId: req.user.userId,
+      duration: `${duration}ms`,
+      category: 'performance'
     });
 
     // Return order data in expected format
@@ -1136,7 +1314,14 @@ app.post('/api/orders', verifyToken, async (req, res) => {
       dropoffLocation: dropoffLocation
     });
   } catch (error) {
-    console.error('Create order error:', error);
+    const duration = Date.now() - startTime;
+    logger.error(`Order creation error: ${error.message}`, {
+      stack: error.stack,
+      userId: req.user.userId,
+      userName: req.user.name,
+      duration: `${duration}ms`,
+      category: 'error'
+    });
     res.status(500).json({ error: 'Failed to create order' });
   }
 });
@@ -1161,8 +1346,8 @@ app.get('/api/orders', verifyToken, async (req, res) => {
                  'driverCompletedDeliveries', u.completed_deliveries,
                  'driverIsVerified', u.is_verified,
                  'driverJoinedAt', u.created_at,
-                 'driverReviewCount', (SELECT COUNT(*) FROM reviews WHERE reviewee_id = u.id),
-                 'driverGivenReviewCount', (SELECT COUNT(*) FROM reviews WHERE reviewer_id = u.id)
+                 'driverReviewCount', 0,
+                 'driverGivenReviewCount', 0
                ) ORDER BY b.created_at DESC) FILTER (WHERE b.id IS NOT NULL), '[]') as bids,
                NULL as customerRating, NULL as customerCompletedOrders, NULL as customerIsVerified,
                NULL as customerJoinedAt, NULL as customerReviewCount, NULL as customerGivenReviewCount
@@ -1824,29 +2009,63 @@ app.put('/api/notifications/:id/read', verifyToken, async (req, res) => {
 
 // Submit review
 app.post('/api/orders/:id/review', verifyToken, async (req, res) => {
+  const startTime = Date.now();
   const client = await pool.connect();
+
+  logger.review(`Review submission attempt`, {
+    orderId: req.params.id,
+    userId: req.user.userId,
+    userName: req.user.name,
+    reviewType: req.body.reviewType,
+    rating: req.body.rating,
+    category: 'review'
+  });
+
   try {
     await client.query('BEGIN');
     const { reviewType, rating, comment, professionalismRating, communicationRating, timelinessRating, conditionRating } = req.body;
 
     if (!rating || rating < 1 || rating > 5) {
       await client.query('ROLLBACK');
+      logger.warn(`Review validation failed: invalid rating`, {
+        orderId: req.params.id,
+        userId: req.user.userId,
+        rating,
+        category: 'review'
+      });
       return res.status(400).json({ error: 'Rating must be between 1 and 5' });
     }
     if (!reviewType || !['customer_to_driver', 'driver_to_customer', 'customer_to_platform', 'driver_to_platform'].includes(reviewType)) {
       await client.query('ROLLBACK');
+      logger.warn(`Review validation failed: invalid review type`, {
+        orderId: req.params.id,
+        userId: req.user.userId,
+        reviewType,
+        category: 'review'
+      });
       return res.status(400).json({ error: 'Invalid review type' });
     }
 
     const orderResult = await client.query('SELECT * FROM orders WHERE id = $1', [req.params.id]);
     if (orderResult.rows.length === 0) {
       await client.query('ROLLBACK');
+      logger.warn(`Review submission failed: order not found`, {
+        orderId: req.params.id,
+        userId: req.user.userId,
+        category: 'review'
+      });
       return res.status(404).json({ error: 'Order not found' });
     }
 
     const order = orderResult.rows[0];
     if (order.status !== 'delivered') {
       await client.query('ROLLBACK');
+      logger.warn(`Review submission failed: order not delivered`, {
+        orderId: req.params.id,
+        orderStatus: order.status,
+        userId: req.user.userId,
+        category: 'review'
+      });
       return res.status(400).json({ error: 'Can only review completed orders' });
     }
 
@@ -1854,23 +2073,47 @@ app.post('/api/orders/:id/review', verifyToken, async (req, res) => {
     if (reviewType === 'customer_to_driver') {
       if (order.customer_id !== req.user.userId) {
         await client.query('ROLLBACK');
+        logger.security(`Review submission unauthorized: customer trying to review driver`, {
+          orderId: req.params.id,
+          userId: req.user.userId,
+          assignedDriverId: order.assigned_driver_user_id,
+          category: 'security'
+        });
         return res.status(403).json({ error: 'Only customer can review driver' });
       }
       revieweeId = order.assigned_driver_user_id;
     } else if (reviewType === 'driver_to_customer') {
       if (order.assigned_driver_user_id !== req.user.userId) {
         await client.query('ROLLBACK');
+        logger.security(`Review submission unauthorized: driver trying to review customer`, {
+          orderId: req.params.id,
+          userId: req.user.userId,
+          customerId: order.customer_id,
+          category: 'security'
+        });
         return res.status(403).json({ error: 'Only assigned driver can review customer' });
       }
       revieweeId = order.customer_id;
     } else if (reviewType === 'customer_to_platform') {
       if (order.customer_id !== req.user.userId) {
         await client.query('ROLLBACK');
+        logger.security(`Review submission unauthorized: non-customer trying to review platform`, {
+          orderId: req.params.id,
+          userId: req.user.userId,
+          customerId: order.customer_id,
+          category: 'security'
+        });
         return res.status(403).json({ error: 'Unauthorized' });
       }
     } else if (reviewType === 'driver_to_platform') {
       if (order.assigned_driver_user_id !== req.user.userId) {
         await client.query('ROLLBACK');
+        logger.security(`Review submission unauthorized: non-driver trying to review platform`, {
+          orderId: req.params.id,
+          userId: req.user.userId,
+          assignedDriverId: order.assigned_driver_user_id,
+          category: 'security'
+        });
         return res.status(403).json({ error: 'Unauthorized' });
       }
     }
@@ -1881,6 +2124,13 @@ app.post('/api/orders/:id/review', verifyToken, async (req, res) => {
     );
     if (existingReview.rows.length > 0) {
       await client.query('ROLLBACK');
+      logger.warn(`Review submission failed: review already exists`, {
+        orderId: req.params.id,
+        userId: req.user.userId,
+        reviewType,
+        existingReviewId: existingReview.rows[0].id,
+        category: 'review'
+      });
       return res.status(400).json({ error: 'Review already submitted' });
     }
 
@@ -1898,18 +2148,41 @@ app.post('/api/orders/:id/review', verifyToken, async (req, res) => {
     }
 
     await client.query('COMMIT');
-    logger.info(`Review submitted`, {
+
+    const duration = Date.now() - startTime;
+    logger.review(`Review submitted successfully`, {
+      reviewId: reviewResult.rows[0].id,
       orderId: req.params.id,
       orderNumber: order.order_number,
       reviewType,
+      rating,
       reviewerId: req.user.userId,
       reviewerName: req.user.name,
+      revieweeId,
+      duration: `${duration}ms`,
       category: 'review'
     });
+
+    logger.performance(`Review submission completed`, {
+      reviewId: reviewResult.rows[0].id,
+      orderId: req.params.id,
+      duration: `${duration}ms`,
+      category: 'performance'
+    });
+
     res.status(201).json({ message: 'Review submitted successfully', review: { id: reviewResult.rows[0].id, reviewType, rating, createdAt: reviewResult.rows[0].created_at } });
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error('Submit review error:', error);
+    const duration = Date.now() - startTime;
+    logger.error(`Review submission error: ${error.message}`, {
+      stack: error.stack,
+      orderId: req.params.id,
+      userId: req.user.userId,
+      reviewType: req.body.reviewType,
+      rating: req.body.rating,
+      duration: `${duration}ms`,
+      category: 'error'
+    });
     res.status(500).json({ error: 'Failed to submit review' });
   } finally {
     client.release();
@@ -1983,13 +2256,27 @@ app.get('/api/orders/:id/review-status', verifyToken, async (req, res) => {
 
 // Process COD payment (mark as payment received)
 app.post('/api/orders/:id/payment/cod', verifyToken, async (req, res) => {
+  const startTime = Date.now();
   const client = await pool.connect();
+
+  logger.payment(`COD payment confirmation attempt`, {
+    orderId: req.params.id,
+    userId: req.user.userId,
+    userName: req.user.name,
+    category: 'payment'
+  });
+
   try {
     await client.query('BEGIN');
 
     const orderResult = await client.query('SELECT * FROM orders WHERE id = $1', [req.params.id]);
     if (orderResult.rows.length === 0) {
       await client.query('ROLLBACK');
+      logger.warn(`COD payment failed: order not found`, {
+        orderId: req.params.id,
+        userId: req.user.userId,
+        category: 'payment'
+      });
       return res.status(404).json({ error: 'Order not found' });
     }
 
@@ -1998,11 +2285,23 @@ app.post('/api/orders/:id/payment/cod', verifyToken, async (req, res) => {
     // Only the assigned driver can confirm COD payment on delivery
     if (order.assigned_driver_user_id !== req.user.userId) {
       await client.query('ROLLBACK');
+      logger.security(`COD payment unauthorized attempt`, {
+        orderId: req.params.id,
+        userId: req.user.userId,
+        assignedDriverId: order.assigned_driver_user_id,
+        category: 'security'
+      });
       return res.status(403).json({ error: 'Only assigned driver can confirm payment' });
     }
 
     if (order.status !== 'delivered') {
       await client.query('ROLLBACK');
+      logger.warn(`COD payment failed: order not delivered`, {
+        orderId: req.params.id,
+        orderStatus: order.status,
+        userId: req.user.userId,
+        category: 'payment'
+      });
       return res.status(400).json({ error: 'Order must be delivered before payment can be confirmed' });
     }
 
@@ -2010,6 +2309,12 @@ app.post('/api/orders/:id/payment/cod', verifyToken, async (req, res) => {
     const existingPayment = await client.query('SELECT * FROM payments WHERE order_id = $1', [req.params.id]);
     if (existingPayment.rows.length > 0) {
       await client.query('ROLLBACK');
+      logger.warn(`COD payment failed: payment already exists`, {
+        orderId: req.params.id,
+        existingPaymentId: existingPayment.rows[0].id,
+        userId: req.user.userId,
+        category: 'payment'
+      });
       return res.status(400).json({ error: 'Payment already recorded' });
     }
 
@@ -2028,13 +2333,28 @@ app.post('/api/orders/:id/payment/cod', verifyToken, async (req, res) => {
 
     await client.query('COMMIT');
 
-    logger.info(`COD payment confirmed`, {
+    const duration = Date.now() - startTime;
+    logger.payment(`COD payment confirmed successfully`, {
+      paymentId,
       orderId: req.params.id,
       orderNumber: order.order_number,
       amount: totalAmount,
-      driverId: req.user.userId,
+      driverEarnings,
+      platformFee,
+      userId: req.user.userId,
+      userName: req.user.name,
+      duration: `${duration}ms`,
       category: 'payment'
     });
+
+    logger.performance(`COD payment processing completed`, {
+      paymentId,
+      orderId: req.params.id,
+      amount: totalAmount,
+      duration: `${duration}ms`,
+      category: 'performance'
+    });
+
     res.json({
       message: 'COD payment confirmed successfully',
       payment: {
@@ -2048,7 +2368,14 @@ app.post('/api/orders/:id/payment/cod', verifyToken, async (req, res) => {
 
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error('COD payment error:', error);
+    const duration = Date.now() - startTime;
+    logger.error(`COD payment error: ${error.message}`, {
+      stack: error.stack,
+      orderId: req.params.id,
+      userId: req.user.userId,
+      duration: `${duration}ms`,
+      category: 'error'
+    });
     res.status(500).json({ error: 'Failed to confirm COD payment' });
   } finally {
     client.release();
