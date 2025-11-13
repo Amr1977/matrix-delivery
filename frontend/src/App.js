@@ -3936,9 +3936,6 @@ const getDriverViewTitle = (viewType) => {
               <p style={{ margin: 0, fontSize: '0.625rem' }}>
                 Server uptime: {footerStats ? `${Math.floor(footerStats.serverUptime / 3600)}h ${Math.floor((footerStats.serverUptime % 3600) / 60)}m` : 'Unknown'}
               </p>
-              <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.625rem' }}>
-                Commit: 0cc5c8d | {new Date().toLocaleDateString()}
-              </p>
             </div>
           </div>
         </div>
