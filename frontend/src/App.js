@@ -10,6 +10,8 @@ import io from 'socket.io-client';
 import { useForm } from 'react-hook-form';
 import LanguageSwitcher from './LanguageSwitcher';
 import AdminPanel from './AdminPanel';
+import logger from './logger';
+import ErrorBoundary from './ErrorBoundary';
 import './Mobile.css';
 import './MatrixTheme.css';
 
@@ -57,7 +59,16 @@ const OrderCreationForm = React.memo(({ onSubmit, countries, t }) => {
   });
 
   const onFormSubmit = async (data) => {
+    const startTime = Date.now();
     setInternalLoading(true);
+
+    logger.user('Order creation form submitted', {
+      hasTitle: !!data.title,
+      hasPrice: !!data.price,
+      pickupCountry: data.pickup_country,
+      dropoffCountry: data.dropoff_country
+    });
+
     try {
       // Transform the flat form data into the nested structure expected by the API
       const orderData = {
@@ -88,6 +99,19 @@ const OrderCreationForm = React.memo(({ onSubmit, countries, t }) => {
       };
 
       await onSubmitRef.current(orderData);
+
+      const duration = Date.now() - startTime;
+      logger.performance('Order form submission', duration, {
+        success: true,
+        price: orderData.price
+      });
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      logger.performance('Order form submission', duration, {
+        success: false,
+        error: error.message
+      });
+      throw error; // Re-throw to let parent handle
     } finally {
       setInternalLoading(false);
     }
@@ -1965,22 +1989,29 @@ const getDriverViewTitle = (viewType) => {
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    logger.user('Registration attempt', { role: authForm.role });
+
     if (!authForm.name || !authForm.email || !authForm.password || !authForm.phone || !authForm.country || !authForm.city) {
+      logger.warn('Registration validation failed: missing required fields');
       setError('All required fields must be filled');
       return;
     }
     if (authForm.role === 'driver' && !authForm.vehicle_type) {
+      logger.warn('Registration validation failed: missing vehicle type for driver');
       setError('Vehicle type is required for drivers');
       return;
     }
 
     const recaptchaToken = process.env.REACT_APP_RECAPTCHA_SITE_KEY ? registerCaptchaRef.current?.getValue() : null;
     if (process.env.REACT_APP_RECAPTCHA_SITE_KEY && !recaptchaToken) {
+      logger.warn('Registration validation failed: missing captcha');
       setError('Please complete the captcha');
       return;
     }
 
     setLoading(true);
+    const startTime = Date.now();
+
     try {
       const response = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
@@ -1991,8 +2022,14 @@ const getDriverViewTitle = (viewType) => {
         })
       });
 
+      const duration = Date.now() - startTime;
+
       if (!response.ok) {
         const data = await response.json();
+        logger.error('Registration failed', {
+          error: data.error || 'Registration failed',
+          duration: `${duration}ms`
+        });
         throw new Error(data.error || 'Registration failed');
       }
 
@@ -2002,6 +2039,12 @@ const getDriverViewTitle = (viewType) => {
       setCurrentUser(data.user);
       setAuthForm({ name: '', email: '', password: '', phone: '', role: 'customer', vehicle_type: '', country: '', city: '', area: '' });
       setError('');
+
+      logger.user('Registration successful', {
+        userId: data.user.id,
+        role: data.user.role,
+        duration: `${duration}ms`
+      });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -3803,4 +3846,10 @@ const getDriverViewTitle = (viewType) => {
   );
 };
 
-export default DeliveryApp;
+const AppWithErrorBoundary = () => (
+  <ErrorBoundary>
+    <DeliveryApp />
+  </ErrorBoundary>
+);
+
+export default AppWithErrorBoundary;
