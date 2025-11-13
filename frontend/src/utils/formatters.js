@@ -1,0 +1,66 @@
+export const formatCurrency = (amount, currency = 'USD') => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: currency,
+  }).format(amount);
+};
+
+export const formatDate = (dateString) => {
+  return new Date(dateString).toLocaleDateString();
+};
+
+export const formatDateTime = (dateString) => {
+  return new Date(dateString).toLocaleString();
+};
+
+export const formatRelativeTime = (dateString) => {
+  const now = new Date();
+  const date = new Date(dateString);
+  const diffInSeconds = Math.floor((now - date) / 1000);
+
+  if (diffInSeconds < 60) return 'Just now';
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+  if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
+
+  return formatDate(dateString);
+};
+
+export const getStatusColor = (status) => {
+  const colors = {
+    'pending_bids': { bg: '#FEF3C7', text: '#92400E' },
+    'accepted': { bg: '#DBEAFE', text: '#1E40AF' },
+    'picked_up': { bg: '#E0E7FF', text: '#3730A3' },
+    'in_transit': { bg: '#FCE7F3', text: '#831843' },
+    'delivered': { bg: '#D1FAE5', text: '#065F46' },
+    'cancelled': { bg: '#FEE2E2', text: '#991B1B' }
+  };
+  return colors[status] || { bg: '#F3F4F6', text: '#374151' };
+};
+
+export const getStatusLabel = (status, t) => {
+  const statusKeyMap = {
+    'pending_bids': 'status.pendingBids',
+    'accepted': 'status.accepted',
+    'picked_up': 'status.pickedUp',
+    'in_transit': 'status.inTransit',
+    'delivered': 'status.delivered',
+    'cancelled': 'status.cancelled'
+  };
+  const translationKey = statusKeyMap[status];
+  return translationKey ? t(translationKey) : status;
+};
+
+export const extractCityFromAddress = (address) => {
+  if (!address) return '';
+  const parts = address.split(',').map(part => part.trim());
+  if (parts.length >= 2) {
+    return parts[parts.length - 2] || '';
+  }
+  return '';
+};
+
+export const truncateText = (text, maxLength = 100) => {
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength) + '...';
+};

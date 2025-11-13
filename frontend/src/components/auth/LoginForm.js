@@ -1,0 +1,74 @@
+import React, { useState } from 'react';
+import ReCAPTCHA from 'react-google-recaptcha';
+import { useI18n } from '../../i18n/i18nContext';
+
+const LoginForm = ({ onSubmit, loading, error, t }) => {
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [captchaRef, setCaptchaRef] = useState(null);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.email || !formData.password) {
+      return;
+    }
+
+    const recaptchaToken = process.env.REACT_APP_RECAPTCHA_SITE_KEY && captchaRef?.getValue();
+    if (process.env.REACT_APP_RECAPTCHA_SITE_KEY && !recaptchaToken) {
+      return;
+    }
+
+    await onSubmit({
+      ...formData,
+      recaptchaToken
+    });
+  };
+
+  return (
+    <>
+      <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1F2937' }}>{t('auth.signIn')}</h2>
+      <input
+        type="email"
+        placeholder={t('auth.email')}
+        value={formData.email}
+        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+        style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
+      />
+      <div style={{ position: 'relative' }}>
+        <input
+          type={showPassword ? 'text' : 'password'}
+          placeholder={t('auth.password')}
+          value={formData.password}
+          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+          style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
+        />
+        <button
+          onClick={() => setShowPassword(!showPassword)}
+          style={{ position: 'absolute', right: '0.75rem', top: '0.75rem', background: 'none', border: 'none', color: '#6B7280', cursor: 'pointer' }}
+        >
+          {showPassword ? '👁️' : '👁️‍🗨️'}
+        </button>
+      </div>
+      {process.env.REACT_APP_RECAPTCHA_SITE_KEY && (
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem' }}>
+          <ReCAPTCHA
+            ref={(ref) => setCaptchaRef(ref)}
+            sitekey={process.env.REACT_APP_RECAPTCHA_SITE_KEY}
+          />
+        </div>
+      )}
+      <button
+        onClick={handleSubmit}
+        disabled={loading}
+        style={{ width: '100%', background: '#4F46E5', color: 'white', padding: '0.5rem', borderRadius: '0.5rem', fontWeight: '600', border: 'none', cursor: 'pointer', opacity: loading ? 0.5 : 1 }}
+      >
+        {loading ? t('auth.loading') : t('auth.login')}
+      </button>
+    </>
+  );
+};
+
+export default LoginForm;
