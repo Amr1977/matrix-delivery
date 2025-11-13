@@ -847,6 +847,8 @@ const LocationMarker = React.memo(({ selectedPosition, setSelectedPosition, t })
   const [userReviewsType, setUserReviewsType] = useState('');
   const [showLiveTracking, setShowLiveTracking] = useState(false);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [footerStats, setFooterStats] = useState(null);
+  const [footerStatsLoading, setFooterStatsLoading] = useState(false);
 
 // Add viewport meta tag if not present
 useEffect(() => {
@@ -1094,6 +1096,29 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
       };
     }
   }, [token, currentUser]);
+
+  // Fetch footer statistics
+  useEffect(() => {
+    const fetchFooterStats = async () => {
+      try {
+        const response = await fetch(`${API_URL}/footer/stats`);
+        if (response.ok) {
+          const data = await response.json();
+          setFooterStats(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch footer stats:', error);
+      } finally {
+        setFooterStatsLoading(false);
+      }
+    };
+
+    fetchFooterStats();
+
+    // Refresh stats every 5 minutes
+    const interval = setInterval(fetchFooterStats, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [API_URL]);
 
   // ============ END OF PART 1 ============
   // Continue with Part 2 for API Functions
@@ -3829,17 +3854,93 @@ const getDriverViewTitle = (viewType) => {
       )}
 
       <footer style={{
-        padding: '1rem',
-        textAlign: 'center',
+        padding: '1.5rem 1rem',
         fontSize: '0.75rem',
         color: '#6B7280',
         borderTop: '1px solid #E5E7EB',
         background: '#F9FAFB'
       }}>
         <div style={{ maxWidth: '80rem', margin: '0 auto' }}>
-          <p style={{ margin: 0 }}>
-            Matrix Delivery v1.0.0 | Commit: 0cc5c8d | {new Date().toLocaleDateString()}
-          </p>
+          {/* System Status Bar */}
+          {footerStats && (
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: mobileView ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
+              gap: '1rem',
+              marginBottom: '1rem',
+              padding: '1rem',
+              background: 'white',
+              borderRadius: '0.5rem',
+              boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)'
+            }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>👥</div>
+                <div style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>
+                  {footerStats.usersByRole?.customer || 0} Customers
+                </div>
+                <div style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>
+                  {footerStats.usersByRole?.driver || 0} Drivers
+                </div>
+              </div>
+
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>📦</div>
+                <div style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>
+                  {footerStats.activeOrders || 0} Active Orders
+                </div>
+                <div style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>
+                  {footerStats.pendingOrders || 0} Pending Bids
+                </div>
+              </div>
+
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>💰</div>
+                <div style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>
+                  ${footerStats.totalRevenue?.toFixed(2) || '0.00'} Revenue
+                </div>
+                <div style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>
+                  ⭐ {footerStats.avgRating || '0.0'} Rating
+                </div>
+              </div>
+
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>🚚</div>
+                <div style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>
+                  {footerStats.activeDrivers || 0} Active Drivers
+                </div>
+                <div style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>
+                  {footerStats.todayOrders || 0} Orders Today
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Footer Links and Info */}
+          <div style={{
+            display: 'flex',
+            flexDirection: mobileView ? 'column' : 'row',
+            justifyContent: 'space-between',
+            alignItems: mobileView ? 'center' : 'center',
+            gap: '1rem'
+          }}>
+            <div style={{ textAlign: mobileView ? 'center' : 'left' }}>
+              <p style={{ margin: 0, fontWeight: '600', color: '#374151' }}>
+                Matrix Delivery v1.0.0
+              </p>
+              <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.625rem' }}>
+                Last deployment: {footerStats ? new Date(footerStats.deploymentTimestamp).toLocaleString() : 'Unknown'}
+              </p>
+            </div>
+
+            <div style={{ textAlign: mobileView ? 'center' : 'right' }}>
+              <p style={{ margin: 0, fontSize: '0.625rem' }}>
+                Server uptime: {footerStats ? `${Math.floor(footerStats.serverUptime / 3600)}h ${Math.floor((footerStats.serverUptime % 3600) / 60)}m` : 'Unknown'}
+              </p>
+              <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.625rem' }}>
+                Commit: 0cc5c8d | {new Date().toLocaleDateString()}
+              </p>
+            </div>
+          </div>
         </div>
       </footer>
     </div>
