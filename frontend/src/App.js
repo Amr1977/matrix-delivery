@@ -871,6 +871,7 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
   const [locationLoading, setLocationLoading] = useState(false);
   const [selectedPickupMarker, setSelectedPickupMarker] = useState(null);
   const [selectedDropoffMarker, setSelectedDropoffMarker] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(!!token);
 
   // Cascading dropdown state
   const [countries, setCountries] = useState([]);
@@ -1014,6 +1015,11 @@ const getButtonText = (fullText, shortText) => mobileView ? shortText : fullText
       return () => clearInterval(interval);
     }
   }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Update authentication state when token changes
+  useEffect(() => {
+    setIsAuthenticated(!!token);
+  }, [token]);
 
   // Driver location effect
   useEffect(() => {
@@ -1575,51 +1581,62 @@ const getDriverViewTitle = (viewType) => {
       async (position) => {
         const { latitude, longitude } = position.coords;
 
-        try {
-          const response = await fetch(`${API_URL}/location/current`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ latitude, longitude })
-          });
+        // Only try to get location details from API if user is authenticated
+        if (isAuthenticated && token) {
+          try {
+            const response = await fetch(`${API_URL}/location/current`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({ latitude, longitude })
+            });
 
-          if (!response.ok) throw new Error('Failed to get location details');
+            if (!response.ok) throw new Error('Failed to get location details');
 
-          const data = await response.json();
-          setCurrentLocation(data);
-          setLocationPermission('granted');
+            const data = await response.json();
+            setCurrentLocation(data);
+            setLocationPermission('granted');
 
-          // Pre-fill pickup location with current location
-          setFormData(prev => ({
-            ...prev,
-            pickupLocation: {
-              coordinates: data.coordinates,
-              address: {
-                ...data.address,
-                personName: currentUser?.name || '',
-                buildingNumber: '',
-                floor: '',
-                apartmentNumber: ''
+            // Pre-fill pickup location with current location
+            setFormData(prev => ({
+              ...prev,
+              pickupLocation: {
+                coordinates: data.coordinates,
+                address: {
+                  ...data.address,
+                  personName: currentUser?.name || '',
+                  buildingNumber: '',
+                  floor: '',
+                  apartmentNumber: ''
+                }
               }
+            }));
+
+            // Load cities for the detected country
+            if (data.address.country) {
+              loadCities('pickup', data.address.country);
             }
-          }));
 
-          // Load cities for the detected country
-          if (data.address.country) {
-            loadCities('pickup', data.address.country);
+          } catch (error) {
+            console.error('Location details error:', error);
+            setCurrentLocation({
+              coordinates: { lat: latitude, lng: longitude },
+              address: { country: '', city: '', area: '', street: '' }
+            });
           }
-
-        } catch (error) {
-          console.error('Location details error:', error);
+        } else {
+          // User not authenticated, just set coordinates without API call
+          console.log('User not authenticated, skipping location API call');
           setCurrentLocation({
             coordinates: { lat: latitude, lng: longitude },
             address: { country: '', city: '', area: '', street: '' }
           });
-        } finally {
-          setLocationLoading(false);
+          setLocationPermission('granted');
         }
+
+        setLocationLoading(false);
       },
       (error) => {
         console.error('Geolocation error:', error);
