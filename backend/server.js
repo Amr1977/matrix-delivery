@@ -1112,7 +1112,9 @@ app.get('/api/orders', verifyToken, async (req, res) => {
                  'driverJoinedAt', u.created_at,
                  'driverReviewCount', (SELECT COUNT(*) FROM reviews WHERE reviewee_id = u.id),
                  'driverGivenReviewCount', (SELECT COUNT(*) FROM reviews WHERE reviewer_id = u.id)
-               ) ORDER BY b.created_at DESC) FILTER (WHERE b.id IS NOT NULL), '[]') as bids
+               ) ORDER BY b.created_at DESC) FILTER (WHERE b.id IS NOT NULL), '[]') as bids,
+               NULL as customerRating, NULL as customerCompletedOrders, NULL as customerIsVerified,
+               NULL as customerJoinedAt, NULL as customerReviewCount, NULL as customerGivenReviewCount
                FROM orders o
                LEFT JOIN bids b ON o.id = b.order_id
                LEFT JOIN users u ON b.user_id = u.id
