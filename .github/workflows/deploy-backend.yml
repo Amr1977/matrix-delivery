@@ -50,7 +50,7 @@ jobs:
           cd ${{ secrets.PROJECT_PATH }}
 
           # Backup current .env
-          cp .env .env.backup.$(date +%Y%m%d_%H%M%S)
+          cp .env .env.backup.$(date +%Y%m%d_%H%M%S) 2>/dev/null || true
 
           # Pull latest changes
           git pull origin main
@@ -58,15 +58,25 @@ jobs:
           # Install dependencies
           npm ci --production
 
-          # Restart service
-          pm2 restart ecosystem.config.js
+          # Stop existing service gracefully
+          pm2 stop ecosystem.config.js 2>/dev/null || true
+          pm2 delete ecosystem.config.js 2>/dev/null || true
+
+          # Start service with PM2
+          pm2 start ecosystem.config.js --env production
           pm2 save
 
-          # Health check
-          sleep 10
-          if curl -f https://matrix-api.oldantique50.com/api/health; then
-            echo "✅ Deployment successful!"
-          else
-            echo "❌ Health check failed!"
-            exit 1
-          fi
+          # Health check with retry
+          echo "Waiting for service to start..."
+          for i in {1..6}; do
+            if curl -f -s https://matrix-api.oldantique50.com/api/health > /dev/null; then
+              echo "✅ Deployment successful!"
+              exit 0
+            fi
+            echo "Health check attempt $i failed, retrying in 10 seconds..."
+            sleep 10
+          done
+
+          echo "❌ Health check failed after 6 attempts!"
+          pm2 logs --lines 20
+          exit 1
