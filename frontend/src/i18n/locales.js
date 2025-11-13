@@ -99,7 +99,7 @@ const translations = {
       // Additional missing keys
       clearFilter: 'Clear Filter',
       allCities: 'All Cities',
-      filterByCity: 'Filter by City:',
+      filterByCity: 'Filter by City',
       noActiveOrders: 'No active orders found',
       noAvailableBids: 'No available bids',
       noOrderHistory: 'No order history',
@@ -148,7 +148,7 @@ const translations = {
       updating: 'Updating...',
       completing: 'Completing...',
       distanceFromPickup: 'Distance from pickup',
-      filterByCity: 'Filter by City:',
+      filterByCity: 'Filter by City',
       allCities: 'All Cities',
       clearFilter: 'Clear Filter',
       noActiveOrders: 'No active orders found',
