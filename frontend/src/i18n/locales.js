@@ -415,7 +415,7 @@ const translations = {
       updating: 'جارٍ التحديث...',
       completing: 'جارٍ الإكمال...',
       distanceFromPickup: 'المسافة من موقع الاستلام',
-      filterByCity: 'تصفية حسب المدينة:',
+      filterByCity: 'تصفية حسب المدينة',
       allCities: 'جميع المدن',
       clearFilter: 'مسح التصفية',
       noActiveOrders: 'لا توجد طلبات نشطة',
