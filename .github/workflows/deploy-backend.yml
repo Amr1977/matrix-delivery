@@ -56,6 +56,14 @@ jobs:
           # Install dependencies
           npm ci --production
 
+          # Run database health check
+          echo "🔍 Running database health check..."
+          ENV_FILE=.env.production node check-db-health.js
+
+          # Run startup diagnostics
+          echo "🔍 Running startup diagnostics..."
+          ENV_FILE=.env.production node diagnose-startup.js
+
           # Stop existing service gracefully
           pm2 stop ecosystem.config.js 2>/dev/null || true
           pm2 delete ecosystem.config.js 2>/dev/null || true
@@ -63,6 +71,12 @@ jobs:
           # Start service with PM2
           pm2 start ecosystem.config.js --env production
           pm2 save
+
+          # Wait a moment for service to initialize
+          sleep 5
+
+          # Check PM2 status
+          pm2 status
 
           # Health check with retry
           echo "Waiting for service to start..."
@@ -76,5 +90,11 @@ jobs:
           done
 
           echo "❌ Health check failed after 6 attempts!"
+          echo "📋 PM2 status:"
+          pm2 status
+          echo "📋 PM2 logs:"
           pm2 logs --lines 20
+          echo "📋 Recent server logs:"
+          tail -20 logs/pm2-out.log 2>/dev/null || echo "No out logs found"
+          tail -20 logs/pm2-error.log 2>/dev/null || echo "No error logs found"
           exit 1

@@ -38,6 +38,10 @@ module.exports = {
     autorestart: true,
     watch: false,
     max_restarts: 10,
-    min_uptime: '10s'
+    min_uptime: '30s',
+    restart_delay: 5000,
+    kill_timeout: 30000,
+    wait_ready: true,
+    listen_timeout: 30000
   }]
 };
