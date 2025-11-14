@@ -10,6 +10,8 @@ import LiveTrackingMap from './components/maps/LiveTrackingMap';
 import NotificationPanel from './components/notifications/NotificationPanel';
 import ReviewModal from './components/reviews/ReviewModal';
 import useAuth from './hooks/useAuth';
+import useNotifications from './hooks/useNotifications';
+import useDriver from './hooks/useDriver';
 import useOrders from './hooks/useOrders';
 import { apiRequest } from './utils/api';
 import { getAvailableCities, extractCityFromAddress } from './utils/formatters';
@@ -20,10 +22,30 @@ import './MatrixTheme.css';
 const DeliveryApp = () => {
   const { t, locale, direction, changeLocale } = useI18n();
 
-  // Auth state
-  const [token, setToken] = useState(localStorage.getItem('token') || null);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [authState, setAuthState] = useState('login');
+  // Use custom hooks
+  const auth = useAuth();
+  const ordersHook = useOrders(auth.token);
+  const notificationsHook = useNotifications(auth.token, auth.currentUser);
+  const driver = useDriver(auth.token, auth.currentUser);
+
+  // Countries and footer stats
+  const [countries] = useState(['Egypt', 'Saudi Arabia', 'UAE', 'Jordan', 'Lebanon', 'Kuwait', 'Qatar', 'Bahrain', 'Oman', 'Morocco', 'Tunisia', 'Algeria', 'Libya', 'Sudan', 'Yemen', 'Iraq', 'Syria', 'Palestine']);
+  const [footerStats, setFooterStats] = useState(null);
+
+  // Loading states
+  const [loadingStates, setLoadingStates] = useState({
+    userFetch: false,
+    ordersFetch: false,
+    notificationsFetch: false,
+    createOrder: false,
+    placeBid: false,
+    acceptBid: false,
+    pickupOrder: false,
+    updateInTransit: false,
+    completeOrder: false,
+    submitReview: false,
+    trackOrder: false
+  });
 
   // UI state
   const [showOrderForm, setShowOrderForm] = useState(false);
@@ -31,16 +53,30 @@ const DeliveryApp = () => {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
+  const [showReviewsModal, setShowReviewsModal] = useState(false);
+  const [showUserReviewsModal, setShowUserReviewsModal] = useState(false);
   const [showLiveTracking, setShowLiveTracking] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [reviewOrderId, setReviewOrderId] = useState(null);
+  const [reviewType, setReviewType] = useState('');
+  const [userReviews, setUserReviews] = useState([]);
+  const [userReviewsType, setUserReviewsType] = useState('');
+  const [reviewStatus, setReviewStatus] = useState(null);
+  const [orderReviews, setOrderReviews] = useState([]);
 
-  // Data state
-  const [orders, setOrders] = useState([]);
-  const [notifications, setNotifications] = useState([]);
-  const [countries, setCountries] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+  // Bid state
+  const [bidInput, setBidInput] = useState({});
+  const [bidDetails, setBidDetails] = useState({});
+
+  // Review form state
+  const [reviewForm, setReviewForm] = useState({
+    rating: 0,
+    comment: '',
+    professionalismRating: 0,
+    communicationRating: 0,
+    timelinessRating: 0,
+    conditionRating: 0
+  });
 
   // Mobile responsiveness
   const [mobileView, setMobileView] = useState(window.innerWidth <= 768);
@@ -62,19 +98,6 @@ const DeliveryApp = () => {
     metaTag.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
   }, []);
 
-  // Authentication effects
-  useEffect(() => {
-    if (token) {
-      fetchCurrentUser();
-      fetchNotifications();
-      const interval = setInterval(() => {
-        fetchOrders();
-        fetchNotifications();
-      }, 60000);
-      return () => clearInterval(interval);
-    }
-  }, [token]);
-
   // Mobile menu handler
   const toggleMobileMenu = () => {
     setShowMobileMenu(!showMobileMenu);
@@ -91,87 +114,75 @@ const DeliveryApp = () => {
     };
   }, [showMobileMenu]);
 
-  // API Functions
-  const fetchCurrentUser = async () => {
-    try {
-      const response = await apiRequest('/auth/me');
-      setCurrentUser(response);
-      setError('');
-      fetchOrders();
-    } catch (err) {
-      console.error('fetchCurrentUser error:', err);
-      if (err.message.includes('401') || err.message.includes('403')) {
-        logout();
-      } else {
-        setError('Connection issue: Failed to get user data');
+  // Footer stats fetch
+  useEffect(() => {
+    const fetchFooterStats = async () => {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api'}/footer/stats`);
+        if (response.ok) {
+          const data = await response.json();
+          setFooterStats(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch footer stats:', error);
       }
-    }
+    };
+
+    fetchFooterStats();
+    const interval = setInterval(fetchFooterStats, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Helper functions
+  const setLoadingState = (key, value) => {
+    setLoadingStates(prev => ({ ...prev, [key]: value }));
   };
 
-  const fetchOrders = async () => {
-    try {
-      const data = await apiRequest('/orders');
-      setOrders(data);
-    } catch (err) {
-      console.error('fetchOrders error:', err);
-    }
+  // Enhanced UX Helper Functions
+  const showSuccess = (message) => {
+    auth.setError && auth.setError('');
+    // TODO: Implement success message display
   };
 
-  const fetchNotifications = async () => {
+  // Order creation handler
+  const handlePublishOrder = useCallback(async (orderData) => {
+    setLoadingState('createOrder', true);
     try {
-      const data = await apiRequest('/notifications');
-      setNotifications(data);
-    } catch (err) {
-      console.error('fetchNotifications error:', err);
-    }
-  };
-
-  const handlePublishOrder = async (orderData) => {
-    setLoading(true);
-    try {
-      await apiRequest('/orders', 'POST', orderData);
+      await ordersHook.createOrder(orderData);
       setShowOrderForm(false);
-      setTimeout(() => fetchOrders(), 500);
-      setSuccessMessage('Order published successfully!');
-      setTimeout(() => setSuccessMessage(''), 5000);
+      setTimeout(() => ordersHook.fetchOrders(), 500);
+      showSuccess('Order published successfully! Waiting for drivers in your area.');
     } catch (err) {
-      setError(err.message);
+      auth.setError && auth.setError(err.message);
     } finally {
-      setLoading(false);
+      setLoadingState('createOrder', false);
     }
-  };
-
-  const logout = () => {
-    localStorage.removeItem('token');
-    setToken(null);
-    setCurrentUser(null);
-    setOrders([]);
-    setNotifications([]);
-    setAuthState('login');
-    setError('');
-  };
+  }, [ordersHook, showSuccess]);
 
   // If not authenticated, show auth screen
-  if (!token) {
+  if (!auth.token) {
     return (
       <div style={{ minHeight: '100vh', background: '#090909', display: 'flex', flexDirection: 'column' }}>
         <div style={{ position: 'absolute', top: '1rem', right: '1rem' }}>
           <LanguageSwitcher locale={locale} changeLocale={changeLocale} />
         </div>
         <AuthScreen
-          authState={authState}
-          setAuthState={setAuthState}
-          setToken={setToken}
-          setCurrentUser={setCurrentUser}
-          setError={setError}
-          error={error}
+          authForm={auth.authForm}
+          setAuthForm={auth.setAuthForm}
+          authState={auth.authState}
+          setAuthState={auth.setAuthState}
+          handleLogin={auth.handleLogin}
+          handleRegister={auth.handleRegister}
+          error={auth.error}
+          setError={auth.setError}
+          loading={auth.loading}
           t={t}
         />
       </div>
     );
   }
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const unreadCount = notificationsHook.notifications.filter(n => !n.isRead).length;
 
   return (
     <div style={{ minHeight: '100vh', background: '#090909' }}>
@@ -194,7 +205,7 @@ const DeliveryApp = () => {
               {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
             </button>
 
-            {currentUser?.role === 'admin' && (
+            {auth.currentUser?.role === 'admin' && (
               <button
                 onClick={() => setShowAdminPanel(!showAdminPanel)}
                 style={{
@@ -212,26 +223,57 @@ const DeliveryApp = () => {
               </button>
             )}
 
+            {auth.currentUser?.role === 'driver' && (
+              <button
+                onClick={driver.updateDriverLocation}
+                disabled={typeof driver.locationPermission === 'string' && driver.locationPermission}
+                style={{
+                  background: driver.locationPermission === 'granted' ? '#10B981' : '#4F46E5',
+                  color: 'white',
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '0.5rem',
+                  fontWeight: '600',
+                  border: 'none',
+                  cursor: driver.locationPermission !== 'unknown' ? 'not-allowed' : 'pointer',
+                  opacity: driver.locationPermission === 'granted' ? 0.5 : 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                📍 {driver.locationPermission === 'granted' ? t('driver.locationUpdated') : t('driver.updateLocation')}
+              </button>
+            )}
+
             <div style={{ textAlign: 'right' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                <p style={{ fontWeight: '600', color: 'var(--matrix-bright-green)' }}>{currentUser?.name}</p>
-                {currentUser?.isVerified && (
+                <p style={{ fontWeight: '600', color: 'var(--matrix-bright-green)' }}>{auth.currentUser?.name}</p>
+                {auth.currentUser?.isVerified && (
                   <span style={{ background: '#10B981', color: 'white', padding: '0.125rem 0.5rem', borderRadius: '9999px', fontSize: '0.625rem', fontWeight: '600' }}>
                     ✓ Verified
                   </span>
                 )}
+                {!auth.currentUser?.isVerified && (
+                  <button
+                    onClick={() => window.open(`https://wa.me/${process.env.REACT_APP_WHATSAPP_ADMIN_NUMBER}?text=${encodeURIComponent(`Hello, I would like to verify my account. My user ID is: ${auth.currentUser?.id}`)}`, '_blank')}
+                    style={{ background: '#25D366', color: 'white', padding: '0.125rem 0.5rem', borderRadius: '9999px', border: 'none', cursor: 'pointer', fontSize: '0.625rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                    title="Contact admin to verify account"
+                  >
+                    📱 Verify
+                  </button>
+                )}
               </div>
               <p style={{ fontSize: '0.875rem', color: 'var(--matrix-green)', textTransform: 'capitalize' }}>
-                {currentUser?.role} {currentUser?.completedDeliveries > 0 && `• ${currentUser.completedDeliveries} deliveries`}
+                {auth.currentUser?.role} {auth.currentUser?.completedDeliveries > 0 && `• ${auth.currentUser.completedDeliveries} deliveries`}
               </p>
             </div>
 
-            <button onClick={logout} className="btn-danger">
+            <button onClick={auth.logout} className="btn-danger">
               {t('auth.logout')}
             </button>
           </div>
 
-          <button className={`hamburger-btn ${showMobileMenu ? 'open' : ''}`} onClick={toggleMobileMenu}>
+          <button className={`hamburger-btn ${showMobileMenu ? 'open' : ''}`} onClick={() => setShowMobileMenu(!showMobileMenu)}>
             <span></span><span></span><span></span>
           </button>
         </div>
@@ -239,11 +281,8 @@ const DeliveryApp = () => {
         {/* Desktop Notification Panel */}
         {showNotifications && (
           <NotificationPanel
-            notifications={notifications}
-            onMarkAsRead={(id) => {
-              // Mark notification as read
-              setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
-            }}
+            notifications={notificationsHook.notifications}
+            onMarkAsRead={notificationsHook.markNotificationRead}
           />
         )}
 
@@ -254,16 +293,16 @@ const DeliveryApp = () => {
               <div className="mobile-menu-section">
                 <div className="mobile-user-info">
                   <div className="mobile-user-name">
-                    {currentUser?.name}
-                    {currentUser?.isVerified && (
+                    {auth.currentUser?.name}
+                    {auth.currentUser?.isVerified && (
                       <span style={{ background: '#10B981', color: 'white', padding: '0.125rem 0.5rem', borderRadius: '9999px', fontSize: '0.625rem', fontWeight: '600' }}>
                         ✓ Verified
                       </span>
                     )}
                   </div>
                   <div className="mobile-user-role">
-                    {currentUser?.role}
-                    {currentUser?.completedDeliveries > 0 && ` • ${currentUser.completedDeliveries} deliveries`}
+                    {auth.currentUser?.role}
+                    {auth.currentUser?.completedDeliveries > 0 && ` • ${auth.currentUser.completedDeliveries} deliveries`}
                   </div>
                 </div>
               </div>
@@ -282,11 +321,11 @@ const DeliveryApp = () => {
                   </h4>
                   {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
                 </div>
-                {notifications.length === 0 ? (
+                {notificationsHook.notifications.length === 0 ? (
                   <p style={{ fontSize: '0.875rem', color: 'var(--matrix-green)' }}>No notifications</p>
                 ) : (
                   <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
-                    {notifications.slice(0, 5).map((notif) => (
+                    {notificationsHook.notifications.slice(0, 5).map((notif) => (
                       <div key={notif.id} className={`notification-item ${!notif.isRead ? 'unread' : ''}`} style={{ padding: 'var(--spacing-sm)', marginBottom: 'var(--spacing-xs)' }}>
                         <p style={{ fontWeight: '600', fontSize: '0.75rem', color: 'var(--matrix-bright-green)' }}>{notif.title}</p>
                         <p style={{ fontSize: '0.75rem', color: 'var(--matrix-green)' }}>{notif.message}</p>
@@ -297,7 +336,7 @@ const DeliveryApp = () => {
               </div>
 
               <div className="mobile-menu-section">
-                <button onClick={() => { logout(); setShowMobileMenu(false); }} className="btn-danger" style={{ width: '100%' }}>
+                <button onClick={() => { auth.logout(); setShowMobileMenu(false); }} className="btn-danger" style={{ width: '100%' }}>
                   {t('auth.logout')}
                 </button>
               </div>
@@ -306,27 +345,125 @@ const DeliveryApp = () => {
         )}
       </header>
 
+      {/* Driver controls */}
+      {auth.currentUser?.role === 'driver' && (
+        <div style={{ maxWidth: '80rem', margin: '0 auto', padding: mobileView ? '1rem 0.5rem' : '1rem 1rem' }}>
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1rem' }}>
+            <div style={{ fontSize: '0.875rem', color: '#6B7280' }}>
+              {driver.locationPermission === 'granted' && driver.driverLocation.latitude ? (
+                <span>📍 Lat: {driver.driverLocation.latitude.toFixed(4)}, Lng: {driver.driverLocation.longitude.toFixed(4)}</span>
+              ) : driver.locationPermission === 'denied' ? (
+                <span style={{ color: '#DC2626' }}>❌ Location access denied</span>
+              ) : (
+                <span>⚠️ Enable location for better order visibility</span>
+              )}
+            </div>
+          </div>
+
+          <div className="driver-tabs" style={{ display: 'flex', gap: '0.25rem', marginBottom: '1rem' }}>
+            <button
+              onClick={() => driver.setViewType('active')}
+              style={{
+                padding: '0.5rem 1rem',
+                background: driver.viewType === 'active' ? '#4F46E5' : '#F3F4F6',
+                color: driver.viewType === 'active' ? 'white' : '#374151',
+                border: 'none',
+                borderRadius: '0.375rem 0 0 0.375rem',
+                cursor: 'pointer',
+                fontWeight: '500'
+              }}
+            >
+              {t('driver.activeOrders')}
+            </button>
+            <button
+              onClick={() => driver.setViewType('bidding')}
+              style={{
+                padding: '0.5rem 1rem',
+                background: driver.viewType === 'bidding' ? '#4F46E5' : '#F3F4F6',
+                color: driver.viewType === 'bidding' ? 'white' : '#374151',
+                border: 'none',
+                cursor: 'pointer',
+                fontWeight: '500'
+              }}
+            >
+              {t('driver.availableBids')}
+            </button>
+            <button
+              onClick={() => driver.setViewType('history')}
+              style={{
+                padding: '0.5rem 1rem',
+                background: driver.viewType === 'history' ? '#4F46E5' : '#F3F4F6',
+                color: driver.viewType === 'history' ? 'white' : '#374151',
+                border: 'none',
+                borderRadius: '0 0.375rem 0.375rem 0',
+                cursor: 'pointer',
+                fontWeight: '500'
+              }}
+            >
+              {t('driver.myHistory')}
+            </button>
+          </div>
+
+          {driver.viewType === 'bidding' && (
+            <div style={{ marginBottom: '1rem', padding: '1rem', background: 'white', borderRadius: '0.5rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <label style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>
+                  Filter by City:
+                </label>
+                <select
+                  value={driver.cityFilter}
+                  onChange={(e) => driver.setCityFilter(e.target.value)}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    border: '1px solid #D1D5DB',
+                    borderRadius: '0.375rem',
+                    fontSize: '0.875rem',
+                    background: 'white',
+                    minWidth: '200px'
+                  }}
+                >
+                  <option value="">All Cities</option>
+                  {driver.getCitiesFromOrders().map(city => (
+                    <option key={city} value={city}>{city}</option>
+                  ))}
+                </select>
+                {driver.cityFilter && (
+                  <button
+                    onClick={() => driver.setCityFilter('')}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      background: '#6B7280',
+                      color: 'white',
+                      borderRadius: '0.375rem',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem',
+                      fontWeight: '500'
+                    }}
+                  >
+                    Clear Filter
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Main Content */}
       <main style={{ maxWidth: '80rem', margin: '0 auto', padding: mobileView ? '1rem 0.5rem' : '2rem 1rem' }}>
-        {error && (
+        {auth.error && (
           <div className="error-matrix" style={{ padding: '1rem', borderRadius: '0.5rem', marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span>⚠️ {error}</span>
-            <button onClick={() => setError('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem', color: '#FF3030' }}>×</button>
+            <span>⚠️ {auth.error}</span>
+            <button onClick={auth.setError} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem', color: '#FF3030' }}>×</button>
           </div>
         )}
 
-        {successMessage && (
-          <div className="success-message" style={{ background: 'linear-gradient(135deg, #003300 0%, #001100 100%)', color: '#30FF30', padding: '1rem', borderRadius: '0.5rem', marginBottom: '1rem', border: '1px solid #30FF30', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span>✅ {successMessage}</span>
-            <button onClick={() => setSuccessMessage('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem', color: '#30FF30' }}>×</button>
-          </div>
-        )}
-
-        {currentUser?.role === 'customer' && (
+        {(auth.currentUser?.role === 'customer' || auth.currentUser?.role === 'admin') && (
           <div style={{ marginBottom: '1.5rem' }}>
             <button
               onClick={() => setShowOrderForm(!showOrderForm)}
-              disabled={loading}
+              disabled={loadingStates.createOrder}
               className="btn-primary"
             >
               📦 {showOrderForm ? t('common.cancel') : t('orders.createOrder')}
@@ -343,47 +480,47 @@ const DeliveryApp = () => {
         )}
 
         <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>
-          {currentUser?.role === 'customer' ? t('orders.myOrders') : t('orders.availableOrders')}
+          {auth.currentUser?.role === 'customer' ? t('orders.myOrders') : driver.getDriverViewTitle()}
         </h2>
 
         <OrderList
-          orders={orders}
-          currentUser={currentUser}
+          orders={ordersHook.orders}
+          currentUser={auth.currentUser}
+          driverState={driver}
           onViewTracking={(order) => {
             setSelectedOrder(order);
             setShowLiveTracking(true);
           }}
           onBid={async (orderId, bidData) => {
+            setLoadingState('placeBid', true);
             try {
-              await apiRequest(`/orders/${orderId}/bid`, 'POST', bidData);
-              fetchOrders();
-              setSuccessMessage('Bid placed successfully!');
-              setTimeout(() => setSuccessMessage(''), 5000);
+              await ordersHook.placeBid(orderId, bidData);
+              setLoadingState('placeBid', false);
+              showSuccess('Bid placed successfully!');
             } catch (err) {
-              setError(err.message);
+              setLoadingState('placeBid', false);
+              auth.setError && auth.setError(err.message);
             }
           }}
           onAcceptBid={async (orderId, userId) => {
+            setLoadingState('acceptBid', true);
             try {
-              await apiRequest(`/orders/${orderId}/accept-bid`, 'POST', { userId });
-              fetchOrders();
-              setSuccessMessage('Bid accepted successfully!');
-              setTimeout(() => setSuccessMessage(''), 5000);
+              await ordersHook.acceptBid(orderId, userId);
+              setLoadingState('acceptBid', false);
+              showSuccess('Bid accepted successfully! Driver notified.');
             } catch (err) {
-              setError(err.message);
+              setLoadingState('acceptBid', false);
+              auth.setError && auth.setError(err.message);
             }
           }}
           onUpdateStatus={async (orderId, action) => {
+            setLoadingState('updateInTransit', true);
             try {
-              const endpoints = {
-                pickup: `/orders/${orderId}/pickup`,
-                'in-transit': `/orders/${orderId}/in-transit`,
-                complete: `/orders/${orderId}/complete`
-              };
-              await apiRequest(endpoints[action], 'POST');
-              fetchOrders();
+              await ordersHook.updateOrderStatus(orderId, action);
+              setLoadingState('updateInTransit', false);
             } catch (err) {
-              setError(err.message);
+              setLoadingState('updateInTransit', false);
+              auth.setError && auth.setError(err.message);
             }
           }}
           onViewReviews={async (orderId) => {
@@ -392,13 +529,12 @@ const DeliveryApp = () => {
           onOpenReviewModal={(orderId, reviewType) => {
             setSelectedOrder(orderId);
             setShowReviewModal(true);
-            // Additional review modal setup
           }}
-          bidInput={{}}
-          setBidInput={() => {}}
-          bidDetails={{}}
-          setBidDetails={() => {}}
-          loadingStates={{}}
+          bidInput={bidInput}
+          setBidInput={setBidInput}
+          bidDetails={bidDetails}
+          setBidDetails={setBidDetails}
+          loadingStates={loadingStates}
         />
       </main>
 
@@ -444,10 +580,80 @@ const DeliveryApp = () => {
       {/* Footer */}
       <footer style={{ padding: '1.5rem 1rem', fontSize: '0.75rem', color: '#6B7280', borderTop: '1px solid #E5E7EB', background: '#F9FAFB' }}>
         <div style={{ maxWidth: '80rem', margin: '0 auto' }}>
-          <div style={{ display: 'flex', flexDirection: mobileView ? 'column' : 'row', justifyContent: 'space-between', alignItems: mobileView ? 'center' : 'center', gap: '1rem' }}>
+          {/* System Status Bar */}
+          {footerStats && (
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: mobileView ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
+              gap: '1rem',
+              marginBottom: '1rem',
+              padding: '1rem',
+              background: 'white',
+              borderRadius: '0.5rem',
+              boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)'
+            }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>👥</div>
+                <div style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>
+                  {footerStats.usersByRole?.customer || 0} Customers
+                </div>
+                <div style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>
+                  {footerStats.usersByRole?.driver || 0} Drivers
+                </div>
+              </div>
+
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>📦</div>
+                <div style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>
+                  {footerStats.activeOrders || 0} Active Orders
+                </div>
+                <div style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>
+                  {footerStats.pendingOrders || 0} Pending Bids
+                </div>
+              </div>
+
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>💰</div>
+                <div style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>
+                  ${footerStats.totalRevenue?.toFixed(2) || '0.00'} Revenue
+                </div>
+                <div style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>
+                  ⭐ {footerStats.avgRating || '0.0'} Rating
+                </div>
+              </div>
+
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>🚚</div>
+                <div style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>
+                  {footerStats.activeDrivers || 0} Active Drivers
+                </div>
+                <div style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>
+                  {footerStats.todayOrders || 0} Orders Today
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Footer Links and Info */}
+          <div style={{
+            display: 'flex',
+            flexDirection: mobileView ? 'column' : 'row',
+            justifyContent: 'space-between',
+            alignItems: mobileView ? 'center' : 'center',
+            gap: '1rem'
+          }}>
             <div style={{ textAlign: mobileView ? 'center' : 'left' }}>
               <p style={{ margin: 0, fontWeight: '600', color: '#374151' }}>
                 Matrix Delivery v1.0.0
+              </p>
+              <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.625rem' }}>
+                Last deployment: {footerStats ? new Date(footerStats.deploymentTimestamp).toLocaleString() : 'Unknown'}
+              </p>
+            </div>
+
+            <div style={{ textAlign: mobileView ? 'center' : 'right' }}>
+              <p style={{ margin: 0, fontSize: '0.625rem' }}>
+                Server uptime: {footerStats ? `${Math.floor(footerStats.serverUptime / 3600)}h ${Math.floor((footerStats.serverUptime % 3600) / 60)}m` : 'Unknown'}
               </p>
             </div>
           </div>

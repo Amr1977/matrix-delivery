@@ -60,6 +60,57 @@ export const extractCityFromAddress = (address) => {
   return '';
 };
 
+export const getAvailableCities = (orders) => {
+  const cities = new Set();
+  orders.forEach(order => {
+    if (order.status === 'pending_bids') {
+      const pickupCity = extractCityFromAddress(order.pickupAddress);
+      const deliveryCity = extractCityFromAddress(order.deliveryAddress);
+      if (pickupCity) cities.add(pickupCity);
+      if (deliveryCity) cities.add(deliveryCity);
+    }
+  });
+  return Array.from(cities).sort();
+};
+
+export const filterDriverOrders = (orders, viewType, currentUser, cityFilter = '') => {
+  if (currentUser?.role !== 'driver') return orders;
+
+  let filteredOrders;
+  switch (viewType) {
+    case 'active':
+      filteredOrders = orders.filter(order =>
+        order.assignedDriver?.userId === currentUser.id &&
+        ['accepted', 'picked_up', 'in_transit'].includes(order.status)
+      );
+      break;
+    case 'bidding':
+      filteredOrders = orders.filter(order =>
+        order.status === 'pending_bids' &&
+        !order.assignedDriver
+      );
+      // Apply city filter for bidding orders
+      if (cityFilter) {
+        filteredOrders = filteredOrders.filter(order => {
+          const pickupCity = extractCityFromAddress(order.pickupAddress);
+          const deliveryCity = extractCityFromAddress(order.deliveryAddress);
+          return pickupCity === cityFilter || deliveryCity === cityFilter;
+        });
+      }
+      break;
+    case 'history':
+      filteredOrders = orders.filter(order =>
+        order.status === 'delivered' ||
+        (order.assignedDriver?.userId === currentUser.id && order.status === 'cancelled')
+      );
+      break;
+    default:
+      filteredOrders = orders;
+  }
+
+  return filteredOrders;
+};
+
 export const truncateText = (text, maxLength = 100) => {
   if (text.length <= maxLength) return text;
   return text.substring(0, maxLength) + '...';

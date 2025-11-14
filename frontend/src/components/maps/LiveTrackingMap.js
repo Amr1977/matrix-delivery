@@ -83,11 +83,11 @@ const LiveTrackingMap = React.memo(({ order, token }) => {
       <div style={{ background: isConnected ? '#10B981' : '#EF4444', color: 'white', padding: '0.5rem', textAlign: 'center', fontSize: '0.875rem', fontWeight: '600' }}>
         {isConnected ? 'Live Tracking Active' : 'Connecting...'}
       </div>
-      <MapContainer center={driverLocation ? [driverLocation.lat, driverLocation.lng] : [order.from.lat, order.from.lng]} zoom={13} style={{ height: 'calc(100% - 40px)', width: '100%' }}>
+      <MapContainer center={driverLocation ? [driverLocation.lat, driverLocation.lng] : (order.pickupLocation?.coordinates ? [order.pickupLocation.coordinates.lat, order.pickupLocation.coordinates.lng] : [30.0444, 31.2357])} zoom={13} style={{ height: 'calc(100% - 40px)', width: '100%' }}>
         <MapUpdater />
         <TileLayer attribution='&copy; OpenStreetMap' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-        <Marker position={[order.from.lat, order.from.lng]} icon={L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png', iconSize: [25, 41], iconAnchor: [12, 41] })}><Popup><strong>Pickup</strong></Popup></Marker>
-        <Marker position={[order.to.lat, order.to.lng]} icon={L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png', iconSize: [25, 41], iconAnchor: [12, 41] })}><Popup><strong>Delivery</strong></Popup></Marker>
+        {order.pickupLocation?.coordinates && <Marker position={[order.pickupLocation.coordinates.lat, order.pickupLocation.coordinates.lng]} icon={L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png', iconSize: [25, 41], iconAnchor: [12, 41] })}><Popup><strong>Pickup</strong></Popup></Marker>}
+        {order.dropoffLocation?.coordinates && <Marker position={[order.dropoffLocation.coordinates.lat, order.dropoffLocation.coordinates.lng]} icon={L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png', iconSize: [25, 41], iconAnchor: [12, 41] })}><Popup><strong>Delivery</strong></Popup></Marker>}
         {driverLocation && <Marker position={[driverLocation.lat, driverLocation.lng]} icon={L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png', iconSize: [25, 41], iconAnchor: [12, 41] })}><Popup><strong>Driver</strong></Popup></Marker>}
         {locationHistory.length > 1 && <Polyline positions={locationHistory.map(loc => [loc.lat, loc.lng])} color="#4F46E5" weight={3} opacity={0.7} />}
       </MapContainer>
