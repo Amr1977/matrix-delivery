@@ -20,11 +20,11 @@ Unlike corporate gig platforms that exploit couriers and limit their freedom, Ma
 
 | Layer | Technology |
 |-------|-------------|
-| Frontend | React 18 (Hooks-based Architecture) |
+| Frontend | React |
 | Backend | Node.js (Express) |
 | Database | PostgreSQL |
 | Hosting | Firebase (Static Frontend Hosting only) |
-| Architecture | Custom Hooks + MVC |
+| Architecture | Model-View-Controller (MVC) |
 
 ---
 
@@ -42,27 +42,17 @@ Unlike corporate gig platforms that exploit couriers and limit their freedom, Ma
 
 ```
 matrix-delivery/
-├── backend/                 # Node.js/Express API server
-│   ├── server.js           # Main server file
-│   ├── routes/             # API route handlers
-│   ├── services/           # Business logic services
-│   ├── middleware/         # Express middleware
-│   └── ecosystem.config.js # PM2 production config
-├── frontend/               # React 18 web application
+├── backend/
+│   ├── server.js
+│   ├── routes/
+│   ├── controllers/
+│   └── models/
+├── frontend/
 │   ├── src/
-│   │   ├── App-refactored.js    # Main app component (hooks-based)
-│   │   ├── hooks/              # Custom React hooks
-│   │   │   ├── useAuth.js      # Authentication management
-│   │   │   ├── useOrders.js    # Order operations
-│   │   │   └── useNotifications.js # Real-time notifications
-│   │   ├── components/         # Reusable UI components
-│   │   ├── utils/              # Helper functions
-│   │   └── i18n/               # Internationalization
-│   └── build/             # Production build output
-├── tests/                 # Automated test suite
-│   ├── features/          # Cucumber feature tests
-│   └── step_definitions/  # Test step implementations
-└── scripts/               # Deployment & maintenance scripts
+│   │   ├── App.js
+│   │   └── components/
+│   └── public/
+└── docs/
 ```
 
 ---

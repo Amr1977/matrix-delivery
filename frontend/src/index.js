@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import App from './App-refactored';
+import App from './App';
 import { I18nProvider } from './i18n/i18nContext';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
