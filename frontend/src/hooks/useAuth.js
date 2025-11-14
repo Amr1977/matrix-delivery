@@ -54,9 +54,8 @@ const useAuth = () => {
     }
   }, [token, API_URL]);
 
-  const handleLogin = useCallback(async (e) => {
-    if (e) e.preventDefault();
-    if (!authForm.email || !authForm.password) {
+  const handleLogin = useCallback(async (formData) => {
+    if (!formData.email || !formData.password) {
       setError('Email and password required');
       return false;
     }
@@ -66,10 +65,7 @@ const useAuth = () => {
       const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: authForm.email,
-          password: authForm.password
-        })
+        body: JSON.stringify(formData)
       });
 
       if (!response.ok) {
@@ -90,17 +86,15 @@ const useAuth = () => {
     } finally {
       setLoading(false);
     }
-  }, [authForm, API_URL]);
+  }, [API_URL]);
 
-  const handleRegister = useCallback(async (e) => {
-    if (e) e.preventDefault();
-
-    if (!authForm.name || !authForm.email || !authForm.password || !authForm.phone || !authForm.country || !authForm.city) {
+  const handleRegister = useCallback(async (formData) => {
+    if (!formData.name || !formData.email || !formData.password || !formData.phone || !formData.country || !formData.city) {
       setError('All required fields must be filled');
       return false;
     }
 
-    if (authForm.role === 'driver' && !authForm.vehicle_type) {
+    if (formData.role === 'driver' && !formData.vehicle_type) {
       setError('Vehicle type is required for drivers');
       return false;
     }
@@ -110,7 +104,7 @@ const useAuth = () => {
       const response = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(authForm)
+        body: JSON.stringify(formData)
       });
 
       if (!response.ok) {
@@ -131,7 +125,7 @@ const useAuth = () => {
     } finally {
       setLoading(false);
     }
-  }, [authForm, API_URL]);
+  }, [API_URL]);
 
   const login = (userData, authToken) => {
     localStorage.setItem('token', authToken);
