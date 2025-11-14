@@ -5,6 +5,7 @@ import OrderCard from './OrderCard';
 const OrderList = ({
   orders,
   currentUser,
+  driverState,
   onViewTracking,
   onBid,
   onAcceptBid,
@@ -19,12 +20,24 @@ const OrderList = ({
 }) => {
   const { t } = useI18n();
 
-  if (orders.length === 0) {
+  const displayOrders = currentUser?.role === 'driver' && driverState
+    ? driverState.getFilteredDriverOrders()
+    : orders;
+
+  if (displayOrders.length === 0) {
     return (
       <div style={{ textAlign: 'center', padding: '3rem', background: 'white', borderRadius: '0.5rem' }}>
         <p style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>📦</p>
         <p style={{ color: '#6B7280' }}>
-          {currentUser?.role === 'customer' ? t('orders.noOrdersAvailable') : t('orders.noAvailableBids')}
+          {currentUser?.role === 'customer'
+            ? t('orders.noOrdersAvailable')
+            : driverState
+              ? driverState.getDriverViewTitle().includes('Active')
+                ? 'No active orders'
+                : driverState.getDriverViewTitle().includes('Available')
+                  ? 'No available bids in your area'
+                  : 'No order history'
+              : t('orders.noAvailableBids')}
         </p>
       </div>
     );
@@ -32,7 +45,7 @@ const OrderList = ({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      {orders.map((order) => (
+      {displayOrders.map((order) => (
         <OrderCard
           key={order._id}
           order={order}

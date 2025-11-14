@@ -138,6 +138,66 @@ const OrderCard = ({
       {/* Driver bidding section */}
       {order.status === 'pending_bids' && currentUser?.role === 'driver' && (
         <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
+          {/* Customer Reputation Section */}
+          {(order.customerRating || order.customerReviewCount) && (
+            <div style={{ background: '#F0F9FF', padding: '1rem', borderRadius: '0.5rem', marginBottom: '1rem', border: '1px solid #DBEAFE' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                <h4 style={{ fontSize: '0.875rem', fontWeight: '600', color: '#1E40AF' }}>
+                  👤 Customer Reputation
+                </h4>
+                {order.customerIsVerified && (
+                  <span style={{ background: '#10B981', color: 'white', padding: '0.125rem 0.5rem', borderRadius: '9999px', fontSize: '0.625rem', fontWeight: '600' }}>
+                    ✓ Verified
+                  </span>
+                )}
+                {!order.customerIsVerified && (
+                  <button
+                    onClick={() => window.open(`https://wa.me/${process.env.REACT_APP_WHATSAPP_ADMIN_NUMBER}?text=${encodeURIComponent(`Hello, I would like to verify my account for order ${order.orderNumber || order._id}. My user ID is: ${currentUser?.id}`)}`, '_blank')}
+                    style={{ background: '#25D366', color: 'white', padding: '0.125rem 0.5rem', borderRadius: '9999px', border: 'none', cursor: 'pointer', fontSize: '0.625rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                    title="Contact admin to verify account"
+                  >
+                    📱 Verify
+                  </button>
+                )}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                <div>
+                  <p style={{ fontSize: '0.75rem', color: '#6B7280', marginBottom: '0.25rem' }}>Rating</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                    {renderStars(order.customerRating || 0)}
+                    <span style={{ fontSize: '0.875rem', fontWeight: '600', color: '#1F2937' }}>
+                      {order.customerRating ? order.customerRating.toFixed(1) : 'New'}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <p style={{ fontSize: '0.75rem', color: '#6B7280', marginBottom: '0.25rem' }}>Deliveries</p>
+                  <p style={{ fontSize: '0.875rem', fontWeight: '600', color: '#1F2937' }}>
+                    {order.customerCompletedOrders || 0}
+                  </p>
+                </div>
+                <div>
+                  <p style={{ fontSize: '0.75rem', color: '#6B7280', marginBottom: '0.25rem' }}>Reviews</p>
+                  <p style={{ fontSize: '0.875rem', fontWeight: '600', color: '#1F2937' }}>
+                    {order.customerReviewCount || 0}
+                  </p>
+                </div>
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <p style={{ fontSize: '0.75rem', color: '#6B7280', marginBottom: '0.25rem' }}>Member Since</p>
+                  <p style={{ fontSize: '0.875rem', color: '#6B7280' }}>
+                    {order.customerJoinedAt ? new Date(order.customerJoinedAt).toLocaleDateString() : 'Unknown'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {order.distance && (
+            <div style={{ marginBottom: '0.75rem', fontSize: '0.875rem', color: '#6B7280' }}>
+              📍 Distance from pickup: {order.distance ? `${order.distance.toFixed(2)} km` : 'Unknown'}
+            </div>
+          )}
+
           <p style={{ fontWeight: '600', marginBottom: '0.75rem', fontSize: '0.875rem' }}>Place Your Bid</p>
           <form onSubmit={handleBidSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.5rem' }}>
             <input
@@ -323,6 +383,27 @@ const OrderCard = ({
           </div>
         </div>
       )}
+    </div>
+  );
+};
+
+// Render star rating function
+const renderStars = (rating, onRate = null) => {
+  return (
+    <div style={{ display: 'flex', gap: '0.25rem' }}>
+      {[1, 2, 3, 4, 5].map((star) => (
+        <span
+          key={star}
+          onClick={() => onRate && onRate(star)}
+          style={{
+            fontSize: '1rem',
+            cursor: onRate ? 'pointer' : 'default',
+            color: star <= rating ? '#FCD34D' : '#D1D5DB'
+          }}
+        >
+          ★
+        </span>
+      ))}
     </div>
   );
 };
