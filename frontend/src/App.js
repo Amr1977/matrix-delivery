@@ -366,11 +366,15 @@ useEffect(() => {
       const response = await fetch(`${API_URL}/orders`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      if (!response.ok) throw new Error('Failed to fetch orders');
+      if (!response.ok) {
+        console.error('Fetch orders failed:', response.status, response.statusText);
+        throw new Error(`Failed to fetch orders: ${response.status}`);
+      }
       const data = await response.json();
       setOrders(data);
     } catch (err) {
-      console.error(err);
+      console.error('Error fetching orders:', err.message);
+      // Don't show error to user for failed orders fetch, just log it
     }
   };
 
