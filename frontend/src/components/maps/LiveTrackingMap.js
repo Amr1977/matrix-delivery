@@ -14,7 +14,18 @@ const LiveTrackingMap = React.memo(({ order, token }) => {
   React.useEffect(() => {
     const apiUrl = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
     const socketUrl = apiUrl.replace('/api', '');
-    const socket = io(socketUrl);
+
+    // Configure Socket.IO client with proper options
+    const socket = io(socketUrl, {
+      transports: ['polling', 'websocket'],
+      timeout: 20000,
+      forceNew: true,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      randomizationFactor: 0.5
+    });
     socketRef.current = socket;
 
     socket.on('connect', () => {

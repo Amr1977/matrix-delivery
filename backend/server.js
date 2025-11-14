@@ -4540,17 +4540,17 @@ app.use((err, req, res, next) => {
 // ============ WEBSOCKET INTEGRATION FOR LIVE TRACKING ============
 // Socket.IO CORS - Allow all for development, Apache2 handles in production
 const httpServer = http.createServer(app);
-// const io = socketIo(httpServer, {
-//   cors: {
-//     origin: "*",  // Allow all origins
-//     methods: ["GET", "POST"],
-//     credentials: true
-//   }
-// });
-const io = socketIo(httpServer);
-// Then configure transports only (no CORS)
-io.engine.opts.cors = null; // Force disable CORS
-io.engine.opts.transports = ['polling', 'websocket'];
+const io = socketIo(httpServer, {
+  cors: {
+    origin: "*",  // Allow all origins
+    methods: ["GET", "POST"],
+    credentials: true
+  },
+  transports: ['polling', 'websocket']
+});
+// Configure Socket.IO options
+io.engine.opts.pingTimeout = 60000;
+io.engine.opts.pingInterval = 25000;
 
 io.on('connection', (socket) => {
   console.log('Connected client:', socket.id);
