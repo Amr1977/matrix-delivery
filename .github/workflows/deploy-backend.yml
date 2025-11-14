@@ -51,7 +51,7 @@ jobs:
           cp .env .env.backup.$(date +%Y%m%d_%H%M%S) 2>/dev/null || true
 
           # Pull latest changes
-          git pull origin main
+          git pull origin master
 
           # Install dependencies
           npm ci --production
