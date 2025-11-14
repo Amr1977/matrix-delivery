@@ -1646,7 +1646,7 @@ const getDriverViewTitle = (viewType) => {
           </div>
         )}
 
-        {currentUser?.role === 'customer' && (
+        {(currentUser?.role === 'customer' || currentUser?.role === 'admin') && (
           <div style={{ marginBottom: '1.5rem' }}>
             <button
               onClick={() => setShowOrderForm(!showOrderForm)}

@@ -146,7 +146,10 @@ class OrderService {
       // Admin sees all orders
       query = `
         SELECT
-          o.*,
+          o.id, o.customer_id, o.title, o.description, o.pickup_address, o.delivery_address,
+          o.from_coordinates, o.to_coordinates, o.package_description, o.package_weight,
+          o.estimated_value, o.special_instructions, o.price, o.status, o.order_number,
+          o.created_at, o.accepted_at, o.picked_up_at, o.in_transit_at, o.delivered_at,
           json_build_object(
             'userId', d.id,
             'name', d.name,
@@ -167,7 +170,11 @@ class OrderService {
         LEFT JOIN users d ON o.assigned_driver_id = d.id
         LEFT JOIN bids b ON o.id = b.order_id
         LEFT JOIN users u ON b.user_id = u.id
-        GROUP BY o.id, d.id, d.name, d.rating, d.completed_deliveries
+        GROUP BY o.id, o.customer_id, o.title, o.description, o.pickup_address, o.delivery_address,
+          o.from_coordinates, o.to_coordinates, o.package_description, o.package_weight,
+          o.estimated_value, o.special_instructions, o.price, o.status, o.order_number,
+          o.created_at, o.accepted_at, o.picked_up_at, o.in_transit_at, o.delivered_at,
+          d.id, d.name, d.rating, d.completed_deliveries
         ORDER BY o.created_at DESC
       `;
     }
