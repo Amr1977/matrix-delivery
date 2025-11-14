@@ -167,16 +167,11 @@ const DeliveryApp = () => {
           <LanguageSwitcher locale={locale} changeLocale={changeLocale} />
         </div>
         <AuthScreen
-          authForm={auth.authForm}
-          setAuthForm={auth.setAuthForm}
-          authState={auth.authState}
-          setAuthState={auth.setAuthState}
-          handleLogin={auth.handleLogin}
-          handleRegister={auth.handleRegister}
-          error={auth.error}
-          setError={auth.setError}
+          onLogin={auth.handleLogin}
+          onRegister={auth.handleRegister}
           loading={auth.loading}
-          t={t}
+          error={auth.error}
+          countries={countries}
         />
       </div>
     );
