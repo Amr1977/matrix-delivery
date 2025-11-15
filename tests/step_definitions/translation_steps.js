@@ -64,6 +64,25 @@ async function assertElementText(page, element, expectedText, language) {
 // Note: Common authentication steps are defined in authentication_steps.js
 // This file focuses on translation-specific step definitions
 
+// Helper function to get display name for language
+function getLanguageDisplayName(language) {
+  const languageNames = {
+    'en': 'English',
+    'ar': 'العربية',
+    'es': 'Español',
+    'fr': 'Français',
+    'zh': '中文',
+    'de': 'Deutsch',
+    'pt': 'Português',
+    'ru': 'Русский',
+    'ja': '日本語',
+    'tr': 'Türkçe',
+    'ur': 'اردو',
+    'hi': 'हिंदी'
+  };
+  return languageNames[language] || language;
+}
+
 When('I switch to {string} language', async function(language) {
   // Click on language selector
   const languageSelector = this.page.locator('[data-testid="language-selector"]').or(
@@ -77,7 +96,7 @@ When('I switch to {string} language', async function(language) {
   // Wait for dropdown and select language
   const languageOption = this.page.locator(`[data-value="${language}"]`).or(
     this.page.locator(`option[value="${language}"]`).or(
-      this.page.locator(`text=${this.getLanguageDisplayName(language)}`)
+      this.page.locator(`text=${getLanguageDisplayName(language)}`)
     )
   );
 
@@ -225,22 +244,3 @@ Given('I am on the order creation page', async function() {
   await this.page.goto(`${this.baseUrl}/create-order`);
   await this.page.waitForLoadState('networkidle');
 });
-
-// Helper method to get display name for language
-Given.prototype.getLanguageDisplayName = function(language) {
-  const languageNames = {
-    'en': 'English',
-    'ar': 'العربية',
-    'es': 'Español',
-    'fr': 'Français',
-    'zh': '中文',
-    'de': 'Deutsch',
-    'pt': 'Português',
-    'ru': 'Русский',
-    'ja': '日本語',
-    'tr': 'Türkçe',
-    'ur': 'اردو',
-    'hi': 'हिंदी'
-  };
-  return languageNames[language] || language;
-};
