@@ -6,6 +6,11 @@ on:
   push:
     branches:
       - master
+      - feature/advanced-location-mapping
+    paths:
+      - 'frontend/**'
+      - 'frontend/src/map-location-picker-frontend.tsx'
+      - 'frontend/src/updated-order-creation-form.js'
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
