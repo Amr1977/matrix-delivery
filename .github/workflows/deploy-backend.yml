@@ -2,9 +2,10 @@ name: Deploy Backend
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, feature/advanced-location-mapping ]
     paths:
       - 'backend/**'
+      - 'scripts/migrate-map-location-picker.js'
       - '.github/workflows/deploy-backend.yml'
 
 jobs:
@@ -50,8 +51,10 @@ jobs:
           # Backup current .env
           cp .env .env.backup.$(date +%Y%m%d_%H%M%S) 2>/dev/null || true
 
-          # Pull latest changes
-          git pull origin master
+          # Pull latest changes (from the branch we're deploying)
+          CURRENT_BRANCH="${GITHUB_REF#refs/heads/}"
+          echo "🚀 Deploying branch: $CURRENT_BRANCH"
+          git pull origin "$CURRENT_BRANCH"
 
           # Install dependencies
           npm ci --production
@@ -63,6 +66,22 @@ jobs:
           # Run startup diagnostics
           echo "🔍 Running startup diagnostics..."
           ENV_FILE=.env.production node diagnose-startup.js
+
+          # Check for and run database migrations
+          echo "🔄 Checking for database migrations..."
+          if [[ "${GITHUB_REF#refs/heads/}" == "feature/advanced-location-mapping" ]] || [[ -f "scripts/migrate-map-location-picker.js" ]]; then
+            echo "📦 Running map location picker database migration..."
+            ENV_FILE=.env.production node scripts/migrate-map-location-picker.js
+
+            if [[ $? -eq 0 ]]; then
+              echo "✅ Database migration completed successfully!"
+            else
+              echo "❌ Database migration failed!"
+              exit 1
+            fi
+          else
+            echo "ℹ️  No database migration needed for this deployment"
+          fi
 
           # Stop existing service gracefully
           pm2 stop ecosystem.config.js 2>/dev/null || true
