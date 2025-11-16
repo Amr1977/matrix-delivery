@@ -140,7 +140,7 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
       
       <form onSubmit={handleSubmit}>
         {/* Basic Order Details */}
-        <div style={{ marginBottom: '2rem' }}>
+        <div style={{ marginBottom: '1.5rem' }}>
           <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem' }}>
             📋 Order Details
           </h3>
@@ -193,7 +193,7 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
         </div>
         
         {/* Location Selection */}
-        <div style={{ marginBottom: '2rem' }}>
+        <div style={{ marginBottom: '1.5rem' }}>
           <div style={{
             display: 'grid',
             gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
@@ -256,7 +256,7 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
         
         {/* Route Preview */}
         {pickupLocation && dropoffLocation && (
-          <div style={{ marginBottom: '2rem' }}>
+          <div style={{ marginBottom: '1.5rem' }}>
             <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem' }}>
               🗺️ {t('orders.routePreview')}
             </h3>
@@ -272,7 +272,7 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
         )}
         
         {/* Package Details */}
-        <div style={{ marginBottom: '2rem' }}>
+        <div style={{ marginBottom: '1.5rem' }}>
           <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem' }}>
             📦 {t('orders.packageDetails')}
           </h3>
@@ -582,7 +582,8 @@ const MapLocationPicker = ({ location, onChange, userLocation, markerColor, API_
           </div>
         )}
       </div>
-      
+      )}
+
       {/* Action Buttons */}
       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
         <button
