@@ -33,6 +33,28 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
   const [dropoffLocation, setDropoffLocation] = useState(null);
   const [routeInfo, setRouteInfo] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
+
+  // Address fields state for manual entry
+  const [pickupAddress, setPickupAddress] = useState({
+    country: '',
+    city: '',
+    area: '',
+    street: '',
+    building: '',
+    floor: '',
+    apartment: '',
+    personName: ''
+  });
+  const [dropoffAddress, setDropoffAddress] = useState({
+    country: '',
+    city: '',
+    area: '',
+    street: '',
+    building: '',
+    floor: '',
+    apartment: '',
+    personName: ''
+  });
   
   // UI state
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -97,25 +119,41 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
   
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    if (!pickupLocation?.coordinates || !dropoffLocation?.coordinates) {
-      setError('Please select both pickup and delivery locations on the map');
-      return;
+
+    // Validate based on entry mode
+    if (showManualEntry) {
+      // Manual entry validation
+      if (!pickupAddress.city || !pickupAddress.country || !pickupAddress.personName ||
+          !dropoffAddress.city || !dropoffAddress.country || !dropoffAddress.personName) {
+        setError('Please fill in all required address fields');
+        return;
+      }
+    } else {
+      // Map entry validation
+      if (!pickupLocation?.coordinates || !dropoffLocation?.coordinates) {
+        setError('Please select both pickup and delivery locations on the map');
+        return;
+      }
     }
-    
+
     if (!orderData.title || !orderData.price) {
       setError('Title and price are required');
       return;
     }
-    
+
     // Prepare complete order data
     const completeOrderData = {
       ...orderData,
-      pickupLocation,
-      dropoffLocation,
-      routeInfo
+      ...(showManualEntry ? {
+        pickupAddress,
+        dropoffAddress
+      } : {
+        pickupLocation,
+        dropoffLocation,
+        routeInfo
+      })
     };
-    
+
     onSubmit(completeOrderData);
   };
   
@@ -204,14 +242,18 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
               <h3 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '1rem', color: '#16A34A' }}>
                 📤 {t('orders.pickupLocation')} *
               </h3>
-              <MapLocationPicker
-                location={pickupLocation}
-                onChange={setPickupLocation}
+              <LocationEntry
+                showManualEntry={showManualEntry}
+                mapLocation={pickupLocation}
+                onMapLocationChange={setPickupLocation}
+                addressData={pickupAddress}
+                onAddressChange={setPickupAddress}
                 userLocation={userLocation}
                 markerColor="green"
                 API_URL={API_URL}
                 locationType="pickup"
                 compact={true}
+                countries={countries}
                 t={t}
               />
             </div>
@@ -221,20 +263,24 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
               <h3 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '1rem', color: '#DC2626' }}>
                 📥 {t('orders.deliveryLocation')} *
               </h3>
-              <MapLocationPicker
-                location={dropoffLocation}
-                onChange={setDropoffLocation}
+              <LocationEntry
+                showManualEntry={showManualEntry}
+                mapLocation={dropoffLocation}
+                onMapLocationChange={setDropoffLocation}
+                addressData={dropoffAddress}
+                onAddressChange={setDropoffAddress}
                 userLocation={pickupLocation?.coordinates || userLocation}
                 markerColor="red"
                 API_URL={API_URL}
                 locationType="delivery"
                 compact={true}
+                countries={countries}
                 t={t}
               />
             </div>
           </div>
 
-          {/* Manual Entry Toggle - centered */}
+          {/* Manual/Map Entry Toggle - centered */}
           <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem' }}>
             <button
               type="button"
@@ -383,14 +429,23 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
           </button>
           <button
             type="submit"
-            disabled={loading || !pickupLocation || !dropoffLocation}
+            disabled={loading || (showManualEntry ?
+              (!pickupAddress.city || !pickupAddress.country || !pickupAddress.personName ||
+               !dropoffAddress.city || !dropoffAddress.country || !dropoffAddress.personName) :
+              (!pickupLocation || !dropoffLocation))}
             style={{
               padding: isMobile ? '0.625rem 1.25rem' : '0.75rem 1.5rem',
-              background: pickupLocation && dropoffLocation ? '#4F46E5' : '#9CA3AF',
+              background: (showManualEntry ?
+                (pickupAddress.city && pickupAddress.country && pickupAddress.personName &&
+                 dropoffAddress.city && dropoffAddress.country && dropoffAddress.personName) :
+                (pickupLocation && dropoffLocation)) ? '#4F46E5' : '#9CA3AF',
               color: 'white',
               borderRadius: '0.375rem',
               border: 'none',
-              cursor: pickupLocation && dropoffLocation ? 'pointer' : 'not-allowed',
+              cursor: (showManualEntry ?
+                (pickupAddress.city && pickupAddress.country && pickupAddress.personName &&
+                 dropoffAddress.city && dropoffAddress.country && dropoffAddress.personName) :
+                (pickupLocation && dropoffLocation)) ? 'pointer' : 'not-allowed',
               fontWeight: '600',
               fontSize: isMobile ? '0.875rem' : '1rem'
             }}
@@ -882,6 +937,260 @@ const MapUpdater = ({ center }) => {
   }, [center, map]);
   
   return null;
+};
+
+// ============ LOCATION ENTRY COMPONENT (Address Fields + Map) ============
+const LocationEntry = ({
+  showManualEntry,
+  mapLocation,
+  onMapLocationChange,
+  addressData,
+  onAddressChange,
+  userLocation,
+  markerColor,
+  API_URL,
+  locationType,
+  compact = false,
+  countries = [],
+  t
+}) => {
+  if (showManualEntry) {
+    // Manual Address Entry Mode
+    return (
+      <div style={{
+        background: '#F9FAFB',
+        padding: '1rem',
+        borderRadius: '0.5rem',
+        border: '1px solid #E5E7EB'
+      }}>
+        <div className="address-fields-grid" style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '1rem'
+        }}>
+          <div>
+            <label style={{
+              display: 'block',
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              color: '#374151',
+              marginBottom: '0.25rem'
+            }}>
+              {t('orders.country')} *
+            </label>
+            <select
+              value={addressData.country}
+              onChange={(e) => onAddressChange({...addressData, country: e.target.value})}
+              style={{
+                width: '100%',
+                padding: '0.5rem',
+                border: '1px solid #D1D5DB',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem',
+                background: 'white'
+              }}
+            >
+              <option value="">{t('orders.selectCountry')}</option>
+              {countries.map(country => (
+                <option key={country} value={country}>{country}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label style={{
+              display: 'block',
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              color: '#374151',
+              marginBottom: '0.25rem'
+            }}>
+              {t('orders.city')} *
+            </label>
+            <input
+              type="text"
+              value={addressData.city}
+              onChange={(e) => onAddressChange({...addressData, city: e.target.value})}
+              placeholder={t('orders.enterCity')}
+              required
+              style={{
+                width: '100%',
+                padding: '0.5rem',
+                border: '1px solid #D1D5DB',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem'
+              }}
+            />
+          </div>
+
+          <div>
+            <label style={{
+              display: 'block',
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              color: '#374151',
+              marginBottom: '0.25rem'
+            }}>
+              {t('orders.area')}
+            </label>
+            <input
+              type="text"
+              value={addressData.area}
+              onChange={(e) => onAddressChange({...addressData, area: e.target.value})}
+              placeholder={t('orders.enterArea')}
+              style={{
+                width: '100%',
+                padding: '0.5rem',
+                border: '1px solid #D1D5DB',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem'
+              }}
+            />
+          </div>
+
+          <div>
+            <label style={{
+              display: 'block',
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              color: '#374151',
+              marginBottom: '0.25rem'
+            }}>
+              {t('orders.street')}
+            </label>
+            <input
+              type="text"
+              value={addressData.street}
+              onChange={(e) => onAddressChange({...addressData, street: e.target.value})}
+              placeholder={t('orders.enterStreet')}
+              style={{
+                width: '100%',
+                padding: '0.5rem',
+                border: '1px solid #D1D5DB',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem'
+              }}
+            />
+          </div>
+
+          <div>
+            <label style={{
+              display: 'block',
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              color: '#374151',
+              marginBottom: '0.25rem'
+            }}>
+              {t('orders.building')}
+            </label>
+            <input
+              type="text"
+              value={addressData.building}
+              onChange={(e) => onAddressChange({...addressData, building: e.target.value})}
+              placeholder={t('orders.buildingNumber')}
+              style={{
+                width: '100%',
+                padding: '0.5rem',
+                border: '1px solid #D1D5DB',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem'
+              }}
+            />
+          </div>
+
+          <div>
+            <label style={{
+              display: 'block',
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              color: '#374151',
+              marginBottom: '0.25rem'
+            }}>
+              {t('orders.floor')}
+            </label>
+            <input
+              type="text"
+              value={addressData.floor}
+              onChange={(e) => onAddressChange({...addressData, floor: e.target.value})}
+              placeholder={t('orders.floor')}
+              style={{
+                width: '100%',
+                padding: '0.5rem',
+                border: '1px solid #D1D5DB',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem'
+              }}
+            />
+          </div>
+
+          <div>
+            <label style={{
+              display: 'block',
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              color: '#374151',
+              marginBottom: '0.25rem'
+            }}>
+              {t('orders.apartment')}
+            </label>
+            <input
+              type="text"
+              value={addressData.apartment}
+              onChange={(e) => onAddressChange({...addressData, apartment: e.target.value})}
+              placeholder={t('orders.aptNumber')}
+              style={{
+                width: '100%',
+                padding: '0.5rem',
+                border: '1px solid #D1D5DB',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem'
+              }}
+            />
+          </div>
+
+          <div>
+            <label style={{
+              display: 'block',
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              color: '#374151',
+              marginBottom: '0.25rem'
+            }}>
+              {t('orders.contactName')} *
+            </label>
+            <input
+              type="text"
+              value={addressData.personName}
+              onChange={(e) => onAddressChange({...addressData, personName: e.target.value})}
+              placeholder={t('orders.contactPerson')}
+              required
+              style={{
+                width: '100%',
+                padding: '0.5rem',
+                border: '1px solid #D1D5DB',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem'
+              }}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  } else {
+    // Map Location Picker Mode
+    return (
+      <MapLocationPicker
+        location={mapLocation}
+        onChange={onMapLocationChange}
+        userLocation={userLocation}
+        markerColor={markerColor}
+        API_URL={API_URL}
+        locationType={locationType}
+        compact={compact}
+        t={t}
+      />
+    );
+  }
 };
 
 export default OrderCreationForm;
