@@ -117,29 +117,68 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
     }
   };
   
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // Validate order basics first
+    if (!orderData.title?.trim()) {
+      setError('Order title is required');
+      scrollToTop();
+      return;
+    }
+
+    if (!orderData.price || orderData.price <= 0) {
+      setError('Order price is required and must be greater than 0');
+      scrollToTop();
+      return;
+    }
 
     // Validate based on entry mode
     if (showManualEntry) {
       // Manual entry validation
-      if (!pickupAddress.city || !pickupAddress.country || !pickupAddress.personName ||
-          !dropoffAddress.city || !dropoffAddress.country || !dropoffAddress.personName) {
-        setError('Please fill in all required address fields');
+      const pickupMissing = [];
+      const dropoffMissing = [];
+
+      if (!pickupAddress.country?.trim()) pickupMissing.push('country');
+      if (!pickupAddress.city?.trim()) pickupMissing.push('city');
+      if (!pickupAddress.personName?.trim()) pickupMissing.push('contact name');
+
+      if (!dropoffAddress.country?.trim()) dropoffMissing.push('country');
+      if (!dropoffAddress.city?.trim()) dropoffMissing.push('city');
+      if (!dropoffAddress.personName?.trim()) dropoffMissing.push('contact name');
+
+      if (pickupMissing.length > 0 || dropoffMissing.length > 0) {
+        const errorParts = [];
+        if (pickupMissing.length > 0) {
+          errorParts.push(`Pickup location (${pickupMissing.join(', ')})`);
+        }
+        if (dropoffMissing.length > 0) {
+          errorParts.push(`Delivery location (${dropoffMissing.join(', ')})`);
+        }
+        setError(`Please fill all required fields: ${errorParts.join(', ')}`);
+        scrollToTop();
         return;
       }
     } else {
       // Map entry validation
-      if (!pickupLocation?.coordinates || !dropoffLocation?.coordinates) {
-        setError('Please select both pickup and delivery locations on the map');
+      if (!pickupLocation?.coordinates) {
+        setError('Please select pickup location on the map');
+        scrollToTop();
+        return;
+      }
+      if (!dropoffLocation?.coordinates) {
+        setError('Please select delivery location on the map');
+        scrollToTop();
         return;
       }
     }
 
-    if (!orderData.title || !orderData.price) {
-      setError('Title and price are required');
-      return;
-    }
+    // Clear any previous errors
+    setError('');
 
     // Prepare complete order data
     const completeOrderData = {
