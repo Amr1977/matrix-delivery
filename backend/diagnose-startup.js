@@ -8,6 +8,9 @@
 const fs = require('fs');
 const path = require('path');
 
+// Load environment variables FIRST
+require('dotenv').config({ path: path.resolve(process.env.ENV_FILE || '.env') });
+
 console.log('🔍 Matrix Delivery Backend Startup Diagnostics');
 console.log('==============================================\n');
 

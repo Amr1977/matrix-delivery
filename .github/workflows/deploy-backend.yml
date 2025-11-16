@@ -54,30 +54,42 @@ jobs:
           # Pull latest changes (from the branch we're deploying)
           CURRENT_BRANCH="${GITHUB_REF#refs/heads/}"
           echo "🚀 Deploying branch: $CURRENT_BRANCH"
-          git pull origin "$CURRENT_BRANCH"
+          git reset --hard HEAD
+          git pull origin "$CURRENT_BRANCH" --no-edit --strategy=recursive --strategy-option=ours
 
           # Install dependencies
           npm ci --production
 
+          # Check if production .env file exists on server (create if needed)
+          if [[ ! -f "backend/.env" ]] || [[ $(grep -c "DB_PASSWORD=***REDACTED***" backend/.env) -eq 1 ]]; then
+            echo "⚠️  Production .env file needs database credentials!"
+            echo "💡 Please ensure backend/.env on the server has correct production database credentials"
+            echo "💡 Current .env seems to use development credentials (DB_PASSWORD=***REDACTED***)"
+            echo "💡 You may need to update: DB_HOST, DB_USER, DB_PASSWORD for production"
+          fi
+
           # Run database health check (from backend directory)
           echo "🔍 Running database health check..."
-          cd backend && ENV_FILE=.env node check-db-health.js
+          cd backend && node check-db-health.js
 
           # Run startup diagnostics (from backend directory)
           echo "🔍 Running startup diagnostics..."
-          ENV_FILE=.env node diagnose-startup.js
+          cd backend && node diagnose-startup.js
 
           # Check for and run database migrations (from project root)
           cd ..
           echo "🔄 Checking for database migrations..."
           if [[ "${GITHUB_REF#refs/heads/}" == "feature/advanced-location-mapping" ]] || [[ -f "scripts/migrate-map-location-picker.js" ]]; then
             echo "📦 Running map location picker database migration..."
+            chmod +x scripts/migrate-map-location-picker.js
             ./scripts/migrate-map-location-picker.js
 
             if [[ $? -eq 0 ]]; then
               echo "✅ Database migration completed successfully!"
             else
               echo "❌ Database migration failed!"
+              echo "Checking script details..."
+              ls -la scripts/migrate-map-location-picker.js
               exit 1
             fi
           else
@@ -85,10 +97,24 @@ jobs:
           fi
 
           # Stop existing service gracefully (from project root)
+          echo "🛑 Stopping existing processes..."
           pm2 stop ecosystem.config.js 2>/dev/null || true
           pm2 delete ecosystem.config.js 2>/dev/null || true
 
+          # Additional cleanup - stop any lingering matrix-delivery-backend processes
+          pm2 stop matrix-delivery-backend 2>/dev/null || true
+          pm2 delete matrix-delivery-backend 2>/dev/null || true
+
+          # Kill any processes using port 5000
+          echo "🔪 Killing any processes using port 5000..."
+          fuser -k 5000/tcp 2>/dev/null || true
+          lsof -ti:5000 | xargs kill -9 2>/dev/null || true
+
+          # Wait a moment for cleanup
+          sleep 3
+
           # Start service with PM2
+          echo "🚀 Starting service with PM2..."
           pm2 start ecosystem.config.js --env production
           pm2 save
 
