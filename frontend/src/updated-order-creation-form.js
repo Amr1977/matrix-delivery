@@ -35,9 +35,16 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
   const [userLocation, setUserLocation] = useState(null);
   
   // UI state
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showManualEntry, setShowManualEntry] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   
   // Get user location on mount
   useEffect(() => {
@@ -113,8 +120,15 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
   };
   
   return (
-    <div style={{ background: 'white', padding: '2rem', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-      <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1.5rem' }}>
+    <div style={{
+      background: 'white',
+      padding: isMobile ? '1rem' : '2rem',
+      borderRadius: '0.5rem',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+      maxHeight: '85vh',
+      overflowY: 'auto'
+    }}>
+      <h2 style={{ fontSize: isMobile ? '1.25rem' : '1.5rem', fontWeight: 'bold', marginBottom: '1.5rem' }}>
         📦 {t('orders.createNewOrder')}
       </h2>
       
@@ -130,58 +144,98 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
           <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem' }}>
             📋 Order Details
           </h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.5rem' }}>
-                {t('orders.title')} *
-              </label>
-              <input
-                type="text"
-                value={orderData.title}
-                onChange={(e) => setOrderData({...orderData, title: e.target.value})}
-                placeholder="e.g., Deliver package to office"
-                required
-                style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
-              />
-            </div>
-            
-            <div>
-              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.5rem' }}>
-                {t('orders.price')} (USD) *
-              </label>
-              <input
-                type="number"
-                value={orderData.price}
-                onChange={(e) => setOrderData({...orderData, price: e.target.value})}
-                placeholder="e.g., 50"
-                required
-                min="0"
-                step="0.01"
-                style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
-              />
-            </div>
-            
-            <div style={{ gridColumn: '1 / -1' }}>
-              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.5rem' }}>
-                {t('orders.description')}
-              </label>
-              <textarea
-                value={orderData.description}
-                onChange={(e) => setOrderData({...orderData, description: e.target.value})}
-                placeholder="Brief description of the delivery..."
-                rows="3"
-                style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
-              />
+          <div style={{ background: '#F9FAFB', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #E5E7EB' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '0.75rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.5rem' }}>
+                  {t('orders.title')} *
+                </label>
+                <input
+                  type="text"
+                  value={orderData.title}
+                  onChange={(e) => setOrderData({...orderData, title: e.target.value})}
+                  placeholder="e.g., Deliver package to office"
+                  required
+                  style={{ width: '100%', padding: '0.375rem 0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.5rem' }}>
+                  {t('orders.price')} (USD) *
+                </label>
+                <input
+                  type="number"
+                  value={orderData.price}
+                  onChange={(e) => setOrderData({...orderData, price: e.target.value})}
+                  placeholder="e.g., 50"
+                  required
+                  min="0"
+                  step="0.01"
+                  style={{ width: '100%', padding: '0.375rem 0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
+                />
+              </div>
+
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.5rem' }}>
+                  {t('orders.description')}
+                </label>
+                <textarea
+                  value={orderData.description}
+                  onChange={(e) => setOrderData({...orderData, description: e.target.value})}
+                  placeholder="Brief description of the delivery..."
+                  rows="2"
+                  style={{ width: '100%', padding: '0.375rem 0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
+                />
+              </div>
             </div>
           </div>
         </div>
         
-        {/* Pickup Location */}
+        {/* Location Selection */}
         <div style={{ marginBottom: '2rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>
-              📤 {t('orders.pickupLocation')} *
-            </h3>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+            gap: '1rem'
+          }}>
+            {/* Pickup Location */}
+            <div>
+              <h3 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '1rem', color: '#16A34A' }}>
+                📤 {t('orders.pickupLocation')} *
+              </h3>
+              <MapLocationPicker
+                location={pickupLocation}
+                onChange={setPickupLocation}
+                userLocation={userLocation}
+                markerColor="green"
+                API_URL={API_URL}
+                locationType="pickup"
+                compact={true}
+                t={t}
+              />
+            </div>
+
+            {/* Dropoff Location */}
+            <div>
+              <h3 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '1rem', color: '#DC2626' }}>
+                📥 {t('orders.deliveryLocation')} *
+              </h3>
+              <MapLocationPicker
+                location={dropoffLocation}
+                onChange={setDropoffLocation}
+                userLocation={pickupLocation?.coordinates || userLocation}
+                markerColor="red"
+                API_URL={API_URL}
+                locationType="delivery"
+                compact={true}
+                t={t}
+              />
+            </div>
+          </div>
+
+          {/* Manual Entry Toggle - centered */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem' }}>
             <button
               type="button"
               onClick={() => setShowManualEntry(!showManualEntry)}
@@ -198,33 +252,6 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
               {showManualEntry ? 'Use Map' : 'Manual Entry'}
             </button>
           </div>
-          
-          <MapLocationPicker
-            location={pickupLocation}
-            onChange={setPickupLocation}
-            userLocation={userLocation}
-            markerColor="green"
-            API_URL={API_URL}
-            locationType="pickup"
-            t={t}
-          />
-        </div>
-        
-        {/* Dropoff Location */}
-        <div style={{ marginBottom: '2rem' }}>
-          <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem' }}>
-            📥 {t('orders.deliveryLocation')} *
-          </h3>
-          
-          <MapLocationPicker
-            location={dropoffLocation}
-            onChange={setDropoffLocation}
-            userLocation={pickupLocation?.coordinates || userLocation}
-            markerColor="red"
-            API_URL={API_URL}
-            locationType="delivery"
-            t={t}
-          />
         </div>
         
         {/* Route Preview */}
@@ -238,6 +265,7 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
               dropoff={dropoffLocation.coordinates}
               routeInfo={routeInfo}
               loading={loading}
+              compact={true}
               t={t}
             />
           </div>
@@ -248,90 +276,107 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
           <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem' }}>
             📦 {t('orders.packageDetails')}
           </h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.5rem' }}>
-                {t('orders.packageDescription')}
-              </label>
-              <input
-                type="text"
-                value={orderData.package_description}
-                onChange={(e) => setOrderData({...orderData, package_description: e.target.value})}
-                placeholder="e.g., Documents, Electronics"
-                style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
-              />
-            </div>
-            
-            <div>
-              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.5rem' }}>
-                {t('orders.weight')} (kg)
-              </label>
-              <input
-                type="number"
-                value={orderData.package_weight}
-                onChange={(e) => setOrderData({...orderData, package_weight: e.target.value})}
-                placeholder="e.g., 2.5"
-                min="0"
-                step="0.1"
-                style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
-              />
-            </div>
-            
-            <div>
-              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.5rem' }}>
-                {t('orders.estimatedValue')} (USD)
-              </label>
-              <input
-                type="number"
-                value={orderData.estimated_value}
-                onChange={(e) => setOrderData({...orderData, estimated_value: e.target.value})}
-                placeholder="e.g., 100"
-                min="0"
-                step="0.01"
-                style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
-              />
-            </div>
-            
-            <div>
-              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.5rem' }}>
-                {t('orders.estimatedDeliveryDate')}
-              </label>
-              <input
-                type="datetime-local"
-                value={orderData.estimated_delivery_date}
-                onChange={(e) => setOrderData({...orderData, estimated_delivery_date: e.target.value})}
-                style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
-              />
-            </div>
-            
-            <div style={{ gridColumn: '1 / -1' }}>
-              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.5rem' }}>
-                {t('orders.specialInstructions')}
-              </label>
-              <textarea
-                value={orderData.special_instructions}
-                onChange={(e) => setOrderData({...orderData, special_instructions: e.target.value})}
-                placeholder="Any special handling instructions..."
-                rows="2"
-                style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
-              />
+          <div style={{ background: '#F9FAFB', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #E5E7EB' }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
+              gap: '0.75rem'
+            }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.5rem' }}>
+                  {t('orders.packageDescription')}
+                </label>
+                <input
+                  type="text"
+                  value={orderData.package_description}
+                  onChange={(e) => setOrderData({...orderData, package_description: e.target.value})}
+                  placeholder="e.g., Documents, Electronics"
+                  style={{ width: '100%', padding: '0.375rem 0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.5rem' }}>
+                  {t('orders.weight')} (kg)
+                </label>
+                <input
+                  type="number"
+                  value={orderData.package_weight}
+                  onChange={(e) => setOrderData({...orderData, package_weight: e.target.value})}
+                  placeholder="e.g., 2.5"
+                  min="0"
+                  step="0.1"
+                  style={{ width: '100%', padding: '0.375rem 0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.5rem' }}>
+                  {t('orders.estimatedValue')} (USD)
+                </label>
+                <input
+                  type="number"
+                  value={orderData.estimated_value}
+                  onChange={(e) => setOrderData({...orderData, estimated_value: e.target.value})}
+                  placeholder="e.g., 100"
+                  min="0"
+                  step="0.01"
+                  style={{ width: '100%', padding: '0.375rem 0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.5rem' }}>
+                  {t('orders.estimatedDeliveryDate')}
+                </label>
+                <input
+                  type="datetime-local"
+                  value={orderData.estimated_delivery_date}
+                  onChange={(e) => setOrderData({...orderData, estimated_delivery_date: e.target.value})}
+                  style={{ width: '100%', padding: '0.375rem 0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
+                />
+              </div>
+
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.5rem' }}>
+                  {t('orders.specialInstructions')}
+                </label>
+                <textarea
+                  value={orderData.special_instructions}
+                  onChange={(e) => setOrderData({...orderData, special_instructions: e.target.value})}
+                  placeholder="Any special handling instructions..."
+                  rows="2"
+                  style={{ width: '100%', padding: '0.375rem 0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
+                />
+              </div>
             </div>
           </div>
         </div>
         
         {/* Submit Button */}
-        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+        <div style={{
+          display: 'flex',
+          gap: isMobile ? '0.75rem' : '1rem',
+          justifyContent: 'flex-end',
+          position: isMobile ? 'sticky' : 'relative',
+          bottom: isMobile ? '0' : 'auto',
+          background: isMobile ? 'white' : 'transparent',
+          padding: isMobile ? '1rem' : '0',
+          margin: isMobile ? '0 -1rem -1rem' : '0',
+          borderTop: isMobile ? '1px solid #E5E7EB' : 'none'
+        }}>
           <button
             type="button"
             onClick={() => window.location.reload()}
             style={{
-              padding: '0.75rem 1.5rem',
+              padding: isMobile ? '0.625rem 1.25rem' : '0.75rem 1.5rem',
               background: '#F3F4F6',
               color: '#374151',
               borderRadius: '0.375rem',
               border: 'none',
               cursor: 'pointer',
-              fontWeight: '600'
+              fontWeight: '600',
+              fontSize: isMobile ? '0.875rem' : '1rem'
             }}
           >
             {t('common.cancel')}
@@ -340,13 +385,14 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
             type="submit"
             disabled={loading || !pickupLocation || !dropoffLocation}
             style={{
-              padding: '0.75rem 1.5rem',
+              padding: isMobile ? '0.625rem 1.25rem' : '0.75rem 1.5rem',
               background: pickupLocation && dropoffLocation ? '#4F46E5' : '#9CA3AF',
               color: 'white',
               borderRadius: '0.375rem',
               border: 'none',
               cursor: pickupLocation && dropoffLocation ? 'pointer' : 'not-allowed',
-              fontWeight: '600'
+              fontWeight: '600',
+              fontSize: isMobile ? '0.875rem' : '1rem'
             }}
           >
             {loading ? t('orders.creating') : t('orders.publishOrder')}
@@ -358,10 +404,11 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
 };
 
 // ============ MAP LOCATION PICKER COMPONENT ============
-const MapLocationPicker = ({ location, onChange, userLocation, markerColor, API_URL, locationType, t }) => {
+const MapLocationPicker = ({ location, onChange, userLocation, markerColor, API_URL, locationType, compact = false, t }) => {
   const [mapUrl, setMapUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showMap, setShowMap] = useState(!compact);
   
   const handleMapClick = async (coords) => {
     setLoading(true);
@@ -407,10 +454,21 @@ const MapLocationPicker = ({ location, onChange, userLocation, markerColor, API_
   };
   
   return (
-    <div style={{ background: '#F9FAFB', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #E5E7EB' }}>
+    <div style={{
+      background: '#F9FAFB',
+      padding: compact ? '0.75rem' : '1rem',
+      borderRadius: '0.5rem',
+      border: '1px solid #E5E7EB'
+    }}>
       {/* Google Maps URL Input */}
       <div style={{ marginBottom: '1rem' }}>
-        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.5rem', color: '#6B7280' }}>
+        <label style={{
+          display: 'block',
+          fontSize: compact ? '0.625rem' : '0.75rem',
+          fontWeight: '600',
+          marginBottom: '0.5rem',
+          color: '#6B7280'
+        }}>
           📍 {t('orders.googleMapsLink')} ({t('common.optional')})
         </label>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -419,20 +477,26 @@ const MapLocationPicker = ({ location, onChange, userLocation, markerColor, API_
             placeholder={t('orders.pasteGoogleMapsLink')}
             value={mapUrl}
             onChange={(e) => setMapUrl(e.target.value)}
-            style={{ flex: 1, padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem', fontSize: '0.875rem' }}
+            style={{
+              flex: 1,
+              padding: compact ? '0.375rem 0.5rem' : '0.5rem',
+              border: '1px solid #D1D5DB',
+              borderRadius: '0.375rem',
+              fontSize: compact ? '0.75rem' : '0.875rem'
+            }}
           />
           <button
             type="button"
             onClick={handleUrlPaste}
             disabled={loading || !mapUrl.trim()}
             style={{
-              padding: '0.5rem 1rem',
+              padding: compact ? '0.375rem 1rem' : '0.5rem 1rem',
               background: '#4F46E5',
               color: 'white',
               borderRadius: '0.375rem',
               border: 'none',
               cursor: loading || !mapUrl.trim() ? 'not-allowed' : 'pointer',
-              fontSize: '0.875rem',
+              fontSize: compact ? '0.75rem' : '0.875rem',
               fontWeight: '600',
               opacity: loading || !mapUrl.trim() ? 0.5 : 1
             }}
@@ -441,15 +505,49 @@ const MapLocationPicker = ({ location, onChange, userLocation, markerColor, API_
           </button>
         </div>
       </div>
-      
+
       {error && (
-        <div style={{ background: '#FEE2E2', color: '#991B1B', padding: '0.75rem', borderRadius: '0.375rem', marginBottom: '1rem', fontSize: '0.875rem' }}>
+        <div style={{
+          background: '#FEE2E2',
+          color: '#991B1B',
+          padding: compact ? '0.5rem' : '0.75rem',
+          borderRadius: '0.375rem',
+          marginBottom: '1rem',
+          fontSize: compact ? '0.75rem' : '0.875rem'
+        }}>
           ⚠️ {error}
         </div>
       )}
-      
+
+      {compact && (
+        <button
+          type="button"
+          onClick={() => setShowMap(!showMap)}
+          style={{
+            width: '100%',
+            padding: '0.5rem',
+            background: '#6B7280',
+            color: 'white',
+            borderRadius: '0.375rem',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: '0.75rem',
+            fontWeight: '600',
+            marginBottom: '1rem'
+          }}
+        >
+          {showMap ? '🗺️ Hide Map' : '🗺️ Show Map'}
+        </button>
+      )}
+
       {/* Map */}
-      <div style={{ height: '350px', marginBottom: '1rem', borderRadius: '0.5rem', overflow: 'hidden' }}>
+      {(!compact || showMap) && (
+        <div style={{
+          height: compact ? '250px' : '350px',
+          marginBottom: '1rem',
+          borderRadius: '0.5rem',
+          overflow: 'hidden'
+        }}>
         {userLocation ? (
           <MapContainer
             center={location?.coordinates ? [location.coordinates.lat, location.coordinates.lng] : [userLocation.lat, userLocation.lng]}
@@ -570,67 +668,60 @@ const MapLocationPicker = ({ location, onChange, userLocation, markerColor, API_
 };
 
 // ============ ROUTE PREVIEW MAP COMPONENT ============
-const RoutePreviewMap = ({ pickup, dropoff, routeInfo, loading, t }) => {
+const RoutePreviewMap = ({ pickup, dropoff, routeInfo, loading, compact = false, t }) => {
+  const [showFullMap, setShowFullMap] = useState(false);
+
   if (!pickup || !dropoff) return null;
-  
+
   const routePath = [[pickup.lat, pickup.lng], [dropoff.lat, dropoff.lng]];
-  
+  const estimates = Object.entries(routeInfo.estimates || {}).slice(0, 3); // First 3 estimates
+
   return (
-    <div style={{ background: '#F9FAFB', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #E5E7EB' }}>
+    <div style={{
+      background: compact ? '#F0F9FF' : '#F9FAFB',
+      padding: '1rem',
+      borderRadius: '0.5rem',
+      border: compact ? '2px solid #DBEAFE' : '1px solid #E5E7EB'
+    }}>
       {loading && (
-        <div style={{ background: '#FEF3C7', padding: '0.75rem', borderRadius: '0.375rem', marginBottom: '1rem', fontSize: '0.875rem' }}>
+        <div style={{
+          background: '#FEF3C7',
+          padding: compact ? '0.5rem' : '0.75rem',
+          borderRadius: '0.375rem',
+          marginBottom: '1rem',
+          fontSize: compact ? '0.75rem' : '0.875rem'
+        }}>
           🔄 {t('orders.calculatingRoute')}
         </div>
       )}
-      
-      {/* Map */}
-      <div style={{ height: '300px', marginBottom: '1rem', borderRadius: '0.5rem', overflow: 'hidden' }}>
-        <MapContainer
-          center={[(pickup.lat + dropoff.lat) / 2, (pickup.lng + dropoff.lng) / 2]}
-          zoom={13}
-          style={{ height: '100%', width: '100%' }}
-        >
-          <TileLayer
-            attribution='&copy; OpenStreetMap'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          <Marker 
-            position={[pickup.lat, pickup.lng]}
-            icon={L.icon({
-              iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-              iconSize: [25, 41],
-              iconAnchor: [12, 41]
-            })}
-          >
-            <Popup><strong>{t('orders.pickup')}</strong></Popup>
-          </Marker>
-          <Marker 
-            position={[dropoff.lat, dropoff.lng]}
-            icon={L.icon({
-              iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-              iconSize: [25, 41],
-              iconAnchor: [12, 41]
-            })}
-          >
-            <Popup><strong>{t('orders.delivery')}</strong></Popup>
-          </Marker>
-          <Polyline positions={routePath} color="#4F46E5" weight={4} opacity={0.7} />
-        </MapContainer>
-      </div>
-      
-      {/* Route Info */}
+
+      {/* Route Info - moved above map for compact */}
       {routeInfo && (
-        <>
-          <div style={{ marginBottom: '1rem', padding: '1rem', background: 'white', borderRadius: '0.375rem', border: '1px solid #E5E7EB' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              <div>
-                <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>
-                  {t('orders.totalDistance')}
-                </p>
-                <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1E40AF' }}>
-                  {routeInfo.distance_km} km
-                </p>
-              </div>
+        <div style={{ marginBottom: '1rem' }}>
+          <div style={{
+            display: compact ? 'inline-grid' : 'grid',
+            gridTemplateColumns: compact ? '1fr auto auto' : '1fr 1fr',
+            gap: compact ? '1rem' : '1rem',
+            padding: '0.75rem',
+            background: 'white',
+            borderRadius: '0.375rem',
+            border: '1px solid #E5E7EB',
+            fontSize: compact ? '0.8125rem' : '0.875rem'
+          }}>
+            <div>
+              <p style={{ fontSize: compact ? '0.6875rem' : '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>
+                📏 {t('orders.totalDistance')}
+              </p>
+              <p style={{
+                fontSize: compact ? '0.9375rem' : '1.5rem',
+                fontWeight: 'bold',
+                color: '#1E40AF'
+              }}>
+                {routeInfo.distance_km} km
+              </p>
+            </div>
+
+            {!compact && (
               <div>
                 <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>
                   {t('orders.routeType')}
@@ -639,29 +730,132 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, loading, t }) => {
                   {routeInfo.route_found ? '✅ Optimized' : '⚠️ Estimate'}
                 </p>
               </div>
-            </div>
-          </div>
-          
-          {/* Vehicle Estimates */}
-          <div>
-            <h4 style={{ fontSize: '0.875rem', fontWeight: 'bold', marginBottom: '0.75rem', color: '#374151' }}>
-              {t('orders.deliveryTimeEstimates')}
-            </h4>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '0.5rem' }}>
-              {Object.entries(routeInfo.estimates || {}).map(([vehicle, data]) => (
-                <div key={vehicle} style={{ background: 'white', padding: '0.75rem', borderRadius: '0.375rem', border: '1px solid #E5E7EB', textAlign: 'center' }}>
-                  <div style={{ fontSize: '1.5rem', marginBottom: '0.25rem' }}>{data.icon}</div>
-                  <p style={{ fontSize: '0.625rem', fontWeight: '600', color: '#6B7280', textTransform: 'capitalize', marginBottom: '0.25rem' }}>
-                    {vehicle === 'bicycle' ? t('orders.bicycle') : vehicle === 'walker' ? t('orders.walker') : vehicle}
-                  </p>
-                  <p style={{ fontSize: '1rem', fontWeight: 'bold', color: '#1F2937' }}>
-                    {data.duration_minutes}m
-                  </p>
+            )}
+
+            {/* Vehicle Estimates - show first 3 inline */}
+            {estimates.map(([vehicle, data], index) => (
+              <div key={vehicle} style={{
+                textAlign: 'center',
+                padding: compact ? '0.375rem' : '0.5rem'
+              }}>
+                <div style={{
+                  fontSize: compact ? '1.125rem' : '1.5rem',
+                  marginBottom: '0.125rem'
+                }}>
+                  {data.icon}
                 </div>
-              ))}
-            </div>
+                <p style={{
+                  fontSize: compact ? '0.5625rem' : '0.625rem',
+                  fontWeight: '600',
+                  color: '#6B7280',
+                  textTransform: 'capitalize',
+                  marginBottom: '0.125rem'
+                }}>
+                  {vehicle === 'bicycle' ? t('orders.bicycle') : vehicle === 'walker' ? t('orders.walker') : vehicle}
+                </p>
+                <p style={{
+                  fontSize: compact ? '0.75rem' : '1rem',
+                  fontWeight: 'bold',
+                  color: '#1F2937'
+                }}>
+                  {data.duration_minutes}m
+                </p>
+              </div>
+            ))}
           </div>
-        </>
+        </div>
+      )}
+
+      {/* Toggle Button for compact mode */}
+      {compact && (
+        <button
+          type="button"
+          onClick={() => setShowFullMap(!showFullMap)}
+          style={{
+            width: '100%',
+            padding: '0.75rem',
+            background: '#4F46E5',
+            color: 'white',
+            borderRadius: '0.375rem',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: '0.875rem',
+            fontWeight: '600',
+            marginBottom: '1rem'
+          }}
+        >
+          🗺️ {showFullMap ? 'Hide Map' : 'View Full Route Map'}
+        </button>
+      )}
+
+      {/* Map - conditionally rendered */}
+      {(!compact || showFullMap) && (
+        <div style={{
+          height: compact ? '200px' : '300px',
+          marginBottom: '1rem',
+          borderRadius: '0.5rem',
+          overflow: 'hidden'
+        }}>
+          <MapContainer
+            center={[(pickup.lat + dropoff.lat) / 2, (pickup.lng + dropoff.lng) / 2]}
+            zoom={13}
+            style={{ height: '100%', width: '100%' }}
+          >
+            <TileLayer
+              attribution='&copy; OpenStreetMap'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            <Marker
+              position={[pickup.lat, pickup.lng]}
+              icon={L.icon({
+                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41]
+              })}
+            >
+              <Popup><strong>{t('orders.pickup')}</strong></Popup>
+            </Marker>
+            <Marker
+              position={[dropoff.lat, dropoff.lng]}
+              icon={L.icon({
+                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41]
+              })}
+            >
+              <Popup><strong>{t('orders.delivery')}</strong></Popup>
+            </Marker>
+            <Polyline positions={routePath} color="#4F46E5" weight={4} opacity={0.7} />
+          </MapContainer>
+        </div>
+      )}
+
+      {/* Detailed Vehicle Estimates - only show in non-compact mode */}
+      {routeInfo && !compact && Object.entries(routeInfo.estimates || {}).length > 3 && (
+        <div>
+          <h4 style={{ fontSize: '0.875rem', fontWeight: 'bold', marginBottom: '0.75rem', color: '#374151' }}>
+            {t('orders.deliveryTimeEstimates')}
+          </h4>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '0.5rem' }}>
+            {Object.entries(routeInfo.estimates || {}).slice(3).map(([vehicle, data]) => (
+              <div key={vehicle} style={{ background: 'white', padding: '0.75rem', borderRadius: '0.375rem', border: '1px solid #E5E7EB', textAlign: 'center' }}>
+                <div style={{ fontSize: '1.5rem', marginBottom: '0.25rem' }}>{data.icon}</div>
+                <p style={{
+                  fontSize: '0.625rem',
+                  fontWeight: '600',
+                  color: '#6B7280',
+                  textTransform: 'capitalize',
+                  marginBottom: '0.25rem'
+                }}>
+                  {vehicle === 'bicycle' ? t('orders.bicycle') : vehicle === 'walker' ? t('orders.walker') : vehicle}
+                </p>
+                <p style={{ fontSize: '1rem', fontWeight: 'bold', color: '#1F2937' }}>
+                  {data.duration_minutes}m
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );
