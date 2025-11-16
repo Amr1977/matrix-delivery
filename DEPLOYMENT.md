@@ -102,6 +102,79 @@ ssh user@server "cd /path/to/backend && pm2 restart ecosystem.config.js"
 ./scripts/sync-env.sh custom
 ```
 
+## 🗄️ Production Database Configuration
+
+### Common Issues
+If deployment fails with database authentication errors, check these:
+
+#### 1. Database Connection Issues
+```
+Error: password authentication failed for user "postgres"
+```
+
+**Solution:**
+1. On your production server, check PostgreSQL authentication:
+   ```bash
+   sudo -u postgres psql -c "SELECT usename FROM pg_user;"
+   sudo -u postgres psql -c "SELECT * FROM pg_hba_file_rules;"
+   ```
+
+2. Ensure your production `.env` file has correct database credentials:
+   ```bash
+   # Example production .env
+   DB_HOST=localhost
+   DB_PORT=5432
+   DB_NAME=matrix_delivery
+   DB_USER=postgres
+   DB_PASSWORD=your_actual_production_password
+   ```
+
+3. For remote PostgreSQL (like AWS RDS):
+   ```bash
+   DB_HOST=your-database-host.rds.amazonaws.com
+   DB_USER=matrix_delivery_user
+   DB_PASSWORD=secure_production_password
+   ```
+
+#### 2. Port Conflicts (Port 5000 Already in Use)
+If deployments fail because port 5000 is in use:
+
+**Automated Fix (in workflow):**
+The deployment script now automatically kills conflicting processes, but you can also manually:
+
+```bash
+# On server, check what's using port 5000
+sudo lsof -i :5000
+sudo netstat -tulpn | grep :5000
+
+# Kill conflicting processes
+sudo fuser -k 5000/tcp
+sudo pkill -f "node.*5000"
+```
+
+#### 3. File Permission Issues with Migration Scripts
+```
+bash: line 28: ./scripts/migrate-map-location-picker.js: Permission denied
+```
+
+**Solution:**
+The deployment script now includes `chmod +x`, but you can manually fix:
+```bash
+# On server
+chmod +x scripts/migrate-map-location-picker.js
+```
+
+### Database Migration Troubleshooting
+If migrations fail during deployment:
+
+1. Check script permissions: `ls -la scripts/migrate-map-location-picker.js`
+2. Verify Node.js is available: `which node`
+3. Test migration manually:
+   ```bash
+   cd scripts
+   node migrate-map-location-picker.js
+   ```
+
 ## 🔒 Security Best Practices
 
 ### Never Commit Secrets
