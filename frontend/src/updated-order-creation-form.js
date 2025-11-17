@@ -968,13 +968,14 @@ const MapClickHandler = ({ onMapClick }) => {
 
 const MapUpdater = ({ center }) => {
   const map = useMap();
-  
+
   useEffect(() => {
     if (center) {
       map.setView([center.lat, center.lng], map.getZoom());
+      map.invalidateSize();
     }
   }, [center, map]);
-  
+
   return null;
 };
 

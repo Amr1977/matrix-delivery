@@ -394,6 +394,9 @@ const JWT_SECRET = process.env.JWT_SECRET;
 // Load admin panel endpoints
 require('./admin-panel.js')(app, pool, jwt, createNotification, generateId, JWT_SECRET);
 
+// Load map location picker endpoints
+require('./map-location-picker-backend.js')(app, pool, jwt, verifyToken);
+
 if (!JWT_SECRET) {
   console.error('❌ JWT_SECRET environment variable is required');
   process.exit(1);
