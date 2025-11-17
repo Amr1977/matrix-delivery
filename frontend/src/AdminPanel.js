@@ -103,7 +103,8 @@ const AdminPanel = ({ token, onClose }) => {
 
   const logout = () => {
     localStorage.removeItem('adminToken');
-    setAdminToken(null);
+    // Since adminToken is passed as props, parent component will handle logout
+    onClose(); // Close the admin panel
   };
 
   // Mock stats for demonstration (replace with actual API data)

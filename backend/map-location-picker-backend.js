@@ -1,42 +1,5 @@
 // ============ BACKEND: Map Location Picker Implementation ============
-// Add to server.js after the existing location endpoints
-
-// Database Migration (Run this first)
-const migrationSQL = `
--- Add location coordinates and route data to orders
-ALTER TABLE orders ADD COLUMN IF NOT EXISTS pickup_coordinates JSONB;
-ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_coordinates JSONB;
-ALTER TABLE orders ADD COLUMN IF NOT EXISTS pickup_location_link VARCHAR(500);
-ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_location_link VARCHAR(500);
-ALTER TABLE orders ADD COLUMN IF NOT EXISTS estimated_distance_km DECIMAL(10,2);
-ALTER TABLE orders ADD COLUMN IF NOT EXISTS estimated_duration_minutes INTEGER;
-ALTER TABLE orders ADD COLUMN IF NOT EXISTS route_polyline TEXT;
-ALTER TABLE orders ADD COLUMN IF NOT EXISTS is_remote_area BOOLEAN DEFAULT false;
-ALTER TABLE orders ADD COLUMN IF NOT EXISTS is_international BOOLEAN DEFAULT false;
-
--- Add indexes for coordinate-based queries
-CREATE INDEX IF NOT EXISTS idx_orders_pickup_coords ON orders USING GIN (pickup_coordinates);
-CREATE INDEX IF NOT EXISTS idx_orders_delivery_coords ON orders USING GIN (delivery_coordinates);
-CREATE INDEX IF NOT EXISTS idx_orders_distance ON orders(estimated_distance_km);
-CREATE INDEX IF NOT EXISTS idx_orders_remote_area ON orders(is_remote_area);
-CREATE INDEX IF NOT EXISTS idx_orders_international ON orders(is_international);
-
--- Update vehicle type constraint to include walker and bicycle
-ALTER TABLE users DROP CONSTRAINT IF EXISTS users_vehicle_type_check;
-ALTER TABLE users ADD CONSTRAINT users_vehicle_type_check 
-  CHECK (vehicle_type IN ('walker', 'bicycle', 'bike', 'car', 'van', 'truck'));
-
--- Add delivery agent preferences
-CREATE TABLE IF NOT EXISTS delivery_agent_preferences (
-  id SERIAL PRIMARY KEY,
-  agent_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  max_distance_km DECIMAL(10,2) DEFAULT 50.00,
-  accept_remote_areas BOOLEAN DEFAULT false,
-  accept_international BOOLEAN DEFAULT false,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE(agent_id)
-);
-`;
+// Exported as a function to be used in server.js
 
 // Helper function to calculate distance between two coordinates (Haversine formula)
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -82,9 +45,9 @@ const parseGoogleMapsUrl = (url) => {
     // Format: https://www.google.com/maps?q=30.0444,31.2357
     // Format: https://maps.google.com/?q=30.0444,31.2357
     // Format: https://goo.gl/maps/... (shortened)
-    
+
     if (!url) return null;
-    
+
     // Handle standard format
     const qMatch = url.match(/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
     if (qMatch) {
@@ -93,7 +56,7 @@ const parseGoogleMapsUrl = (url) => {
         lng: parseFloat(qMatch[2])
       };
     }
-    
+
     // Handle @format
     const atMatch = url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/);
     if (atMatch) {
@@ -102,17 +65,19 @@ const parseGoogleMapsUrl = (url) => {
         lng: parseFloat(atMatch[2])
       };
     }
-    
+
     return null;
   } catch (error) {
     return null;
   }
 };
 
-// ============ API ENDPOINTS ============
+// Main export function - called from server.js
+module.exports = (app, pool, jwt, verifyToken) => {
+  // ============ API ENDPOINTS ============
 
-// Reverse geocode coordinates to address (Enhanced)
-app.get('/api/locations/reverse-geocode', async (req, res) => {
+  // Reverse geocode coordinates to address (Enhanced)
+  app.get('/api/locations/reverse-geocode', async (req, res) => {
   try {
     const { lat, lng } = req.query;
     
@@ -690,11 +655,5 @@ app.get('/api/orders', verifyToken, async (req, res) => {
   }
 });
 
-// Export for testing
-module.exports = {
-  calculateDistance,
-  estimateDuration,
-  isRemoteArea,
-  isInternationalOrder,
-  parseGoogleMapsUrl
+// End of function
 };
