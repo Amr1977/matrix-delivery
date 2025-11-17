@@ -394,9 +394,6 @@ const JWT_SECRET = process.env.JWT_SECRET;
 // Load admin panel endpoints
 require('./admin-panel.js')(app, pool, jwt, createNotification, generateId, JWT_SECRET);
 
-// Load map location picker endpoints
-require('./map-location-picker-backend.js')(app, pool, jwt, verifyToken);
-
 if (!JWT_SECRET) {
   console.error('❌ JWT_SECRET environment variable is required');
   process.exit(1);
@@ -414,6 +411,10 @@ const verifyToken = (req, res, next) => {
     res.status(401).json({ error: 'Invalid or expired token' });
   }
 };
+
+// Load map location picker endpoints
+const mapPickerEndpoints = require('./map-location-picker-backend.js');
+mapPickerEndpoints(app, pool, jwt, verifyToken);
 
 // Input sanitization
 const sanitizeString = (str, maxLength = 1000) => {

@@ -26,11 +26,48 @@ jobs:
         cd backend
         npm ci
 
-    - name: Run tests
+    - name: Install test dependencies
+      run: npm ci
+
+    - name: Setup PostgreSQL for testing
+      uses: harmon758/postgresql-action@v1
+      with:
+        postgresql version: '14'
+        postgresql db: matrix_delivery_test
+        postgresql user: postgres
+        postgresql password: test_password
+
+    - name: Run comprehensive tests
+      run: npm run test:ci
+      env:
+        DB_HOST: localhost
+        DB_PORT: 5432
+        DB_NAME_TEST: matrix_delivery_test
+        DB_USER: postgres
+        DB_PASSWORD: test_password
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results
+        path: test-report-*.txt
+
+    - name: Fail if tests don't meet threshold
       run: |
-        cd backend
-        npm test
-      continue-on-error: true
+        if [ -f test-report-*.txt ]; then
+          # Extract pass rate from test report
+          PASS_RATE=$(grep "Success Rate" test-report-*.txt | grep -o "[0-9.]*%" | sed 's/%//')
+          if [ "$PASS_RATE" -lt 85 ]; then
+            echo "❌ Test pass rate ($PASS_RATE%) below required threshold (85%)"
+            exit 1
+          else
+            echo "✅ Test pass rate ($PASS_RATE%) meets requirements"
+          fi
+        else
+          echo "❌ No test report found"
+          exit 1
+        fi
 
     - name: Build application
       run: |
