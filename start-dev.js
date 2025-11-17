@@ -91,8 +91,8 @@ function startBackend() {
       const output = data.toString();
       console.log(`[BACKEND] ${output.trim()}`);
 
-      // Check if backend is ready
-      if (output.includes('Server running on port') && !backendReady) {
+  // Check if backend is ready
+  if (output.includes('Server running on:') && !backendReady) {
         backendReady = true;
         log(colors.green, `✅ Backend server started (PID: ${backendProcess.pid})`);
         resolve(backendProcess);
