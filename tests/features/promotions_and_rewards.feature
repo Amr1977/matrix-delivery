@@ -1,5 +1,12 @@
-@promotions_rewards
+@promotions_rewards @deprecated @obsolete
 Feature: Promotions and Rewards System
+
+  ❗ DEPRECATED: This feature is marked as OBSOLETE
+  ================================
+  Status: Not implemented, not planned for current MVP
+  Reason: Feature scope too complex for initial release
+  Recommendation: Archive or remove this feature file
+  ================================
 
   Background:
     Given the P2P delivery platform is running
