@@ -4,7 +4,9 @@
 **Matrix Heroes** - Your trusted heroes for delivery and ride-hailing.
 
 ## 🎨 Logo & Icon
-- **Primary Icon**: 🦸‍♂️ (Superhero emoji)
+- **Primary Brand Image**: `/branding-hero-1.png` (Main hero branding asset)
+- **Secondary Brand Image**: `/branding-hero-2.png` (Alternative hero branding asset)
+- **Primary Icon**: 🦸‍♂️ (Superhero emoji) - *Used in UI elements and buttons*
 - **Backup Icon**: 🚀 (Rocket for heroic speed)
 - **Badge/Icon**: 🛡️ (Shield for protection/trust)
 
@@ -148,6 +150,41 @@ Appearance: Shield logo, heroic color scheme
 - **Hero Stories**: Real, verified customer experiences only
 - **Hero Partnerships**: Screened and vetted partners only
 
+## 🖼️ Brand Assets & Usage
+
+### Digital Asset Locations
+- **Primary**: `/branding-hero-1.png` - Main hero branding image
+- **Secondary**: `/branding-hero-2.png` - Alternative hero branding image
+- **Deployment**: Images are available at `https://matrix-delivery.web.app/branding-hero-1.png`
+- **Local Development**: Access via `/branding-hero-1.png` and `/branding-hero-2.png`
+
+### Usage in React Components
+```jsx
+// Logo component usage
+<img
+  src="/branding-hero-1.png"
+  alt="Matrix Heroes - Your trusted delivery heroes"
+  style={{ maxWidth: '200px', height: 'auto' }}
+/>
+
+// Hero background
+<div style={{
+  backgroundImage: `url('/branding-hero-2.png')`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center'
+}}>
+  Hero section content
+</div>
+```
+
+### Asset Guidelines
+- **DO**: Use brand images in marketing materials, websites, and presentations
+- **DO**: Crop/resize as needed for different layouts while maintaining aspect ratio
+- **DON'T**: Modify colors, add filters, or alter the hero imagery
+- **DON'T**: Use images for non-Matrix Heroes branded materials
+
+---
+
 ## 📊 Brand Metrics
 
 ### Key Performance Indicators
@@ -162,6 +199,7 @@ Appearance: Shield logo, heroic color scheme
 - [x] Heroic language in communications
 - [x] Professional yet approachable tone
 - [x] Driver recognition as heroes emphasized
+- [x] Brand images properly integrated in digital platforms
 
 ---
 
