@@ -554,7 +554,7 @@ app.get('/api/orders', verifyToken, async (req, res) => {
     let query, params;
 
     if (req.user.role === 'customer') {
-      // Customer view - unchanged
+      // Customer view - show all their orders
       query = `SELECT o.*,
                COALESCE(json_agg(json_build_object(
                  'userId', b.user_id,
@@ -576,61 +576,68 @@ app.get('/api/orders', verifyToken, async (req, res) => {
                GROUP BY o.id ORDER BY o.created_at DESC`;
       params = [req.user.userId];
     } else if (req.user.role === 'driver') {
-    // Get delivery agent preferences
-    const prefsResult = await pool.query(
-      `SELECT * FROM delivery_agent_preferences WHERE agent_id = $1`,
-      [req.user.userId]
-    );
-
-    const prefs = prefsResult.rows[0] || {
-      max_distance_km: 999999,
-      accept_remote_areas: true,
-      accept_international: true
-    };
-
-    // Get driver location for distance calculation
-    const locationResult = await pool.query(
-      'SELECT latitude, longitude FROM driver_locations WHERE driver_id = $1',
-      [req.user.userId]
-    );
-
-    const driverLocation = locationResult.rows[0];
-
-    // Simpler query for drivers - show all their orders without complex filtering for now
-    query = `
-      SELECT o.*,
-             COALESCE(json_agg(json_build_object(
-               'userId', b.user_id,
-               'driverName', b.driver_name,
-               'bidPrice', b.bid_price,
-               'estimatedPickupTime', b.estimated_pickup_time,
-               'estimatedDeliveryTime', b.estimated_delivery_time,
-               'message', b.message,
-               'status', b.status,
-               'createdAt', b.created_at,
-               'driverRating', u.rating,
-               'driverCompletedDeliveries', u.completed_deliveries,
-               'driverIsVerified', u.is_verified
-             ) ORDER BY b.created_at DESC) FILTER (WHERE b.id IS NOT NULL), '[]') as bids,
-             cu.rating as customerrating,
-             cu.completed_deliveries as customercompletedorders,
-             cu.is_verified as customerisverified,
-             cu.created_at as customerjoinedat
-      FROM orders o
-      LEFT JOIN bids b ON o.id = b.order_id
-      LEFT JOIN users u ON b.user_id = u.id
-      LEFT JOIN users cu ON o.customer_id = cu.id
-      WHERE (
-        o.assigned_driver_user_id = $1
-        OR EXISTS (SELECT 1 FROM bids WHERE order_id = o.id AND user_id = $1)
-        OR (o.status = 'pending_bids')
-      )
-      AND o.status != 'delivered' AND o.status != 'cancelled'
-      GROUP BY o.id, cu.rating, cu.completed_deliveries, cu.is_verified, cu.created_at
-      ORDER BY o.created_at DESC
-    `;
-    params = [req.user.userId];
-  }
+      // Driver view - show their assigned orders, bids, and available orders
+      query = `
+        SELECT o.*,
+               COALESCE(json_agg(json_build_object(
+                 'userId', b.user_id,
+                 'driverName', b.driver_name,
+                 'bidPrice', b.bid_price,
+                 'estimatedPickupTime', b.estimated_pickup_time,
+                 'estimatedDeliveryTime', b.estimated_delivery_time,
+                 'message', b.message,
+                 'status', b.status,
+                 'createdAt', b.created_at,
+                 'driverRating', u.rating,
+                 'driverCompletedDeliveries', u.completed_deliveries,
+                 'driverIsVerified', u.is_verified
+               ) ORDER BY b.created_at DESC) FILTER (WHERE b.id IS NOT NULL), '[]') as bids,
+               cu.rating as customerrating,
+               cu.completed_deliveries as customercompletedorders,
+               cu.is_verified as customerisverified,
+               cu.created_at as customerjoinedat
+        FROM orders o
+        LEFT JOIN bids b ON o.id = b.order_id
+        LEFT JOIN users u ON b.user_id = u.id
+        LEFT JOIN users cu ON o.customer_id = cu.id
+        WHERE (
+          o.assigned_driver_user_id = $1
+          OR EXISTS (SELECT 1 FROM bids WHERE order_id = o.id AND user_id = $1)
+          OR (o.status = 'pending_bids')
+        )
+        AND o.status != 'delivered' AND o.status != 'cancelled'
+        GROUP BY o.id, cu.rating, cu.completed_deliveries, cu.is_verified, cu.created_at
+        ORDER BY o.created_at DESC
+      `;
+      params = [req.user.userId];
+    } else if (req.user.role === 'admin') {
+      // Admin view - show all orders
+      query = `SELECT o.*,
+               COALESCE(json_agg(json_build_object(
+                 'userId', b.user_id,
+                 'driverName', b.driver_name,
+                 'bidPrice', b.bid_price,
+                 'estimatedPickupTime', b.estimated_pickup_time,
+                 'estimatedDeliveryTime', b.estimated_delivery_time,
+                 'message', b.message,
+                 'status', b.status,
+                 'createdAt', b.created_at,
+                 'driverRating', u.rating,
+                 'driverCompletedDeliveries', u.completed_deliveries,
+                 'driverIsVerified', u.is_verified
+               ) ORDER BY b.created_at DESC) FILTER (WHERE b.id IS NOT NULL), '[]') as bids,
+               c.rating as customerrating,
+               c.completed_deliveries as customercompletedorders,
+               c.is_verified as customerisverified,
+               c.created_at as customerjoinedat
+               FROM orders o
+               LEFT JOIN bids b ON o.id = b.order_id
+               LEFT JOIN users u ON b.user_id = u.id
+               LEFT JOIN users c ON o.customer_id = c.id
+               GROUP BY o.id, c.rating, c.completed_deliveries, c.is_verified, c.created_at
+               ORDER BY o.created_at DESC`;
+      params = [];
+    }
 
     const result = await pool.query(query, params);
     
