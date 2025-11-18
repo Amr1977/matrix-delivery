@@ -13,12 +13,14 @@
     "report": "node utils/generate-report.js"
   },
   "dependencies": {
-    "@cucumber/cucumber": "^10.0.0",
-    "playwright": "^1.40.1",
-    "chai": "^4.3.10",
-    "axios": "^1.5.0"
+    "node-fetch": "^2.7.0",
+    "playwright": "^1.40.1"
   },
   "devDependencies": {
-    "@playwright/test": "^1.40.1"
+    "@cucumber/cucumber": "^12.2.0",
+    "@playwright/test": "^1.40.1",
+    "axios": "^1.13.2",
+    "chai": "^6.2.1",
+    "puppeteer": "^24.30.0"
   }
 }

@@ -26,7 +26,7 @@ const AutocompleteInput = ({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filteredOptions, setFilteredOptions] = useState([]);
   const [inputValue, setInputValue] = useState(value || '');
-  const inputRef = useState(null);
+  const inputRef = React.useRef(null);
 
   useEffect(() => {
     setInputValue(value || '');
@@ -188,7 +188,7 @@ const ComboboxInput = ({
   const [filteredOptions, setFilteredOptions] = useState([]);
   const [inputValue, setInputValue] = useState(value || '');
   const [selectedValue, setSelectedValue] = useState(value || '');
-  const inputRef = useState(null);
+  const inputRef = React.useRef(null);
 
   useEffect(() => {
     setInputValue(value || '');
@@ -586,26 +586,7 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate order basics first
-    if (!orderData.title?.trim()) {
-      setModalState({
-        isOpen: true,
-        type: 'error',
-        title: 'Order Title Required',
-        message: 'Please provide a title for your delivery order before publishing.'
-      });
-      return;
-    }
-
-    if (!orderData.price || orderData.price <= 0) {
-      setModalState({
-        isOpen: true,
-        type: 'error',
-        title: 'Invalid Price',
-        message: `Order price must be greater than $0. Current price: $${orderData.price || 0}`
-      });
-      return;
-    }
+    // Just pass validation to backend
 
     // Always validate required fields for both modes
     const pickupMissing = [];

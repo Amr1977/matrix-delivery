@@ -1,6 +1,8 @@
 // ============ BACKEND: Map Location Picker Implementation ============
 // Exported as a function to be used in server.js
 
+const logger = require('./logger');
+
 // Helper function to calculate distance between two coordinates (Haversine formula)
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371; // Earth's radius in km

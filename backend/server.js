@@ -1245,6 +1245,8 @@ app.get('/api/users/:id/reviews/given', verifyToken, async (req, res) => {
 app.post('/api/orders', verifyToken, async (req, res) => {
   const startTime = Date.now();
 
+  console.log('🔍 DEBUG - Raw request body:', JSON.stringify(req.body, null, 2));
+
   logger.order(`Order creation attempt`, {
     userId: req.user.userId,
     userName: req.user.name,
@@ -1253,14 +1255,34 @@ app.post('/api/orders', verifyToken, async (req, res) => {
   });
 
   try {
+    // Extract order data - handle both new format (nested orderData) and old flat format
+    const hasOrderData = req.body.hasOwnProperty('orderData');
+    let orderData;
+
+    if (hasOrderData) {
+      console.log('✅ Has orderData key');
+      orderData = req.body.orderData;
+    } else {
+      console.log('⚠️ No orderData key, using req.body directly');
+      orderData = req.body;
+    }
+
+    console.log('📦 Extracted orderData:', JSON.stringify(orderData, null, 2));
     const {
       title, description, price,
-      package_description, package_weight, estimated_value, special_instructions, estimated_delivery_date,
-      pickupLocation, dropoffLocation  // New structured location data
+      package_description, package_weight, estimated_value, special_instructions
+    } = orderData;
+
+    const {
+      pickupAddress: pickupAddressData, dropoffAddress: dropoffAddressData, showManualEntry, estimated_delivery_date
     } = req.body;
 
+
+
     // Validate required fields
+    console.log('🔍 Validating required fields...');
     if (!title || !price) {
+      console.log('❌ Validation failed:', { hasTitle: !!title, hasPrice: !!price });
       logger.warn(`Order creation validation failed: missing required fields`, {
         userId: req.user.userId,
         hasTitle: !!title,
@@ -1271,6 +1293,7 @@ app.post('/api/orders', verifyToken, async (req, res) => {
     }
 
     if (parseFloat(price) <= 0) {
+      console.log('❌ Validation failed: invalid price', price);
       logger.warn(`Order creation validation failed: invalid price`, {
         userId: req.user.userId,
         price,
@@ -1280,20 +1303,32 @@ app.post('/api/orders', verifyToken, async (req, res) => {
     }
 
     // Validate location data
-    if (!pickupLocation || !pickupLocation.coordinates || !pickupLocation.address) {
-      logger.warn(`Order creation validation failed: invalid pickup location`, {
+    console.log('🔍 Validating location data...');
+    console.log('Pickup address data:', JSON.stringify(pickupAddressData, null, 2));
+    console.log('Dropoff address data:', JSON.stringify(dropoffAddressData, null, 2));
+
+    if (!pickupAddressData || !pickupAddressData.street || !pickupAddressData.city) {
+      console.log('❌ Validation failed: invalid pickup address');
+      logger.warn(`Order creation validation failed: invalid pickup address`, {
         userId: req.user.userId,
+        hasPickupAddress: !!pickupAddressData,
+        hasStreet: !!(pickupAddressData && pickupAddressData.street),
+        hasCity: !!(pickupAddressData && pickupAddressData.city),
         category: 'order'
       });
-      return res.status(400).json({ error: 'Pickup location data is required' });
+      return res.status(400).json({ error: 'Pickup address data is required' });
     }
 
-    if (!dropoffLocation || !dropoffLocation.coordinates || !dropoffLocation.address) {
-      logger.warn(`Order creation validation failed: invalid dropoff location`, {
+    if (!dropoffAddressData || !dropoffAddressData.street || !dropoffAddressData.city) {
+      console.log('❌ Validation failed: invalid dropoff address');
+      logger.warn(`Order creation validation failed: invalid dropoff address`, {
         userId: req.user.userId,
+        hasDropoffAddress: !!dropoffAddressData,
+        hasStreet: !!(dropoffAddressData && dropoffAddressData.street),
+        hasCity: !!(dropoffAddressData && dropoffAddressData.city),
         category: 'order'
       });
-      return res.status(400).json({ error: 'Dropoff location data is required' });
+      return res.status(400).json({ error: 'Dropoff address data is required' });
     }
 
     // Construct pickup address string from structured data

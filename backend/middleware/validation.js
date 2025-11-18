@@ -5,6 +5,30 @@ const logger = require('../logger');
  */
 const validateBody = (schema) => {
   return (req, res, next) => {
+    console.log('🔍 BACKEND - VALIDATION MIDDLEWARE - INCOMING REQUEST BODY FOR:', req.path);
+    console.log('🔍 BACKEND - REQUEST BODY RAW:', JSON.stringify(req.body, null, 2));
+    console.log('🔍 BACKEND - REQUEST HEADERS:', JSON.stringify({
+      'content-type': req.headers['content-type'],
+      'authorization': req.headers.authorization ? 'Bearer [HIDDEN]' : 'None'
+    }, null, 2));
+
+    if (req.path === '/api/orders') {
+      console.log('📦 BACKEND - ORDER CREATION REQUEST DETECTED');
+      console.log('📦 BACKEND - ORDER REQUEST ANALYSIS:', {
+        hasBody: !!req.body,
+        hasOrderData: !!req.body.orderData,
+        hasPickupAddress: !!req.body.pickupAddress,
+        hasDropoffAddress: !!req.body.dropoffAddress,
+        showManualEntry: req.body.showManualEntry,
+        title: req.body.orderData?.title,
+        price: req.body.orderData?.price,
+        pickupCountry: req.body.pickupAddress?.country,
+        pickupCity: req.body.pickupAddress?.city,
+        dropoffCountry: req.body.dropoffAddress?.country,
+        dropoffCity: req.body.dropoffAddress?.city
+      });
+    }
+
     const { error } = schema.validate(req.body, { abortEarly: false });
 
     if (error) {
@@ -12,6 +36,9 @@ const validateBody = (schema) => {
         field: detail.path.join('.'),
         message: detail.message
       }));
+
+      console.log('🚨 BACKEND - VALIDATION FAILED FOR:', req.path);
+      console.log('🚨 BACKEND - VALIDATION ERRORS:', JSON.stringify(errors, null, 2));
 
       logger.warn('Request validation failed', {
         errors,
@@ -27,6 +54,7 @@ const validateBody = (schema) => {
       });
     }
 
+    console.log('✅ BACKEND - VALIDATION PASSED FOR:', req.path);
     next();
   };
 };
