@@ -95,21 +95,17 @@ const DeliveryApp = () => {
           {isConnected ? t('tracking.liveTrackingActive') : t('tracking.connecting')}
         </div>
         <MapContainer center={driverLocation ? [driverLocation.lat, driverLocation.lng] : [order.from.lat, order.from.lng]} zoom={13} style={{ height: 'calc(100% - 40px)', width: '100%' }}>
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-            maxZoom={19}
-            minZoom={1}
-            subdomains={'abcd'}
-            tileSize={256}
-            updateWhenZooming={true}
-            updateWhenIdle={false}
-            keepBuffer={4}
-            crossOrigin={true}
-            detectRetina={false}
-            opacity={1}
-            zIndex={1}
-          />
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+          maxZoom={19}
+          minZoom={1}
+          errorTileUrl={null}
+          updateWhenZooming={true}
+          updateWhenIdle={false}
+          keepBuffer={4}
+          detectRetina={true}
+        />
           <Marker position={[order.from.lat, order.from.lng]} icon={L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png', iconSize: [25, 41], iconAnchor: [12, 41] })}><Popup><strong>{t('tracking.pickup')}</strong></Popup></Marker>
           <Marker position={[order.to.lat, order.to.lng]} icon={L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png', iconSize: [25, 41], iconAnchor: [12, 41] })}><Popup><strong>{t('tracking.delivery')}</strong></Popup></Marker>
           {driverLocation && <Marker position={[driverLocation.lat, driverLocation.lng]} icon={L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png', iconSize: [25, 41], iconAnchor: [12, 41] })}><Popup><strong>{t('tracking.driver')}</strong></Popup></Marker>}
