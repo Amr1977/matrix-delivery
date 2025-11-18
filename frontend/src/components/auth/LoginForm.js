@@ -47,9 +47,9 @@ const LoginForm = ({ onSubmit, loading, error, t }) => {
         />
         <button
           onClick={() => setShowPassword(!showPassword)}
-          style={{ position: 'absolute', right: '0.75rem', top: '0.75rem', background: 'none', border: 'none', color: '#6B7280', cursor: 'pointer' }}
+          style={{ position: 'absolute', right: '0.75rem', top: '0.75rem', background: 'none', border: 'none', color: '#6B7280', cursor: 'pointer', fontSize: '0.9rem' }}
         >
-          {showPassword ? '👁️' : '👁️‍🗨️'}
+          {showPassword ? 'Hide' : 'Show'}
         </button>
       </div>
       {process.env.REACT_APP_RECAPTCHA_SITE_KEY && (
