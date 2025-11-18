@@ -532,51 +532,21 @@ const FullscreenMapModal = ({
             touchZoom={true}
             scrollWheelZoom={true}
           >
-            {/* Primary Tile Layer - High Reliability */}
+            {/* Single Optimized TileLayer - CartoDB Positron (OpenStreetMap-based, more reliable) */}
             <TileLayer
-              attribution='&copy; <a href="https://cartodb.com/attributions">CartoDB</a> | &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
-              url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
-              maxZoom={20}
-              minZoom={1}
-              subdomains={['a', 'b', 'c', 'd']}
-              tileSize={512}
-              zoomOffset={-1}
-              updateWhenZooming={true}
-              updateWhenIdle={true}
-              keepBuffer={8}
-              crossOrigin={true}
-              detectRetina={false}
-              attributionPrefix="CartoDB"
-            />
-
-            {/* Alternative Tile Layer - Better Reliability */}
-            <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+              url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
               maxZoom={19}
               minZoom={1}
-              subdomains={['a', 'b', 'c']}
+              subdomains={'abcd'}
               tileSize={256}
-              updateWhenZooming={false}
-              updateWhenIdle={true}
-              keepBuffer={6}
-              crossOrigin={true}
-              detectRetina={false}
-            />
-
-            {/* Fallback Tile Layer - Always Available */}
-            <TileLayer
-              url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
-              attribution='Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a>'
-              maxZoom={17}
-              minZoom={1}
-              subdomains={['a', 'b', 'c']}
-              tileSize={256}
-              updateWhenZooming={false}
+              updateWhenZooming={true}
               updateWhenIdle={false}
               keepBuffer={4}
               crossOrigin={true}
               detectRetina={false}
+              opacity={1}
+              zIndex={1}
             />
 
             {/* Map Event Handlers */}
@@ -1784,9 +1754,10 @@ const MapLocationPicker = ({ location, onChange, userLocation, markerColor, API_
               tileSize={256}
               updateWhenZooming={true}
               updateWhenIdle={false}
-              keepBuffer={2}
+              keepBuffer={4}
               crossOrigin={true}
-              detectRetina={true}
+              detectRetina={false}
+              errorTileUrl="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
             />
             <MapClickHandler onMapClick={handleMapClick} />
             {location?.coordinates && (
@@ -2067,7 +2038,9 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, loading, compact = false,
               tileSize={256}
               updateWhenZooming={true}
               updateWhenIdle={false}
-              keepBuffer={2}
+              keepBuffer={4}
+              detectRetina={false}
+              errorTileUrl="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
             />
             <Marker
               position={[pickup.lat, pickup.lng]}

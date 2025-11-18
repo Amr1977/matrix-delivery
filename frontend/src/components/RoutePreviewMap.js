@@ -32,10 +32,21 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, loading, compact = false,
           zoom={13}
           style={{ height: '100%', width: '100%' }}
         >
-          <TileLayer
-            attribution='&copy; OpenStreetMap'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+              url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+              maxZoom={19}
+              minZoom={1}
+              subdomains={'abcd'}
+              tileSize={256}
+              updateWhenZooming={true}
+              updateWhenIdle={false}
+              keepBuffer={4}
+              crossOrigin={true}
+              detectRetina={false}
+              opacity={1}
+              zIndex={1}
+            />
           <Marker
             position={[pickup.lat, pickup.lng]}
             icon={L.icon({
