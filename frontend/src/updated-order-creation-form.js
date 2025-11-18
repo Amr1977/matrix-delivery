@@ -174,6 +174,299 @@ const AutocompleteInput = ({
   );
 };
 
+// ============ COMBOBOX INPUT COMPONENT (Dropdown + Free Text Entry) ============
+const ComboboxInput = ({
+  value,
+  onChange,
+  placeholder,
+  options = [],
+  disabled = false,
+  loading = false,
+  required = false
+}) => {
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [filteredOptions, setFilteredOptions] = useState([]);
+  const [inputValue, setInputValue] = useState(value || '');
+  const [selectedValue, setSelectedValue] = useState(value || '');
+  const inputRef = useState(null);
+
+  useEffect(() => {
+    setInputValue(value || '');
+    setSelectedValue(value || '');
+  }, [value]);
+
+  // Update input value when options change and we have a matching option
+  useEffect(() => {
+    if (selectedValue && options.length > 0) {
+      const matchingOption = options.find(option => option.value === selectedValue);
+      if (matchingOption && matchingOption.label !== inputValue) {
+        setInputValue(matchingOption.label);
+      }
+    }
+  }, [options, selectedValue, inputValue]);
+
+  const handleInputChange = (e) => {
+    const newValue = e.target.value;
+    setInputValue(newValue);
+
+    // Filter options based on what user is typing
+    const filtered = options.filter(option =>
+      option.label.toLowerCase().includes(newValue.toLowerCase()) ||
+      option.value.toLowerCase().includes(newValue.toLowerCase())
+    );
+    setFilteredOptions(filtered);
+
+    // Show suggestions if there are matches or if user is typing
+    setShowSuggestions(filtered.length > 0 || (newValue.trim() && options.length > 0));
+
+    // Update the selected value - use the typed value directly if it's not empty
+    if (newValue.trim()) {
+      setSelectedValue(newValue);
+      onChange(newValue);
+    } else {
+      setSelectedValue('');
+      onChange('');
+    }
+  };
+
+  const handleOptionSelect = (option) => {
+    setInputValue(option.label);
+    setSelectedValue(option.value);
+    onChange(option.value);
+    setShowSuggestions(false);
+  };
+
+  const handleBlur = () => {
+    // Delay hiding suggestions to allow for click events
+    setTimeout(() => {
+      setShowSuggestions(false);
+      // On blur, if input doesn't match any option, treat it as custom text
+      if (inputValue.trim() && !options.some(opt => opt.label.toLowerCase() === inputValue.toLowerCase() || opt.value === inputValue)) {
+        onChange(inputValue);
+      }
+    }, 150);
+  };
+
+  const handleFocus = () => {
+    // Show dropdown when focused, regardless of current value
+    if (options.length > 0) {
+      const filtered = inputValue ? options.filter(option =>
+        option.label.toLowerCase().includes(inputValue.toLowerCase()) ||
+        option.value.toLowerCase().includes(inputValue.toLowerCase())
+      ) : options;
+      setFilteredOptions(filtered);
+      setShowSuggestions(true);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    // Allow selection with Enter or Tab
+    if (e.key === 'Enter' || e.key === 'Tab') {
+      if (showSuggestions && filteredOptions.length > 0) {
+        // Select first matching option or closest match
+        const exactMatch = filteredOptions.find(opt =>
+          opt.label.toLowerCase() === inputValue.toLowerCase() ||
+          opt.value.toLowerCase() === inputValue.toLowerCase()
+        );
+        if (exactMatch) {
+          handleOptionSelect(exactMatch);
+          e.preventDefault();
+        }
+      }
+    }
+  };
+
+  return (
+    <div style={{
+      position: 'relative',
+      width: '100%',
+      background: 'rgba(0, 17, 0, 0.8)',
+      border: '2px solid #00AA00',
+      borderRadius: '0.375rem'
+    }}>
+      <input
+        ref={inputRef}
+        type="text"
+        value={inputValue}
+        onChange={handleInputChange}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
+        placeholder={loading ? 'Loading...' : placeholder}
+        disabled={disabled}
+        required={required}
+        style={{
+          width: '100%',
+          padding: '0.5rem',
+          paddingRight: options.length > 0 && !loading ? '2.5rem' : loading ? '2.5rem' : '0.5rem',
+          border: 'none',
+          borderRadius: '0.375rem',
+          fontSize: '0.875rem',
+          fontFamily: 'Consolas, Monaco, Courier New, monospace',
+          color: '#30FF30',
+          background: 'transparent',
+          outline: 'none',
+          cursor: disabled ? 'not-allowed' : 'text'
+        }}
+      />
+
+      {/* Suggestions Dropdown */}
+      {showSuggestions && filteredOptions.length > 0 && (
+        <div style={{
+          position: 'absolute',
+          top: '100%',
+          left: 0,
+          right: 0,
+          maxHeight: '200px',
+          overflowY: 'auto',
+          background: 'rgba(0, 17, 0, 0.95)',
+          border: '2px solid #00AA00',
+          borderTop: 'none',
+          borderRadius: '0 0 0.375rem 0.375rem',
+          zIndex: 1000,
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.5)'
+        }}>
+          {filteredOptions.map((option, index) => (
+            <div
+              key={`${option.value}-${index}`}
+              onClick={() => handleOptionSelect(option)}
+              style={{
+                padding: '0.5rem',
+                cursor: 'pointer',
+                borderBottom: index < filteredOptions.length - 1 ? '1px solid rgba(0, 255, 0, 0.2)' : 'none',
+                background: 'rgba(0, 17, 0, 0.9)',
+                color: '#30FF30',
+                fontSize: '0.875rem',
+                fontFamily: 'Consolas, Monaco, Courier New, monospace'
+              }}
+              onMouseOver={(e) => {
+                e.target.style.background = 'rgba(0, 255, 0, 0.1)';
+              }}
+              onMouseOut={(e) => {
+                e.target.style.background = 'rgba(0, 17, 0, 0.9)';
+              }}
+            >
+              {option.label}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Dropdown arrow indicator */}
+      {options.length > 0 && (
+        <div style={{
+          position: 'absolute',
+          right: loading ? '30px' : '10px',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          color: '#00AA00',
+          fontSize: '0.75rem',
+          pointerEvents: 'none'
+        }}>
+          ▼
+        </div>
+      )}
+
+      {/* Loading indicator */}
+      {loading && (
+        <div style={{
+          position: 'absolute',
+          right: '10px',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          fontSize: '0.75rem',
+          color: '#00AA00'
+        }}>
+          ...
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ============ MODAL COMPONENT FOR SUCCESS/ERROR MESSAGES ============
+const MessageModal = ({ isOpen, onClose, title, message, type }) => {
+  if (!isOpen) return null;
+
+  const isSuccess = type === 'success';
+
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: 'rgba(0, 0, 0, 0.8)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 9999
+    }}>
+      <div style={{
+        background: 'linear-gradient(135deg, #000000 0%, #001100 100%)',
+        border: `2px solid ${isSuccess ? '#00AA00' : '#DC2626'}`,
+        borderRadius: '0.75rem',
+        padding: '2rem',
+        maxWidth: '400px',
+        width: '90%',
+        textAlign: 'center',
+        boxShadow: `0 10px 30px rgba(${isSuccess ? '0, 170, 0' : '220, 38, 38'}, 0.5)`
+      }}>
+        <div style={{
+          fontSize: '3rem',
+          marginBottom: '1rem'
+        }}>
+          {isSuccess ? '🎉' : '⚠️'}
+        </div>
+
+        <h2 style={{
+          fontSize: '1.25rem',
+          fontWeight: 'bold',
+          color: '#30FF30',
+          marginBottom: '1rem',
+          textShadow: '0 0 10px #30FF30'
+        }}>
+          {title}
+        </h2>
+
+        <p style={{
+          color: '#E5E7EB',
+          marginBottom: '2rem',
+          lineHeight: '1.6'
+        }}>
+          {message}
+        </p>
+
+        <button
+          onClick={onClose}
+          style={{
+            padding: '0.75rem 1.5rem',
+            background: 'linear-gradient(135deg, #00AA00 0%, #30FF30 50%, #00AA00 100%)',
+            color: '#30FF30',
+            border: '2px solid #00AA00',
+            borderRadius: '0.375rem',
+            fontWeight: '600',
+            cursor: 'pointer',
+            fontSize: '0.875rem',
+            fontFamily: 'Consolas, Monaco, Courier New, monospace'
+          }}
+          onMouseOver={(e) => {
+            e.target.style.boxShadow = '0 0 20px rgba(0, 255, 0, 0.6)';
+            e.target.style.transform = 'translateY(-2px)';
+          }}
+          onMouseOut={(e) => {
+            e.target.style.boxShadow = 'none';
+            e.target.style.transform = 'translateY(0)';
+          }}
+        >
+          {isSuccess ? '🎯 Got it!' : '❌ Try Again'}
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const OrderCreationForm = ({ onSubmit, countries, t }) => {
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
   
@@ -222,6 +515,14 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showManualEntry, setShowManualEntry] = useState(true);
+
+  // Modal state
+  const [modalState, setModalState] = useState({
+    isOpen: false,
+    type: '', // 'success' or 'error'
+    title: '',
+    message: ''
+  });
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -282,64 +583,61 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Validate order basics first
     if (!orderData.title?.trim()) {
-      setError('Order title is required');
-      scrollToTop();
+      setModalState({
+        isOpen: true,
+        type: 'error',
+        title: 'Order Title Required',
+        message: 'Please provide a title for your delivery order before publishing.'
+      });
       return;
     }
 
     if (!orderData.price || orderData.price <= 0) {
-      setError('Order price is required and must be greater than 0');
-      scrollToTop();
+      setModalState({
+        isOpen: true,
+        type: 'error',
+        title: 'Invalid Price',
+        message: `Order price must be greater than $0. Current price: $${orderData.price || 0}`
+      });
       return;
     }
 
-    // Validate based on entry mode
-    if (showManualEntry) {
-      // Manual entry validation
-      const pickupMissing = [];
-      const dropoffMissing = [];
+    // Always validate required fields for both modes
+    const pickupMissing = [];
+    const dropoffMissing = [];
 
-      if (!pickupAddress.country?.trim()) pickupMissing.push('country');
-      if (!pickupAddress.city?.trim()) pickupMissing.push('city');
-      if (!pickupAddress.personName?.trim()) pickupMissing.push('contact name');
+    // Check pickup location required fields
+    if (!pickupAddress.country?.trim()) pickupMissing.push('country');
+    if (!pickupAddress.city?.trim()) pickupMissing.push('city');
+    if (!pickupAddress.personName?.trim()) pickupMissing.push('contact name');
 
-      if (!dropoffAddress.country?.trim()) dropoffMissing.push('country');
-      if (!dropoffAddress.city?.trim()) dropoffMissing.push('city');
-      if (!dropoffAddress.personName?.trim()) dropoffMissing.push('contact name');
+    // Check dropoff location required fields
+    if (!dropoffAddress.country?.trim()) dropoffMissing.push('country');
+    if (!dropoffAddress.city?.trim()) dropoffMissing.push('city');
+    if (!dropoffAddress.personName?.trim()) dropoffMissing.push('contact name');
 
-      if (pickupMissing.length > 0 || dropoffMissing.length > 0) {
-        const errorParts = [];
-        if (pickupMissing.length > 0) {
-          errorParts.push(`Pickup location (${pickupMissing.join(', ')})`);
-        }
-        if (dropoffMissing.length > 0) {
-          errorParts.push(`Delivery location (${dropoffMissing.join(', ')})`);
-        }
-        setError(`Please fill all required fields: ${errorParts.join(', ')}`);
-        scrollToTop();
-        return;
+    if (pickupMissing.length > 0 || dropoffMissing.length > 0) {
+      const errorParts = [];
+      if (pickupMissing.length > 0) {
+        errorParts.push(`Pickup location missing: ${pickupMissing.join(', ')}`);
       }
-    } else {
-      // Map entry validation
-      if (!pickupLocation?.coordinates) {
-        setError('Please select pickup location on the map');
-        scrollToTop();
-        return;
+      if (dropoffMissing.length > 0) {
+        errorParts.push(`Delivery location missing: ${dropoffMissing.join(', ')}`);
       }
-      if (!dropoffLocation?.coordinates) {
-        setError('Please select delivery location on the map');
-        scrollToTop();
-        return;
-      }
+
+      setModalState({
+        isOpen: true,
+        type: 'error',
+        title: 'Missing Required Information',
+        message: errorParts.join('. ') + ' Please complete all required fields marked with * before publishing.'
+      });
+      return;
     }
-
-    // Clear any previous errors
-    setError('');
 
     // Prepare complete order data
     const completeOrderData = {
@@ -354,39 +652,94 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
       })
     };
 
-    onSubmit(completeOrderData);
+    try {
+      // Show loading state
+      setLoading(true);
+
+      // Attempt to submit the order
+      await onSubmit(completeOrderData);
+
+      // Show success modal on successful submission
+      setModalState({
+        isOpen: true,
+        type: 'success',
+        title: '🚀 Order Published Successfully!',
+        message: `Your order "${orderData.title}" has been published and is now available for heroes to accept. Track its progress from the Orders page.`
+      });
+
+      // Clear loading state
+      setLoading(false);
+
+    } catch (error) {
+      // Show error modal on failure
+      setLoading(false);
+      setModalState({
+        isOpen: true,
+        type: 'error',
+        title: 'Failed to Publish Order',
+        message: `❌ ${error.message || 'An unexpected error occurred while publishing your order. Please try again.'}`
+      });
+    }
+  };
+
+  const closeModal = () => {
+    setModalState({
+      isOpen: false,
+      type: '',
+      title: '',
+      message: ''
+    });
   };
   
   return (
-    <div style={{
-      background: 'white',
+    <div className="card" style={{
+      background: 'linear-gradient(135deg, #000000 0%, #001100 100%)',
+      border: '2px solid #00AA00',
+      borderRadius: '0.75rem',
       padding: isMobile ? '1rem' : '2rem',
-      borderRadius: '0.5rem',
-      boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
       maxHeight: '85vh',
       overflowY: 'auto'
     }}>
-      <h2 style={{ fontSize: isMobile ? '1.25rem' : '1.5rem', fontWeight: 'bold', marginBottom: '1.5rem' }}>
+      <h2 style={{
+        fontSize: isMobile ? '1.25rem' : '1.5rem',
+        fontWeight: 'bold',
+        marginBottom: '1.5rem',
+        color: '#30FF30',
+        textShadow: '0 0 10px #30FF30',
+        fontFamily: 'Consolas, Monaco, Courier New, monospace'
+      }}>
         📦 {t('orders.createNewOrder')}
       </h2>
-      
-      {error && (
-        <div style={{ background: '#FEE2E2', color: '#991B1B', padding: '1rem', borderRadius: '0.5rem', marginBottom: '1rem' }}>
-          ⚠️ {error}
-        </div>
-      )}
       
       <form onSubmit={handleSubmit}>
         {/* Basic Order Details */}
         <div style={{ marginBottom: '1.5rem' }}>
-          <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem' }}>
-            📋 Order Details
+          <h3 style={{
+            fontSize: '1.125rem',
+            fontWeight: '600',
+            marginBottom: '1rem',
+            color: '#30FF30',
+            textShadow: '0 0 10px #30FF30'
+          }}>
+            📋 {t('orders.orderDetails')}
           </h3>
-          <div style={{ background: '#F9FAFB', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #E5E7EB' }}>
+          <div style={{
+            background: 'rgba(0, 17, 0, 0.8)',
+            padding: '1rem',
+            borderRadius: '0.5rem',
+            border: '2px solid #00AA00'
+          }}>
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '0.75rem' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.5rem' }}>
-                  {t('orders.title')} *
+                <label style={{
+                  display: 'block',
+                  fontSize: '0.75rem',
+                  fontWeight: '600',
+                  marginBottom: '0.5rem',
+                  color: '#30FF30',
+                  textShadow: '0 0 5px #30FF30'
+                }}>
+                  📝 {t('orders.title')} *
                 </label>
                 <input
                   type="text"
@@ -394,13 +747,31 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
                   onChange={(e) => setOrderData({...orderData, title: e.target.value})}
                   placeholder="e.g., Deliver package to office"
                   required
-                  style={{ width: '100%', padding: '0.375rem 0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
+                  style={{
+                    width: '100%',
+                    height: '44px',
+                    background: 'rgba(0, 17, 0, 0.8)',
+                    color: '#30FF30',
+                    border: '2px solid #00AA00',
+                    borderRadius: '0.375rem',
+                    fontSize: '0.875rem',
+                    fontFamily: 'Consolas, Monaco, Courier New, monospace',
+                    padding: '0.375rem 0.5rem',
+                    outline: 'none'
+                  }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.5rem' }}>
-                  {t('orders.price')} (USD) *
+                <label style={{
+                  display: 'block',
+                  fontSize: '0.75rem',
+                  fontWeight: '600',
+                  marginBottom: '0.5rem',
+                  color: '#30FF30',
+                  textShadow: '0 0 5px #30FF30'
+                }}>
+                  💰 {t('orders.price')} (USD) *
                 </label>
                 <input
                   type="number"
@@ -410,20 +781,48 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
                   required
                   min="0"
                   step="0.01"
-                  style={{ width: '100%', padding: '0.375rem 0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
+                  style={{
+                    width: '100%',
+                    height: '44px',
+                    background: 'rgba(0, 17, 0, 0.8)',
+                    color: '#30FF30',
+                    border: '2px solid #00AA00',
+                    borderRadius: '0.375rem',
+                    fontSize: '0.875rem',
+                    fontFamily: 'Consolas, Monaco, Courier New, monospace',
+                    padding: '0.375rem 0.5rem',
+                    outline: 'none'
+                  }}
                 />
               </div>
 
               <div style={{ gridColumn: '1 / -1' }}>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.5rem' }}>
-                  {t('orders.description')}
+                <label style={{
+                  display: 'block',
+                  fontSize: '0.75rem',
+                  fontWeight: '600',
+                  marginBottom: '0.5rem',
+                  color: '#30FF30',
+                  textShadow: '0 0 5px #30FF30'
+                }}>
+                  📄 {t('orders.description')}
                 </label>
                 <textarea
                   value={orderData.description}
                   onChange={(e) => setOrderData({...orderData, description: e.target.value})}
                   placeholder="Brief description of the delivery..."
                   rows="2"
-                  style={{ width: '100%', padding: '0.375rem 0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
+                  style={{
+                    width: '100%',
+                    background: 'rgba(0, 17, 0, 0.8)',
+                    color: '#30FF30',
+                    border: '2px solid #00AA00',
+                    borderRadius: '0.375rem',
+                    fontSize: '0.875rem',
+                    fontFamily: 'Consolas, Monaco, Courier New, monospace',
+                    padding: '0.375rem 0.5rem',
+                    outline: 'none'
+                  }}
                 />
               </div>
             </div>
@@ -498,31 +897,67 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
         
         {/* Package Details */}
         <div style={{ marginBottom: '1.5rem' }}>
-          <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem' }}>
+          <h3 style={{
+            fontSize: '1.125rem',
+            fontWeight: '600',
+            marginBottom: '1rem',
+            color: '#30FF30',
+            textShadow: '0 0 10px #30FF30'
+          }}>
             📦 {t('orders.packageDetails')}
           </h3>
-          <div style={{ background: '#F9FAFB', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #E5E7EB' }}>
+          <div style={{
+            background: 'rgba(0, 17, 0, 0.8)',
+            padding: '1rem',
+            borderRadius: '0.5rem',
+            border: '2px solid #00AA00'
+          }}>
             <div style={{
               display: 'grid',
               gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
               gap: '0.75rem'
             }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.5rem' }}>
-                  {t('orders.packageDescription')}
+                <label style={{
+                  display: 'block',
+                  fontSize: '0.75rem',
+                  fontWeight: '600',
+                  marginBottom: '0.5rem',
+                  color: '#30FF30',
+                  textShadow: '0 0 5px #30FF30'
+                }}>
+                  📝 {t('orders.packageDescription')}
                 </label>
                 <input
                   type="text"
                   value={orderData.package_description}
                   onChange={(e) => setOrderData({...orderData, package_description: e.target.value})}
                   placeholder="e.g., Documents, Electronics"
-                  style={{ width: '100%', padding: '0.375rem 0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
+                  style={{
+                    width: '100%',
+                    height: '44px',
+                    background: 'rgba(0, 17, 0, 0.8)',
+                    color: '#30FF30',
+                    border: '2px solid #00AA00',
+                    borderRadius: '0.375rem',
+                    fontSize: '0.875rem',
+                    fontFamily: 'Consolas, Monaco, Courier New, monospace',
+                    padding: '0.375rem 0.5rem',
+                    outline: 'none'
+                  }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.5rem' }}>
-                  {t('orders.weight')} (kg)
+                <label style={{
+                  display: 'block',
+                  fontSize: '0.75rem',
+                  fontWeight: '600',
+                  marginBottom: '0.5rem',
+                  color: '#30FF30',
+                  textShadow: '0 0 5px #30FF30'
+                }}>
+                  ⚖️ {t('orders.weight')} (kg)
                 </label>
                 <input
                   type="number"
@@ -531,13 +966,31 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
                   placeholder="e.g., 2.5"
                   min="0"
                   step="0.1"
-                  style={{ width: '100%', padding: '0.375rem 0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
+                  style={{
+                    width: '100%',
+                    height: '44px',
+                    background: 'rgba(0, 17, 0, 0.8)',
+                    color: '#30FF30',
+                    border: '2px solid #00AA00',
+                    borderRadius: '0.375rem',
+                    fontSize: '0.875rem',
+                    fontFamily: 'Consolas, Monaco, Courier New, monospace',
+                    padding: '0.375rem 0.5rem',
+                    outline: 'none'
+                  }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.5rem' }}>
-                  {t('orders.estimatedValue')} (USD)
+                <label style={{
+                  display: 'block',
+                  fontSize: '0.75rem',
+                  fontWeight: '600',
+                  marginBottom: '0.5rem',
+                  color: '#30FF30',
+                  textShadow: '0 0 5px #30FF30'
+                }}>
+                  💰 {t('orders.estimatedValue')} (USD)
                 </label>
                 <input
                   type="number"
@@ -546,32 +999,78 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
                   placeholder="e.g., 100"
                   min="0"
                   step="0.01"
-                  style={{ width: '100%', padding: '0.375rem 0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
+                  style={{
+                    width: '100%',
+                    height: '44px',
+                    background: 'rgba(0, 17, 0, 0.8)',
+                    color: '#30FF30',
+                    border: '2px solid #00AA00',
+                    borderRadius: '0.375rem',
+                    fontSize: '0.875rem',
+                    fontFamily: 'Consolas, Monaco, Courier New, monospace',
+                    padding: '0.375rem 0.5rem',
+                    outline: 'none'
+                  }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.5rem' }}>
-                  {t('orders.estimatedDeliveryDate')}
+                <label style={{
+                  display: 'block',
+                  fontSize: '0.75rem',
+                  fontWeight: '600',
+                  marginBottom: '0.5rem',
+                  color: '#30FF30',
+                  textShadow: '0 0 5px #30FF30'
+                }}>
+                  📅 {t('orders.estimatedDeliveryDate')}
                 </label>
                 <input
                   type="datetime-local"
                   value={orderData.estimated_delivery_date}
                   onChange={(e) => setOrderData({...orderData, estimated_delivery_date: e.target.value})}
-                  style={{ width: '100%', padding: '0.375rem 0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
+                  style={{
+                    width: '100%',
+                    height: '44px',
+                    background: 'rgba(0, 17, 0, 0.8)',
+                    color: '#30FF30',
+                    border: '2px solid #00AA00',
+                    borderRadius: '0.375rem',
+                    fontSize: '0.875rem',
+                    fontFamily: 'Consolas, Monaco, Courier New, monospace',
+                    padding: '0.375rem 0.5rem',
+                    outline: 'none'
+                  }}
                 />
               </div>
 
               <div style={{ gridColumn: '1 / -1' }}>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.5rem' }}>
-                  {t('orders.specialInstructions')}
+                <label style={{
+                  display: 'block',
+                  fontSize: '0.75rem',
+                  fontWeight: '600',
+                  marginBottom: '0.5rem',
+                  color: '#30FF30',
+                  textShadow: '0 0 5px #30FF30'
+                }}>
+                  📋 {t('orders.specialInstructions')}
                 </label>
                 <textarea
                   value={orderData.special_instructions}
                   onChange={(e) => setOrderData({...orderData, special_instructions: e.target.value})}
                   placeholder="Any special handling instructions..."
                   rows="2"
-                  style={{ width: '100%', padding: '0.375rem 0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
+                  style={{
+                    width: '100%',
+                    background: 'rgba(0, 17, 0, 0.8)',
+                    color: '#30FF30',
+                    border: '2px solid #00AA00',
+                    borderRadius: '0.375rem',
+                    fontSize: '0.875rem',
+                    fontFamily: 'Consolas, Monaco, Courier New, monospace',
+                    padding: '0.375rem 0.5rem',
+                    outline: 'none'
+                  }}
                 />
               </div>
             </div>
@@ -585,26 +1084,37 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
           justifyContent: 'flex-end',
           position: isMobile ? 'sticky' : 'relative',
           bottom: isMobile ? '0' : 'auto',
-          background: isMobile ? 'white' : 'transparent',
+          background: isMobile ? '#000000' : 'transparent',
           padding: isMobile ? '1rem' : '0',
-          margin: isMobile ? '0 -1rem -1rem' : '0',
-          borderTop: isMobile ? '1px solid #E5E7EB' : 'none'
+          margin: isMobile ? '0 -1rem -1rem -1rem' : '0',
+          borderTop: isMobile ? '2px solid #00AA00' : 'none'
         }}>
           <button
             type="button"
             onClick={() => window.location.reload()}
             style={{
               padding: isMobile ? '0.625rem 1.25rem' : '0.75rem 1.5rem',
-              background: '#F3F4F6',
-              color: '#374151',
+              background: 'linear-gradient(135deg, #001100 0%, #000000 100%)',
+              color: '#30FF30',
+              border: '2px solid #00AA00',
               borderRadius: '0.375rem',
-              border: 'none',
               cursor: 'pointer',
               fontWeight: '600',
-              fontSize: isMobile ? '0.875rem' : '1rem'
+              fontSize: isMobile ? '0.875rem' : '1rem',
+              fontFamily: 'Consolas, Monaco, Courier New, monospace',
+              transition: 'all 0.3s ease',
+              boxShadow: '0 0 10px rgba(0, 255, 0, 0.2)'
+            }}
+            onMouseOver={(e) => {
+              e.target.style.boxShadow = '0 0 20px rgba(0, 255, 0, 0.4)';
+              e.target.style.transform = 'translateY(-2px)';
+            }}
+            onMouseOut={(e) => {
+              e.target.style.boxShadow = '0 0 10px rgba(0, 255, 0, 0.2)';
+              e.target.style.transform = 'translateY(0)';
             }}
           >
-            {t('common.cancel')}
+            ❎ {t('common.cancel')}
           </button>
           <button
             type="submit"
@@ -617,22 +1127,61 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
               background: (showManualEntry ?
                 (pickupAddress.city && pickupAddress.country && pickupAddress.personName &&
                  dropoffAddress.city && dropoffAddress.country && dropoffAddress.personName) :
-                (pickupLocation && dropoffLocation)) ? '#4F46E5' : '#9CA3AF',
-              color: 'white',
+                (pickupLocation && dropoffLocation)) ?
+                  'linear-gradient(135deg, #00AA00 0%, #30FF30 50%, #00AA00 100%)' : '#333333',
+              color: '#30FF30',
+              border: '2px solid #00AA00',
               borderRadius: '0.375rem',
-              border: 'none',
               cursor: (showManualEntry ?
                 (pickupAddress.city && pickupAddress.country && pickupAddress.personName &&
                  dropoffAddress.city && dropoffAddress.country && dropoffAddress.personName) :
                 (pickupLocation && dropoffLocation)) ? 'pointer' : 'not-allowed',
               fontWeight: '600',
-              fontSize: isMobile ? '0.875rem' : '1rem'
+              fontSize: isMobile ? '0.875rem' : '1rem',
+              fontFamily: 'Consolas, Monaco, Courier New, monospace',
+              opacity: (showManualEntry ?
+                (pickupAddress.city && pickupAddress.country && pickupAddress.personName &&
+                 dropoffAddress.city && dropoffAddress.country && dropoffAddress.personName) :
+                (pickupLocation && dropoffLocation)) ? 1 : 0.5,
+              boxShadow: (showManualEntry ?
+                (pickupAddress.city && pickupAddress.country && pickupAddress.personName &&
+                 dropoffAddress.city && dropoffAddress.country && dropoffAddress.personName) :
+                (pickupLocation && dropoffLocation)) ?
+                  '0 0 20px rgba(0, 255, 0, 0.6)' : 'none',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseOver={(e) => {
+              if (showManualEntry ?
+                (pickupAddress.city && pickupAddress.country && pickupAddress.personName &&
+                 dropoffAddress.city && dropoffAddress.country && dropoffAddress.personName) :
+                (pickupLocation && dropoffLocation)) {
+                e.target.style.boxShadow = '0 0 30px rgba(0, 255, 0, 0.8)';
+                e.target.style.transform = 'translateY(-2px)';
+              }
+            }}
+            onMouseOut={(e) => {
+              if (showManualEntry ?
+                (pickupAddress.city && pickupAddress.country && pickupAddress.personName &&
+                 dropoffAddress.city && dropoffAddress.country && dropoffAddress.personName) :
+                (pickupLocation && dropoffLocation)) {
+                e.target.style.boxShadow = '0 0 20px rgba(0, 255, 0, 0.6)';
+                e.target.style.transform = 'translateY(0)';
+              }
             }}
           >
-            {loading ? t('orders.creating') : t('orders.publishOrder')}
+            {loading ? '⏳ ' + t('orders.creating') : '🚀 ' + t('orders.publishOrder')}
           </button>
         </div>
       </form>
+
+      {/* Success/Error Modal */}
+      <MessageModal
+        isOpen={modalState.isOpen}
+        onClose={closeModal}
+        title={modalState.title}
+        message={modalState.message}
+        type={modalState.type}
+      />
     </div>
   );
 };
@@ -799,14 +1348,26 @@ const MapLocationPicker = ({ location, onChange, userLocation, markerColor, API_
             whenReady={(map) => {
               // Ensure map resizes properly and tiles load completely
               setTimeout(() => {
-                map.invalidateSize();
-                window.dispatchEvent(new Event('resize'));
+                try {
+                  if (map && typeof map.invalidateSize === 'function') {
+                    map.invalidateSize();
+                    window.dispatchEvent(new Event('resize'));
+                  }
+                } catch (error) {
+                  console.warn('Map invalidateSize failed:', error);
+                }
               }, 100);
             }}
             whenCreated={(map) => {
               // Force tile loading when map is created
               setTimeout(() => {
-                map.invalidateSize();
+                try {
+                  if (map && typeof map.invalidateSize === 'function') {
+                    map.invalidateSize();
+                  }
+                } catch (error) {
+                  console.warn('Map invalidateSize failed:', error);
+                }
               }, 200);
             }}
           >
@@ -1245,6 +1806,73 @@ const useLocationData = (API_URL) => {
       { value: 'Beni Suef', label: 'Beni Suef' },
       { value: 'Aswan', label: 'Aswan' }
     ],
+    'Saudi Arabia': [
+      { value: 'Riyadh', label: 'Riyadh' },
+      { value: 'Jeddah', label: 'Jeddah' },
+      { value: 'Mecca', label: 'Mecca' },
+      { value: 'Medina', label: 'Medina' },
+      { value: 'Dammam', label: 'Dammam' },
+      { value: 'Khobar', label: 'Khobar' },
+      { value: 'Taif', label: 'Taif' },
+      { value: 'Tabuk', label: 'Tabuk' },
+      { value: 'Buraydah', label: 'Buraydah' },
+      { value: 'Khamis Mushait', label: 'Khamis Mushait' }
+    ],
+    'United Arab Emirates': [
+      { value: 'Dubai', label: 'Dubai' },
+      { value: 'Abu Dhabi', label: 'Abu Dhabi' },
+      { value: 'Sharjah', label: 'Sharjah' },
+      { value: 'Ajman', label: 'Ajman' },
+      { value: 'Ras Al Khaimah', label: 'Ras Al Khaimah' },
+      { value: 'Fujairah', label: 'Fujairah' },
+      { value: 'Umm Al Quwain', label: 'Umm Al Quwain' }
+    ],
+    'Jordan': [
+      { value: 'Amman', label: 'Amman' },
+      { value: 'Zarqa', label: 'Zarqa' },
+      { value: 'Irbid', label: 'Irbid' },
+      { value: 'Russeifa', label: 'Russeifa' },
+      { value: 'Wadi Al Seer', label: 'Wadi Al Seer' },
+      { value: 'Al-Quwaysimah', label: 'Al-Quwaysimah' },
+      { value: 'Aqaba', label: 'Aqaba' }
+    ],
+    'Lebanon': [
+      { value: 'Beirut', label: 'Beirut' },
+      { value: 'Tripoli', label: 'Tripoli' },
+      { value: 'Sidon', label: 'Sidon' },
+      { value: 'Tyre', label: 'Tyre' },
+      { value: 'Byblos', label: 'Byblos' },
+      { value: 'Jounieh', label: 'Jounieh' },
+      { value: 'Zahle', label: 'Zahle' }
+    ],
+    'Kuwait': [
+      { value: 'Kuwait City', label: 'Kuwait City' },
+      { value: 'Al Ahmadi', label: 'Al Ahmadi' },
+      { value: 'Hawalli', label: 'Hawalli' },
+      { value: 'Al Jahra', label: 'Al Jahra' },
+      { value: 'Al Farwaniyah', label: 'Al Farwaniyah' },
+      { value: 'Al Asimah', label: 'Al Asimah' }
+    ],
+    'Qatar': [
+      { value: 'Doha', label: 'Doha' },
+      { value: 'Al Rayyan', label: 'Al Rayyan' },
+      { value: 'Al Wakrah', label: 'Al Wakrah' },
+      { value: 'Al Khor', label: 'Al Khor' },
+      { value: 'Umm Salal', label: 'Umm Salal' }
+    ],
+    'Bahrain': [
+      { value: 'Manama', label: 'Manama' },
+      { value: 'Riffa', label: 'Riffa' },
+      { value: 'Muharraq', label: 'Muharraq' },
+      { value: 'Hamad Town', label: 'Hamad Town' }
+    ],
+    'Oman': [
+      { value: 'Muscat', label: 'Muscat' },
+      { value: 'Seeb', label: 'Seeb' },
+      { value: 'Salalah', label: 'Salalah' },
+      { value: 'Nizwa', label: 'Nizwa' },
+      { value: 'Al Sohar', label: 'Al Sohar' }
+    ]
   };
 
   // Areas/Regions for major cities
@@ -1352,108 +1980,133 @@ const useLocationData = (API_URL) => {
     ]
   };
 
+  // Country name to ISO code mapping for better API queries
+  const COUNTRY_CODES = {
+    'Egypt': 'eg',
+    'Saudi Arabia': 'sa',
+    'United Arab Emirates': 'ae',
+    'Jordan': 'jo',
+    'Lebanon': 'lb',
+    'Kuwait': 'kw',
+    'Qatar': 'qa',
+    'Bahrain': 'bh',
+    'Oman': 'om',
+    'Morocco': 'ma',
+    'Tunisia': 'tn',
+    'Algeria': 'dz',
+    'Libya': 'ly',
+    'Sudan': 'sd',
+    'Yemen': 'ye',
+    'Iraq': 'iq',
+    'Syria': 'sy',
+    'Palestine': 'ps'
+  };
+
   // Function to search for cities by country
   const searchCities = async (country, query = '') => {
     const cacheKey = `${country}-${query}`;
-    if (!country || cities[cacheKey]) return cities[cacheKey] || [];
+    if (!country) return [];
+
+    // Return cached results if available
+    if (cities[cacheKey]) return cities[cacheKey];
+
+    // First check if we have hardcoded fallback cities for this country
+    if (FALLBACK_CITIES[country]) {
+      console.log(`Using fallback cities for ${country}`);
+      const fallbackCities = FALLBACK_CITIES[country];
+      setCities(prev => ({ ...prev, [cacheKey]: fallbackCities }));
+      return fallbackCities;
+    }
 
     try {
-      // Use Photon API for excellent autocomplete functionality
-      // Photon provides better search results than Nominatim for dropdown suggestions
-      let searchQuery = `${country}`;
-      if (query.trim()) {
-        searchQuery = `${query}, ${country}`;
-      }
-
+      // Try Nominatim first - it's more reliable than Photon for geographic queries
       const response = await fetch(
-        `https://photon.komoot.io/api/?q=${encodeURIComponent(searchQuery)}&lang=en&limit=20&layer=city&layer=town&layer=village&layer=suburb`
+        `https://nominatim.openstreetmap.org/search?country=${encodeURIComponent(country)}&format=json&limit=20&addressdetails=1&dedupe=1&bounded=1&extratags=1`
       );
 
-      if (!response.ok) {
-        throw new Error(`Photon API failed for cities`);
+      if (response.ok) {
+        const data = await response.json();
+        console.log(`Nominatim results for ${country}:`, data.length);
+
+        if (data.length > 0) {
+          // Extract unique cities from the response
+          const uniqueCities = [...new Set(data
+            .map(item => {
+              // Try multiple possible city fields
+              const city = item.address?.city || item.address?.town || item.address?.village || item.address?.municipality || item.display_name?.split(',')[0];
+              return city ? { name: city.trim(), item: item } : null;
+            })
+            .filter(Boolean)
+            .map(({ name }) => name)
+          )].slice(0, 15);
+
+          if (uniqueCities.length > 0) {
+            const cityList = uniqueCities.map(city => ({
+              value: city,
+              label: city
+            }));
+
+            console.log(`Found ${cityList.length} cities for ${country}:`, cityList.slice(0, 3));
+            setCities(prev => ({ ...prev, [cacheKey]: cityList }));
+            return cityList;
+          }
+        }
       }
 
-      const data = await response.json();
+      // If Nominatim doesn't work, try Photon API with country code
+      console.log(`Trying Photon API for ${country}`);
+      const countryCode = COUNTRY_CODES[country] || country.toLowerCase();
+      const photonResponse = await fetch(
+        `https://photon.komoot.io/api/?q=city+in+${encodeURIComponent(countryCode)}&lang=en&limit=20&layer=city&layer=town&layer=village&layer=suburb`
+      );
 
-      if (data.features && data.features.length > 0) {
-        // Extract unique city names with their full properties
-        const cityOptions = data.features.map(feature => {
-          const properties = feature.properties;
-          const name = properties.name;
-          const cityName = properties.name;
-          const stateName = properties.state;
-          const countryName = properties.country;
+      if (photonResponse.ok) {
+        const photonData = await photonResponse.json();
+        console.log(`Photon results for ${country}:`, photonData.features?.length);
 
-          // Create a human-readable display name
-          let displayName = cityName;
-          if (stateName && stateName !== cityName) {
-            displayName = `${cityName}, ${stateName}`;
-          }
-          if (countryName && countryName !== country) {
-            displayName = `${displayName}, ${countryName}`;
-          }
+        if (photonData.features && photonData.features.length > 0) {
+          const uniqueCities = [...new Set(photonData.features
+            .map(feature => feature.properties?.name)
+            .filter(Boolean)
+          )].slice(0, 15);
 
-          return {
-            value: cityName,
-            label: displayName,
-            properties: properties
-          };
-        });
+          const cityList = uniqueCities.map(city => ({
+            value: city,
+            label: city
+          }));
 
-        // Remove duplicates based on city name
-        const uniqueCities = [];
-        const seenNames = new Set();
-
-        cityOptions.forEach(city => {
-          if (!seenNames.has(city.value)) {
-            uniqueCities.push(city);
-            seenNames.add(city.value);
-          }
-        });
-
-        const finalCities = uniqueCities.slice(0, 15); // Limit to 15 results
-        setCities(prev => ({ ...prev, [cacheKey]: finalCities }));
-        return finalCities;
+          console.log(`Found ${cityList.length} cities via Photon for ${country}`);
+          setCities(prev => ({ ...prev, [cacheKey]: cityList }));
+          return cityList;
+        }
       }
 
-      // If Photon doesn't return results, try Nominatim as backup
-      return await fallbackSearchCities(country, query, cacheKey);
+      // If both APIs fail, use fallback cities
+      console.warn(`All APIs failed for ${country}, using fallback`);
+      return await getFallbackCities(country, cacheKey);
 
     } catch (error) {
-      console.warn('Photon API failed, falling back to Nominatim:', error);
-      return await fallbackSearchCities(country, query, cacheKey);
+      console.warn(`City search failed for ${country}:`, error);
+      return await getFallbackCities(country, cacheKey);
     }
   };
 
-  // Fallback search using Nominatim when Photon fails
+  // Get fallback cities for a country
+  const getFallbackCities = (country, cacheKey) => {
+    const fallbackCities = FALLBACK_CITIES[country] || [
+      { value: 'Capital City', label: 'Capital City' },
+      { value: 'Main City', label: 'Main City' },
+      { value: 'Central City', label: 'Central City' }
+    ];
+
+    setCities(prev => ({ ...prev, [cacheKey]: fallbackCities }));
+    return fallbackCities;
+  };
+
+  // Simplified fallback search for when APIs are definitely down
   const fallbackSearchCities = async (country, query, cacheKey) => {
-    try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?country=${encodeURIComponent(country)}${query ? `&city=${encodeURIComponent(query)}` : ''}&format=json&limit=20&addressdetails=1&dedupe=1`
-      );
-
-      if (!response.ok) {
-        throw new Error(`Nominatim fallback failed`);
-      }
-
-      const data = await response.json();
-
-      // Extract unique cities from the response
-      const uniqueCities = [...new Set(
-        data.map(item => {
-          return item.address?.city || item.address?.town || item.address?.village || item.address?.municipality;
-        }).filter(Boolean)
-      )].slice(0, 15);
-
-      const cityList = uniqueCities.map(city => ({ value: city, label: city }));
-
-      setCities(prev => ({ ...prev, [cacheKey]: cityList }));
-      return cityList;
-
-    } catch (error) {
-      console.warn('All city search APIs failed:', error);
-      return [];
-    }
+    console.log(`Using fallback cities for ${country}`);
+    return getFallbackCities(country, cacheKey);
   };
 
   // Function to search for areas by country and city
@@ -1711,7 +2364,7 @@ const useLocationData = (API_URL) => {
   };
 };
 
-// ============ COMBINED LOCATION ENTRY (Map + Address Fields Together) ============
+// ============ COMBINED LOCATION ENTRY (Map + Address Fields Together - MATRIX STYLE) ============
 const LocationEntryCombined = ({
   mapLocation,
   onMapLocationChange,
@@ -1792,33 +2445,33 @@ const LocationEntryCombined = ({
     setTimeout(() => locationData.geocodeAddress(newAddress, onMapLocationChange), 100);
   };
 
-  // Handle street and other field changes - geocode
+  // Handle other field changes - geocode for street, building, floor, apartment
   const handleFieldChange = (field, value) => {
     const newAddress = { ...addressData, [field]: value };
     onAddressChange(newAddress);
 
-    // Geocode for street, building, floor, apartment changes
     if (['street', 'building', 'floor', 'apartment'].includes(field)) {
       setTimeout(() => locationData.geocodeAddress(newAddress, onMapLocationChange), 300);
     }
   };
 
   return (
-    <div style={{
-      background: '#F9FAFB',
-      borderRadius: '0.5rem',
-      border: '1px solid #E5E7EB',
+    <div className="card" style={{
+      background: 'linear-gradient(135deg, #000000 0%, #001100 100%)',
+      border: '2px solid #00AA00',
+      borderRadius: '0.75rem',
       overflow: 'hidden'
     }}>
       {/* Address Fields Section */}
-      <div style={{ padding: '1rem', borderBottom: '1px solid #E5E7EB' }}>
+      <div style={{ padding: '1rem', borderBottom: '2px solid #00AA00' }}>
         <h4 style={{
           fontSize: '0.875rem',
           fontWeight: '600',
-          color: '#374151',
-          marginBottom: '0.75rem'
+          color: '#30FF30',
+          marginBottom: '0.75rem',
+          textShadow: '0 0 10px #30FF30'
         }}>
-          📝 Address Details
+          📝 {t('orders.pickupLocation')} Details
         </h4>
 
         <div className="address-fields-grid" style={{
@@ -1831,28 +2484,23 @@ const LocationEntryCombined = ({
               display: 'block',
               fontSize: '0.75rem',
               fontWeight: '600',
-              color: '#374151',
-              marginBottom: '0.25rem'
+              color: '#30FF30',
+              marginBottom: '0.25rem',
+              textShadow: '0 0 5px #30FF30'
             }}>
-              {t('orders.country')} *
+              🌍 {t('orders.country')} *
             </label>
-            <select
-              value={addressData.country}
-              onChange={(e) => handleCountryChange(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                border: '1px solid #D1D5DB',
-                borderRadius: '0.375rem',
-                fontSize: '0.875rem',
-                background: 'white'
+            <ComboboxInput
+              value={addressData.country || ''}
+              onChange={(value) => {
+                // Update both the address state and trigger country change
+                onAddressChange({...addressData, country: value});
+                handleCountryChange(value);
               }}
-            >
-              <option value="">{t('orders.selectCountry')}</option>
-              {countries.map(country => (
-                <option key={country} value={country}>{country}</option>
-              ))}
-            </select>
+              placeholder={t('orders.selectCountry')}
+              options={countries.map(country => ({ value: country, label: country }))}
+              required={true}
+            />
           </div>
 
           <div>
@@ -1860,14 +2508,19 @@ const LocationEntryCombined = ({
               display: 'block',
               fontSize: '0.75rem',
               fontWeight: '600',
-              color: '#374151',
-              marginBottom: '0.25rem'
+              color: '#30FF30',
+              marginBottom: '0.25rem',
+              textShadow: '0 0 5px #30FF30'
             }}>
-              {t('orders.city')} *
+              🏙️ {t('orders.city')} *
             </label>
-            <AutocompleteInput
-              value={addressData.city}
-              onChange={(value) => handleCityChange(value)}
+            <ComboboxInput
+              value={addressData.city || ''}
+              onChange={(value) => {
+                // Update the address state and trigger any validation/geocoding
+                onAddressChange({...addressData, city: value});
+                handleCityChange(value);
+              }}
               placeholder={loadingCities ? 'Loading cities...' : addressData.country ? 'Type or select city' : 'Select country first'}
               options={availableCities}
               disabled={!addressData.country}
@@ -1881,14 +2534,18 @@ const LocationEntryCombined = ({
               display: 'block',
               fontSize: '0.75rem',
               fontWeight: '600',
-              color: '#374151',
-              marginBottom: '0.25rem'
+              color: '#30FF30',
+              marginBottom: '0.25rem',
+              textShadow: '0 0 5px #30FF30'
             }}>
-              {t('orders.area')}
+              🏘️ {t('orders.area')}
             </label>
-            <AutocompleteInput
-              value={addressData.area}
-              onChange={(value) => handleAreaChange(value)}
+            <ComboboxInput
+              value={addressData.area || ''}
+              onChange={(value) => {
+                onAddressChange({...addressData, area: value});
+                handleAreaChange(value);
+              }}
               placeholder={loadingAreas ? 'Loading areas...' : addressData.city ? 'Type or select area' : 'Select city first'}
               options={availableAreas}
               disabled={!addressData.city}
@@ -1901,14 +2558,18 @@ const LocationEntryCombined = ({
               display: 'block',
               fontSize: '0.75rem',
               fontWeight: '600',
-              color: '#374151',
-              marginBottom: '0.25rem'
+              color: '#30FF30',
+              marginBottom: '0.25rem',
+              textShadow: '0 0 5px #30FF30'
             }}>
-              {t('orders.street')}
+              🛣️ {t('orders.street')}
             </label>
-            <AutocompleteInput
-              value={addressData.street}
-              onChange={(value) => handleFieldChange('street', value)}
+            <ComboboxInput
+              value={addressData.street || ''}
+              onChange={(value) => {
+                onAddressChange({...addressData, street: value});
+                handleFieldChange('street', value);
+              }}
               placeholder={loadingStreets ? 'Loading streets...' : addressData.area ? 'Type or select street' : 'Select area first'}
               options={availableStreets}
               disabled={!addressData.area}
@@ -1916,29 +2577,73 @@ const LocationEntryCombined = ({
             />
           </div>
 
-          <div>
+          <div style={{ gridColumn: 'span 2' }}>
             <label style={{
               display: 'block',
               fontSize: '0.75rem',
               fontWeight: '600',
-              color: '#374151',
-              marginBottom: '0.25rem'
+              color: '#30FF30',
+              marginBottom: '0.25rem',
+              textShadow: '0 0 5px #30FF30'
             }}>
-              {t('orders.building')}
+              🏢 {t('orders.building')}
             </label>
-            <input
-              type="text"
-              value={addressData.building}
-              onChange={(e) => onAddressChange({...addressData, building: e.target.value})}
-              placeholder={t('orders.buildingNumber')}
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                border: '1px solid #D1D5DB',
-                borderRadius: '0.375rem',
-                fontSize: '0.875rem'
-              }}
-            />
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '0.5rem' }}>
+              <input
+                type="text"
+                value={addressData.building || ''}
+                onChange={(e) => onAddressChange({...addressData, building: e.target.value})}
+                placeholder={t('orders.buildingNumber')}
+                style={{
+                  width: '100%',
+                  height: '44px',
+                  background: 'rgba(0, 17, 0, 0.8)',
+                  color: '#30FF30',
+                  border: '2px solid #00AA00',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.875rem',
+                  fontFamily: 'Consolas, Monaco, Courier New, monospace',
+                  padding: '0.5rem',
+                  outline: 'none'
+                }}
+              />
+              <input
+                type="text"
+                value={addressData.floor || ''}
+                onChange={(e) => onAddressChange({...addressData, floor: e.target.value})}
+                placeholder={t('orders.floor')}
+                style={{
+                  width: '100%',
+                  height: '44px',
+                  background: 'rgba(0, 17, 0, 0.8)',
+                  color: '#30FF30',
+                  border: '2px solid #00AA00',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.875rem',
+                  fontFamily: 'Consolas, Monaco, Courier New, monospace',
+                  padding: '0.5rem',
+                  outline: 'none'
+                }}
+              />
+              <input
+                type="text"
+                value={addressData.apartment || ''}
+                onChange={(e) => onAddressChange({...addressData, apartment: e.target.value})}
+                placeholder={t('orders.aptNumber')}
+                style={{
+                  width: '100%',
+                  height: '44px',
+                  background: 'rgba(0, 17, 0, 0.8)',
+                  color: '#30FF30',
+                  border: '2px solid #00AA00',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.875rem',
+                  fontFamily: 'Consolas, Monaco, Courier New, monospace',
+                  padding: '0.5rem',
+                  outline: 'none'
+                }}
+              />
+            </div>
           </div>
 
           <div>
@@ -1946,23 +2651,29 @@ const LocationEntryCombined = ({
               display: 'block',
               fontSize: '0.75rem',
               fontWeight: '600',
-              color: '#374151',
-              marginBottom: '0.25rem'
+              color: '#30FF30',
+              marginBottom: '0.25rem',
+              textShadow: '0 0 5px #30FF30'
             }}>
-              {t('orders.contactName')} *
+              👤 {t('orders.contactName')} *
             </label>
             <input
               type="text"
-              value={addressData.personName}
+              value={addressData.personName || ''}
               onChange={(e) => onAddressChange({...addressData, personName: e.target.value})}
               placeholder={t('orders.contactPerson')}
               required
               style={{
                 width: '100%',
-                padding: '0.5rem',
-                border: '1px solid #D1D5DB',
+                height: '44px',
+                background: 'rgba(0, 17, 0, 0.8)',
+                color: '#30FF30',
+                border: '2px solid #00AA00',
                 borderRadius: '0.375rem',
-                fontSize: '0.875rem'
+                fontSize: '0.875rem',
+                fontFamily: 'Consolas, Monaco, Courier New, monospace',
+                padding: '0.5rem',
+                outline: 'none'
               }}
             />
           </div>
@@ -1974,10 +2685,11 @@ const LocationEntryCombined = ({
         <h4 style={{
           fontSize: '0.875rem',
           fontWeight: '600',
-          color: '#374151',
-          marginBottom: '0.75rem'
+          color: '#30FF30',
+          marginBottom: '0.75rem',
+          textShadow: '0 0 10px #30FF30'
         }}>
-          🗺️ Map Location
+          🗺️ Interactive Map
         </h4>
 
         <MapLocationPicker
