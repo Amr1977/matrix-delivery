@@ -26,9 +26,24 @@ const OrderList = ({
 
   if (displayOrders.length === 0) {
     return (
-      <div style={{ textAlign: 'center', padding: '3rem', background: 'white', borderRadius: '0.5rem' }}>
-        <p style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>📦</p>
-        <p style={{ color: '#6B7280' }}>
+      <div style={{
+        textAlign: 'center',
+        padding: '3rem',
+        background: 'linear-gradient(135deg, #000000 0%, #001100 100%)',
+        border: '2px solid #00AA00',
+        borderRadius: '0.75rem',
+        boxShadow: '0 0 20px rgba(0, 170, 0, 0.2)'
+      }}>
+        <p style={{
+          fontSize: '3rem',
+          marginBottom: '0.5rem'
+        }}>📦</p>
+        <p style={{
+          color: '#30FF30',
+          fontFamily: 'Consolas, Monaco, Courier New, monospace',
+          textShadow: '0 0 10px #30FF30',
+          fontSize: '1.25rem'
+        }}>
           {currentUser?.role === 'customer'
             ? t('orders.noOrdersAvailable')
             : driverState

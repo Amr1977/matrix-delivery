@@ -386,6 +386,8 @@ app.post('/api/orders', verifyToken, async (req, res) => {
       pickupLocation, dropoffLocation, routeInfo
     } = req.body;
 
+    logger.debug(req.body);
+
     // Validate required fields
     if (!title || !price) {
       return res.status(400).json({ error: 'Title and price are required' });

@@ -385,6 +385,314 @@ const ComboboxInput = ({
   );
 };
 
+// ============ FULLSCREEN MAP MODAL COMPONENT ============
+const FullscreenMapModal = ({
+  isOpen,
+  onClose,
+  location,
+  onLocationChange,
+  userLocation,
+  markerColor,
+  locationType,
+  t,
+  API_URL
+}) => {
+  const [isDragging, setIsDragging] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleMapClick = async (coords) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/locations/reverse-geocode?lat=${coords.lat}&lng=${coords.lng}`);
+      if (response.ok) {
+        const data = await response.json();
+        onLocationChange(data);
+      } else {
+        // Create location object with coordinates only
+        const basicLocation = {
+          coordinates: coords,
+          displayName: `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`,
+          address: {
+            country: 'Unknown',
+            city: 'Unknown',
+            area: 'Unknown',
+            street: 'Unknown'
+          }
+        };
+        onLocationChange(basicLocation);
+      }
+    } catch (error) {
+      console.error('Reverse geocoding failed:', error);
+      // Still update location with coordinates
+      const fallbackLocation = {
+        coordinates: coords,
+        displayName: `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`,
+        address: {
+          country: 'Unknown',
+          city: 'Unknown',
+          area: 'Unknown',
+          street: 'Unknown'
+        }
+      };
+      onLocationChange(fallbackLocation);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: 'rgba(0, 0, 0, 0.9)',
+      zIndex: 10000,
+      display: 'flex',
+      flexDirection: 'column'
+    }}>
+      {/* Map Header */}
+      <div style={{
+        padding: '1rem',
+        background: 'linear-gradient(135deg, #000000 0%, #001100 100%)',
+        borderBottom: '2px solid #00AA00',
+        color: '#30FF30',
+        fontFamily: 'Consolas, Monaco, Courier New, monospace'
+      }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <div>
+            <h2 style={{
+              fontSize: '1.25rem',
+              fontWeight: 'bold',
+              marginBottom: '0.25rem',
+              textShadow: '0 0 10px #30FF30'
+            }}>
+              🗺️ {locationType === 'pickup' ? t('orders.selectPickupLocation') : t('orders.selectDeliveryLocation')}
+            </h2>
+            <p style={{
+              fontSize: '0.875rem',
+              color: '#E5E7EB'
+            }}>
+              📍 {t('orders.clickMapToSelectLocation')}
+            </p>
+          </div>
+
+          <button
+            onClick={onClose}
+            style={{
+              background: 'linear-gradient(135deg, #DC2626 0%, #991B1B 100%)',
+              color: '#FCFCFC',
+              border: '2px solid #F87171',
+              borderRadius: '0.5rem',
+              padding: '0.75rem 1.5rem',
+              fontSize: '1rem',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              fontFamily: 'Consolas, Monaco, Courier New, monospace',
+              minWidth: '120px'
+            }}
+            onMouseOver={(e) => {
+              e.target.style.boxShadow = '0 0 20px rgba(252, 165, 165, 0.8)';
+            }}
+            onMouseOut={(e) => {
+              e.target.style.boxShadow = 'none';
+            }}
+          >
+            ❌ {t('common.close').toUpperCase()}
+          </button>
+        </div>
+      </div>
+
+      {/* Fullscreen Map */}
+      <div style={{
+        flex: 1,
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        {userLocation ? (
+          <MapContainer
+            center={location?.coordinates ? [location.coordinates.lat, location.coordinates.lng] : [userLocation.lat, userLocation.lng]}
+            zoom={15}
+            style={{
+              height: '100%',
+              width: '100%'
+            }}
+            maxZoom={20}
+            minZoom={2}
+            zoomControl={true}
+            doubleClickZoom={false}
+            dragging={true}
+            touchZoom={true}
+            scrollWheelZoom={true}
+          >
+            {/* Primary Tile Layer - High Reliability */}
+            <TileLayer
+              attribution='&copy; <a href="https://cartodb.com/attributions">CartoDB</a> | &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
+              url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
+              maxZoom={20}
+              minZoom={1}
+              subdomains={['a', 'b', 'c', 'd']}
+              tileSize={512}
+              zoomOffset={-1}
+              updateWhenZooming={true}
+              updateWhenIdle={true}
+              keepBuffer={8}
+              crossOrigin={true}
+              detectRetina={false}
+              attributionPrefix="CartoDB"
+            />
+
+            {/* Alternative Tile Layer - Better Reliability */}
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              maxZoom={19}
+              minZoom={1}
+              subdomains={['a', 'b', 'c']}
+              tileSize={256}
+              updateWhenZooming={false}
+              updateWhenIdle={true}
+              keepBuffer={6}
+              crossOrigin={true}
+              detectRetina={false}
+            />
+
+            {/* Fallback Tile Layer - Always Available */}
+            <TileLayer
+              url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+              attribution='Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a>'
+              maxZoom={17}
+              minZoom={1}
+              subdomains={['a', 'b', 'c']}
+              tileSize={256}
+              updateWhenZooming={false}
+              updateWhenIdle={false}
+              keepBuffer={4}
+              crossOrigin={true}
+              detectRetina={false}
+            />
+
+            {/* Map Event Handlers */}
+            <MapClickHandler onMapClick={handleMapClick} />
+            <MapUpdater center={location?.coordinates || userLocation} />
+
+            {/* Current Location Marker */}
+            {location?.coordinates && (
+              <DraggableMarker
+                position={[location.coordinates.lat, location.coordinates.lng]}
+                icon={markerColor === 'green'
+                  ? new L.Icon({
+                      iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+                      iconSize: [25, 41],
+                      iconAnchor: [12, 41],
+                      iconRetinaUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
+                      className: 'pulse'
+                    })
+                  : new L.Icon({
+                      iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                      iconSize: [25, 41],
+                      iconAnchor: [12, 41],
+                      iconRetinaUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+                      className: 'pulse'
+                    })
+                }
+                onDragEnd={async (newPos) => await handleMapClick(newPos)}
+                isDragging={isDragging}
+                setIsDragging={setIsDragging}
+              >
+                <Popup>
+                  <strong>{locationType === 'pickup' ? t('orders.pickup') : t('orders.delivery')}</strong><br />
+                  {location.displayName}
+                  {loading && <div style={{ color: '#666' }}>⌛ {t('orders.updatingLocation')}</div>}
+                </Popup>
+              </DraggableMarker>
+            )}
+
+            {/* Current User Location Marker */}
+            {userLocation && (
+              <Marker
+                position={[userLocation.lat, userLocation.lng]}
+                icon={new L.Icon({
+                  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+                  iconSize: [20, 32],
+                  iconAnchor: [10, 32],
+                  iconRetinaUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png'
+                })}
+              >
+                <Popup>
+                  <strong>📍 {t('orders.yourCurrentLocation')}</strong>
+                </Popup>
+              </Marker>
+            )}
+          </MapContainer>
+        ) : (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '100%',
+            background: '#090909',
+            color: '#30FF30',
+            fontSize: '1.5rem',
+            fontFamily: 'Consolas, Monaco, Courier New, monospace'
+          }}>
+            🔄 {t('orders.loadingMap')}
+          </div>
+        )}
+      </div>
+
+      {/* Location Info Footer */}
+      {location && (
+        <div style={{
+          padding: '1rem',
+          background: 'linear-gradient(135deg, #001100 0%, #000000 100%)',
+          borderTop: '2px solid #00AA00',
+          fontFamily: 'Consolas, Monaco, Courier New, monospace'
+        }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+            gap: '0.75rem',
+            marginBottom: '0.5rem'
+          }}>
+            <div>
+              <span style={{ color: '#30FF30' }}>🌍 {t('orders.country')}: </span>
+              <span style={{ color: '#E5E7EB' }}>{location.address?.country || 'Unknown'}</span>
+            </div>
+            <div>
+              <span style={{ color: '#30FF30' }}>🏙️ {t('orders.city')}: </span>
+              <span style={{ color: '#E5E7EB' }}>{location.address?.city || 'Unknown'}</span>
+            </div>
+            <div>
+              <span style={{ color: '#30FF30' }}>🏘️ {t('orders.area')}: </span>
+              <span style={{ color: '#E5E7EB' }}>{location.address?.area || 'Unknown'}</span>
+            </div>
+            <div>
+              <span style={{ color: '#30FF30' }}>🛣️ {t('orders.street')}: </span>
+              <span style={{ color: '#E5E7EB' }}>{location.address?.street || 'Unknown'}</span>
+            </div>
+          </div>
+          <div style={{
+            fontSize: '0.875rem',
+            color: '#A0A0A0',
+            textAlign: 'center',
+            marginTop: '0.5rem'
+          }}>
+            📌 {t('orders.locationSelected')}: {location.displayName || 'Coordinates set'}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ============ MODAL COMPONENT FOR SUCCESS/ERROR MESSAGES ============
 const MessageModal = ({ isOpen, onClose, title, message, type }) => {
   if (!isOpen) return null;
@@ -2476,6 +2784,8 @@ const LocationEntryCombined = ({
   t
 }) => {
   const locationData = useLocationData(API_URL);
+  const [isFullscreenMapOpen, setIsFullscreenMapOpen] = useState(false);
+  const [fullscreenMapLocation, setFullscreenMapLocation] = useState(mapLocation);
 
   // State for cascaded dropdowns
   const [availableCities, setAvailableCities] = useState([]);
@@ -2484,6 +2794,11 @@ const LocationEntryCombined = ({
   const [loadingCities, setLoadingCities] = useState(false);
   const [loadingAreas, setLoadingAreas] = useState(false);
   const [loadingStreets, setLoadingStreets] = useState(false);
+
+  // Sync fullscreen map location with main location
+  useEffect(() => {
+    setFullscreenMapLocation(mapLocation);
+  }, [mapLocation]);
 
   // Handle country change - load cities
   const handleCountryChange = async (country) => {
@@ -2779,15 +3094,48 @@ const LocationEntryCombined = ({
 
       {/* Map Section - Full Width */}
       <div style={{ padding: '1rem' }}>
-        <h4 style={{
-          fontSize: '0.875rem',
-          fontWeight: '600',
-          color: '#30FF30',
-          marginBottom: '0.75rem',
-          textShadow: '0 0 10px #30FF30'
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '0.75rem'
         }}>
-          🗺️ Interactive Map
-        </h4>
+          <h4 style={{
+            fontSize: '0.875rem',
+            fontWeight: '600',
+            color: '#30FF30',
+            textShadow: '0 0 10px #30FF30'
+          }}>
+            🗺️ Interactive Map
+          </h4>
+
+          <button
+            type="button"
+            onClick={() => setIsFullscreenMapOpen(true)}
+            style={{
+              background: 'linear-gradient(135deg, #00AA00 0%, #30FF30 50%, #00AA00 100%)',
+              color: '#000000',
+              border: '2px solid #00AA00',
+              borderRadius: '0.5rem',
+              padding: '0.5rem 1rem',
+              fontSize: '0.875rem',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              fontFamily: 'Consolas, Monaco, Courier New, monospace',
+              textShadow: '0 0 5px rgba(0, 0, 0, 0.5)'
+            }}
+            onMouseOver={(e) => {
+              e.target.style.boxShadow = '0 0 15px rgba(0, 255, 0, 0.8)';
+              e.target.style.transform = 'scale(1.05)';
+            }}
+            onMouseOut={(e) => {
+              e.target.style.boxShadow = 'none';
+              e.target.style.transform = 'scale(1)';
+            }}
+          >
+            🗺️ FULLSCREEN MAP
+          </button>
+        </div>
 
         <MapLocationPicker
           location={mapLocation}
@@ -2800,6 +3148,28 @@ const LocationEntryCombined = ({
           t={t}
         />
       </div>
+
+      {/* Fullscreen Map Modal */}
+      <FullscreenMapModal
+        isOpen={isFullscreenMapOpen}
+        onClose={() => {
+          setIsFullscreenMapOpen(false);
+          // Update the main location if fullscreen has changes
+          if (fullscreenMapLocation) {
+            onMapLocationChange(fullscreenMapLocation);
+          }
+        }}
+        location={fullscreenMapLocation}
+        onLocationChange={(newLocation) => {
+          setFullscreenMapLocation(newLocation);
+          onMapLocationChange(newLocation);
+        }}
+        userLocation={userLocation}
+        markerColor={markerColor}
+        locationType={locationType}
+        t={t}
+        API_URL={API_URL}
+      />
     </div>
   );
 };
