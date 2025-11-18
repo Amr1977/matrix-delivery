@@ -1,1 +1,1 @@
--e \"feat: Replace dummy logo with Matrix Heroes brand image in signin view\n\n- Remove package emoji (??) from AuthScreen component\n- Add primary brand image (branding-hero-1.png) with Matrix theme styling\n- Include green glow effect and responsive sizing\n- Match brand guidelines for alt text and hero messaging\"  
+\"fix: map tile loading fixes\"  

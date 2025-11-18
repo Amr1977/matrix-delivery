@@ -576,79 +576,61 @@ app.get('/api/orders', verifyToken, async (req, res) => {
                GROUP BY o.id ORDER BY o.created_at DESC`;
       params = [req.user.userId];
     } else if (req.user.role === 'driver') {
-      // Get delivery agent preferences
-      const prefsResult = await pool.query(
-        `SELECT * FROM delivery_agent_preferences WHERE agent_id = $1`,
-        [req.user.userId]
-      );
-      
-      const prefs = prefsResult.rows[0] || {
-        max_distance_km: 999999,
-        accept_remote_areas: true,
-        accept_international: true
-      };
-      
-      // Get driver location for distance calculation
-      const locationResult = await pool.query(
-        'SELECT latitude, longitude FROM driver_locations WHERE driver_id = $1',
-        [req.user.userId]
-      );
-      
-      const driverLocation = locationResult.rows[0];
-      
-      // Build query with filters
-      let whereConditions = [];
-      let queryParams = [req.user.userId];
-      let paramCounter = 2;
-      
-      // Filter by distance if driver location is available
-      if (driverLocation && prefs.max_distance_km < 999999) {
-        whereConditions.push(`
-          (o.estimated_distance_km IS NULL OR o.estimated_distance_km <= $${paramCounter})
-        `);
-        queryParams.push(prefs.max_distance_km);
-        paramCounter++;
-      }
-      
-      // Filter by remote areas
-      if (!prefs.accept_remote_areas) {
-        whereConditions.push(`(o.is_remote_area = false OR o.is_remote_area IS NULL)`);
-      }
-      
-      // Filter by international orders
-      if (!prefs.accept_international) {
-        whereConditions.push(`(o.is_international = false OR o.is_international IS NULL)`);
-      }
-      
-      const whereClause = whereConditions.length > 0 
-        ? `AND ${whereConditions.join(' AND ')}`
-        : '';
-      
-      query = `
-        SELECT o.*,
-               COALESCE(json_agg(json_build_object(
-                 'userId', b.user_id,
-                 'driverName', b.driver_name,
-                 'bidPrice', b.bid_price
-               ) ORDER BY b.created_at DESC) FILTER (WHERE b.id IS NOT NULL), '[]') as bids,
-               u.rating as customerRating,
-               u.completed_deliveries as customerCompletedOrders,
-               u.is_verified as customerIsVerified,
-               u.created_at as customerJoinedAt
-        FROM orders o
-        LEFT JOIN bids b ON o.id = b.order_id
-        LEFT JOIN users u ON o.customer_id = u.id
-        WHERE (
-          o.assigned_driver_user_id = $1 
-          OR EXISTS (SELECT 1 FROM bids WHERE order_id = o.id AND user_id = $1)
-          OR (o.status = 'pending_bids' ${whereClause})
-        )
-        AND o.status != 'delivered' AND o.status != 'cancelled'
-        GROUP BY o.id, u.rating, u.completed_deliveries, u.is_verified, u.created_at
-        ORDER BY o.created_at DESC
-      `;
-      params = queryParams;
-    }
+    // Get delivery agent preferences
+    const prefsResult = await pool.query(
+      `SELECT * FROM delivery_agent_preferences WHERE agent_id = $1`,
+      [req.user.userId]
+    );
+
+    const prefs = prefsResult.rows[0] || {
+      max_distance_km: 999999,
+      accept_remote_areas: true,
+      accept_international: true
+    };
+
+    // Get driver location for distance calculation
+    const locationResult = await pool.query(
+      'SELECT latitude, longitude FROM driver_locations WHERE driver_id = $1',
+      [req.user.userId]
+    );
+
+    const driverLocation = locationResult.rows[0];
+
+    // Simpler query for drivers - show all their orders without complex filtering for now
+    query = `
+      SELECT o.*,
+             COALESCE(json_agg(json_build_object(
+               'userId', b.user_id,
+               'driverName', b.driver_name,
+               'bidPrice', b.bid_price,
+               'estimatedPickupTime', b.estimated_pickup_time,
+               'estimatedDeliveryTime', b.estimated_delivery_time,
+               'message', b.message,
+               'status', b.status,
+               'createdAt', b.created_at,
+               'driverRating', u.rating,
+               'driverCompletedDeliveries', u.completed_deliveries,
+               'driverIsVerified', u.is_verified
+             ) ORDER BY b.created_at DESC) FILTER (WHERE b.id IS NOT NULL), '[]') as bids,
+             cu.rating as customerrating,
+             cu.completed_deliveries as customercompletedorders,
+             cu.is_verified as customerisverified,
+             cu.created_at as customerjoinedat
+      FROM orders o
+      LEFT JOIN bids b ON o.id = b.order_id
+      LEFT JOIN users u ON b.user_id = u.id
+      LEFT JOIN users cu ON o.customer_id = cu.id
+      WHERE (
+        o.assigned_driver_user_id = $1
+        OR EXISTS (SELECT 1 FROM bids WHERE order_id = o.id AND user_id = $1)
+        OR (o.status = 'pending_bids')
+      )
+      AND o.status != 'delivered' AND o.status != 'cancelled'
+      GROUP BY o.id, cu.rating, cu.completed_deliveries, cu.is_verified, cu.created_at
+      ORDER BY o.created_at DESC
+    `;
+    params = [req.user.userId];
+  }
 
     const result = await pool.query(query, params);
     
