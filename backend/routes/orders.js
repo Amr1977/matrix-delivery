@@ -8,15 +8,17 @@ const router = express.Router();
 
 // Routes
 
-// Get orders (filtered by user role)
+// Get orders (filtered by user role and location filters)
 router.get('/', verifyToken, async (req, res) => {
   try {
-    const orders = await orderService.getOrders(req.user.userId, req.user.role);
+    const { country, city, area } = req.query;
+    const orders = await orderService.getOrders(req.user.userId, req.user.role, { country, city, area });
     res.json(orders);
   } catch (error) {
     logger.error(`Get orders error: ${error.message}`, {
       userId: req.user.userId,
       role: req.user.role,
+      filters: req.query,
       category: 'error'
     });
     res.status(500).json({ error: error.message || 'Failed to fetch orders' });

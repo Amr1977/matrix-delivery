@@ -7,12 +7,21 @@ const useOrders = (token) => {
 
   const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
 
-  const fetchOrders = useCallback(async () => {
+  const fetchOrders = useCallback(async (filters = {}) => {
     if (!token) return;
 
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/orders`, {
+      const queryParams = new URLSearchParams();
+
+      if (filters.country) queryParams.append('country', filters.country);
+      if (filters.city) queryParams.append('city', filters.city);
+      if (filters.area) queryParams.append('area', filters.area);
+
+      const queryString = queryParams.toString();
+      const url = queryString ? `${API_URL}/orders?${queryString}` : `${API_URL}/orders`;
+
+      const response = await fetch(url, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 

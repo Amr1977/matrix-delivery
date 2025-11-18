@@ -1,10 +1,11 @@
-// ============ COMPONENT IMPORTS ============
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { debounce } from 'lodash';
 import { useI18n } from './i18n/i18nContext';
 import LanguageSwitcher from './LanguageSwitcher';
 import AdminPanel from './AdminPanel';
 import ErrorBoundary from './ErrorBoundary';
 import OrderCreationForm from './updated-order-creation-form';
+import LocationFilter from './components/orders/LocationFilter';
 import { useMap } from 'react-leaflet';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import L from 'leaflet';
@@ -196,7 +197,9 @@ useEffect(() => {
   // Driver location functionality
   const [viewType, setViewType] = useState('active'); // 'active', 'bidding', 'history'
   const [driverLocation, setDriverLocation] = useState({ latitude: null, longitude: null, lastUpdated: null });
+  const [countryFilter, setCountryFilter] = useState(''); // Country filter for bidding orders
   const [cityFilter, setCityFilter] = useState(''); // City filter for bidding orders
+  const [areaFilter, setAreaFilter] = useState(''); // Area filter for bidding orders
 
   const [reviewForm, setReviewForm] = useState({
     rating: 0,
@@ -262,6 +265,20 @@ useEffect(() => {
       return () => clearInterval(locationInterval);
     }
   }, [currentUser, token]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Debounced location filter effect for drivers (waits 1.5 seconds after last filter change)
+  const debouncedFetchOrders = useCallback(
+    debounce((filters) => {
+      if (currentUser?.role === 'driver' && token && viewType === 'bidding') {
+        fetchOrders(filters);
+      }
+    }, 1500), // 1.5 second delay
+    [currentUser?.role, token, viewType]
+  );
+
+  useEffect(() => {
+    debouncedFetchOrders({ country: countryFilter, city: cityFilter, area: areaFilter });
+  }, [countryFilter, cityFilter, areaFilter, debouncedFetchOrders]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Real-time notifications via WebSocket
   useEffect(() => {
@@ -361,9 +378,18 @@ useEffect(() => {
 
 
 
-  const fetchOrders = async () => {
+  const fetchOrders = async (filters = {}) => {
     try {
-      const response = await fetch(`${API_URL}/orders`, {
+      const queryParams = new URLSearchParams();
+
+      if (filters.country) queryParams.append('country', filters.country);
+      if (filters.city) queryParams.append('city', filters.city);
+      if (filters.area) queryParams.append('area', filters.area);
+
+      const queryString = queryParams.toString();
+      const url = queryString ? `${API_URL}/orders?${queryString}` : `${API_URL}/orders`;
+
+      const response = await fetch(url, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!response.ok) {
@@ -631,34 +657,28 @@ useEffect(() => {
     }
   };
 
-  // Extract city from address string
-  const extractCityFromAddress = (address) => {
-    if (!address) return '';
+  // Extract location parts from address string
+  const extractLocationParts = (address) => {
+    if (!address) return { personName: '', street: '', area: '', city: '', country: '' };
     // Address format: "personName, street, buildingNumber, floor, apartmentNumber, area, city, country"
     const parts = address.split(',').map(part => part.trim());
-    // City is typically the second last part before country
-    if (parts.length >= 2) {
-      return parts[parts.length - 2] || '';
-    }
-    return '';
+    return {
+      personName: parts[0] || '',
+      street: parts[1] || '',
+      area: parts[parts.length - 3] || '',
+      city: parts[parts.length - 2] || '',
+      country: parts[parts.length - 1] || ''
+    };
   };
 
-  // Get available cities from bidding orders
-  const getAvailableCities = (orders) => {
-    const cities = new Set();
-    orders.forEach(order => {
-      if (order.status === 'pending_bids') {
-        const pickupCity = extractCityFromAddress(order.pickupAddress);
-        const deliveryCity = extractCityFromAddress(order.deliveryAddress);
-        if (pickupCity) cities.add(pickupCity);
-        if (deliveryCity) cities.add(deliveryCity);
-      }
-    });
-    return Array.from(cities).sort();
+  // Extract city from address string (legacy)
+  const extractCityFromAddress = (address) => {
+    const parts = extractLocationParts(address);
+    return parts.city;
   };
 
-  // Filter orders based on driver view type and city filter
-  const filterDriverOrders = (orders, viewType, cityFilter = '') => {
+  // Filter orders based on driver view type and location filters
+  const filterDriverOrders = (orders, viewType, cityFilter = '', countryFilter = '', areaFilter = '') => {
     if (currentUser?.role !== 'driver') return orders;
 
     let filteredOrders;
@@ -674,12 +694,23 @@ useEffect(() => {
           order.status === 'pending_bids' &&
           !order.assignedDriver
         );
-        // Apply city filter for bidding orders
-        if (cityFilter) {
+        // Apply location filters for bidding orders
+        if (countryFilter || cityFilter || areaFilter) {
           filteredOrders = filteredOrders.filter(order => {
-            const pickupCity = extractCityFromAddress(order.pickupAddress);
-            const deliveryCity = extractCityFromAddress(order.deliveryAddress);
-            return pickupCity === cityFilter || deliveryCity === cityFilter;
+            const pickupParts = extractLocationParts(order.pickupAddress);
+            const deliveryParts = extractLocationParts(order.deliveryAddress);
+
+            const pickupMatches =
+              (!countryFilter || pickupParts.country === countryFilter) &&
+              (!cityFilter || pickupParts.city === cityFilter) &&
+              (!areaFilter || pickupParts.area === areaFilter);
+
+            const deliveryMatches =
+              (!countryFilter || deliveryParts.country === countryFilter) &&
+              (!cityFilter || deliveryParts.city === cityFilter) &&
+              (!areaFilter || deliveryParts.area === areaFilter);
+
+            return pickupMatches || deliveryMatches;
           });
         }
         break;
@@ -694,6 +725,60 @@ useEffect(() => {
     }
 
     return filteredOrders;
+  };
+
+  // Function to get available countries from order addresses
+  const getAvailableCountries = () => {
+    const countries = new Set();
+    orders.forEach(order => {
+      if (order.status === 'pending_bids') {
+        const pickupParts = extractLocationParts(order.pickupAddress);
+        const deliveryParts = extractLocationParts(order.deliveryAddress);
+        if (pickupParts.country) countries.add(pickupParts.country);
+        if (deliveryParts.country) countries.add(deliveryParts.country);
+      }
+    });
+    return Array.from(countries).sort();
+  };
+
+  // Function to get available cities by country
+  const getAvailableCities = (countryFilter = '') => {
+    const cities = new Set();
+    orders.forEach(order => {
+      if (order.status === 'pending_bids') {
+        const pickupParts = extractLocationParts(order.pickupAddress);
+        const deliveryParts = extractLocationParts(order.deliveryAddress);
+
+        if (!countryFilter || pickupParts.country === countryFilter) {
+          if (pickupParts.city) cities.add(pickupParts.city);
+        }
+        if (!countryFilter || deliveryParts.country === countryFilter) {
+          if (deliveryParts.city) cities.add(deliveryParts.city);
+        }
+      }
+    });
+    return Array.from(cities).sort();
+  };
+
+  // Function to get available areas by country and city
+  const getAvailableAreas = (countryFilter = '', cityFilter = '') => {
+    const areas = new Set();
+    orders.forEach(order => {
+      if (order.status === 'pending_bids') {
+        const pickupParts = extractLocationParts(order.pickupAddress);
+        const deliveryParts = extractLocationParts(order.deliveryAddress);
+
+        if ((!countryFilter || pickupParts.country === countryFilter) &&
+            (!cityFilter || pickupParts.city === cityFilter)) {
+          if (pickupParts.area) areas.add(pickupParts.area);
+        }
+        if ((!countryFilter || deliveryParts.country === countryFilter) &&
+            (!cityFilter || deliveryParts.city === cityFilter)) {
+          if (deliveryParts.area) areas.add(deliveryParts.area);
+        }
+      }
+    });
+    return Array.from(areas).sort();
   };
 
   // Get title for driver view
@@ -1220,7 +1305,11 @@ const getDriverViewTitle = (viewType) => {
         </div>
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
           <div className="card-matrix" style={{ borderRadius: '0.5rem', boxShadow: '0 20px 25px -5px rgba(0, 48, 0, 0.2), inset 0 0 20px rgba(48, 255, 48, 0.1)', padding: '2rem', maxWidth: '28rem', width: '100%', background: 'linear-gradient(135deg, #000000 0%, #111111 100%)' }}>
-            <div style={{ fontSize: '3rem', textAlign: 'center', marginBottom: '1.5rem' }}>🦸‍♂️</div>
+            <img
+              src="/branding-hero-1.png"
+              alt="Matrix Heroes - Your trusted delivery heroes"
+              style={{ width: '3rem', height: '3rem', display: 'block', margin: '0 auto 1.5rem auto', filter: 'drop-shadow(0 0 10px rgba(48, 255, 48, 0.3))' }}
+            />
             <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#30FF30', marginBottom: '0.5rem', textAlign: 'center', textShadow: '0 0 10px #30FF30' }}>{t('common.appName')}</h1>
             <p style={{ color: '#22BB22', marginBottom: '1.5rem', textAlign: 'center' }}>{t('common.subtitle')}</p>
 
@@ -1995,52 +2084,175 @@ const getDriverViewTitle = (viewType) => {
 
         {currentUser?.role === 'driver' && viewType === 'bidding' && (
           <div style={{ marginBottom: '1rem', padding: '1rem', background: 'white', borderRadius: '0.5rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <label style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>
-                {t('driver.filterByCity')}:
-              </label>
-              <select
-                value={cityFilter}
-                onChange={(e) => setCityFilter(e.target.value)}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#374151' }}>Filter Orders by Location</h3>
+              <button
+                onClick={async () => {
+                  try {
+                    if (navigator.geolocation) {
+                      navigator.geolocation.getCurrentPosition(
+                        async (position) => {
+                          const { latitude, longitude } = position.coords;
+                          // Use a reverse geocoding service to get location details
+                          try {
+                            // Using OpenStreetMap's Nominatim geocoding service
+                            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1`);
+                            const data = await response.json();
+
+                            if (data && data.address) {
+                              const detectedCountry = data.address.country;
+                              const detectedCity = data.address.city || data.address.town || data.address.village;
+
+                              // Auto-fill the dropdowns with detected location
+                              if (detectedCountry && getAvailableCountries().includes(detectedCountry)) {
+                                setCountryFilter(detectedCountry);
+                                setCityFilter('');
+                                setAreaFilter('');
+                              }
+
+                              // Try to set city after a brief delay to allow country to be set first
+                              setTimeout(() => {
+                                if (detectedCountry && detectedCity && getAvailableCities(detectedCountry).includes(detectedCity)) {
+                                  setCityFilter(detectedCity);
+                                }
+                              }, 100);
+                            }
+                          } catch (reverseGeoError) {
+                            console.warn('Reverse geocoding failed:', reverseGeoError);
+                          }
+                        },
+                        (error) => {
+                          console.error('Geolocation error:', error);
+                          alert('Unable to get your location. Please ensure location permissions are enabled.');
+                        }
+                      );
+                    } else {
+                      alert('Geolocation is not supported by this browser.');
+                    }
+                  } catch (error) {
+                    console.error('Location prefill error:', error);
+                    alert('Failed to detect your location. Please fill filters manually.');
+                  }
+                }}
                 style={{
                   padding: '0.5rem 1rem',
-                  border: '1px solid #D1D5DB',
+                  background: '#10B981',
+                  color: 'white',
+                  border: 'none',
                   borderRadius: '0.375rem',
+                  cursor: 'pointer',
                   fontSize: '0.875rem',
-                  background: 'white',
-                  minWidth: '200px'
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.25rem'
                 }}
+                title="Prefill filters based on your current location"
               >
-                <option value="">{t('driver.allCities')}</option>
-                {getAvailableCities(orders).map(city => (
-                  <option key={city} value={city}>{city}</option>
-                ))}
-              </select>
-              {cityFilter && (
-                <button
-                  onClick={() => setCityFilter('')}
+                📍 Detect My Location
+              </button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', color: '#374151', marginBottom: '0.5rem' }}>
+                  🇸 Country
+                </label>
+                <select
+                  value={countryFilter}
+                  onChange={(e) => {
+                    setCountryFilter(e.target.value);
+                    setCityFilter(''); // Reset city when country changes
+                    setAreaFilter(''); // Reset area when country changes
+                  }}
                   style={{
-                    padding: '0.5rem 1rem',
-                    background: '#6B7280',
-                    color: 'white',
+                    width: '100%',
+                    padding: '0.5rem',
+                    border: '1px solid #D1D5DB',
                     borderRadius: '0.375rem',
-                    border: 'none',
-                    cursor: 'pointer',
                     fontSize: '0.875rem',
-                    fontWeight: '500'
+                    background: 'white'
                   }}
                 >
-                  {t('orders.clearFilter')}
-                </button>
-              )}
+                  <option value="">All Countries</option>
+                  {getAvailableCountries().map(country => (
+                    <option key={country} value={country}>{country}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', color: '#374151', marginBottom: '0.5rem' }}>
+                  🏙️ City
+                </label>
+                <select
+                  value={cityFilter}
+                  onChange={(e) => {
+                    setCityFilter(e.target.value);
+                    setAreaFilter(''); // Reset area when city changes
+                  }}
+                  disabled={!countryFilter}
+                  style={{
+                    width: '100%',
+                    padding: '0.5rem',
+                    border: '1px solid #D1D5DB',
+                    borderRadius: '0.375rem',
+                    fontSize: '0.875rem',
+                    background: 'white',
+                    opacity: !countryFilter ? 0.5 : 1
+                  }}
+                >
+                  <option value="">All Cities</option>
+                  {getAvailableCities(countryFilter).map(city => (
+                    <option key={city} value={city}>{city}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', color: '#374151', marginBottom: '0.5rem' }}>
+                  📍 Area
+                </label>
+                <select
+                  value={areaFilter}
+                  onChange={(e) => setAreaFilter(e.target.value)}
+                  disabled={!cityFilter}
+                  style={{
+                    width: '100%',
+                    padding: '0.5rem',
+                    border: '1px solid #D1D5DB',
+                    borderRadius: '0.375rem',
+                    fontSize: '0.875rem',
+                    background: 'white',
+                    opacity: !cityFilter ? 0.5 : 1
+                  }}
+                >
+                  <option value="">All Areas</option>
+                  {getAvailableAreas(countryFilter, cityFilter).map(area => (
+                    <option key={area} value={area}>{area}</option>
+                  ))}
+                </select>
+              </div>
             </div>
+
+            {(countryFilter || cityFilter || areaFilter) && (
+              <div style={{ marginTop: '1rem', padding: '0.75rem', background: '#F0F9FF', borderRadius: '0.375rem', border: '1px solid #DBEAFE' }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: '600', color: '#1E40AF', marginBottom: '0.25rem' }}>Active Filters:</div>
+                <div style={{ fontSize: '0.875rem', color: '#374151' }}>
+                  {countryFilter && <span>🇸 {countryFilter}</span>}
+                  {countryFilter && cityFilter && <span> → </span>}
+                  {cityFilter && <span>🏙️ {cityFilter}</span>}
+                  {cityFilter && areaFilter && <span> → </span>}
+                  {areaFilter && <span>📍 {areaFilter}</span>}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {(() => {
-            const filteredOrders = currentUser?.role === 'driver' ? filterDriverOrders(orders, viewType, cityFilter) : orders;
-            return filteredOrders.length === 0 ? (
+            return orders.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '3rem', background: 'white', borderRadius: '0.5rem' }}>
                 <p style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>📦</p>
                 <p style={{ color: '#6B7280' }}>
@@ -2053,7 +2265,7 @@ const getDriverViewTitle = (viewType) => {
                 </p>
               </div>
             ) : (
-              filteredOrders.map((order) => {
+              orders.map((order) => {
                 const isDriverAssigned = order.assignedDriver?.userId === currentUser?.id;
 
                 return (

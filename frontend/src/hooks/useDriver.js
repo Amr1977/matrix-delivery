@@ -1,12 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
-import { extractCityFromAddress, getAvailableCities, filterDriverOrders, getStatusLabel } from '../utils/formatters';
+import { extractCityFromAddress, getAvailableCities, filterDriverOrders, getStatusLabel, extractLocationParts } from '../utils/formatters';
 
 const useDriver = (token, currentUser) => {
   const [viewType, setViewType] = useState('active');
   const [driverLocation, setDriverLocation] = useState({ latitude: null, longitude: null, lastUpdated: null });
   const [cityFilter, setCityFilter] = useState('');
+  const [countryFilter, setCountryFilter] = useState('');
+  const [areaFilter, setAreaFilter] = useState('');
   const [locationPermission, setLocationPermission] = useState('unknown');
   const [orders, setOrders] = useState([]);
+  const [currentLocationAddress, setCurrentLocationAddress] = useState(null);
 
   const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
 
@@ -88,14 +91,14 @@ const useDriver = (token, currentUser) => {
           order.status === 'pending_bids' &&
           !order.assignedDriver
         );
-        // Apply city filter for bidding orders
-        if (cityFilter) {
-          filteredOrders = filteredOrders.filter(order => {
-            const pickupCity = extractCityFromAddress(order.pickupAddress);
-            const deliveryCity = extractCityFromAddress(order.deliveryAddress);
-            return pickupCity === cityFilter || deliveryCity === cityFilter;
-          });
-        }
+        // Apply location filters for bidding orders (now only pickup location)
+        filteredOrders = filteredOrders.filter(order => {
+          const pickupParts = extractLocationParts(order.pickupAddress);
+
+          return (!countryFilter || pickupParts.country === countryFilter) &&
+                 (!cityFilter || pickupParts.city === cityFilter) &&
+                 (!areaFilter || pickupParts.area === areaFilter);
+        });
         break;
       case 'history':
         filteredOrders = orders.filter(order =>
@@ -108,7 +111,7 @@ const useDriver = (token, currentUser) => {
     }
 
     return filteredOrders;
-  }, [orders, viewType, cityFilter, currentUser]);
+  }, [orders, viewType, cityFilter, countryFilter, areaFilter, currentUser]);
 
   // Get title for driver view
   const getDriverViewTitle = useCallback(() => {
@@ -120,10 +123,83 @@ const useDriver = (token, currentUser) => {
     }
   }, [viewType]);
 
-  // Get available cities from bidding orders
-  const getCitiesFromOrders = useCallback(() => {
-    return getAvailableCities(orders).sort();
+  // Get available location options from bidding orders
+  const getCountriesFromOrders = useCallback(() => {
+    const countries = new Set();
+    orders.forEach(order => {
+      if (order.status === 'pending_bids') {
+        const pickupParts = extractLocationParts(order.pickupAddress);
+        const deliveryParts = extractLocationParts(order.deliveryAddress);
+        if (pickupParts.country) countries.add(pickupParts.country);
+        if (deliveryParts.country) countries.add(deliveryParts.country);
+      }
+    });
+    return Array.from(countries).sort();
   }, [orders]);
+
+  const getCitiesFromOrders = useCallback((country = '') => {
+    const cities = new Set();
+    orders.forEach(order => {
+      if (order.status === 'pending_bids') {
+        const pickupParts = extractLocationParts(order.pickupAddress);
+        const deliveryParts = extractLocationParts(order.deliveryAddress);
+
+        if (!country || pickupParts.country === country) {
+          if (pickupParts.city) cities.add(pickupParts.city);
+        }
+        if (!country || deliveryParts.country === country) {
+          if (deliveryParts.city) cities.add(deliveryParts.city);
+        }
+      }
+    });
+    return Array.from(cities).sort();
+  }, [orders]);
+
+  const getAreasFromOrders = useCallback((country = '', city = '') => {
+    const areas = new Set();
+    orders.forEach(order => {
+      if (order.status === 'pending_bids') {
+        const pickupParts = extractLocationParts(order.pickupAddress);
+        const deliveryParts = extractLocationParts(order.deliveryAddress);
+
+        if ((!country || pickupParts.country === country) &&
+            (!city || pickupParts.city === city)) {
+          if (pickupParts.area) areas.add(pickupParts.area);
+        }
+        if ((!country || deliveryParts.country === country) &&
+            (!city || deliveryParts.city === city)) {
+          if (deliveryParts.area) areas.add(deliveryParts.area);
+        }
+      }
+    });
+    return Array.from(areas).sort();
+  }, [orders]);
+
+  // Reverse geocode current location to prefill filters
+  const reverseGeocodeCurrentLocation = useCallback(async () => {
+    if (!driverLocation?.latitude || !driverLocation?.longitude) return;
+
+    try {
+      const response = await fetch(`${API_URL}/locations/reverse-geocode?lat=${driverLocation.latitude}&lng=${driverLocation.longitude}`);
+      if (!response.ok) throw new Error('Failed to reverse geocode');
+
+      const data = await response.json();
+      setCurrentLocationAddress(data.address);
+
+      // Prefill filters if not already selected
+      if (!countryFilter && data.address?.country) {
+        setCountryFilter(data.address.country);
+      }
+      if (!cityFilter && data.address?.city) {
+        setCityFilter(data.address.city);
+      }
+      if (!areaFilter && data.address?.area) {
+        setAreaFilter(data.address.area);
+      }
+    } catch (error) {
+      console.error('Reverse geocoding error:', error);
+    }
+  }, [driverLocation, countryFilter, cityFilter, areaFilter, API_URL]);
 
   // Driver location effect
   useEffect(() => {
@@ -138,20 +214,35 @@ const useDriver = (token, currentUser) => {
     }
   }, [currentUser, token, getDriverLocation, updateDriverLocation]);
 
+  // Effect to reverse geocode current location when it's updated
+  useEffect(() => {
+    if (currentUser?.role === 'driver' && driverLocation?.latitude && driverLocation?.longitude) {
+      reverseGeocodeCurrentLocation();
+    }
+  }, [currentUser, driverLocation, reverseGeocodeCurrentLocation]);
+
   const isDriver = currentUser?.role === 'driver';
 
   return {
     viewType,
     setViewType,
     driverLocation,
+    countryFilter,
+    setCountryFilter,
     cityFilter,
     setCityFilter,
+    areaFilter,
+    setAreaFilter,
     locationPermission,
+    currentLocationAddress,
     updateDriverLocation,
     getDriverLocation,
     getFilteredDriverOrders,
     getDriverViewTitle,
+    getCountriesFromOrders,
     getCitiesFromOrders,
+    getAreasFromOrders,
+    reverseGeocodeCurrentLocation,
     isDriver
   };
 };
