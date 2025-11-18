@@ -1303,14 +1303,15 @@ const getDriverViewTitle = (viewType) => {
           <LanguageSwitcher locale={locale} changeLocale={changeLocale} />
         </div>
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-          <div className="card-matrix" style={{ borderRadius: '0.5rem', boxShadow: '0 20px 25px -5px rgba(0, 48, 0, 0.2), inset 0 0 20px rgba(48, 255, 48, 0.1)', padding: '2rem', maxWidth: '28rem', width: '100%', background: 'linear-gradient(135deg, #000000 0%, #111111 100%)' }}>
+          <div className="card">
             <img
               src="/branding-hero-1.png"
               alt="Matrix Heroes - Your trusted delivery heroes"
-              style={{ width: '3rem', height: '3rem', display: 'block', margin: '0 auto 1.5rem auto', filter: 'drop-shadow(0 0 10px rgba(48, 255, 48, 0.3))' }}
+              className="pulse"
+              style={{ width: '3rem', height: '3rem', display: 'block', margin: '0 auto var(--spacing-lg) auto' }}
             />
-            <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#30FF30', marginBottom: '0.5rem', textAlign: 'center', textShadow: '0 0 10px #30FF30' }}>{t('common.appName')}</h1>
-            <p style={{ color: '#22BB22', marginBottom: '1.5rem', textAlign: 'center' }}>{t('common.subtitle')}</p>
+            <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: 'var(--matrix-bright-green)', marginBottom: 'var(--spacing-sm)', textAlign: 'center', textShadow: 'var(--shadow-glow)' }}>{t('common.appName')}</h1>
+            <p className="text-matrix" style={{ marginBottom: 'var(--spacing-lg)', textAlign: 'center' }}>{t('common.subtitle')}</p>
 
             {error && (
               <div style={{ background: '#FEF2F2', color: '#991B1B', padding: '0.75rem', borderRadius: '0.375rem', marginBottom: '1rem', fontSize: '0.875rem', border: '1px solid #FEE2E2' }}>
@@ -1536,7 +1537,12 @@ const getDriverViewTitle = (viewType) => {
           <div className="header-content">
             {/* Logo */}
             <div className="header-logo">
-              <span className="pulse">📦</span>
+              <img
+                src="/branding-hero-1.png"
+                alt="Matrix Heroes - Your trusted delivery heroes"
+                className="pulse"
+                style={{ width: '48px', height: '48px', marginBottom: '0.5rem' }}
+              />
               <h1>{t('common.appName')}</h1>
             </div>
 
@@ -1734,16 +1740,16 @@ const getDriverViewTitle = (viewType) => {
         </header>
       <main style={{ maxWidth: '80rem', margin: '0 auto', padding: mobileView ? '1rem 0.5rem' : '2rem 1rem' }}>
         {error && (
-          <div className="error-matrix" style={{ padding: '1rem', borderRadius: '0.5rem', marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: 'Consolas, Monaco, monospace' }}>
-            <span style={{ textShadow: '0 0 5px #FF3030' }}>⚠️ {error}</span>
-            <button onClick={() => setError('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem', color: '#FF3030' }}>×</button>
+          <div className="error-matrix" style={{ padding: 'var(--spacing-md)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--spacing-lg)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span className="text-danger pulse">⚠️ {error}</span>
+            <button onClick={() => setError('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem', color: 'var(--status-cancelled)' }}>×</button>
           </div>
         )}
 
         {successMessage && (
-          <div className="success-message" style={{ background: 'linear-gradient(135deg, #003300 0%, #001100 100%)', color: '#30FF30', padding: '1rem', borderRadius: '0.5rem', marginBottom: '1rem', border: '1px solid #30FF30', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: 'Consolas, Monaco, monospace', textShadow: '0 0 5px #30FF30' }}>
-            <span>✅ {successMessage}</span>
-            <button onClick={() => setSuccessMessage('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem', color: '#30FF30' }}>×</button>
+          <div className="success-matrix" style={{ background: 'linear-gradient(135deg, var(--matrix-dim-green) 0%, var(--matrix-dark-green) 100%)', color: 'var(--matrix-bright-green)', padding: 'var(--spacing-md)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--spacing-lg)', border: '2px solid var(--matrix-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: 'var(--shadow-matrix)' }}>
+            <span className="glow">✅ {successMessage}</span>
+            <button onClick={() => setSuccessMessage('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem', color: 'var(--matrix-bright-green)' }}>×</button>
           </div>
         )}
 
