@@ -430,20 +430,19 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
           </div>
         </div>
         
-        {/* Location Selection */}
+        {/* Location Selection - Combined Map + Manual Entry */}
         <div style={{ marginBottom: '1.5rem' }}>
           <div style={{
             display: 'grid',
             gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
             gap: '1rem'
           }}>
-            {/* Pickup Location */}
+            {/* Pickup Location - Map + Manual Combined */}
             <div>
               <h3 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '1rem', color: '#16A34A' }}>
                 📤 {t('orders.pickupLocation')} *
               </h3>
-              <LocationEntry
-                showManualEntry={showManualEntry}
+              <LocationEntryCombined
                 mapLocation={pickupLocation}
                 onMapLocationChange={setPickupLocation}
                 addressData={pickupAddress}
@@ -458,13 +457,12 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
               />
             </div>
 
-            {/* Dropoff Location */}
+            {/* Dropoff Location - Map + Manual Combined */}
             <div>
               <h3 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '1rem', color: '#DC2626' }}>
                 📥 {t('orders.deliveryLocation')} *
               </h3>
-              <LocationEntry
-                showManualEntry={showManualEntry}
+              <LocationEntryCombined
                 mapLocation={dropoffLocation}
                 onMapLocationChange={setDropoffLocation}
                 addressData={dropoffAddress}
@@ -478,25 +476,6 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
                 t={t}
               />
             </div>
-          </div>
-
-          {/* Manual/Map Entry Toggle - centered */}
-          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem' }}>
-            <button
-              type="button"
-              onClick={() => setShowManualEntry(!showManualEntry)}
-              style={{
-                padding: '0.25rem 0.75rem',
-                background: '#F3F4F6',
-                color: '#374151',
-                border: '1px solid #D1D5DB',
-                borderRadius: '0.375rem',
-                cursor: 'pointer',
-                fontSize: '0.75rem'
-              }}
-            >
-              {showManualEntry ? 'Use Map' : 'Manual Entry'}
-            </button>
           </div>
         </div>
         
@@ -796,15 +775,16 @@ const MapLocationPicker = ({ location, onChange, userLocation, markerColor, API_
         </button>
       )}
 
-      {/* Map */}
+      {/* Full-width Map Container */}
       {(!compact || showMap) && (
         <div style={{
-          height: compact ? '250px' : '350px',
+          height: compact ? '300px' : '400px',
           width: '100%',
           marginBottom: '1rem',
           borderRadius: '0.5rem',
           overflow: 'hidden',
-          position: 'relative'
+          position: 'relative',
+          minWidth: '100%' // Ensure full width
         }}>
         {userLocation ? (
           <MapContainer
@@ -816,11 +796,18 @@ const MapLocationPicker = ({ location, onChange, userLocation, markerColor, API_
               zIndex: 1,
               position: 'relative'
             }}
-            whenReady={() => {
-              // Ensure map resizes properly when container changes
+            whenReady={(map) => {
+              // Ensure map resizes properly and tiles load completely
               setTimeout(() => {
+                map.invalidateSize();
                 window.dispatchEvent(new Event('resize'));
               }, 100);
+            }}
+            whenCreated={(map) => {
+              // Force tile loading when map is created
+              setTimeout(() => {
+                map.invalidateSize();
+              }, 200);
             }}
           >
             <TileLayer
@@ -832,6 +819,8 @@ const MapLocationPicker = ({ location, onChange, userLocation, markerColor, API_
               updateWhenZooming={true}
               updateWhenIdle={false}
               keepBuffer={2}
+              crossOrigin={true}
+              detectRetina={true}
             />
             <MapClickHandler onMapClick={handleMapClick} />
             {location?.coordinates && (
@@ -841,7 +830,8 @@ const MapLocationPicker = ({ location, onChange, userLocation, markerColor, API_
                 icon={L.icon({
                   iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${markerColor}.png`,
                   iconSize: [25, 41],
-                  iconAnchor: [12, 41]
+                  iconAnchor: [12, 41],
+                  iconRetinaUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-${markerColor}.png`
                 })}
                 onDragEnd={async (newPos) => await handleMapClick(newPos)}
                 isDragging={isDragging}
@@ -862,10 +852,11 @@ const MapLocationPicker = ({ location, onChange, userLocation, markerColor, API_
             justifyContent: 'center',
             height: '100%',
             width: '100%',
-            background: '#E5E7EB',
-            color: '#6B7280'
+            background: '#F3F4F6',
+            color: '#6B7280',
+            fontSize: '1rem'
           }}>
-            {t('common.loadingMap')}
+            🔄 Loading map...
           </div>
         )}
       </div>
@@ -1718,6 +1709,290 @@ const useLocationData = (API_URL) => {
     getAreas: (country, city) => areas[`${country}-${city}`] || [],
     getStreets: (country, city, area) => streets[`${country}-${city}-${area}`] || []
   };
+};
+
+// ============ COMBINED LOCATION ENTRY (Map + Address Fields Together) ============
+const LocationEntryCombined = ({
+  mapLocation,
+  onMapLocationChange,
+  addressData,
+  onAddressChange,
+  userLocation,
+  markerColor,
+  API_URL,
+  locationType,
+  compact = false,
+  countries = [],
+  t
+}) => {
+  const locationData = useLocationData(API_URL);
+
+  // State for cascaded dropdowns
+  const [availableCities, setAvailableCities] = useState([]);
+  const [availableAreas, setAvailableAreas] = useState([]);
+  const [availableStreets, setAvailableStreets] = useState([]);
+  const [loadingCities, setLoadingCities] = useState(false);
+  const [loadingAreas, setLoadingAreas] = useState(false);
+  const [loadingStreets, setLoadingStreets] = useState(false);
+
+  // Handle country change - load cities
+  const handleCountryChange = async (country) => {
+    const newAddress = { ...addressData, country, city: '', area: '', street: '' };
+    onAddressChange(newAddress);
+
+    if (country) {
+      setLoadingCities(true);
+      const cities = await locationData.searchCities(country);
+      setAvailableCities(cities);
+      setLoadingCities(false);
+      setAvailableAreas([]);
+      setAvailableStreets([]);
+    } else {
+      setAvailableCities([]);
+      setAvailableAreas([]);
+      setAvailableStreets([]);
+    }
+  };
+
+  // Handle city change - load areas
+  const handleCityChange = async (city) => {
+    const newAddress = { ...addressData, city, area: '', street: '' };
+    onAddressChange(newAddress);
+
+    if (addressData.country && city) {
+      setLoadingAreas(true);
+      const areas = await locationData.searchAreas(addressData.country, city);
+      setAvailableAreas(areas);
+      setLoadingAreas(false);
+      setAvailableStreets([]);
+    } else {
+      setAvailableAreas([]);
+      setAvailableStreets([]);
+    }
+
+    // Geocode when city changes (with enough info)
+    setTimeout(() => locationData.geocodeAddress(newAddress, onMapLocationChange), 100);
+  };
+
+  // Handle area change - load streets
+  const handleAreaChange = async (area) => {
+    const newAddress = { ...addressData, area, street: '' };
+    onAddressChange(newAddress);
+
+    if (addressData.country && addressData.city && area) {
+      setLoadingStreets(true);
+      const streets = await locationData.searchStreets(addressData.country, addressData.city, area);
+      setAvailableStreets(streets);
+      setLoadingStreets(false);
+    } else {
+      setAvailableStreets([]);
+    }
+
+    // Geocode when area changes
+    setTimeout(() => locationData.geocodeAddress(newAddress, onMapLocationChange), 100);
+  };
+
+  // Handle street and other field changes - geocode
+  const handleFieldChange = (field, value) => {
+    const newAddress = { ...addressData, [field]: value };
+    onAddressChange(newAddress);
+
+    // Geocode for street, building, floor, apartment changes
+    if (['street', 'building', 'floor', 'apartment'].includes(field)) {
+      setTimeout(() => locationData.geocodeAddress(newAddress, onMapLocationChange), 300);
+    }
+  };
+
+  return (
+    <div style={{
+      background: '#F9FAFB',
+      borderRadius: '0.5rem',
+      border: '1px solid #E5E7EB',
+      overflow: 'hidden'
+    }}>
+      {/* Address Fields Section */}
+      <div style={{ padding: '1rem', borderBottom: '1px solid #E5E7EB' }}>
+        <h4 style={{
+          fontSize: '0.875rem',
+          fontWeight: '600',
+          color: '#374151',
+          marginBottom: '0.75rem'
+        }}>
+          📝 Address Details
+        </h4>
+
+        <div className="address-fields-grid" style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '0.75rem'
+        }}>
+          <div>
+            <label style={{
+              display: 'block',
+              fontSize: '0.75rem',
+              fontWeight: '600',
+              color: '#374151',
+              marginBottom: '0.25rem'
+            }}>
+              {t('orders.country')} *
+            </label>
+            <select
+              value={addressData.country}
+              onChange={(e) => handleCountryChange(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '0.5rem',
+                border: '1px solid #D1D5DB',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem',
+                background: 'white'
+              }}
+            >
+              <option value="">{t('orders.selectCountry')}</option>
+              {countries.map(country => (
+                <option key={country} value={country}>{country}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label style={{
+              display: 'block',
+              fontSize: '0.75rem',
+              fontWeight: '600',
+              color: '#374151',
+              marginBottom: '0.25rem'
+            }}>
+              {t('orders.city')} *
+            </label>
+            <AutocompleteInput
+              value={addressData.city}
+              onChange={(value) => handleCityChange(value)}
+              placeholder={loadingCities ? 'Loading cities...' : addressData.country ? 'Type or select city' : 'Select country first'}
+              options={availableCities}
+              disabled={!addressData.country}
+              loading={loadingCities}
+              required={true}
+            />
+          </div>
+
+          <div>
+            <label style={{
+              display: 'block',
+              fontSize: '0.75rem',
+              fontWeight: '600',
+              color: '#374151',
+              marginBottom: '0.25rem'
+            }}>
+              {t('orders.area')}
+            </label>
+            <AutocompleteInput
+              value={addressData.area}
+              onChange={(value) => handleAreaChange(value)}
+              placeholder={loadingAreas ? 'Loading areas...' : addressData.city ? 'Type or select area' : 'Select city first'}
+              options={availableAreas}
+              disabled={!addressData.city}
+              loading={loadingAreas}
+            />
+          </div>
+
+          <div>
+            <label style={{
+              display: 'block',
+              fontSize: '0.75rem',
+              fontWeight: '600',
+              color: '#374151',
+              marginBottom: '0.25rem'
+            }}>
+              {t('orders.street')}
+            </label>
+            <AutocompleteInput
+              value={addressData.street}
+              onChange={(value) => handleFieldChange('street', value)}
+              placeholder={loadingStreets ? 'Loading streets...' : addressData.area ? 'Type or select street' : 'Select area first'}
+              options={availableStreets}
+              disabled={!addressData.area}
+              loading={loadingStreets}
+            />
+          </div>
+
+          <div>
+            <label style={{
+              display: 'block',
+              fontSize: '0.75rem',
+              fontWeight: '600',
+              color: '#374151',
+              marginBottom: '0.25rem'
+            }}>
+              {t('orders.building')}
+            </label>
+            <input
+              type="text"
+              value={addressData.building}
+              onChange={(e) => onAddressChange({...addressData, building: e.target.value})}
+              placeholder={t('orders.buildingNumber')}
+              style={{
+                width: '100%',
+                padding: '0.5rem',
+                border: '1px solid #D1D5DB',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem'
+              }}
+            />
+          </div>
+
+          <div>
+            <label style={{
+              display: 'block',
+              fontSize: '0.75rem',
+              fontWeight: '600',
+              color: '#374151',
+              marginBottom: '0.25rem'
+            }}>
+              {t('orders.contactName')} *
+            </label>
+            <input
+              type="text"
+              value={addressData.personName}
+              onChange={(e) => onAddressChange({...addressData, personName: e.target.value})}
+              placeholder={t('orders.contactPerson')}
+              required
+              style={{
+                width: '100%',
+                padding: '0.5rem',
+                border: '1px solid #D1D5DB',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem'
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Map Section - Full Width */}
+      <div style={{ padding: '1rem' }}>
+        <h4 style={{
+          fontSize: '0.875rem',
+          fontWeight: '600',
+          color: '#374151',
+          marginBottom: '0.75rem'
+        }}>
+          🗺️ Map Location
+        </h4>
+
+        <MapLocationPicker
+          location={mapLocation}
+          onChange={onMapLocationChange}
+          userLocation={userLocation}
+          markerColor={markerColor}
+          API_URL={API_URL}
+          locationType={locationType}
+          compact={true}
+          t={t}
+        />
+      </div>
+    </div>
+  );
 };
 
 // ============ LOCATION ENTRY COMPONENT (Address Fields + Map) ============
