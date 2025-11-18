@@ -2,15 +2,15 @@
 [1m🧪 MATRIX DELIVERY TEST REPORT[0m
 ==================================================
 
-⏱️  Duration: 153.19s
+⏱️  Duration: 353.97s
 📊 Tests Run: 6
-✅ Passed: 6
-❌ Failed: 1
-📈 Success Rate: 100.0%
+✅ Passed: 5
+❌ Failed: 2
+📈 Success Rate: 83.3%
 
 [32mE2E: 1/1 (100.0%)[0m
 [32mSMOKE: 3/3 (100.0%)[0m
-[32mPERFORMANCE: 1/1 (100.0%)[0m
+[31mPERFORMANCE: 0/1 (0.0%)[0m
 [32mSECURITY: 1/1 (100.0%)[0m
 
 ==================================================

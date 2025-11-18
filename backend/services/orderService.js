@@ -214,24 +214,139 @@ class OrderService {
    * Create a new order
    */
   async createOrder(orderData, customerId) {
-    const {
-      title,
-      description,
-      pickupLocation,
-      dropoffLocation,
-      package_description,
-      package_weight,
-      estimated_value,
-      special_instructions,
-      price
-    } = orderData;
+    console.log('🛠️ ORDER SERVICE - RECEIVED ORDER CREATION REQUEST');
+    console.log('🛠️ ORDER SERVICE - RAW ORDER DATA RECEIVED:', JSON.stringify(orderData, null, 2));
+    console.log('🛠️ ORDER SERVICE - CUSTOMER ID:', customerId);
+
+    // Extract main order details for validation
+    let title, price;
+    if (orderData.orderData) {
+      title = orderData.orderData.title;
+      price = orderData.orderData.price;
+      console.log('🛠️ ORDER SERVICE - VALIDATION CHECK - title:', title, 'price:', price);
+      console.log('🛠️ ORDER SERVICE - title exists:', !!title);
+      console.log('🛠️ ORDER SERVICE - title trimmed:', title?.trim());
+      console.log('🛠️ ORDER SERVICE - title valid:', !!(title?.trim()));
+      console.log('🛠️ ORDER SERVICE - price exists:', !!price);
+      console.log('🛠️ ORDER SERVICE - price float:', parseFloat(price));
+      console.log('🛠️ ORDER SERVICE - price valid:', !!(price && parseFloat(price) > 0));
+    } else {
+      title = orderData.title;
+      price = orderData.price;
+    }
+
+    // Basic validation for title and price
+    if (!title || !title.trim()) {
+      console.log('🛠️ ORDER SERVICE - THROWING: Order title is required');
+      throw new Error('Order title is required');
+    }
+    if (!price || parseFloat(price) <= 0) {
+      console.log('🛠️ ORDER SERVICE - THROWING: Order price must be greater than 0');
+      throw new Error('Order price must be greater than 0');
+    }
+    console.log('🛠️ ORDER SERVICE - VALIDATION PASSED');
 
     const orderId = this.generateId();
     const orderNumber = `ORD-${Date.now()}`;
 
-    // Build addresses from structured location data
-    const pickupAddress = `${pickupLocation.address.personName}, ${pickupLocation.address.street || ''} ${pickupLocation.address.buildingNumber || ''}, ${pickupLocation.address.area || ''}, ${pickupLocation.address.city}, ${pickupLocation.address.country}`.replace(/, ,/g, ',').replace(/^,|,$/g, '');
-    const deliveryAddress = `${dropoffLocation.address.personName}, ${dropoffLocation.address.street || ''} ${dropoffLocation.address.buildingNumber || ''}, ${dropoffLocation.address.area || ''}, ${dropoffLocation.address.city}, ${dropoffLocation.address.country}`.replace(/, ,/g, ',').replace(/^,|,$/g, '');
+    let description, pickupLocation, dropoffLocation, package_description, package_weight, estimated_value, special_instructions;
+    let pickupAddress, deliveryAddress, fromCoordinates, toCoordinates;
+
+    console.log('🛠️ ORDER SERVICE - ORDER DATA STRUCTURE ANALYSIS:', {
+      hasOrderData: !!orderData.orderData,
+      hasShowManualEntry: orderData.showManualEntry !== undefined,
+      hasPickupAddress: !!orderData.pickupAddress,
+      hasDropoffAddress: !!orderData.dropoffAddress,
+      hasPickupLocation: !!orderData.pickupLocation,
+      hasDropoffLocation: !!orderData.dropoffLocation
+    });
+
+    // Handle both old format (nested orderData) and new format (flat structure)
+    if (orderData.orderData) {
+      console.log('🛠️ ORDER SERVICE - USING NEW FORMAT (orderData.orderData structure)');
+      // New format with nested orderData
+      const order = orderData.orderData;
+      console.log('🛠️ ORDER SERVICE - EXTRACTED ORDER OBJECT:', order);
+      title = order.title;
+      description = order.description;
+      package_description = order.package_description;
+      package_weight = order.package_weight;
+      estimated_value = order.estimated_value;
+      special_instructions = order.special_instructions;
+      price = order.price;
+      console.log('🛠️ ORDER SERVICE - EXTRACTED VALUES:', { title, price, description });
+
+      // Check if using map locations or manual addresses
+      if (orderData.showManualEntry) {
+        // Using manual addresses - format them
+        if (!orderData.pickupAddress || !orderData.dropoffAddress) {
+          throw new Error('Please fill all required fields: Pickup location (country, city, contact name), Delivery location (country, city, contact name)');
+        }
+
+        const pa = orderData.pickupAddress;
+        const da = orderData.dropoffAddress;
+
+        // Validate required fields
+        if (!pa.country?.trim() || !pa.city?.trim() || !pa.personName?.trim()) {
+          throw new Error('Please fill all required fields: Pickup location (country, city, contact name), Delivery location (country, city, contact name)');
+        }
+        if (!da.country?.trim() || !da.city?.trim() || !da.personName?.trim()) {
+          throw new Error('Please fill all required fields: Pickup location (country, city, contact name), Delivery location (country, city, contact name)');
+        }
+
+        // Build addresses from flat manual entry
+        pickupAddress = `${pa.personName}, ${pa.street || ''} ${pa.building || ''}, ${pa.floor ? `Floor ${pa.floor}` : ''}, ${pa.apartment ? `Apt ${pa.apartment}` : ''}, ${pa.area || ''}, ${pa.city}, ${pa.country}`.replace(/, ,/g, ',').replace(/^,|,$/g, '').replace(/,+/g, ', ');
+        deliveryAddress = `${da.personName}, ${da.street || ''} ${da.building || ''}, ${da.floor ? `Floor ${da.floor}` : ''}, ${da.apartment ? `Apt ${da.apartment}` : ''}, ${da.area || ''}, ${da.city}, ${da.country}`.replace(/, ,/g, ',').replace(/^,|,$/g, '').replace(/,+/g, ', ');
+
+        // For now, no coordinates from manual entry
+        fromCoordinates = null;
+        toCoordinates = null;
+      } else {
+        // Using map locations
+        if (!orderData.pickupLocation || !orderData.dropoffLocation) {
+          throw new Error('Please select pickup and delivery locations on the map');
+        }
+        pickupLocation = orderData.pickupLocation;
+        dropoffLocation = orderData.dropoffLocation;
+
+        // Build addresses from map location data
+        pickupAddress = `${pickupLocation.address.personName}, ${pickupLocation.address.street || ''} ${pickupLocation.address.buildingNumber || ''}, ${pickupLocation.address.area || ''}, ${pickupLocation.address.city}, ${pickupLocation.address.country}`.replace(/, ,/g, ',').replace(/^,|,$/g, '');
+        deliveryAddress = `${dropoffLocation.address.personName}, ${dropoffLocation.address.street || ''} ${dropoffLocation.address.buildingNumber || ''}, ${dropoffLocation.address.area || ''}, ${dropoffLocation.address.city}, ${dropoffLocation.address.country}`.replace(/, ,/g, ',').replace(/^,|,$/g, '');
+
+        fromCoordinates = pickupLocation.coordinates ? `${pickupLocation.coordinates.lat},${pickupLocation.coordinates.lng}` : null;
+        toCoordinates = dropoffLocation.coordinates ? `${dropoffLocation.coordinates.lat},${dropoffLocation.coordinates.lng}` : null;
+      }
+    } else {
+      // Old format - direct fields
+      const {
+        title: oldTitle,
+        description: oldDescription,
+        pickupLocation: oldPickup,
+        dropoffLocation: oldDropoff,
+        package_description: oldPackageDesc,
+        package_weight: oldPackageWeight,
+        estimated_value: oldEstimatedValue,
+        special_instructions: oldInstructions,
+        price: oldPrice
+      } = orderData;
+
+      title = oldTitle;
+      description = oldDescription;
+      pickupLocation = oldPickup;
+      dropoffLocation = oldDropoff;
+      package_description = oldPackageDesc;
+      package_weight = oldPackageWeight;
+      estimated_value = oldEstimatedValue;
+      special_instructions = oldInstructions;
+      price = oldPrice;
+
+      // Build addresses from structured location data
+      pickupAddress = `${pickupLocation.address.personName}, ${pickupLocation.address.street || ''} ${pickupLocation.address.buildingNumber || ''}, ${pickupLocation.address.area || ''}, ${pickupLocation.address.city}, ${pickupLocation.address.country}`.replace(/, ,/g, ',').replace(/^,|,$/g, '');
+      deliveryAddress = `${dropoffLocation.address.personName}, ${dropoffLocation.address.street || ''} ${dropoffLocation.address.buildingNumber || ''}, ${dropoffLocation.address.area || ''}, ${dropoffLocation.address.city}, ${dropoffLocation.address.country}`.replace(/, ,/g, ',').replace(/^,|,$/g, '');
+
+      fromCoordinates = pickupLocation.coordinates ? `${pickupLocation.coordinates.lat},${pickupLocation.coordinates.lng}` : null;
+      toCoordinates = dropoffLocation.coordinates ? `${dropoffLocation.coordinates.lat},${dropoffLocation.coordinates.lng}` : null;
+    }
 
     const result = await pool.query(
       `INSERT INTO orders (

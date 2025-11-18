@@ -889,68 +889,91 @@ const getDriverViewTitle = (viewType) => {
   }, [showMobileMenu]);
 
   const handlePublishOrder = useCallback(async (orderData) => { // eslint-disable-line react-hooks/exhaustive-deps
-    // Simplified validation for structured addresses
+    // Validation for required fields - must run BEFORE backend submission
     const requiredFieldsError = [];
-    if (!orderData.title) requiredFieldsError.push('Order title');
-    if (!orderData.price) requiredFieldsError.push('Price');
 
-    // Check pickup location
-    if (!orderData.pickup_country || !orderData.pickup_city || !orderData.pickup_personName) {
+    // Validate order basics first
+    if (!orderData.title?.trim()) {
+      requiredFieldsError.push('Order title');
+    }
+    if (!orderData.price || parseFloat(orderData.price) <= 0) {
+      requiredFieldsError.push('Price');
+    }
+
+    // Check for both data structure formats since the form can send either
+    const hasPickupData = orderData.pickupAddress?.country || orderData.pickupLocation?.address?.country;
+    const hasPickupCountry = (orderData.pickupAddress?.country || orderData.pickupLocation?.address?.country)?.trim();
+    const hasPickupCity = (orderData.pickupAddress?.city || orderData.pickupLocation?.address?.city)?.trim();
+    const hasPickupPersonName = (orderData.pickupAddress?.personName || orderData.pickupLocation?.address?.personName)?.trim();
+
+    if (!hasPickupData || !hasPickupCountry || !hasPickupCity || !hasPickupPersonName) {
       requiredFieldsError.push('Pickup location (country, city, contact name)');
     }
 
-    // Check dropoff location
-    if (!orderData.dropoff_country || !orderData.dropoff_city || !orderData.dropoff_personName) {
+    const hasDropoffData = orderData.dropoffAddress?.country || orderData.dropoffLocation?.address?.country;
+    const hasDropoffCountry = (orderData.dropoffAddress?.country || orderData.dropoffLocation?.address?.country)?.trim();
+    const hasDropoffCity = (orderData.dropoffAddress?.city || orderData.dropoffLocation?.address?.city)?.trim();
+    const hasDropoffPersonName = (orderData.dropoffAddress?.personName || orderData.dropoffLocation?.address?.personName)?.trim();
+
+    if (!hasDropoffData || !hasDropoffCountry || !hasDropoffCity || !hasDropoffPersonName) {
       requiredFieldsError.push('Delivery location (country, city, contact name)');
     }
 
+    // If validation fails, throw error for form to catch and display
     if (requiredFieldsError.length > 0) {
-      setError(`Please fill all required fields: ${requiredFieldsError.join(', ')}`);
-      return;
+      const errorMessage = `Please fill all required fields: ${requiredFieldsError.join(', ')}`;
+      console.log('🛑 Frontend validation failed:', errorMessage);
+      console.log('📋 Current form data validation:', {
+        title: !!orderData.title?.trim(),
+        price: !!(orderData.price && parseFloat(orderData.price) > 0),
+        showManualEntry: orderData.showManualEntry,
+        pickup: orderData.showManualEntry ? {
+          country: !!orderData.pickupAddress?.country,
+          city: !!orderData.pickupAddress?.city,
+          personName: !!orderData.pickupAddress?.personName
+        } : {
+          country: !!orderData.pickupLocation?.address?.country,
+          city: !!orderData.pickupLocation?.address?.city,
+          personName: !!orderData.pickupLocation?.address?.personName
+        },
+        dropoff: orderData.showManualEntry ? {
+          country: !!orderData.dropoffAddress?.country,
+          city: !!orderData.dropoffAddress?.city,
+          personName: !!orderData.dropoffAddress?.personName
+        } : {
+          country: !!orderData.dropoffLocation?.address?.country,
+          city: !!orderData.dropoffLocation?.address?.city,
+          personName: !!orderData.dropoffLocation?.address?.personName
+        }
+      });
+      throw new Error(errorMessage);
     }
 
+    console.log('✅ Frontend validation passed, proceeding to submit');
+
     setLoadingState('createOrder', true);
-    setError('');
 
     try {
-      // Build the new structured order data
+      // Build the new structured order data that matches backend expectations
       const newOrder = {
-        title: orderData.title,
-        description: orderData.description,
-        // New structured location data for pickup
-        pickupLocation: {
-          coordinates: { lat: 40.7128, lng: -74.0060 }, // Default coordinates
-          address: {
-            country: orderData.pickup_country,
-            city: orderData.pickup_city,
-            area: orderData.pickup_area,
-            street: orderData.pickup_street,
-            buildingNumber: orderData.pickup_building || '',
-            floor: orderData.pickup_floor || '',
-            apartmentNumber: orderData.pickup_apartment || '',
-            personName: orderData.pickup_personName
-          }
+        orderData: {
+          title: orderData.title,
+          description: orderData.description,
+          package_description: orderData.package_description,
+          package_weight: orderData.package_weight ? parseFloat(orderData.package_weight) : null,
+          estimated_value: orderData.estimated_value ? parseFloat(orderData.estimated_value) : null,
+          special_instructions: orderData.special_instructions,
+          estimated_delivery_date: orderData.estimated_delivery_date || null,
+          price: parseFloat(orderData.price)
         },
-        // New structured location data for dropoff
-        dropoffLocation: {
-          coordinates: { lat: 40.7128, lng: -74.0060 }, // Default coordinates
-          address: {
-            country: orderData.dropoff_country,
-            city: orderData.dropoff_city,
-            area: orderData.dropoff_area,
-            street: orderData.dropoff_street,
-            buildingNumber: orderData.dropoff_building || '',
-            floor: orderData.dropoff_floor || '',
-            apartmentNumber: orderData.dropoff_apartment || '',
-            personName: orderData.dropoff_personName
-          }
-        },
-        package_description: orderData.package_description,
-        package_weight: orderData.package_weight ? parseFloat(orderData.package_weight) : null,
-        estimated_value: orderData.estimated_value ? parseFloat(orderData.estimated_value) : null,
-        special_instructions: orderData.special_instructions,
-        estimated_delivery_date: orderData.estimated_delivery_date || null,
-        price: parseFloat(orderData.price)
+        showManualEntry: true,
+        // Use the structured location data from the form
+        pickupAddress: orderData.pickupAddress,
+        dropoffAddress: orderData.dropoffAddress,
+        // Include map location and route info if available
+        ...(orderData.pickupLocation && { pickupLocation: orderData.pickupLocation }),
+        ...(orderData.dropoffLocation && { dropoffLocation: orderData.dropoffLocation }),
+        ...(orderData.routeInfo && { routeInfo: orderData.routeInfo })
       };
 
       const response = await fetch(`${API_URL}/orders`, {
@@ -974,28 +997,14 @@ const getDriverViewTitle = (viewType) => {
       }, 500);
       showSuccess('Order published successfully! Waiting for drivers in your area.');
     } catch (err) {
-      let errorMessage = 'Failed to publish order';
-      if (err.message.includes('Service Unavailable')) {
-        errorMessage = 'Server is temporarily unavailable. Please try again in a moment.';
-      } else if (err.message.includes('Network')) {
-        errorMessage = 'Network connection error. Please check your connection and try again.';
-      } else if (err.message) {
-        errorMessage = err.message;
-      }
+      setLoadingState('createOrder', false);
 
-      setError(errorMessage);
-
-      // Retry mechanism for failed requests
-      if (retryCount < 2) {
-        setRetryCount(prev => prev + 1);
-        setTimeout(() => {
-          handlePublishOrder(orderData);
-        }, 2000);
-      }
+      // Re-throw the error so OrderCreationForm can catch it
+      throw err;
     } finally {
       setLoadingState('createOrder', false);
     }
-  }, [token, retryCount]);
+  }, [token, showSuccess]);
 
   const handleBidOnOrder = async (orderId) => {
     const bidPrice = bidInput[orderId];

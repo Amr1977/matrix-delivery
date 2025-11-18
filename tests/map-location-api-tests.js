@@ -7,6 +7,54 @@ const request = require('supertest');
 const { Pool } = require('pg');
 const jwt = require('jsonwebtoken');
 
+// Polyfill for fetch in Node.js test environment
+const https = require('https');
+const http = require('http');
+
+global.fetch = function(url, options) {
+  return new Promise((resolve, reject) => {
+    const urlObj = new URL(url);
+    const protocol = urlObj.protocol === 'https:' ? https : http;
+
+    const reqOptions = {
+      hostname: urlObj.hostname,
+      port: urlObj.port || (urlObj.protocol === 'https:' ? 443 : 80),
+      path: urlObj.pathname + urlObj.search,
+      method: options?.method || 'GET',
+      headers: options?.headers || {}
+    };
+
+    const req = protocol.request(reqOptions, (res) => {
+      let data = '';
+      res.on('data', (chunk) => data += chunk);
+      res.on('end', () => {
+        try {
+          const jsonData = JSON.parse(data);
+          resolve({
+            ok: res.statusCode >= 200 && res.statusCode < 300,
+            status: res.statusCode,
+            json: () => Promise.resolve(jsonData)
+          });
+        } catch (e) {
+          resolve({
+            ok: res.statusCode >= 200 && res.statusCode < 300,
+            status: res.statusCode,
+            json: () => Promise.resolve({ error: data })
+          });
+        }
+      });
+    });
+
+    req.on('error', reject);
+
+    if (options?.body) {
+      req.write(options.body);
+    }
+
+    req.end();
+  });
+};
+
 // Mock environment
 process.env.NODE_ENV = 'test';
 process.env.DB_NAME_TEST = 'matrix_delivery_test';
@@ -43,18 +91,13 @@ const testDriver = {
 };
 
 describe('Map Location Picker API Tests', () => {
-  let server;
-  let app;
   let testUserToken;
   let testDriverToken;
 
-  beforeAll(async () => {
-    // Setup test server
-    const serverModule = require('../backend/server');
-    app = serverModule;
-    server = require('http').createServer(app);
-    await new Promise(resolve => server.listen(5001, resolve));
+  // Use the existing backend server instead of starting a new one
+  const baseURL = 'http://localhost:5000';
 
+  beforeAll(async () => {
     // Create test tokens
     testUserToken = jwt.sign(testUser, process.env.JWT_SECRET);
     testDriverToken = jwt.sign(testDriver, process.env.JWT_SECRET);
@@ -85,66 +128,62 @@ describe('Map Location Picker API Tests', () => {
 
   afterAll(async () => {
     await pool.end();
-    server.close();
   });
 
   describe('Reverse Geocoding API', () => {
     test('should successfully reverse geocode valid coordinates', async () => {
-      const response = await request(app)
-        .get('/api/locations/reverse-geocode')
-        .query({ lat: 30.0131, lng: 31.2089 })
-        .expect(200);
+      const url = `${baseURL}/api/locations/reverse-geocode?lat=30.0131&lng=31.2089`;
+      const options = { method: 'GET' };
 
-      expect(response.body).toHaveProperty('coordinates');
-      expect(response.body).toHaveProperty('address');
-      expect(response.body).toHaveProperty('locationLink');
-      expect(response.body.coordinates).toHaveProperty('lat', 30.0130972);
-      expect(response.body.coordinates).toHaveProperty('lng', 31.2089963);
-      expect(response.body.address).toHaveProperty('country');
-      expect(response.body.address).toHaveProperty('city');
-      expect(response.body.locationLink).toMatch(/^https:\/\/www\.google\.com\/maps\?q=/);
-    });
+      const response = await fetch(url, options);
+      expect(response.status).toBe(200);
+
+      const data = await response.json();
+      expect(data).toHaveProperty('coordinates');
+      expect(data).toHaveProperty('address');
+      expect(data).toHaveProperty('locationLink');
+      expect(data.coordinates).toHaveProperty('lat', 30.0130972);
+      expect(data.coordinates).toHaveProperty('lng', 31.2089963);
+      expect(data.address).toHaveProperty('country');
+      expect(data.address).toHaveProperty('city');
+      expect(data.locationLink).toMatch(/^https:\/\/www\.google\.com\/maps\?q=/);
+    }, 30000);
 
     test('should handle coordinates near major landmarks', async () => {
       // Tahrir Square, Cairo
-      const response = await request(app)
-        .get('/api/locations/reverse-geocode')
-        .query({ lat: 30.0444, lng: 31.2357 })
-        .expect(200);
-
-      expect(response.body.address).toBeDefined();
-      expect(response.body.displayName).toBeDefined();
-    });
+      const url = `${baseURL}/api/locations/reverse-geocode?lat=30.0444&lng=31.2357`;
+      const response = await (await fetch(url)).json();
+      expect(response.address).toBeDefined();
+      expect(response.displayName).toBeDefined();
+    }, 30000);
 
     test('should return error for invalid coordinates', async () => {
-      const response = await request(app)
-        .get('/api/locations/reverse-geocode')
-        .query({ lat: 91, lng: 181 }) // Invalid coordinates
-        .expect(404);
+      const url = `${baseURL}/api/locations/reverse-geocode?lat=91&lng=181`;
+      const response = await fetch(url);
+      expect(response.status).toBe(404);
 
-      expect(response.body.error).toMatch(/not found/i);
+      const data = await response.json();
+      expect(data.error).toMatch(/not found/i);
     });
 
     test('should handle ocean coordinates gracefully', async () => {
       // Coordinates in the Atlantic Ocean
-      const response = await request(app)
-        .get('/api/locations/reverse-geocode')
-        .query({ lat: 25.0, lng: -40.0 })
-        .expect(404);
+      const url = `${baseURL}/api/locations/reverse-geocode?lat=25.0&lng=-40.0`;
+      const response = await fetch(url);
+      expect(response.status).toBe(404);
 
-      expect(response.body.error).toBeDefined();
+      const data = await response.json();
+      expect(data.error).toBeDefined();
     });
 
     test('should require both lat and lng parameters', async () => {
-      await request(app)
-        .get('/api/locations/reverse-geocode')
-        .query({ lat: 30.0444 })
-        .expect(400);
+      const url1 = `${baseURL}/api/locations/reverse-geocode?lat=30.0444`;
+      const response1 = await fetch(url1);
+      expect(response1.status).toBe(400);
 
-      await request(app)
-        .get('/api/locations/reverse-geocode')
-        .query({ lng: 31.2357 })
-        .expect(400);
+      const url2 = `${baseURL}/api/locations/reverse-geocode?lng=31.2357`;
+      const response2 = await fetch(url2);
+      expect(response2.status).toBe(400);
     });
   });
 

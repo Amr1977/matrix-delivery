@@ -30,13 +30,13 @@
       "pre-push": "npm run test:pre-commit"
     }
   },
-    "jest": {
-      "testEnvironment": "node",
-      "testTimeout": 30000,
-      "testMatch": [
-        "<rootDir>/tests/**/*.test.js",
-        "<rootDir>/tests/**/*.spec.js"
-      ],
+  "jest": {
+    "testEnvironment": "node",
+    "testTimeout": 30000,
+    "testMatch": [
+      "<rootDir>/tests/**/*.test.js",
+      "<rootDir>/tests/**/*.spec.js"
+    ],
     "collectCoverageFrom": [
       "**/*.{js,jsx}",
       "!**/node_modules/**",
@@ -60,6 +60,7 @@
   },
   "devDependencies": {
     "@cucumber/cucumber": "^10.9.0",
+    "@playwright/test": "^1.56.1",
     "axios": "^1.13.2",
     "chai": "^4.5.0",
     "dotenv": "^16.6.1",
