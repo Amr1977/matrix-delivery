@@ -1020,6 +1020,53 @@ app.get('/api/auth/me', verifyToken, async (req, res) => {
 });
 
 // Verify user by email (for testing purposes)
+// ============ FRONTEND LOGGING ENDPOINT ============
+// Add endpoint to receive logs from frontend and save to files
+app.post('/api/logs/frontend', async (req, res) => {
+  try {
+    const logData = req.body;
+
+    // Create a formatted log entry similar to backend logger
+    const timestamp = new Date(logData.timestamp).toISOString();
+    const logLevel = logData.level || 'info';
+    const userId = logData.userId || 'anonymous';
+    const sessionId = logData.sessionId || 'unknown';
+    const category = logData.category || 'frontend';
+
+    // Use backend logger to write to files
+    const message = `[FRONTEND] ${logData.message || 'No message'}`;
+
+    // Format the log data for backend logger
+    const logEntry = {
+      timestamp: new Date(logData.timestamp),
+      level: logLevel,
+      message: `[FRONTEND] ${logData.message || 'No message'}`,
+      userId,
+      sessionId,
+      url: logData.url,
+      userAgent: logData.userAgent,
+      category,
+      frontendData: logData
+    };
+
+    // Log using the appropriate backend logger method
+    if (logLevel === 'error') {
+      logger.error(message, logEntry);
+    } else if (logLevel === 'warn') {
+      logger.warn(message, logEntry);
+    } else if (logLevel === 'debug') {
+      logger.debug(message, logEntry);
+    } else {
+      logger.info(message, logEntry);
+    }
+
+    res.json({ success: true, message: 'Log received and saved' });
+  } catch (error) {
+    console.error('Frontend log endpoint error:', error);
+    res.status(500).json({ error: 'Failed to save frontend log' });
+  }
+});
+
 app.post('/api/auth/verify-user', async (req, res) => {
   try {
     const { email } = req.body;

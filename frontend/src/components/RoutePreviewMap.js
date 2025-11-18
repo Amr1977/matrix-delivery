@@ -11,7 +11,7 @@ L.Icon.Default.mergeOptions({
 });
 
 // ============ ROUTE PREVIEW MAP COMPONENT ============
-const RoutePreviewMap = ({ pickup, dropoff, routeInfo, loading }) => {
+const RoutePreviewMap = ({ pickup, dropoff, routeInfo, loading, compact = false, t }) => {
   if (!pickup || !dropoff) return null;
 
   // Decode polyline if available (simplified - would use polyline library in production)
@@ -85,27 +85,29 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, loading }) => {
           </div>
 
           {/* Vehicle Estimates */}
-          <div>
-            <h3 style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '0.75rem' }}>
-              Estimated Delivery Times by Vehicle Type
-            </h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem' }}>
-              {Object.entries(routeInfo.estimates || {}).map(([vehicle, data]) => (
-                <div key={vehicle} style={{ background: '#F9FAFB', padding: '1rem', borderRadius: '0.375rem', border: '1px solid #E5E7EB', textAlign: 'center' }}>
-                  <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>{data.icon}</div>
-                  <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', textTransform: 'capitalize', marginBottom: '0.25rem' }}>
-                    {vehicle === 'bicycle' ? 'Bicycle' : vehicle}
-                  </p>
-                  <p style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1F2937' }}>
-                    {data.duration_minutes} min
-                  </p>
-                  <p style={{ fontSize: '0.75rem', color: '#6B7280' }}>
-                    ~{data.speed_kmh} km/h
-                  </p>
-                </div>
-              ))}
+          {routeInfo.estimates && Object.keys(routeInfo.estimates).length > 0 && (
+            <div>
+              <h3 style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '0.75rem' }}>
+                Estimated Delivery Times by Vehicle Type
+              </h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem' }}>
+                {Object.entries(routeInfo.estimates).map(([vehicle, data]) => (
+                  <div key={vehicle} style={{ background: '#F9FAFB', padding: '1rem', borderRadius: '0.375rem', border: '1px solid #E5E7EB', textAlign: 'center' }}>
+                    <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>{data.icon || '🚗'}</div>
+                    <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', textTransform: 'capitalize', marginBottom: '0.25rem' }}>
+                      {vehicle === 'bicycle' ? 'Bicycle' : vehicle}
+                    </p>
+                    <p style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1F2937' }}>
+                      {data.duration_minutes || 'N/A'} min
+                    </p>
+                    <p style={{ fontSize: '0.75rem', color: '#6B7280' }}>
+                      ~{data.speed_kmh || '?'} km/h
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </>
       )}
     </div>

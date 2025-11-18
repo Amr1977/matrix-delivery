@@ -62,10 +62,8 @@ class FrontendLogger {
     const consoleMethod = level === 'debug' ? 'log' : level;
     console[consoleMethod](`[${level.toUpperCase()}] ${message}`, logData);
 
-    // Send important logs to backend (optional)
-    if (level === 'error' || level === 'warn') {
-      this.sendToBackend(logData);
-    }
+    // Send all logs to backend for file storage (don't await to avoid blocking)
+    this.sendToBackend(logData);
   }
 
   error(message, data = {}) {

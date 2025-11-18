@@ -2,6 +2,7 @@
 // Replace the existing OrderCreationForm component with this
 
 import React, { useState, useEffect } from 'react';
+import logger from './logger';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 
@@ -585,6 +586,63 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const submitStartTime = Date.now();
+
+    logger.user('Order creation form submitted', {
+      hasTitle: !!orderData.title?.trim(),
+      hasDescription: !!orderData.description?.trim(),
+      price: parseFloat(orderData.price) || 0,
+      hasPackageDescription: !!orderData.package_description?.trim(),
+      packageWeight: orderData.package_weight,
+      estimatedValue: orderData.estimated_value,
+      hasSpecialInstructions: !!orderData.special_instructions?.trim(),
+      estimatedDeliveryDate: orderData.estimated_delivery_date,
+      showManualEntry,
+      timestamp: new Date().toISOString()
+    });
+
+    logger.info('[LOCATION_STATE] Current location state:', {
+      showManualEntry,
+      pickupLocation: pickupLocation ? {
+        coordinates: pickupLocation.coordinates,
+        displayName: pickupLocation.displayName,
+        hasAddress: !!pickupLocation.address,
+        addressKeys: pickupLocation.address ? Object.keys(pickupLocation.address) : []
+      } : null,
+      dropoffLocation: dropoffLocation ? {
+        coordinates: dropoffLocation.coordinates,
+        displayName: dropoffLocation.displayName,
+        hasAddress: !!dropoffLocation.address,
+        addressKeys: dropoffLocation.address ? Object.keys(dropoffLocation.address) : []
+      } : null,
+      routeInfo: routeInfo ? {
+        distance_km: routeInfo.distance_km,
+        estimatesCount: routeInfo.estimates ? Object.keys(routeInfo.estimates).length : 0,
+        hasPolyline: !!routeInfo.polyline,
+        routeFound: !!routeInfo.polyline
+      } : null
+    });
+
+    logger.info('[ADDRESS_DATA] Address data validation state:', {
+      pickupAddress: {
+        country: pickupAddress.country,
+        city: pickupAddress.city,
+        area: pickupAddress.area,
+        street: pickupAddress.street,
+        building: pickupAddress.building,
+        personName: pickupAddress.personName,
+        hasRequiredFields: !!(pickupAddress.country?.trim() && pickupAddress.city?.trim() && pickupAddress.personName?.trim())
+      },
+      dropoffAddress: {
+        country: dropoffAddress.country,
+        city: dropoffAddress.city,
+        area: dropoffAddress.area,
+        street: dropoffAddress.street,
+        building: dropoffAddress.building,
+        personName: dropoffAddress.personName,
+        hasRequiredFields: !!(dropoffAddress.country?.trim() && dropoffAddress.city?.trim() && dropoffAddress.personName?.trim())
+      }
+    });
 
     // Just pass validation to backend
 
@@ -602,6 +660,12 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
     if (!dropoffAddress.city?.trim()) dropoffMissing.push('city');
     if (!dropoffAddress.personName?.trim()) dropoffMissing.push('contact name');
 
+    logger.info('[VALIDATION] Required field validation:', {
+      pickupMissing,
+      dropoffMissing,
+      validationPassed: pickupMissing.length === 0 && dropoffMissing.length === 0
+    });
+
     if (pickupMissing.length > 0 || dropoffMissing.length > 0) {
       const errorParts = [];
       if (pickupMissing.length > 0) {
@@ -610,6 +674,13 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
       if (dropoffMissing.length > 0) {
         errorParts.push(`Delivery location missing: ${dropoffMissing.join(', ')}`);
       }
+
+      logger.warn('[VALIDATION_FAILED] Showing error modal for missing required fields:', {
+        pickupMissing,
+        dropoffMissing,
+        errorMessage: errorParts.join('. '),
+        timestamp: new Date().toISOString()
+      });
 
       setModalState({
         isOpen: true,
@@ -632,6 +703,51 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
         routeInfo
       })
     };
+
+    logger.info('[COMPLETE_ORDER_DATA] Final order data structure analysis:', {
+      orderDataKeys: Object.keys(orderData),
+      hasPickupAddress: showManualEntry ? !!completeOrderData.pickupAddress : false,
+      hasDropoffAddress: showManualEntry ? !!completeOrderData.dropoffAddress : false,
+      hasPickupLocation: !showManualEntry ? !!completeOrderData.pickupLocation : false,
+      hasDropoffLocation: !showManualEntry ? !!completeOrderData.dropoffLocation : false,
+      hasRouteInfo: !showManualEntry ? !!completeOrderData.routeInfo : false,
+      maskedOrderDetails: {
+        ...completeOrderData,
+        pickupLocation: completeOrderData.pickupLocation ? {
+          coordinates: completeOrderData.pickupLocation.coordinates,
+          displayName: completeOrderData.pickupLocation.displayName,
+          hasAddress: !!completeOrderData.pickupLocation.address,
+          personNameMasked: completeOrderData.pickupLocation.address?.personName ?
+            `[${completeOrderData.pickupLocation.address.personName.length} chars]` : false
+        } : undefined,
+        dropoffLocation: completeOrderData.dropoffLocation ? {
+          coordinates: completeOrderData.dropoffLocation.coordinates,
+          displayName: completeOrderData.dropoffLocation.displayName,
+          hasAddress: !!completeOrderData.dropoffLocation.address,
+          personNameMasked: completeOrderData.dropoffLocation.address?.personName ?
+            `[${completeOrderData.dropoffLocation.address.personName.length} chars]` : false
+        } : undefined,
+        pickupAddress: completeOrderData.pickupAddress ? {
+          ...completeOrderData.pickupAddress,
+          personName: completeOrderData.pickupAddress.personName ?
+            `[${completeOrderData.pickupAddress.personName.length} chars]` : undefined
+        } : undefined,
+        dropoffAddress: completeOrderData.dropoffAddress ? {
+          ...completeOrderData.dropoffAddress,
+          personName: completeOrderData.dropoffAddress.personName ?
+            `[${completeOrderData.dropoffAddress.personName.length} chars]` : undefined
+        } : undefined
+      }
+    });
+
+    logger.user('Order submission about to be sent to API', {
+      title: completeOrderData.title,
+      price: parseFloat(completeOrderData.price),
+      hasPackageDescription: !!completeOrderData.package_description,
+      packageWeight: completeOrderData.package_weight,
+      showManualEntry,
+      timestamp: new Date().toISOString()
+    });
 
     try {
       // Show loading state
@@ -1495,7 +1611,7 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, loading, compact = false,
   if (!pickup || !dropoff) return null;
 
   const routePath = [[pickup.lat, pickup.lng], [dropoff.lat, dropoff.lng]];
-  const estimates = Object.entries(routeInfo.estimates || {}).slice(0, 3); // First 3 estimates
+  const estimates = routeInfo && routeInfo.estimates ? Object.entries(routeInfo.estimates).slice(0, 3) : []; // First 3 estimates
 
   return (
     <div style={{
