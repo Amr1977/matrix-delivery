@@ -60,6 +60,34 @@ export const extractCityFromAddress = (address) => {
   return '';
 };
 
+export const extractLocationParts = (address) => {
+  if (!address) return { country: '', city: '', area: '', street: '' };
+
+  const parts = address.split(',').map(part => part.trim());
+
+  // Try to parse from address structure
+  // Format: street, area, city, country
+  let street = '', area = '', city = '', country = '';
+
+  if (parts.length >= 4) {
+    street = parts[0] || '';
+    area = parts[1] || '';
+    city = parts[2] || '';
+    country = parts[3] || '';
+  } else if (parts.length === 3) {
+    street = parts[0] || '';
+    city = parts[1] || '';
+    country = parts[2] || '';
+  } else if (parts.length === 2) {
+    city = parts[0] || '';
+    country = parts[1] || '';
+  } else if (parts.length === 1) {
+    country = parts[0] || '';
+  }
+
+  return { country, city, area, street };
+};
+
 export const getAvailableCities = (orders) => {
   const cities = new Set();
   orders.forEach(order => {

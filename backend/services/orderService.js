@@ -38,7 +38,7 @@ class OrderService {
   /**
    * Get orders for a user based on their role
    */
-  async getOrders(userId, userRole) {
+  async getOrders(userId, userRole, filters = {}) {
     let query;
     let params = [];
 
@@ -90,7 +90,36 @@ class OrderService {
       `;
       params = [userId];
     } else if (userRole === 'driver') {
-      // Drivers see available orders and their assigned orders
+      // Build location filter conditions for pending_bids orders
+      let locationConditions = '';
+      const filterParams = [];
+
+      if (filters.country || filters.city || filters.area) {
+        const conditions = [];
+        let paramIndex = params.length + 1;
+
+        if (filters.country) {
+          conditions.push(`o.pickup_address ILIKE $${paramIndex}`);
+          filterParams.push(`%${filters.country}%`);
+          paramIndex += 1;
+        }
+        if (filters.city) {
+          conditions.push(`o.pickup_address ILIKE $${paramIndex}`);
+          filterParams.push(`%${filters.city}%`);
+          paramIndex += 1;
+        }
+        if (filters.area) {
+          conditions.push(`o.pickup_address ILIKE $${paramIndex}`);
+          filterParams.push(`%${filters.area}%`);
+          paramIndex += 1;
+        }
+
+        if (conditions.length > 0) {
+          locationConditions = ' AND (' + conditions.join(' AND ') + ') AND o.assigned_driver_id IS NULL';
+        }
+      }
+
+      // Drivers see available orders (filtered if specified) and their assigned orders
       query = `
         SELECT
           o.*,
@@ -136,12 +165,12 @@ class OrderService {
           FROM reviews
           GROUP BY reviewee_id
         ) dr ON dr.reviewee_id = u.id
-        WHERE (o.status = 'pending_bids' AND o.assigned_driver_id IS NULL)
+        WHERE (o.status = 'pending_bids' AND o.assigned_driver_id IS NULL${locationConditions})
            OR o.assigned_driver_id = $1
         GROUP BY o.id, d.id, d.name, d.rating, d.completed_deliveries, r.id
         ORDER BY sort_priority, o.created_at DESC
       `;
-      params = [userId];
+      params = [userId, ...filterParams];
     } else {
       // Admin sees all orders
       query = `
