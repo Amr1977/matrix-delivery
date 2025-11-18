@@ -1,1 +1,1 @@
-\"fix: map tile loading fixes\"  
+\"fix: add admin role handling to orders endpoint to resolve 500 error\"  

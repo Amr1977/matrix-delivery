@@ -86,19 +86,23 @@ const LiveTrackingMap = React.memo(({ order, token }) => {
       <MapContainer center={driverLocation ? [driverLocation.lat, driverLocation.lng] : (order.pickupLocation?.coordinates ? [order.pickupLocation.coordinates.lat, order.pickupLocation.coordinates.lng] : [30.0444, 31.2357])} zoom={13} style={{ height: 'calc(100% - 40px)', width: '100%' }}>
         <MapUpdater />
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           maxZoom={19}
           minZoom={1}
-          subdomains={'abcd'}
+          subdomains={['a', 'b', 'c']}
           tileSize={256}
-          updateWhenZooming={true}
+          updateWhenZooming={false}
           updateWhenIdle={false}
-          keepBuffer={4}
-          crossOrigin={true}
+          keepBuffer={3}
+          tms={false}
+          zoomReverse={false}
           detectRetina={false}
-          opacity={1}
-          zIndex={1}
+          maxNativeZoom={18}
+          minNativeZoom={0}
+          zoomOffset={0}
+          errorTileUrl="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjU2IiBoZWlnaHQ9IjI1NiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2IiBzdHJva2U9IiNiMmIyYjIiIHN0cm9rZS13aWR0aD0iMSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjE2IiBmaWxsPSIjNjY2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+TWlzc2luZyBUaWxlPC90ZXh0Pjwvc3ZnPg=="
+          crossOrigin={false}
         />
         {order.pickupLocation?.coordinates && <Marker position={[order.pickupLocation.coordinates.lat, order.pickupLocation.coordinates.lng]} icon={L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png', iconSize: [25, 41], iconAnchor: [12, 41] })}><Popup><strong>Pickup</strong></Popup></Marker>}
         {order.dropoffLocation?.coordinates && <Marker position={[order.dropoffLocation.coordinates.lat, order.dropoffLocation.coordinates.lng]} icon={L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png', iconSize: [25, 41], iconAnchor: [12, 41] })}><Popup><strong>Delivery</strong></Popup></Marker>}
