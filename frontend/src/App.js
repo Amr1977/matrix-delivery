@@ -1039,20 +1039,19 @@ const getDriverViewTitle = (viewType) => {
     setLoadingState('createOrder', true);
 
     try {
-      // Build the new structured order data that matches backend expectations
+      // Build the order data directly at root level to match backend expectations
       const newOrder = {
-        orderData: {
-          title: orderData.title,
-          description: orderData.description,
-          package_description: orderData.package_description,
-          package_weight: orderData.package_weight ? parseFloat(orderData.package_weight) : null,
-          estimated_value: orderData.estimated_value ? parseFloat(orderData.estimated_value) : null,
-          special_instructions: orderData.special_instructions,
-          estimated_delivery_date: orderData.estimated_delivery_date || null,
-          price: parseFloat(orderData.price)
-        },
+        // Order fields directly at root level (no nested orderData wrapper)
+        title: orderData.title,
+        description: orderData.description,
+        package_description: orderData.package_description,
+        package_weight: orderData.package_weight ? parseFloat(orderData.package_weight) : null,
+        estimated_value: orderData.estimated_value ? parseFloat(orderData.estimated_value) : null,
+        special_instructions: orderData.special_instructions,
+        estimated_delivery_date: orderData.estimated_delivery_date || null,
+        price: parseFloat(orderData.price),
         showManualEntry: true,
-        // Use the structured location data from the form
+        // Location data at root level
         pickupAddress: orderData.pickupAddress,
         dropoffAddress: orderData.dropoffAddress,
         // Include map location and route info if available

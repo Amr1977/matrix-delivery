@@ -247,21 +247,18 @@ class OrderService {
     console.log('🛠️ ORDER SERVICE - RAW ORDER DATA RECEIVED:', JSON.stringify(orderData, null, 2));
     console.log('🛠️ ORDER SERVICE - CUSTOMER ID:', customerId);
 
-    // Extract main order details for validation - handle nested orderData structure with fallback
-    let title = orderData.orderData?.title || orderData.title;
-    let price = orderData.orderData?.price || orderData.price;
-    console.log('🛠️ ORDER SERVICE - EXTRACTED title:', title, 'price:', price);
-    console.log('🛠️ ORDER SERVICE - orderData.hasOrderData:', !!orderData.orderData);
-    console.log('🛠️ ORDER SERVICE - orderData.title:', orderData.title, 'orderData.price:', orderData.price);
-    console.log('🛠️ ORDER SERVICE - orderData.orderData.title:', orderData.orderData?.title, 'orderData.orderData.price:', orderData.orderData?.price);
-
-    console.log('🛠️ ORDER SERVICE - VALIDATION CHECK - title:', title, 'price:', price);
-    console.log('🛠️ ORDER SERVICE - title exists:', !!title);
-    console.log('🛠️ ORDER SERVICE - title trimmed:', title?.trim());
-    console.log('🛠️ ORDER SERVICE - title valid:', !!(title?.trim()));
-    console.log('🛠️ ORDER SERVICE - price exists:', !!price);
-    console.log('🛠️ ORDER SERVICE - price float:', parseFloat(price));
-    console.log('🛠️ ORDER SERVICE - price valid:', !!(price && parseFloat(price) > 0));
+    // Extract main order details for validation - directly from root level (fixed structure)
+    let title = orderData.title;
+    let price = parseFloat(orderData.price);
+    console.log('🛠️ ORDER SERVICE - RECEIVED DATA STRUCTURE:', {
+      hasTitle: !!orderData.title,
+      hasPrice: !!orderData.price,
+      hasPickupAddress: !!orderData.pickupAddress,
+      hasDropoffAddress: !!orderData.dropoffAddress,
+      showManualEntry: orderData.showManualEntry,
+      hasPickupLocation: !!orderData.pickupLocation,
+      hasDropoffLocation: !!orderData.dropoffLocation
+    });
 
     // Basic validation for title and price
     if (!title || !title.trim()) {
@@ -289,17 +286,16 @@ class OrderService {
       hasDropoffLocation: !!orderData.dropoffLocation
     });
 
-    // Handle frontend data structure - orderData.orderData contains the order fields
-    if (orderData.orderData) {
-      console.log('🛠️ ORDER SERVICE - USING ORDERDATA STRUCTURE');
-      const order = orderData.orderData;
-      description = order.description;
-      package_description = order.package_description;
-      package_weight = order.package_weight;
-      estimated_value = order.estimated_value;
-      special_instructions = order.special_instructions;
-      console.log('🛠️ ORDER SERVICE - EXTRACTED VALUES:', { title, price, description });
-    }
+    // Extract additional order fields directly from root level (fixed structure)
+    description = orderData.description;
+    package_description = orderData.package_description;
+    package_weight = orderData.package_weight ? parseFloat(orderData.package_weight) : null;
+    estimated_value = orderData.estimated_value ? parseFloat(orderData.estimated_value) : null;
+    special_instructions = orderData.special_instructions;
+
+    console.log('🛠️ ORDER SERVICE - EXTRACTED ALL FIELDS:', {
+      title, price, description, package_description, special_instructions
+    });
 
     // Build addresses from manual entry data
     console.log('🛠️ ORDER SERVICE - USING SHOWMANUALENTRY MODE:', orderData.showManualEntry);
