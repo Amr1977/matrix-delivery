@@ -26,7 +26,11 @@ const AuthScreen = ({ onLogin, onRegister, loading, error, countries }) => {
       </div>
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
         <div className="card-matrix" style={{ borderRadius: '0.5rem', boxShadow: '0 20px 25px -5px rgba(0, 48, 0, 0.2), inset 0 0 20px rgba(48, 255, 48, 0.1)', padding: '2rem', maxWidth: '28rem', width: '100%', background: 'linear-gradient(135deg, #000000 0%, #111111 100%)' }}>
-          <div style={{ fontSize: '3rem', textAlign: 'center', marginBottom: '1.5rem' }}>📦</div>
+          <img
+            src="/branding-hero-1.png"
+            alt="Matrix Heroes - Your trusted delivery heroes"
+            style={{ maxWidth: '120px', height: 'auto', display: 'block', margin: '0 auto 1.5rem auto', filter: 'drop-shadow(0 0 10px rgba(48, 255, 48, 0.3))' }}
+          />
           <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#30FF30', marginBottom: '0.5rem', textAlign: 'center', textShadow: '0 0 10px #30FF30' }}>{t('common.appName')}</h1>
           <p style={{ color: '#22BB22', marginBottom: '1.5rem', textAlign: 'center' }}>{t('common.subtitle')}</p>
 
