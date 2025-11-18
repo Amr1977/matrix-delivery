@@ -2274,12 +2274,12 @@ const getDriverViewTitle = (viewType) => {
                 const isDriverAssigned = order.assignedDriver?.userId === currentUser?.id;
 
                 return (
-                  <div key={order._id} className="order-card" style={{ background: 'white', borderRadius: '0.5rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)', padding: '1.5rem' }}>
+                  <div key={order._id} className="order-card">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
                       <div>
                         <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.25rem' }}>{order.title}</h3>
                         {order.orderNumber && (
-                          <p style={{ fontSize: '0.875rem', color: '#6B7280' }}>Order #{order.orderNumber}</p>
+                          <p style={{ fontSize: '0.875rem' }}>Order #{order.orderNumber}</p>
                         )}
                       </div>
                       <span className={`status-badge status-${order.status}`}>
