@@ -13,6 +13,167 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
 });
 
+// ============ AUTOCOMPLETE INPUT COMPONENT ============
+const AutocompleteInput = ({
+  value,
+  onChange,
+  placeholder,
+  options = [],
+  disabled = false,
+  loading = false,
+  required = false
+}) => {
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [filteredOptions, setFilteredOptions] = useState([]);
+  const [inputValue, setInputValue] = useState(value || '');
+  const inputRef = useState(null);
+
+  useEffect(() => {
+    setInputValue(value || '');
+  }, [value]);
+
+  useEffect(() => {
+    if (value && options.length > 0) {
+      // Find matching option and extract its label
+      const matchingOption = options.find(option => option.value === value);
+      if (matchingOption) {
+        setInputValue(matchingOption.label);
+      }
+    }
+  }, [value, options]);
+
+  const handleInputChange = (e) => {
+    const newValue = e.target.value;
+    setInputValue(newValue);
+
+    // Always filter options when typing
+    const filtered = options.filter(option =>
+      option.label.toLowerCase().includes(newValue.toLowerCase()) ||
+      option.value.toLowerCase().includes(newValue.toLowerCase())
+    );
+    setFilteredOptions(filtered);
+    setShowSuggestions(filtered.length > 0 || (newValue.trim() && options.length > 0));
+
+    // Clear the selection if input doesn't match any option
+    const matchingOption = options.find(option =>
+      option.label.toLowerCase() === newValue.toLowerCase() ||
+      option.value.toLowerCase() === newValue.toLowerCase()
+    );
+    onChange(matchingOption ? matchingOption.value : '');
+  };
+
+  const handleOptionSelect = (option) => {
+    setInputValue(option.label);
+    onChange(option.value);
+    setShowSuggestions(false);
+  };
+
+  const handleBlur = () => {
+    // Delay hiding suggestions to allow for click events
+    setTimeout(() => setShowSuggestions(false), 150);
+  };
+
+  const handleFocus = () => {
+    // Show dropdown when focused, regardless of current value
+    if (options.length > 0) {
+      setFilteredOptions(options);
+      setShowSuggestions(true);
+    }
+  };
+
+  const displayValue = inputValue || value || '';
+
+  return (
+    <div style={{ position: 'relative', width: '100%' }}>
+      <input
+        ref={inputRef}
+        type="text"
+        value={displayValue}
+        onChange={handleInputChange}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        placeholder={loading ? 'Loading...' : placeholder}
+        disabled={disabled}
+        required={required}
+        style={{
+          width: '100%',
+          padding: '0.5rem',
+          border: '1px solid #D1D5DB',
+          borderRadius: '0.375rem',
+          fontSize: '0.875rem',
+          background: disabled ? '#F3F4F6' : 'white',
+          cursor: disabled ? 'not-allowed' : 'text'
+        }}
+      />
+
+      {/* Suggestions Dropdown */}
+      {showSuggestions && filteredOptions.length > 0 && (
+        <div style={{
+          position: 'absolute',
+          top: '100%',
+          left: 0,
+          right: 0,
+          maxHeight: '200px',
+          overflowY: 'auto',
+          background: 'white',
+          border: '1px solid #D1D5DB',
+          borderTop: 'none',
+          borderRadius: '0 0 0.375rem 0.375rem',
+          zIndex: 1000,
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+        }}>
+          {filteredOptions.map((option, index) => (
+            <div
+              key={`${option.value}-${index}`}
+              onClick={() => handleOptionSelect(option)}
+              style={{
+                padding: '0.5rem',
+                cursor: 'pointer',
+                borderBottom: index < filteredOptions.length - 1 ? '1px solid #E5E7EB' : 'none',
+                background: 'white',
+                fontSize: '0.875rem'
+              }}
+              onMouseOver={(e) => e.target.style.background = '#F3F4F6'}
+              onMouseOut={(e) => e.target.style.background = 'white'}
+            >
+              {option.label}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Dropdown arrow indicator */}
+      {options.length > 0 && (
+        <div style={{
+          position: 'absolute',
+          right: loading ? '30px' : '10px',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          color: '#6B7280',
+          fontSize: '0.75rem',
+          pointerEvents: 'none'
+        }}>
+          ▼
+        </div>
+      )}
+
+      {/* Loading indicator */}
+      {loading && (
+        <div style={{
+          position: 'absolute',
+          right: '10px',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          fontSize: '0.75rem',
+          color: '#6B7280'
+        }}>
+          ...
+        </div>
+      )}
+    </div>
+  );
+};
+
 const OrderCreationForm = ({ onSubmit, countries, t }) => {
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
   
@@ -60,7 +221,7 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showManualEntry, setShowManualEntry] = useState(false);
+  const [showManualEntry, setShowManualEntry] = useState(true);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -502,7 +663,8 @@ const MapLocationPicker = ({ location, onChange, userLocation, markerColor, API_
   const [mapUrl, setMapUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showMap, setShowMap] = useState(!compact);
+  const [showMap, setShowMap] = useState(true);
+  const [isDragging, setIsDragging] = useState(false);
   
   const handleMapClick = async (coords) => {
     setLoading(true);
@@ -638,40 +800,71 @@ const MapLocationPicker = ({ location, onChange, userLocation, markerColor, API_
       {(!compact || showMap) && (
         <div style={{
           height: compact ? '250px' : '350px',
+          width: '100%',
           marginBottom: '1rem',
           borderRadius: '0.5rem',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          position: 'relative'
         }}>
         {userLocation ? (
           <MapContainer
             center={location?.coordinates ? [location.coordinates.lat, location.coordinates.lng] : [userLocation.lat, userLocation.lng]}
             zoom={15}
-            style={{ height: '100%', width: '100%' }}
+            style={{
+              height: '100%',
+              width: '100%',
+              zIndex: 1,
+              position: 'relative'
+            }}
+            whenReady={() => {
+              // Ensure map resizes properly when container changes
+              setTimeout(() => {
+                window.dispatchEvent(new Event('resize'));
+              }, 100);
+            }}
           >
             <TileLayer
-              attribution='&copy; OpenStreetMap'
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              maxZoom={19}
+              minZoom={1}
+              tileSize={256}
+              updateWhenZooming={true}
+              updateWhenIdle={false}
+              keepBuffer={2}
             />
             <MapClickHandler onMapClick={handleMapClick} />
             {location?.coordinates && (
-              <Marker 
+              <DraggableMarker
+                key={`${location.coordinates.lat}-${location.coordinates.lng}`}
                 position={[location.coordinates.lat, location.coordinates.lng]}
                 icon={L.icon({
                   iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${markerColor}.png`,
                   iconSize: [25, 41],
                   iconAnchor: [12, 41]
                 })}
+                onDragEnd={async (newPos) => await handleMapClick(newPos)}
+                isDragging={isDragging}
+                setIsDragging={setIsDragging}
               >
                 <Popup>
                   <strong>{locationType === 'pickup' ? t('orders.pickup') : t('orders.delivery')}</strong><br />
                   {location.displayName}
                 </Popup>
-              </Marker>
+              </DraggableMarker>
             )}
             <MapUpdater center={location?.coordinates || userLocation} />
           </MapContainer>
         ) : (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#E5E7EB', color: '#6B7280' }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '100%',
+            width: '100%',
+            background: '#E5E7EB',
+            color: '#6B7280'
+          }}>
             {t('common.loadingMap')}
           </div>
         )}
@@ -887,18 +1080,37 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, loading, compact = false,
       {(!compact || showFullMap) && (
         <div style={{
           height: compact ? '200px' : '300px',
+          width: '100%',
           marginBottom: '1rem',
           borderRadius: '0.5rem',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          position: 'relative'
         }}>
           <MapContainer
             center={[(pickup.lat + dropoff.lat) / 2, (pickup.lng + dropoff.lng) / 2]}
             zoom={13}
-            style={{ height: '100%', width: '100%' }}
+            style={{
+              height: '100%',
+              width: '100%',
+              zIndex: 1,
+              position: 'relative'
+            }}
+            whenReady={() => {
+              // Ensure map resizes properly when container changes
+              setTimeout(() => {
+                window.dispatchEvent(new Event('resize'));
+              }, 100);
+            }}
           >
             <TileLayer
-              attribution='&copy; OpenStreetMap'
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              maxZoom={19}
+              minZoom={1}
+              tileSize={256}
+              updateWhenZooming={true}
+              updateWhenIdle={false}
+              keepBuffer={2}
             />
             <Marker
               position={[pickup.lat, pickup.lng]}
@@ -956,6 +1168,44 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, loading, compact = false,
   );
 };
 
+// ============ DRAGGABLE MARKER COMPONENT ============
+const DraggableMarker = ({ position, icon, onDragEnd, children, isDragging, setIsDragging }) => {
+  const [markerPosition, setMarkerPosition] = useState(position);
+
+  useEffect(() => {
+    setMarkerPosition(position);
+  }, [position]);
+
+  const eventHandlers = {
+    dragstart: () => {
+      setIsDragging(true);
+    },
+    dragend: (e) => {
+      const newPos = e.target.getLatLng();
+      const coords = { lat: newPos.lat, lng: newPos.lng };
+      setMarkerPosition(newPos);
+
+      // Update the location immediately when drag ends
+      if (onDragEnd) {
+        onDragEnd(coords);
+      }
+
+      setIsDragging(false);
+    }
+  };
+
+  return (
+    <Marker
+      position={markerPosition}
+      icon={icon}
+      draggable={true}
+      eventHandlers={eventHandlers}
+    >
+      {children}
+    </Marker>
+  );
+};
+
 // ============ HELPER COMPONENTS ============
 const MapClickHandler = ({ onMapClick }) => {
   useMapEvents({
@@ -979,6 +1229,497 @@ const MapUpdater = ({ center }) => {
   return null;
 };
 
+// ============ CASCADING LOCATION DATA HOOK ============
+const useLocationData = (API_URL) => {
+  const [cities, setCities] = useState({});
+  const [areas, setAreas] = useState({});
+  const [streets, setStreets] = useState({});
+
+  // Major cities and areas for common countries as fallback
+  const FALLBACK_CITIES = {
+    'Egypt': [
+      { value: 'Cairo', label: 'Cairo' },
+      { value: 'Alexandria', label: 'Alexandria' },
+      { value: 'Giza', label: 'Giza' },
+      { value: 'Shubra El-Kheima', label: 'Shubra El-Kheima' },
+      { value: 'Port Said', label: 'Port Said' },
+      { value: 'Suez', label: 'Suez' },
+      { value: 'Luxor', label: 'Luxor' },
+      { value: 'Mansoura', label: 'Mansoura' },
+      { value: 'Tanta', label: 'Tanta' },
+      { value: 'Asyut', label: 'Asyut' },
+      { value: 'Ismailia', label: 'Ismailia' },
+      { value: 'Zagazig', label: 'Zagazig' },
+      { value: 'Damanhur', label: 'Damanhur' },
+      { value: 'Beni Suef', label: 'Beni Suef' },
+      { value: 'Aswan', label: 'Aswan' }
+    ],
+  };
+
+  // Areas/Regions for major cities
+  const FALLBACK_AREAS = {
+    'Egypt-Cairo': [
+      { value: 'Downtown Cairo', label: 'Downtown Cairo' },
+      { value: 'Zamalek', label: 'Zamalek' },
+      { value: 'Heliopolis', label: 'Heliopolis' },
+      { value: 'Nasr City', label: 'Nasr City' },
+      { value: 'Maadi', label: 'Maadi' },
+      { value: 'Mohandessin', label: 'Mohandessin' },
+      { value: 'Dokki', label: 'Dokki' },
+      { value: 'Garden City', label: 'Garden City' },
+      { value: 'Abdeen', label: 'Abdeen' },
+      { value: 'Manshiyat Naser', label: 'Manshiyat Naser' },
+      { value: 'Islamic Cairo', label: 'Islamic Cairo' },
+      { value: 'Coptic Cairo', label: 'Coptic Cairo' },
+      { value: 'Tahrir Square', label: 'Tahrir Square' },
+      { value: 'Roda Island', label: 'Roda Island' },
+      { value: 'Zamalek', label: 'Zamalek' }
+    ],
+    'Egypt-Alexandria': [
+      { value: 'Downtown Alexandria', label: 'Downtown Alexandria' },
+      { value: 'Montaza', label: 'Montaza' },
+      { value: 'Laurent', label: 'Laurent' },
+      { value: 'Fleming', label: 'Fleming' },
+      { value: 'Raml Station', label: 'Raml Station' },
+      { value: 'Sidi Gaber', label: 'Sidi Gaber' },
+      { value: 'Roushdy', label: 'Roushdy' },
+      { value: 'Miami', label: 'Miami' },
+      { value: 'San Stefano', label: 'San Stefano' },
+      { value: 'Smouha', label: 'Smouha' },
+      { value: 'Bacchus', label: 'Bacchus' },
+      { value: 'Al Hadara', label: 'Al Hadara' },
+      { value: 'Loran', label: 'Loran' },
+      { value: 'Saba Pasha', label: 'Saba Pasha' },
+      { value: 'Abou Qir', label: 'Abou Qir' }
+    ],
+    'Saudi Arabia': [
+      { value: 'Riyadh', label: 'Riyadh' },
+      { value: 'Jeddah', label: 'Jeddah' },
+      { value: 'Mecca', label: 'Mecca' },
+      { value: 'Medina', label: 'Medina' },
+      { value: 'Dammam', label: 'Dammam' },
+      { value: 'Khobar', label: 'Khobar' },
+      { value: 'Taif', label: 'Taif' },
+      { value: 'Tabuk', label: 'Tabuk' },
+      { value: 'Buraydah', label: 'Buraydah' },
+      { value: 'Khamis Mushait', label: 'Khamis Mushait' }
+    ],
+    'UAE': [
+      { value: 'Dubai', label: 'Dubai' },
+      { value: 'Abu Dhabi', label: 'Abu Dhabi' },
+      { value: 'Sharjah', label: 'Sharjah' },
+      { value: 'Ajman', label: 'Ajman' },
+      { value: 'Ras Al Khaimah', label: 'Ras Al Khaimah' },
+      { value: 'Fujairah', label: 'Fujairah' },
+      { value: 'Umm Al Quwain', label: 'Umm Al Quwain' }
+    ],
+    'Jordan': [
+      { value: 'Amman', label: 'Amman' },
+      { value: 'Zarqa', label: 'Zarqa' },
+      { value: 'Irbid', label: 'Irbid' },
+      { value: 'Russeifa', label: 'Russeifa' },
+      { value: 'Wadi Al Seer', label: 'Wadi Al Seer' },
+      { value: 'Al-Quwaysimah', label: 'Al-Quwaysimah' },
+      { value: 'Aqaba', label: 'Aqaba' }
+    ],
+    'Lebanon': [
+      { value: 'Beirut', label: 'Beirut' },
+      { value: 'Tripoli', label: 'Tripoli' },
+      { value: 'Sidon', label: 'Sidon' },
+      { value: 'Tyre', label: 'Tyre' },
+      { value: 'Byblos', label: 'Byblos' },
+      { value: 'Jounieh', label: 'Jounieh' },
+      { value: 'Zahle', label: 'Zahle' }
+    ],
+    'Kuwait': [
+      { value: 'Kuwait City', label: 'Kuwait City' },
+      { value: 'Al Ahmadi', label: 'Al Ahmadi' },
+      { value: 'Hawalli', label: 'Hawalli' },
+      { value: 'Al Jahra', label: 'Al Jahra' },
+      { value: 'Al Farwaniyah', label: 'Al Farwaniyah' },
+      { value: 'Al Asimah', label: 'Al Asimah' }
+    ],
+    'Qatar': [
+      { value: 'Doha', label: 'Doha' },
+      { value: 'Al Rayyan', label: 'Al Rayyan' },
+      { value: 'Al Wakrah', label: 'Al Wakrah' },
+      { value: 'Al Khor', label: 'Al Khor' },
+      { value: 'Umm Salal', label: 'Umm Salal' }
+    ],
+    'Bahrain': [
+      { value: 'Manama', label: 'Manama' },
+      { value: 'Riffa', label: 'Riffa' },
+      { value: 'Muharraq', label: 'Muharraq' },
+      { value: 'Hamad Town', label: 'Hamad Town' }
+    ],
+    'Oman': [
+      { value: 'Muscat', label: 'Muscat' },
+      { value: 'Seeb', label: 'Seeb' },
+      { value: 'Salalah', label: 'Salalah' },
+      { value: 'Nizwa', label: 'Nizwa' },
+      { value: 'Al Sohar', label: 'Al Sohar' }
+    ]
+  };
+
+  // Function to search for cities by country
+  const searchCities = async (country, query = '') => {
+    const cacheKey = `${country}-${query}`;
+    if (!country || cities[cacheKey]) return cities[cacheKey] || [];
+
+    try {
+      // Use Photon API for excellent autocomplete functionality
+      // Photon provides better search results than Nominatim for dropdown suggestions
+      let searchQuery = `${country}`;
+      if (query.trim()) {
+        searchQuery = `${query}, ${country}`;
+      }
+
+      const response = await fetch(
+        `https://photon.komoot.io/api/?q=${encodeURIComponent(searchQuery)}&lang=en&limit=20&layer=city&layer=town&layer=village&layer=suburb`
+      );
+
+      if (!response.ok) {
+        throw new Error(`Photon API failed for cities`);
+      }
+
+      const data = await response.json();
+
+      if (data.features && data.features.length > 0) {
+        // Extract unique city names with their full properties
+        const cityOptions = data.features.map(feature => {
+          const properties = feature.properties;
+          const name = properties.name;
+          const cityName = properties.name;
+          const stateName = properties.state;
+          const countryName = properties.country;
+
+          // Create a human-readable display name
+          let displayName = cityName;
+          if (stateName && stateName !== cityName) {
+            displayName = `${cityName}, ${stateName}`;
+          }
+          if (countryName && countryName !== country) {
+            displayName = `${displayName}, ${countryName}`;
+          }
+
+          return {
+            value: cityName,
+            label: displayName,
+            properties: properties
+          };
+        });
+
+        // Remove duplicates based on city name
+        const uniqueCities = [];
+        const seenNames = new Set();
+
+        cityOptions.forEach(city => {
+          if (!seenNames.has(city.value)) {
+            uniqueCities.push(city);
+            seenNames.add(city.value);
+          }
+        });
+
+        const finalCities = uniqueCities.slice(0, 15); // Limit to 15 results
+        setCities(prev => ({ ...prev, [cacheKey]: finalCities }));
+        return finalCities;
+      }
+
+      // If Photon doesn't return results, try Nominatim as backup
+      return await fallbackSearchCities(country, query, cacheKey);
+
+    } catch (error) {
+      console.warn('Photon API failed, falling back to Nominatim:', error);
+      return await fallbackSearchCities(country, query, cacheKey);
+    }
+  };
+
+  // Fallback search using Nominatim when Photon fails
+  const fallbackSearchCities = async (country, query, cacheKey) => {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?country=${encodeURIComponent(country)}${query ? `&city=${encodeURIComponent(query)}` : ''}&format=json&limit=20&addressdetails=1&dedupe=1`
+      );
+
+      if (!response.ok) {
+        throw new Error(`Nominatim fallback failed`);
+      }
+
+      const data = await response.json();
+
+      // Extract unique cities from the response
+      const uniqueCities = [...new Set(
+        data.map(item => {
+          return item.address?.city || item.address?.town || item.address?.village || item.address?.municipality;
+        }).filter(Boolean)
+      )].slice(0, 15);
+
+      const cityList = uniqueCities.map(city => ({ value: city, label: city }));
+
+      setCities(prev => ({ ...prev, [cacheKey]: cityList }));
+      return cityList;
+
+    } catch (error) {
+      console.warn('All city search APIs failed:', error);
+      return [];
+    }
+  };
+
+  // Function to search for areas by country and city
+  const searchAreas = async (country, city) => {
+    const key = `${country}-${city}`;
+    if (!country || !city || areas[key]) return areas[key] || [];
+
+    // First check if we have fallback areas for this city/country combination
+    if (FALLBACK_AREAS[key]) {
+      const fallbackAreas = FALLBACK_AREAS[key];
+      setAreas(prev => ({ ...prev, [key]: fallbackAreas }));
+      return fallbackAreas;
+    }
+
+    try {
+      // Use Photon API for areas (districts, neighborhoods, suburbs in the city)
+      const response = await fetch(
+        `https://photon.komoot.io/api/?q=${encodeURIComponent(city)}, ${encodeURIComponent(country)}&lang=en&limit=20&layer=street&layer=locality`
+      );
+
+      if (!response.ok) {
+        throw new Error(`Photon API failed for areas`);
+      }
+
+      const data = await response.json();
+
+      if (data.features && data.features.length > 0) {
+        // Extract unique district/neighborhood names
+        const areaOptions = data.features
+          .map(feature => {
+            const properties = feature.properties;
+            const name = properties.name;
+            const localityName = properties.locality;
+            const districtName = properties.district;
+            const suburbName = properties.suburb;
+
+            // Use district, suburb, or locality names as areas
+            const areaName = districtName || suburbName || localityName || name;
+
+            if (areaName && areaName !== city) {
+              return {
+                value: areaName,
+                label: areaName,
+                properties: properties
+              };
+            }
+            return null;
+          })
+          .filter(Boolean);
+
+        // Remove duplicates based on area name
+        const uniqueAreas = [];
+        const seenNames = new Set();
+
+        areaOptions.forEach(area => {
+          if (!seenNames.has(area.value)) {
+            uniqueAreas.push(area);
+            seenNames.add(area.value);
+          }
+        });
+
+        const finalAreas = uniqueAreas.slice(0, 15);
+        if (finalAreas.length > 0) {
+          setAreas(prev => ({ ...prev, [key]: finalAreas }));
+          return finalAreas;
+        }
+      }
+
+      // If Photon doesn't return results, try Nominatim as backup
+      return await fallbackSearchAreas(country, city, key);
+
+    } catch (error) {
+      console.warn('Photon API failed for areas, falling back to Nominatim:', error);
+      return await fallbackSearchAreas(country, city, key);
+    }
+  };
+
+  // Fallback search using Nominatim when Photon fails
+  const fallbackSearchAreas = async (country, city, key) => {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?country=${encodeURIComponent(country)}&city=${encodeURIComponent(city)}&format=json&limit=20&addressdetails=1&dedupe=1`
+      );
+
+      if (!response.ok) return [];
+
+      const data = await response.json();
+      // Extract unique areas/suburbs
+      const uniqueAreas = [...new Set(data.map(item =>
+        item.address?.suburb || item.address?.neighbourhood || item.address?.district
+      ).filter(Boolean))].slice(0, 15);
+
+      const areaList = uniqueAreas.map(area => ({ value: area, label: area }));
+
+      // If no areas found via API, use fallback for known cities
+      const finalAreas = areaList.length > 0 ? areaList : (FALLBACK_AREAS[key] || []);
+      setAreas(prev => ({ ...prev, [key]: finalAreas }));
+      return finalAreas;
+
+    } catch (error) {
+      console.warn('Failed to fetch areas:', error);
+      // Fallback to hardcoded areas if API fails
+      const fallbackAreas = FALLBACK_AREAS[key] || [];
+      if (fallbackAreas.length > 0) {
+        setAreas(prev => ({ ...prev, [key]: fallbackAreas }));
+        return fallbackAreas;
+      }
+      return [];
+    }
+  };
+
+  // Function to search for streets by country, city, and area
+  const searchStreets = async (country, city, area) => {
+    const key = `${country}-${city}-${area}`;
+    if (!country || !city || !area || streets[key]) return streets[key] || [];
+
+    try {
+      // Try Photon API first for streets in the area
+      const response = await fetch(
+        `https://photon.komoot.io/api/?q=${encodeURIComponent(area)}, ${encodeURIComponent(city)}, ${encodeURIComponent(country)}&lang=en&limit=20&layer=street&layer=locality`
+      );
+
+      if (!response.ok) {
+        throw new Error(`Photon API failed for streets`);
+      }
+
+      const data = await response.json();
+
+      if (data.features && data.features.length > 0) {
+        // Extract unique street names
+        const streetOptions = data.features
+          .map(feature => {
+            const properties = feature.properties;
+            const name = properties.name;
+            const streetName = properties.street || properties.name;
+
+            if (streetName) {
+              return {
+                value: streetName,
+                label: streetName,
+                properties: properties
+              };
+            }
+            return null;
+          })
+          .filter(Boolean);
+
+        // Remove duplicates based on street name
+        const uniqueStreets = [];
+        const seenNames = new Set();
+
+        streetOptions.forEach(street => {
+          if (!seenNames.has(street.value)) {
+            uniqueStreets.push(street);
+            seenNames.add(street.value);
+          }
+        });
+
+        const finalStreets = uniqueStreets.slice(0, 15);
+        if (finalStreets.length > 0) {
+          setStreets(prev => ({ ...prev, [key]: finalStreets }));
+          return finalStreets;
+        }
+      }
+
+      // If Photon doesn't return results, try Nominatim as backup
+      return await fallbackSearchStreets(country, city, area, key);
+
+    } catch (error) {
+      console.warn('Photon API failed for streets, falling back to Nominatim:', error);
+      return await fallbackSearchStreets(country, city, area, key);
+    }
+  };
+
+  // Fallback search using Nominatim when Photon fails
+  const fallbackSearchStreets = async (country, city, area, key) => {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?country=${encodeURIComponent(country)}&city=${encodeURIComponent(city)}&suburb=${encodeURIComponent(area)}&format=json&limit=20&addressdetails=1&dedupe=1`
+      );
+
+      if (!response.ok) return [];
+
+      const data = await response.json();
+      // Extract unique streets
+      const uniqueStreets = [...new Set(data.map(item =>
+        item.address?.road || item.address?.street || item.address?.pedestrian
+      ).filter(Boolean))].slice(0, 15);
+
+      const streetList = uniqueStreets.map(street => ({ value: street, label: street }));
+
+      setStreets(prev => ({ ...prev, [key]: streetList }));
+      return streetList;
+
+    } catch (error) {
+      console.warn('Failed to fetch streets:', error);
+      return [];
+    }
+  };
+
+  // Function to geocode an address and update map
+  const geocodeAddress = async (addressData, onLocationChange) => {
+    try {
+      if (!addressData.country || !addressData.city) {
+        return;
+      }
+
+      const params = new URLSearchParams({
+        country: addressData.country,
+        city: addressData.city,
+        ...(addressData.area && { area: addressData.area }),
+        ...(addressData.street && { street: addressData.street }),
+        ...(addressData.building && { building: addressData.building })
+      });
+
+      const response = await fetch(`${API_URL}/locations/forward-geocode?${params}`);
+
+      if (!response.ok) {
+        console.warn('Address geocoding failed:', response.statusText);
+        return;
+      }
+
+      const data = await response.json();
+
+      if (data.coordinates) {
+        // Create location object similar to reverse geocoding
+        const location = {
+          coordinates: data.coordinates,
+          locationLink: data.locationLink,
+          address: {
+            ...data.address,
+            personName: addressData.personName,
+            floor: addressData.floor,
+            apartment: addressData.apartment
+          },
+          displayName: data.displayName,
+          isRemote: false // Will be determined later if needed
+        };
+
+        onLocationChange(location);
+      }
+    } catch (error) {
+      console.warn('Address geocoding error:', error);
+    }
+  };
+
+  return {
+    searchCities,
+    searchAreas,
+    searchStreets,
+    geocodeAddress,
+    getCities: (country) => cities[country] || [],
+    getAreas: (country, city) => areas[`${country}-${city}`] || [],
+    getStreets: (country, city, area) => streets[`${country}-${city}-${area}`] || []
+  };
+};
+
 // ============ LOCATION ENTRY COMPONENT (Address Fields + Map) ============
 const LocationEntry = ({
   showManualEntry,
@@ -994,6 +1735,84 @@ const LocationEntry = ({
   countries = [],
   t
 }) => {
+  const locationData = useLocationData(API_URL);
+
+  // State for cascaded dropdowns
+  const [availableCities, setAvailableCities] = useState([]);
+  const [availableAreas, setAvailableAreas] = useState([]);
+  const [availableStreets, setAvailableStreets] = useState([]);
+  const [loadingCities, setLoadingCities] = useState(false);
+  const [loadingAreas, setLoadingAreas] = useState(false);
+  const [loadingStreets, setLoadingStreets] = useState(false);
+
+  // Handle country change - load cities
+  const handleCountryChange = async (country) => {
+    const newAddress = { ...addressData, country, city: '', area: '', street: '' };
+    onAddressChange(newAddress);
+
+    if (country) {
+      setLoadingCities(true);
+      const cities = await locationData.searchCities(country);
+      setAvailableCities(cities);
+      setLoadingCities(false);
+      setAvailableAreas([]);
+      setAvailableStreets([]);
+    } else {
+      setAvailableCities([]);
+      setAvailableAreas([]);
+      setAvailableStreets([]);
+    }
+  };
+
+  // Handle city change - load areas
+  const handleCityChange = async (city) => {
+    const newAddress = { ...addressData, city, area: '', street: '' };
+    onAddressChange(newAddress);
+
+    if (addressData.country && city) {
+      setLoadingAreas(true);
+      const areas = await locationData.searchAreas(addressData.country, city);
+      setAvailableAreas(areas);
+      setLoadingAreas(false);
+      setAvailableStreets([]);
+    } else {
+      setAvailableAreas([]);
+      setAvailableStreets([]);
+    }
+
+    // Geocode when city changes (with enough info)
+    setTimeout(() => locationData.geocodeAddress(newAddress, onMapLocationChange), 100);
+  };
+
+  // Handle area change - load streets
+  const handleAreaChange = async (area) => {
+    const newAddress = { ...addressData, area, street: '' };
+    onAddressChange(newAddress);
+
+    if (addressData.country && addressData.city && area) {
+      setLoadingStreets(true);
+      const streets = await locationData.searchStreets(addressData.country, addressData.city, area);
+      setAvailableStreets(streets);
+      setLoadingStreets(false);
+    } else {
+      setAvailableStreets([]);
+    }
+
+    // Geocode when area changes
+    setTimeout(() => locationData.geocodeAddress(newAddress, onMapLocationChange), 100);
+  };
+
+  // Handle street and other field changes - geocode
+  const handleFieldChange = (field, value) => {
+    const newAddress = { ...addressData, [field]: value };
+    onAddressChange(newAddress);
+
+    // Geocode for street, building, floor, apartment changes
+    if (['street', 'building', 'floor', 'apartment'].includes(field)) {
+      setTimeout(() => locationData.geocodeAddress(newAddress, onMapLocationChange), 300);
+    }
+  };
+
   if (showManualEntry) {
     // Manual Address Entry Mode
     return (
@@ -1020,7 +1839,7 @@ const LocationEntry = ({
             </label>
             <select
               value={addressData.country}
-              onChange={(e) => onAddressChange({...addressData, country: e.target.value})}
+              onChange={(e) => handleCountryChange(e.target.value)}
               style={{
                 width: '100%',
                 padding: '0.5rem',
@@ -1047,19 +1866,14 @@ const LocationEntry = ({
             }}>
               {t('orders.city')} *
             </label>
-            <input
-              type="text"
+            <AutocompleteInput
               value={addressData.city}
-              onChange={(e) => onAddressChange({...addressData, city: e.target.value})}
-              placeholder={t('orders.enterCity')}
-              required
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                border: '1px solid #D1D5DB',
-                borderRadius: '0.375rem',
-                fontSize: '0.875rem'
-              }}
+              onChange={(value) => handleCityChange(value)}
+              placeholder={loadingCities ? 'Loading cities...' : addressData.country ? 'Type or select city' : 'Select country first'}
+              options={availableCities}
+              disabled={!addressData.country}
+              loading={loadingCities}
+              required={true}
             />
           </div>
 
@@ -1073,18 +1887,13 @@ const LocationEntry = ({
             }}>
               {t('orders.area')}
             </label>
-            <input
-              type="text"
+            <AutocompleteInput
               value={addressData.area}
-              onChange={(e) => onAddressChange({...addressData, area: e.target.value})}
-              placeholder={t('orders.enterArea')}
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                border: '1px solid #D1D5DB',
-                borderRadius: '0.375rem',
-                fontSize: '0.875rem'
-              }}
+              onChange={(value) => handleAreaChange(value)}
+              placeholder={loadingAreas ? 'Loading areas...' : addressData.city ? 'Type or select area' : 'Select city first'}
+              options={availableAreas}
+              disabled={!addressData.city}
+              loading={loadingAreas}
             />
           </div>
 
@@ -1098,18 +1907,13 @@ const LocationEntry = ({
             }}>
               {t('orders.street')}
             </label>
-            <input
-              type="text"
+            <AutocompleteInput
               value={addressData.street}
-              onChange={(e) => onAddressChange({...addressData, street: e.target.value})}
-              placeholder={t('orders.enterStreet')}
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                border: '1px solid #D1D5DB',
-                borderRadius: '0.375rem',
-                fontSize: '0.875rem'
-              }}
+              onChange={(value) => handleFieldChange('street', value)}
+              placeholder={loadingStreets ? 'Loading streets...' : addressData.area ? 'Type or select street' : 'Select area first'}
+              options={availableStreets}
+              disabled={!addressData.area}
+              loading={loadingStreets}
             />
           </div>
 
