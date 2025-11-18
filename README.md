@@ -1,18 +1,20 @@
-# 🛠️ Matrix Delivery Platform
+# 🦸‍♂️ Matrix Heroes Platform
 
-> “An open-source global delivery platform promoting freedom, transparency, fairness, and collaboration.”
+> "Your trusted heroes for delivery and ride-hailing - promoting freedom, transparency, fairness, and heroic collaboration."
 
-![License: MIT](https://img.shields.io/github/license/Amr1977/matrix-delivery?label=license)
-![Stars](https://img.shields.io/github/stars/Amr1977/matrix-delivery?style=social)
-![Forks](https://img.shields.io/github/forks/Amr1977/matrix-delivery?style=social)
-![Build](https://img.shields.io/github/actions/workflow/status/Amr1977/matrix-delivery/.github/workflows/firebase-hosting-deploy.yml?label=build)
+![License: MIT](https://img.shields.io/github/license/Amr1977/matrix-heroes?label=license)
+![Stars](https://img.shields.io/github/stars/Amr1977/matrix-heroes?style=social)
+![Forks](https://img.shields.io/github/forks/Amr1977/matrix-heroes?style=social)
+![Build](https://img.shields.io/github/actions/workflow/status/Amr1977/matrix-heroes/.github/workflows/firebase-hosting-deploy.yml?label=build)
 
 ---
 
 ## 🌍 Overview
-The **Matrix Delivery Platform** is an international, open-source initiative to create a **fair, transparent, and decentralized delivery ecosystem**.
+The **Matrix Heroes Platform** is an international, open-source initiative to create a **fair, transparent, and decentralized mobility ecosystem**.
 
-Unlike corporate gig platforms that exploit couriers and limit their freedom, Matrix Delivery empowers both **drivers** and **customers** to connect directly — with **no middlemen**, **no unfair cuts**, and **open-source governance**.
+Unlike corporate gig platforms that exploit drivers and limit their freedom, Matrix Heroes empowers both **drivers** (our heroes) and **customers** to connect directly — with **no middlemen**, **fair earnings**, and **open-source governance**.
+
+Our heroes transport both **packages** and **passengers**, providing comprehensive mobility solutions with real-time tracking, transparent pricing, and hero-focused incentives.
 
 ---
 
@@ -29,11 +31,14 @@ Unlike corporate gig platforms that exploit couriers and limit their freedom, Ma
 ---
 
 ## 🚀 Features
-- 🧾 **Open bidding system** between couriers and customers  
-- 🔐 **Secure authentication and route management**  
-- 💬 **Real-time communication and delivery updates**  
-- 🌎 **Multi-region delivery support**  
-- ⚖️ **Fair commission model and transparent transaction logs**  
+- 🧾 **Open bidding system** between heroes (drivers) and customers
+- 🛡️ **Dual-service platform**: Delivery + Ride-hailing in one app
+- 🚗 **25+ vehicle types** for comprehensive transportation coverage
+- 🦸‍♂️ **Hero-focused incentives** and recognition programs
+- 🔐 **Secure authentication and route management**
+- 💬 **Real-time communication and delivery updates**
+- 🌎 **Multi-region delivery and ride-hailing support**
+- ⚖️ **Fair commission model and transparent transaction logs**
 - 🧠 **Extensible modular architecture for integrations and scaling**
 
 ---
@@ -41,7 +46,7 @@ Unlike corporate gig platforms that exploit couriers and limit their freedom, Ma
 ## 🧩 Project Structure
 
 ```
-matrix-delivery/
+matrix-heroes/
 ├── backend/
 │   ├── server.js
 │   ├── routes/
@@ -58,8 +63,11 @@ matrix-delivery/
 ---
 
 ## 🧑‍💻 Contributing
-We welcome contributors of all skill levels!  
+We welcome contributors of all skill levels who believe in fair mobility platforms!
+
 Please see [`CONTRIBUTING.md`](CONTRIBUTING.md) for setup instructions, contribution guidelines, and code standards.
+
+**Join us in building the future of fair transportation! 🚀**
 
 ---
 
@@ -69,8 +77,8 @@ A full roadmap of upcoming milestones and features can be found in [`ROADMAP.md`
 ---
 
 ## ❤️ Maintainers
-**The Matrix Delivery Team**  
-Maintained by developers and contributors from around the world who believe in fairness, transparency, and open collaboration.
+**The Matrix Heroes Team**
+Maintained by developers and contributors from around the world who believe in fairness, transparency, and heroic service.
 
 ---
 
@@ -80,5 +88,5 @@ This project is licensed under the **MIT License** – see [`LICENSE`](LICENSE) 
 ---
 
 ## 🌐 Links
-- GitHub Repo: [https://github.com/Amr1977/matrix-delivery](https://github.com/Amr1977/matrix-delivery)
-- Official Site: [https://matrix-delivery.web.app](https://matrix-delivery.web.app)
+- GitHub Repo: [https://github.com/Amr1977/matrix-heroes](https://github.com/Amr1977/matrix-heroes)
+- Official Site: [https://matrix-heroes.web.app](https://matrix-heroes.web.app)

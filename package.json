@@ -1,7 +1,7 @@
 {
-  "name": "matrix-delivery",
+  "name": "matrix-heroes",
   "version": "1.0.0",
-  "description": "Matrix Delivery - P2P Delivery Marketplace",
+  "description": "Matrix Heroes - P2P Delivery & Ride-Hailing Platform",
   "scripts": {
     "test": "node scripts/run-tests.js",
     "test:all": "node scripts/run-tests.js",
@@ -81,9 +81,13 @@
   },
   "keywords": [
     "delivery",
+    "ride-hailing",
+    "transportation",
     "marketplace",
     "p2p",
-    "logistics"
+    "logistics",
+    "mobility",
+    "heroes"
   ],
   "author": "Amr1977",
   "license": "MIT",

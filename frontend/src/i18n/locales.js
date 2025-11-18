@@ -261,8 +261,8 @@ const translations = {
       no: 'No',
       optional: 'Optional',
       required: 'Required',
-      appName: 'Matrix Delivery',
-      subtitle: 'P2P Delivery Marketplace'
+      appName: 'Matrix Heroes',
+      subtitle: 'P2P Delivery & Ride-Hailing Platform'
     },
 
     // Languages

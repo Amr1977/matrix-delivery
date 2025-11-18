@@ -124,6 +124,63 @@ module.exports = (app, pool, jwt, verifyToken) => {
   }
 });
 
+// Forward geocode address to coordinates
+app.get('/api/locations/forward-geocode', async (req, res) => {
+  try {
+    const { country, city, area, street, building } = req.query;
+
+    if (!country || !city) {
+      return res.status(400).json({ error: 'Country and city are required for geocoding' });
+    }
+
+    // Build search string from address components
+    const addressParts = [street, area, city, country].filter(Boolean);
+    const searchQuery = addressParts.join(', ');
+
+    // Use Nominatim for forward geocoding
+    const nominatimUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&format=json&limit=5`;
+
+    const response = await fetch(nominatimUrl, {
+      headers: { 'User-Agent': 'Matrix-Delivery-App/1.0' }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Nominatim API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (!data || data.length === 0) {
+      return res.status(404).json({ error: 'No results found for this address' });
+    }
+
+    // Return the first result or all results
+    const results = data.map(item => ({
+      coordinates: { lat: parseFloat(item.lat), lng: parseFloat(item.lon) },
+      locationLink: `https://www.google.com/maps?q=${item.lat},${item.lon}`,
+      displayName: item.display_name,
+      address: {
+        country: item.address?.country || country,
+        city: item.address?.city || item.address?.town || item.address?.village || city,
+        area: item.address?.suburb || item.address?.neighbourhood || item.address?.district || area || '',
+        street: item.address?.road || item.address?.street || item.address?.pedestrian || street || '',
+        buildingNumber: item.address?.house_number || building || '',
+        postcode: item.address?.postcode || ''
+      },
+      confidence: parseFloat(item.importance) || 0
+    }));
+
+    // Return the best result
+    const bestResult = results[0];
+    bestResult.allResults = results;
+
+    res.json(bestResult);
+  } catch (error) {
+    console.error('Forward geocoding error:', error);
+    res.status(500).json({ error: 'Failed to geocode address' });
+  }
+});
+
 // Parse Google Maps URL
 app.post('/api/locations/parse-maps-url', async (req, res) => {
   try {
