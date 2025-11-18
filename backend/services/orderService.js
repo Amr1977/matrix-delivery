@@ -247,22 +247,21 @@ class OrderService {
     console.log('🛠️ ORDER SERVICE - RAW ORDER DATA RECEIVED:', JSON.stringify(orderData, null, 2));
     console.log('🛠️ ORDER SERVICE - CUSTOMER ID:', customerId);
 
-    // Extract main order details for validation
-    let title, price;
-    if (orderData.orderData) {
-      title = orderData.orderData.title;
-      price = orderData.orderData.price;
-      console.log('🛠️ ORDER SERVICE - VALIDATION CHECK - title:', title, 'price:', price);
-      console.log('🛠️ ORDER SERVICE - title exists:', !!title);
-      console.log('🛠️ ORDER SERVICE - title trimmed:', title?.trim());
-      console.log('🛠️ ORDER SERVICE - title valid:', !!(title?.trim()));
-      console.log('🛠️ ORDER SERVICE - price exists:', !!price);
-      console.log('🛠️ ORDER SERVICE - price float:', parseFloat(price));
-      console.log('🛠️ ORDER SERVICE - price valid:', !!(price && parseFloat(price) > 0));
-    } else {
-      title = orderData.title;
-      price = orderData.price;
-    }
+    // Extract main order details for validation - handle nested orderData structure with fallback
+    let title = orderData.orderData?.title || orderData.title;
+    let price = orderData.orderData?.price || orderData.price;
+    console.log('🛠️ ORDER SERVICE - EXTRACTED title:', title, 'price:', price);
+    console.log('🛠️ ORDER SERVICE - orderData.hasOrderData:', !!orderData.orderData);
+    console.log('🛠️ ORDER SERVICE - orderData.title:', orderData.title, 'orderData.price:', orderData.price);
+    console.log('🛠️ ORDER SERVICE - orderData.orderData.title:', orderData.orderData?.title, 'orderData.orderData.price:', orderData.orderData?.price);
+
+    console.log('🛠️ ORDER SERVICE - VALIDATION CHECK - title:', title, 'price:', price);
+    console.log('🛠️ ORDER SERVICE - title exists:', !!title);
+    console.log('🛠️ ORDER SERVICE - title trimmed:', title?.trim());
+    console.log('🛠️ ORDER SERVICE - title valid:', !!(title?.trim()));
+    console.log('🛠️ ORDER SERVICE - price exists:', !!price);
+    console.log('🛠️ ORDER SERVICE - price float:', parseFloat(price));
+    console.log('🛠️ ORDER SERVICE - price valid:', !!(price && parseFloat(price) > 0));
 
     // Basic validation for title and price
     if (!title || !title.trim()) {
@@ -290,91 +289,47 @@ class OrderService {
       hasDropoffLocation: !!orderData.dropoffLocation
     });
 
-    // Handle both old format (nested orderData) and new format (flat structure)
+    // Handle frontend data structure - orderData.orderData contains the order fields
     if (orderData.orderData) {
-      console.log('🛠️ ORDER SERVICE - USING NEW FORMAT (orderData.orderData structure)');
-      // New format with nested orderData
+      console.log('🛠️ ORDER SERVICE - USING ORDERDATA STRUCTURE');
       const order = orderData.orderData;
-      console.log('🛠️ ORDER SERVICE - EXTRACTED ORDER OBJECT:', order);
-      title = order.title;
       description = order.description;
       package_description = order.package_description;
       package_weight = order.package_weight;
       estimated_value = order.estimated_value;
       special_instructions = order.special_instructions;
-      price = order.price;
       console.log('🛠️ ORDER SERVICE - EXTRACTED VALUES:', { title, price, description });
+    }
 
-      // Check if using map locations or manual addresses
-      if (orderData.showManualEntry) {
-        // Using manual addresses - format them
-        if (!orderData.pickupAddress || !orderData.dropoffAddress) {
-          throw new Error('Please fill all required fields: Pickup location (country, city, contact name), Delivery location (country, city, contact name)');
-        }
+    // Build addresses from manual entry data
+    console.log('🛠️ ORDER SERVICE - USING SHOWMANUALENTRY MODE:', orderData.showManualEntry);
+    if (!orderData.pickupAddress || !orderData.dropoffAddress) {
+      throw new Error('Please fill all required fields: Pickup location (country, city, contact name), Delivery location (country, city, contact name)');
+    }
 
-        const pa = orderData.pickupAddress;
-        const da = orderData.dropoffAddress;
+    const pa = orderData.pickupAddress;
+    const da = orderData.dropoffAddress;
 
-        // Validate required fields
-        if (!pa.country?.trim() || !pa.city?.trim() || !pa.personName?.trim()) {
-          throw new Error('Please fill all required fields: Pickup location (country, city, contact name), Delivery location (country, city, contact name)');
-        }
-        if (!da.country?.trim() || !da.city?.trim() || !da.personName?.trim()) {
-          throw new Error('Please fill all required fields: Pickup location (country, city, contact name), Delivery location (country, city, contact name)');
-        }
+    // Validate required fields
+    if (!pa.country?.trim() || !pa.city?.trim() || !pa.personName?.trim()) {
+      throw new Error('Please fill all required fields: Pickup location (country, city, contact name)');
+    }
+    if (!da.country?.trim() || !da.city?.trim() || !da.personName?.trim()) {
+      throw new Error('Please fill all required fields: Delivery location (country, city, contact name)');
+    }
 
-        // Build addresses from flat manual entry
-        pickupAddress = `${pa.personName}, ${pa.street || ''} ${pa.building || ''}, ${pa.floor ? `Floor ${pa.floor}` : ''}, ${pa.apartment ? `Apt ${pa.apartment}` : ''}, ${pa.area || ''}, ${pa.city}, ${pa.country}`.replace(/, ,/g, ',').replace(/^,|,$/g, '').replace(/,+/g, ', ');
-        deliveryAddress = `${da.personName}, ${da.street || ''} ${da.building || ''}, ${da.floor ? `Floor ${da.floor}` : ''}, ${da.apartment ? `Apt ${da.apartment}` : ''}, ${da.area || ''}, ${da.city}, ${da.country}`.replace(/, ,/g, ',').replace(/^,|,$/g, '').replace(/,+/g, ', ');
+    // Build addresses from flat manual entry
+    pickupAddress = `${pa.personName}, ${pa.street || ''} ${pa.building || ''}, ${pa.floor ? `Floor ${pa.floor}` : ''}, ${pa.apartment ? `Apt ${pa.apartment}` : ''}, ${pa.area || ''}, ${pa.city}, ${pa.country}`.replace(/, ,/g, ',').replace(/^,|,$/g, '').replace(/,+/g, ', ');
+    deliveryAddress = `${da.personName}, ${da.street || ''} ${da.building || ''}, ${da.floor ? `Floor ${da.floor}` : ''}, ${da.apartment ? `Apt ${da.apartment}` : ''}, ${da.area || ''}, ${da.city}, ${da.country}`.replace(/, ,/g, ',').replace(/^,|,$/g, '').replace(/,+/g, ', ');
 
-        // For now, no coordinates from manual entry
-        fromCoordinates = null;
-        toCoordinates = null;
-      } else {
-        // Using map locations
-        if (!orderData.pickupLocation || !orderData.dropoffLocation) {
-          throw new Error('Please select pickup and delivery locations on the map');
-        }
-        pickupLocation = orderData.pickupLocation;
-        dropoffLocation = orderData.dropoffLocation;
+    console.log('🛠️ ORDER SERVICE - BUILT ADDRESSES:', { pickupAddress, deliveryAddress });
 
-        // Build addresses from map location data
-        pickupAddress = `${pickupLocation.address.personName}, ${pickupLocation.address.street || ''} ${pickupLocation.address.buildingNumber || ''}, ${pickupLocation.address.area || ''}, ${pickupLocation.address.city}, ${pickupLocation.address.country}`.replace(/, ,/g, ',').replace(/^,|,$/g, '');
-        deliveryAddress = `${dropoffLocation.address.personName}, ${dropoffLocation.address.street || ''} ${dropoffLocation.address.buildingNumber || ''}, ${dropoffLocation.address.area || ''}, ${dropoffLocation.address.city}, ${dropoffLocation.address.country}`.replace(/, ,/g, ',').replace(/^,|,$/g, '');
-
-        fromCoordinates = pickupLocation.coordinates ? `${pickupLocation.coordinates.lat},${pickupLocation.coordinates.lng}` : null;
-        toCoordinates = dropoffLocation.coordinates ? `${dropoffLocation.coordinates.lat},${dropoffLocation.coordinates.lng}` : null;
-      }
-    } else {
-      // Old format - direct fields
-      const {
-        title: oldTitle,
-        description: oldDescription,
-        pickupLocation: oldPickup,
-        dropoffLocation: oldDropoff,
-        package_description: oldPackageDesc,
-        package_weight: oldPackageWeight,
-        estimated_value: oldEstimatedValue,
-        special_instructions: oldInstructions,
-        price: oldPrice
-      } = orderData;
-
-      title = oldTitle;
-      description = oldDescription;
-      pickupLocation = oldPickup;
-      dropoffLocation = oldDropoff;
-      package_description = oldPackageDesc;
-      package_weight = oldPackageWeight;
-      estimated_value = oldEstimatedValue;
-      special_instructions = oldInstructions;
-      price = oldPrice;
-
-      // Build addresses from structured location data
-      pickupAddress = `${pickupLocation.address.personName}, ${pickupLocation.address.street || ''} ${pickupLocation.address.buildingNumber || ''}, ${pickupLocation.address.area || ''}, ${pickupLocation.address.city}, ${pickupLocation.address.country}`.replace(/, ,/g, ',').replace(/^,|,$/g, '');
-      deliveryAddress = `${dropoffLocation.address.personName}, ${dropoffLocation.address.street || ''} ${dropoffLocation.address.buildingNumber || ''}, ${dropoffLocation.address.area || ''}, ${dropoffLocation.address.city}, ${dropoffLocation.address.country}`.replace(/, ,/g, ',').replace(/^,|,$/g, '');
-
-      fromCoordinates = pickupLocation.coordinates ? `${pickupLocation.coordinates.lat},${pickupLocation.coordinates.lng}` : null;
-      toCoordinates = dropoffLocation.coordinates ? `${dropoffLocation.coordinates.lat},${dropoffLocation.coordinates.lng}` : null;
+    // For now, no coordinates from manual entry - use map coordinates if available
+    if (orderData.pickupLocation?.coordinates) {
+      fromCoordinates = `${orderData.pickupLocation.coordinates.lat},${orderData.pickupLocation.coordinates.lng}`;
+    }
+    if (orderData.dropoffLocation?.coordinates) {
+      toCoordinates = `${orderData.dropoffLocation.coordinates.lat},${orderData.dropoffLocation.coordinates.lng}`;
     }
 
     const result = await pool.query(
@@ -392,8 +347,8 @@ class OrderService {
         this.sanitizeString(description, 1000),
         pickupAddress,
         deliveryAddress,
-        pickupLocation.coordinates ? `${pickupLocation.coordinates.lat},${pickupLocation.coordinates.lng}` : null,
-        dropoffLocation.coordinates ? `${dropoffLocation.coordinates.lat},${dropoffLocation.coordinates.lng}` : null,
+        fromCoordinates,
+        toCoordinates,
         this.sanitizeString(package_description, 500),
         package_weight ? parseFloat(package_weight) : null,
         estimated_value ? parseFloat(estimated_value) : null,

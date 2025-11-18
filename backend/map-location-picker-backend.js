@@ -172,10 +172,8 @@ app.get('/api/locations/forward-geocode', async (req, res) => {
       confidence: parseFloat(item.importance) || 0
     }));
 
-    // Return the best result
+    // Return the best result (removing allResults to avoid circular reference)
     const bestResult = results[0];
-    bestResult.allResults = results;
-
     res.json(bestResult);
   } catch (error) {
     console.error('Forward geocoding error:', error);

@@ -14,7 +14,7 @@ class ErrorBoundary extends React.Component {
 
   componentDidCatch(error, errorInfo) {
     // Log the error to our logging system
-    logger.logError(error, errorInfo, errorInfo.componentStack);
+    logger.logError(error, errorInfo, errorInfo?.componentStack || 'No component stack available');
 
     this.setState({
       error: error,
@@ -70,7 +70,7 @@ class ErrorBoundary extends React.Component {
               }}>
                 {this.state.error && this.state.error.toString()}
                 <br />
-                {this.state.errorInfo.componentStack}
+                {this.state.errorInfo?.componentStack || 'No component stack available'}
               </pre>
             </details>
           )}
