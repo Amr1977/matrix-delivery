@@ -631,7 +631,7 @@ class OrderService {
   }
 
   /**
-   * Get order tracking information
+   * Get order tracking information with live route data
    */
   async getOrderTracking(orderId, userId) {
     const orderResult = await pool.query(
@@ -639,10 +639,12 @@ class OrderService {
         o.*,
         json_build_object(
           'userId', d.id,
-          'name', d.name
+          'name', d.name,
+          'vehicleType', d.vehicle_type,
+          'rating', d.rating
         ) as assignedDriver
       FROM orders o
-      LEFT JOIN users d ON o.assigned_driver_id = d.id
+      LEFT JOIN users d ON o.assigned_driver_user_id = d.id
       WHERE o.id = $1`,
       [orderId]
     );
@@ -654,42 +656,153 @@ class OrderService {
     const order = orderResult.rows[0];
 
     // Check if user has permission to view this order
-    if (order.customer_id !== userId && order.assigned_driver_id !== userId) {
+    if (order.customer_id !== userId && order.assigned_driver_user_id !== userId) {
       throw new Error('Unauthorized');
     }
 
-    // Get location history
+    // Get location history with additional data
     const locationHistory = await pool.query(
-      'SELECT latitude, longitude, timestamp FROM driver_locations WHERE order_id = $1 ORDER BY timestamp',
+      `SELECT latitude, longitude, timestamp, heading, speed_kmh, accuracy_meters, status as location_status
+       FROM driver_locations
+       WHERE order_id = $1 AND status = 'active'
+       ORDER BY timestamp`,
       [orderId]
     );
 
+    // Determine the next color point based on order status
+    let nextPoint = 'pickup';
+    let currentStepIndex = 0;
+
+    if (order.status === 'picked_up' || order.status === 'in_transit') {
+      nextPoint = 'delivery';
+      currentStepIndex = 1;
+    } else if (order.status === 'delivered') {
+      nextPoint = 'completed';
+      currentStepIndex = 2;
+    }
+
+    // Calculate remaining distance and time to next point
+    let distanceToNext = null;
+    let timeToNext = null;
+    let routeSteps = [];
+
+    if (locationHistory.rows.length > 0 && (order.status === 'picked_up' || order.status === 'in_transit')) {
+      const currentLocation = locationHistory.rows[locationHistory.rows.length - 1];
+      const destination = {
+        lat: parseFloat(order.to_coordinates.split(',')[0]),
+        lng: parseFloat(order.to_coordinates.split(',')[1])
+      };
+
+      // Calculate straight-line distance using geolib
+      distanceToNext = this.getDistance({
+        latitude: currentLocation.latitude,
+        longitude: currentLocation.longitude
+      }, destination) / 1000; // Convert to km
+
+      // Estimate time based on speed (assume urban driving speed)
+      const assumedSpeedKmh = currentLocation.speed_kmh || 25; // Default urban speed
+      timeToNext = (distanceToNext / assumedSpeedKmh) * 60; // Convert to minutes
+
+      // Create route steps for visualization
+      routeSteps = [
+        {
+          id: 'pickup',
+          type: 'pickup',
+          address: order.pickup_address,
+          coordinates: {
+            lat: parseFloat(order.from_coordinates.split(',')[0]),
+            lng: parseFloat(order.from_coordinates.split(',')[1])
+          },
+          status: order.status === 'picked_up' || order.status === 'in_transit' || order.status === 'delivered' ? 'completed' : 'upcoming',
+          completedAt: order.picked_up_at
+        },
+        {
+          id: 'delivery',
+          type: 'delivery',
+          address: order.delivery_address,
+          coordinates: {
+            lat: parseFloat(order.to_coordinates.split(',')[0]),
+            lng: parseFloat(order.to_coordinates.split(',')[1])
+          },
+          status: order.status === 'delivered' ? 'completed' : 'upcoming',
+          completedAt: order.delivered_at
+        }
+      ];
+    }
+
+    // Generate route polyline from location history (simplified version)
+    let actualRoute = [];
+    if (locationHistory.rows.length > 1) {
+      actualRoute = locationHistory.rows.map(loc => [parseFloat(loc.longitude), parseFloat(loc.latitude)]);
+    }
+
+    // Calculate expected route (simplified straight line for demo)
+    let expectedRoute = [];
+    if (order.from_coordinates && order.to_coordinates && (order.status === 'picked_up' || order.status === 'in_transit')) {
+      const from = {
+        lat: parseFloat(order.from_coordinates.split(',')[0]),
+        lng: parseFloat(order.from_coordinates.split(',')[1])
+      };
+      const to = {
+        lat: parseFloat(order.to_coordinates.split(',')[0]),
+        lng: parseFloat(order.to_coordinates.split(',')[1])
+      };
+      expectedRoute = [
+        [from.lng, from.lat],
+        [to.lng, to.lat]
+      ];
+    }
+
     return {
+      orderId: order.id,
       orderNumber: order.order_number,
       status: order.status,
+      trackingStatus: order.current_tracking_status || 'not_started',
       pickup: {
         address: order.pickup_address,
         coordinates: order.from_coordinates ? {
           lat: parseFloat(order.from_coordinates.split(',')[0]),
           lng: parseFloat(order.from_coordinates.split(',')[1])
-        } : null
+        } : null,
+        completedAt: order.picked_up_at
       },
       delivery: {
         address: order.delivery_address,
         coordinates: order.to_coordinates ? {
           lat: parseFloat(order.to_coordinates.split(',')[0]),
           lng: parseFloat(order.to_coordinates.split(',')[1])
-        } : null
+        } : null,
+        completedAt: order.delivered_at
       },
+      driver: order.assigneddriver,
       currentLocation: locationHistory.rows.length > 0 ? {
         lat: parseFloat(locationHistory.rows[locationHistory.rows.length - 1].latitude),
-        lng: parseFloat(locationHistory.rows[locationHistory.rows.length - 1].longitude)
+        lng: parseFloat(locationHistory.rows[locationHistory.rows.length - 1].longitude),
+        heading: locationHistory.rows[locationHistory.rows.length - 1].heading,
+        speedKmh: locationHistory.rows[locationHistory.rows.length - 1].speed_kmh,
+        accuracyMeters: locationHistory.rows[locationHistory.rows.length - 1].accuracy_meters,
+        timestamp: locationHistory.rows[locationHistory.rows.length - 1].timestamp,
+        status: locationHistory.rows[locationHistory.rows.length - 1].location_status
       } : null,
       locationHistory: locationHistory.rows.map(loc => ({
         lat: parseFloat(loc.latitude),
         lng: parseFloat(loc.longitude),
-        timestamp: loc.timestamp
+        timestamp: loc.timestamp,
+        heading: loc.heading,
+        speedKmh: loc.speed_kmh,
+        accuracyMeters: loc.accuracy_meters,
+        status: loc.location_status
       })),
+      routes: {
+        actual: actualRoute,
+        expected: expectedRoute
+      },
+      nextPoint: {
+        type: nextPoint,
+        distanceKm: distanceToNext,
+        estimatedTimeMinutes: timeToNext
+      },
+      routeSteps: routeSteps,
       createdAt: order.created_at,
       acceptedAt: order.accepted_at,
       pickedUpAt: order.picked_up_at,

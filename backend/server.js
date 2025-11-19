@@ -414,7 +414,7 @@ const verifyToken = (req, res, next) => {
 
 // Load driver status endpoints
 const driverRoutes = require('./routes/drivers');
-driverRoutes(app, pool, jwt, verifyToken);
+app.use('/api/drivers', driverRoutes);
 
 // Load map location picker endpoints
 const mapPickerEndpoints = require('./map-location-picker-backend.js');
