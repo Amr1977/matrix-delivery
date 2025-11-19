@@ -128,6 +128,8 @@ const DeliveryApp = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
+  const locationIntervalRef = useRef(null);
+
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewOrderId, setReviewOrderId] = useState(null);
   const [reviewType, setReviewType] = useState('');
@@ -206,6 +208,7 @@ useEffect(() => {
   // Driver location functionality
   const [viewType, setViewType] = useState('active'); // 'active', 'bidding', 'history'
   const [driverLocation, setDriverLocation] = useState({ latitude: null, longitude: null, lastUpdated: null });
+  const [driverOnline, setDriverOnline] = useState(false); // Driver online/offline status
   const [countryFilter, setCountryFilter] = useState(''); // Country filter for bidding orders
   const [cityFilter, setCityFilter] = useState(''); // City filter for bidding orders
   const [areaFilter, setAreaFilter] = useState(''); // Area filter for bidding orders
@@ -1318,6 +1321,115 @@ const getDriverViewTitle = (viewType) => {
     }
   };
 
+  // Driver status functions
+  const hasActiveOrders = () => {
+    if (currentUser?.role !== 'driver') return false;
+    return orders.some(order =>
+      order.assignedDriver?.userId === currentUser.id &&
+      ['accepted', 'picked_up', 'in_transit'].includes(order.status)
+    );
+  };
+
+  const updateDriverStatus = async (isOnline) => {
+    try {
+      const response = await fetch(`${API_URL}/drivers/status`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ isOnline })
+      });
+
+      if (!response.ok) throw new Error('Failed to update status');
+      // Backend tracks driver online/offline status
+    } catch (err) {
+      console.error('Update status error:', err);
+      setError('Failed to update driver status');
+    }
+  };
+
+  const updateDriverLocationOnce = async () => {
+    if (currentUser?.role !== 'driver' || !driverOnline || loading) return;
+
+    try {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            const { latitude, longitude } = position.coords;
+
+            const response = await fetch(`${API_URL}/drivers/location`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({ latitude, longitude })
+            });
+
+            if (!response.ok) throw new Error('Failed to update location');
+
+            setDriverLocation({
+              latitude: parseFloat(latitude),
+              longitude: parseFloat(longitude),
+              lastUpdated: new Date()
+            });
+            setLocationPermission('granted');
+            fetchOrders(); // Refresh orders with new distance calculations
+          },
+          (error) => {
+            console.error('Geolocation error:', error);
+            setLocationPermission('denied');
+            if (driverOnline) {
+              setError('Location access denied. Please enable location services.');
+            }
+          }
+        );
+      } else {
+        if (driverOnline) {
+          setError('Geolocation is not supported by this browser.');
+        }
+      }
+    } catch (err) {
+      console.error('Update location error:', err);
+      if (driverOnline) {
+        setError('Failed to update location');
+      }
+    }
+  };
+
+  const toggleOnline = async () => {
+    if (!driverOnline && hasActiveOrders()) {
+      setError("Cannot go offline while you have active orders. Complete deliveries first.");
+      return;
+    }
+
+    if (!driverOnline) {
+      // Going online
+      setDriverOnline(true);
+      await updateDriverStatus(true);
+      // Start location sync
+      updateDriverLocationOnce(); // Immediate update
+      locationIntervalRef.current = setInterval(() => {
+        updateDriverLocationOnce();
+      }, 30000); // Sync every 30s when online
+
+      setLoadingState('toggleOnline', false);
+    } else {
+      // Going offline
+      setDriverOnline(false);
+      await updateDriverStatus(false);
+      // Stop location sync
+      if (locationIntervalRef.current) {
+        clearInterval(locationIntervalRef.current);
+        locationIntervalRef.current = null;
+      }
+      setLocationPermission('unknown');
+
+      setLoadingState('toggleOnline', false);
+    }
+  };
+
 
 
   const getStatusLabel = (status) => {
@@ -1604,24 +1716,25 @@ const getDriverViewTitle = (viewType) => {
               </button>
 
               {currentUser?.role === 'admin' && (
-                <button
-                  onClick={() => setShowAdminPanel(!showAdminPanel)}
-                  style={{
-                    background: showAdminPanel ? '#DC2626' : '#7C3AED',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '0.375rem',
-                    padding: '0.5rem 1rem',
-                    cursor: 'pointer',
-                    fontSize: '0.875rem',
-                    fontWeight: '600',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.25rem'
-                  }}
-                >
-                  ⚙️ {showAdminPanel ? 'Close Admin' : 'Admin Panel'}
-                </button>
+              <button
+                onClick={toggleOnline}
+                disabled={loadingStates.toggleOnline || (!driverOnline && hasActiveOrders())}
+                style={{
+                  background: driverOnline ? '#EF4444' : '#10B981',
+                  color: 'white',
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '0.5rem',
+                  fontWeight: '600',
+                  border: 'none',
+                  cursor: (loadingStates.toggleOnline || (!driverOnline && hasActiveOrders())) ? 'not-allowed' : 'pointer',
+                  opacity: (loadingStates.toggleOnline || (!driverOnline && hasActiveOrders())) ? 0.5 : 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                {loadingStates.toggleOnline ? '...' : driverOnline ? '🔴 Go Offline' : '🟢 Go Online'}
+              </button>
               )}
 
               <div style={{ textAlign: 'right' }}>
@@ -1812,32 +1925,33 @@ const getDriverViewTitle = (viewType) => {
           <div style={{ marginBottom: '1.5rem' }}>
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1rem' }}>
               <button
-                onClick={updateDriverLocation}
-                disabled={loading}
+                onClick={() => setLoadingState('toggleOnline', true)}
+                disabled={!driverOnline && hasActiveOrders()}
                 style={{
-                  background: locationPermission === 'granted' ? '#10B981' : '#4F46E5',
+                  background: driverOnline ? '#EF4444' : '#10B981',
                   color: 'white',
                   padding: '0.75rem 1.5rem',
                   borderRadius: '0.5rem',
                   fontWeight: '600',
                   border: 'none',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  opacity: loading ? 0.5 : 1,
+                  cursor: (!driverOnline && hasActiveOrders()) ? 'not-allowed' : 'pointer',
+                  opacity: (!driverOnline && hasActiveOrders()) ? 0.5 : 1,
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.5rem'
                 }}
               >
-                📍 {loading ? t('common.updating') : locationPermission === 'granted' ? t('driver.locationUpdated') : t('driver.updateLocation')}
+                {driverOnline ? '🔴' : '🟢'} {driverOnline ? 'Go Offline' : 'Go Online'}
               </button>
               <div style={{ fontSize: '0.875rem', color: '#6B7280' }}>
-                {locationPermission === 'granted' && driverLocation.latitude ? (
-                  <span>📍 Lat: {driverLocation.latitude.toFixed(4)}, Lng: {driverLocation.longitude.toFixed(4)}</span>
-                ) : locationPermission === 'denied' ? (
-                  <span style={{ color: '#DC2626' }}>❌ Location access denied</span>
+                {driverOnline ? (
+                  <span>Location sync active (30s)</span>
                 ) : (
-                  <span>⚠️ Enable location for better order visibility</span>
+                  <span>Offline - no location sync</span>
                 )}
+                {driverOnline && locationPermission === 'granted' && driverLocation.latitude ? (
+                  <span> 📍 Lat: {driverLocation.latitude.toFixed(4)}, Lng: {driverLocation.longitude.toFixed(4)}</span>
+                ) : null}
               </div>
             </div>
 

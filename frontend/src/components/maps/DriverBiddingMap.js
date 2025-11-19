@@ -98,6 +98,13 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
               lng: pickupCoords.lng,
               accuracy: 1000
             });
+          } else {
+            // Fallback to Cairo if no coordinates available
+            setDriverCoords({
+              lat: 30.0444,
+              lng: 31.2357,
+              accuracy: 1000
+            });
           }
           setLoading(false);
         }
@@ -109,7 +116,22 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
         accuracy: driverLocation.accuracy || 100
       });
       setLoading(false);
-    } else {
+  } else {
+      // If no geolocation available, use order pickup or default location
+      if (pickupCoords) {
+        setDriverCoords({
+          lat: pickupCoords.lat,
+          lng: pickupCoords.lng,
+          accuracy: 1000
+        });
+      } else {
+        // Default to Cairo for demo
+        setDriverCoords({
+          lat: 30.0444,
+          lng: 31.2357,
+          accuracy: 1000
+        });
+      }
       setLoading(false);
     }
   }, [driverLocation, pickupCoords]);

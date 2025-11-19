@@ -12,12 +12,12 @@ const pool = new Pool({
 
 async function checkUsers() {
   try {
-    console.log('Checking for user amr@customer.com...');
+    console.log('Checking for user user@delivery.com...');
     const userResult = await pool.query(
       'SELECT id, name, email, role, rating, completed_deliveries, is_verified, created_at FROM users WHERE email = $1',
-      ['amr@customer.com']
+      ['user@delivery.com']
     );
-    console.log('User amr@customer.com:', userResult.rows);
+    console.log('User user@delivery.com:', userResult.rows);
 
     console.log('\nChecking sample customers...');
     const customersResult = await pool.query(
