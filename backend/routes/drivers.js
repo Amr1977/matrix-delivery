@@ -3,6 +3,7 @@ const { Pool } = require('pg');
 const { verifyToken, requireRole } = require('../middleware/auth');
 const { apiRateLimit } = require('../middleware/rateLimit');
 const logger = require('../logger');
+const { createNotification } = require('../server'); // Import for real-time updates
 
 // Load environment-specific .env file
 const envFile = process.env.ENV_FILE || '.env';
@@ -275,6 +276,32 @@ router.post('/location/:orderId', verifyToken, requireRole('driver'), apiRateLim
     );
 
     const locationData = result.rows[0];
+
+    // Emit real-time location update to all clients tracking this order
+    try {
+      if (global.io) { // Access io from global scope
+        global.io.to(`order_${orderId}`).emit('location_update', {
+          orderId,
+          latitude: parseFloat(latitude.toFixed(8)),
+          longitude: parseFloat(longitude.toFixed(8)),
+          timestamp: locationData.timestamp,
+          heading,
+          speedKmh,
+          accuracyMeters
+        });
+        logger.info(`Real-time location update sent to clients`, {
+          orderId,
+          latitude: parseFloat(latitude.toFixed(8)),
+          longitude: parseFloat(longitude.toFixed(8)),
+          category: 'socket'
+        });
+      }
+    } catch (socketError) {
+      logger.warn(`Socket emit error (non-critical): ${socketError.message}`, {
+        orderId,
+        category: 'socket'
+      });
+    }
 
     logger.info(`Driver location updated for tracking`, {
       driverId,
