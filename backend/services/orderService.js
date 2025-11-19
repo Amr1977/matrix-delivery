@@ -297,36 +297,32 @@ class OrderService {
       title, price, description, package_description, special_instructions
     });
 
-    // Build addresses from manual entry data
-    console.log('🛠️ ORDER SERVICE - USING SHOWMANUALENTRY MODE:', orderData.showManualEntry);
-    if (!orderData.pickupAddress || !orderData.dropoffAddress) {
-      throw new Error('Please fill all required fields: Pickup location (country, city, contact name), Delivery location (country, city, contact name)');
+    // Validate that coordinates are set (primary requirement)
+    if (!orderData.pickupLocation?.coordinates || !orderData.dropoffLocation?.coordinates) {
+      throw new Error('Please set pickup and delivery locations on the map or fill address fields (minimum country and city) to generate coordinates.');
     }
 
+    // Build addresses from manual entry data if available
     const pa = orderData.pickupAddress;
     const da = orderData.dropoffAddress;
 
-    // Validate required fields
-    if (!pa.country?.trim() || !pa.city?.trim() || !pa.personName?.trim()) {
-      throw new Error('Please fill all required fields: Pickup location (country, city, contact name)');
+    if (pa && da) {
+      // Build addresses from manual entry if provided
+      pickupAddress = `${pa.personName || 'Contact'}, ${pa.street || ''} ${pa.building || ''}, ${pa.floor ? `Floor ${pa.floor}` : ''}, ${pa.apartment ? `Apt ${pa.apartment}` : ''}, ${pa.area || ''}, ${pa.city || ''}, ${pa.country || ''}`.replace(/, ,/g, ',').replace(/^,|,$/g, '').replace(/,+/g, ', ');
+      deliveryAddress = `${da.personName || 'Contact'}, ${da.street || ''} ${da.building || ''}, ${da.floor ? `Floor ${da.floor}` : ''}, ${da.apartment ? `Apt ${da.apartment}` : ''}, ${da.area || ''}, ${da.city || ''}, ${da.country || ''}`.replace(/, ,/g, ',').replace(/^,|,$/g, '').replace(/,+/g, ', ');
+    } else {
+      // Use coordinates-only addresses (from map click)
+      const pickupCoords = orderData.pickupLocation.coordinates;
+      const dropoffCoords = orderData.dropoffLocation.coordinates;
+      pickupAddress = `${pickupCoords.lat.toFixed(6)}, ${pickupCoords.lng.toFixed(6)}`;
+      deliveryAddress = `${dropoffCoords.lat.toFixed(6)}, ${dropoffCoords.lng.toFixed(6)}`;
     }
-    if (!da.country?.trim() || !da.city?.trim() || !da.personName?.trim()) {
-      throw new Error('Please fill all required fields: Delivery location (country, city, contact name)');
-    }
-
-    // Build addresses from flat manual entry
-    pickupAddress = `${pa.personName}, ${pa.street || ''} ${pa.building || ''}, ${pa.floor ? `Floor ${pa.floor}` : ''}, ${pa.apartment ? `Apt ${pa.apartment}` : ''}, ${pa.area || ''}, ${pa.city}, ${pa.country}`.replace(/, ,/g, ',').replace(/^,|,$/g, '').replace(/,+/g, ', ');
-    deliveryAddress = `${da.personName}, ${da.street || ''} ${da.building || ''}, ${da.floor ? `Floor ${da.floor}` : ''}, ${da.apartment ? `Apt ${da.apartment}` : ''}, ${da.area || ''}, ${da.city}, ${da.country}`.replace(/, ,/g, ',').replace(/^,|,$/g, '').replace(/,+/g, ', ');
 
     console.log('🛠️ ORDER SERVICE - BUILT ADDRESSES:', { pickupAddress, deliveryAddress });
 
-    // For now, no coordinates from manual entry - use map coordinates if available
-    if (orderData.pickupLocation?.coordinates) {
-      fromCoordinates = `${orderData.pickupLocation.coordinates.lat},${orderData.pickupLocation.coordinates.lng}`;
-    }
-    if (orderData.dropoffLocation?.coordinates) {
-      toCoordinates = `${orderData.dropoffLocation.coordinates.lat},${orderData.dropoffLocation.coordinates.lng}`;
-    }
+    // Set coordinates from map location (guaranteed to exist from validation above)
+    fromCoordinates = `${orderData.pickupLocation.coordinates.lat},${orderData.pickupLocation.coordinates.lng}`;
+    toCoordinates = `${orderData.dropoffLocation.coordinates.lat},${orderData.dropoffLocation.coordinates.lng}`;
 
     const result = await pool.query(
       `INSERT INTO orders (

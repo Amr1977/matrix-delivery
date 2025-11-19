@@ -391,6 +391,7 @@ const FullscreenMapModal = ({
   onClose,
   location,
   onLocationChange,
+  onAddressFill,
   userLocation,
   markerColor,
   locationType,
@@ -406,7 +407,14 @@ const FullscreenMapModal = ({
       const response = await fetch(`${API_URL}/locations/reverse-geocode?lat=${coords.lat}&lng=${coords.lng}`);
       if (response.ok) {
         const data = await response.json();
+
+        // Update map location
         onLocationChange(data);
+
+        // Auto-fill address fields if reverse geocoding was successful
+        if (data.address && onAddressFill) {
+          onAddressFill(data.address);
+        }
       } else {
         // Create location object with coordinates only
         const basicLocation = {
@@ -797,7 +805,6 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showManualEntry, setShowManualEntry] = useState(true);
 
   // Modal state
   const [modalState, setModalState] = useState({
@@ -879,12 +886,10 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
       estimatedValue: orderData.estimated_value,
       hasSpecialInstructions: !!orderData.special_instructions?.trim(),
       estimatedDeliveryDate: orderData.estimated_delivery_date,
-      showManualEntry,
       timestamp: new Date().toISOString()
     });
 
     logger.info('[LOCATION_STATE] Current location state:', {
-      showManualEntry,
       pickupLocation: pickupLocation ? {
         coordinates: pickupLocation.coordinates,
         displayName: pickupLocation.displayName,
@@ -926,40 +931,29 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
       }
     });
 
-    // Just pass validation to backend
+    // Validate that coordinates are set (either from map click OR address geocoding)
+    const pickupCoordinates = pickupLocation?.coordinates;
+    const dropoffCoordinates = dropoffLocation?.coordinates;
 
-    // Always validate required fields for both modes
-    const pickupMissing = [];
-    const dropoffMissing = [];
-
-    // Check pickup location required fields
-    if (!pickupAddress.country?.trim()) pickupMissing.push('country');
-    if (!pickupAddress.city?.trim()) pickupMissing.push('city');
-    if (!pickupAddress.personName?.trim()) pickupMissing.push('contact name');
-
-    // Check dropoff location required fields
-    if (!dropoffAddress.country?.trim()) dropoffMissing.push('country');
-    if (!dropoffAddress.city?.trim()) dropoffMissing.push('city');
-    if (!dropoffAddress.personName?.trim()) dropoffMissing.push('contact name');
-
-    logger.info('[VALIDATION] Required field validation:', {
-      pickupMissing,
-      dropoffMissing,
-      validationPassed: pickupMissing.length === 0 && dropoffMissing.length === 0
+    logger.info('[VALIDATION] Coordinate validation:', {
+      hasPickupCoords: !!pickupCoordinates,
+      hasDropoffCoords: !!dropoffCoordinates,
+      pickupCoords: pickupCoordinates,
+      dropoffCoords: dropoffCoordinates
     });
 
-    if (pickupMissing.length > 0 || dropoffMissing.length > 0) {
+    if (!pickupCoordinates || !dropoffCoordinates) {
       const errorParts = [];
-      if (pickupMissing.length > 0) {
-        errorParts.push(`Pickup location missing: ${pickupMissing.join(', ')}`);
+      if (!pickupCoordinates) {
+        errorParts.push('Pickup location coordinates not set - click on map or fill address fields (country/city required)');
       }
-      if (dropoffMissing.length > 0) {
-        errorParts.push(`Delivery location missing: ${dropoffMissing.join(', ')}`);
+      if (!dropoffCoordinates) {
+        errorParts.push('Delivery location coordinates not set - click on map or fill address fields (country/city required)');
       }
 
-      logger.warn('[VALIDATION_FAILED] Showing error modal for missing required fields:', {
-        pickupMissing,
-        dropoffMissing,
+      logger.warn('[VALIDATION_FAILED] Showing error modal for missing coordinates:', {
+        hasPickupCoords: !!pickupCoordinates,
+        hasDropoffCoords: !!dropoffCoordinates,
         errorMessage: errorParts.join('. '),
         timestamp: new Date().toISOString()
       });
@@ -967,32 +961,28 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
       setModalState({
         isOpen: true,
         type: 'error',
-        title: 'Missing Required Information',
-        message: errorParts.join('. ') + ' Please complete all required fields marked with * before publishing.'
+        title: 'Location Coordinates Required',
+        message: errorParts.join('. ') + ' Use the interactive map or fill address fields (at least country and city) to set coordinates.'
       });
       return;
     }
 
-    // Prepare complete order data
+    // Prepare complete order data - always include coordinates
     const completeOrderData = {
       ...orderData,
-      ...(showManualEntry ? {
-        pickupAddress,
-        dropoffAddress
-      } : {
-        pickupLocation,
-        dropoffLocation,
-        routeInfo
-      })
+      pickupLocation,
+      dropoffLocation,
+      pickupAddress,
+      dropoffAddress
     };
 
     logger.info('[COMPLETE_ORDER_DATA] Final order data structure analysis:', {
       orderDataKeys: Object.keys(orderData),
-      hasPickupAddress: showManualEntry ? !!completeOrderData.pickupAddress : false,
-      hasDropoffAddress: showManualEntry ? !!completeOrderData.dropoffAddress : false,
-      hasPickupLocation: !showManualEntry ? !!completeOrderData.pickupLocation : false,
-      hasDropoffLocation: !showManualEntry ? !!completeOrderData.dropoffLocation : false,
-      hasRouteInfo: !showManualEntry ? !!completeOrderData.routeInfo : false,
+      hasPickupAddress: !!completeOrderData.pickupAddress,
+      hasDropoffAddress: !!completeOrderData.dropoffAddress,
+      hasPickupLocation: !!completeOrderData.pickupLocation,
+      hasDropoffLocation: !!completeOrderData.dropoffLocation,
+      hasRouteInfo: !!completeOrderData.routeInfo,
       maskedOrderDetails: {
         ...completeOrderData,
         pickupLocation: completeOrderData.pickupLocation ? {
@@ -1027,7 +1017,6 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
       price: parseFloat(completeOrderData.price),
       hasPackageDescription: !!completeOrderData.package_description,
       packageWeight: completeOrderData.package_weight,
-      showManualEntry,
       timestamp: new Date().toISOString()
     });
 
@@ -1497,52 +1486,31 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
           </button>
           <button
             type="submit"
-            disabled={loading || (showManualEntry ?
-              (!pickupAddress.city || !pickupAddress.country || !pickupAddress.personName ||
-               !dropoffAddress.city || !dropoffAddress.country || !dropoffAddress.personName) :
-              (!pickupLocation || !dropoffLocation))}
+            disabled={loading || !pickupLocation?.coordinates || !dropoffLocation?.coordinates}
             style={{
               padding: isMobile ? '0.625rem 1.25rem' : '0.75rem 1.5rem',
-              background: (showManualEntry ?
-                (pickupAddress.city && pickupAddress.country && pickupAddress.personName &&
-                 dropoffAddress.city && dropoffAddress.country && dropoffAddress.personName) :
-                (pickupLocation && dropoffLocation)) ?
+              background: (pickupLocation?.coordinates && dropoffLocation?.coordinates) ?
                   'linear-gradient(135deg, #00AA00 0%, #30FF30 50%, #00AA00 100%)' : '#333333',
               color: '#30FF30',
               border: '2px solid #00AA00',
               borderRadius: '0.375rem',
-              cursor: (showManualEntry ?
-                (pickupAddress.city && pickupAddress.country && pickupAddress.personName &&
-                 dropoffAddress.city && dropoffAddress.country && dropoffAddress.personName) :
-                (pickupLocation && dropoffLocation)) ? 'pointer' : 'not-allowed',
+              cursor: (pickupLocation?.coordinates && dropoffLocation?.coordinates) ? 'pointer' : 'not-allowed',
               fontWeight: '600',
               fontSize: isMobile ? '0.875rem' : '1rem',
               fontFamily: 'Consolas, Monaco, Courier New, monospace',
-              opacity: (showManualEntry ?
-                (pickupAddress.city && pickupAddress.country && pickupAddress.personName &&
-                 dropoffAddress.city && dropoffAddress.country && dropoffAddress.personName) :
-                (pickupLocation && dropoffLocation)) ? 1 : 0.5,
-              boxShadow: (showManualEntry ?
-                (pickupAddress.city && pickupAddress.country && pickupAddress.personName &&
-                 dropoffAddress.city && dropoffAddress.country && dropoffAddress.personName) :
-                (pickupLocation && dropoffLocation)) ?
+              opacity: (pickupLocation?.coordinates && dropoffLocation?.coordinates) ? 1 : 0.5,
+              boxShadow: (pickupLocation?.coordinates && dropoffLocation?.coordinates) ?
                   '0 0 20px rgba(0, 255, 0, 0.6)' : 'none',
               transition: 'all 0.3s ease'
             }}
             onMouseOver={(e) => {
-              if (showManualEntry ?
-                (pickupAddress.city && pickupAddress.country && pickupAddress.personName &&
-                 dropoffAddress.city && dropoffAddress.country && dropoffAddress.personName) :
-                (pickupLocation && dropoffLocation)) {
+              if (pickupLocation?.coordinates && dropoffLocation?.coordinates) {
                 e.target.style.boxShadow = '0 0 30px rgba(0, 255, 0, 0.8)';
                 e.target.style.transform = 'translateY(-2px)';
               }
             }}
             onMouseOut={(e) => {
-              if (showManualEntry ?
-                (pickupAddress.city && pickupAddress.country && pickupAddress.personName &&
-                 dropoffAddress.city && dropoffAddress.country && dropoffAddress.personName) :
-                (pickupLocation && dropoffLocation)) {
+              if (pickupLocation?.coordinates && dropoffLocation?.coordinates) {
                 e.target.style.boxShadow = '0 0 20px rgba(0, 255, 0, 0.6)';
                 e.target.style.transform = 'translateY(0)';
               }
@@ -3146,6 +3114,20 @@ const LocationEntryCombined = ({
         onLocationChange={(newLocation) => {
           setFullscreenMapLocation(newLocation);
           onMapLocationChange(newLocation);
+        }}
+        onAddressFill={(addressData) => {
+          // Auto-fill the address form fields with reverse geocoded data
+          onAddressChange({
+            ...addressData,
+            country: addressData.country || '',  // Field from reverse geocoding
+            city: addressData.city || '',        // Field from reverse geocoding
+            area: addressData.area || '',        // Field from reverse geocoding
+            street: addressData.street || '',    // Field from reverse geocoding
+            building: addressData.building || '',
+            floor: addressData.floor || '',
+            apartment: addressData.apartment || '',
+            personName: addressData.personName || '' // Existing contact name
+          });
         }}
         userLocation={userLocation}
         markerColor={markerColor}

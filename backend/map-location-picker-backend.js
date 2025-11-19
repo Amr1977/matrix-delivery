@@ -3,6 +3,15 @@
 
 const logger = require('./logger');
 
+// Helper functions for ID generation (same as OrderService)
+const generateId = () => {
+  return Date.now().toString() + Math.random().toString(36).substr(2, 9);
+};
+
+const generateOrderNumber = () => {
+  return `ORD-${Date.now()}`;
+};
+
 // Helper function to calculate distance between two coordinates (Haversine formula)
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371; // Earth's radius in km
