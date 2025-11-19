@@ -15,105 +15,102 @@ import logger from './logger';
 import './Mobile.css';
 import './MatrixTheme.css';
 
+// Move LiveTrackingMap component outside DeliveryApp function for proper scoping
+const LiveTrackingMap = React.memo(({ order, token, currentUser, apiUrl }) => {
+  const [driverLocation, setDriverLocation] = React.useState(null);
+  const [locationHistory, setLocationHistory] = React.useState([]);
+  const [isConnected, setIsConnected] = React.useState(false);
+  const socketRef = React.useRef(null);
+  const mapRef = React.useRef(null);
 
+  const { t } = useI18n();
+
+  React.useEffect(() => {
+    const socketServerUrl = apiUrl.replace('/api', '');
+    const socket = io(socketServerUrl);
+    socketRef.current = socket;
+
+    socket.on('connect', () => {
+      setIsConnected(true);
+      socket.emit('join_order', { orderId: order._id, token: token });
+    });
+
+    socket.on('disconnect', () => {
+      setIsConnected(false);
+    });
+
+    socket.on('location_update', (data) => {
+      const newLocation = { lat: data.latitude, lng: data.longitude, timestamp: data.timestamp };
+      setDriverLocation(newLocation);
+      setLocationHistory(prev => [...prev, newLocation]);
+      if (mapRef.current && mapRef.current.setView) {
+        mapRef.current.setView([data.latitude, data.longitude], 15);
+      }
+    });
+
+    let locationInterval;
+    if (currentUser?.role === 'driver' && order.assignedDriver?.userId === currentUser.id) {
+      locationInterval = setInterval(() => {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              socket.emit('update_location', {
+                orderId: order._id,
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+                token: token
+              });
+            }
+          );
+        }
+      }, 30000);
+    }
+
+    return () => {
+      socket.emit('leave_order', order._id);
+      socket.disconnect();
+      if (locationInterval) clearInterval(locationInterval);
+    };
+  }, [order._id, token, currentUser?.id, t, apiUrl]);
+
+  const MapUpdater = () => {
+    const map = useMap();
+    React.useEffect(() => { mapRef.current = map; }, [map]);
+    return null;
+  };
+
+  return (
+    <div style={{ height: '500px', width: '100%', borderRadius: '0.5rem', overflow: 'hidden', marginBottom: '1rem' }}>
+      <div style={{ background: isConnected ? '#10B981' : '#EF4444', color: 'white', padding: '0.5rem', textAlign: 'center', fontSize: '0.875rem', fontWeight: '600' }}>
+        {isConnected ? t('tracking.liveTrackingActive') : t('tracking.connecting')}
+      </div>
+      <MapContainer center={driverLocation ? [driverLocation.lat, driverLocation.lng] : [order.from.lat, order.from.lng]} zoom={13} style={{ height: 'calc(100% - 40px)', width: '100%' }}>
+      <TileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+        maxZoom={19}
+        minZoom={1}
+        errorTileUrl={null}
+        updateWhenZooming={true}
+        updateWhenIdle={false}
+        keepBuffer={4}
+        detectRetina={true}
+      />
+        <Marker position={[order.from.lat, order.from.lng]} icon={L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png', iconSize: [25, 41], iconAnchor: [12, 41] })}><Popup><strong>Pickup</strong></Popup></Marker>
+        <Marker position={[order.to.lat, order.to.lng]} icon={L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png', iconSize: [25, 41], iconAnchor: [12, 41] })}><Popup><strong>Delivery</strong></Popup></Marker>
+        {driverLocation && <Marker position={[driverLocation.lat, driverLocation.lng]} icon={L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png', iconSize: [25, 41], iconAnchor: [12, 41] })}><Popup><strong>Driver</strong></Popup></Marker>}
+        {locationHistory.length > 1 && <Polyline positions={locationHistory.map(loc => [loc.lat, loc.lng])} color="#4F46E5" weight={3} opacity={0.7} />}
+      </MapContainer>
+    </div>
+  );
+});
 
 // Location data state and API functions
 const DeliveryApp = () => {
    const { t, locale, changeLocale } = useI18n();
   const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
 
-
-
-
-
-
-  // Live Tracking Map Component
-  const LiveTrackingMap = React.memo(({ order, token }) => {
-    const [driverLocation, setDriverLocation] = React.useState(null);
-    const [locationHistory, setLocationHistory] = React.useState([]);
-    const [isConnected, setIsConnected] = React.useState(false);
-    const socketRef = React.useRef(null);
-    const mapRef = React.useRef(null);
-
-    React.useEffect(() => {
-      const apiUrl = API_URL.replace('/api', '');
-      const socket = io(apiUrl);
-      socketRef.current = socket;
-
-      socket.on('connect', () => {
-        setIsConnected(true);
-        socket.emit('join_order', { orderId: order._id, token: token });
-      });
-
-      socket.on('disconnect', () => {
-        setIsConnected(false);
-      });
-
-      socket.on('location_update', (data) => {
-        const newLocation = { lat: data.latitude, lng: data.longitude, timestamp: data.timestamp };
-        setDriverLocation(newLocation);
-        setLocationHistory(prev => [...prev, newLocation]);
-        if (mapRef.current && mapRef.current.setView) {
-          mapRef.current.setView([data.latitude, data.longitude], 15);
-        }
-      });
-
-      let locationInterval;
-      if (currentUser?.role === 'driver' && order.assignedDriver?.userId === currentUser.id) {
-        locationInterval = setInterval(() => {
-          if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-              (position) => {
-                socket.emit('update_location', {
-                  orderId: order._id,
-                  latitude: position.coords.latitude,
-                  longitude: position.coords.longitude,
-                  token: token
-                });
-              }
-            );
-          }
-        }, 30000);
-      }
-
-      return () => {
-        socket.emit('leave_order', order._id);
-        socket.disconnect();
-        if (locationInterval) clearInterval(locationInterval);
-      };
-    }, [order._id, token]);
-
-    const MapUpdater = () => {
-      const map = useMap();
-      React.useEffect(() => { mapRef.current = map; }, [map]);
-      return null;
-    };
-
-    return (
-      <div style={{ height: '500px', width: '100%', borderRadius: '0.5rem', overflow: 'hidden', marginBottom: '1rem' }}>
-        <div style={{ background: isConnected ? '#10B981' : '#EF4444', color: 'white', padding: '0.5rem', textAlign: 'center', fontSize: '0.875rem', fontWeight: '600' }}>
-          {isConnected ? t('tracking.liveTrackingActive') : t('tracking.connecting')}
-        </div>
-        <MapContainer center={driverLocation ? [driverLocation.lat, driverLocation.lng] : [order.from.lat, order.from.lng]} zoom={13} style={{ height: 'calc(100% - 40px)', width: '100%' }}>
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-          maxZoom={19}
-          minZoom={1}
-          errorTileUrl={null}
-          updateWhenZooming={true}
-          updateWhenIdle={false}
-          keepBuffer={4}
-          detectRetina={true}
-        />
-          <Marker position={[order.from.lat, order.from.lng]} icon={L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png', iconSize: [25, 41], iconAnchor: [12, 41] })}><Popup><strong>{t('tracking.pickup')}</strong></Popup></Marker>
-          <Marker position={[order.to.lat, order.to.lng]} icon={L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png', iconSize: [25, 41], iconAnchor: [12, 41] })}><Popup><strong>{t('tracking.delivery')}</strong></Popup></Marker>
-          {driverLocation && <Marker position={[driverLocation.lat, driverLocation.lng]} icon={L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png', iconSize: [25, 41], iconAnchor: [12, 41] })}><Popup><strong>{t('tracking.driver')}</strong></Popup></Marker>}
-          {locationHistory.length > 1 && <Polyline positions={locationHistory.map(loc => [loc.lat, loc.lng])} color="#4F46E5" weight={3} opacity={0.7} />}
-        </MapContainer>
-      </div>
-    );
-  });
+// Fixed: LiveTrackingMap component moved outside DeliveryApp function for proper scoping
   // State variables
   const [authState, setAuthState] = useState('login');
   const [token, setToken] = useState(localStorage.getItem('token') || null);
@@ -1661,7 +1658,7 @@ const getDriverViewTitle = (viewType) => {
                 <button onClick={() => setShowLiveTracking(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
               </div>
               <div style={{ padding: '1.5rem' }}>
-                <LiveTrackingMap order={selectedOrder} token={token} />
+                <LiveTrackingMap order={selectedOrder} token={token} currentUser={currentUser} apiUrl={API_URL} />
                 <button onClick={() => setShowLiveTracking(false)} style={{ width: '100%', marginTop: '1rem', padding: '0.75rem', background: '#F3F4F6', color: '#374151', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600' }}>{t('common.close')}</button>
               </div>
             </div>
