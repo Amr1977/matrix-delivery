@@ -10,6 +10,7 @@ const useDriver = (token, currentUser) => {
   const [locationPermission, setLocationPermission] = useState('unknown');
   const [orders, setOrders] = useState([]);
   const [currentLocationAddress, setCurrentLocationAddress] = useState(null);
+  const [driverOnline, setDriverOnline] = useState(false); // Driver online/offline status
 
   const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
 
@@ -221,6 +222,37 @@ const useDriver = (token, currentUser) => {
     }
   }, [currentUser, driverLocation, reverseGeocodeCurrentLocation]);
 
+  // Driver online/offline functionality
+  const updateDriverStatus = useCallback(async (isOnline) => {
+    try {
+      const response = await fetch(`${API_URL}/drivers/status`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ isOnline })
+      });
+
+      if (!response.ok) throw new Error('Failed to update driver status');
+
+      setDriverOnline(isOnline);
+      return true;
+    } catch (error) {
+      console.error('Driver status update error:', error);
+      return false;
+    }
+  }, [token, API_URL]);
+
+  // Helper functions for online/offline status
+  const hasActiveOrders = () => {
+    if (!isDriver) return false;
+    return orders.some(order =>
+      order.assignedDriver?.userId === currentUser.id &&
+      ['accepted', 'picked_up', 'in_transit'].includes(order.status)
+    );
+  };
+
   const isDriver = currentUser?.role === 'driver';
 
   return {
@@ -243,6 +275,9 @@ const useDriver = (token, currentUser) => {
     getCitiesFromOrders,
     getAreasFromOrders,
     reverseGeocodeCurrentLocation,
+    driverOnline,
+    updateDriverStatus,
+    hasActiveOrders,
     isDriver
   };
 };

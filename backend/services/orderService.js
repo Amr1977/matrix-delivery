@@ -68,7 +68,7 @@ class OrderService {
             )
           ) FILTER (WHERE b.id IS NOT NULL) as bids,
           CASE
-            WHEN o.assigned_driver_id IS NOT NULL THEN
+            WHEN o.assigned_driver_user_id IS NOT NULL THEN
               (SELECT json_build_object(
                 'userId', ab.user_id,
                 'driverName', au.name,
@@ -99,7 +99,7 @@ class OrderService {
             )
           ) as reviewStatus
         FROM orders o
-        LEFT JOIN users d ON o.assigned_driver_id = d.id
+        LEFT JOIN users d ON o.assigned_driver_user_id = d.id
         LEFT JOIN bids b ON o.id = b.order_id
         LEFT JOIN users u ON b.user_id = u.id
         LEFT JOIN reviews r ON o.id = r.order_id AND r.reviewer_id = $1 AND r.reviewee_id = d.id
@@ -547,7 +547,7 @@ class OrderService {
 
     // Update order with accepted bid
     await pool.query(
-      'UPDATE orders SET status = $1, assigned_driver_id = $2, accepted_at = NOW() WHERE id = $3',
+      'UPDATE orders SET status = $1, assigned_driver_user_id = $2, assigned_driver_name = (SELECT driver_name FROM bids WHERE order_id = $3 AND user_id = $2), assigned_driver_bid_price = (SELECT bid_price FROM bids WHERE order_id = $3 AND user_id = $2), accepted_at = NOW() WHERE id = $3',
       ['accepted', driverId, orderId]
     );
 
