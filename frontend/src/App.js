@@ -71,7 +71,7 @@ const LiveTrackingMap = React.memo(({ order, token, currentUser, apiUrl }) => {
       socket.disconnect();
       if (locationInterval) clearInterval(locationInterval);
     };
-  }, [order._id, token, currentUser?.id, t, apiUrl]);
+  }, [order._id, token, currentUser?.id, apiUrl]);
 
   const MapUpdater = () => {
     const map = useMap();
@@ -82,27 +82,70 @@ const LiveTrackingMap = React.memo(({ order, token, currentUser, apiUrl }) => {
   return (
     <div style={{ height: '500px', width: '100%', borderRadius: '0.5rem', overflow: 'hidden', marginBottom: '1rem' }}>
       <div style={{ background: isConnected ? '#10B981' : '#EF4444', color: 'white', padding: '0.5rem', textAlign: 'center', fontSize: '0.875rem', fontWeight: '600' }}>
-        {isConnected ? t('tracking.liveTrackingActive') : t('tracking.connecting')}
+        {isConnected ? (t ? t('tracking.liveTrackingActive') : 'Live Tracking Active') : (t ? t('tracking.connecting') : 'Connecting...')}
       </div>
-      <MapContainer center={driverLocation ? [driverLocation.lat, driverLocation.lng] : [order.from.lat, order.from.lng]} zoom={13} style={{ height: 'calc(100% - 40px)', width: '100%' }}>
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-        maxZoom={19}
-        minZoom={1}
-        errorTileUrl={null}
-        updateWhenZooming={true}
-        updateWhenIdle={false}
-        keepBuffer={4}
-        detectRetina={true}
-      />
-        <Marker position={[order.from.lat, order.from.lng]} icon={L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png', iconSize: [25, 41], iconAnchor: [12, 41] })}><Popup><strong>Pickup</strong></Popup></Marker>
-        <Marker position={[order.to.lat, order.to.lng]} icon={L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png', iconSize: [25, 41], iconAnchor: [12, 41] })}><Popup><strong>Delivery</strong></Popup></Marker>
-        {driverLocation && <Marker position={[driverLocation.lat, driverLocation.lng]} icon={L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png', iconSize: [25, 41], iconAnchor: [12, 41] })}><Popup><strong>Driver</strong></Popup></Marker>}
-        {locationHistory.length > 1 && <Polyline positions={locationHistory.map(loc => [loc.lat, loc.lng])} color="#4F46E5" weight={3} opacity={0.7} />}
+      <MapContainer
+        center={driverLocation ? [driverLocation.lat, driverLocation.lng] : [order.from.lat, order.from.lng]}
+        zoom={13}
+        style={{ height: 'calc(100% - 40px)', width: '100%' }}
+        onClick={() => {}} // Explicitly handle click to prevent noop warning
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+          maxZoom={19}
+          minZoom={1}
+          errorTileUrl={null}
+          updateWhenZooming={true}
+          updateWhenIdle={false}
+          keepBuffer={4}
+          detectRetina={true}
+        />
+        <Marker
+          position={[order.from.lat, order.from.lng]}
+          icon={L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41]
+          })}
+        >
+          <Popup><strong>Pickup</strong></Popup>
+        </Marker>
+        <Marker
+          position={[order.to.lat, order.to.lng]}
+          icon={L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41]
+          })}
+        >
+          <Popup><strong>Delivery</strong></Popup>
+        </Marker>
+        {driverLocation && (
+          <Marker
+            position={[driverLocation.lat, driverLocation.lng]}
+            icon={L.icon({
+              iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+              iconSize: [25, 41],
+              iconAnchor: [12, 41]
+            })}
+          >
+            <Popup><strong>Driver</strong></Popup>
+          </Marker>
+        )}
+        {locationHistory.length > 1 && (
+          <Polyline
+            positions={locationHistory.map(loc => [loc.lat, loc.lng])}
+            color="#4F46E5"
+            weight={3}
+            opacity={0.7}
+          />
+        )}
+        <MapUpdater />
       </MapContainer>
     </div>
   );
+};
 });
 
 // Location data state and API functions

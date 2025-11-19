@@ -10,14 +10,11 @@ const socketIo = require('socket.io');
 const morgan = require('morgan');
 const logger = require('./logger');
 
-// Load environment-specific .env file
-const envFile = process.env.ENV_FILE || '.env';
-dotenv.config({ path: envFile });
+dotenv.config();
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 const IS_TEST = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing';
 
-// CORS Configuration - Only enabled in non-production environments
 let corsOptions;
 if (!IS_PRODUCTION) {
   corsOptions = {
@@ -29,7 +26,6 @@ if (!IS_PRODUCTION) {
   };
 }
 
-// PostgreSQL Connection Pool
 const pool = new Pool({
   host: process.env.DB_HOST || 'localhost',
   port: process.env.DB_PORT || 5432,
@@ -41,7 +37,6 @@ const pool = new Pool({
   connectionTimeoutMillis: 2000,
 });
 
-// Database initialization
 const initDatabase = async () => {
   try {
     await pool.query(`CREATE TABLE IF NOT EXISTS users (id VARCHAR(255) PRIMARY KEY, name VARCHAR(255) NOT NULL, email VARCHAR(255) UNIQUE NOT NULL, password VARCHAR(255) NOT NULL, phone VARCHAR(50) NOT NULL, role VARCHAR(50) NOT NULL CHECK (role IN ('customer', 'driver', 'admin')), vehicle_type VARCHAR(100), rating DECIMAL(3,2) DEFAULT 5.00, completed_deliveries INTEGER DEFAULT 0, is_available BOOLEAN DEFAULT true, is_verified BOOLEAN DEFAULT false, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
@@ -53,12 +48,11 @@ const initDatabase = async () => {
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_orders_customer ON orders(customer_id); CREATE INDEX IF NOT EXISTS idx_orders_driver ON orders(assigned_driver_user_id); CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status); CREATE INDEX IF NOT EXISTS idx_bids_order ON bids(order_id); CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id); CREATE INDEX IF NOT EXISTS idx_location_updates_order ON location_updates(order_id);`);
     logger.info('✅ Database initialized successfully');
   } catch (error) {
-    console.error('❌ Database initialization error:', error);
+    logger.error('❌ Database initialization error:', error);
     throw error;
   }
 };
 
-// Initialize database on startup
 initDatabase().catch(err => {
   console.error('Failed to initialize database:', err);
   process.exit(1);
@@ -66,7 +60,6 @@ initDatabase().catch(err => {
 
 const generateId = () => Date.now().toString() + Math.random().toString(36).substr(2, 9);
 const generateOrderNumber = () => `ORD-${Date.now()}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
-
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
   console.error('❌ JWT_SECRET environment variable is required');
@@ -74,31 +67,24 @@ if (!JWT_SECRET) {
 }
 
 const app = express();
-
 if (corsOptions) app.use(cors(corsOptions));
 if (corsOptions) app.options('*', cors(corsOptions));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// HTTP request logging with Morgan
 app.use(morgan('combined', {
-  stream: {
-    write: (message) => {
-      const parts = message.trim().split(' ');
-      if (parts.length >= 9) {
-        logger.http('HTTP_REQUEST', {
-          method: parts[0], url: parts[1], status: parseInt(parts[2]),
-          responseTime: parts[3], ip: parts[6], userAgent: parts[8], category: 'http'
-        });
-      }
+  stream: { write: (message) => {
+    const parts = message.trim().split(' ');
+    if (parts.length >= 9) {
+      logger.http('HTTP_REQUEST', {
+        method: parts[0], url: parts[1], status: parseInt(parts[2]),
+        responseTime: parts[3], ip: parts[6], userAgent: parts[8], category: 'http'
+      });
     }
-  }
+  }}
 }));
-
 app.use(logger.requestLogger);
 
-// Helper function to create notification with real-time WebSocket emission
 const createNotification = async (userId, orderId, type, title, message) => {
   try {
     const result = await pool.query(`INSERT INTO notifications (user_id, order_id, type, title, message) VALUES ($1, $2, $3, $4, $5) RETURNING id, user_id, order_id, type, title, message, created_at`,
@@ -147,6 +133,303 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
+// Authentication routes
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const result = await pool.query('SELECT * FROM users WHERE LOWER(email) = LOWER($1)', [email]);
+
+    if (result.rows.length === 0 || !await bcrypt.compare(password, result.rows[0].password)) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    const user = result.rows[0];
+    const token = jwt.sign({ userId: user.id, email: user.email, name: user.name, role: user.role }, JWT_SECRET, { expiresIn: '30d' });
+
+    res.json({
+      message: 'Login successful',
+      token,
+      user: { id: user.id, name: user.name, email: user.email, role: user.role }
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Login failed' });
+  }
+});
+
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { name, email, password, phone, role } = req.body;
+
+    if (!name || !email || !password || !phone || !role) {
+      return res.status(400).json({ error: 'All fields required' });
+    }
+
+    const existingUser = await pool.query('SELECT id FROM users WHERE LOWER(email) = LOWER($1)', [email.trim()]);
+    if (existingUser.rows.length > 0) {
+      return res.status(400).json({ error: 'Email already registered' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const userId = generateId();
+
+    const result = await pool.query(
+      `INSERT INTO users (id, name, email, password, phone, role)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING id, name, email, phone, role`,
+      [userId, name.trim(), email.toLowerCase().trim(), hashedPassword, phone.trim(), role]
+    );
+
+    const user = result.rows[0];
+    const token = jwt.sign(
+      { userId: user.id, email: user.email, name: user.name, role: user.role },
+      JWT_SECRET,
+      { expiresIn: '30d' }
+    );
+
+    res.status(201).json({
+      message: 'User registered successfully',
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Registration failed' });
+  }
+});
+
+app.get('/api/auth/me', verifyToken, async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT id, name, email, role FROM users WHERE id = $1',
+      [req.user.userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const user = result.rows[0];
+    res.json({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get user' });
+  }
+});
+
+// Orders routes
+app.post('/api/orders', verifyToken, async (req, res) => {
+  try {
+    const {
+      title, description, price,
+      pickupAddress, deliveryAddress,
+      from, to
+    } = req.body;
+
+    const orderId = generateId();
+    const orderNumber = generateOrderNumber();
+
+    await pool.query(
+      `INSERT INTO orders (
+        id, order_number, title, description,
+        pickup_address, delivery_address,
+        from_lat, from_lng, from_name,
+        to_lat, to_lng, to_name,
+        price, status, customer_id, customer_name
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
+      [
+        orderId, orderNumber, title, description,
+        pickupAddress, deliveryAddress,
+        parseFloat(from.lat), parseFloat(from.lng), from.name,
+        parseFloat(to.lat), parseFloat(to.lng), to.name,
+        parseFloat(price), 'pending_bids', req.user.userId, req.user.name
+      ]
+    );
+
+    res.status(201).json({
+      _id: orderId,
+      orderNumber,
+      title,
+      description,
+      pickupAddress,
+      deliveryAddress,
+      from,
+      to,
+      price,
+      status: 'pending_bids',
+      customerId: req.user.userId,
+      customerName: req.user.name,
+      createdAt: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Order creation error:', error);
+    res.status(500).json({ error: 'Failed to create order' });
+  }
+});
+
+app.get('/api/orders', verifyToken, async (req, res) => {
+  try {
+    let query = 'SELECT * FROM orders WHERE customer_id = $1';
+    let params = [req.user.userId];
+
+    if (req.user.role === 'driver') {
+      query = `SELECT o.*,
+               CASE WHEN u.id IS NOT NULL THEN 'true' ELSE 'false' END as isDriverBid
+               FROM orders o
+               LEFT JOIN bids b ON o.id = b.order_id AND b.user_id = $1
+               LEFT JOIN users u ON b.user_id = u.id
+               WHERE o.status = 'pending_bids' OR o.assigned_driver_user_id = $1
+               ORDER BY o.created_at DESC`;
+      params = [req.user.userId];
+    }
+
+    const result = await pool.query(query, params);
+    const orders = result.rows.map(order => ({
+      _id: order.id,
+      orderNumber: order.order_number,
+      title: order.title,
+      description: order.description,
+      pickupAddress: order.pickup_address,
+      deliveryAddress: order.delivery_address,
+      from: { lat: parseFloat(order.from_lat), lng: parseFloat(order.from_lng), name: order.from_name },
+      to: { lat: parseFloat(order.to_lat), lng: parseFloat(order.to_lng), name: order.to_name },
+      price: parseFloat(order.price),
+      status: order.status,
+      customerId: order.customer_id,
+      customerName: order.customer_name,
+      assignedDriver: order.assigned_driver_user_id ? {
+        userId: order.assigned_driver_user_id,
+        driverName: order.assigned_driver_name
+      } : null,
+      createdAt: order.created_at
+    }));
+
+    res.json(orders);
+  } catch (error) {
+    console.error('Get orders error:', error);
+    res.status(500).json({ error: 'Failed to get orders' });
+  }
+});
+
+// Place bid route
+app.post('/api/orders/:id/bid', verifyToken, async (req, res) => {
+  try {
+    const { bidPrice } = req.body;
+
+    if (!bidPrice || req.user.role !== 'driver') {
+      return res.status(400).json({ error: 'Invalid bid' });
+    }
+
+    await pool.query(
+      `INSERT INTO bids (order_id, user_id, driver_name, bid_price, status)
+       VALUES ($1, $2, $3, $4, 'pending')
+       ON CONFLICT (order_id, user_id) DO UPDATE SET bid_price = $4`,
+      [req.params.id, req.user.userId, req.user.name, parseFloat(bidPrice)]
+    );
+
+    res.json({ message: 'Bid placed successfully' });
+  } catch (error) {
+    console.error('Place bid error:', error);
+    res.status(500).json({ error: 'Failed to place bid' });
+  }
+});
+
+// Accept bid route
+app.post('/api/orders/:id/accept-bid', verifyToken, async (req, res) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { userId } = req.body;
+
+    const orderResult = await client.query('SELECT * FROM orders WHERE id = $1', [req.params.id]);
+    if (orderResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    const order = orderResult.rows[0];
+    if (order.customer_id !== req.user.userId) {
+      await client.query('ROLLBACK');
+      return res.status(403).json({ error: 'Only customer can accept bids' });
+    }
+
+    const bidResult = await client.query('SELECT * FROM bids WHERE order_id = $1 AND user_id = $2', [req.params.id, userId]);
+    if (bidResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Bid not found' });
+    }
+
+    const acceptedBid = bidResult.rows[0];
+    await client.query(
+      `UPDATE orders SET status = 'accepted', assigned_driver_user_id = $1, assigned_driver_name = $2, assigned_driver_bid_price = $3, accepted_at = CURRENT_TIMESTAMP WHERE id = $4`,
+      [acceptedBid.user_id, acceptedBid.driver_name, acceptedBid.bid_price, req.params.id]
+    );
+    await client.query("UPDATE bids SET status = 'accepted' WHERE order_id = $1 AND user_id = $2", [req.params.id, userId]);
+    await client.query("UPDATE bids SET status = 'rejected' WHERE order_id = $1 AND user_id != $2", [req.params.id, userId]);
+
+    await client.query('COMMIT');
+
+    res.json({
+      message: 'Bid accepted',
+      assignedDriver: {
+        userId: acceptedBid.user_id,
+        driverName: acceptedBid.driver_name,
+        bidPrice: parseFloat(acceptedBid.bid_price)
+      }
+    });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Accept bid error:', error);
+    res.status(500).json({ error: 'Failed to accept bid' });
+  } finally {
+    client.release();
+  }
+});
+
+// Notifications routes
+app.get('/api/notifications', verifyToken, async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC LIMIT 50',
+      [req.user.userId]
+    );
+    res.json(result.rows.map(notif => ({
+      id: notif.id,
+      orderId: notif.order_id,
+      type: notif.type,
+      title: notif.title,
+      message: notif.message,
+      isRead: notif.is_read,
+      createdAt: notif.created_at
+    })));
+  } catch (error) {
+    console.error('Get notifications error:', error);
+    res.status(500).json({ error: 'Failed to get notifications' });
+  }
+});
+
+app.put('/api/notifications/:id/read', verifyToken, async (req, res) => {
+  try {
+    const result = await pool.query(
+      'UPDATE notifications SET is_read = true WHERE id = $1 AND user_id = $2 RETURNING *',
+      [req.params.id, req.user.userId]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Notification not found' });
+    res.json({ message: 'Notification marked as read' });
+  } catch (error) {
+    console.error('Mark notification read error:', error);
+    res.status(500).json({ error: 'Failed to mark notification as read' });
+  }
+});
+
 // Driver location management endpoints
 app.post('/api/drivers/location', verifyToken, async (req, res) => {
   try {
@@ -175,29 +458,6 @@ app.get('/api/drivers/location', verifyToken, async (req, res) => {
   } catch (error) {
     console.error('Get driver location error:', error);
     res.status(500).json({ error: 'Failed to get location' });
-  }
-});
-
-// Authentication endpoints
-app.post('/api/auth/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const result = await pool.query('SELECT * FROM users WHERE LOWER(email) = LOWER($1)', [email]);
-
-    if (result.rows.length === 0 || !await bcrypt.compare(password, result.rows[0].password)) {
-      return res.status(401).json({ error: 'Invalid email or password' });
-    }
-
-    const user = result.rows[0];
-    const token = jwt.sign({ userId: user.id, email: user.email, name: user.name, role: user.role }, JWT_SECRET, { expiresIn: '30d' });
-
-    res.json({
-      message: 'Login successful',
-      token,
-      user: { id: user.id, name: user.name, email: user.email, role: user.role }
-    });
-  } catch (error) {
-    res.status(500).json({ error: 'Login failed' });
   }
 });
 
@@ -304,7 +564,7 @@ io.on('connection', (socket) => {
 // Export io instance for use in routes
 module.exports.io = io;
 
-// Default error handlers
+// Error handling middleware
 app.use((req, res) => {
   logger.warn(`404 Not Found: ${req.method} ${req.originalUrl}`, {
     method: req.method, url: req.originalUrl, ip: req.ip, userAgent: req.get('User-Agent'), category: 'http'
