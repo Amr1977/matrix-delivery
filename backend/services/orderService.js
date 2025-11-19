@@ -67,6 +67,30 @@ class OrderService {
               'driverIsVerified', u.is_verified
             )
           ) FILTER (WHERE b.id IS NOT NULL) as bids,
+          CASE
+            WHEN o.assigned_driver_id IS NOT NULL THEN
+              (SELECT json_build_object(
+                'userId', ab.user_id,
+                'driverName', au.name,
+                'bidPrice', ab.bid_price,
+                'estimatedPickupTime', ab.estimated_pickup_time,
+                'estimatedDeliveryTime', ab.estimated_delivery_time,
+                'message', ab.message,
+                'driverRating', au.rating,
+                'driverCompletedDeliveries', au.completed_deliveries,
+                'driverReviewCount', COALESCE(adr.review_count, 0),
+                'driverIsVerified', au.is_verified
+              )
+              FROM bids ab
+              LEFT JOIN users au ON ab.user_id = au.id
+              LEFT JOIN (
+                SELECT reviewee_id, COUNT(*) as review_count
+                FROM reviews
+                GROUP BY reviewee_id
+              ) adr ON adr.reviewee_id = au.id
+              WHERE ab.order_id = o.id AND ab.user_id = o.assigned_driver_id)
+            ELSE NULL
+          END as acceptedBid,
           json_build_object(
             'reviews', json_build_object(
               'toDriver', CASE WHEN r.id IS NOT NULL THEN true ELSE false END,
@@ -143,6 +167,30 @@ class OrderService {
               'driverIsVerified', u.is_verified
             )
           ) FILTER (WHERE b.id IS NOT NULL) as bids,
+          CASE
+            WHEN o.assigned_driver_id IS NOT NULL THEN
+              (SELECT json_build_object(
+                'userId', ab.user_id,
+                'driverName', au.name,
+                'bidPrice', ab.bid_price,
+                'estimatedPickupTime', ab.estimated_pickup_time,
+                'estimatedDeliveryTime', ab.estimated_delivery_time,
+                'message', ab.message,
+                'driverRating', au.rating,
+                'driverCompletedDeliveries', au.completed_deliveries,
+                'driverReviewCount', COALESCE(adr.review_count, 0),
+                'driverIsVerified', au.is_verified
+              )
+              FROM bids ab
+              LEFT JOIN users au ON ab.user_id = au.id
+              LEFT JOIN (
+                SELECT reviewee_id, COUNT(*) as review_count
+                FROM reviews
+                GROUP BY reviewee_id
+              ) adr ON adr.reviewee_id = au.id
+              WHERE ab.order_id = o.id AND ab.user_id = o.assigned_driver_id)
+            ELSE NULL
+          END as acceptedBid,
           json_build_object(
             'reviews', json_build_object(
               'toDriver', false,
@@ -175,10 +223,7 @@ class OrderService {
       // Admin sees all orders
       query = `
         SELECT
-          o.id, o.customer_id, o.title, o.description, o.pickup_address, o.delivery_address,
-          o.from_coordinates, o.to_coordinates, o.package_description, o.package_weight,
-          o.estimated_value, o.special_instructions, o.price, o.status, o.order_number,
-          o.created_at, o.accepted_at, o.picked_up_at, o.in_transit_at, o.delivered_at,
+          o.*,
           json_build_object(
             'userId', d.id,
             'name', d.name,
@@ -192,18 +237,47 @@ class OrderService {
               'bidPrice', b.bid_price,
               'estimatedPickupTime', b.estimated_pickup_time,
               'estimatedDeliveryTime', b.estimated_delivery_time,
-              'message', b.message
+              'message', b.message,
+              'driverRating', u.rating,
+              'driverCompletedDeliveries', u.completed_deliveries,
+              'driverReviewCount', COALESCE(dr.review_count, 0),
+              'driverIsVerified', u.is_verified
             )
-          ) FILTER (WHERE b.id IS NOT NULL) as bids
+          ) FILTER (WHERE b.id IS NOT NULL) as bids,
+          CASE
+            WHEN o.assigned_driver_id IS NOT NULL THEN
+              (SELECT json_build_object(
+                'userId', ab.user_id,
+                'driverName', au.name,
+                'bidPrice', ab.bid_price,
+                'estimatedPickupTime', ab.estimated_pickup_time,
+                'estimatedDeliveryTime', ab.estimated_delivery_time,
+                'message', ab.message,
+                'driverRating', au.rating,
+                'driverCompletedDeliveries', au.completed_deliveries,
+                'driverReviewCount', COALESCE(adr.review_count, 0),
+                'driverIsVerified', au.is_verified
+              )
+              FROM bids ab
+              LEFT JOIN users au ON ab.user_id = au.id
+              LEFT JOIN (
+                SELECT reviewee_id, COUNT(*) as review_count
+                FROM reviews
+                GROUP BY reviewee_id
+              ) adr ON adr.reviewee_id = au.id
+              WHERE ab.order_id = o.id AND ab.user_id = o.assigned_driver_id)
+            ELSE NULL
+          END as acceptedBid
         FROM orders o
         LEFT JOIN users d ON o.assigned_driver_id = d.id
         LEFT JOIN bids b ON o.id = b.order_id
         LEFT JOIN users u ON b.user_id = u.id
-        GROUP BY o.id, o.customer_id, o.title, o.description, o.pickup_address, o.delivery_address,
-          o.from_coordinates, o.to_coordinates, o.package_description, o.package_weight,
-          o.estimated_value, o.special_instructions, o.price, o.status, o.order_number,
-          o.created_at, o.accepted_at, o.picked_up_at, o.in_transit_at, o.delivered_at,
-          d.id, d.name, d.rating, d.completed_deliveries
+        LEFT JOIN (
+          SELECT reviewee_id, COUNT(*) as review_count
+          FROM reviews
+          GROUP BY reviewee_id
+        ) dr ON dr.reviewee_id = u.id
+        GROUP BY o.id, d.id, d.name, d.rating, d.completed_deliveries
         ORDER BY o.created_at DESC
       `;
     }
@@ -226,6 +300,7 @@ class OrderService {
       createdAt: order.created_at,
       assignedDriver: order.assigneddriver,
       bids: order.bids || [],
+      acceptedBid: order.acceptedbid,
       reviewStatus: order.reviewstatus || { reviews: { toDriver: false, toCustomer: false, toPlatform: false } },
       customerId: order.customer_id,
       from: order.from_coordinates ? {
