@@ -2,7 +2,10 @@ import React from 'react';
 import { useI18n } from '../../i18n/i18nContext';
 import { formatCurrency, getStatusColor, getStatusLabel, formatDateTime } from '../../utils/formatters';
 import DriverBiddingMap from '../maps/DriverBiddingMap';
-
+import RoutePreviewMap from '../RoutePreviewMap';
+import LiveTrackingMap from '../maps/LiveTrackingMap';
+import useAuth from '../../hooks/useAuth';
+import LiveTrackingMap from '../maps/LiveTrackingMap';
 const OrderCard = ({
   order,
   currentUser,
@@ -88,6 +91,22 @@ const OrderCard = ({
         }}>
           {order.description}
         </p>
+      )}
+
+      {/* Route Preview Map for Customers */}
+      {order.status === 'pending_bids' && currentUser?.role === 'customer' && (
+        <div style={{
+          borderTop: '2px solid var(--matrix-border)',
+          paddingTop: '1rem',
+          marginBottom: '1rem',
+          marginTop: '0.5rem'
+        }}>
+          <RoutePreviewMap
+            pickup={order.from}
+            dropoff={order.to}
+            compact={true}
+          />
+        </div>
       )}
 
       <div className="location-grid" style={{ marginBottom: '1rem', padding: '1rem', background: 'rgba(0, 17, 0, 0.3)', borderRadius: '0.5rem', border: '2px solid var(--matrix-border)', opacity: '0.95' }}>
@@ -570,6 +589,21 @@ const OrderCard = ({
               {loadingStates.placeBid ? 'Bidding...' : 'Place Bid'}
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Route Preview Map for Customers */}
+      {order.status === 'pending_bids' && currentUser?.role === 'customer' && (
+        <div style={{
+          borderTop: '2px solid var(--matrix-border)',
+          paddingTop: '1rem',
+          marginTop: '0.5rem'
+        }}>
+          <RoutePreviewMap
+            pickup={order.from}
+            dropoff={order.to}
+            compact={true}
+          />
         </div>
       )}
 
