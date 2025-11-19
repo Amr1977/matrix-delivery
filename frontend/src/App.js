@@ -1399,38 +1399,46 @@ const getDriverViewTitle = (viewType) => {
   };
 
   const toggleOnline = async () => {
-    if (!driverOnline && hasActiveOrders()) {
+    if (driverOnline && hasActiveOrders()) {
       setError("Cannot go offline while you have active orders. Complete deliveries first.");
       return;
     }
 
-    if (!driverOnline) {
-      // Going online
-      setDriverOnline(true);
-      await updateDriverStatus(true);
-      // Start location sync
-      updateDriverLocationOnce(); // Immediate update
-      locationIntervalRef.current = setInterval(() => {
-        updateDriverLocationOnce();
-      }, 30000); // Sync every 30s when online
-
-      setLoadingState('toggleOnline', false);
-    } else {
-      // Going offline
-      setDriverOnline(false);
-      await updateDriverStatus(false);
-      // Stop location sync
-      if (locationIntervalRef.current) {
-        clearInterval(locationIntervalRef.current);
-        locationIntervalRef.current = null;
+    setLoadingState('toggleOnline', true);
+    try {
+      if (!driverOnline) {
+        // Going online
+        await updateDriverStatus(true);
+        setDriverOnline(true);
+        updateDriverLocationOnce(); // Immediate update
+        locationIntervalRef.current = setInterval(() => {
+          updateDriverLocationOnce();
+        }, 30000); // Sync every 30s when online
+      } else {
+        // Going offline
+        await updateDriverStatus(false);
+        setDriverOnline(false);
+        // Stop location sync
+        if (locationIntervalRef.current) {
+          clearInterval(locationIntervalRef.current);
+          locationIntervalRef.current = null;
+        }
+        setLocationPermission('unknown');
       }
-      setLocationPermission('unknown');
-
+    } catch (error) {
+      console.error('Failed to toggle driver status:', error);
+      setError('Failed to update driver status. Please try again.');
+    } finally {
       setLoadingState('toggleOnline', false);
     }
   };
 
 
+
+  const handleViewTracking = (order) => {
+    setSelectedOrder(order);
+    setShowLiveTracking(true);
+  };
 
   const getStatusLabel = (status) => {
     const statusKeyMap = {
@@ -1925,7 +1933,9 @@ const getDriverViewTitle = (viewType) => {
           <div style={{ marginBottom: '1.5rem' }}>
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1rem' }}>
               <button
-                onClick={() => setLoadingState('toggleOnline', true)}
+                onClick={async () => {
+                  await toggleOnline();
+                }}
                 disabled={!driverOnline && hasActiveOrders()}
                 style={{
                   background: driverOnline ? '#EF4444' : '#10B981',
@@ -1941,7 +1951,7 @@ const getDriverViewTitle = (viewType) => {
                   gap: '0.5rem'
                 }}
               >
-                {driverOnline ? '🔴' : '🟢'} {driverOnline ? 'Go Offline' : 'Go Online'}
+                {loadingStates.toggleOnline ? '...' : driverOnline ? '🔴' : '🟢'} {loadingStates.toggleOnline ? 'Switching...' : driverOnline ? 'Go Offline' : 'Go Online'}
               </button>
               <div style={{ fontSize: '0.875rem', color: '#6B7280' }}>
                 {driverOnline ? (

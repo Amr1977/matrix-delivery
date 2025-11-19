@@ -13,6 +13,7 @@ require('dotenv').config({ path: envFile });
 // Import extracted routes
 const authRoutes = require('./routes/auth');
 const orderRoutes = require('./routes/orders');
+const driverRoutes = require('./routes/drivers');
 
 const app = express();
 const server = http.createServer(app);
@@ -83,6 +84,7 @@ app.get('/health', (req, res) => {
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/drivers', driverRoutes);
 
 // Footer stats endpoint (placeholder - would be implemented separately)
 app.get('/api/footer/stats', (req, res) => {
