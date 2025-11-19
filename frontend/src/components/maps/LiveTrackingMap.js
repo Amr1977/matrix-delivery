@@ -210,7 +210,7 @@ const LiveTrackingMap = React.memo(({ order, token }) => {
             }
           );
         }
-      }, 30000);
+      }, 3000); // Update location every 3 seconds for real-time tracking
     }
 
     return () => {
