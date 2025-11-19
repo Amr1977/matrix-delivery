@@ -26,22 +26,18 @@ const OrderList = ({
 
   if (displayOrders.length === 0) {
     return (
-      <div style={{
+      <div className="order-card" style={{
         textAlign: 'center',
-        padding: '3rem',
-        background: 'linear-gradient(135deg, #000000 0%, #001100 100%)',
-        border: '2px solid #00AA00',
-        borderRadius: '0.75rem',
-        boxShadow: '0 0 20px rgba(0, 170, 0, 0.2)'
+        padding: '3rem'
       }}>
         <p style={{
           fontSize: '3rem',
           marginBottom: '0.5rem'
         }}>📦</p>
         <p style={{
-          color: '#30FF30',
+          color: 'var(--matrix-bright-green)',
           fontFamily: 'Consolas, Monaco, Courier New, monospace',
-          textShadow: '0 0 10px #30FF30',
+          textShadow: 'var(--shadow-glow)',
           fontSize: '1.25rem'
         }}>
           {currentUser?.role === 'customer'
