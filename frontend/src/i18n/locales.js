@@ -528,7 +528,7 @@ const translations = {
       no: 'لا',
       optional: 'اختياري',
       required: 'مطلوب',
-      appName: 'ماتريكس ديليفري',
+      appName: 'أبطال المصفوفة',
       subtitle: 'السوق الحرة للتوصيل '
     },
 
@@ -795,7 +795,7 @@ const translations = {
       no: 'No',
       optional: 'Opcional',
       required: 'Requerido',
-      appName: 'Matrix Delivery',
+      appName: 'Matrix Heroes',
       subtitle: 'Mercado P2P de Entregas'
     },
 
@@ -1062,7 +1062,7 @@ const translations = {
       no: 'Non',
       optional: 'Optionnel',
       required: 'Requis',
-      appName: 'Matrix Delivery',
+      appName: 'Matrix Heroes',
       subtitle: 'Marché P2P de Livraison'
     },
 
@@ -1329,7 +1329,7 @@ const translations = {
       no: '否',
       optional: '可选',
       required: '必填',
-      appName: 'Matrix Delivery',
+      appName: 'Matrix Heroes',
       subtitle: 'P2P 交付市场'
     },
 
@@ -1596,7 +1596,7 @@ const translations = {
       no: 'Nein',
       optional: 'Optional',
       required: 'Erforderlich',
-      appName: 'Matrix Delivery',
+      appName: 'Matrix Heroes',
       subtitle: 'P2P Liefermarkt'
     },
 
@@ -1863,7 +1863,7 @@ const translations = {
       no: 'Não',
       optional: 'Opcional',
       required: 'Obrigatório',
-      appName: 'Matrix Delivery',
+      appName: 'Matrix Heroes',
       subtitle: 'Mercado P2P de Entregas'
     },
 
@@ -2130,7 +2130,7 @@ const translations = {
       no: 'Нет',
       optional: 'Необязательно',
       required: 'Обязательно',
-      appName: 'Matrix Delivery',
+      appName: 'Matrix Heroes',
       subtitle: 'P2P рынок доставки'
     },
 
@@ -2397,7 +2397,7 @@ const translations = {
       no: 'いいえ',
       optional: '任意',
       required: '必須',
-      appName: 'Matrix Delivery',
+      appName: 'Matrix Heroes',
       subtitle: 'P2P 配送マーケット'
     },
 
@@ -2664,7 +2664,7 @@ const translations = {
       no: 'Hayır',
       optional: 'İsteğe bağlı',
       required: 'Zorunlu',
-      appName: 'Matrix Delivery',
+      appName: 'Matrix Heroes',
       subtitle: 'P2P Teslimat Pazarı'
     },
 
@@ -2931,7 +2931,7 @@ const translations = {
       no: 'نہیں',
       optional: 'اختیاری',
       required: 'ضروری',
-      appName: 'میٹرکس ڈیلیوری',
+      appName: 'Matrix Heroes',
       subtitle: 'P2P ڈیلیوری مارکیٹ'
     }
   },
@@ -3185,7 +3185,7 @@ const translations = {
       no: 'नहीं',
       optional: 'वैकल्पिक',
       required: 'आवश्यक',
-      appName: 'मैट्रिक्स डिलीवरी',
+      appName: 'Matrix Heroes',
       subtitle: 'P2P डिलीवरी बाजार'
     },
 
