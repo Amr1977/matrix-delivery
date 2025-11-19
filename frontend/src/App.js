@@ -145,7 +145,6 @@ const LiveTrackingMap = React.memo(({ order, token, currentUser, apiUrl }) => {
       </MapContainer>
     </div>
   );
-};
 });
 
 // Location data state and API functions
