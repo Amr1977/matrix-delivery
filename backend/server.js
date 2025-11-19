@@ -1733,11 +1733,28 @@ app.post('/api/orders/:id/bid', verifyToken, async (req, res) => {
     await client.query('COMMIT');
 
     const updatedOrder = updatedOrderResult.rows[0];
-    logger.info(`Bid placed`, {
+
+    // Enhanced logging to debug bid placement
+    logger.info(`Bid placed successfully - Verifying notification creation`, {
       userId: req.user.userId,
+      userName: req.user.name,
       orderId: req.params.id,
+      orderNumber: order.order_number,
+      customerId: order.customer_id,
       bidPrice: parseFloat(bidPrice),
+      bidCount: updatedOrder.bids.length,
       category: 'order'
+    });
+
+    // Ensure bid notification is created with full details
+    const notificationResult = await createNotification(order.customer_id, order.id, 'new_bid', 'New Bid Received', `${req.user.name} placed a bid of $${bidPrice} on your order ${order.order_number}`);
+
+    logger.info(`Bid notification created and sent`, {
+      notificationId: notificationResult.id,
+      customerId: order.customer_id,
+      orderId: order.id,
+      bidPrice: parseFloat(bidPrice),
+      category: 'notification'
     });
 
     res.json({

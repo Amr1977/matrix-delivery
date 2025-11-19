@@ -251,11 +251,11 @@ useEffect(() => {
     if (token) {
       fetchCurrentUser();
       fetchNotifications();
-      // Reduced polling interval to 60 seconds since we now have real-time notifications
+      // Balanced polling for reliability and performance (7-second interval)
       const interval = setInterval(() => {
         fetchOrders();
         fetchNotifications();
-      }, 60000); // Changed from 30000 to 60000
+      }, 7000); // 7 seconds polling for good balance
       return () => clearInterval(interval);
     }
   }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -301,8 +301,10 @@ useEffect(() => {
         console.log('📡 Connected to real-time notifications');
       });
 
-      socket.on('notification', (notification) => {
+      socket.on('notification', async (notification) => {
         console.log('📡 Real-time notification received:', notification);
+        console.log('📡 Notification type:', notification.type);
+        console.log('📡 Notification message:', notification.message);
 
         // Add to notifications list
         setNotifications(prev => [notification, ...prev]);
@@ -313,6 +315,23 @@ useEffect(() => {
         // Speak notification (only for new unread ones)
         if (!notification.isRead) {
           speakNotification(notification);
+        }
+
+        // Refresh orders data for relevant notification types
+        if (notification.type === 'new_bid' ||
+            notification.type === 'bid_accepted' ||
+            notification.type === 'order_picked_up' ||
+            notification.type === 'order_in_transit' ||
+            notification.type === 'order_delivered' ||
+            notification.message?.toLowerCase().includes('bid') ||
+            notification.message?.toLowerCase().includes('driver') ||
+            notification.message?.toLowerCase().includes('order')) {
+          console.log('📡 Refreshing orders due to order status notification:', notification.type);
+          try {
+            await fetchOrders();
+          } catch (error) {
+            console.warn('Failed to refresh orders after notification:', error);
+          }
         }
       });
 
@@ -406,6 +425,21 @@ useEffect(() => {
         throw new Error(`Failed to fetch orders: ${response.status}`);
       }
       const data = await response.json();
+
+      // Debug: Check if any orders have bids
+      const ordersWithBids = data.filter(order => order.bids && order.bids.length > 0);
+      if (ordersWithBids.length > 0) {
+        console.log('📡 Orders with bids found:', ordersWithBids.length);
+        ordersWithBids.forEach(order => {
+          console.log(`  📦 Order ${order._id}: ${order.bids.length} bids`);
+          order.bids.forEach((bid, i) => {
+            console.log(`    ${i+1}. ${bid.driverName}: $${bid.bidPrice}`);
+          });
+        });
+      } else {
+        console.log('📡 No orders with bids found');
+      }
+
       setOrders(data);
     } catch (err) {
       console.error('Error fetching orders:', err.message);

@@ -35,21 +35,15 @@ const OrderCard = ({
   };
 
   return (
-    <div key={order._id} className="order-card" style={{
-      background: 'linear-gradient(135deg, #000000 0%, #001100 100%)',
-      border: '2px solid #00AA00',
-      borderRadius: '0.75rem',
-      padding: '1.5rem',
-      boxShadow: '0 0 20px rgba(0, 170, 0, 0.2)'
-    }}>
+    <div className="order-card">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
         <div>
           <h3 style={{
             fontSize: '1.25rem',
             fontWeight: 'bold',
             marginBottom: '0.25rem',
-            color: '#30FF30',
-            textShadow: '0 0 10px #30FF30',
+            color: 'var(--matrix-bright-green)',
+            textShadow: 'var(--shadow-glow)',
             fontFamily: 'Consolas, Monaco, Courier New, monospace'
           }}>
             {order.title}
@@ -57,9 +51,9 @@ const OrderCard = ({
           {order.orderNumber && (
             <p style={{
               fontSize: '0.875rem',
-              color: '#A0A0A0',
+              color: 'var(--matrix-green)',
               fontFamily: 'Consolas, Monaco, Courier New, monospace',
-              textShadow: '0 0 5px rgba(160, 160, 160, 0.5)'
+              textShadow: '0 0 5px rgba(0, 255, 0, 0.5)'
             }}>
               Order #{order.orderNumber}
             </p>
@@ -85,58 +79,46 @@ const OrderCard = ({
       {order.description && (
         <p style={{
           fontSize: '0.875rem',
-          color: '#E5E7EB',
+          color: 'var(--matrix-bright-green)',
           marginBottom: '0.75rem',
           fontFamily: 'Consolas, Monaco, Courier New, monospace',
-          textShadow: '0 0 5px rgba(229, 231, 235, 0.5)'
+          textShadow: '0 0 5px rgba(48, 255, 48, 0.5)'
         }}>
           {order.description}
         </p>
       )}
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: '0.75rem',
-        marginBottom: '1rem',
-        padding: '1rem',
-        background: 'rgba(0, 17, 0, 0.6)',
-        borderRadius: '0.5rem',
-        border: '2px solid #00AA00'
-      }}>
+      <div className="location-grid" style={{ marginBottom: '1rem', padding: '1rem', background: 'rgba(0, 17, 0, 0.3)', borderRadius: '0.5rem', border: '2px solid var(--matrix-border)', opacity: '0.95' }}>
         <div>
           <p style={{
             fontSize: '0.75rem',
             fontWeight: '600',
-            color: '#30FF30',
+            color: 'var(--matrix-bright-green)',
             marginBottom: '0.25rem',
-            textShadow: '0 0 5px #30FF30',
+            textShadow: 'var(--shadow-glow)',
             fontFamily: 'Consolas, Monaco, Courier New, monospace'
           }}>
             📤 Pickup
           </p>
-          <p style={{
+          <p className="text-matrix" style={{
             fontSize: '0.875rem',
-            color: '#E5E7EB',
             fontFamily: 'Consolas, Monaco, Courier New, monospace'
           }}>
             {order.pickupAddress || order.from?.name}
           </p>
         </div>
         <div>
-          <p style={{
+          <p className="text-matrix" style={{
             fontSize: '0.75rem',
             fontWeight: '600',
-            color: '#30FF30',
             marginBottom: '0.25rem',
-            textShadow: '0 0 5px #30FF30',
+            textShadow: 'var(--shadow-glow)',
             fontFamily: 'Consolas, Monaco, Courier New, monospace'
           }}>
             📥 Delivery
           </p>
-          <p style={{
+          <p className="text-matrix" style={{
             fontSize: '0.875rem',
-            color: '#E5E7EB',
             fontFamily: 'Consolas, Monaco, Courier New, monospace'
           }}>
             {order.deliveryAddress || order.to?.name}
@@ -147,16 +129,16 @@ const OrderCard = ({
             <p style={{
               fontSize: '0.75rem',
               fontWeight: '600',
-              color: '#30FF30',
+              color: 'var(--matrix-bright-green)',
               marginBottom: '0.25rem',
-              textShadow: '0 0 5px #30FF30',
+              textShadow: 'var(--shadow-glow)',
               fontFamily: 'Consolas, Monaco, Courier New, monospace'
             }}>
               📦 Package
             </p>
             <p style={{
               fontSize: '0.875rem',
-              color: '#E5E7EB',
+              color: 'var(--matrix-bright-green)',
               fontFamily: 'Consolas, Monaco, Courier New, monospace'
             }}>
               {order.packageDescription}
@@ -168,16 +150,16 @@ const OrderCard = ({
             <p style={{
               fontSize: '0.75rem',
               fontWeight: '600',
-              color: '#30FF30',
+              color: 'var(--matrix-bright-green)',
               marginBottom: '0.25rem',
-              textShadow: '0 0 5px #30FF30',
+              textShadow: 'var(--shadow-glow)',
               fontFamily: 'Consolas, Monaco, Courier New, monospace'
             }}>
               ⚖️ Weight
             </p>
             <p style={{
               fontSize: '0.875rem',
-              color: '#E5E7EB',
+              color: 'var(--matrix-bright-green)',
               fontFamily: 'Consolas, Monaco, Courier New, monospace'
             }}>
               {order.packageWeight} kg
@@ -189,16 +171,16 @@ const OrderCard = ({
             <p style={{
               fontSize: '0.75rem',
               fontWeight: '600',
-              color: '#30FF30',
+              color: 'var(--matrix-bright-green)',
               marginBottom: '0.25rem',
-              textShadow: '0 0 5px #30FF30',
+              textShadow: 'var(--shadow-glow)',
               fontFamily: 'Consolas, Monaco, Courier New, monospace'
             }}>
               💰 Value
             </p>
             <p style={{
               fontSize: '0.875rem',
-              color: '#E5E7EB',
+              color: 'var(--matrix-bright-green)',
               fontFamily: 'Consolas, Monaco, Courier New, monospace'
             }}>
               {formatCurrency(order.estimatedValue)}
@@ -210,16 +192,16 @@ const OrderCard = ({
             <p style={{
               fontSize: '0.75rem',
               fontWeight: '600',
-              color: '#30FF30',
+              color: 'var(--matrix-bright-green)',
               marginBottom: '0.25rem',
-              textShadow: '0 0 5px #30FF30',
+              textShadow: 'var(--shadow-glow)',
               fontFamily: 'Consolas, Monaco, Courier New, monospace'
             }}>
               📝 Instructions
             </p>
             <p style={{
               fontSize: '0.875rem',
-              color: '#E5E7EB',
+              color: 'var(--matrix-bright-green)',
               fontFamily: 'Consolas, Monaco, Courier New, monospace'
             }}>
               {order.specialInstructions}
@@ -232,8 +214,8 @@ const OrderCard = ({
         <p style={{
           fontSize: '1.5rem',
           fontWeight: 'bold',
-          color: '#30FF30',
-          textShadow: '0 0 10px #30FF30',
+          color: 'var(--matrix-bright-green)',
+          textShadow: 'var(--shadow-glow)',
           fontFamily: 'Consolas, Monaco, Courier New, monospace'
         }}>
           {formatCurrency(order.price)}
@@ -244,27 +226,8 @@ const OrderCard = ({
               {currentUser?.role === 'customer' && !order.reviewStatus?.reviews.toDriver && (
                 <button
                   onClick={() => onOpenReviewModal(order._id, 'customer_to_driver')}
-                  style={{
-                    padding: '0.5rem 1rem',
-                    background: 'linear-gradient(135deg, #00AA00 0%, #30FF30 50%, #00AA00 100%)',
-                    color: '#000000',
-                    border: '2px solid #00AA00',
-                    borderRadius: '0.375rem',
-                    cursor: 'pointer',
-                    fontSize: '0.875rem',
-                    fontWeight: '600',
-                    fontFamily: 'Consolas, Monaco, Courier New, monospace',
-                    boxShadow: '0 0 10px rgba(0, 255, 0, 0.5)',
-                    textShadow: '0 0 5px rgba(0, 0, 0, 0.5)'
-                  }}
-                  onMouseOver={(e) => {
-                    e.target.style.boxShadow = '0 0 15px rgba(0, 255, 0, 0.8)';
-                    e.target.style.transform = 'scale(1.05)';
-                  }}
-                  onMouseOut={(e) => {
-                    e.target.style.boxShadow = '0 0 10px rgba(0, 255, 0, 0.5)';
-                    e.target.style.transform = 'scale(1)';
-                  }}
+                  className="btn-success"
+                  style={{ textShadow: '0 0 5px rgba(0, 0, 0, 0.5)' }}
                 >
                   ⭐ Review Driver
                 </button>
@@ -272,27 +235,8 @@ const OrderCard = ({
               {currentUser?.role === 'driver' && order.assignedDriver?.userId === currentUser?.id && !order.reviewStatus?.reviews.toCustomer && (
                 <button
                   onClick={() => onOpenReviewModal(order._id, 'driver_to_customer')}
-                  style={{
-                    padding: '0.5rem 1rem',
-                    background: 'linear-gradient(135deg, #00AA00 0%, #30FF30 50%, #00AA00 100%)',
-                    color: '#000000',
-                    border: '2px solid #00AA00',
-                    borderRadius: '0.375rem',
-                    cursor: 'pointer',
-                    fontSize: '0.875rem',
-                    fontWeight: '600',
-                    fontFamily: 'Consolas, Monaco, Courier New, monospace',
-                    boxShadow: '0 0 10px rgba(0, 255, 0, 0.5)',
-                    textShadow: '0 0 5px rgba(0, 0, 0, 0.5)'
-                  }}
-                  onMouseOver={(e) => {
-                    e.target.style.boxShadow = '0 0 15px rgba(0, 255, 0, 0.8)';
-                    e.target.style.transform = 'scale(1.05)';
-                  }}
-                  onMouseOut={(e) => {
-                    e.target.style.boxShadow = '0 0 10px rgba(0, 255, 0, 0.5)';
-                    e.target.style.transform = 'scale(1)';
-                  }}
+                  className="btn-success"
+                  style={{ textShadow: '0 0 5px rgba(0, 0, 0, 0.5)' }}
                 >
                   ⭐ Review Customer
                 </button>
@@ -301,25 +245,27 @@ const OrderCard = ({
                 <button
                   onClick={() => onOpenReviewModal(order._id, `${currentUser?.role}_to_platform`)}
                   style={{
-                    padding: '0.5rem 1rem',
                     background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 50%, #6366F1 100%)',
                     color: '#FFFFFF',
                     border: '2px solid #6366F1',
-                    borderRadius: '0.375rem',
+                    borderRadius: 'var(--radius-md)',
                     cursor: 'pointer',
                     fontSize: '0.875rem',
                     fontWeight: '600',
+                    minHeight: '44px',
+                    padding: '0.5rem 1rem',
                     fontFamily: 'Consolas, Monaco, Courier New, monospace',
                     boxShadow: '0 0 10px rgba(99, 102, 241, 0.5)',
-                    textShadow: '0 0 5px rgba(139, 92, 246, 0.5)'
+                    textShadow: '0 0 5px rgba(139, 92, 246, 0.5)',
+                    transition: 'all 0.3s ease'
                   }}
                   onMouseOver={(e) => {
                     e.target.style.boxShadow = '0 0 15px rgba(99, 102, 241, 0.8)';
-                    e.target.style.transform = 'scale(1.05)';
+                    e.target.style.transform = 'translateY(-2px)';
                   }}
                   onMouseOut={(e) => {
                     e.target.style.boxShadow = '0 0 10px rgba(99, 102, 241, 0.5)';
-                    e.target.style.transform = 'scale(1)';
+                    e.target.style.transform = 'translateY(0)';
                   }}
                 >
                   🌟 Review Platform
@@ -327,27 +273,7 @@ const OrderCard = ({
               )}
               <button
                 onClick={() => onViewReviews(order._id)}
-                style={{
-                  padding: '0.5rem 1rem',
-                  background: 'linear-gradient(135deg, #F59E0B 0%, #FBBF24 50%, #F59E0B 100%)',
-                  color: '#000000',
-                  border: '2px solid #F59E0B',
-                  borderRadius: '0.375rem',
-                  cursor: 'pointer',
-                  fontSize: '0.875rem',
-                  fontWeight: '600',
-                  fontFamily: 'Consolas, Monaco, Courier New, monospace',
-                  boxShadow: '0 0 10px rgba(245, 158, 11, 0.5)',
-                  textShadow: '0 0 5px rgba(251, 191, 36, 0.5)'
-                }}
-                onMouseOver={(e) => {
-                  e.target.style.boxShadow = '0 0 15px rgba(245, 158, 11, 0.8)';
-                  e.target.style.transform = 'scale(1.05)';
-                }}
-                onMouseOut={(e) => {
-                  e.target.style.boxShadow = '0 0 10px rgba(245, 158, 11, 0.5)';
-                  e.target.style.transform = 'scale(1)';
-                }}
+                className="btn-warning"
               >
                 📝 View Reviews
               </button>
@@ -356,25 +282,27 @@ const OrderCard = ({
           <button
             onClick={() => onViewTracking(order)}
             style={{
-              padding: '0.5rem 1rem',
               background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 50%, #6366F1 100%)',
               color: '#FFFFFF',
               border: '2px solid #6366F1',
-              borderRadius: '0.375rem',
+              borderRadius: 'var(--radius-md)',
               cursor: 'pointer',
               fontSize: '0.875rem',
               fontWeight: '600',
+              minHeight: '44px',
+              padding: '0.5rem 1rem',
               fontFamily: 'Consolas, Monaco, Courier New, monospace',
               boxShadow: '0 0 10px rgba(99, 102, 241, 0.5)',
-              textShadow: '0 0 5px rgba(139, 92, 246, 0.5)'
+              textShadow: '0 0 5px rgba(139, 92, 246, 0.5)',
+              transition: 'all 0.3s ease'
             }}
             onMouseOver={(e) => {
               e.target.style.boxShadow = '0 0 15px rgba(99, 102, 241, 0.8)';
-              e.target.style.transform = 'scale(1.05)';
+              e.target.style.transform = 'translateY(-2px)';
             }}
             onMouseOut={(e) => {
               e.target.style.boxShadow = '0 0 10px rgba(99, 102, 241, 0.5)';
-              e.target.style.transform = 'scale(1)';
+              e.target.style.transform = 'translateY(0)';
             }}
           >
             🗺️ Track Order
@@ -385,26 +313,27 @@ const OrderCard = ({
       {/* Driver bidding section */}
       {order.status === 'pending_bids' && currentUser?.role === 'driver' && (
         <div style={{
-          borderTop: '2px solid #00AA00',
+          borderTop: '2px solid var(--matrix-border)',
           paddingTop: '1rem',
           marginTop: '0.5rem'
         }}>
           {/* Customer Reputation Section */}
           {(order.customerRating || order.customerReviewCount) && (
             <div style={{
-              background: 'rgba(0, 17, 0, 0.8)',
-              border: '2px solid #00AA00',
+              background: 'rgba(0, 17, 0, 0.3)',
+              border: '2px solid var(--matrix-border)',
               padding: '1rem',
               borderRadius: '0.5rem',
-              marginBottom: '1rem'
+              marginBottom: '1rem',
+              opacity: '0.95'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
                 <h4 style={{
                   fontSize: '0.875rem',
                   fontWeight: '600',
-                  color: '#30FF30',
+                  color: 'var(--matrix-bright-green)',
                   fontFamily: 'Consolas, Monaco, Courier New, monospace',
-                  textShadow: '0 0 5px #30FF30'
+                  textShadow: 'var(--shadow-glow)'
                 }}>
                   👤 Customer Reputation
                 </h4>
@@ -452,7 +381,7 @@ const OrderCard = ({
                 <div>
                   <p style={{
                     fontSize: '0.75rem',
-                    color: '#A0A0A0',
+                    color: 'var(--matrix-green)',
                     marginBottom: '0.25rem',
                     fontFamily: 'Consolas, Monaco, Courier New, monospace'
                   }}>
@@ -463,7 +392,7 @@ const OrderCard = ({
                     <span style={{
                       fontSize: '0.875rem',
                       fontWeight: '600',
-                      color: '#E5E7EB',
+                      color: 'var(--matrix-bright-green)',
                       fontFamily: 'Consolas, Monaco, Courier New, monospace'
                     }}>
                       {order.customerRating ? order.customerRating.toFixed(1) : 'New'}
@@ -473,7 +402,7 @@ const OrderCard = ({
                 <div>
                   <p style={{
                     fontSize: '0.75rem',
-                    color: '#A0A0A0',
+                    color: 'var(--matrix-green)',
                     marginBottom: '0.25rem',
                     fontFamily: 'Consolas, Monaco, Courier New, monospace'
                   }}>
@@ -482,7 +411,7 @@ const OrderCard = ({
                   <p style={{
                     fontSize: '0.875rem',
                     fontWeight: '600',
-                    color: '#E5E7EB',
+                    color: 'var(--matrix-bright-green)',
                     fontFamily: 'Consolas, Monaco, Courier New, monospace'
                   }}>
                     {order.customerCompletedOrders || 0}
@@ -491,7 +420,7 @@ const OrderCard = ({
                 <div>
                   <p style={{
                     fontSize: '0.75rem',
-                    color: '#A0A0A0',
+                    color: 'var(--matrix-green)',
                     marginBottom: '0.25rem',
                     fontFamily: 'Consolas, Monaco, Courier New, monospace'
                   }}>
@@ -500,7 +429,7 @@ const OrderCard = ({
                   <p style={{
                     fontSize: '0.875rem',
                     fontWeight: '600',
-                    color: '#E5E7EB',
+                    color: 'var(--matrix-bright-green)',
                     fontFamily: 'Consolas, Monaco, Courier New, monospace'
                   }}>
                     {order.customerReviewCount || 0}
@@ -509,7 +438,7 @@ const OrderCard = ({
                 <div style={{ gridColumn: '1 / -1' }}>
                   <p style={{
                     fontSize: '0.75rem',
-                    color: '#A0A0A0',
+                    color: 'var(--matrix-green)',
                     marginBottom: '0.25rem',
                     fontFamily: 'Consolas, Monaco, Courier New, monospace'
                   }}>
@@ -517,7 +446,7 @@ const OrderCard = ({
                   </p>
                   <p style={{
                     fontSize: '0.875rem',
-                    color: '#C0C0C0',
+                    color: 'var(--matrix-green)',
                     fontFamily: 'Consolas, Monaco, Courier New, monospace'
                   }}>
                     {order.customerJoinedAt ? new Date(order.customerJoinedAt).toLocaleDateString() : 'Unknown'}
@@ -531,9 +460,9 @@ const OrderCard = ({
             <div style={{
               marginBottom: '0.75rem',
               fontSize: '0.875rem',
-              color: '#A0A0A0',
+              color: 'var(--matrix-green)',
               fontFamily: 'Consolas, Monaco, Courier New, monospace',
-              textShadow: '0 0 5px rgba(160, 160, 160, 0.5)'
+              textShadow: '0 0 5px rgba(0, 255, 0, 0.5)'
             }}>
               📍 Distance from pickup: {order.distance ? `${order.distance.toFixed(2)} km` : 'Unknown'}
             </div>
@@ -543,9 +472,9 @@ const OrderCard = ({
             fontWeight: '600',
             marginBottom: '0.75rem',
             fontSize: '0.875rem',
-            color: '#30FF30',
+            color: 'var(--matrix-bright-green)',
             fontFamily: 'Consolas, Monaco, Courier New, monospace',
-            textShadow: '0 0 5px #30FF30'
+            textShadow: 'var(--shadow-glow)'
           }}>
             Place Your Bid
           </p>
@@ -555,12 +484,13 @@ const OrderCard = ({
               placeholder="Bid Amount"
               value={bidInput[order._id] || ''}
               onChange={(e) => setBidInput({ ...bidInput, [order._id]: e.target.value })}
+              className="form-control"
               style={{
                 padding: '0.5rem',
-                border: '2px solid #00AA00',
-                borderRadius: '0.375rem',
+                border: '2px solid var(--matrix-border)',
+                borderRadius: 'var(--radius-md)',
                 background: 'rgba(0, 17, 0, 0.8)',
-                color: '#30FF30',
+                color: 'var(--matrix-bright-green)',
                 fontFamily: 'Consolas, Monaco, Courier New, monospace'
               }}
               step="0.01"
@@ -572,10 +502,10 @@ const OrderCard = ({
               onChange={(e) => setBidDetails({ ...bidDetails, [order._id]: { ...bidDetails[order._id], pickupTime: e.target.value } })}
               style={{
                 padding: '0.5rem',
-                border: '2px solid #00AA00',
-                borderRadius: '0.375rem',
+                border: '2px solid var(--matrix-border)',
+                borderRadius: 'var(--radius-md)',
                 background: 'rgba(0, 17, 0, 0.8)',
-                color: '#30FF30',
+                color: 'var(--matrix-bright-green)',
                 fontFamily: 'Consolas, Monaco, Courier New, monospace'
               }}
             />
@@ -589,10 +519,10 @@ const OrderCard = ({
               style={{
                 flex: 1,
                 padding: '0.5rem',
-                border: '2px solid #00AA00',
-                borderRadius: '0.375rem',
+                border: '2px solid var(--matrix-border)',
+                borderRadius: 'var(--radius-md)',
                 background: 'rgba(0, 17, 0, 0.8)',
-                color: '#30FF30',
+                color: 'var(--matrix-bright-green)',
                 fontFamily: 'Consolas, Monaco, Courier New, monospace'
               }}
             />
@@ -604,7 +534,7 @@ const OrderCard = ({
                 background: 'linear-gradient(135deg, #4F46E5 0%, #8B5CF6 50%, #4F46E5 100%)',
                 color: '#FFFFFF',
                 border: '2px solid #4F46E5',
-                borderRadius: '0.375rem',
+                borderRadius: 'var(--radius-md)',
                 cursor: loadingStates.placeBid ? 'not-allowed' : 'pointer',
                 fontWeight: '600',
                 fontFamily: 'Consolas, Monaco, Courier New, monospace',
@@ -615,13 +545,13 @@ const OrderCard = ({
               onMouseOver={(e) => {
                 if (!loadingStates.placeBid) {
                   e.target.style.boxShadow = '0 0 15px rgba(79, 70, 229, 0.8)';
-                  e.target.style.transform = 'scale(1.05)';
+                  e.target.style.transform = 'translateY(-2px)';
                 }
               }}
               onMouseOut={(e) => {
                 if (!loadingStates.placeBid) {
                   e.target.style.boxShadow = '0 0 10px rgba(79, 70, 229, 0.5)';
-                  e.target.style.transform = 'scale(1)';
+                  e.target.style.transform = 'translateY(0)';
                 }
               }}
             >
@@ -634,7 +564,7 @@ const OrderCard = ({
       {/* Customer bid acceptance section */}
       {order.status === 'pending_bids' && currentUser?.role === 'customer' && order.bids && order.bids.length > 0 && (
         <div style={{
-          borderTop: '2px solid #00AA00',
+          borderTop: '2px solid var(--matrix-border)',
           paddingTop: '1rem',
           marginTop: '0.5rem'
         }}>
@@ -642,41 +572,42 @@ const OrderCard = ({
             fontSize: '0.875rem',
             fontWeight: '600',
             marginBottom: '0.75rem',
-            color: '#30FF30',
+            color: 'var(--matrix-bright-green)',
             fontFamily: 'Consolas, Monaco, Courier New, monospace',
-            textShadow: '0 0 5px #30FF30'
+            textShadow: 'var(--shadow-glow)'
           }}>
             Driver Bids ({order.bids.length})
           </h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             {order.bids.map((bid, index) => (
               <div key={index} style={{
-                background: 'rgba(0, 17, 0, 0.6)',
-                border: '2px solid #00AA00',
+                background: 'rgba(0, 17, 0, 0.3)',
+                border: '2px solid var(--matrix-border)',
                 padding: '1rem',
-                borderRadius: '0.5rem'
+                borderRadius: '0.5rem',
+                opacity: '0.95'
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.75rem' }}>
                   <div>
                     <p style={{
                       fontWeight: '600',
-                      color: '#30FF30',
+                      color: 'var(--matrix-bright-green)',
                       marginBottom: '0.25rem',
                       fontFamily: 'Consolas, Monaco, Courier New, monospace',
-                      textShadow: '0 0 5px #30FF30'
+                      textShadow: 'var(--shadow-glow)'
                     }}>
                       {bid.driverName}
                     </p>
                     <p style={{
                       fontSize: '0.875rem',
-                      color: '#E5E7EB',
+                      color: 'var(--matrix-bright-green)',
                       fontFamily: 'Consolas, Monaco, Courier New, monospace',
-                      textShadow: '0 0 5px rgba(229, 231, 235, 0.5)'
+                      textShadow: '0 0 5px rgba(48, 255, 48, 0.5)'
                     }}>
                       Bid: <span style={{
                         fontWeight: '600',
-                        color: '#30FF30',
-                        textShadow: '0 0 5px #30FF30'
+                        color: 'var(--matrix-bright-green)',
+                        textShadow: 'var(--shadow-glow)'
                       }}>
                         {formatCurrency(bid.bidPrice)}
                       </span>
@@ -684,7 +615,7 @@ const OrderCard = ({
                     {bid.estimatedPickupTime && (
                       <p style={{
                         fontSize: '0.75rem',
-                        color: '#A0A0A0',
+                        color: 'var(--matrix-green)',
                         marginTop: '0.25rem',
                         fontFamily: 'Consolas, Monaco, Courier New, monospace'
                       }}>
@@ -696,30 +627,20 @@ const OrderCard = ({
                     <button
                       onClick={() => onAcceptBid(order._id, bid.userId)}
                       disabled={loadingStates.acceptBid}
+                      className="btn-success"
                       style={{
-                        padding: '0.5rem 1rem',
-                        background: 'linear-gradient(135deg, #00AA00 0%, #30FF30 50%, #00AA00 100%)',
-                        color: '#000000',
-                        border: '2px solid #00AA00',
-                        borderRadius: '0.375rem',
-                        cursor: loadingStates.acceptBid ? 'not-allowed' : 'pointer',
-                        fontSize: '0.875rem',
-                        fontWeight: '600',
-                        fontFamily: 'Consolas, Monaco, Courier New, monospace',
-                        boxShadow: '0 0 10px rgba(0, 255, 0, 0.5)',
-                        textShadow: '0 0 5px rgba(0, 0, 0, 0.5)',
                         opacity: loadingStates.acceptBid ? 0.5 : 1
                       }}
                       onMouseOver={(e) => {
                         if (!loadingStates.acceptBid) {
                           e.target.style.boxShadow = '0 0 15px rgba(0, 255, 0, 0.8)';
-                          e.target.style.transform = 'scale(1.05)';
+                          e.target.style.transform = 'translateY(-2px)';
                         }
                       }}
                       onMouseOut={(e) => {
                         if (!loadingStates.acceptBid) {
                           e.target.style.boxShadow = '0 0 10px rgba(0, 255, 0, 0.5)';
-                          e.target.style.transform = 'scale(1)';
+                          e.target.style.transform = 'translateY(0)';
                         }
                       }}
                     >
@@ -730,7 +651,7 @@ const OrderCard = ({
                 {bid.message && (
                   <div style={{
                     background: 'rgba(0, 17, 0, 0.8)',
-                    border: '2px solid #00AA00',
+                    border: '2px solid var(--matrix-border)',
                     padding: '0.75rem',
                     borderRadius: '0.25rem',
                     marginTop: '0.5rem'
@@ -738,7 +659,7 @@ const OrderCard = ({
                     <p style={{
                       fontSize: '0.875rem',
                       fontStyle: 'italic',
-                      color: '#30FF30',
+                      color: 'var(--matrix-bright-green)',
                       fontFamily: 'Consolas, Monaco, Courier New, monospace',
                       textShadow: '0 0 5px rgba(48, 255, 48, 0.5)'
                     }}>
@@ -755,7 +676,7 @@ const OrderCard = ({
       {/* Status-specific action buttons */}
       {order.status === 'accepted' && currentUser?.role === 'customer' && (
         <div style={{
-          borderTop: '2px solid #00AA00',
+          borderTop: '2px solid var(--matrix-border)',
           paddingTop: '1rem',
           marginTop: '0.5rem'
         }}>
@@ -788,7 +709,7 @@ const OrderCard = ({
 
       {order.status === 'accepted' && currentUser?.role === 'driver' && isDriverAssigned && (
         <div style={{
-          borderTop: '2px solid #00AA00',
+          borderTop: '2px solid var(--matrix-border)',
           paddingTop: '1rem',
           marginTop: '0.5rem'
         }}>
@@ -796,30 +717,21 @@ const OrderCard = ({
             <button
               onClick={() => onUpdateStatus(order._id, 'pickup')}
               disabled={loadingStates.pickupOrder}
+              className="btn-success"
               style={{
                 flex: 1,
-                padding: '0.75rem',
-                background: 'linear-gradient(135deg, #00AA00 0%, #30FF30 50%, #00AA00 100%)',
-                color: '#000000',
-                border: '2px solid #00AA00',
-                borderRadius: '0.375rem',
-                cursor: loadingStates.pickupOrder ? 'not-allowed' : 'pointer',
-                fontWeight: '600',
-                fontFamily: 'Consolas, Monaco, Courier New, monospace',
-                boxShadow: '0 0 10px rgba(0, 255, 0, 0.5)',
-                textShadow: '0 0 5px rgba(0, 0, 0, 0.5)',
                 opacity: loadingStates.pickupOrder ? 0.5 : 1
               }}
               onMouseOver={(e) => {
                 if (!loadingStates.pickupOrder) {
                   e.target.style.boxShadow = '0 0 15px rgba(0, 255, 0, 0.8)';
-                  e.target.style.transform = 'scale(1.05)';
+                  e.target.style.transform = 'translateY(-2px)';
                 }
               }}
               onMouseOut={(e) => {
                 if (!loadingStates.pickupOrder) {
                   e.target.style.boxShadow = '0 0 10px rgba(0, 255, 0, 0.5)';
-                  e.target.style.transform = 'scale(1)';
+                  e.target.style.transform = 'translateY(0)';
                 }
               }}
             >
@@ -831,7 +743,7 @@ const OrderCard = ({
 
       {order.status === 'picked_up' && currentUser?.role === 'driver' && isDriverAssigned && (
         <div style={{
-          borderTop: '2px solid #00AA00',
+          borderTop: '2px solid var(--matrix-border)',
           paddingTop: '1rem',
           marginTop: '0.5rem'
         }}>
@@ -845,7 +757,7 @@ const OrderCard = ({
                 background: 'linear-gradient(135deg, #F59E0B 0%, #FBBF24 50%, #F59E0B 100%)',
                 color: '#000000',
                 border: '2px solid #F59E0B',
-                borderRadius: '0.375rem',
+                borderRadius: 'var(--radius-md)',
                 cursor: loadingStates.updateInTransit ? 'not-allowed' : 'pointer',
                 fontWeight: '600',
                 fontFamily: 'Consolas, Monaco, Courier New, monospace',
@@ -856,13 +768,13 @@ const OrderCard = ({
               onMouseOver={(e) => {
                 if (!loadingStates.updateInTransit) {
                   e.target.style.boxShadow = '0 0 15px rgba(245, 158, 11, 0.8)';
-                  e.target.style.transform = 'scale(1.05)';
+                  e.target.style.transform = 'translateY(-2px)';
                 }
               }}
               onMouseOut={(e) => {
                 if (!loadingStates.updateInTransit) {
                   e.target.style.boxShadow = '0 0 10px rgba(245, 158, 11, 0.5)';
-                  e.target.style.transform = 'scale(1)';
+                  e.target.style.transform = 'translateY(0)';
                 }
               }}
             >
@@ -874,7 +786,7 @@ const OrderCard = ({
 
       {order.status === 'in_transit' && currentUser?.role === 'driver' && isDriverAssigned && (
         <div style={{
-          borderTop: '2px solid #00AA00',
+          borderTop: '2px solid var(--matrix-border)',
           paddingTop: '1rem',
           marginTop: '0.5rem'
         }}>
@@ -882,30 +794,21 @@ const OrderCard = ({
             <button
               onClick={() => onUpdateStatus(order._id, 'complete')}
               disabled={loadingStates.completeOrder}
+              className="btn-success"
               style={{
                 flex: 1,
-                padding: '0.75rem',
-                background: 'linear-gradient(135deg, #00AA00 0%, #30FF30 50%, #00AA00 100%)',
-                color: '#000000',
-                border: '2px solid #00AA00',
-                borderRadius: '0.375rem',
-                cursor: loadingStates.completeOrder ? 'not-allowed' : 'pointer',
-                fontWeight: '600',
-                fontFamily: 'Consolas, Monaco, Courier New, monospace',
-                boxShadow: '0 0 10px rgba(0, 255, 0, 0.5)',
-                textShadow: '0 0 5px rgba(0, 0, 0, 0.5)',
                 opacity: loadingStates.completeOrder ? 0.5 : 1
               }}
               onMouseOver={(e) => {
                 if (!loadingStates.completeOrder) {
                   e.target.style.boxShadow = '0 0 15px rgba(0, 255, 0, 0.8)';
-                  e.target.style.transform = 'scale(1.05)';
+                  e.target.style.transform = 'translateY(-2px)';
                 }
               }}
               onMouseOut={(e) => {
                 if (!loadingStates.completeOrder) {
                   e.target.style.boxShadow = '0 0 10px rgba(0, 255, 0, 0.5)';
-                  e.target.style.transform = 'scale(1)';
+                  e.target.style.transform = 'translateY(0)';
                 }
               }}
             >
@@ -918,7 +821,7 @@ const OrderCard = ({
       {/* Status messages */}
       {order.status === 'picked_up' && currentUser?.role === 'customer' && (
         <div style={{
-          borderTop: '2px solid #00AA00',
+          borderTop: '2px solid var(--matrix-border)',
           paddingTop: '1rem',
           marginTop: '0.5rem'
         }}>
@@ -943,7 +846,7 @@ const OrderCard = ({
 
       {order.status === 'in_transit' && currentUser?.role === 'customer' && (
         <div style={{
-          borderTop: '2px solid #00AA00',
+          borderTop: '2px solid var(--matrix-border)',
           paddingTop: '1rem',
           marginTop: '0.5rem'
         }}>
@@ -968,22 +871,22 @@ const OrderCard = ({
 
       {order.status === 'delivered' && (
         <div style={{
-          borderTop: '2px solid #00AA00',
+          borderTop: '2px solid var(--matrix-border)',
           paddingTop: '1rem',
           marginTop: '0.5rem'
         }}>
           <div style={{
             background: 'rgba(0, 170, 0, 0.1)',
-            border: '2px solid #00AA00',
+            border: '2px solid var(--matrix-border)',
             padding: '1rem',
             borderRadius: '0.5rem',
             boxShadow: '0 0 10px rgba(0, 170, 0, 0.3)'
           }}>
             <p style={{
               fontSize: '0.875rem',
-              color: '#30FF30',
+              color: 'var(--matrix-bright-green)',
               fontFamily: 'Consolas, Monaco, Courier New, monospace',
-              textShadow: '0 0 10px rgba(48, 255, 48, 0.8)'
+              textShadow: 'var(--shadow-glow)'
             }}>
               Order completed successfully!
             </p>
@@ -993,7 +896,7 @@ const OrderCard = ({
 
       {order.status === 'cancelled' && (
         <div style={{
-          borderTop: '2px solid #00AA00',
+          borderTop: '2px solid var(--matrix-border)',
           paddingTop: '1rem',
           marginTop: '0.5rem'
         }}>
