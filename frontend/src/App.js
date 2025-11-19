@@ -1379,11 +1379,11 @@ const getDriverViewTitle = (viewType) => {
                       placeholder={t('auth.password')}
                       value={authForm.password}
                       onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })}
-                      style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
+                      style={{ width: '100%', padding: '0.5rem 2.5rem 0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
                     />
                     <button
                       onClick={() => setShowPassword(!showPassword)}
-                      style={{ position: 'absolute', right: '0.75rem', top: '0.75rem', background: 'none', border: 'none', color: '#6B7280', cursor: 'pointer' }}
+                      style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#6B7280', cursor: 'pointer', fontSize: '1rem' }}
                     >
                       {showPassword ? '👁️' : '👁️‍🗨️'}
                     </button>
@@ -1443,11 +1443,11 @@ const getDriverViewTitle = (viewType) => {
                       placeholder={t('auth.password')}
                       value={authForm.password}
                       onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })}
-                      style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
+                      style={{ width: '100%', padding: '0.5rem 2.5rem 0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
                     />
                     <button
                       onClick={() => setShowPassword(!showPassword)}
-                      style={{ position: 'absolute', right: '0.75rem', top: '0.75rem', background: 'none', border: 'none', color: '#6B7280', cursor: 'pointer' }}
+                      style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#6B7280', cursor: 'pointer', fontSize: '1rem' }}
                     >
                       {showPassword ? '👁️' : '👁️‍🗨️'}
                     </button>

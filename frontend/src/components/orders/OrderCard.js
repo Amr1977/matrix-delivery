@@ -1,6 +1,7 @@
 import React from 'react';
 import { useI18n } from '../../i18n/i18nContext';
 import { formatCurrency, getStatusColor, getStatusLabel, formatDateTime } from '../../utils/formatters';
+import DriverBiddingMap from '../maps/DriverBiddingMap';
 
 const OrderCard = ({
   order,
@@ -18,6 +19,7 @@ const OrderCard = ({
   loadingStates
 }) => {
   const { t } = useI18n();
+  const [showRouteMapFullscreen, setShowRouteMapFullscreen] = React.useState(false);
 
   const statusColor = getStatusColor(order.status);
   const isDriverAssigned = order.assignedDriver?.userId === currentUser?.id;
@@ -468,9 +470,19 @@ const OrderCard = ({
             </div>
           )}
 
+          {/* Route Preview Map */}
+          <DriverBiddingMap
+            order={order}
+            driverLocation={null} // Will get current location automatically
+            driverVehicleType={currentUser?.vehicle_type || 'car'}
+            onToggleFullscreen={() => setShowRouteMapFullscreen(prev => !prev)}
+            isFullscreen={showRouteMapFullscreen}
+          />
+
           <p style={{
             fontWeight: '600',
             marginBottom: '0.75rem',
+            marginTop: '1rem',
             fontSize: '0.875rem',
             color: 'var(--matrix-bright-green)',
             fontFamily: 'Consolas, Monaco, Courier New, monospace',
