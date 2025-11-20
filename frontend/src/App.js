@@ -1374,6 +1374,10 @@ const getDriverViewTitle = (viewType) => {
   };
 
   const updateDriverStatus = async (isOnline) => {
+    if (currentUser?.role !== 'driver') {
+      setError('Only drivers can toggle online/offline status');
+      return;
+    }
     try {
       const response = await fetch(`${API_URL}/drivers/status`, {
         method: 'POST',
@@ -1384,7 +1388,10 @@ const getDriverViewTitle = (viewType) => {
         body: JSON.stringify({ isOnline })
       });
 
-      if (!response.ok) throw new Error('Failed to update status');
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(errText || 'Failed to update status');
+      }
       // Backend tracks driver online/offline status
     } catch (err) {
       console.error('Update status error:', err);
