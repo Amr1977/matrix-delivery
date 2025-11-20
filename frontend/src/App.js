@@ -2728,6 +2728,21 @@ const getDriverViewTitle = (viewType) => {
                         >
                           🗺️ {t('orders.trackOrder')}
                         </button>
+                        <button
+                          onClick={() => {
+                            const pickup = order.pickupLocation?.coordinates || (order.from ? { lat: order.from.lat, lng: order.from.lng } : null);
+                            const dropoff = order.dropoffLocation?.coordinates || (order.to ? { lat: order.to.lat, lng: order.to.lng } : null);
+                            const origin = driverLocation ? `${driverLocation.latitude},${driverLocation.longitude}` : '';
+                            const waypoint = pickup ? `${pickup.lat},${pickup.lng}` : '';
+                            const destination = dropoff ? `${dropoff.lat},${dropoff.lng}` : '';
+                            const travelmode = driverPricing.vehicleType === 'walker' ? 'walking' : (driverPricing.vehicleType === 'bicycle' ? 'bicycling' : 'driving');
+                            const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&waypoints=${waypoint}&travelmode=${travelmode}`;
+                            window.open(url, '_blank');
+                          }}
+                          style={{ padding: '0.5rem 1rem', background: '#0EA5E9', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
+                        >
+                          🧭 Google Maps
+                        </button>
                       </div>
                     </div>
 
