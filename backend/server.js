@@ -2171,6 +2171,8 @@ app.delete('/api/orders/:id', verifyToken, async (req, res) => {
     if (order.customer_id !== req.user.userId) return res.status(403).json({ error: 'Only customer can delete order' });
     if (order.status !== 'pending_bids') return res.status(400).json({ error: 'Cannot delete order that has been accepted' });
 
+    await pool.query('DELETE FROM bids WHERE order_id = $1', [req.params.id]);
+    await pool.query('DELETE FROM notifications WHERE order_id = $1', [req.params.id]);
     await pool.query('DELETE FROM orders WHERE id = $1', [req.params.id]);
     console.log(`✅ Order deleted: "${order.title}" by ${req.user.name}`);
     res.json({ message: 'Order deleted successfully' });

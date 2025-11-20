@@ -19,7 +19,8 @@ const OrderCard = ({
   setBidInput,
   bidDetails,
   setBidDetails,
-  loadingStates
+  loadingStates,
+  onDeleteOrder
 }) => {
   const { t } = useI18n();
   const [showRouteMapFullscreen, setShowRouteMapFullscreen] = React.useState(false);
@@ -328,6 +329,16 @@ const OrderCard = ({
           >
             🗺️ Track Order
           </button>
+          {currentUser?.role === 'customer' && order.status === 'pending_bids' && order.customerId === currentUser?.id && typeof onDeleteOrder === 'function' && (
+            <button
+              onClick={() => onDeleteOrder(order._id)}
+              disabled={loadingStates?.deleteOrder}
+              className="btn-danger"
+              style={{ minHeight: '44px', textShadow: '0 0 5px rgba(0, 0, 0, 0.5)', opacity: loadingStates?.deleteOrder ? 0.5 : 1 }}
+            >
+              🗑️ Cancel Order
+            </button>
+          )}
         </div>
       </div>
 
