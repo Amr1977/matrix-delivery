@@ -1776,7 +1776,7 @@ const getDriverViewTitle = (viewType) => {
   if (!token) {
     return (
       <div style={{ minHeight: '100vh', background: '#090909', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ position: 'absolute', top: '1rem', right: '1rem' }}>
+        <div style={{ position: 'fixed', top: '0.75rem', right: '0.75rem', zIndex: 2000 }}>
           <LanguageSwitcher locale={locale} changeLocale={changeLocale} />
         </div>
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
@@ -1813,11 +1813,12 @@ const getDriverViewTitle = (viewType) => {
                       placeholder={t('auth.password')}
                       value={authForm.password}
                       onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })}
-                      style={{ width: '100%', padding: '0.5rem 2.5rem 0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
+                      style={{ width: '100%', padding: '0.5rem 3rem 0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none', height: '44px' }}
                     />
                     <button
+                      type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#6B7280', cursor: 'pointer', fontSize: '1rem' }}
+                      style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#6B7280', cursor: 'pointer', fontSize: '1rem', width: '2rem', height: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     >
                       {showPassword ? '👁️' : '👁️‍🗨️'}
                     </button>
@@ -1877,11 +1878,12 @@ const getDriverViewTitle = (viewType) => {
                       placeholder={t('auth.password')}
                       value={authForm.password}
                       onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })}
-                      style={{ width: '100%', padding: '0.5rem 2.5rem 0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
+                      style={{ width: '100%', padding: '0.5rem 3rem 0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none', height: '44px' }}
                     />
                     <button
+                      type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#6B7280', cursor: 'pointer', fontSize: '1rem' }}
+                      style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#6B7280', cursor: 'pointer', fontSize: '1rem', width: '2rem', height: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     >
                       {showPassword ? '👁️' : '👁️‍🗨️'}
                     </button>
