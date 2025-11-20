@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { makeAPIRequest } from '../../api';
+import api from '../../api';
 
 // Fix Leaflet default icon issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -38,11 +38,11 @@ const MapBoundsUpdater = ({ trackingData }) => {
     if (trackingData) {
       const bounds = [];
       // Add pickup and delivery points to bounds
-      if (trackingData.pickup.coordinates) {
-        bounds.push([trackingData.pickup.coordinates.lat, trackingData.pickup.coordinates.lng]);
+      if (trackingData.pickup && trackingData.pickup.location) {
+        bounds.push([trackingData.pickup.location.lat, trackingData.pickup.location.lng]);
       }
-      if (trackingData.delivery.coordinates) {
-        bounds.push([trackingData.delivery.coordinates.lat, trackingData.delivery.coordinates.lng]);
+      if (trackingData.delivery && trackingData.delivery.location) {
+        bounds.push([trackingData.delivery.location.lat, trackingData.delivery.location.lng]);
       }
       // Add all route points to bounds
       if (trackingData.locationHistory && trackingData.locationHistory.length > 0) {
@@ -74,21 +74,23 @@ const LiveTrackingMap = ({ orderId, t, compact = false }) => {
   // Fetch tracking data
   const fetchTrackingData = async () => {
     try {
-      const response = await makeAPIRequest(`/drivers/tracking/${orderId}/status`, {
-        method: 'GET'
-      });
-
-      if (response.error) {
-        throw new Error(response.error);
-      }
-
-      // Get full tracking details
-      const detailsResponse = await makeAPIRequest(`/orders/${orderId}/tracking`, {
-        method: 'GET'
-      });
-
-      if (detailsResponse.error) {
-        throw new Error(detailsResponse.error);
+      let detailsResponse;
+      try {
+        detailsResponse = await api.get(`/orders/${orderId}/tracking`);
+      } catch (primaryErr) {
+        if (primaryErr && String(primaryErr.message).includes('HTTP 404')) {
+          const ordersList = await api.get('/orders');
+          const match = Array.isArray(ordersList)
+            ? ordersList.find(o => o.orderNumber === orderId)
+            : null;
+          if (match && match._id) {
+            detailsResponse = await api.get(`/orders/${match._id}/tracking`);
+          } else {
+            throw primaryErr;
+          }
+        } else {
+          throw primaryErr;
+        }
       }
 
       setTrackingData(detailsResponse);
@@ -121,10 +123,10 @@ const LiveTrackingMap = ({ orderId, t, compact = false }) => {
   const getCenter = () => {
     if (trackingData?.currentLocation) {
       return [trackingData.currentLocation.lat, trackingData.currentLocation.lng];
-    } else if (trackingData?.pickup.coordinates && trackingData.delivery.coordinates) {
+    } else if (trackingData?.pickup?.location && trackingData?.delivery?.location) {
       return [
-        (trackingData.pickup.coordinates.lat + trackingData.delivery.coordinates.lat) / 2,
-        (trackingData.pickup.coordinates.lng + trackingData.delivery.coordinates.lng) / 2
+        (trackingData.pickup.location.lat + trackingData.delivery.location.lat) / 2,
+        (trackingData.pickup.location.lng + trackingData.delivery.location.lng) / 2
       ];
     }
     return [30.0444, 31.2357]; // Cairo center
@@ -213,7 +215,7 @@ const LiveTrackingMap = ({ orderId, t, compact = false }) => {
 
   // Render tracking map
   const center = getCenter();
-  const hasCoordinates = trackingData?.pickup.coordinates || trackingData?.delivery.coordinates;
+  const hasCoordinates = (trackingData?.pickup && trackingData.pickup.location) || (trackingData?.delivery && trackingData.delivery.location);
 
   return (
     <div style={{
@@ -387,9 +389,9 @@ const LiveTrackingMap = ({ orderId, t, compact = false }) => {
           )}
 
           {/* Pickup point */}
-          {trackingData.pickup.coordinates && (
+          {trackingData.pickup && trackingData.pickup.location && (
             <Marker
-              position={[trackingData.pickup.coordinates.lat, trackingData.pickup.coordinates.lng]}
+              position={[trackingData.pickup.location.lat, trackingData.pickup.location.lng]}
               icon={createCustomIcon('pickup', trackingData.status === 'picked_up' || trackingData.status === 'in_transit' || trackingData.status === 'delivered' ? 'completed' : 'upcoming')}
             >
               <Popup>
@@ -403,9 +405,9 @@ const LiveTrackingMap = ({ orderId, t, compact = false }) => {
           )}
 
           {/* Delivery point */}
-          {trackingData.delivery.coordinates && (
+          {trackingData.delivery && trackingData.delivery.location && (
             <Marker
-              position={[trackingData.delivery.coordinates.lat, trackingData.delivery.coordinates.lng]}
+              position={[trackingData.delivery.location.lat, trackingData.delivery.location.lng]}
               icon={createCustomIcon('delivery', trackingData.status === 'delivered' ? 'completed' : 'upcoming')}
             >
               <Popup>
