@@ -72,12 +72,14 @@ class AuthService {
    * Generate JWT token
    */
   generateToken(user) {
+    const roles = Array.isArray(user.roles) && user.roles.length > 0 ? user.roles : [user.role].filter(Boolean);
     return jwt.sign(
       {
         userId: user.id,
         email: user.email,
         name: user.name,
-        role: user.role
+        role: user.role,
+        roles
       },
       JWT_SECRET,
       { expiresIn: '30d' }
@@ -111,7 +113,7 @@ class AuthService {
    */
   async findUserById(id) {
     const result = await pool.query(
-      'SELECT id, name, email, role, rating, completed_deliveries, is_verified, country, city, area, created_at FROM users WHERE id = $1',
+      'SELECT id, name, email, role, roles, rating, completed_deliveries, is_verified, country, city, area, created_at FROM users WHERE id = $1',
       [id]
     );
     return result.rows[0] || null;
@@ -274,6 +276,7 @@ class AuthService {
         name: user.name,
         email: user.email,
         role: user.role,
+        roles: Array.isArray(user.roles) && user.roles.length ? user.roles : [user.role].filter(Boolean),
         rating: parseFloat(user.rating),
         completedDeliveries: user.completed_deliveries,
         country: user.country,
@@ -298,6 +301,7 @@ class AuthService {
       name: user.name,
       email: user.email,
       role: user.role,
+      roles: Array.isArray(user.roles) && user.roles.length ? user.roles : [user.role].filter(Boolean),
       rating: parseFloat(user.rating),
       completedDeliveries: user.completed_deliveries,
       isVerified: user.is_verified,
@@ -306,6 +310,16 @@ class AuthService {
       area: user.area,
       joinedAt: user.created_at
     };
+  }
+
+  async switchRole(userId, role) {
+    const result = await pool.query('SELECT id, name, email, role, roles FROM users WHERE id = $1', [userId]);
+    if (result.rows.length === 0) throw new Error('User not found');
+    const user = result.rows[0];
+    const roles = Array.isArray(user.roles) && user.roles.length ? user.roles : [user.role].filter(Boolean);
+    if (!roles.includes(role)) throw new Error('Role not assigned to user');
+    const token = jwt.sign({ userId: user.id, email: user.email, name: user.name, role, roles }, JWT_SECRET, { expiresIn: '30d' });
+    return { token, role, roles };
   }
 }
 

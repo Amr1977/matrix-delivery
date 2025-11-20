@@ -168,6 +168,7 @@ const DeliveryApp = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [availableRoles, setAvailableRoles] = useState([]);
 
   const locationIntervalRef = useRef(null);
 
@@ -498,6 +499,7 @@ useEffect(() => {
       }
       const data = await response.json();
       setCurrentUser(data);
+      setAvailableRoles(data.roles || (data.role ? [data.role] : []));
       setError('');
       fetchOrders();
 
@@ -1100,12 +1102,34 @@ const getDriverViewTitle = (viewType) => {
       localStorage.setItem('token', data.token);
       setToken(data.token);
       setCurrentUser(data.user);
+      setAvailableRoles(data.user.roles || (data.user.role ? [data.user.role] : []));
       setAuthForm({ name: '', email: '', password: '', phone: '', role: 'customer', vehicle_type: '' });
       setError('');
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const switchRole = async (role) => {
+    if (!token || !role) return;
+    try {
+      const response = await fetch(`${API_URL}/auth/switch-role`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ role })
+      });
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || 'Failed to switch role');
+      }
+      const data = await response.json();
+      localStorage.setItem('token', data.token);
+      setToken(data.token);
+      setCurrentUser((prev) => ({ ...(prev || {}), role }));
+    } catch (err) {
+      setError(err.message);
     }
   };
 
@@ -1936,9 +1960,37 @@ const getDriverViewTitle = (viewType) => {
                     </button>
                   )}
                 </div>
-                <p style={{ fontSize: '0.875rem', color: 'var(--matrix-green)', textTransform: 'capitalize' }}>
-                  {currentUser?.role} {currentUser?.completedDeliveries > 0 && `• ${currentUser.completedDeliveries} deliveries`}
-                </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <p style={{ fontSize: '0.875rem', color: 'var(--matrix-green)', textTransform: 'capitalize' }}>
+                    {currentUser?.role} {currentUser?.completedDeliveries > 0 && `• ${currentUser.completedDeliveries} deliveries`}
+                  </p>
+                  {availableRoles.length > 1 && (
+                    <select
+                      value={currentUser?.role}
+                      onChange={(e) => switchRole(e.target.value)}
+                      style={{
+                        background: '#111827',
+                        color: '#10B981',
+                        border: '1px solid #374151',
+                        borderRadius: '0.375rem',
+                        padding: '0.25rem 0.5rem',
+                        fontSize: '0.75rem'
+                      }}
+                    >
+                      {availableRoles.map(r => (
+                        <option key={r} value={r}>{r}</option>
+                      ))}
+                    </select>
+                  )}
+                  {(currentUser?.role === 'admin' || availableRoles.includes('admin')) && (
+                    <button
+                      onClick={() => setShowAdminPanel(true)}
+                      style={{ background: '#4F46E5', color: 'white', padding: '0.375rem 0.75rem', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: '600' }}
+                    >
+                      🛡️ Admin Dashboard
+                    </button>
+                  )}
+                </div>
               </div>
 
               <button onClick={logout} className="btn-danger">
@@ -3142,7 +3194,7 @@ const getDriverViewTitle = (viewType) => {
         </div>
       </main>
 
-      {showAdminPanel && currentUser?.role === 'admin' && (
+      {showAdminPanel && (currentUser?.role === 'admin' || availableRoles.includes('admin')) && (
         <AdminPanel token={token} onClose={() => setShowAdminPanel(false)} />
       )}
 

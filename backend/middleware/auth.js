@@ -56,10 +56,14 @@ const requireRole = (...roles) => {
       return res.status(401).json({ error: 'Authentication required' });
     }
 
-    if (!roles.includes(req.user.role)) {
+    const userRole = req.user.role;
+    const userRoles = Array.isArray(req.user.roles) ? req.user.roles : [];
+    const hasRequired = roles.includes(userRole) || roles.some(r => userRoles.includes(r));
+    if (!hasRequired) {
       logger.security('Insufficient permissions', {
         userId: req.user.userId,
-        userRole: req.user.role,
+        userRole,
+        userRoles,
         requiredRoles: roles,
         path: req.path,
         ip: req.ip || req.connection.remoteAddress,
