@@ -355,9 +355,17 @@ useEffect(() => {
         // Play notification sound
         playNotificationSound();
 
-        // Speak notification (only for new unread ones)
+        // Speak notification only once per ID and only if unread
         if (!notification.isRead) {
-          speakNotification(notification);
+          setSpokenNotifications(prev => {
+            if (prev.has(notification.id)) {
+              return prev;
+            }
+            speakNotification(notification);
+            const next = new Set(prev);
+            next.add(notification.id);
+            return next;
+          });
         }
 
         // Refresh orders data for relevant notification types
@@ -515,7 +523,11 @@ useEffect(() => {
           // Speak only the newest unplayed notification to avoid spam
           const latestUnspoken = unreadNotifications[0];
           speakNotification(latestUnspoken);
-          setSpokenNotifications(prev => new Set(prev.add(latestUnspoken.id)));
+          setSpokenNotifications(prev => {
+            const next = new Set(prev);
+            next.add(latestUnspoken.id);
+            return next;
+          });
         }
       }
     } catch (err) {
@@ -913,6 +925,8 @@ const getDriverViewTitle = (viewType) => {
           utterance.voice = preferredVoice;
         }
 
+        // Prevent queue buildup by cancelling any ongoing speech
+        try { speechSynthesis.cancel(); } catch (_) {}
         speechSynthesis.speak(utterance);
       } catch (error) {
         console.warn('Could not speak notification:', error);
