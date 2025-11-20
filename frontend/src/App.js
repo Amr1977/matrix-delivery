@@ -172,6 +172,9 @@ const DeliveryApp = () => {
 
   const locationIntervalRef = useRef(null);
 
+  const DRIVER_LOCATION_UPDATE_INTERVAL_MS_ACTIVE_ORDER = 3000;
+  const DRIVER_LOCATION_UPDATE_INTERVAL_MS_NO_ACTIVE_ORDER = 10000;
+
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewOrderId, setReviewOrderId] = useState(null);
   const [reviewType, setReviewType] = useState('');
@@ -1697,13 +1700,16 @@ const getDriverViewTitle = (viewType) => {
     setLoadingState('toggleOnline', true);
     try {
       if (!driverOnline) {
-        // Going online
         await updateDriverStatus(true);
         setDriverOnline(true);
-        updateDriverLocationOnce(); // Immediate update
+        updateDriverLocationOnce();
+        if (locationIntervalRef.current) {
+          clearInterval(locationIntervalRef.current);
+        }
+        const intervalMs = hasActiveOrders() ? DRIVER_LOCATION_UPDATE_INTERVAL_MS_ACTIVE_ORDER : DRIVER_LOCATION_UPDATE_INTERVAL_MS_NO_ACTIVE_ORDER;
         locationIntervalRef.current = setInterval(() => {
           updateDriverLocationOnce();
-        }, 30000); // Sync every 30s when online
+        }, intervalMs);
       } else {
         // Going offline
         await updateDriverStatus(false);
@@ -1722,6 +1728,24 @@ const getDriverViewTitle = (viewType) => {
       setLoadingState('toggleOnline', false);
     }
   };
+
+  useEffect(() => {
+    if (!driverOnline) return;
+    if (locationIntervalRef.current) {
+      clearInterval(locationIntervalRef.current);
+    }
+    const intervalMs = hasActiveOrders() ? DRIVER_LOCATION_UPDATE_INTERVAL_MS_ACTIVE_ORDER : DRIVER_LOCATION_UPDATE_INTERVAL_MS_NO_ACTIVE_ORDER;
+    locationIntervalRef.current = setInterval(() => {
+      updateDriverLocationOnce();
+    }, intervalMs);
+
+    return () => {
+      if (locationIntervalRef.current) {
+        clearInterval(locationIntervalRef.current);
+        locationIntervalRef.current = null;
+      }
+    };
+  }, [orders, driverOnline]);
 
 
 

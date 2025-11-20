@@ -4,6 +4,22 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-
 import L from 'leaflet';
 import api from '../../api';
 
+const MAP_DEFAULT_CENTER = [30.0444, 31.2357];
+const MAP_DEFAULT_ZOOM = 13;
+const LIVE_TRACK_REFRESH_INTERVAL_MS_ACTIVE = 3000;
+const LIVE_TRACK_REFRESH_INTERVAL_MS_IDLE = 10000;
+const AVERAGE_CITY_SPEED_KMH_FOR_ETA = 25;
+const EARTH_RADIUS_KM_FOR_DISTANCE = 6371;
+const POLYLINE_WEIGHT_ACTUAL_ROUTE = 5;
+const POLYLINE_WEIGHT_EXPECTED_ROUTE = 4;
+const POLYLINE_OPACITY_ACTUAL_ROUTE = 0.95;
+const POLYLINE_OPACITY_EXPECTED_ROUTE = 0.9;
+const POLYLINE_DASH_PATTERN = '8, 8';
+const COLOR_ROUTE_ACTUAL = '#00FF00';
+const COLOR_ROUTE_EXPECTED_PICKUP = '#F59E0B';
+const COLOR_ROUTE_EXPECTED_DELIVERY = '#0EA5E9';
+const NOMINATIM_REVERSE_URL_BASE = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2';
+
 // Fix Leaflet default icon issue
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -93,6 +109,7 @@ const LiveTrackingMap = ({ orderId, t, compact = false }) => {
   const [error, setError] = useState(null);
   const refreshIntervalRef = useRef(null);
   const mapRef = useRef(null);
+  const [currentAddress, setCurrentAddress] = useState('');
 
   // Fetch tracking data
   const fetchTrackingData = async () => {
@@ -132,7 +149,7 @@ const LiveTrackingMap = ({ orderId, t, compact = false }) => {
       fetchTrackingData(); // Initial load
 
       // Set up interval for live updates (every 10 seconds)
-      refreshIntervalRef.current = setInterval(fetchTrackingData, 10000);
+      refreshIntervalRef.current = setInterval(fetchTrackingData, LIVE_TRACK_REFRESH_INTERVAL_MS_IDLE);
     }
 
     return () => {
@@ -141,6 +158,39 @@ const LiveTrackingMap = ({ orderId, t, compact = false }) => {
       }
     };
   }, [orderId]);
+
+  useEffect(() => {
+    if (!trackingData) return;
+    if (refreshIntervalRef.current) {
+      clearInterval(refreshIntervalRef.current);
+    }
+    const activeStatuses = ['accepted', 'picked_up', 'in_transit'];
+    const intervalMs = activeStatuses.includes(trackingData.status) ? LIVE_TRACK_REFRESH_INTERVAL_MS_ACTIVE : LIVE_TRACK_REFRESH_INTERVAL_MS_IDLE;
+    refreshIntervalRef.current = setInterval(fetchTrackingData, intervalMs);
+    return () => {
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+        refreshIntervalRef.current = null;
+      }
+    };
+  }, [trackingData?.status]);
+
+  useEffect(() => {
+    const loc = trackingData?.currentLocation;
+    if (loc && typeof loc.lat === 'number' && typeof loc.lng === 'number') {
+      const url = `${NOMINATIM_REVERSE_URL_BASE}&lat=${loc.lat}&lon=${loc.lng}`;
+      fetch(url, { headers: { 'Accept': 'application/json' } })
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.display_name) {
+            setCurrentAddress(data.display_name);
+          }
+        })
+        .catch(() => {});
+    } else {
+      setCurrentAddress('');
+    }
+  }, [trackingData?.currentLocation?.lat, trackingData?.currentLocation?.lng]);
 
   // Calculate center point for map
   const getCenter = () => {
@@ -152,7 +202,7 @@ const LiveTrackingMap = ({ orderId, t, compact = false }) => {
         (trackingData.pickup.location.lng + trackingData.delivery.location.lng) / 2
       ];
     }
-    return [30.0444, 31.2357]; // Cairo center
+    return MAP_DEFAULT_CENTER;
   };
 
   // Format time and distance
@@ -167,6 +217,20 @@ const LiveTrackingMap = ({ orderId, t, compact = false }) => {
     const hours = Math.floor(minutes / 60);
     const mins = Math.ceil(minutes % 60);
     return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+  };
+
+  const haversineKm = (a, b) => {
+    if (!a || !b) return null;
+    const toRad = (v) => (v * Math.PI) / 180;
+    const R = EARTH_RADIUS_KM_FOR_DISTANCE;
+    const dLat = toRad(b.lat - a.lat);
+    const dLon = toRad(b.lng - a.lng);
+    const lat1 = toRad(a.lat);
+    const lat2 = toRad(b.lat);
+    const sinDLat = Math.sin(dLat / 2);
+    const sinDLon = Math.sin(dLon / 2);
+    const c = 2 * Math.asin(Math.sqrt(sinDLat * sinDLat + Math.cos(lat1) * Math.cos(lat2) * sinDLon * sinDLon));
+    return R * c;
   };
 
   // Render loading state
@@ -306,7 +370,15 @@ const LiveTrackingMap = ({ orderId, t, compact = false }) => {
           </p>
         </div>
 
-        {trackingData.nextPoint?.distanceKm && trackingData.nextPoint?.estimatedTimeMinutes && (
+        {(() => {
+          const nextType = trackingData.status === 'accepted' ? 'pickup' : 'delivery';
+          const nextLoc = nextType === 'pickup' ? trackingData.pickup?.location : trackingData.delivery?.location;
+          const cur = trackingData.currentLocation;
+          const distanceKm = cur && nextLoc ? haversineKm({ lat: cur.lat, lng: cur.lng }, { lat: nextLoc.lat, lng: nextLoc.lng }) : null;
+          const speedKmh = AVERAGE_CITY_SPEED_KMH_FOR_ETA;
+          const etaMinutes = distanceKm ? Math.ceil((distanceKm / speedKmh) * 60) : null;
+          return (distanceKm && etaMinutes);
+        })() && (
           <div style={{
             background: 'rgba(239, 68, 68, 0.1)',
             border: '1px solid #EF4444',
@@ -315,13 +387,27 @@ const LiveTrackingMap = ({ orderId, t, compact = false }) => {
             textAlign: 'center'
           }}>
             <p style={{ margin: '0 0 0.25rem 0', fontSize: '0.875rem', color: '#F3F4F6' }}>
-              To {trackingData.nextPoint.type}
+              To {trackingData.status === 'accepted' ? 'pickup' : 'delivery'}
             </p>
             <p style={{ margin: 0, fontSize: '1.125rem', fontWeight: 'bold' }}>
-              {formatDistance(trackingData.nextPoint.distanceKm)}
+              {(() => {
+                const nextType = trackingData.status === 'accepted' ? 'pickup' : 'delivery';
+                const nextLoc = nextType === 'pickup' ? trackingData.pickup?.location : trackingData.delivery?.location;
+                const cur = trackingData.currentLocation;
+                const distanceKm = cur && nextLoc ? haversineKm({ lat: cur.lat, lng: cur.lng }, { lat: nextLoc.lat, lng: nextLoc.lng }) : null;
+                return formatDistance(distanceKm);
+              })()}
             </p>
             <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.75rem', color: '#9CA3AF' }}>
-              {formatTime(trackingData.nextPoint.estimatedTimeMinutes)} ETA
+              {(() => {
+                const nextType = trackingData.status === 'accepted' ? 'pickup' : 'delivery';
+                const nextLoc = nextType === 'pickup' ? trackingData.pickup?.location : trackingData.delivery?.location;
+                const cur = trackingData.currentLocation;
+                const distanceKm = cur && nextLoc ? haversineKm({ lat: cur.lat, lng: cur.lng }, { lat: nextLoc.lat, lng: nextLoc.lng }) : null;
+                const speedKmh = AVERAGE_CITY_SPEED_KMH_FOR_ETA;
+                const etaMinutes = distanceKm ? Math.ceil((distanceKm / speedKmh) * 60) : null;
+                return formatTime(etaMinutes);
+              })()} ETA
             </p>
           </div>
         )}
@@ -402,7 +488,7 @@ const LiveTrackingMap = ({ orderId, t, compact = false }) => {
       <div style={{ height: compact ? '300px' : '500px', marginBottom: '1rem', borderRadius: '0.5rem', overflow: 'hidden' }}>
         <MapContainer
           center={center}
-          zoom={13}
+          zoom={MAP_DEFAULT_ZOOM}
           style={{ height: '100%', width: '100%' }}
           ref={mapRef}
         >
@@ -416,10 +502,10 @@ const LiveTrackingMap = ({ orderId, t, compact = false }) => {
           {expectedToPickup.length === 2 && (
             <Polyline
               positions={expectedToPickup}
-              color="#F59E0B"
-              weight={4}
-              opacity={0.9}
-              dashArray="8, 8"
+              color={COLOR_ROUTE_EXPECTED_PICKUP}
+              weight={POLYLINE_WEIGHT_EXPECTED_ROUTE}
+              opacity={POLYLINE_OPACITY_EXPECTED_ROUTE}
+              dashArray={POLYLINE_DASH_PATTERN}
               pathOptions={{ className: 'expected-route-pickup animated-stroke' }}
             />
           )}
@@ -427,10 +513,10 @@ const LiveTrackingMap = ({ orderId, t, compact = false }) => {
           {expectedToDelivery.length === 2 && (
             <Polyline
               positions={expectedToDelivery}
-              color="#0EA5E9"
-              weight={4}
-              opacity={0.9}
-              dashArray="8, 8"
+              color={COLOR_ROUTE_EXPECTED_DELIVERY}
+              weight={POLYLINE_WEIGHT_EXPECTED_ROUTE}
+              opacity={POLYLINE_OPACITY_EXPECTED_ROUTE}
+              dashArray={POLYLINE_DASH_PATTERN}
               pathOptions={{ className: 'expected-route-delivery animated-stroke' }}
             />
           )}
@@ -438,9 +524,9 @@ const LiveTrackingMap = ({ orderId, t, compact = false }) => {
           {actualRoute.length > 1 && (
             <Polyline
               positions={actualRoute}
-              color="#00FF00"
-              weight={5}
-              opacity={0.95}
+              color={COLOR_ROUTE_ACTUAL}
+              weight={POLYLINE_WEIGHT_ACTUAL_ROUTE}
+              opacity={POLYLINE_OPACITY_ACTUAL_ROUTE}
               pathOptions={{ className: 'actual-route animated-glow' }}
             />
           )}
@@ -488,7 +574,8 @@ const LiveTrackingMap = ({ orderId, t, compact = false }) => {
                 Driver: {trackingData.driver?.name || 'Unknown'}<br />
                 Speed: {trackingData.currentLocation.speedKmh ? `${trackingData.currentLocation.speedKmh} km/h` : 'Unknown'}<br />
                 Last Update: {new Date(trackingData.currentLocation.timestamp).toLocaleString()}<br />
-                Accuracy: {trackingData.currentLocation.accuracyMeters || 'Unknown'}m
+                Accuracy: {trackingData.currentLocation.accuracyMeters || 'Unknown'}m<br />
+                Address: {currentAddress || 'Locating...'}
               </Popup>
             </Marker>
           )}
@@ -514,7 +601,7 @@ const LiveTrackingMap = ({ orderId, t, compact = false }) => {
           <span>🚗 Driver</span>
         </div>
         <div>
-          Auto-refreshing every 10 seconds
+          Auto-refreshing every {['accepted','picked_up','in_transit'].includes(trackingData.status) ? `${LIVE_TRACK_REFRESH_INTERVAL_MS_ACTIVE/1000} seconds` : `${LIVE_TRACK_REFRESH_INTERVAL_MS_IDLE/1000} seconds`}
         </div>
       </div>
     </div>
