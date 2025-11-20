@@ -185,6 +185,13 @@ const DeliveryApp = () => {
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [footerStats, setFooterStats] = useState(null);
 
+  const [showProfile, setShowProfile] = useState(false);
+  const [profileData, setProfileData] = useState(null);
+  const [preferencesData, setPreferencesData] = useState(null);
+  const [paymentMethods, setPaymentMethods] = useState([]);
+  const [favorites, setFavorites] = useState([]);
+  const [activityData, setActivityData] = useState(null);
+
 
 // Add viewport meta tag if not present
 useEffect(() => {
@@ -1903,6 +1910,35 @@ const getDriverViewTitle = (viewType) => {
               <LanguageSwitcher locale={locale} changeLocale={changeLocale} />
 
               <button
+                onClick={async () => {
+                  setLoading(true);
+                  try {
+                    const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+                    const pRes = await fetch(`${API_URL}/users/me/profile`, { headers });
+                    if (!pRes.ok) throw new Error('Failed to load profile');
+                    const pData = await pRes.json();
+                    setProfileData(pData);
+                    const prefRes = await fetch(`${API_URL}/users/me/preferences`, { headers });
+                    if (prefRes.ok) setPreferencesData(await prefRes.json());
+                    const pmRes = await fetch(`${API_URL}/users/me/payment-methods`, { headers });
+                    if (pmRes.ok) setPaymentMethods(await pmRes.json());
+                    const favRes = await fetch(`${API_URL}/users/me/favorites`, { headers });
+                    if (favRes.ok) setFavorites(await favRes.json());
+                    const actRes = await fetch(`${API_URL}/users/me/activity`, { headers });
+                    if (actRes.ok) setActivityData(await actRes.json());
+                    setShowProfile(true);
+                  } catch (e) {
+                    setError(e.message);
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                className="btn-secondary"
+              >
+                Profile
+              </button>
+
+              <button
                 onClick={() => setShowNotifications(!showNotifications)}
                 className={`notification-bell ${unreadCount > 0 ? 'bell-notification' : ''}`}
               >
@@ -2119,6 +2155,182 @@ const getDriverViewTitle = (viewType) => {
             </nav>
           </>
         </header>
+      {showProfile && profileData && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
+          <div className="modal-content" style={{ background: 'white', borderRadius: '0.5rem', maxWidth: '80rem', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ padding: '1.5rem', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Profile</h2>
+              <button onClick={() => setShowProfile(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
+            </div>
+            <div style={{ padding: '1.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
+                <div style={{ background: '#F9FAFB', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #E5E7EB' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: '#E5E7EB', overflow: 'hidden', border: '2px solid #fff' }}>
+                      {profileData.profile_picture_url ? (
+                        <img src={profileData.profile_picture_url} alt="Profile picture" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6B7280' }}>👤</div>
+                      )}
+                    </div>
+                    <input type="file" accept="image/*" onChange={(e) => e.target.files && (function(f){ const r=new FileReader(); r.onload=async()=>{ try{ const res=await fetch(`${API_URL}/users/me/profile-picture`, { method:'POST', headers:{ 'Authorization': `Bearer ${token}`, 'Content-Type':'application/json' }, body: JSON.stringify({ imageDataUrl: r.result }) }); if(!res.ok) throw new Error('Failed to upload picture'); const d=await res.json(); setProfileData(prev=>({ ...prev, profile_picture_url: d.profilePictureUrl })); } catch(err){ setError(err.message); } }; r.readAsDataURL(f); }(e.target.files[0]))} aria-label="Upload profile picture" />
+                  </div>
+                  <div style={{ marginTop: '1rem' }}>
+                    <label htmlFor="name" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.25rem' }}>Full name</label>
+                    <input id="name" value={profileData.name || ''} onChange={(e) => setProfileData({ ...profileData, name: e.target.value })} onBlur={async () => { try { const res = await fetch(`${API_URL}/users/me/profile`, { method:'PUT', headers:{ 'Authorization': `Bearer ${token}`, 'Content-Type':'application/json' }, body: JSON.stringify({ name: profileData.name }) }); if(!res.ok) throw new Error('Failed'); const d=await res.json(); setProfileData(prev=>({ ...prev, ...d.user })); setCurrentUser(d.user); } catch(err){ setError(err.message); } }} style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
+                  </div>
+                  <div style={{ marginTop: '0.75rem' }}>
+                    <label htmlFor="phone" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.25rem' }}>Contact</label>
+                    <input id="phone" value={profileData.phone || ''} onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })} onBlur={async () => { try { const res = await fetch(`${API_URL}/users/me/profile`, { method:'PUT', headers:{ 'Authorization': `Bearer ${token}`, 'Content-Type':'application/json' }, body: JSON.stringify({ phone: profileData.phone }) }); if(!res.ok) throw new Error('Failed'); const d=await res.json(); setProfileData(prev=>({ ...prev, ...d.user })); setCurrentUser(d.user); } catch(err){ setError(err.message); } }} style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
+                  </div>
+                  <div style={{ marginTop: '0.75rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.5rem' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600 }}>Language</label>
+                      <select value={profileData.language || ''} onChange={async (e) => { try { const res = await fetch(`${API_URL}/users/me/profile`, { method:'PUT', headers:{ 'Authorization': `Bearer ${token}`, 'Content-Type':'application/json' }, body: JSON.stringify({ language: e.target.value }) }); if(!res.ok) throw new Error('Failed'); const d=await res.json(); setProfileData(prev=>({ ...prev, ...d.user })); } catch(err){ setError(err.message); } }} style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}>
+                        <option value="">Default</option>
+                        <option value="en">English</option>
+                        <option value="ar">Arabic</option>
+                        <option value="tr">Turkish</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600 }}>Theme</label>
+                      <select value={profileData.theme || ''} onChange={async (e) => { try { const res = await fetch(`${API_URL}/users/me/profile`, { method:'PUT', headers:{ 'Authorization': `Bearer ${token}`, 'Content-Type':'application/json' }, body: JSON.stringify({ theme: e.target.value }) }); if(!res.ok) throw new Error('Failed'); const d=await res.json(); setProfileData(prev=>({ ...prev, ...d.user })); } catch(err){ setError(err.message); } }} style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}>
+                        <option value="">System</option>
+                        <option value="dark">Dark</option>
+                        <option value="light">Light</option>
+                        <option value="matrix">Matrix</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {Array.isArray(profileData.roles) && profileData.roles.includes('driver') && (
+                  <div style={{ background: '#F9FAFB', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #E5E7EB' }}>
+                    <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem' }}>Delivery Agent</h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.5rem' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600 }}>Vehicle type</label>
+                        <select value={profileData.vehicle_type || ''} onChange={async (e) => { const v=e.target.value; setProfileData({ ...profileData, vehicle_type: v }); try { const res = await fetch(`${API_URL}/users/me/profile`, { method:'PUT', headers:{ 'Authorization': `Bearer ${token}`, 'Content-Type':'application/json' }, body: JSON.stringify({ vehicle_type: v }) }); if(!res.ok) throw new Error('Failed'); const d=await res.json(); setProfileData(prev=>({ ...prev, ...d.user })); } catch(err){ setError(err.message); } }} style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}>
+                          <option value="">Select</option>
+                          <option value="bike">Bike</option>
+                          <option value="car">Car</option>
+                          <option value="van">Van</option>
+                          <option value="truck">Truck</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600 }}>License</label>
+                        <input value={profileData.license_number || ''} onChange={(e) => setProfileData({ ...profileData, license_number: e.target.value })} onBlur={async () => { try { const res = await fetch(`${API_URL}/users/me/profile`, { method:'PUT', headers:{ 'Authorization': `Bearer ${token}`, 'Content-Type':'application/json' }, body: JSON.stringify({ license_number: profileData.license_number }) }); if(!res.ok) throw new Error('Failed'); const d=await res.json(); setProfileData(prev=>({ ...prev, ...d.user })); } catch(err){ setError(err.message); } }} style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600 }}>Service area</label>
+                        <input value={profileData.service_area_zone || ''} onChange={(e) => setProfileData({ ...profileData, service_area_zone: e.target.value })} onBlur={async () => { try { const res = await fetch(`${API_URL}/users/me/profile`, { method:'PUT', headers:{ 'Authorization': `Bearer ${token}`, 'Content-Type':'application/json' }, body: JSON.stringify({ service_area_zone: profileData.service_area_zone }) }); if(!res.ok) throw new Error('Failed'); const d=await res.json(); setProfileData(prev=>({ ...prev, ...d.user })); } catch(err){ setError(err.message); } }} style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
+                        <input id="availability" type="checkbox" checked={!!profileData.is_available} onChange={async (e) => { try { const res = await fetch(`${API_URL}/users/me/availability`, { method:'POST', headers:{ 'Authorization': `Bearer ${token}`, 'Content-Type':'application/json' }, body: JSON.stringify({ is_available: !!e.target.checked }) }); if(res.ok){ const d=await res.json(); setProfileData(prev=>({ ...prev, is_available: d.isAvailable })); } } catch(err){ setError(err.message); } }} />
+                        <label htmlFor="availability" style={{ fontSize: '0.875rem' }}>Available</label>
+                      </div>
+                      <div style={{ marginTop: '0.5rem', fontSize: '0.875rem' }}>Rating: {profileData.rating || 0} • Deliveries: {profileData.completed_deliveries || 0} • Verified: {profileData.is_verified ? 'Yes' : 'No'}</div>
+                    </div>
+                  </div>
+                )}
+
+                {Array.isArray(profileData.roles) && profileData.roles.includes('customer') && (
+                  <div style={{ background: '#F9FAFB', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #E5E7EB' }}>
+                    <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem' }}>Customer</h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.5rem' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600 }}>Delivery preferences</label>
+                        <textarea value={JSON.stringify(preferencesData?.preferences || {})} onChange={(e) => setPreferencesData({ ...(preferencesData || {}), preferences: JSON.parse(e.target.value || '{}') })} onBlur={async () => { try { const res = await fetch(`${API_URL}/users/me/preferences`, { method:'PUT', headers:{ 'Authorization': `Bearer ${token}`, 'Content-Type':'application/json' }, body: JSON.stringify({ preferences: preferencesData?.preferences }) }); if(!res.ok) throw new Error('Failed'); const d=await res.json(); setPreferencesData(d); } catch(err){ setError(err.message); } }} style={{ width: '100%', minHeight: '80px', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600 }}>Notification preferences</label>
+                        <textarea value={JSON.stringify(preferencesData?.notification_prefs || {})} onChange={(e) => setPreferencesData({ ...(preferencesData || {}), notification_prefs: JSON.parse(e.target.value || '{}') })} onBlur={async () => { try { const res = await fetch(`${API_URL}/users/me/preferences`, { method:'PUT', headers:{ 'Authorization': `Bearer ${token}`, 'Content-Type':'application/json' }, body: JSON.stringify({ notification_prefs: preferencesData?.notification_prefs }) }); if(!res.ok) throw new Error('Failed'); const d=await res.json(); setPreferencesData(d); } catch(err){ setError(err.message); } }} style={{ width: '100%', minHeight: '80px', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div style={{ background: '#F9FAFB', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #E5E7EB' }}>
+                  <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem' }}>Payment methods</h3>
+                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                    <select id="pmType" defaultValue="credit_card" style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}>
+                      <option value="credit_card">Credit Card</option>
+                      <option value="debit_card">Debit Card</option>
+                      <option value="paypal">PayPal</option>
+                      <option value="bank_account">Bank Account</option>
+                    </select>
+                    <input id="pmMask" placeholder="**** **** **** 1234" style={{ flex: 1, padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><input id="pmDefault" type="checkbox" /> Default</label>
+                    <button onClick={async () => { const res = await fetch(`${API_URL}/users/me/payment-methods`, { method:'POST', headers:{ 'Authorization': `Bearer ${token}`, 'Content-Type':'application/json' }, body: JSON.stringify({ payment_method_type: document.getElementById('pmType').value, masked_details: document.getElementById('pmMask').value, is_default: document.getElementById('pmDefault').checked }) }); if(res.ok){ const pm = await res.json(); setPaymentMethods(prev => [pm, ...prev]); } }} style={{ padding: '0.5rem 1rem', background: '#4F46E5', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer' }}>Add</button>
+                  </div>
+                  <div>
+                    {paymentMethods.map(pm => (
+                      <div key={pm.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem', border: '1px solid #E5E7EB', borderRadius: '0.375rem', marginBottom: '0.5rem', background: 'white' }}>
+                        <div style={{ fontSize: '0.875rem' }}>{pm.payment_method_type} • {pm.masked_details} {pm.is_default ? '• Default' : ''}</div>
+                        <button onClick={async () => { const res = await fetch(`${API_URL}/users/me/payment-methods/${pm.id}`, { method:'DELETE', headers:{ 'Authorization': `Bearer ${token}` } }); if(res.ok){ setPaymentMethods(prev => prev.filter(pp => pp.id !== pm.id)); } }} style={{ padding: '0.25rem 0.5rem', background: '#DC2626', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer' }}>Remove</button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ background: '#F9FAFB', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #E5E7EB' }}>
+                  <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem' }}>Favorites</h3>
+                  <div>
+                    {favorites.map(f => (
+                      <div key={f.userId} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem', border: '1px solid #E5E7EB', borderRadius: '0.375rem', marginBottom: '0.5rem', background: 'white' }}>
+                        <div style={{ fontSize: '0.875rem' }}>{f.name} • {f.role} • ⭐ {f.rating || 0} • {f.completed_deliveries || 0} • {f.is_verified ? 'Verified' : 'Unverified'}</div>
+                        <button onClick={async () => { const res = await fetch(`${API_URL}/users/me/favorites/${f.userId}`, { method:'DELETE', headers:{ 'Authorization': `Bearer ${token}` } }); if(res.ok){ setFavorites(prev => prev.filter(ff => ff.userId !== f.userId)); } }} style={{ padding: '0.25rem 0.5rem', background: '#DC2626', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer' }}>Remove</button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ background: '#F9FAFB', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #E5E7EB' }}>
+                  <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem' }}>Security</h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.5rem' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600 }}>Two-factor</label>
+                      <select value={Array.isArray(preferencesData?.two_factor_methods) ? preferencesData.two_factor_methods[0] || '' : ''} onChange={async (e) => { const res = await fetch(`${API_URL}/users/me/preferences`, { method:'PUT', headers:{ 'Authorization': `Bearer ${token}`, 'Content-Type':'application/json' }, body: JSON.stringify({ two_factor_methods: e.target.value ? [e.target.value] : [] }) }); if(res.ok){ const d=await res.json(); setPreferencesData(d); } }} style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}>
+                        <option value="">Off</option>
+                        <option value="sms">SMS</option>
+                        <option value="email">Email</option>
+                        <option value="totp">Authenticator App</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600 }}>Privacy</label>
+                      <select value={(preferencesData?.preferences || {}).privacy || ''} onChange={async (e) => { const res = await fetch(`${API_URL}/users/me/preferences`, { method:'PUT', headers:{ 'Authorization': `Bearer ${token}`, 'Content-Type':'application/json' }, body: JSON.stringify({ preferences: { ...(preferencesData?.preferences || {}), privacy: e.target.value } }) }); if(res.ok){ const d=await res.json(); setPreferencesData(d); } }} style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}>
+                        <option value="public">Public</option>
+                        <option value="friends">Friends</option>
+                        <option value="private">Private</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ background: '#F9FAFB', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #E5E7EB' }}>
+                  <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem' }}>Activity</h3>
+                  <div>
+                    {(activityData?.recentOrders || []).map(o => (
+                      <div key={o.id} style={{ padding: '0.5rem', border: '1px solid #E5E7EB', borderRadius: '0.375rem', marginBottom: '0.5rem', background: 'white' }}>
+                        <div style={{ fontSize: '0.875rem' }}>{o.order_number} • {o.title}</div>
+                        <div style={{ fontSize: '0.75rem', color: '#6B7280' }}>{o.status}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ background: '#F9FAFB', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #E5E7EB' }}>
+                  <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem' }}>Help & Support</h3>
+                  <div style={{ fontSize: '0.875rem', color: '#374151' }}>For assistance, contact support@matrix-heroes.io</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <main style={{ maxWidth: '80rem', margin: '0 auto', padding: mobileView ? '1rem 0.5rem' : '2rem 1rem' }}>
         {error && (
           <div className="error-matrix" style={{ padding: 'var(--spacing-md)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--spacing-lg)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
