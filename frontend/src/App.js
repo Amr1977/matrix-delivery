@@ -253,6 +253,8 @@ useEffect(() => {
   const [successMessage, setSuccessMessage] = useState('');
   const [retryCount, setRetryCount] = useState(0);
   const [spokenNotifications, setSpokenNotifications] = useState(new Set());
+  const ttsLastSpokenRef = useRef(0);
+  const ttsSignaturesRef = useRef(new Set());
 
   const [driverPricing, setDriverPricing] = useState(() => {
     try {
@@ -960,6 +962,17 @@ const getDriverViewTitle = (viewType) => {
   const speakNotification = (notification) => {
     if ('speechSynthesis' in window) {
       try {
+        const now = Date.now();
+        const cooldownMs = 8000;
+        const sig = `${notification.id || ''}|${notification.title || ''}|${notification.message || ''}`;
+        if (window.speechSynthesis.speaking) {
+          return;
+        }
+        if (ttsSignaturesRef.current.has(sig) && (now - ttsLastSpokenRef.current) < cooldownMs) {
+          return;
+        }
+        ttsSignaturesRef.current.add(sig);
+        ttsLastSpokenRef.current = now;
         let message = notification.message;
 
         // Extract and shorten order numbers to last 3 digits only
@@ -993,7 +1006,6 @@ const getDriverViewTitle = (viewType) => {
           utterance.voice = preferredVoice;
         }
 
-        // Prevent queue buildup by cancelling any ongoing speech
         try { speechSynthesis.cancel(); } catch (_) {}
         speechSynthesis.speak(utterance);
       } catch (error) {
