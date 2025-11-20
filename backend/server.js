@@ -76,6 +76,10 @@ const initDatabase = async () => {
       )
     `);
 
+    // Ensure roles array column exists and is populated
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS roles TEXT[]`);
+    await pool.query(`UPDATE users SET roles = ARRAY[role] WHERE roles IS NULL`);
+
     // Create orders table with enhanced fields
     await pool.query(`
       CREATE TABLE IF NOT EXISTS orders (
@@ -590,9 +594,9 @@ app.get('/api/health', async (req, res) => {
 app.get('/api/footer/stats', async (req, res) => {
   try {
     // Get users by role
-    const usersByRoleResult = await pool.query(
-      `SELECT role, COUNT(*) as count FROM users GROUP BY role`
-    );
+  const usersByRoleResult = await pool.query(
+    `SELECT role, COUNT(*) as count FROM users GROUP BY role`
+  );
     const usersByRole = {};
     usersByRoleResult.rows.forEach(row => {
       usersByRole[row.role] = parseInt(row.count);
@@ -3272,15 +3276,17 @@ const verifyAdmin = async (req, res, next) => {
 
     // Check if user is admin
     const userResult = await pool.query(
-      'SELECT id, email, name, role FROM users WHERE id = $1',
+      'SELECT id, email, name, role, roles FROM users WHERE id = $1',
       [decoded.userId]
     );
 
-    if (userResult.rows.length === 0 || userResult.rows[0].role !== 'admin') {
+    const row = userResult.rows[0];
+    const hasAdmin = row && (row.role === 'admin' || (Array.isArray(row.roles) && row.roles.includes('admin')));
+    if (userResult.rows.length === 0 || !hasAdmin) {
       return res.status(403).json({ error: 'Admin access required' });
     }
 
-    req.admin = userResult.rows[0];
+    req.admin = { id: row.id, email: row.email, name: row.name };
     next();
   } catch (error) {
     console.error('Admin verification error:', error);
@@ -3528,7 +3534,7 @@ app.get('/api/admin/users', verifyAdmin, async (req, res) => {
     queryParams.push(parseInt(limit), offset);
     const usersResult = await pool.query(
       `SELECT
-        u.id, u.name, u.email, u.phone, u.role, u.vehicle_type,
+        u.id, u.name, u.email, u.phone, u.role, u.roles, u.vehicle_type,
         u.rating, u.completed_deliveries, u.is_verified, u.is_available,
         u.country, u.city, u.area, u.created_at,
         (SELECT COUNT(*) FROM orders WHERE customer_id = u.id OR assigned_driver_user_id = u.id) as total_orders,
@@ -3546,6 +3552,7 @@ app.get('/api/admin/users', verifyAdmin, async (req, res) => {
       email: user.email,
       phone: user.phone,
       role: user.role,
+      roles: Array.isArray(user.roles) && user.roles.length ? user.roles : [user.role].filter(Boolean),
       vehicleType: user.vehicle_type,
       rating: parseFloat(user.rating),
       completedDeliveries: user.completed_deliveries,
@@ -3580,8 +3587,8 @@ app.get('/api/admin/users', verifyAdmin, async (req, res) => {
 app.get('/api/admin/users/:id', verifyAdmin, async (req, res) => {
   try {
     const userResult = await pool.query(
-      `SELECT
-        u.*,
+      `SELECT 
+        u.*, 
         (SELECT COUNT(*) FROM orders WHERE customer_id = u.id) as customer_orders,
         (SELECT COUNT(*) FROM orders WHERE assigned_driver_user_id = u.id) as driver_orders,
         (SELECT COUNT(*) FROM reviews WHERE reviewee_id = u.id) as reviews_received,
@@ -3645,6 +3652,32 @@ app.get('/api/admin/users/:id', verifyAdmin, async (req, res) => {
   } catch (error) {
     console.error('Get user details error:', error);
     res.status(500).json({ error: 'Failed to get user details' });
+  }
+});
+
+// Update user roles (assign/remove roles)
+app.post('/api/admin/users/:id/roles', verifyAdmin, async (req, res) => {
+  try {
+    const { add = [], remove = [] } = req.body || {};
+    const allowed = ['customer', 'driver', 'admin', 'support'];
+    const userResult = await pool.query('SELECT id, role, roles FROM users WHERE id = $1', [req.params.id]);
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    const current = userResult.rows[0];
+    let roles = Array.isArray(current.roles) && current.roles.length ? current.roles.slice() : [current.role].filter(Boolean);
+    const addClean = add.filter(r => allowed.includes(r));
+    const removeClean = remove.filter(r => allowed.includes(r));
+    roles = Array.from(new Set([...roles, ...addClean])).filter(r => !removeClean.includes(r));
+    if (roles.length === 0) {
+      roles = [current.role].filter(Boolean);
+    }
+    await pool.query('UPDATE users SET roles = $1 WHERE id = $2', [roles, req.params.id]);
+    await logAdminAction(req.admin.id, 'UPDATE_ROLES', 'user', req.params.id, { add: addClean, remove: removeClean, ip: req.ip });
+    res.json({ id: req.params.id, roles });
+  } catch (error) {
+    console.error('Update roles error:', error);
+    res.status(500).json({ error: 'Failed to update roles' });
   }
 });
 

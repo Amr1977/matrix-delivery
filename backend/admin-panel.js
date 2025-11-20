@@ -13,15 +13,17 @@ const verifyAdmin = async (req, res, next) => {
     
     // Check if user is admin
     const userResult = await pool.query(
-      'SELECT id, email, name, role FROM users WHERE id = $1',
+      'SELECT id, email, name, role, roles FROM users WHERE id = $1',
       [decoded.userId]
     );
     
-    if (userResult.rows.length === 0 || userResult.rows[0].role !== 'admin') {
+    const row = userResult.rows[0];
+    const hasAdmin = row && (row.role === 'admin' || (Array.isArray(row.roles) && row.roles.includes('admin')));
+    if (userResult.rows.length === 0 || !hasAdmin) {
       return res.status(403).json({ error: 'Admin access required' });
     }
     
-    req.admin = userResult.rows[0];
+    req.admin = { id: row.id, email: row.email, name: row.name };
     next();
   } catch (error) {
     console.error('Admin verification error:', error);

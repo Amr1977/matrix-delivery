@@ -1,0 +1,49 @@
+Develop a comprehensive profile page system with distinct interfaces for delivery agents and customers. The page should include:
+
+For Delivery Agents:
+1. Professional profile section displaying:
+   - Profile picture (upload functionality)
+   - Full name and contact information
+   - Vehicle type and license details
+   - Service area/zone
+   - Rating and performance metrics
+   - Availability status toggle
+   - Document verification status
+
+For Customers:
+1. Personal profile section with:
+   - Profile picture (upload functionality)
+   - Contact information
+   - Delivery preferences
+   - Payment methods
+   - Order history
+   - Favorite delivery agents
+   - Notification preferences
+
+Common Features:
+1. Secure authentication and authorization
+2. Responsive design for all device types
+3. Dark/light mode toggle
+4. Language selection
+5. Two-factor authentication options
+6. Privacy settings controls
+7. Activity log/history
+8. Help/support section
+
+Technical Requirements:
+1. Implement role-based access control
+2. Use secure data storage and transmission
+3. Include form validation for all input fields
+4. Provide clear error messages
+5. Optimize for performance (load time < 2s)
+6. Ensure WCAG 2.1 AA accessibility compliance
+7. Include comprehensive logging
+8. Implement proper session management
+
+Testing Requirements:
+1. Unit tests for all components
+2. Integration tests for API calls
+3. Cross-browser compatibility testing
+4. Performance testing
+5. Security vulnerability scanning
+6. User acceptance testing with both agent and customer roles

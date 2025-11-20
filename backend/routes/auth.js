@@ -170,6 +170,21 @@ router.get('/me', verifyToken, async (req, res) => {
   }
 });
 
+// Switch active role and issue new token
+router.post('/switch-role', verifyToken, async (req, res) => {
+  try {
+    const { role } = req.body;
+    if (!role) {
+      return res.status(400).json({ error: 'Role is required' });
+    }
+    const { token, roles } = await authService.switchRole(req.user.userId, role);
+    res.json({ token, role, roles });
+  } catch (error) {
+    logger.error(`Switch role error: ${error.message}`, { userId: req.user.userId, category: 'error' });
+    res.status(400).json({ error: error.message || 'Failed to switch role' });
+  }
+});
+
 // Verify user by email (for testing purposes)
 router.post('/verify-user', requireRole('admin'), async (req, res) => {
   try {
