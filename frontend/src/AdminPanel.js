@@ -229,13 +229,13 @@ const AdminPanel = ({ token, onClose }) => {
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F3F4F6' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--matrix-black)', color: 'var(--matrix-bright-green)' }}>
       {/* Header */}
       <header style={{
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        color: 'white',
+        background: 'linear-gradient(135deg, var(--matrix-black) 0%, var(--matrix-dark-green) 100%)',
+        color: 'var(--matrix-bright-green)',
         padding: '1rem 2rem',
-        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+        borderBottom: '2px solid var(--matrix-border)'
       }}>
         <div style={{
           maxWidth: '1400px',
@@ -245,38 +245,21 @@ const AdminPanel = ({ token, onClose }) => {
           alignItems: 'center'
         }}>
           <div>
-            <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '0.25rem' }}>
+            <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '0.25rem' }} className="header-title">
               🛡️ Admin Dashboard
             </h1>
-            <p style={{ fontSize: '0.875rem', opacity: 0.9 }}>Matrix Delivery System Control</p>
+            <p style={{ fontSize: '0.875rem', opacity: 0.9 }} className="text-matrix">Matrix Delivery System Control</p>
           </div>
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
             <button
               onClick={onClose}
-              style={{
-                background: 'rgba(255, 255, 255, 0.2)',
-                color: 'white',
-                padding: '0.5rem 1rem',
-                borderRadius: '0.5rem',
-                border: '1px solid rgba(255, 255, 255, 0.3)',
-                cursor: 'pointer',
-                fontWeight: '600'
-              }}
+              className="btn btn-primary"
             >
               ✖ Close
             </button>
             <button
             onClick={logout}
-            style={{
-              background: 'rgba(255, 255, 255, 0.2)',
-              color: 'white',
-              padding: '0.5rem 1.5rem',
-              borderRadius: '0.5rem',
-              border: '1px solid rgba(255, 255, 255, 0.3)',
-              cursor: 'pointer',
-              fontWeight: '600',
-              transition: 'background 0.2s'
-            }}
+            className="btn btn-danger"
           >
             🚪 Logout
           </button>
@@ -286,8 +269,8 @@ const AdminPanel = ({ token, onClose }) => {
 
       {/* Navigation Tabs */}
       <div style={{
-        background: 'white',
-        borderBottom: '2px solid #E5E7EB',
+        background: 'var(--matrix-black)',
+        borderBottom: '2px solid var(--matrix-border)',
         position: 'sticky',
         top: 0,
         zIndex: 10
@@ -311,17 +294,7 @@ const AdminPanel = ({ token, onClose }) => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              style={{
-                padding: '1rem 1.5rem',
-                background: activeTab === tab.id ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 'transparent',
-                color: activeTab === tab.id ? 'white' : '#6B7280',
-                border: 'none',
-                borderBottom: activeTab === tab.id ? '3px solid #667eea' : '3px solid transparent',
-                cursor: 'pointer',
-                fontWeight: '600',
-                fontSize: '0.875rem',
-                transition: 'all 0.2s'
-              }}
+              className={activeTab === tab.id ? 'tab-button active' : 'tab-button'}
             >
               {tab.label}
             </button>
@@ -329,16 +302,7 @@ const AdminPanel = ({ token, onClose }) => {
           <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
             <button
               onClick={triggerBackendDeploy}
-              style={{
-                padding: '0.75rem 1rem',
-                background: '#F59E0B',
-                color: 'white',
-                border: 'none',
-                borderRadius: '0.375rem',
-                cursor: 'pointer',
-                fontWeight: '600',
-                fontSize: '0.875rem'
-              }}
+              className="btn btn-primary"
             >
               🚀 Deploy Backend
             </button>
@@ -360,11 +324,11 @@ const AdminPanel = ({ token, onClose }) => {
           marginBottom: '1rem'
         }}>
           <div style={{
-            background: '#FEE2E2',
-            color: '#991B1B',
+            background: 'rgba(248, 113, 113, 0.2)',
+            color: 'var(--status-cancelled)',
             padding: '1rem',
             borderRadius: '0.5rem',
-            border: '1px solid #FCA5A5',
+            border: '1px solid var(--status-cancelled)',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center'
@@ -394,30 +358,12 @@ const AdminPanel = ({ token, onClose }) => {
       <main style={{ maxWidth: '1400px', margin: '0 auto', padding: '2rem' }}>
         {activeTab === 'overview' && (
           <div>
-            {/* Date Range Filter */}
-            <div style={{
-              background: 'white',
-              padding: '1rem',
-              borderRadius: '0.5rem',
-              marginBottom: '1.5rem',
-              display: 'flex',
-              gap: '0.5rem',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-            }}>
+            <div className="card" style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
               {['24h', '7d', '30d', '90d'].map(range => (
                 <button
                   key={range}
                   onClick={() => setDateRange(range)}
-                  style={{
-                    padding: '0.5rem 1rem',
-                    background: dateRange === range ? '#667eea' : '#F3F4F6',
-                    color: dateRange === range ? 'white' : '#6B7280',
-                    border: 'none',
-                    borderRadius: '0.375rem',
-                    cursor: 'pointer',
-                    fontWeight: '600',
-                    fontSize: '0.875rem'
-                  }}
+                  className={dateRange === range ? 'btn btn-primary' : 'btn'}
                 >
                   {range === '24h' ? 'Last 24 Hours' :
                    range === '7d' ? 'Last 7 Days' :
@@ -465,12 +411,7 @@ const AdminPanel = ({ token, onClose }) => {
             {/* Charts */}
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
               {/* Revenue Chart */}
-              <div style={{
-                background: 'white',
-                borderRadius: '0.75rem',
-                padding: '1.5rem',
-                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-              }}>
+              <div className="card">
                 <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', marginBottom: '1rem' }}>
                   📈 Revenue Trend
                 </h3>
@@ -486,12 +427,7 @@ const AdminPanel = ({ token, onClose }) => {
               </div>
 
               {/* Orders by Status */}
-              <div style={{
-                background: 'white',
-                borderRadius: '0.75rem',
-                padding: '1.5rem',
-                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-              }}>
+              <div className="card">
                 <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', marginBottom: '1rem' }}>
                   📊 Orders by Status
                 </h3>
@@ -518,12 +454,7 @@ const AdminPanel = ({ token, onClose }) => {
             </div>
 
             {/* User Growth Chart */}
-            <div style={{
-              background: 'white',
-              borderRadius: '0.75rem',
-              padding: '1.5rem',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-            }}>
+            <div className="card">
               <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', marginBottom: '1rem' }}>
                 👥 User Growth
               </h3>
@@ -543,37 +474,20 @@ const AdminPanel = ({ token, onClose }) => {
         {activeTab === 'users' && (
           <div>
             {/* User Management Header */}
-            <div style={{
-              background: 'white',
-              padding: '1.5rem',
-              borderRadius: '0.75rem',
-              marginBottom: '1.5rem',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-            }}>
+            <div className="card" style={{ marginBottom: '1.5rem' }}>
               <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
                 <input
                   type="text"
                   placeholder="🔍 Search users by name, email, or ID..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  style={{
-                    flex: 1,
-                    padding: '0.75rem',
-                    border: '2px solid #E5E7EB',
-                    borderRadius: '0.5rem',
-                    fontSize: '0.875rem'
-                  }}
+                  className=""
+                  style={{ flex: 1 }}
                 />
                 <select
                   value={filterRole}
                   onChange={(e) => setFilterRole(e.target.value)}
-                  style={{
-                    padding: '0.75rem',
-                    border: '2px solid #E5E7EB',
-                    borderRadius: '0.5rem',
-                    fontSize: '0.875rem',
-                    minWidth: '150px'
-                  }}
+                  style={{ minWidth: '150px' }}
                 >
                   <option value="all">All Roles</option>
                   <option value="customer">Customers</option>
@@ -602,15 +516,10 @@ const AdminPanel = ({ token, onClose }) => {
             </div>
 
             {/* Users Table */}
-            <div style={{
-              background: 'white',
-              borderRadius: '0.75rem',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-              overflow: 'hidden'
-            }}>
+            <div className="card" style={{ overflow: 'hidden' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
-                  <tr style={{ background: '#F9FAFB', borderBottom: '2px solid #E5E7EB' }}>
+                  <tr>
                     <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>User</th>
                     <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>Role</th>
                     <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>Status</th>
@@ -642,11 +551,11 @@ const AdminPanel = ({ token, onClose }) => {
                               width: '40px',
                               height: '40px',
                               borderRadius: '50%',
-                              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                              background: 'linear-gradient(135deg, var(--matrix-dim-green) 0%, var(--matrix-dark-green) 100%)',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              color: 'white',
+                              color: 'var(--matrix-bright-green)',
                               fontWeight: 'bold'
                             }}>
                               {user.name.charAt(0).toUpperCase()}
@@ -655,7 +564,7 @@ const AdminPanel = ({ token, onClose }) => {
                               <p style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.125rem' }}>
                                 {user.name}
                               </p>
-                              <p style={{ fontSize: '0.75rem', color: '#6B7280' }}>{user.email}</p>
+                              <p style={{ fontSize: '0.75rem', color: 'var(--matrix-green)' }}>{user.email}</p>
                             </div>
                           </div>
                         </td>
@@ -704,33 +613,14 @@ const AdminPanel = ({ token, onClose }) => {
                                 setSelectedUser(user);
                                 setShowUserModal(true);
                               }}
-                              style={{
-                                padding: '0.375rem 0.75rem',
-                                background: '#667eea',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '0.375rem',
-                                cursor: 'pointer',
-                                fontSize: '0.75rem',
-                                fontWeight: '600'
-                              }}
+                              className="btn btn-primary"
                             >
                               View
                             </button>
                             <button
                               onClick={() => handleUserAction(user.isVerified ? 'suspend' : 'verify', user.id)}
                               disabled={loading}
-                              style={{
-                                padding: '0.375rem 0.75rem',
-                                background: user.isVerified ? '#EF4444' : '#10B981',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '0.375rem',
-                                cursor: loading ? 'not-allowed' : 'pointer',
-                                fontSize: '0.75rem',
-                                fontWeight: '600',
-                                opacity: loading ? 0.5 : 1
-                              }}
+                              className={loading ? 'btn btn-danger' : (user.isVerified ? 'btn btn-danger' : 'btn btn-success')}
                             >
                               {user.isVerified ? 'Suspend' : 'Verify'}
                             </button>
@@ -740,17 +630,7 @@ const AdminPanel = ({ token, onClose }) => {
                                 updateUserRoles(user.id, isAdmin ? { remove: ['admin'] } : { add: ['admin'] });
                               }}
                               disabled={loading}
-                              style={{
-                                padding: '0.375rem 0.75rem',
-                                background: (user.roles || [user.role]).includes('admin') ? '#6B7280' : '#4F46E5',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '0.375rem',
-                                cursor: loading ? 'not-allowed' : 'pointer',
-                                fontSize: '0.75rem',
-                                fontWeight: '600',
-                                opacity: loading ? 0.5 : 1
-                              }}
+                              className="btn btn-primary"
                             >
                               {(user.roles || [user.role]).includes('admin') ? 'Remove Admin' : 'Make Admin'}
                             </button>
@@ -760,17 +640,7 @@ const AdminPanel = ({ token, onClose }) => {
                                 updateUserRoles(user.id, isSupport ? { remove: ['support'] } : { add: ['support'] });
                               }}
                               disabled={loading}
-                              style={{
-                                padding: '0.375rem 0.75rem',
-                                background: (user.roles || [user.role]).includes('support') ? '#6B7280' : '#059669',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '0.375rem',
-                                cursor: loading ? 'not-allowed' : 'pointer',
-                                fontSize: '0.75rem',
-                                fontWeight: '600',
-                                opacity: loading ? 0.5 : 1
-                              }}
+                              className="btn btn-success"
                             >
                               {(user.roles || [user.role]).includes('support') ? 'Remove Support' : 'Grant Support'}
                             </button>
@@ -783,9 +653,9 @@ const AdminPanel = ({ token, onClose }) => {
               </table>
               {usersPagination && (
                 <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', padding: '1rem' }}>
-                  <button disabled={usersPagination.page <= 1} onClick={() => setUsersPage(usersPagination.page - 1)} style={{ padding: '0.5rem 1rem' }}>Prev</button>
+                  <button disabled={usersPagination.page <= 1} onClick={() => setUsersPage(usersPagination.page - 1)} className="btn">Prev</button>
                   <span>Page {usersPagination.page} / {usersPagination.totalPages}</span>
-                  <button disabled={usersPagination.page >= usersPagination.totalPages} onClick={() => setUsersPage(usersPagination.page + 1)} style={{ padding: '0.5rem 1rem' }}>Next</button>
+                  <button disabled={usersPagination.page >= usersPagination.totalPages} onClick={() => setUsersPage(usersPagination.page + 1)} className="btn">Next</button>
                 </div>
               )}
             </div>
