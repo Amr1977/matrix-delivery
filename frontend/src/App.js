@@ -1652,6 +1652,19 @@ const getDriverViewTitle = (viewType) => {
               lastUpdated: new Date()
             });
             setLocationPermission('granted');
+            const activeOrders = orders.filter(o => o.assignedDriver?.userId === currentUser.id && ['accepted', 'picked_up', 'in_transit'].includes(o.status));
+            if (activeOrders.length > 0) {
+              await Promise.all(activeOrders.map(o => (
+                fetch(`${API_URL}/orders/${o._id}/location`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                  },
+                  body: JSON.stringify({ latitude, longitude })
+                })
+              )));
+            }
             fetchOrders(); // Refresh orders with new distance calculations
           },
           (error) => {

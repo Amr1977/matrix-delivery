@@ -240,6 +240,29 @@ const LiveTrackingMap = ({ orderId, t, compact = false }) => {
   const center = getCenter();
   const hasCoordinates = (trackingData?.pickup && trackingData.pickup.location) || (trackingData?.delivery && trackingData.delivery.location);
 
+  const actualRoute = Array.isArray(trackingData?.locationHistory)
+    ? [...trackingData.locationHistory].reverse().map(p => [p.lat, p.lng])
+    : [];
+
+  const pickupLoc = trackingData?.pickup?.location;
+  const deliveryLoc = trackingData?.delivery?.location;
+  const currentLoc = trackingData?.currentLocation;
+
+  const expectedToPickup = (trackingData?.status === 'accepted' && currentLoc && pickupLoc)
+    ? [[currentLoc.lat, currentLoc.lng], [pickupLoc.lat, pickupLoc.lng]]
+    : [];
+
+  const expectedToDelivery = (
+    (trackingData?.status === 'accepted' && pickupLoc && deliveryLoc) ||
+    ((trackingData?.status === 'picked_up' || trackingData?.status === 'in_transit') && currentLoc && deliveryLoc)
+  )
+    ? (
+        trackingData.status === 'accepted'
+          ? [[pickupLoc.lat, pickupLoc.lng], [deliveryLoc.lat, deliveryLoc.lng]]
+          : [[currentLoc.lat, currentLoc.lng], [deliveryLoc.lat, deliveryLoc.lng]]
+      )
+    : [];
+
   return (
     <div style={{
       background: 'rgba(0, 17, 0, 0.8)',
@@ -390,24 +413,35 @@ const LiveTrackingMap = ({ orderId, t, compact = false }) => {
 
           <MapBoundsUpdater trackingData={trackingData} />
 
-          {/* Expected route (straight line) */}
-          {trackingData.routes?.expected && trackingData.routes.expected.length > 0 && (
+          {expectedToPickup.length === 2 && (
             <Polyline
-              positions={trackingData.routes.expected}
-              color="#6B7280"
-              weight={3}
-              opacity={0.6}
-              dashArray="10, 10"
+              positions={expectedToPickup}
+              color="#F59E0B"
+              weight={4}
+              opacity={0.9}
+              dashArray="8, 8"
+              pathOptions={{ className: 'expected-route-pickup animated-stroke' }}
             />
           )}
 
-          {/* Actual route taken */}
-          {trackingData.routes?.actual && trackingData.routes.actual.length > 1 && (
+          {expectedToDelivery.length === 2 && (
             <Polyline
-              positions={trackingData.routes.actual}
-              color="#10B981"
+              positions={expectedToDelivery}
+              color="#0EA5E9"
               weight={4}
-              opacity={0.8}
+              opacity={0.9}
+              dashArray="8, 8"
+              pathOptions={{ className: 'expected-route-delivery animated-stroke' }}
+            />
+          )}
+
+          {actualRoute.length > 1 && (
+            <Polyline
+              positions={actualRoute}
+              color="#00FF00"
+              weight={5}
+              opacity={0.95}
+              pathOptions={{ className: 'actual-route animated-glow' }}
             />
           )}
 
@@ -472,8 +506,9 @@ const LiveTrackingMap = ({ orderId, t, compact = false }) => {
         gap: '1rem'
       }}>
         <div style={{ display: 'flex', gap: '1rem' }}>
-          <span>🟢 Completed Route</span>
-          <span>⚪ Expected Route</span>
+          <span>🟢 Actual Route</span>
+          <span>🟠 Expected to Pickup</span>
+          <span>🔵 Expected to Delivery</span>
           <span>📍 Pickup</span>
           <span>🏠 Delivery</span>
           <span>🚗 Driver</span>
