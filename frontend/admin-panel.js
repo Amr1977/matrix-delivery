@@ -19,6 +19,7 @@ const AdminDashboard = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterRole, setFilterRole] = useState('all');
   const [dateRange, setDateRange] = useState('7d');
+  const [deployStatus, setDeployStatus] = useState(null);
   
   // User Management
   const [selectedUser, setSelectedUser] = useState(null);
@@ -35,6 +36,21 @@ const AdminDashboard = () => {
       return () => clearInterval(interval);
     }
   }, [adminToken, dateRange]);
+
+  const triggerBackendDeploy = async () => {
+    if (!adminToken) return;
+    setDeployStatus('running');
+    try {
+      const response = await fetch(`${API_URL}/admin/deploy`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${adminToken}` }
+      });
+      const data = await response.json();
+      setDeployStatus(response.ok ? `completed (code ${data.exitCode})` : `failed: ${data.error || 'unknown'}`);
+    } catch (e) {
+      setDeployStatus(`failed: ${e.message}`);
+    }
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -371,40 +387,63 @@ const AdminDashboard = () => {
         top: 0,
         zIndex: 10
       }}>
-        <div style={{
-          maxWidth: '1400px',
-          margin: '0 auto',
-          display: 'flex',
-          gap: '0.5rem',
-          padding: '0 2rem'
-        }}>
-          {[
-            { id: 'overview', label: '📊 Overview', icon: '📊' },
-            { id: 'users', label: '👥 Users', icon: '👥' },
-            { id: 'orders', label: '📦 Orders', icon: '📦' },
-            { id: 'analytics', label: '📈 Analytics', icon: '📈' },
-            { id: 'logs', label: '📋 Logs', icon: '📋' },
-            { id: 'settings', label: '⚙️ Settings', icon: '⚙️' }
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              style={{
-                padding: '1rem 1.5rem',
-                background: activeTab === tab.id ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 'transparent',
-                color: activeTab === tab.id ? 'white' : '#6B7280',
-                border: 'none',
-                borderBottom: activeTab === tab.id ? '3px solid #667eea' : '3px solid transparent',
-                cursor: 'pointer',
-                fontWeight: '600',
-                fontSize: '0.875rem',
-                transition: 'all 0.2s'
-              }}
-            >
-              {tab.label}
-            </button>
-          ))}
+      <div style={{
+        maxWidth: '1400px',
+        margin: '0 auto',
+        display: 'flex',
+        gap: '0.5rem',
+        padding: '0 2rem',
+        alignItems: 'center'
+      }}>
+        {[
+          { id: 'overview', label: '📊 Overview', icon: '📊' },
+          { id: 'users', label: '👥 Users', icon: '👥' },
+          { id: 'orders', label: '📦 Orders', icon: '📦' },
+          { id: 'analytics', label: '📈 Analytics', icon: '📈' },
+          { id: 'logs', label: '📋 Logs', icon: '📋' },
+          { id: 'settings', label: '⚙️ Settings', icon: '⚙️' }
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            style={{
+              padding: '1rem 1.5rem',
+              background: activeTab === tab.id ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 'transparent',
+              color: activeTab === tab.id ? 'white' : '#6B7280',
+              border: 'none',
+              borderBottom: activeTab === tab.id ? '3px solid #667eea' : '3px solid transparent',
+              cursor: 'pointer',
+              fontWeight: '600',
+              fontSize: '0.875rem',
+              transition: 'all 0.2s'
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <button
+            onClick={triggerBackendDeploy}
+            style={{
+              padding: '0.75rem 1rem',
+              background: '#F59E0B',
+              color: 'white',
+              border: 'none',
+              borderRadius: '0.375rem',
+              cursor: 'pointer',
+              fontWeight: '600',
+              fontSize: '0.875rem'
+            }}
+          >
+            🚀 Deploy Backend
+          </button>
+          {deployStatus && (
+            <span style={{ fontSize: '0.75rem', color: deployStatus.startsWith('completed') ? '#10B981' : '#EF4444' }}>
+              {`Deploy: ${deployStatus}`}
+            </span>
+          )}
         </div>
+      </div>
       </div>
 
       {/* Main Content */}
