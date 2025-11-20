@@ -1,0 +1,1 @@
+in footer, we need to always include the corrent commit hash instead of the fixed commit hash currently showing, with date/time , also change from Matrix Delivery to Matrix Heroes
