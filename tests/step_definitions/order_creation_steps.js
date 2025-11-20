@@ -343,12 +343,8 @@ When('I fill in the basic order information:', async function(dataTable) {
   }
 
   if (data.price) {
-    // Find the price input by its proximity to the price label
-    const priceInput = this.page.locator('input').filter({ hasText: /^[^0-9]*$/ }).locator('xpath=following::input[1]');
-    // Alternative: look for number input near "Price" text
     const priceInputs = this.page.locator('input[type="number"]');
-    const priceInput = priceInputs.first();
-    await priceInput.fill(data.price);
+    await priceInputs.first().fill(data.price);
   }
 });
 

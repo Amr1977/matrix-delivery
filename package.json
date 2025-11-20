@@ -7,7 +7,8 @@
     "test:all": "node scripts/run-tests.js",
     "test:api": "jest tests/map-location-api-tests.js --verbose --testTimeout=30000",
     "test:e2e": "cucumber-js tests/features --format summary --format json:test-results.json",
-    "test:smoke": "cucumber-js --tags \"@smoke\"",
+    "test:smoke": "node tests/smoke-health.js",
+    "test:health": "node tests/smoke-health.js",
     "test:map": "cucumber-js --tags \"@map-location-picker\"",
     "test:auth": "cucumber-js --tags \"@authentication\"",
     "test:orders": "cucumber-js --tags \"@orders\"",
@@ -26,8 +27,8 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm run test:pre-commit",
-      "pre-push": "npm run test:pre-commit"
+      "pre-commit": "npm run test:smoke && npm run test:api",
+      "pre-push": "npm run test:all"
     }
   },
   "jest": {
@@ -59,7 +60,7 @@
     }
   },
   "devDependencies": {
-    "@cucumber/cucumber": "^10.9.0",
+    "@cucumber/cucumber": "^12.2.0",
     "@playwright/test": "^1.56.1",
     "axios": "^1.13.2",
     "chai": "^4.5.0",

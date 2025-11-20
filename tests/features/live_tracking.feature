@@ -70,8 +70,8 @@ Feature: Live Driver Tracking for Customers
   Scenario: Customer sees real-time updates
     Given tracking is active
     When the driver sends location updates
-    Then the map should update automatically every 10 seconds
-    And "Auto-refreshing every 10 seconds" should be displayed
+    Then the map should auto-refresh based on order status
+    And the auto-refresh message should display the correct seconds
 
   Scenario: Map auto-adjusts bounds for route visibility
     Given there are location points across the map
