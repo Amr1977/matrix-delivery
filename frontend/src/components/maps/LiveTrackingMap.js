@@ -110,14 +110,46 @@ const LiveTrackingMap = ({ orderId, t, compact = false }) => {
   const refreshIntervalRef = useRef(null);
   const mapRef = useRef(null);
   const [currentAddress, setCurrentAddress] = useState('');
+  const [orderMeta, setOrderMeta] = useState(null);
 
   // Fetch tracking data
   const fetchTrackingData = async () => {
     try {
+      let idToUse = orderId;
+      if (!orderMeta) {
+        try {
+          const ordersList = await api.get('/orders');
+          const match = Array.isArray(ordersList)
+            ? ordersList.find(o => o._id === orderId || o.orderNumber === orderId)
+            : null;
+          if (match) {
+            setOrderMeta({ _id: match._id, status: match.status });
+            idToUse = match._id || orderId;
+            if (match.status === 'pending_bids') {
+              setError('Tracking is unavailable until a bid is accepted');
+              setLoading(false);
+              return;
+            }
+          }
+        } catch (_) {}
+      } else {
+        if (orderMeta.status === 'pending_bids') {
+          setError('Tracking is unavailable until a bid is accepted');
+          setLoading(false);
+          return;
+        }
+        idToUse = orderMeta._id || orderId;
+      }
+
       let detailsResponse;
       try {
-        detailsResponse = await api.get(`/orders/${orderId}/tracking`);
+        detailsResponse = await api.get(`/orders/${idToUse}/tracking`);
       } catch (primaryErr) {
+        if (primaryErr && String(primaryErr.message).includes('HTTP 403')) {
+          setError('Tracking is unavailable until a bid is accepted');
+          setLoading(false);
+          return;
+        }
         if (primaryErr && String(primaryErr.message).includes('HTTP 404')) {
           const ordersList = await api.get('/orders');
           const match = Array.isArray(ordersList)
