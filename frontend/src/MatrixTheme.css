@@ -799,6 +799,55 @@ footer {
   }
 }
 
+a {
+  color: var(--matrix-bright-green);
+  text-decoration: underline;
+}
+
+a:hover {
+  color: var(--matrix-green);
+}
+
+table {
+  color: var(--matrix-bright-green);
+}
+
+thead {
+  background: rgba(0, 255, 0, 0.05);
+}
+
+th,
+td {
+  border-color: var(--matrix-border);
+}
+
+tr {
+  border-bottom: 1px solid var(--matrix-border);
+}
+
+.tab-button {
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: transparent;
+  color: var(--matrix-green);
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+.tab-button.active {
+  background: linear-gradient(135deg, var(--matrix-dim-green) 0%, var(--matrix-dark-green) 100%);
+  color: var(--matrix-bright-green);
+  border-bottom-color: var(--matrix-border);
+}
+
+.header-title {
+  color: var(--matrix-bright-green);
+  text-shadow: var(--shadow-glow);
+}
+
 /* ============================================
    ACCESSIBILITY
    ============================================ */
