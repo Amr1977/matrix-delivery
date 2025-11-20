@@ -1429,6 +1429,26 @@ const getDriverViewTitle = (viewType) => {
     }
   };
 
+  const handleDeleteOrder = async (orderId) => {
+    setLoadingState('deleteOrder', true);
+    try {
+      const response = await fetch(`${API_URL}/orders/${orderId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to delete order');
+      }
+      fetchOrders();
+      showSuccess('Order deleted successfully');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoadingState('deleteOrder', false);
+    }
+  };
+
   const handleAcceptBid = async (orderId, userId) => {
     setLoadingState('acceptBid', true);
     setError('');
@@ -3053,6 +3073,15 @@ const getDriverViewTitle = (viewType) => {
                         >
                           🗺️ {t('orders.trackOrder')}
                         </button>
+                        {currentUser?.role === 'customer' && order.status === 'pending_bids' && order.customerId === currentUser?.id && (
+                          <button
+                            onClick={() => handleDeleteOrder(order._id)}
+                            disabled={loadingStates.deleteOrder}
+                            style={{ padding: '0.5rem 1rem', background: '#EF4444', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: loadingStates.deleteOrder ? 'not-allowed' : 'pointer', fontSize: '0.875rem', fontWeight: '600', opacity: loadingStates.deleteOrder ? 0.5 : 1 }}
+                          >
+                            🗑️ Delete Order
+                          </button>
+                        )}
                         <button
                           onClick={() => {
                             const pickup = order.pickupLocation?.coordinates || (order.from ? { lat: order.from.lat, lng: order.from.lng } : null);

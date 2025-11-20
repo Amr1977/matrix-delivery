@@ -16,7 +16,8 @@ const OrderList = ({
   setBidInput,
   bidDetails,
   setBidDetails,
-  loadingStates
+  loadingStates,
+  onDeleteOrder
 }) => {
   const { t } = useI18n();
 
@@ -72,6 +73,7 @@ const OrderList = ({
           bidDetails={bidDetails}
           setBidDetails={setBidDetails}
           loadingStates={loadingStates}
+          onDeleteOrder={onDeleteOrder}
         />
       ))}
     </div>
