@@ -18,28 +18,50 @@ const createCustomIcon = (iconType, color) => {
     dropoff: '🏁'
   };
 
+  const size = 60;
+
   return L.divIcon({
     html: `
       <div style="
+        position: relative;
         background: ${color};
-        border: 3px solid white;
+        border: 4px solid white;
         border-radius: 50%;
-        width: 40px;
-        height: 40px;
+        width: ${size}px;
+        height: ${size}px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 18px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        color: white;
+        font-size: 26px;
+        font-weight: 700;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+        color: #001100;
+        text-shadow: 0 1px 0 rgba(255,255,255,0.6);
       ">
         ${icons[iconType]}
+        <div style="
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: ${size}px;
+          height: ${size}px;
+          border-radius: 50%;
+          animation: matrixPulse 2s ease-out infinite;
+          box-shadow: 0 0 0 0 rgba(0,255,0,0.6);
+        "></div>
       </div>
+      <style>
+        @keyframes matrixPulse {
+          0% { box-shadow: 0 0 0 0 rgba(0,255,0,0.6); }
+          70% { box-shadow: 0 0 0 20px rgba(0,255,0,0); }
+          100% { box-shadow: 0 0 0 0 rgba(0,255,0,0); }
+        }
+      </style>
     `,
-    className: '', // Remove default class
-    iconSize: [40, 40],
-    iconAnchor: [20, 40],
-    popupAnchor: [0, -40]
+    className: '',
+    iconSize: [size, size],
+    iconAnchor: [Math.floor(size / 2), size],
+    popupAnchor: [0, -size]
   });
 };
 
