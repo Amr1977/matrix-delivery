@@ -3,16 +3,15 @@
  * Implements the Cucumber scenarios defined in map_location_picker.feature
  */
 
-const { Given, When, Then, Before, After } = require('@cucumber/cucumber');
+const { Given, When, Then, Before, After, AfterAll } = require('@cucumber/cucumber');
 const { expect } = require('chai');
 const puppeteer = require('puppeteer');
 const axios = require('axios');
 const { Pool } = require('pg');
 
 // Test configuration
-const TEST_PORT = 5001; // Use different port for tests
-const BASE_URL = `http://localhost:${TEST_PORT}`;
-const API_BASE = `${BASE_URL}/api`;
+const FRONTEND_URL = 'http://localhost:3000';
+const API_BASE = 'http://localhost:5000/api';
 
 // Database connection for test data setup
 const pool = new Pool({
@@ -26,7 +25,6 @@ const pool = new Pool({
 // Test browser instance
 let browser;
 let page;
-let server;
 
 // Test user credentials
 const testUser = {
@@ -52,13 +50,6 @@ let testLocations = {
 };
 
 Before(async function () {
-  // Setup test server
-  if (!server) {
-    const serverModule = require('../../backend/server');
-    server = require('http').createServer(serverModule);
-    await new Promise(resolve => server.listen(TEST_PORT, resolve));
-  }
-
   // Setup browser for E2E tests
   if (!browser) {
     browser = await puppeteer.launch({
@@ -85,9 +76,6 @@ After(async function () {
 AfterAll(async function () {
   if (browser) {
     await browser.close();
-  }
-  if (server) {
-    server.close();
   }
   await pool.end();
 });
@@ -161,12 +149,13 @@ Given('I am on the order creation page', async function () {
   }
 
   // Navigate to order creation page
-  await page.goto(`${BASE_URL}/order-create`);
+  await page.goto(`${FRONTEND_URL}/order-create`);
   await page.waitForSelector('[data-testid="map-container"]', { timeout: 10000 });
 });
 
-When('I click on a location on the map at coordinates {string}', async function (coordinates) {
-  const [lat, lng] = coordinates.replace(/[()]/g, '').split(',').map(Number);
+When(/^I click on a location on the map at coordinates \(([-\d\.]+), ([-\d\.]+)\)$/, async function (latStr, lngStr) {
+  const lat = parseFloat(latStr);
+  const lng = parseFloat(lngStr);
 
   // Simulate map click
   await page.evaluate((latitude, longitude) => {
