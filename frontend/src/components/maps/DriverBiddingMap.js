@@ -164,8 +164,12 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
 
         // Calculate times based on vehicle type
         const vehicleSpeeds = {
-          bicycle: 15, // km/h
-          bike: 15,
+          walker: 5,
+          pedestrian: 5,
+          bicycle: 15,
+          bike: 20,
+          scooter: 22,
+          motorbike: 25,
           car: 35,
           van: 30,
           truck: 25
