@@ -13,7 +13,13 @@ const AdminPanel = ({ token, onClose }) => {
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [usersPagination, setUsersPagination] = useState(null);
+  const [ordersPagination, setOrdersPagination] = useState(null);
+  const [userCounts, setUserCounts] = useState({ totalVerified: null });
   const [systemLogs, setSystemLogs] = useState([]);
+  const [logsPagination, setLogsPagination] = useState(null);
+  const [logsPage, setLogsPage] = useState(1);
+  const [logsType, setLogsType] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterRole, setFilterRole] = useState('all');
   const [dateRange, setDateRange] = useState('7d');
@@ -25,16 +31,23 @@ const AdminPanel = ({ token, onClose }) => {
   const [showUserModal, setShowUserModal] = useState(false);
 
   // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
+  const [usersPage, setUsersPage] = useState(1);
+  const [ordersPage, setOrdersPage] = useState(1);
   const itemsPerPage = 20;
 
   useEffect(() => {
     if (adminToken) {
       fetchDashboardData();
-      const interval = setInterval(fetchDashboardData, 30000); // Refresh every 30s
+      const interval = setInterval(fetchDashboardData, 30000);
       return () => clearInterval(interval);
     }
-  }, [adminToken, dateRange]);
+  }, [adminToken, dateRange, usersPage, ordersPage, searchQuery, filterRole]);
+
+  useEffect(() => {
+    if (adminToken && activeTab === 'logs') {
+      fetchLogs();
+    }
+  }, [adminToken, activeTab, logsPage, logsType]);
 
   const fetchDashboardData = async () => {
     try {
@@ -42,10 +55,12 @@ const AdminPanel = ({ token, onClose }) => {
       const headers = { 'Authorization': `Bearer ${adminToken}` };
 
       // Fetch all data in parallel
-      const [statsRes, usersRes, ordersRes] = await Promise.all([
+      const roleParam = filterRole === 'all' ? '' : filterRole;
+      const [statsRes, usersRes, ordersRes, verifiedCountRes] = await Promise.all([
         fetch(`${API_URL}/admin/stats?range=${dateRange}`, { headers }),
-        fetch(`${API_URL}/admin/users?page=${currentPage}&limit=${itemsPerPage}`, { headers }),
-        fetch(`${API_URL}/admin/orders?page=${currentPage}&limit=${itemsPerPage}`, { headers })
+        fetch(`${API_URL}/admin/users?page=${usersPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchQuery)}&role=${roleParam}`, { headers }),
+        fetch(`${API_URL}/admin/orders?page=${ordersPage}&limit=${itemsPerPage}`, { headers }),
+        fetch(`${API_URL}/admin/users?page=1&limit=1&status=verified`, { headers })
       ]);
 
       if (statsRes.ok) {
@@ -59,6 +74,7 @@ const AdminPanel = ({ token, onClose }) => {
       if (usersRes.ok) {
         const usersData = await usersRes.json();
         setUsers(usersData.users || []);
+        setUsersPagination(usersData.pagination || null);
       } else {
         console.error('Users API error:', usersRes.status, usersRes.statusText);
         setError('Failed to load users data');
@@ -67,13 +83,38 @@ const AdminPanel = ({ token, onClose }) => {
       if (ordersRes.ok) {
         const ordersData = await ordersRes.json();
         setOrders(ordersData.orders || []);
+        setOrdersPagination(ordersData.pagination || null);
       } else {
         console.error('Orders API error:', ordersRes.status, ordersRes.statusText);
         setError('Failed to load orders data');
       }
+
+      if (verifiedCountRes.ok) {
+        const vcData = await verifiedCountRes.json();
+        setUserCounts({ totalVerified: vcData.pagination?.totalCount || null });
+      }
     } catch (err) {
       console.error('Fetch error:', err);
       setError('Network error: Unable to connect to server');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchLogs = async () => {
+    try {
+      setLoading(true);
+      const headers = { 'Authorization': `Bearer ${adminToken}` };
+      const res = await fetch(`${API_URL}/admin/logs?page=${logsPage}&limit=50&type=${logsType}`, { headers });
+      if (res.ok) {
+        const data = await res.json();
+        setSystemLogs(data.logs || []);
+        setLogsPagination(data.pagination || null);
+      } else {
+        setError('Failed to load logs');
+      }
+    } catch (err) {
+      setError('Network error: Unable to fetch logs');
     } finally {
       setLoading(false);
     }
@@ -143,37 +184,7 @@ const AdminPanel = ({ token, onClose }) => {
     }
   };
 
-  // Mock stats for demonstration (replace with actual API data)
-  const mockStats = {
-    totalUsers: 1247,
-    totalOrders: 3542,
-    activeOrders: 89,
-    completedOrders: 3201,
-    revenue: 125480,
-    newUsers: 45,
-    userGrowth: [
-      { date: '2024-01', users: 850 },
-      { date: '2024-02', users: 920 },
-      { date: '2024-03', users: 1050 },
-      { date: '2024-04', users: 1150 },
-      { date: '2024-05', users: 1247 }
-    ],
-    ordersByStatus: [
-      { name: 'Pending Bids', value: 45, color: '#FCD34D' },
-      { name: 'Accepted', value: 20, color: '#60A5FA' },
-      { name: 'In Transit', value: 24, color: '#F472B6' },
-      { name: 'Delivered', value: 3201, color: '#34D399' }
-    ],
-    revenueData: [
-      { month: 'Jan', revenue: 18500 },
-      { month: 'Feb', revenue: 22000 },
-      { month: 'Mar', revenue: 25000 },
-      { month: 'Apr', revenue: 28500 },
-      { month: 'May', revenue: 31480 }
-    ]
-  };
-
-  const displayStats = stats || mockStats;
+  const displayStats = stats || { totalUsers: 0, totalOrders: 0, activeOrders: 0, revenue: 0, ordersByStatus: [], revenueData: [], userGrowth: [] };
 
   const StatCard = ({ title, value, change, icon, color }) => (
     <div style={{
@@ -239,7 +250,22 @@ const AdminPanel = ({ token, onClose }) => {
             </h1>
             <p style={{ fontSize: '0.875rem', opacity: 0.9 }}>Matrix Delivery System Control</p>
           </div>
-          <button
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <button
+              onClick={onClose}
+              style={{
+                background: 'rgba(255, 255, 255, 0.2)',
+                color: 'white',
+                padding: '0.5rem 1rem',
+                borderRadius: '0.5rem',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                cursor: 'pointer',
+                fontWeight: '600'
+              }}
+            >
+              ✖ Close
+            </button>
+            <button
             onClick={logout}
             style={{
               background: 'rgba(255, 255, 255, 0.2)',
@@ -254,6 +280,7 @@ const AdminPanel = ({ token, onClose }) => {
           >
             🚪 Logout
           </button>
+          </div>
         </div>
       </header>
 
@@ -557,19 +584,19 @@ const AdminPanel = ({ token, onClose }) => {
               <div style={{ display: 'flex', gap: '1rem' }}>
                 <div style={{ flex: 1, textAlign: 'center', padding: '1rem', background: '#F0F9FF', borderRadius: '0.5rem' }}>
                   <p style={{ fontSize: '0.875rem', color: '#6B7280', marginBottom: '0.25rem' }}>Total Users</p>
-                  <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1F2937' }}>1,247</p>
+                  <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1F2937' }}>{(displayStats.totalUsers || 0).toLocaleString()}</p>
                 </div>
                 <div style={{ flex: 1, textAlign: 'center', padding: '1rem', background: '#FEF3C7', borderRadius: '0.5rem' }}>
                   <p style={{ fontSize: '0.875rem', color: '#6B7280', marginBottom: '0.25rem' }}>Customers</p>
-                  <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1F2937' }}>892</p>
+                  <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1F2937' }}>{(displayStats.usersByRole?.customer || 0).toLocaleString()}</p>
                 </div>
                 <div style={{ flex: 1, textAlign: 'center', padding: '1rem', background: '#D1FAE5', borderRadius: '0.5rem' }}>
                   <p style={{ fontSize: '0.875rem', color: '#6B7280', marginBottom: '0.25rem' }}>Drivers</p>
-                  <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1F2937' }}>355</p>
+                  <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1F2937' }}>{(displayStats.usersByRole?.driver || 0).toLocaleString()}</p>
                 </div>
                 <div style={{ flex: 1, textAlign: 'center', padding: '1rem', background: '#FCE7F3', borderRadius: '0.5rem' }}>
                   <p style={{ fontSize: '0.875rem', color: '#6B7280', marginBottom: '0.25rem' }}>Verified</p>
-                  <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1F2937' }}>1,105</p>
+                  <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1F2937' }}>{userCounts.totalVerified != null ? userCounts.totalVerified.toLocaleString() : '—'}</p>
                 </div>
               </div>
             </div>
@@ -754,6 +781,13 @@ const AdminPanel = ({ token, onClose }) => {
                   )}
                 </tbody>
               </table>
+              {usersPagination && (
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', padding: '1rem' }}>
+                  <button disabled={usersPagination.page <= 1} onClick={() => setUsersPage(usersPagination.page - 1)} style={{ padding: '0.5rem 1rem' }}>Prev</button>
+                  <span>Page {usersPagination.page} / {usersPagination.totalPages}</span>
+                  <button disabled={usersPagination.page >= usersPagination.totalPages} onClick={() => setUsersPage(usersPagination.page + 1)} style={{ padding: '0.5rem 1rem' }}>Next</button>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -772,22 +806,20 @@ const AdminPanel = ({ token, onClose }) => {
               </h2>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
-                <div style={{ padding: '1rem', background: '#FEF3C7', borderRadius: '0.5rem' }}>
-                  <p style={{ fontSize: '0.875rem', color: '#6B7280', marginBottom: '0.25rem' }}>Pending Bids</p>
-                  <p style={{ fontSize: '1.75rem', fontWeight: 'bold', color: '#92400E' }}>45</p>
-                </div>
-                <div style={{ padding: '1rem', background: '#DBEAFE', borderRadius: '0.5rem' }}>
-                  <p style={{ fontSize: '0.875rem', color: '#6B7280', marginBottom: '0.25rem' }}>Accepted</p>
-                  <p style={{ fontSize: '1.75rem', fontWeight: 'bold', color: '#1E40AF' }}>89</p>
-                </div>
-                <div style={{ padding: '1rem', background: '#FCE7F3', borderRadius: '0.5rem' }}>
-                  <p style={{ fontSize: '0.875rem', color: '#6B7280', marginBottom: '0.25rem' }}>In Transit</p>
-                  <p style={{ fontSize: '1.75rem', fontWeight: 'bold', color: '#831843' }}>124</p>
-                </div>
-                <div style={{ padding: '1rem', background: '#D1FAE5', borderRadius: '0.5rem' }}>
-                  <p style={{ fontSize: '0.875rem', color: '#6B7280', marginBottom: '0.25rem' }}>Delivered</p>
-                  <p style={{ fontSize: '1.75rem', fontWeight: 'bold', color: '#065F46' }}>3,201</p>
-                </div>
+                {[
+                  { label: 'Pending Bids', color: '#92400E', bg: '#FEF3C7' },
+                  { label: 'Accepted', color: '#1E40AF', bg: '#DBEAFE' },
+                  { label: 'In Transit', color: '#831843', bg: '#FCE7F3' },
+                  { label: 'Delivered', color: '#065F46', bg: '#D1FAE5' }
+                ].map(card => {
+                  const count = (displayStats.ordersByStatus || []).find(s => s.name === card.label)?.value || 0;
+                  return (
+                    <div key={card.label} style={{ padding: '1rem', background: card.bg, borderRadius: '0.5rem' }}>
+                      <p style={{ fontSize: '0.875rem', color: '#6B7280', marginBottom: '0.25rem' }}>{card.label}</p>
+                      <p style={{ fontSize: '1.75rem', fontWeight: 'bold', color: card.color }}>{count.toLocaleString()}</p>
+                    </div>
+                  );
+                })}
               </div>
 
               <div style={{ overflowX: 'auto' }}>
@@ -881,6 +913,13 @@ const AdminPanel = ({ token, onClose }) => {
                   </tbody>
                 </table>
               </div>
+              {ordersPagination && (
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginTop: '1rem' }}>
+                  <button disabled={ordersPagination.page <= 1} onClick={() => setOrdersPage(ordersPagination.page - 1)} style={{ padding: '0.5rem 1rem' }}>Prev</button>
+                  <span>Page {ordersPagination.page} / {ordersPagination.totalPages}</span>
+                  <button disabled={ordersPagination.page >= ordersPagination.totalPages} onClick={() => setOrdersPage(ordersPagination.page + 1)} style={{ padding: '0.5rem 1rem' }}>Next</button>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -904,87 +943,47 @@ const AdminPanel = ({ token, onClose }) => {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', background: '#F9FAFB', borderRadius: '0.5rem' }}>
                       <span style={{ fontSize: '0.875rem', color: '#6B7280' }}>Average Order Value</span>
-                      <span style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1F2937' }}>$87.50</span>
+                      <span style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1F2937' }}>${(displayStats.metrics?.avgOrderValue || 0).toFixed(2)}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', background: '#F9FAFB', borderRadius: '0.5rem' }}>
                       <span style={{ fontSize: '0.875rem', color: '#6B7280' }}>Order Completion Rate</span>
-                      <span style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#10B981' }}>94.3%</span>
+                      <span style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#10B981' }}>{(displayStats.metrics?.completionRate || 0).toFixed(1)}%</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', background: '#F9FAFB', borderRadius: '0.5rem' }}>
                       <span style={{ fontSize: '0.875rem', color: '#6B7280' }}>Average Delivery Time</span>
-                      <span style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1F2937' }}>2.4 hrs</span>
+                      <span style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1F2937' }}>{(displayStats.metrics?.avgDeliveryTime || 0).toFixed(2)} hrs</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', background: '#F9FAFB', borderRadius: '0.5rem' }}>
-                      <span style={{ fontSize: '0.875rem', color: '#6B7280' }}>Customer Satisfaction</span>
-                      <span style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#10B981' }}>4.7/5.0</span>
+                      <span style={{ fontSize: '0.875rem', color: '#6B7280' }}>Average Rating</span>
+                      <span style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#10B981' }}>{(displayStats.metrics?.avgRating || 0).toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
-
                 <div>
-                  <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem' }}>Top Performers</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    {[...Array(5)].map((_, i) => (
-                      <div key={i} style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '1rem',
-                        padding: '1rem',
-                        background: '#F9FAFB',
-                        borderRadius: '0.5rem'
-                      }}>
-                        <div style={{
-                          width: '40px',
-                          height: '40px',
-                          borderRadius: '50%',
-                          background: `linear-gradient(135deg, ${['#667eea', '#f093fb', '#4ade80', '#fbbf24', '#f87171'][i]} 0%, ${['#764ba2', '#f5576c', '#22c55e', '#f59e0b', '#dc2626'][i]} 100%)`,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: 'white',
-                          fontWeight: 'bold',
-                          fontSize: '1.25rem'
-                        }}>
-                          {i + 1}
-                        </div>
-                        <div style={{ flex: 1 }}>
-                          <p style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.125rem' }}>
-                            Driver {i + 1}
-                          </p>
-                          <p style={{ fontSize: '0.75rem', color: '#6B7280' }}>
-                            {250 - i * 30} deliveries • ⭐ {(4.8 - i * 0.1).toFixed(1)}
-                          </p>
-                        </div>
-                        <div style={{ textAlign: 'right' }}>
-                          <p style={{ fontSize: '1rem', fontWeight: 'bold', color: '#10B981' }}>
-                            ${(15000 - i * 2000).toLocaleString()}
-                          </p>
-                          <p style={{ fontSize: '0.75rem', color: '#6B7280' }}>earned</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem' }}>Orders by Status</h3>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie data={displayStats.ordersByStatus} cx="50%" cy="50%" labelLine={false} label={(entry) => entry.name} outerRadius={80} fill="#8884d8" dataKey="value">
+                        {displayStats.ordersByStatus.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
 
               <div style={{ marginBottom: '2rem' }}>
-                <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem' }}>Order Volume by Hour</h3>
+                <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem' }}>Revenue Trend</h3>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={[
-                    { hour: '00:00', orders: 12 },
-                    { hour: '04:00', orders: 8 },
-                    { hour: '08:00', orders: 45 },
-                    { hour: '12:00', orders: 89 },
-                    { hour: '16:00', orders: 67 },
-                    { hour: '20:00', orders: 54 },
-                    { hour: '23:00', orders: 28 }
-                  ]}>
+                  <LineChart data={displayStats.revenueData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                    <XAxis dataKey="hour" stroke="#6B7280" />
+                    <XAxis dataKey="month" stroke="#6B7280" />
                     <YAxis stroke="#6B7280" />
                     <Tooltip />
-                    <Bar dataKey="orders" fill="#667eea" radius={[8, 8, 0, 0]} />
-                  </BarChart>
+                    <Line type="monotone" dataKey="revenue" stroke="#667eea" strokeWidth={3} />
+                  </LineChart>
                 </ResponsiveContainer>
               </div>
             </div>
@@ -1004,13 +1003,14 @@ const AdminPanel = ({ token, onClose }) => {
               </h2>
 
               <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
-                {['All', 'Users', 'Orders', 'Payments', 'System', 'Errors'].map(filter => (
+                {['all', 'user', 'order', 'payment', 'system', 'error'].map(filter => (
                   <button
                     key={filter}
+                    onClick={() => setLogsType(filter)}
                     style={{
                       padding: '0.5rem 1rem',
-                      background: '#F3F4F6',
-                      color: '#6B7280',
+                      background: logsType === filter ? '#667eea' : '#F3F4F6',
+                      color: logsType === filter ? 'white' : '#6B7280',
                       border: 'none',
                       borderRadius: '0.375rem',
                       cursor: 'pointer',
@@ -1018,61 +1018,54 @@ const AdminPanel = ({ token, onClose }) => {
                       fontSize: '0.875rem'
                     }}
                   >
-                    {filter}
+                    {filter.charAt(0).toUpperCase() + filter.slice(1)}
                   </button>
                 ))}
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {[...Array(20)].map((_, i) => {
-                  const logTypes = [
-                    { icon: '👤', color: '#667eea', action: 'User registered', type: 'user' },
-                    { icon: '📦', color: '#f093fb', action: 'Order created', type: 'order' },
-                    { icon: '💰', color: '#4ade80', action: 'Payment processed', type: 'payment' },
-                    { icon: '🚚', color: '#fbbf24', action: 'Delivery completed', type: 'delivery' },
-                    { icon: '⚠️', color: '#f87171', action: 'Error logged', type: 'error' }
-                  ];
-                  const log = logTypes[i % logTypes.length];
-
-                  return (
-                    <div key={i} style={{
+                {loading ? (
+                  <div style={{ padding: '2rem', textAlign: 'center', color: '#6B7280' }}>🔄 Loading logs...</div>
+                ) : systemLogs.length === 0 ? (
+                  <div style={{ padding: '2rem', textAlign: 'center', color: '#6B7280' }}>📭 No logs found</div>
+                ) : (
+                  systemLogs.map((log) => (
+                    <div key={log.id} style={{
                       display: 'flex',
                       alignItems: 'center',
                       gap: '1rem',
                       padding: '1rem',
                       background: '#F9FAFB',
                       borderRadius: '0.5rem',
-                      borderLeft: `4px solid ${log.color}`
+                      borderLeft: '4px solid #667eea'
                     }}>
-                      <div style={{
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '0.5rem',
-                        background: `${log.color}20`,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '1.25rem'
-                      }}>
-                        {log.icon}
-                      </div>
                       <div style={{ flex: 1 }}>
                         <p style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.125rem' }}>
                           {log.action}
                         </p>
                         <p style={{ fontSize: '0.75rem', color: '#6B7280' }}>
-                          User ID: USER{1000 + i} • IP: 192.168.{Math.floor(Math.random() * 255)}.{Math.floor(Math.random() * 255)}
+                          Admin: {log.adminName || log.adminEmail || log.adminId} • Target: {log.targetType || '—'} {log.targetId || ''}
                         </p>
+                        {log.details && (
+                          <p style={{ fontSize: '0.75rem', color: '#6B7280' }}>{JSON.stringify(log.details).slice(0, 200)}</p>
+                        )}
                       </div>
                       <div style={{ textAlign: 'right' }}>
-                        <p style={{ fontSize: '0.75rem', color: '#6B7280' }}>
-                          {new Date(Date.now() - i * 3600000).toLocaleString()}
-                        </p>
+                        <p style={{ fontSize: '0.75rem', color: '#6B7280' }}>{new Date(log.createdAt).toLocaleString()}</p>
+                        <p style={{ fontSize: '0.75rem', color: '#6B7280' }}>IP: {log.ipAddress || '—'}</p>
                       </div>
                     </div>
-                  );
-                })}
+                  ))
+                )}
               </div>
+
+              {logsPagination && (
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginTop: '1rem' }}>
+                  <button disabled={logsPagination.page <= 1} onClick={() => setLogsPage(logsPagination.page - 1)} style={{ padding: '0.5rem 1rem' }}>Prev</button>
+                  <span>Page {logsPagination.page} / {logsPagination.totalPages}</span>
+                  <button disabled={logsPagination.page >= logsPagination.totalPages} onClick={() => setLogsPage(logsPagination.page + 1)} style={{ padding: '0.5rem 1rem' }}>Next</button>
+                </div>
+              )}
             </div>
           </div>
         )}
