@@ -192,6 +192,55 @@ const DeliveryApp = () => {
   const [favorites, setFavorites] = useState([]);
   const [activityData, setActivityData] = useState(null);
 
+  const optimizeAndUploadProfilePicture = async (file) => {
+    if (!file || !token) return;
+    try {
+      const imgUrl = URL.createObjectURL(file);
+      const img = new Image();
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = imgUrl;
+      });
+      const maxSide = 512;
+      const ratio = Math.min(maxSide / img.width, maxSide / img.height, 1);
+      const w = Math.max(1, Math.round(img.width * ratio));
+      const h = Math.max(1, Math.round(img.height * ratio));
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(imgUrl);
+      let quality = 0.7;
+      let dataUrl = canvas.toDataURL('image/jpeg', quality);
+      while (dataUrl.length > 150000 && quality > 0.4) {
+        quality -= 0.1;
+        dataUrl = canvas.toDataURL('image/jpeg', quality);
+      }
+      let res = await fetch(`${API_URL}/users/me/profile-picture`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageDataUrl: dataUrl })
+      });
+      if (!res.ok) {
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', quality));
+        const form = new FormData();
+        form.append('file', blob, (file.name || 'profile') + '.jpg');
+        res = await fetch(`${API_URL}/users/me/profile-picture`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+          body: form
+        });
+      }
+      if (!res.ok) throw new Error('Failed to upload picture');
+      const d = await res.json();
+      setProfileData(prev => ({ ...prev, profile_picture_url: d.profilePictureUrl }));
+    } catch (err) {
+      setError(err.message || 'Failed to upload picture');
+    }
+  };
+
 
 // Add viewport meta tag if not present
 useEffect(() => {
@@ -2185,7 +2234,7 @@ const getDriverViewTitle = (viewType) => {
                         <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6B7280' }}>👤</div>
                       )}
                     </div>
-                    <input type="file" accept="image/*" onChange={(e) => e.target.files && (function(f){ const r=new FileReader(); r.onload=async()=>{ try{ const res=await fetch(`${API_URL}/users/me/profile-picture`, { method:'POST', headers:{ 'Authorization': `Bearer ${token}`, 'Content-Type':'application/json' }, body: JSON.stringify({ imageDataUrl: r.result }) }); if(!res.ok) throw new Error('Failed to upload picture'); const d=await res.json(); setProfileData(prev=>({ ...prev, profile_picture_url: d.profilePictureUrl })); } catch(err){ setError(err.message); } }; r.readAsDataURL(f); }(e.target.files[0]))} aria-label="Upload profile picture" />
+                    <input type="file" accept="image/*" onChange={(e) => e.target.files && optimizeAndUploadProfilePicture(e.target.files[0])} aria-label="Upload profile picture" />
                   </div>
                   <div style={{ marginTop: '1rem' }}>
                     <label htmlFor="name" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.25rem' }}>Full name</label>
