@@ -848,6 +848,26 @@ tr {
   text-shadow: var(--shadow-glow);
 }
 
+.animated-stroke {
+  animation: routeDash 2s linear infinite;
+}
+
+.expected-route-pickup {
+  filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.8));
+}
+
+.expected-route-delivery {
+  filter: drop-shadow(0 0 6px rgba(14, 165, 233, 0.8));
+}
+
+.actual-route {
+  filter: drop-shadow(0 0 8px rgba(0, 255, 0, 0.9));
+}
+
+@keyframes routeDash {
+  to { stroke-dashoffset: 16; }
+}
+
 /* ============================================
    ACCESSIBILITY
    ============================================ */
