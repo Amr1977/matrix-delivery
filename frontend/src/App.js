@@ -7,6 +7,7 @@ import ErrorBoundary from './ErrorBoundary';
 import OrderCreationForm from './updated-order-creation-form';
 import LocationFilter from './components/orders/LocationFilter';
 import LiveTrackingMapView from './components/maps/LiveTrackingMap';
+import DriverBiddingMap from './components/maps/DriverBiddingMap';
 import { useMap } from 'react-leaflet';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import L from 'leaflet';
@@ -244,6 +245,64 @@ useEffect(() => {
   const [successMessage, setSuccessMessage] = useState('');
   const [retryCount, setRetryCount] = useState(0);
   const [spokenNotifications, setSpokenNotifications] = useState(new Set());
+
+  const [driverPricing, setDriverPricing] = useState(() => {
+    try {
+      const saved = localStorage.getItem('driverPricing');
+      return saved ? JSON.parse(saved) : { currency: 'USD', costPerKm: 1, waitingPerHour: 5, vehicleType: 'car' };
+    } catch {
+      return { currency: 'USD', costPerKm: 1, waitingPerHour: 5, vehicleType: 'car' };
+    }
+  });
+
+  const saveDriverPricing = (updates) => {
+    const next = { ...driverPricing, ...updates };
+    setDriverPricing(next);
+    try { localStorage.setItem('driverPricing', JSON.stringify(next)); } catch {}
+  };
+
+  const vehicleSpeeds = {
+    walker: 5,
+    pedestrian: 5,
+    bicycle: 15,
+    bike: 20,
+    scooter: 22,
+    motorbike: 25,
+    car: 35,
+    van: 30,
+    truck: 25
+  };
+
+  const haversineKm = (a, b) => {
+    if (!a || !b || a.lat == null || a.lng == null || b.lat == null || b.lng == null) return 0;
+    const R = 6371;
+    const dLat = (b.lat - a.lat) * Math.PI / 180;
+    const dLng = (b.lng - a.lng) * Math.PI / 180;
+    const aa = Math.sin(dLat/2) ** 2 + Math.cos(a.lat*Math.PI/180) * Math.cos(b.lat*Math.PI/180) * Math.sin(dLng/2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(aa), Math.sqrt(1-aa));
+    return R * c;
+  };
+
+  const estimateMetrics = (order) => {
+    const pickup = order.pickupLocation?.coordinates || (order.from ? { lat: order.from.lat, lng: order.from.lng } : null);
+    const dropoff = order.dropoffLocation?.coordinates || (order.to ? { lat: order.to.lat, lng: order.to.lng } : null);
+    const driver = driverLocation ? { lat: driverLocation.latitude, lng: driverLocation.longitude } : null;
+    const speed = vehicleSpeeds[driverPricing.vehicleType] || 35;
+    const toPickupKm = haversineKm(driver, pickup);
+    const pickupToDropoffKm = haversineKm(pickup, dropoff);
+    const toPickupMin = speed > 0 ? Math.ceil((toPickupKm / speed) * 60) : 0;
+    const toDeliveryMin = speed > 0 ? Math.ceil((pickupToDropoffKm / speed) * 60) : 0;
+    return { toPickupKm, pickupToDropoffKm, toPickupMin, toDeliveryMin };
+  };
+
+  const computeBidSuggestions = (order) => {
+    const { toPickupKm, pickupToDropoffKm } = estimateMetrics(order);
+    const distanceKm = (toPickupKm || 0) + (pickupToDropoffKm || 0);
+    const base = distanceKm * (driverPricing.costPerKm || 0) + (driverPricing.waitingPerHour || 0) * 0.25; // 15 min buffer
+    const minBid = Math.max(1, base * 2);
+    const recommendedBid = Math.max(minBid, base * 3);
+    return { base, minBid, recommendedBid };
+  };
 
   // Driver location functionality
   const [viewType, setViewType] = useState('active'); // 'active', 'bidding', 'history'
@@ -1229,6 +1288,48 @@ const getDriverViewTitle = (viewType) => {
       setBidInput({ ...bidInput, [orderId]: '' });
       setBidDetails({ ...bidDetails, [orderId]: {} });
       showSuccess('Bid placed successfully!');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoadingState('placeBid', false);
+    }
+  };
+
+  const handleModifyBid = async (orderId) => {
+    const bidPrice = bidInput[orderId];
+    setLoadingState('placeBid', true);
+    try {
+      const response = await fetch(`${API_URL}/orders/${orderId}/bid`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ bidPrice: parseFloat(bidPrice), message: bidDetails[orderId]?.message || null })
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to modify bid');
+      }
+      fetchOrders();
+      showSuccess('Bid modified successfully!');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoadingState('placeBid', false);
+    }
+  };
+
+  const handleWithdrawBid = async (orderId) => {
+    setLoadingState('placeBid', true);
+    try {
+      const response = await fetch(`${API_URL}/orders/${orderId}/bid`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to withdraw bid');
+      }
+      fetchOrders();
+      showSuccess('Bid withdrawn');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -2537,6 +2638,16 @@ const getDriverViewTitle = (viewType) => {
                       <p style={{ fontSize: '0.875rem', color: '#6B7280', marginBottom: '0.75rem' }}>{order.description}</p>
                     )}
 
+                    {currentUser?.role === 'driver' && viewType === 'bidding' && (
+                      <DriverBiddingMap
+                        order={order}
+                        driverLocation={driverLocation}
+                        driverVehicleType={driverPricing.vehicleType}
+                        isFullscreen={false}
+                        onToggleFullscreen={() => {}}
+                      />
+                    )}
+
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem', padding: '1rem', background: '#F9FAFB', borderRadius: '0.375rem' }}>
                       <div>
                         <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>📤 Pickup</p>
@@ -2622,6 +2733,42 @@ const getDriverViewTitle = (viewType) => {
 
                     {order.status === 'pending_bids' && currentUser?.role === 'driver' && (
                       <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                          <select value={driverPricing.vehicleType} onChange={(e) => saveDriverPricing({ vehicleType: e.target.value })} style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}>
+                            <option value="walker">Walker</option>
+                            <option value="bicycle">Bicycle</option>
+                            <option value="scooter">Scooter</option>
+                            <option value="motorbike">Motorbike</option>
+                            <option value="car">Car</option>
+                            <option value="van">Van</option>
+                            <option value="truck">Truck</option>
+                          </select>
+                          <input type="number" step="0.01" value={driverPricing.costPerKm} onChange={(e) => saveDriverPricing({ costPerKm: parseFloat(e.target.value) || 0 })} placeholder="Cost per km" style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
+                          <input type="number" step="0.01" value={driverPricing.waitingPerHour} onChange={(e) => saveDriverPricing({ waitingPerHour: parseFloat(e.target.value) || 0 })} placeholder="Waiting per hour" style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
+                          <select value={driverPricing.currency} onChange={(e) => saveDriverPricing({ currency: e.target.value })} style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}>
+                            <option value="USD">USD ($)</option>
+                            <option value="EUR">EUR (€)</option>
+                            <option value="GBP">GBP (£)</option>
+                          </select>
+                          <button onClick={() => {
+                            const s = computeBidSuggestions(order);
+                            setBidInput({ ...bidInput, [order._id]: s.recommendedBid.toFixed(2) });
+                          }} style={{ padding: '0.5rem 1rem', background: '#10B981', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600' }}>
+                            Use Recommended Bid
+                          </button>
+                          <button onClick={() => {
+                            const pickup = order.pickupLocation?.coordinates || (order.from ? { lat: order.from.lat, lng: order.from.lng } : null);
+                            const dropoff = order.dropoffLocation?.coordinates || (order.to ? { lat: order.to.lat, lng: order.to.lng } : null);
+                            const origin = driverLocation ? `${driverLocation.latitude},${driverLocation.longitude}` : '';
+                            const waypoint = pickup ? `${pickup.lat},${pickup.lng}` : '';
+                            const destination = dropoff ? `${dropoff.lat},${dropoff.lng}` : '';
+                            const travelmode = driverPricing.vehicleType === 'walker' ? 'walking' : (driverPricing.vehicleType === 'bicycle' ? 'bicycling' : 'driving');
+                            const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&waypoints=${waypoint}&travelmode=${travelmode}`;
+                            window.open(url, '_blank');
+                          }} style={{ padding: '0.5rem 1rem', background: '#3B82F6', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600' }}>
+                            Open in Google Maps
+                          </button>
+                        </div>
                         {/* Customer Reputation Section */}
                         <div style={{ background: '#F0F9FF', padding: '1rem', borderRadius: '0.5rem', marginBottom: '1rem', border: '1px solid #DBEAFE' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
@@ -2702,6 +2849,9 @@ const getDriverViewTitle = (viewType) => {
                             style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
                             step="0.01"
                           />
+                          <div style={{ fontSize: '0.75rem', color: '#6B7280', alignSelf: 'center' }}>
+                            {(() => { const s = computeBidSuggestions(order); return `Min: ${s.minBid.toFixed(2)} • Rec: ${s.recommendedBid.toFixed(2)} ${driverPricing.currency}`; })()}
+                          </div>
                           <input
                             type="datetime-local"
                             placeholder={t('orders.pickupTime')}
@@ -2725,6 +2875,24 @@ const getDriverViewTitle = (viewType) => {
                           >
                             {loadingStates.placeBid ? t('driver.bidding') : t('driver.placeBid')}
                           </button>
+                          {order.bids?.some(b => b.userId === currentUser?.id) && (
+                            <>
+                              <button
+                                onClick={() => handleModifyBid(order._id)}
+                                disabled={loadingStates.placeBid}
+                                style={{ padding: '0.5rem 1rem', background: '#F59E0B', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: loadingStates.placeBid ? 'not-allowed' : 'pointer', fontWeight: '600', opacity: loadingStates.placeBid ? 0.5 : 1 }}
+                              >
+                                Modify Bid
+                              </button>
+                              <button
+                                onClick={() => handleWithdrawBid(order._id)}
+                                disabled={loadingStates.placeBid}
+                                style={{ padding: '0.5rem 1rem', background: '#EF4444', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: loadingStates.placeBid ? 'not-allowed' : 'pointer', fontWeight: '600', opacity: loadingStates.placeBid ? 0.5 : 1 }}
+                              >
+                                Withdraw Bid
+                              </button>
+                            </>
+                          )}
                         </div>
                       </div>
                     )}

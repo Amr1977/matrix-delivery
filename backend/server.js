@@ -1780,6 +1780,87 @@ app.post('/api/orders/:id/bid', verifyToken, async (req, res) => {
   }
 });
 
+// Modify bid
+app.put('/api/orders/:id/bid', verifyToken, async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const { bidPrice, message } = req.body;
+    if (req.user.role !== 'driver') {
+      return res.status(403).json({ error: 'Only drivers can modify bids' });
+    }
+
+    await client.query('BEGIN');
+    const orderResult = await client.query('SELECT id, status, customer_id FROM orders WHERE id = $1', [req.params.id]);
+    if (orderResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    const order = orderResult.rows[0];
+    if (order.status !== 'pending_bids') {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'Cannot modify bid after order is no longer accepting bids' });
+    }
+
+    const bidResult = await client.query('SELECT id FROM bids WHERE order_id = $1 AND user_id = $2', [req.params.id, req.user.userId]);
+    if (bidResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Bid not found for this driver' });
+    }
+    const bidId = bidResult.rows[0].id;
+
+    await client.query('UPDATE bids SET bid_price = $1, message = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3', [bidPrice, message || null, bidId]);
+    await createNotification(order.customer_id, order.id, 'bid_modified', 'Bid Modified', `${req.user.name} updated bid to $${parseFloat(bidPrice).toFixed(2)}`);
+    await client.query('COMMIT');
+    res.json({ success: true });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Modify bid error:', error);
+    res.status(500).json({ error: 'Failed to modify bid' });
+  } finally {
+    client.release();
+  }
+});
+
+// Withdraw bid
+app.delete('/api/orders/:id/bid', verifyToken, async (req, res) => {
+  const client = await pool.connect();
+  try {
+    if (req.user.role !== 'driver') {
+      return res.status(403).json({ error: 'Only drivers can withdraw bids' });
+    }
+
+    await client.query('BEGIN');
+    const orderResult = await client.query('SELECT id, status, customer_id FROM orders WHERE id = $1', [req.params.id]);
+    if (orderResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    const order = orderResult.rows[0];
+    if (order.status !== 'pending_bids') {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'Cannot withdraw bid after order is no longer accepting bids' });
+    }
+
+    const bidResult = await client.query('SELECT id FROM bids WHERE order_id = $1 AND user_id = $2', [req.params.id, req.user.userId]);
+    if (bidResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Bid not found for this driver' });
+    }
+    const bidId = bidResult.rows[0].id;
+
+    await client.query('DELETE FROM bids WHERE id = $1', [bidId]);
+    await createNotification(order.customer_id, order.id, 'bid_withdrawn', 'Bid Withdrawn', `${req.user.name} withdrew their bid`);
+    await client.query('COMMIT');
+    res.json({ success: true });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Withdraw bid error:', error);
+    res.status(500).json({ error: 'Failed to withdraw bid' });
+  } finally {
+    client.release();
+  }
+});
+
 // Accept bid
 app.post('/api/orders/:id/accept-bid', verifyToken, async (req, res) => {
   const client = await pool.connect();
@@ -4773,6 +4854,8 @@ console.log('📊 API Endpoints:');
   console.log('   GET    /api/orders');
   console.log('   GET    /api/orders/:id');
   console.log('   POST   /api/orders/:id/bid');
+  console.log('   PUT    /api/orders/:id/bid');
+  console.log('   DELETE /api/orders/:id/bid');
   console.log('   POST   /api/orders/:id/accept-bid');
   console.log('   POST   /api/orders/:id/pickup');
   console.log('   POST   /api/orders/:id/in-transit');
