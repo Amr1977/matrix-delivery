@@ -14,20 +14,42 @@ L.Icon.Default.mergeOptions({
 
 // Custom icons for different tracking states
 const createCustomIcon = (type, status) => {
-  let color = '#10B981'; // green
+  let color = '#10B981';
   if (status === 'completed') color = '#34D399';
   else if (status === 'upcoming') color = '#6B7280';
-  else if (status === 'current') color = '#EF4444';
+  else if (status === 'current') color = '#00FF00';
+
+  const size = 48;
+  const pulse = status === 'current';
+
+  const iconHtml = `
+    <div style="
+      position: relative;
+      background-color: ${color};
+      width: ${size}px;
+      height: ${size}px;
+      border-radius: 50%;
+      border: 4px solid white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #001100;
+      font-weight: 700;
+      font-size: 22px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+      text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+    ">
+      ${type === 'pickup' ? '📍' : type === 'delivery' ? '🏠' : type === 'driver' ? '🚗' : '📍'}
+      ${pulse ? `<div style="position:absolute;top:0;left:0;width:${size}px;height:${size}px;border-radius:50%;animation:matrixPulse 2s ease-out infinite;box-shadow:0 0 0 0 rgba(0,255,0,0.6);"></div>` : ''}
+    </div>
+    ${pulse ? `<style>@keyframes matrixPulse{0%{box-shadow:0 0 0 0 rgba(0,255,0,0.6);}70%{box-shadow:0 0 0 20px rgba(0,255,0,0);}100%{box-shadow:0 0 0 0 rgba(0,255,0,0);}}</style>` : ''}
+  `;
 
   return L.divIcon({
     className: 'custom-tracking-icon',
-    html: `<div style="background-color: ${color}; width: 24px; height: 24px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${
-      type === 'pickup' ? '📍' :
-      type === 'delivery' ? '🏠' :
-      type === 'driver' ? '🚗' : '📍'
-    }</div>`,
-    iconSize: [24, 24],
-    iconAnchor: [12, 12]
+    html: iconHtml,
+    iconSize: [size, size],
+    iconAnchor: [Math.floor(size / 2), Math.floor(size / 2)]
   });
 };
 
