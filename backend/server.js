@@ -80,6 +80,26 @@ const initDatabase = async () => {
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS roles TEXT[]`);
     await pool.query(`UPDATE users SET roles = ARRAY[role] WHERE roles IS NULL`);
 
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_picture_url TEXT`);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS license_number VARCHAR(100)`);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS service_area_zone VARCHAR(255)`);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS preferences JSONB`);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS notification_prefs JSONB`);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_methods JSONB`);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS language VARCHAR(20)`);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS theme VARCHAR(20)`);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS document_verification_status VARCHAR(50)`);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS verified_at TIMESTAMP`);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS user_favorites (
+        user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        favorite_user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (user_id, favorite_user_id)
+      )
+    `);
+
     // Create orders table with enhanced fields
     await pool.query(`
       CREATE TABLE IF NOT EXISTS orders (
@@ -1288,6 +1308,208 @@ app.get('/api/users/:id/reviews/given', verifyToken, async (req, res) => {
   } catch (error) {
     console.error('Get user given reviews error:', error);
     res.status(500).json({ error: 'Failed to get user reviews' });
+  }
+});
+
+app.get('/api/users/me/profile', verifyToken, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, name, email, phone, role, roles, vehicle_type, rating, completed_deliveries, is_available, is_verified,
+              profile_picture_url, license_number, service_area_zone, preferences, notification_prefs,
+              two_factor_methods, language, theme, document_verification_status, verified_at
+       FROM users WHERE id = $1`,
+      [req.user.userId]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'User not found' });
+    const user = result.rows[0];
+    const pmCountRes = await pool.query('SELECT COUNT(*)::int AS cnt FROM user_payment_methods WHERE user_id = $1', [req.user.userId]);
+    const favCountRes = await pool.query('SELECT COUNT(*)::int AS cnt FROM user_favorites WHERE user_id = $1', [req.user.userId]);
+    res.json({
+      ...user,
+      paymentMethodsCount: pmCountRes.rows[0].cnt,
+      favoritesCount: favCountRes.rows[0].cnt
+    });
+  } catch (error) {
+    console.error('Get profile error:', error);
+    res.status(500).json({ error: 'Failed to get profile' });
+  }
+});
+
+app.put('/api/users/me/profile', verifyToken, async (req, res) => {
+  try {
+    const { name, phone, vehicle_type, license_number, service_area_zone, language, theme } = req.body || {};
+    const userRes = await pool.query('SELECT id, roles FROM users WHERE id = $1', [req.user.userId]);
+    if (userRes.rows.length === 0) return res.status(404).json({ error: 'User not found' });
+    const roles = userRes.rows[0].roles || [];
+    const isDriver = Array.isArray(roles) ? roles.includes('driver') : false;
+
+    const updates = [];
+    const params = [];
+    let i = 1;
+    if (name) { updates.push(`name = $${i++}`); params.push(name); }
+    if (phone) { updates.push(`phone = $${i++}`); params.push(phone); }
+    if (language) { updates.push(`language = $${i++}`); params.push(language); }
+    if (theme) { updates.push(`theme = $${i++}`); params.push(theme); }
+    if (isDriver) {
+      if (vehicle_type) { updates.push(`vehicle_type = $${i++}`); params.push(vehicle_type); }
+      if (license_number) { updates.push(`license_number = $${i++}`); params.push(license_number); }
+      if (service_area_zone) { updates.push(`service_area_zone = $${i++}`); params.push(service_area_zone); }
+    }
+    if (updates.length === 0) return res.status(400).json({ error: 'No updates provided' });
+    params.push(req.user.userId);
+    const query = `UPDATE users SET ${updates.join(', ')} WHERE id = $${i} RETURNING *`;
+    const result = await pool.query(query, params);
+    logger.info('User updated profile', { userId: req.user.userId, category: 'user' });
+    res.json({ user: result.rows[0] });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({ error: 'Failed to update profile' });
+  }
+});
+
+app.post('/api/users/me/profile-picture', verifyToken, async (req, res) => {
+  try {
+    const { imageDataUrl } = req.body || {};
+    if (!imageDataUrl || typeof imageDataUrl !== 'string' || !imageDataUrl.startsWith('data:image/')) {
+      return res.status(400).json({ error: 'Invalid image data' });
+    }
+    const result = await pool.query('UPDATE users SET profile_picture_url = $1 WHERE id = $2 RETURNING profile_picture_url', [imageDataUrl, req.user.userId]);
+    logger.info('User updated profile picture', { userId: req.user.userId, category: 'user' });
+    res.json({ profilePictureUrl: result.rows[0].profile_picture_url });
+  } catch (error) {
+    console.error('Profile picture update error:', error);
+    res.status(500).json({ error: 'Failed to update profile picture' });
+  }
+});
+
+app.get('/api/users/me/preferences', verifyToken, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT preferences, notification_prefs, language, theme, two_factor_methods FROM users WHERE id = $1', [req.user.userId]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'User not found' });
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Get preferences error:', error);
+    res.status(500).json({ error: 'Failed to get preferences' });
+  }
+});
+
+app.put('/api/users/me/preferences', verifyToken, async (req, res) => {
+  try {
+    const { preferences, notification_prefs, language, theme, two_factor_methods } = req.body || {};
+    const result = await pool.query(
+      'UPDATE users SET preferences = $1, notification_prefs = $2, language = COALESCE($3, language), theme = COALESCE($4, theme), two_factor_methods = COALESCE($5, two_factor_methods) WHERE id = $6 RETURNING preferences, notification_prefs, language, theme, two_factor_methods',
+      [preferences || null, notification_prefs || null, language || null, theme || null, two_factor_methods || null, req.user.userId]
+    );
+    logger.info('User updated preferences', { userId: req.user.userId, category: 'user' });
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Update preferences error:', error);
+    res.status(500).json({ error: 'Failed to update preferences' });
+  }
+});
+
+app.post('/api/users/me/availability', verifyToken, async (req, res) => {
+  try {
+    const { is_available } = req.body || {};
+    const result = await pool.query('UPDATE users SET is_available = $1 WHERE id = $2 RETURNING is_available', [!!is_available, req.user.userId]);
+    logger.info('User toggled availability', { userId: req.user.userId, isAvailable: !!is_available, category: 'user' });
+    res.json({ isAvailable: result.rows[0].is_available });
+  } catch (error) {
+    console.error('Toggle availability error:', error);
+    res.status(500).json({ error: 'Failed to toggle availability' });
+  }
+});
+
+app.get('/api/users/me/payment-methods', verifyToken, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT id, payment_method_type, masked_details, is_default, created_at FROM user_payment_methods WHERE user_id = $1 ORDER BY created_at DESC', [req.user.userId]);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Get payment methods error:', error);
+    res.status(500).json({ error: 'Failed to get payment methods' });
+  }
+});
+
+app.post('/api/users/me/payment-methods', verifyToken, async (req, res) => {
+  try {
+    const { payment_method_type, masked_details, is_default } = req.body || {};
+    if (!payment_method_type || !masked_details) return res.status(400).json({ error: 'Invalid payment method' });
+    if (is_default) await pool.query('UPDATE user_payment_methods SET is_default = false WHERE user_id = $1', [req.user.userId]);
+    const result = await pool.query(
+      `INSERT INTO user_payment_methods (user_id, payment_method_type, masked_details, is_default)
+       VALUES ($1, $2, $3, $4) RETURNING id, payment_method_type, masked_details, is_default, created_at`,
+      [req.user.userId, payment_method_type, masked_details, !!is_default]
+    );
+    logger.info('User added payment method', { userId: req.user.userId, category: 'user' });
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Add payment method error:', error);
+    res.status(500).json({ error: 'Failed to add payment method' });
+  }
+});
+
+app.delete('/api/users/me/payment-methods/:id', verifyToken, async (req, res) => {
+  try {
+    await pool.query('DELETE FROM user_payment_methods WHERE user_id = $1 AND id = $2', [req.user.userId, req.params.id]);
+    logger.info('User removed payment method', { userId: req.user.userId, category: 'user' });
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Remove payment method error:', error);
+    res.status(500).json({ error: 'Failed to remove payment method' });
+  }
+});
+
+app.get('/api/users/me/favorites', verifyToken, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT uf.favorite_user_id as userId, u.name, u.role, u.rating, u.completed_deliveries, u.is_verified
+       FROM user_favorites uf JOIN users u ON uf.favorite_user_id = u.id
+       WHERE uf.user_id = $1 ORDER BY uf.created_at DESC`,
+      [req.user.userId]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Get favorites error:', error);
+    res.status(500).json({ error: 'Failed to get favorites' });
+  }
+});
+
+app.post('/api/users/me/favorites', verifyToken, async (req, res) => {
+  try {
+    const { favorite_user_id } = req.body || {};
+    if (!favorite_user_id || favorite_user_id === req.user.userId) return res.status(400).json({ error: 'Invalid favorite user' });
+    await pool.query('INSERT INTO user_favorites (user_id, favorite_user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING', [req.user.userId, favorite_user_id]);
+    logger.info('User added favorite', { userId: req.user.userId, favoriteUserId: favorite_user_id, category: 'user' });
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Add favorite error:', error);
+    res.status(500).json({ error: 'Failed to add favorite' });
+  }
+});
+
+app.delete('/api/users/me/favorites/:favoriteUserId', verifyToken, async (req, res) => {
+  try {
+    await pool.query('DELETE FROM user_favorites WHERE user_id = $1 AND favorite_user_id = $2', [req.user.userId, req.params.favoriteUserId]);
+    logger.info('User removed favorite', { userId: req.user.userId, favoriteUserId: req.params.favoriteUserId, category: 'user' });
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Remove favorite error:', error);
+    res.status(500).json({ error: 'Failed to remove favorite' });
+  }
+});
+
+app.get('/api/users/me/activity', verifyToken, async (req, res) => {
+  try {
+    const ordersRes = await pool.query(
+      `SELECT id, order_number, title, status, created_at, accepted_at, picked_up_at, delivered_at
+       FROM orders WHERE customer_id = $1 OR assigned_driver_user_id = $1
+       ORDER BY created_at DESC LIMIT 20`,
+      [req.user.userId]
+    );
+    res.json({ recentOrders: ordersRes.rows });
+  } catch (error) {
+    console.error('Get activity error:', error);
+    res.status(500).json({ error: 'Failed to get activity' });
   }
 });
 
