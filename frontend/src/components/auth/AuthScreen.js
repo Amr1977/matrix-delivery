@@ -21,11 +21,11 @@ const AuthScreen = ({ onLogin, onRegister, loading, error, countries }) => {
 
   return (
     <div style={{ minHeight: '100vh', background: '#090909', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ position: 'absolute', top: '1rem', right: '1rem' }}>
-        <LanguageSwitcher locale={locale} changeLocale={changeLocale} />
-      </div>
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-        <div className="card-matrix" style={{ borderRadius: '0.5rem', boxShadow: '0 20px 25px -5px rgba(0, 48, 0, 0.2), inset 0 0 20px rgba(48, 255, 48, 0.1)', padding: '2rem', maxWidth: '28rem', width: '100%', background: 'linear-gradient(135deg, #000000 0%, #111111 100%)' }}>
+        <div className="card-matrix" style={{ position: 'relative', borderRadius: '0.5rem', boxShadow: '0 20px 25px -5px rgba(0, 48, 0, 0.2), inset 0 0 20px rgba(48, 255, 48, 0.1)', padding: '2rem', maxWidth: '28rem', width: '100%', background: 'linear-gradient(135deg, #000000 0%, #111111 100%)' }}>
+          <div style={{ position: 'absolute', top: '0.5rem', right: '0.5rem' }}>
+            <LanguageSwitcher locale={locale} changeLocale={changeLocale} />
+          </div>
           <img
             src="/branding-hero-1.png"
             alt="Matrix Heroes - Your trusted delivery heroes"
