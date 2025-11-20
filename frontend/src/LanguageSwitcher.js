@@ -79,7 +79,9 @@ const LanguageSwitcher = ({ locale, changeLocale }) => {
             background: '#0a0a0a',
             border: '1px solid #30FF30',
             borderRadius: '0.375rem',
-            boxShadow: '0 10px 20px rgba(0,0,0,0.5)'
+            boxShadow: '0 10px 20px rgba(0,0,0,0.5)',
+            maxHeight: '60vh',
+            overflowY: 'auto'
           }}
         >
           {languages.map((lang) => (

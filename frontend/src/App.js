@@ -1776,7 +1776,7 @@ const getDriverViewTitle = (viewType) => {
   if (!token) {
     return (
       <div style={{ minHeight: '100vh', background: '#090909', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ position: 'fixed', top: '0.75rem', right: '0.75rem', zIndex: 2000 }}>
+        <div style={{ position: 'fixed', top: 'calc(0.75rem + env(safe-area-inset-top))', right: 'calc(0.75rem + env(safe-area-inset-right))', zIndex: 2000 }}>
           <LanguageSwitcher locale={locale} changeLocale={changeLocale} />
         </div>
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
@@ -1813,14 +1813,18 @@ const getDriverViewTitle = (viewType) => {
                       placeholder={t('auth.password')}
                       value={authForm.password}
                       onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })}
-                      style={{ width: '100%', padding: '0.5rem 3rem 0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none', height: '44px' }}
+                      style={{ width: '100%', padding: '0.5rem 3.5rem 0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none', height: '44px' }}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#6B7280', cursor: 'pointer', fontSize: '1rem', width: '2rem', height: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#6B7280', cursor: 'pointer', width: '2rem', height: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     >
-                      {showPassword ? '👁️' : '👁️‍🗨️'}
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 5C7 5 3.1 8.1 1 12c2.1 3.9 6 7 11 7s8.9-3.1 11-7c-2.1-3.9-6-7-11-7z" stroke="currentColor" strokeWidth="2" fill="none"/>
+                        <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" fill={showPassword ? 'currentColor' : 'none'} />
+                      </svg>
                     </button>
                   </div>
                   {process.env.REACT_APP_RECAPTCHA_SITE_KEY && (
@@ -1878,14 +1882,18 @@ const getDriverViewTitle = (viewType) => {
                       placeholder={t('auth.password')}
                       value={authForm.password}
                       onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })}
-                      style={{ width: '100%', padding: '0.5rem 3rem 0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none', height: '44px' }}
+                      style={{ width: '100%', padding: '0.5rem 3.5rem 0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none', height: '44px' }}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#6B7280', cursor: 'pointer', fontSize: '1rem', width: '2rem', height: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#6B7280', cursor: 'pointer', width: '2rem', height: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     >
-                      {showPassword ? '👁️' : '👁️‍🗨️'}
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 5C7 5 3.1 8.1 1 12c2.1 3.9 6 7 11 7s8.9-3.1 11-7c-2.1-3.9-6-7-11-7z" stroke="currentColor" strokeWidth="2" fill="none"/>
+                        <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" fill={showPassword ? 'currentColor' : 'none'} />
+                      </svg>
                     </button>
                   </div>
                   <select
