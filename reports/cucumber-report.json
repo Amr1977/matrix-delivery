@@ -4,17 +4,17 @@
     "elements": [
       {
         "description": "",
-        "id": "vendors-management;admin-creates-a-vendor-and-lists-vendors",
+        "id": "customer-browsing-vendors-and-items;browse-vendors-by-city-and-keyword",
         "keyword": "Scenario",
         "line": 3,
-        "name": "Admin creates a vendor and lists vendors",
+        "name": "Browse vendors by city and keyword",
         "steps": [
           {
             "keyword": "Before",
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 3956200
+              "duration": 1020800
             }
           },
           {
@@ -22,7 +22,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 6931198499
+              "duration": 2430552299
             }
           },
           {
@@ -30,46 +30,59 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 3403048899
+              "duration": 1173242599
             }
           },
           {
             "arguments": [],
             "keyword": "Given ",
             "line": 4,
-            "name": "an admin user exists",
+            "name": "vendors \"Alpha Cafe\" and \"Bravo Market\" in city \"Cairo\"",
             "match": {
-              "location": "tests\\step_definitions\\vendors_steps.js:5"
+              "location": "tests\\step_definitions\\customer_browsing_steps.js:62"
             },
             "result": {
               "status": "passed",
-              "duration": 14756699
+              "duration": 183681099
             }
           },
           {
             "arguments": [],
             "keyword": "When ",
             "line": 5,
-            "name": "the admin creates a vendor with name \"Test Cafe\" city \"Alexandria\" country \"Egypt\"",
+            "name": "the customer browses vendors city \"Cairo\" q \"Cafe\"",
             "match": {
-              "location": "tests\\step_definitions\\vendors_steps.js:20"
+              "location": "tests\\step_definitions\\customer_browsing_steps.js:5"
             },
             "result": {
               "status": "passed",
-              "duration": 165855499
+              "duration": 34753400
             }
           },
           {
             "arguments": [],
             "keyword": "Then ",
             "line": 6,
-            "name": "the vendor list includes \"Test Cafe\"",
+            "name": "the browse vendors list includes \"Alpha Cafe\"",
             "match": {
-              "location": "tests\\step_definitions\\vendors_steps.js:35"
+              "location": "tests\\step_definitions\\customer_browsing_steps.js:15"
             },
             "result": {
               "status": "passed",
-              "duration": 35020199
+              "duration": 5524199
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 7,
+            "name": "the browse vendors list does not include \"Bravo Market\"",
+            "match": {
+              "location": "tests\\step_definitions\\customer_browsing_steps.js:20"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 8733499
             }
           },
           {
@@ -77,7 +90,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 288189000
+              "duration": 214705699
             }
           },
           {
@@ -85,7 +98,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 876600
+              "duration": 761299
             }
           },
           {
@@ -93,13 +106,13 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 656999
+              "duration": 869900
             }
           }
         ],
         "tags": [
           {
-            "name": "@vendors",
+            "name": "@customer-browsing",
             "line": 1
           }
         ],
@@ -107,17 +120,17 @@
       },
       {
         "description": "",
-        "id": "vendors-management;admin-adds-an-item-to-a-vendor",
+        "id": "customer-browsing-vendors-and-items;browse-items-by-category-and-price-range",
         "keyword": "Scenario",
-        "line": 8,
-        "name": "Admin adds an item to a vendor",
+        "line": 9,
+        "name": "Browse items by category and price range",
         "steps": [
           {
             "keyword": "Before",
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 450900
+              "duration": 292700
             }
           },
           {
@@ -125,7 +138,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 309489699
+              "duration": 197670099
             }
           },
           {
@@ -133,59 +146,59 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 327709199
+              "duration": 286339500
             }
           },
           {
             "arguments": [],
             "keyword": "Given ",
-            "line": 9,
-            "name": "an admin user exists",
-            "match": {
-              "location": "tests\\step_definitions\\vendors_steps.js:5"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 710800
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
             "line": 10,
-            "name": "a vendor exists with name \"Fresh Mart\" city \"Cairo\" country \"Egypt\"",
+            "name": "vendor \"Fresh Mart\" in city \"Cairo\" with items \"Apple:1.50:fruit\" and \"Banana:2.50:fruit\"",
             "match": {
-              "location": "tests\\step_definitions\\vendors_steps.js:43"
+              "location": "tests\\step_definitions\\customer_browsing_steps.js:76"
             },
             "result": {
               "status": "passed",
-              "duration": 116769699
+              "duration": 117909999
             }
           },
           {
             "arguments": [],
             "keyword": "When ",
             "line": 11,
-            "name": "the admin adds item \"Apple\" price \"1.50\" to that vendor",
+            "name": "the customer browses items category \"fruit\" min_price \"1.0\" max_price \"2.0\"",
             "match": {
-              "location": "tests\\step_definitions\\vendors_steps.js:58"
+              "location": "tests\\step_definitions\\customer_browsing_steps.js:25"
             },
             "result": {
               "status": "passed",
-              "duration": 29074800
+              "duration": 32297299
             }
           },
           {
             "arguments": [],
             "keyword": "Then ",
             "line": 12,
-            "name": "the vendor items include \"Apple\"",
+            "name": "the browse items list includes \"Apple\"",
             "match": {
-              "location": "tests\\step_definitions\\vendors_steps.js:69"
+              "location": "tests\\step_definitions\\customer_browsing_steps.js:36"
             },
             "result": {
               "status": "passed",
-              "duration": 26387000
+              "duration": 2703600
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 13,
+            "name": "the browse items list does not include \"Banana\"",
+            "match": {
+              "location": "tests\\step_definitions\\customer_browsing_steps.js:41"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1613599
             }
           },
           {
@@ -193,7 +206,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 100993699
+              "duration": 109482100
             }
           },
           {
@@ -201,7 +214,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 235899
+              "duration": 282499
             }
           },
           {
@@ -209,13 +222,13 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 141799
+              "duration": 500299
             }
           }
         ],
         "tags": [
           {
-            "name": "@vendors",
+            "name": "@customer-browsing",
             "line": 1
           }
         ],
@@ -223,17 +236,17 @@
       },
       {
         "description": "",
-        "id": "vendors-management;admin-updates-a-vendor",
+        "id": "customer-browsing-vendors-and-items;browse-items-with-pagination-and-sorting",
         "keyword": "Scenario",
-        "line": 14,
-        "name": "Admin updates a vendor",
+        "line": 15,
+        "name": "Browse items with pagination and sorting",
         "steps": [
           {
             "keyword": "Before",
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 235699
+              "duration": 369999
             }
           },
           {
@@ -241,7 +254,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 222195299
+              "duration": 208255400
             }
           },
           {
@@ -249,59 +262,46 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 277665600
+              "duration": 288375499
             }
           },
           {
             "arguments": [],
             "keyword": "Given ",
-            "line": 15,
-            "name": "an admin user exists",
-            "match": {
-              "location": "tests\\step_definitions\\vendors_steps.js:5"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 805800
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
             "line": 16,
-            "name": "a vendor exists with name \"Old Name\" city \"Giza\" country \"Egypt\"",
+            "name": "vendor \"Mega Store\" in city \"Cairo\" with items \"Item A:5.00\" and \"Item B:3.00\" and \"Item C:7.00\"",
             "match": {
-              "location": "tests\\step_definitions\\vendors_steps.js:43"
+              "location": "tests\\step_definitions\\customer_browsing_steps.js:91"
             },
             "result": {
               "status": "passed",
-              "duration": 192741099
+              "duration": 109278800
             }
           },
           {
             "arguments": [],
             "keyword": "When ",
             "line": 17,
-            "name": "the admin renames that vendor to \"New Name\"",
+            "name": "the customer browses items vendor_id that vendor sort \"price_asc\" page \"2\" limit \"2\"",
             "match": {
-              "location": "tests\\step_definitions\\vendors_steps.js:77"
+              "location": "tests\\step_definitions\\customer_browsing_steps.js:46"
             },
             "result": {
               "status": "passed",
-              "duration": 34712399
+              "duration": 20279699
             }
           },
           {
             "arguments": [],
             "keyword": "Then ",
             "line": 18,
-            "name": "the vendor details show name \"New Name\"",
+            "name": "the browse items page contains \"Item C\"",
             "match": {
-              "location": "tests\\step_definitions\\vendors_steps.js:92"
+              "location": "tests\\step_definitions\\customer_browsing_steps.js:58"
             },
             "result": {
               "status": "passed",
-              "duration": 20046999
+              "duration": 2072499
             }
           },
           {
@@ -309,7 +309,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 213441999
+              "duration": 116952599
             }
           },
           {
@@ -317,7 +317,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 191500
+              "duration": 216299
             }
           },
           {
@@ -325,300 +325,29 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 183900
+              "duration": 188099
             }
           }
         ],
         "tags": [
           {
-            "name": "@vendors",
-            "line": 1
-          }
-        ],
-        "type": "scenario"
-      },
-      {
-        "description": "",
-        "id": "vendors-management;admin-deactivates-a-vendor",
-        "keyword": "Scenario",
-        "line": 20,
-        "name": "Admin deactivates a vendor",
-        "steps": [
-          {
-            "keyword": "Before",
-            "hidden": true,
-            "result": {
-              "status": "passed",
-              "duration": 246800
-            }
-          },
-          {
-            "keyword": "Before",
-            "hidden": true,
-            "result": {
-              "status": "passed",
-              "duration": 284108399
-            }
-          },
-          {
-            "keyword": "Before",
-            "hidden": true,
-            "result": {
-              "status": "passed",
-              "duration": 401094799
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "Given ",
-            "line": 21,
-            "name": "an admin user exists",
-            "match": {
-              "location": "tests\\step_definitions\\vendors_steps.js:5"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 582999
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 22,
-            "name": "a vendor exists with name \"Temp Vendor\" city \"Hurghada\" country \"Egypt\"",
-            "match": {
-              "location": "tests\\step_definitions\\vendors_steps.js:43"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 113669999
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "When ",
-            "line": 23,
-            "name": "the admin deactivates that vendor",
-            "match": {
-              "location": "tests\\step_definitions\\vendors_steps.js:99"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 14126100
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "Then ",
-            "line": 24,
-            "name": "the vendor is no longer in the active list",
-            "match": {
-              "location": "tests\\step_definitions\\vendors_steps.js:111"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 15728999
-            }
-          },
-          {
-            "keyword": "After",
-            "hidden": true,
-            "result": {
-              "status": "passed",
-              "duration": 235680100
-            }
-          },
-          {
-            "keyword": "After",
-            "hidden": true,
-            "result": {
-              "status": "passed",
-              "duration": 201900
-            }
-          },
-          {
-            "keyword": "After",
-            "hidden": true,
-            "result": {
-              "status": "passed",
-              "duration": 170200
-            }
-          }
-        ],
-        "tags": [
-          {
-            "name": "@vendors",
-            "line": 1
-          }
-        ],
-        "type": "scenario"
-      },
-      {
-        "description": "",
-        "id": "vendors-management;admin-updates-and-deactivates-an-item",
-        "keyword": "Scenario",
-        "line": 26,
-        "name": "Admin updates and deactivates an item",
-        "steps": [
-          {
-            "keyword": "Before",
-            "hidden": true,
-            "result": {
-              "status": "passed",
-              "duration": 225200
-            }
-          },
-          {
-            "keyword": "Before",
-            "hidden": true,
-            "result": {
-              "status": "passed",
-              "duration": 288533899
-            }
-          },
-          {
-            "keyword": "Before",
-            "hidden": true,
-            "result": {
-              "status": "passed",
-              "duration": 307642399
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "Given ",
-            "line": 27,
-            "name": "an admin user exists",
-            "match": {
-              "location": "tests\\step_definitions\\vendors_steps.js:5"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 552999
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 28,
-            "name": "a vendor exists with name \"Mega Store\" city \"Cairo\" country \"Egypt\"",
-            "match": {
-              "location": "tests\\step_definitions\\vendors_steps.js:43"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 102300999
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 29,
-            "name": "the admin adds item \"Banana\" price \"2.00\" to that vendor",
-            "match": {
-              "location": "tests\\step_definitions\\vendors_steps.js:58"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 17979899
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "When ",
-            "line": 30,
-            "name": "the admin updates that item price to \"2.50\"",
-            "match": {
-              "location": "tests\\step_definitions\\vendors_steps.js:119"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 24802600
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "Then ",
-            "line": 31,
-            "name": "the vendor items include name \"Banana\" with price \"2.50\"",
-            "match": {
-              "location": "tests\\step_definitions\\vendors_steps.js:134"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 19269599
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "When ",
-            "line": 32,
-            "name": "the admin deactivates that item",
-            "match": {
-              "location": "tests\\step_definitions\\vendors_steps.js:143"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 14111000
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "Then ",
-            "line": 33,
-            "name": "the vendor items do not include \"Banana\"",
-            "match": {
-              "location": "tests\\step_definitions\\vendors_steps.js:155"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 10670599
-            }
-          },
-          {
-            "keyword": "After",
-            "hidden": true,
-            "result": {
-              "status": "passed",
-              "duration": 117902000
-            }
-          },
-          {
-            "keyword": "After",
-            "hidden": true,
-            "result": {
-              "status": "passed",
-              "duration": 283800
-            }
-          },
-          {
-            "keyword": "After",
-            "hidden": true,
-            "result": {
-              "status": "passed",
-              "duration": 141499
-            }
-          }
-        ],
-        "tags": [
-          {
-            "name": "@vendors",
+            "name": "@customer-browsing",
             "line": 1
           }
         ],
         "type": "scenario"
       }
     ],
-    "id": "vendors-management",
+    "id": "customer-browsing-vendors-and-items",
     "line": 2,
     "keyword": "Feature",
-    "name": "Vendors management",
+    "name": "Customer browsing vendors and items",
     "tags": [
       {
-        "name": "@vendors",
+        "name": "@customer-browsing",
         "line": 1
       }
     ],
-    "uri": "tests\\features\\vendors.feature"
+    "uri": "tests\\features\\customer_browsing.feature"
   }
 ]
