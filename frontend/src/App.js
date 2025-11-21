@@ -6,6 +6,7 @@ import ErrorBoundary from './ErrorBoundary';
 import OrderCreationForm from './updated-order-creation-form';
 import LiveTrackingMapView from './components/maps/LiveTrackingMap';
 import DriverBiddingMap from './components/maps/DriverBiddingMap';
+import OrdersMap from './components/maps/OrdersMap';
 import io from 'socket.io-client';
 import ReCAPTCHA from 'react-google-recaptcha';
 import logger from './logger';
@@ -236,7 +237,9 @@ useEffect(() => {
   };
 
   // Driver location functionality
-  const [viewType, setViewType] = useState('active'); // 'active', 'bidding', 'history'
+  const [viewType, setViewType] = useState('active'); // 'active', 'bidding', 'history', 'map', 'my_bids'
+  const [ordersMapRadiusKm, setOrdersMapRadiusKm] = useState(5);
+  const [selectedOrderForMap, setSelectedOrderForMap] = useState(null);
   const [driverLocation, setDriverLocation] = useState({ latitude: null, longitude: null, lastUpdated: null });
   const [driverOnline, setDriverOnline] = useState(false); // Driver online/offline status
   const [countryFilter, setCountryFilter] = useState(''); // Country filter for bidding orders
@@ -863,6 +866,8 @@ const getDriverViewTitle = (viewType) => {
     case 'active': return t('driver.activeOrders');
     case 'bidding': return t('driver.availableBids');
     case 'history': return t('driver.myHistory');
+    case 'map': return 'Orders Map';
+    case 'my_bids': return 'My Pending Bids';
     default: return t('driver.availableBids');
   }
 };
@@ -2374,6 +2379,33 @@ const getDriverViewTitle = (viewType) => {
                 {t('driver.availableBids')}
               </button>
               <button
+                onClick={() => setViewType('map')}
+                style={{
+                  padding: '0.5rem 1rem',
+                  background: viewType === 'map' ? '#4F46E5' : '#F3F4F6',
+                  color: viewType === 'map' ? 'white' : '#374151',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontWeight: '500'
+                }}
+              >
+                🗺️ Map
+              </button>
+              <button
+                onClick={() => setViewType('my_bids')}
+                style={{
+                  padding: '0.5rem 1rem',
+                  background: viewType === 'my_bids' ? '#4F46E5' : '#F3F4F6',
+                  color: viewType === 'my_bids' ? 'white' : '#374151',
+                  border: 'none',
+                  borderRadius: '0 0.375rem 0.375rem 0',
+                  cursor: 'pointer',
+                  fontWeight: '500'
+                }}
+              >
+                🎯 My Bids
+              </button>
+              <button
                 onClick={() => setViewType('history')}
                 style={{
                   padding: '0.5rem 1rem',
@@ -2645,6 +2677,58 @@ const getDriverViewTitle = (viewType) => {
           </div>
         )}
 
+        {selectedOrderForMap && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+            <div style={{ background: 'white', borderRadius: '0.5rem', width: '95%', maxWidth: '64rem', maxHeight: '90vh', overflow: 'auto' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1rem', borderBottom: '1px solid #E5E7EB' }}>
+                <div>
+                  <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '700' }}>{selectedOrderForMap.title || `Order #${selectedOrderForMap.orderNumber || selectedOrderForMap._id}`}</h2>
+                  <p style={{ margin: 0, fontSize: '0.875rem', color: '#6B7280' }}>Price offered: ${Number(selectedOrderForMap.price || 0).toFixed(2)}</p>
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button onClick={() => { setSelectedOrderForMap(null); setViewType('bidding'); }} style={{ padding: '0.5rem 0.75rem', background: '#4F46E5', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer' }}>Go to Order</button>
+                  <button onClick={() => setSelectedOrderForMap(null)} style={{ padding: '0.5rem 0.75rem', background: '#EF4444', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer' }}>Close</button>
+                </div>
+              </div>
+              <div style={{ padding: '1rem' }}>
+                <DriverBiddingMap
+                  order={selectedOrderForMap}
+                  driverLocation={driverLocation}
+                  driverVehicleType={(preferencesData?.preferences || {}).vehicleType || 'car'}
+                  isFullscreen={false}
+                  onToggleFullscreen={() => {}}
+                />
+                <div style={{ marginTop: '1rem', background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1rem' }}>
+                  <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, marginBottom: '0.5rem' }}>Cost Estimate</h4>
+                  <p style={{ margin: 0, fontSize: '0.875rem', color: '#374151' }}>
+                    Based on your preferences: cost per km {(preferencesData?.preferences || {}).cost_per_km || 1}, waiting per hour {(preferencesData?.preferences || {}).waiting_cost_per_hour || 0}, expected waiting hours {(preferencesData?.preferences || {}).expected_waiting_hours || 0}.
+                  </p>
+                  <p style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: '#374151' }}>
+                    {(() => {
+                      const prefs = preferencesData?.preferences || {};
+                      const cpk = Number(prefs.cost_per_km || 1);
+                      const wph = Number(prefs.waiting_cost_per_hour || 0);
+                      const wh = Number(prefs.expected_waiting_hours || 0);
+                      const pickup = selectedOrderForMap.pickupLocation?.coordinates || (selectedOrderForMap.from ? { lat: selectedOrderForMap.from.lat, lng: selectedOrderForMap.from.lng } : null);
+                      const dropoff = selectedOrderForMap.dropoffLocation?.coordinates || (selectedOrderForMap.to ? { lat: selectedOrderForMap.to.lat, lng: selectedOrderForMap.to.lng } : null);
+                      const driver = driverLocation && Number.isFinite(driverLocation.latitude) && Number.isFinite(driverLocation.longitude)
+                        ? { lat: driverLocation.latitude, lng: driverLocation.longitude } : null;
+                      let distanceKm = 0;
+                      if (pickup && dropoff) distanceKm += haversineKm(pickup, dropoff);
+                      if (driver && pickup) distanceKm += haversineKm(driver, pickup);
+                      const baseCost = distanceKm * cpk + (wph * wh);
+                      const min = (1 * baseCost).toFixed(2);
+                      const low = (2 * baseCost).toFixed(2);
+                      const high = (3 * baseCost).toFixed(2);
+                      return `Recommended bid: $${low} – $${high} (min $${min})`;
+                    })()}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>
           {currentUser?.role === 'customer' ? t('orders.myOrders') : getDriverViewTitle(viewType)}
         </h2>
@@ -2817,6 +2901,29 @@ const getDriverViewTitle = (viewType) => {
           </div>
         )}
 
+        {currentUser?.role === 'driver' && viewType === 'map' && (
+          <div style={{ marginBottom: '1rem' }}>
+            <OrdersMap
+              orders={orders.filter(order => {
+                if (order.status !== 'pending_bids') return false;
+                const hasDriverBid = Array.isArray(order.bids) && order.bids.some(b => b.userId === currentUser?.id);
+                if (hasDriverBid) return false;
+                const pickup = order.pickupLocation?.coordinates || (order.from ? { lat: order.from.lat, lng: order.from.lng } : null);
+                if (!pickup || !Number.isFinite(pickup.lat) || !Number.isFinite(pickup.lng)) return false;
+                const driver = driverLocation && Number.isFinite(driverLocation.latitude) && Number.isFinite(driverLocation.longitude)
+                  ? { lat: driverLocation.latitude, lng: driverLocation.longitude } : null;
+                if (!driver) return true;
+                const d = haversineKm(driver, pickup);
+                return d <= ordersMapRadiusKm;
+              })}
+              driverLocation={driverLocation}
+              radiusKm={ordersMapRadiusKm}
+              onRadiusChange={setOrdersMapRadiusKm}
+              onSelectOrder={(order) => setSelectedOrderForMap(order)}
+            />
+          </div>
+        )}
+
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {(() => {
             return orders.length === 0 ? (
@@ -2834,6 +2941,11 @@ const getDriverViewTitle = (viewType) => {
             ) : (
               orders.map((order) => {
                 const isDriverAssigned = order.assignedDriver?.userId === currentUser?.id;
+                const hasDriverBid = Array.isArray(order.bids) && order.bids.some(b => b.userId === currentUser?.id);
+                if (currentUser?.role === 'driver') {
+                  if (viewType === 'my_bids' && (!hasDriverBid || order.status !== 'pending_bids')) return null;
+                  if (viewType === 'bidding' && hasDriverBid) return null;
+                }
 
                 return (
                   <div key={order._id} className="order-card">
@@ -3361,7 +3473,7 @@ const getDriverViewTitle = (viewType) => {
                   </div>
                 );
               })
-            );
+            )
           })()}
         </div>
       </main>
