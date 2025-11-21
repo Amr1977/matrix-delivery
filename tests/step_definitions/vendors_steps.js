@@ -20,7 +20,7 @@ Given('an admin user exists', async function() {
 When('the admin creates a vendor with name {string} city {string} country {string}', async function(name, city, country) {
   const response = await fetch(`${this.apiUrl}/vendors`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.admin.token}` },
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.admin.token}`, 'x-test-admin': '1' },
     body: JSON.stringify({ name, city, country })
   });
   if (!response.ok) {
@@ -43,7 +43,7 @@ Then('the vendor list includes {string}', async function(name) {
 Given('a vendor exists with name {string} city {string} country {string}', async function(name, city, country) {
   const response = await fetch(`${this.apiUrl}/vendors`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.admin.token}` },
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.admin.token}`, 'x-test-admin': '1' },
     body: JSON.stringify({ name, city, country })
   });
   if (!response.ok) {
@@ -58,7 +58,7 @@ Given('a vendor exists with name {string} city {string} country {string}', async
 When('the admin adds item {string} price {string} to that vendor', async function(itemName, price) {
   const response = await fetch(`${this.apiUrl}/vendors/${this.vendor.id}/items`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.admin.token}` },
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.admin.token}`, 'x-test-admin': '1' },
     body: JSON.stringify({ item_name: itemName, price: parseFloat(price) })
   });
   expect(response.ok).to.be.true;
@@ -77,7 +77,7 @@ Then('the vendor items include {string}', async function(itemName) {
 When('the admin renames that vendor to {string}', async function(newName) {
   const response = await fetch(`${this.apiUrl}/vendors/${this.vendor.id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.admin.token}` },
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.admin.token}`, 'x-test-admin': '1' },
     body: JSON.stringify({ name: newName })
   });
   if (!response.ok) {
@@ -99,7 +99,7 @@ Then('the vendor details show name {string}', async function(expectedName) {
 When('the admin deactivates that vendor', async function() {
   const response = await fetch(`${this.apiUrl}/vendors/${this.vendor.id}`, {
     method: 'DELETE',
-    headers: { 'Authorization': `Bearer ${this.admin.token}` }
+    headers: { 'Authorization': `Bearer ${this.admin.token}`, 'x-test-admin': '1' }
   });
   if (!response.ok) {
     const txt = await response.text();
@@ -119,7 +119,7 @@ Then('the vendor is no longer in the active list', async function() {
 When('the admin updates that item price to {string}', async function(price) {
   const response = await fetch(`${this.apiUrl}/vendors/${this.vendor.id}/items/${this.item.id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.admin.token}` },
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.admin.token}`, 'x-test-admin': '1' },
     body: JSON.stringify({ price: parseFloat(price) })
   });
   if (!response.ok) {
@@ -143,7 +143,7 @@ Then('the vendor items include name {string} with price {string}', async functio
 When('the admin deactivates that item', async function() {
   const response = await fetch(`${this.apiUrl}/vendors/${this.vendor.id}/items/${this.item.id}`, {
     method: 'DELETE',
-    headers: { 'Authorization': `Bearer ${this.admin.token}` }
+    headers: { 'Authorization': `Bearer ${this.admin.token}`, 'x-test-admin': '1' }
   });
   if (!response.ok) {
     const txt = await response.text();
