@@ -16,6 +16,9 @@ import ReCAPTCHA from 'react-google-recaptcha';
 import logger from './logger';
 import './Mobile.css';
 import './MatrixTheme.css';
+import BrowseVendors from './components/BrowseVendors';
+import BrowseItems from './components/BrowseItems';
+import VendorSelfDashboard from './components/VendorSelfDashboard';
 
 // Move LiveTrackingMap component outside DeliveryApp function for proper scoping
 const LiveTrackingMap = React.memo(({ order, token, currentUser, apiUrl }) => {
@@ -194,6 +197,9 @@ const DeliveryApp = () => {
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [favorites, setFavorites] = useState([]);
   const [activityData, setActivityData] = useState(null);
+  const [showBrowseVendors, setShowBrowseVendors] = useState(false);
+  const [showBrowseItems, setShowBrowseItems] = useState(false);
+  const [showVendorDashboard, setShowVendorDashboard] = useState(false);
 
   const optimizeAndUploadProfilePicture = async (file) => {
     if (!file || !token) return;
@@ -2471,6 +2477,29 @@ const getDriverViewTitle = (viewType) => {
           <div className="success-matrix" style={{ background: 'linear-gradient(135deg, var(--matrix-dim-green) 0%, var(--matrix-dark-green) 100%)', color: 'var(--matrix-bright-green)', padding: 'var(--spacing-md)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--spacing-lg)', border: '2px solid var(--matrix-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: 'var(--shadow-matrix)' }}>
             <span className="glow">✅ {successMessage}</span>
             <button onClick={() => setSuccessMessage('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem', color: 'var(--matrix-bright-green)' }}>×</button>
+          </div>
+        )}
+
+        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+          <button onClick={() => setShowBrowseVendors(v => !v)} className="btn-primary">🏪 Browse Vendors</button>
+          <button onClick={() => setShowBrowseItems(v => !v)} className="btn-primary">🛒 Browse Items</button>
+          {Array.isArray(profileData?.roles) && profileData.roles.includes('vendor') && (
+            <button onClick={() => setShowVendorDashboard(v => !v)} className="btn-primary">🧑‍💼 Vendor Dashboard</button>
+          )}
+        </div>
+        {showBrowseVendors && (
+          <div style={{ marginBottom: '1rem' }}>
+            <BrowseVendors apiUrl={API_URL} />
+          </div>
+        )}
+        {showBrowseItems && (
+          <div style={{ marginBottom: '1rem' }}>
+            <BrowseItems apiUrl={API_URL} />
+          </div>
+        )}
+        {showVendorDashboard && Array.isArray(profileData?.roles) && profileData.roles.includes('vendor') && (
+          <div style={{ marginBottom: '1rem' }}>
+            <VendorSelfDashboard apiUrl={API_URL} token={token} />
           </div>
         )}
 
