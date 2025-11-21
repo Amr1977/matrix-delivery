@@ -25,6 +25,8 @@ class ServerManager {
         shell: true,
         env: {
           ...process.env,
+          NODE_ENV: 'testing',
+          DB_NAME_TEST: 'matrix_delivery_test',
           PORT: this.backendPort,
           JWT_SECRET: 'test-secret-key-12345'
         }
