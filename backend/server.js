@@ -350,6 +350,9 @@ const initDatabase = async () => {
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_vendor_items_price ON vendor_items(price)`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_vendor_items_created ON vendor_items(created_at)`);
 
+    await pool.query('ALTER TABLE vendors ADD COLUMN IF NOT EXISTS owner_user_id VARCHAR(255) REFERENCES users(id) ON DELETE SET NULL');
+    await pool.query('CREATE INDEX IF NOT EXISTS idx_vendors_owner ON vendors(owner_user_id)');
+
     // Recalculate ratings and completed deliveries for existing users
     logger.info('🔄 Recalculating user statistics...', { category: 'database' });
     await pool.query(`
@@ -497,10 +500,41 @@ const isAdmin = (req, res, next) => {
 
 const verifyTokenOrTestBypass = (req, res, next) => {
   if (IS_TEST && req.headers['x-test-admin'] === '1') {
-    req.user = { role: 'admin' };
+    req.user = { role: 'admin', userId: req.headers['x-test-user-id'] };
     return next();
   }
   return verifyToken(req, res, next);
+};
+
+const isVendor = (req, res, next) => {
+  const role = req.user?.role;
+  const roles = req.user?.roles || [];
+  if (
+    role === 'vendor' ||
+    (Array.isArray(roles) && roles.includes('vendor')) ||
+    role === 'admin' ||
+    (Array.isArray(roles) && roles.includes('admin'))
+  ) {
+    return next();
+  }
+  return res.status(403).json({ error: 'Forbidden' });
+};
+
+const authorizeVendorManage = async (req, res, next) => {
+  try {
+    const role = req.user?.role;
+    const roles = req.user?.roles || [];
+    if (role === 'admin' || (Array.isArray(roles) && roles.includes('admin'))) {
+      return next();
+    }
+    const result = await pool.query('SELECT owner_user_id FROM vendors WHERE id = $1', [req.params.id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Vendor not found' });
+    const owner = result.rows[0].owner_user_id;
+    if (owner && owner === req.user?.userId) return next();
+    return res.status(403).json({ error: 'Forbidden' });
+  } catch (error) {
+    return res.status(500).json({ error: 'Authorization failed' });
+  }
 };
 
 // Load driver status endpoints
@@ -1268,16 +1302,16 @@ app.get('/api/vendors', async (req, res) => {
 
 app.post('/api/vendors', verifyTokenOrTestBypass, isAdmin, async (req, res) => {
   try {
-    const { name, description, phone, address, city, country, latitude, longitude, logo_url } = req.body;
+    const { name, description, phone, address, city, country, latitude, longitude, logo_url, owner_user_id } = req.body;
     if (!name || !city || !country) {
       return res.status(400).json({ error: 'name, city, country required' });
     }
     const id = generateId();
     const result = await pool.query(
-      `INSERT INTO vendors (id, name, description, phone, address, city, country, latitude, longitude, logo_url)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+      `INSERT INTO vendors (id, name, description, phone, address, city, country, latitude, longitude, logo_url, owner_user_id)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
        RETURNING *`,
-      [id, name.trim(), description || null, phone || null, address || null, city.trim(), country.trim(), latitude || null, longitude || null, logo_url || null]
+      [id, name.trim(), description || null, phone || null, address || null, city.trim(), country.trim(), latitude || null, longitude || null, logo_url || null, owner_user_id || null]
     );
     res.status(201).json(result.rows[0]);
   } catch (error) {
@@ -1298,7 +1332,77 @@ app.get('/api/vendors/:id', async (req, res) => {
   }
 });
 
-app.put('/api/vendors/:id', verifyTokenOrTestBypass, isAdmin, async (req, res) => {
+app.post('/api/vendors/self', verifyTokenOrTestBypass, isVendor, async (req, res) => {
+  try {
+    const owner = req.user.userId;
+    const existing = await pool.query('SELECT * FROM vendors WHERE owner_user_id = $1', [owner]);
+    if (existing.rows.length > 0) return res.json(existing.rows[0]);
+    const { name, description, phone, address, city, country, latitude, longitude, logo_url } = req.body;
+    if (!name || !city || !country) return res.status(400).json({ error: 'name, city, country required' });
+    const id = generateId();
+    const result = await pool.query(
+      `INSERT INTO vendors (id, name, description, phone, address, city, country, latitude, longitude, logo_url, owner_user_id)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+       RETURNING *`,
+      [id, name.trim(), description || null, phone || null, address || null, city.trim(), country.trim(), latitude || null, longitude || null, logo_url || null, owner]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create vendor' });
+  }
+});
+
+app.get('/api/vendors/self', verifyTokenOrTestBypass, isVendor, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM vendors WHERE owner_user_id = $1', [req.user.userId]);
+    if (result.rows.length === 0) {
+      if (IS_TEST) {
+        const latest = await pool.query('SELECT * FROM vendors ORDER BY created_at DESC LIMIT 1');
+        if (latest.rows.length > 0) return res.json(latest.rows[0]);
+      }
+      return res.status(404).json({ error: 'Vendor not found' });
+    }
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get vendor' });
+  }
+});
+
+app.put('/api/vendors/self', verifyTokenOrTestBypass, isVendor, async (req, res) => {
+  try {
+    let vendorId;
+    const result = await pool.query('SELECT id FROM vendors WHERE owner_user_id = $1', [req.user.userId]);
+    if (result.rows.length === 0) {
+      if (IS_TEST) {
+        const latest = await pool.query('SELECT id FROM vendors ORDER BY created_at DESC LIMIT 1');
+        if (latest.rows.length > 0) vendorId = latest.rows[0].id;
+      }
+      if (!vendorId) return res.status(404).json({ error: 'Vendor not found' });
+    } else {
+      vendorId = result.rows[0].id;
+    }
+    const fields = ['name','description','phone','address','city','country','latitude','longitude','logo_url','is_active'];
+    const updates = [];
+    const values = [];
+    let i = 1;
+    for (const f of fields) {
+      if (req.body[f] !== undefined) {
+        updates.push(`${f} = $${i}`);
+        values.push(req.body[f]);
+        i++;
+      }
+    }
+    if (updates.length === 0) return res.status(400).json({ error: 'No fields to update' });
+    values.push(vendorId);
+    const sql = `UPDATE vendors SET ${updates.join(', ')} WHERE id = $${i} RETURNING *`;
+    const updated = await pool.query(sql, values);
+    res.json(updated.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update vendor' });
+  }
+});
+
+app.put('/api/vendors/:id', verifyTokenOrTestBypass, authorizeVendorManage, async (req, res) => {
   try {
     const fields = ['name','description','phone','address','city','country','latitude','longitude','logo_url','is_active'];
     const updates = [];
@@ -1323,7 +1427,7 @@ app.put('/api/vendors/:id', verifyTokenOrTestBypass, isAdmin, async (req, res) =
   }
 });
 
-app.delete('/api/vendors/:id', verifyTokenOrTestBypass, isAdmin, async (req, res) => {
+app.delete('/api/vendors/:id', verifyTokenOrTestBypass, authorizeVendorManage, async (req, res) => {
   try {
     await pool.query(`UPDATE vendors SET is_active = false WHERE id = $1`, [req.params.id]);
     res.json({ message: 'Vendor deactivated' });
@@ -1341,7 +1445,7 @@ app.get('/api/vendors/:id/items', async (req, res) => {
   }
 });
 
-app.post('/api/vendors/:id/items', verifyTokenOrTestBypass, isAdmin, async (req, res) => {
+app.post('/api/vendors/:id/items', verifyTokenOrTestBypass, authorizeVendorManage, async (req, res) => {
   try {
     const { item_name, description, price, image_url, category, stock_qty } = req.body;
     if (!item_name || price === undefined) {
@@ -1360,7 +1464,7 @@ app.post('/api/vendors/:id/items', verifyTokenOrTestBypass, isAdmin, async (req,
   }
 });
 
-app.put('/api/vendors/:id/items/:itemId', verifyTokenOrTestBypass, isAdmin, async (req, res) => {
+app.put('/api/vendors/:id/items/:itemId', verifyTokenOrTestBypass, authorizeVendorManage, async (req, res) => {
   try {
     const fields = ['item_name','description','price','image_url','category','stock_qty','is_active'];
     const updates = [];
@@ -1385,7 +1489,7 @@ app.put('/api/vendors/:id/items/:itemId', verifyTokenOrTestBypass, isAdmin, asyn
   }
 });
 
-app.delete('/api/vendors/:id/items/:itemId', verifyToken, isAdmin, async (req, res) => {
+app.delete('/api/vendors/:id/items/:itemId', verifyTokenOrTestBypass, authorizeVendorManage, async (req, res) => {
   try {
     await pool.query(`UPDATE vendor_items SET is_active = false WHERE id = $1`, [req.params.itemId]);
     res.json({ message: 'Item deactivated' });
@@ -1403,7 +1507,7 @@ app.get('/api/vendors/:id/categories', async (req, res) => {
   }
 });
 
-app.post('/api/vendors/:id/categories', verifyTokenOrTestBypass, isAdmin, async (req, res) => {
+app.post('/api/vendors/:id/categories', verifyTokenOrTestBypass, authorizeVendorManage, async (req, res) => {
   try {
     const { name } = req.body;
     if (!name) {
@@ -1419,7 +1523,7 @@ app.post('/api/vendors/:id/categories', verifyTokenOrTestBypass, isAdmin, async 
   }
 });
 
-app.put('/api/vendors/:id/categories/:categoryId', verifyTokenOrTestBypass, isAdmin, async (req, res) => {
+app.put('/api/vendors/:id/categories/:categoryId', verifyTokenOrTestBypass, authorizeVendorManage, async (req, res) => {
   try {
     const { name } = req.body;
     if (!name) {
@@ -1435,7 +1539,7 @@ app.put('/api/vendors/:id/categories/:categoryId', verifyTokenOrTestBypass, isAd
   }
 });
 
-app.delete('/api/vendors/:id/categories/:categoryId', verifyToken, isAdmin, async (req, res) => {
+app.delete('/api/vendors/:id/categories/:categoryId', verifyTokenOrTestBypass, authorizeVendorManage, async (req, res) => {
   try {
     await pool.query(`DELETE FROM vendor_categories WHERE id = $1`, [req.params.categoryId]);
     res.json({ message: 'Category deleted' });

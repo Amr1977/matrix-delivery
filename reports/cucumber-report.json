@@ -4,17 +4,17 @@
     "elements": [
       {
         "description": "",
-        "id": "customer-browsing-vendors-and-items;browse-vendors-by-city-and-keyword",
+        "id": "vendor-self-management;vendor-registers-and-creates-their-own-vendor-profile",
         "keyword": "Scenario",
         "line": 3,
-        "name": "Browse vendors by city and keyword",
+        "name": "Vendor registers and creates their own vendor profile",
         "steps": [
           {
             "keyword": "Before",
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 1020800
+              "duration": 2097300
             }
           },
           {
@@ -22,7 +22,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 2430552299
+              "duration": 2077629600
             }
           },
           {
@@ -30,59 +30,46 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 1173242599
+              "duration": 1204718400
             }
           },
           {
             "arguments": [],
             "keyword": "Given ",
             "line": 4,
-            "name": "vendors \"Alpha Cafe\" and \"Bravo Market\" in city \"Cairo\"",
+            "name": "a vendor user exists",
             "match": {
-              "location": "tests\\step_definitions\\customer_browsing_steps.js:62"
+              "location": "tests\\step_definitions\\vendor_self_steps.js:5"
             },
             "result": {
               "status": "passed",
-              "duration": 183681099
+              "duration": 224632200
             }
           },
           {
             "arguments": [],
             "keyword": "When ",
             "line": 5,
-            "name": "the customer browses vendors city \"Cairo\" q \"Cafe\"",
+            "name": "the vendor creates self vendor with name \"My Shop\" city \"Cairo\" country \"Egypt\"",
             "match": {
-              "location": "tests\\step_definitions\\customer_browsing_steps.js:5"
+              "location": "tests\\step_definitions\\vendor_self_steps.js:12"
             },
             "result": {
               "status": "passed",
-              "duration": 34753400
+              "duration": 58849900
             }
           },
           {
             "arguments": [],
             "keyword": "Then ",
             "line": 6,
-            "name": "the browse vendors list includes \"Alpha Cafe\"",
+            "name": "the vendor self profile shows name \"My Shop\"",
             "match": {
-              "location": "tests\\step_definitions\\customer_browsing_steps.js:15"
+              "location": "tests\\step_definitions\\vendor_self_steps.js:23"
             },
             "result": {
               "status": "passed",
-              "duration": 5524199
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 7,
-            "name": "the browse vendors list does not include \"Bravo Market\"",
-            "match": {
-              "location": "tests\\step_definitions\\customer_browsing_steps.js:20"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 8733499
+              "duration": 32400499
             }
           },
           {
@@ -90,7 +77,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 214705699
+              "duration": 236650399
             }
           },
           {
@@ -98,7 +85,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 761299
+              "duration": 906100
             }
           },
           {
@@ -106,13 +93,13 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 869900
+              "duration": 805799
             }
           }
         ],
         "tags": [
           {
-            "name": "@customer-browsing",
+            "name": "@vendor-self",
             "line": 1
           }
         ],
@@ -120,17 +107,17 @@
       },
       {
         "description": "",
-        "id": "customer-browsing-vendors-and-items;browse-items-by-category-and-price-range",
+        "id": "vendor-self-management;vendor-updates-their-profile",
         "keyword": "Scenario",
-        "line": 9,
-        "name": "Browse items by category and price range",
+        "line": 8,
+        "name": "Vendor updates their profile",
         "steps": [
           {
             "keyword": "Before",
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 292700
+              "duration": 511299
             }
           },
           {
@@ -138,7 +125,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 197670099
+              "duration": 206008700
             }
           },
           {
@@ -146,59 +133,59 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 286339500
+              "duration": 371463700
             }
           },
           {
             "arguments": [],
             "keyword": "Given ",
-            "line": 10,
-            "name": "vendor \"Fresh Mart\" in city \"Cairo\" with items \"Apple:1.50:fruit\" and \"Banana:2.50:fruit\"",
+            "line": 9,
+            "name": "a vendor user exists",
             "match": {
-              "location": "tests\\step_definitions\\customer_browsing_steps.js:76"
+              "location": "tests\\step_definitions\\vendor_self_steps.js:5"
             },
             "result": {
               "status": "passed",
-              "duration": 117909999
+              "duration": 182432999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 10,
+            "name": "the vendor creates self vendor with name \"My Cafe\" city \"Giza\" country \"Egypt\"",
+            "match": {
+              "location": "tests\\step_definitions\\vendor_self_steps.js:12"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 23787199
             }
           },
           {
             "arguments": [],
             "keyword": "When ",
             "line": 11,
-            "name": "the customer browses items category \"fruit\" min_price \"1.0\" max_price \"2.0\"",
+            "name": "the vendor updates self profile city to \"Cairo\"",
             "match": {
-              "location": "tests\\step_definitions\\customer_browsing_steps.js:25"
+              "location": "tests\\step_definitions\\vendor_self_steps.js:30"
             },
             "result": {
               "status": "passed",
-              "duration": 32297299
+              "duration": 20803800
             }
           },
           {
             "arguments": [],
             "keyword": "Then ",
             "line": 12,
-            "name": "the browse items list includes \"Apple\"",
+            "name": "the vendor self profile shows city \"Cairo\"",
             "match": {
-              "location": "tests\\step_definitions\\customer_browsing_steps.js:36"
+              "location": "tests\\step_definitions\\vendor_self_steps.js:41"
             },
             "result": {
               "status": "passed",
-              "duration": 2703600
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 13,
-            "name": "the browse items list does not include \"Banana\"",
-            "match": {
-              "location": "tests\\step_definitions\\customer_browsing_steps.js:41"
-            },
-            "result": {
-              "status": "passed",
-              "duration": 1613599
+              "duration": 11442599
             }
           },
           {
@@ -206,7 +193,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 109482100
+              "duration": 134387999
             }
           },
           {
@@ -214,7 +201,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 282499
+              "duration": 274300
             }
           },
           {
@@ -222,13 +209,13 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 500299
+              "duration": 250800
             }
           }
         ],
         "tags": [
           {
-            "name": "@customer-browsing",
+            "name": "@vendor-self",
             "line": 1
           }
         ],
@@ -236,17 +223,17 @@
       },
       {
         "description": "",
-        "id": "customer-browsing-vendors-and-items;browse-items-with-pagination-and-sorting",
+        "id": "vendor-self-management;vendor-manages-items",
         "keyword": "Scenario",
-        "line": 15,
-        "name": "Browse items with pagination and sorting",
+        "line": 14,
+        "name": "Vendor manages items",
         "steps": [
           {
             "keyword": "Before",
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 369999
+              "duration": 232800
             }
           },
           {
@@ -254,7 +241,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 208255400
+              "duration": 226011400
             }
           },
           {
@@ -262,46 +249,111 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 288375499
+              "duration": 384331900
             }
           },
           {
             "arguments": [],
             "keyword": "Given ",
-            "line": 16,
-            "name": "vendor \"Mega Store\" in city \"Cairo\" with items \"Item A:5.00\" and \"Item B:3.00\" and \"Item C:7.00\"",
+            "line": 15,
+            "name": "a vendor user exists",
             "match": {
-              "location": "tests\\step_definitions\\customer_browsing_steps.js:91"
+              "location": "tests\\step_definitions\\vendor_self_steps.js:5"
             },
             "result": {
               "status": "passed",
-              "duration": 109278800
+              "duration": 236470200
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 16,
+            "name": "the vendor creates self vendor with name \"Item Shop\" city \"Cairo\" country \"Egypt\"",
+            "match": {
+              "location": "tests\\step_definitions\\vendor_self_steps.js:12"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 26011999
             }
           },
           {
             "arguments": [],
             "keyword": "When ",
             "line": 17,
-            "name": "the customer browses items vendor_id that vendor sort \"price_asc\" page \"2\" limit \"2\"",
+            "name": "the vendor adds self item \"Tea\" price \"10.00\"",
             "match": {
-              "location": "tests\\step_definitions\\customer_browsing_steps.js:46"
+              "location": "tests\\step_definitions\\vendor_self_steps.js:48"
             },
             "result": {
               "status": "passed",
-              "duration": 20279699
+              "duration": 29405699
             }
           },
           {
             "arguments": [],
             "keyword": "Then ",
             "line": 18,
-            "name": "the browse items page contains \"Item C\"",
+            "name": "the vendor self items include \"Tea\"",
             "match": {
-              "location": "tests\\step_definitions\\customer_browsing_steps.js:58"
+              "location": "tests\\step_definitions\\vendor_self_steps.js:59"
             },
             "result": {
               "status": "passed",
-              "duration": 2072499
+              "duration": 16790400
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 19,
+            "name": "the vendor updates self item price to \"12.00\"",
+            "match": {
+              "location": "tests\\step_definitions\\vendor_self_steps.js:67"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 13859100
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 20,
+            "name": "the vendor self items include name \"Tea\" with price \"12.00\"",
+            "match": {
+              "location": "tests\\step_definitions\\vendor_self_steps.js:78"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 26461400
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 21,
+            "name": "the vendor deactivates self item",
+            "match": {
+              "location": "tests\\step_definitions\\vendor_self_steps.js:87"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 12208899
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 22,
+            "name": "the vendor self items do not include \"Tea\"",
+            "match": {
+              "location": "tests\\step_definitions\\vendor_self_steps.js:95"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 9327100
             }
           },
           {
@@ -309,7 +361,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 116952599
+              "duration": 108655699
             }
           },
           {
@@ -317,7 +369,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 216299
+              "duration": 170099
             }
           },
           {
@@ -325,29 +377,29 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 188099
+              "duration": 127700
             }
           }
         ],
         "tags": [
           {
-            "name": "@customer-browsing",
+            "name": "@vendor-self",
             "line": 1
           }
         ],
         "type": "scenario"
       }
     ],
-    "id": "customer-browsing-vendors-and-items",
+    "id": "vendor-self-management",
     "line": 2,
     "keyword": "Feature",
-    "name": "Customer browsing vendors and items",
+    "name": "Vendor self-management",
     "tags": [
       {
-        "name": "@customer-browsing",
+        "name": "@vendor-self",
         "line": 1
       }
     ],
-    "uri": "tests\\features\\customer_browsing.feature"
+    "uri": "tests\\features\\vendor_self_management.feature"
   }
 ]
