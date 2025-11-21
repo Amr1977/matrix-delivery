@@ -72,6 +72,7 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
   const [driverCoords, setDriverCoords] = React.useState(null);
   const [pickupCoords, setPickupCoords] = React.useState(null);
   const [dropoffCoords, setDropoffCoords] = React.useState(null);
+  const hasDriverCoords = !!(driverCoords && Number.isFinite(driverCoords.lat) && Number.isFinite(driverCoords.lng));
 
   // Parse order locations (handle both old and new formats)
   React.useEffect(() => {
@@ -132,11 +133,19 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
         }
       );
     } else if (driverLocation) {
-      setDriverCoords({
-        lat: driverLocation.latitude,
-        lng: driverLocation.longitude,
-        accuracy: driverLocation.accuracy || 100
-      });
+      const lat = driverLocation.latitude;
+      const lng = driverLocation.longitude;
+      if (Number.isFinite(lat) && Number.isFinite(lng)) {
+        setDriverCoords({
+          lat,
+          lng,
+          accuracy: driverLocation.accuracy || 100
+        });
+      } else if (pickupCoords) {
+        setDriverCoords({ lat: pickupCoords.lat, lng: pickupCoords.lng, accuracy: 1000 });
+      } else {
+        setDriverCoords({ lat: 30.0444, lng: 31.2357, accuracy: 1000 });
+      }
       setLoading(false);
   } else {
       // If no geolocation available, use order pickup or default location
@@ -160,7 +169,7 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
 
   // Calculate route when locations are available
   React.useEffect(() => {
-    if (!driverCoords || !pickupCoords || !dropoffCoords) {
+    if (!hasDriverCoords || !pickupCoords || !dropoffCoords) {
       return;
     }
 
@@ -240,7 +249,7 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
     };
 
     calculateRoute();
-  }, [driverCoords, order, driverVehicleType]);
+  }, [hasDriverCoords, driverCoords, order, driverVehicleType]);
 
   // Helper function to calculate distance between points
   const calculateDistance = (point1, point2) => {
@@ -258,7 +267,7 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
     const map = useMap();
 
     React.useEffect(() => {
-      if (driverCoords && pickupCoords && dropoffCoords && map) {
+      if (hasDriverCoords && pickupCoords && dropoffCoords && map) {
         // Fit map to show all points with padding
         const bounds = L.latLngBounds([
           [driverCoords.lat, driverCoords.lng],
@@ -268,12 +277,12 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
 
         map.fitBounds(bounds, { padding: [20, 20] });
       }
-    }, [map, driverCoords, pickupCoords, dropoffCoords]);
+    }, [map, hasDriverCoords, driverCoords, pickupCoords, dropoffCoords]);
 
     return null;
   };
 
-  if (loading || !driverCoords) {
+  if (loading || !hasDriverCoords) {
     return (
       <div style={{
         height: isFullscreen ? '100vh' : '400px',
@@ -326,7 +335,7 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
           hasLegacyFrom: !!order.from,
           hasLegacyTo: !!order.to
         }, null, 0)}<br/>
-        <strong>Driver Coords:</strong> {driverCoords ? `Lat:${driverCoords.lat.toFixed(4)}, Lng:${driverCoords.lng.toFixed(4)}` : 'None'}
+        <strong>Driver Coords:</strong> {hasDriverCoords ? `Lat:${driverCoords.lat.toFixed(4)}, Lng:${driverCoords.lng.toFixed(4)}` : 'None'}
       </div>
 
       {/* Map Header with Controls */}
@@ -380,10 +389,11 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
         transition: 'height 0.3s ease'
       }}>
         <MapContainer
-          center={[
-            driverCoords.lat,
-            driverCoords.lng
-          ]}
+          center={hasDriverCoords
+            ? [driverCoords.lat, driverCoords.lng]
+            : pickupCoords
+              ? [pickupCoords.lat, pickupCoords.lng]
+              : [30.0444, 31.2357]}
           zoom={13}
           style={{ height: '100%', width: '100%' }}
           zoomControl={!isFullscreen}
@@ -399,21 +409,23 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
           />
 
           {/* Driver Location Marker */}
-          <Marker
-            position={[driverCoords.lat, driverCoords.lng]}
-            icon={createCustomIcon('driver', '#4f46e5')}
-          >
-            <Popup>
-              <div style={{ fontSize: '0.875rem' }}>
-                <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>🎯 Current Location</div>
-                <div>Lat: {driverCoords.lat.toFixed(6)}</div>
-                <div>Lng: {driverCoords.lng.toFixed(6)}</div>
-                {driverCoords.accuracy && (
-                  <div>Accuracy: ±{driverCoords.accuracy.toFixed(0)}m</div>
-                )}
-              </div>
-            </Popup>
-          </Marker>
+          {hasDriverCoords && (
+            <Marker
+              position={[driverCoords.lat, driverCoords.lng]}
+              icon={createCustomIcon('driver', '#4f46e5')}
+            >
+              <Popup>
+                <div style={{ fontSize: '0.875rem' }}>
+                  <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>🎯 Current Location</div>
+                  <div>Lat: {driverCoords.lat.toFixed(6)}</div>
+                  <div>Lng: {driverCoords.lng.toFixed(6)}</div>
+                  {Number.isFinite(driverCoords.accuracy) && (
+                    <div>Accuracy: ±{driverCoords.accuracy.toFixed(0)}m</div>
+                  )}
+                </div>
+              </Popup>
+            </Marker>
+          )}
 
           {/* Pickup Location Marker */}
           {pickupCoords && (
