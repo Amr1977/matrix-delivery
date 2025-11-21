@@ -352,6 +352,14 @@ const initDatabase = async () => {
 
     await pool.query('ALTER TABLE vendors ADD COLUMN IF NOT EXISTS owner_user_id VARCHAR(255) REFERENCES users(id) ON DELETE SET NULL');
     await pool.query('CREATE INDEX IF NOT EXISTS idx_vendors_owner ON vendors(owner_user_id)');
+    await pool.query('CREATE INDEX IF NOT EXISTS idx_vendors_coords ON vendors(latitude, longitude)');
+
+    try {
+      const postgis = await pool.query("SELECT extname FROM pg_extension WHERE extname = 'postgis'");
+      HAS_POSTGIS = postgis.rows.length > 0;
+    } catch (e) {
+      HAS_POSTGIS = false;
+    }
 
     // Recalculate ratings and completed deliveries for existing users
     logger.info('🔄 Recalculating user statistics...', { category: 'database' });
@@ -564,6 +572,7 @@ const sanitizeNumeric = (value, min = 0, max = 1000000) => {
 
 // Rate limiting store (simple in-memory for demo)
 const rateLimitStore = new Map();
+let HAS_POSTGIS = false;
 
 const rateLimit = (maxRequests = 100, windowMs = 15 * 60 * 1000) => {
   return (req, res, next) => {
@@ -1242,6 +1251,72 @@ app.get('/api/browse/items', async (req, res) => {
     res.json({ page, limit, count: result.rows.length, items: result.rows });
   } catch (error) {
     res.status(500).json({ error: 'Failed to browse items' });
+  }
+});
+
+app.get('/api/browse/vendors-near', rateLimit(200, 60 * 1000), async (req, res) => {
+  try {
+    if (!HAS_POSTGIS) return res.status(501).json({ error: 'Geospatial near queries require PostGIS' });
+    const lat = parseFloat(req.query.lat);
+    const lng = parseFloat(req.query.lng);
+    const radiusKm = Math.min(50, Math.max(0.1, parseFloat(req.query.radius_km || '5')));
+    const page = Math.max(1, parseInt(req.query.page || '1', 10));
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit || '20', 10)));
+    const offset = (page - 1) * limit;
+    if (isNaN(lat) || isNaN(lng)) return res.status(400).json({ error: 'lat and lng required' });
+    const radiusM = radiusKm * 1000;
+    const sql = `
+      SELECT v.*, ST_Distance(ST_MakePoint(v.longitude, v.latitude)::geography, ST_MakePoint($2, $1)::geography) AS distance_m
+      FROM vendors v
+      WHERE v.is_active = true AND v.latitude IS NOT NULL AND v.longitude IS NOT NULL
+        AND ST_DWithin(ST_MakePoint(v.longitude, v.latitude)::geography, ST_MakePoint($2, $1)::geography, $3)
+      ORDER BY distance_m ASC, v.created_at DESC
+      LIMIT $4 OFFSET $5`;
+    const result = await pool.query(sql, [lat, lng, radiusM, limit, offset]);
+    res.json({ page, limit, count: result.rows.length, items: result.rows });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to browse vendors near' });
+  }
+});
+
+app.get('/api/browse/items-near', rateLimit(200, 60 * 1000), async (req, res) => {
+  try {
+    if (!HAS_POSTGIS) return res.status(501).json({ error: 'Geospatial near queries require PostGIS' });
+    const lat = parseFloat(req.query.lat);
+    const lng = parseFloat(req.query.lng);
+    const radiusKm = Math.min(50, Math.max(0.1, parseFloat(req.query.radius_km || '5')));
+    const q = (req.query.q || '').trim();
+    const category = (req.query.category || '').trim();
+    const page = Math.max(1, parseInt(req.query.page || '1', 10));
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit || '20', 10)));
+    const offset = (page - 1) * limit;
+    if (isNaN(lat) || isNaN(lng)) return res.status(400).json({ error: 'lat and lng required' });
+    const radiusM = radiusKm * 1000;
+    const whereClauses = ['v.is_active = true', 'vi.is_active = true', 'v.latitude IS NOT NULL', 'v.longitude IS NOT NULL'];
+    const values = [lat, lng, radiusM];
+    if (q) {
+      values.push(`%${q}%`);
+      whereClauses.push(`LOWER(vi.item_name) LIKE LOWER($${values.length})`);
+    }
+    if (category) {
+      values.push(category);
+      whereClauses.push(`LOWER(vi.category) = LOWER($${values.length})`);
+    }
+    values.push(limit);
+    values.push(offset);
+    const sql = `
+      SELECT vi.*, v.name AS vendor_name, v.city AS vendor_city,
+             ST_Distance(ST_MakePoint(v.longitude, v.latitude)::geography, ST_MakePoint($2, $1)::geography) AS distance_m
+      FROM vendor_items vi
+      JOIN vendors v ON v.id = vi.vendor_id
+      WHERE ${whereClauses.join(' AND ')}
+        AND ST_DWithin(ST_MakePoint(v.longitude, v.latitude)::geography, ST_MakePoint($2, $1)::geography, $3)
+      ORDER BY distance_m ASC, vi.created_at DESC
+      LIMIT $${values.length-1} OFFSET $${values.length}`;
+    const result = await pool.query(sql, values);
+    res.json({ page, limit, count: result.rows.length, items: result.rows });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to browse items near' });
   }
 });
 
