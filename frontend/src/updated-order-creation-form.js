@@ -1,10 +1,10 @@
 // ============ UPDATED OrderCreationForm.jsx WITH MAP INTEGRATION ============
 // Replace the existing OrderCreationForm component with this
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import 'leaflet/dist/leaflet.css';
 import logger from './logger';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 
 // Fix Leaflet default icon issue
@@ -517,7 +517,6 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
   // UI state
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   // Modal state
   const [modalState, setModalState] = useState({
@@ -556,13 +555,7 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
   }, []);
   
   // Calculate route when both locations are set
-  useEffect(() => {
-    if (pickupLocation?.coordinates && dropoffLocation?.coordinates) {
-      calculateRoute();
-    }
-  }, [pickupLocation?.coordinates, dropoffLocation?.coordinates]);
-  
-  const calculateRoute = async () => {
+  const calculateRoute = useCallback(async () => {
     setLoading(true);
     try {
       const response = await fetch(`${API_URL}/locations/calculate-route`, {
@@ -578,19 +571,24 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
       const data = await response.json();
       setRouteInfo(data);
     } catch (err) {
-      setError(err.message);
+      setModalState({ isOpen: true, type: 'error', title: 'Route Error', message: err.message || 'Failed to calculate route' });
     } finally {
       setLoading(false);
     }
-  };
+  }, [API_URL, pickupLocation?.coordinates, dropoffLocation?.coordinates]);
+
+  useEffect(() => {
+    if (pickupLocation?.coordinates && dropoffLocation?.coordinates) {
+      calculateRoute();
+    }
+  }, [pickupLocation?.coordinates, dropoffLocation?.coordinates, calculateRoute]);
   
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const submitStartTime = Date.now();
+    
 
     logger.user('Order creation form submitted', {
       hasTitle: !!orderData.title?.trim(),
@@ -1679,220 +1677,7 @@ const MapLocationPicker = ({ location, onChange, onAddressFill, userLocation, ma
 };
 
 // ============ ROUTE PREVIEW MAP COMPONENT ============
-/* Removed RoutePreviewMap to keep only two maps (pickup, dropoff) */
-const RoutePreviewMap = ({ pickup, dropoff, routeInfo, loading, compact = false, t }) => {
-  const [showFullMap, setShowFullMap] = useState(false);
-
-  if (!pickup || !dropoff) return null;
-
-  const routePath = [[pickup.lat, pickup.lng], [dropoff.lat, dropoff.lng]];
-  const estimates = routeInfo && routeInfo.estimates ? Object.entries(routeInfo.estimates).slice(0, 3) : []; // First 3 estimates
-
-  return (
-    <div style={{
-      background: compact ? '#F0F9FF' : '#F9FAFB',
-      padding: '1rem',
-      borderRadius: '0.5rem',
-      border: compact ? '2px solid #DBEAFE' : '1px solid #E5E7EB'
-    }}>
-      {loading && (
-        <div style={{
-          background: '#FEF3C7',
-          padding: compact ? '0.5rem' : '0.75rem',
-          borderRadius: '0.375rem',
-          marginBottom: '1rem',
-          fontSize: compact ? '0.75rem' : '0.875rem'
-        }}>
-          🔄 {t('orders.calculatingRoute')}
-        </div>
-      )}
-
-      {/* Route Info - moved above map for compact */}
-      {routeInfo && (
-        <div style={{ marginBottom: '1rem' }}>
-          <div style={{
-            display: compact ? 'inline-grid' : 'grid',
-            gridTemplateColumns: compact ? '1fr auto auto' : '1fr 1fr',
-            gap: compact ? '1rem' : '1rem',
-            padding: '0.75rem',
-            background: 'white',
-            borderRadius: '0.375rem',
-            border: '1px solid #E5E7EB',
-            fontSize: compact ? '0.8125rem' : '0.875rem'
-          }}>
-            <div>
-              <p style={{ fontSize: compact ? '0.6875rem' : '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>
-                📏 {t('orders.totalDistance')}
-              </p>
-              <p style={{
-                fontSize: compact ? '0.9375rem' : '1.5rem',
-                fontWeight: 'bold',
-                color: '#1E40AF'
-              }}>
-                {routeInfo.distance_km} km
-              </p>
-            </div>
-
-            {!compact && (
-              <div>
-                <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>
-                  {t('orders.routeType')}
-                </p>
-                <p style={{ fontSize: '0.875rem', fontWeight: '600' }}>
-                  {routeInfo.route_found ? '✅ Optimized' : '⚠️ Estimate'}
-                </p>
-              </div>
-            )}
-
-            {/* Vehicle Estimates - show first 3 inline */}
-            {estimates.map(([vehicle, data], index) => (
-              <div key={vehicle} style={{
-                textAlign: 'center',
-                padding: compact ? '0.375rem' : '0.5rem'
-              }}>
-                <div style={{
-                  fontSize: compact ? '1.125rem' : '1.5rem',
-                  marginBottom: '0.125rem'
-                }}>
-                  {data.icon}
-                </div>
-                <p style={{
-                  fontSize: compact ? '0.5625rem' : '0.625rem',
-                  fontWeight: '600',
-                  color: '#6B7280',
-                  textTransform: 'capitalize',
-                  marginBottom: '0.125rem'
-                }}>
-                  {vehicle === 'bicycle' ? t('orders.bicycle') : vehicle === 'walker' ? t('orders.walker') : vehicle}
-                </p>
-                <p style={{
-                  fontSize: compact ? '0.75rem' : '1rem',
-                  fontWeight: 'bold',
-                  color: '#1F2937'
-                }}>
-                  {data.duration_minutes}m
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Toggle Button for compact mode */}
-      {compact && (
-        <button
-          type="button"
-          onClick={() => setShowFullMap(!showFullMap)}
-          style={{
-            width: '100%',
-            padding: '0.75rem',
-            background: '#4F46E5',
-            color: 'white',
-            borderRadius: '0.375rem',
-            border: 'none',
-            cursor: 'pointer',
-            fontSize: '0.875rem',
-            fontWeight: '600',
-            marginBottom: '1rem'
-          }}
-        >
-          🗺️ {showFullMap ? 'Hide Map' : 'View Full Route Map'}
-        </button>
-      )}
-
-      {/* Map - conditionally rendered */}
-      {(!compact || showFullMap) && (
-        <div style={{
-          height: compact ? '200px' : '300px',
-          width: '100%',
-          marginBottom: '1rem',
-          borderRadius: '0.5rem',
-          overflow: 'hidden',
-          position: 'relative'
-        }}>
-          <MapContainer
-            center={[(pickup.lat + dropoff.lat) / 2, (pickup.lng + dropoff.lng) / 2]}
-            zoom={13}
-            style={{
-              height: '100%',
-              width: '100%',
-              zIndex: 1,
-              position: 'relative'
-            }}
-            whenReady={() => {
-              // Ensure map resizes properly when container changes
-              setTimeout(() => {
-                window.dispatchEvent(new Event('resize'));
-              }, 100);
-            }}
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              maxZoom={19}
-              minZoom={1}
-              tileSize={256}
-              updateWhenZooming={true}
-              updateWhenIdle={false}
-              keepBuffer={4}
-              detectRetina={false}
-              errorTileUrl="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
-            />
-            <Marker
-              position={[pickup.lat, pickup.lng]}
-              icon={L.icon({
-                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-                iconSize: [25, 41],
-                iconAnchor: [12, 41]
-              })}
-            >
-              <Popup><strong>{t('orders.pickup')}</strong></Popup>
-            </Marker>
-            <Marker
-              position={[dropoff.lat, dropoff.lng]}
-              icon={L.icon({
-                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-                iconSize: [25, 41],
-                iconAnchor: [12, 41]
-              })}
-            >
-              <Popup><strong>{t('orders.delivery')}</strong></Popup>
-            </Marker>
-            <Polyline positions={routePath} color="#4F46E5" weight={4} opacity={0.7} />
-          </MapContainer>
-        </div>
-      )}
-
-      {/* Detailed Vehicle Estimates - only show in non-compact mode */}
-      {routeInfo && !compact && Object.entries(routeInfo.estimates || {}).length > 3 && (
-        <div>
-          <h4 style={{ fontSize: '0.875rem', fontWeight: 'bold', marginBottom: '0.75rem', color: '#374151' }}>
-            {t('orders.deliveryTimeEstimates')}
-          </h4>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '0.5rem' }}>
-            {Object.entries(routeInfo.estimates || {}).slice(3).map(([vehicle, data]) => (
-              <div key={vehicle} style={{ background: 'white', padding: '0.75rem', borderRadius: '0.375rem', border: '1px solid #E5E7EB', textAlign: 'center' }}>
-                <div style={{ fontSize: '1.5rem', marginBottom: '0.25rem' }}>{data.icon}</div>
-                <p style={{
-                  fontSize: '0.625rem',
-                  fontWeight: '600',
-                  color: '#6B7280',
-                  textTransform: 'capitalize',
-                  marginBottom: '0.25rem'
-                }}>
-                  {vehicle === 'bicycle' ? t('orders.bicycle') : vehicle === 'walker' ? t('orders.walker') : vehicle}
-                </p>
-                <p style={{ fontSize: '1rem', fontWeight: 'bold', color: '#1F2937' }}>
-                  {data.duration_minutes}m
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
+  
 
 // ============ DRAGGABLE MARKER COMPONENT ============
 const DraggableMarker = ({ position, icon, onDragEnd, children, isDragging, setIsDragging }) => {
@@ -2290,10 +2075,7 @@ const useLocationData = (API_URL) => {
   };
 
   // Simplified fallback search for when APIs are definitely down
-  const fallbackSearchCities = async (country, query, cacheKey) => {
-    console.log(`Using fallback cities for ${country}`);
-    return getFallbackCities(country, cacheKey);
-  };
+  
 
   // Function to search for areas by country and city
   const searchAreas = async (country, city) => {
@@ -2337,13 +2119,13 @@ const useLocationData = (API_URL) => {
         const areaOptions = data.features
           .map(feature => {
             const properties = feature.properties;
-            const name = properties.name;
+      
             const localityName = properties.locality;
             const districtName = properties.district;
             const suburbName = properties.suburb;
 
             // Use district, suburb, or locality names as areas
-            const areaName = districtName || suburbName || localityName || name;
+            const areaName = districtName || suburbName || localityName || properties.name;
 
             if (areaName && areaName !== city) {
               return {
@@ -2452,7 +2234,7 @@ const useLocationData = (API_URL) => {
         const streetOptions = data.features
           .map(feature => {
             const properties = feature.properties;
-            const name = properties.name;
+            
             const streetName = properties.street || properties.name;
 
             if (streetName) {
@@ -2980,7 +2762,7 @@ const LocationEntryCombined = ({
 };
 
 // ============ LOCATION ENTRY COMPONENT (Address Fields + Map) ============
-const LocationEntry = ({
+export const LocationEntry = ({
   showManualEntry,
   mapLocation,
   onMapLocationChange,

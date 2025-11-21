@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 export default function BrowseVendors({ apiUrl }) {
   const [q, setQ] = useState('');
   const [city, setCity] = useState('');
   const [sort, setSort] = useState('recent');
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
+  const [limit] = useState(10);
   const [items, setItems] = useState([]);
   const [lat, setLat] = useState('');
   const [lng, setLng] = useState('');
@@ -14,7 +14,7 @@ export default function BrowseVendors({ apiUrl }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
@@ -42,9 +42,9 @@ export default function BrowseVendors({ apiUrl }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [useNear, lat, lng, radiusKm, page, limit, q, city, sort, apiUrl]);
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   return (
     <div style={{ border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1rem', background: '#F9FAFB' }}>
@@ -85,4 +85,3 @@ export default function BrowseVendors({ apiUrl }) {
     </div>
   );
 }
-

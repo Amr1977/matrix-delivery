@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import React, { useState, useEffect, useCallback } from 'react';
+import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const AdminPanel = ({ token, onClose }) => {
   const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
@@ -35,26 +35,11 @@ const AdminPanel = ({ token, onClose }) => {
   const [ordersPage, setOrdersPage] = useState(1);
   const itemsPerPage = 20;
 
-  useEffect(() => {
-    if (adminToken) {
-      fetchDashboardData();
-      const interval = setInterval(fetchDashboardData, 30000);
-      return () => clearInterval(interval);
-    }
-  }, [adminToken, dateRange, usersPage, ordersPage, searchQuery, filterRole]);
-
-  useEffect(() => {
-    if (adminToken && activeTab === 'logs') {
-      fetchLogs();
-    }
-  }, [adminToken, activeTab, logsPage, logsType]);
-
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       setLoading(true);
       const headers = { 'Authorization': `Bearer ${adminToken}` };
 
-      // Fetch all data in parallel
       const roleParam = filterRole === 'all' ? '' : filterRole;
       const [statsRes, usersRes, ordersRes, verifiedCountRes] = await Promise.all([
         fetch(`${API_URL}/admin/stats?range=${dateRange}`, { headers }),
@@ -99,9 +84,9 @@ const AdminPanel = ({ token, onClose }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [adminToken, API_URL, dateRange, usersPage, ordersPage, itemsPerPage, searchQuery, filterRole]);
 
-  const fetchLogs = async () => {
+  const fetchLogs = useCallback(async () => {
     try {
       setLoading(true);
       const headers = { 'Authorization': `Bearer ${adminToken}` };
@@ -118,7 +103,23 @@ const AdminPanel = ({ token, onClose }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [adminToken, API_URL, logsPage, logsType]);
+
+  useEffect(() => {
+    if (adminToken) {
+      fetchDashboardData();
+      const interval = setInterval(fetchDashboardData, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [adminToken, fetchDashboardData]);
+
+  useEffect(() => {
+    if (adminToken && activeTab === 'logs') {
+      fetchLogs();
+    }
+  }, [adminToken, activeTab, fetchLogs]);
+
+
 
   const triggerBackendDeploy = async () => {
     if (!adminToken) return;

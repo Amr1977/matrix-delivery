@@ -249,7 +249,7 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
     };
 
     calculateRoute();
-  }, [hasDriverCoords, driverCoords, order, driverVehicleType]);
+  }, [hasDriverCoords, driverCoords, pickupCoords, dropoffCoords, order, driverVehicleType]);
 
   // Helper function to calculate distance between points
   const calculateDistance = (point1, point2) => {
@@ -267,7 +267,7 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
     const map = useMap();
 
     React.useEffect(() => {
-      if (hasDriverCoords && pickupCoords && dropoffCoords && map) {
+      if (driverCoords && Number.isFinite(driverCoords.lat) && Number.isFinite(driverCoords.lng) && pickupCoords && dropoffCoords && map) {
         // Fit map to show all points with padding
         const bounds = L.latLngBounds([
           [driverCoords.lat, driverCoords.lng],
@@ -277,7 +277,7 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
 
         map.fitBounds(bounds, { padding: [20, 20] });
       }
-    }, [map, hasDriverCoords, driverCoords, pickupCoords, dropoffCoords]);
+    }, [map]);
 
     return null;
   };

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import 'leaflet/dist/leaflet.css';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
@@ -113,7 +113,7 @@ const LiveTrackingMap = ({ orderId, t, compact = false }) => {
   const [orderMeta, setOrderMeta] = useState(null);
 
   // Fetch tracking data
-  const fetchTrackingData = async () => {
+  const fetchTrackingData = useCallback(async () => {
     try {
       let idToUse = orderId;
       if (!orderMeta) {
@@ -173,7 +173,7 @@ const LiveTrackingMap = ({ orderId, t, compact = false }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [orderId, orderMeta]);
 
   // Start tracking updates when component mounts
   useEffect(() => {
@@ -189,7 +189,7 @@ const LiveTrackingMap = ({ orderId, t, compact = false }) => {
         clearInterval(refreshIntervalRef.current);
       }
     };
-  }, [orderId]);
+  }, [orderId, fetchTrackingData]);
 
   useEffect(() => {
     if (!trackingData) return;
@@ -205,7 +205,7 @@ const LiveTrackingMap = ({ orderId, t, compact = false }) => {
         refreshIntervalRef.current = null;
       }
     };
-  }, [trackingData?.status]);
+  }, [trackingData, fetchTrackingData]);
 
   useEffect(() => {
     const loc = trackingData?.currentLocation;
@@ -222,7 +222,7 @@ const LiveTrackingMap = ({ orderId, t, compact = false }) => {
     } else {
       setCurrentAddress('');
     }
-  }, [trackingData?.currentLocation?.lat, trackingData?.currentLocation?.lng]);
+  }, [trackingData]);
 
   // Calculate center point for map
   const getCenter = () => {
@@ -334,7 +334,6 @@ const LiveTrackingMap = ({ orderId, t, compact = false }) => {
 
   // Render tracking map
   const center = getCenter();
-  const hasCoordinates = (trackingData?.pickup && trackingData.pickup.location) || (trackingData?.delivery && trackingData.delivery.location);
 
   const actualRoute = Array.isArray(trackingData?.locationHistory)
     ? [...trackingData.locationHistory].reverse().map(p => [p.lat, p.lng])

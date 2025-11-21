@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 
 export default function VendorSelfDashboard({ apiUrl, token }) {
   const [vendor, setVendor] = useState(null);
@@ -8,27 +8,27 @@ export default function VendorSelfDashboard({ apiUrl, token }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+  const headers = useMemo(() => ({ 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }), [token]);
 
-  const loadSelf = async () => {
+  const loadSelf = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
       const res = await fetch(`${apiUrl}/vendors/self`, { headers });
       if (res.status === 404) { setVendor(null); } else if (res.ok) { const d = await res.json(); setVendor(d.vendor || d); setForm({ name: d.vendor?.name || d.name || '', city: d.vendor?.city || d.city || '', country: d.vendor?.country || d.country || '', latitude: (d.vendor?.latitude ?? d.latitude ?? '') || '', longitude: (d.vendor?.longitude ?? d.longitude ?? '') || '' }); }
     } catch (e) { setError('Failed'); } finally { setLoading(false); }
-  };
+  }, [apiUrl, headers]);
 
-  const loadItems = async () => {
+  const loadItems = useCallback(async () => {
     if (!vendor || !vendor.id) { setItems([]); return; }
     try {
       const res = await fetch(`${apiUrl}/vendors/${vendor.id}/items`, { headers });
       if (res.ok) { const d = await res.json(); setItems(Array.isArray(d.items) ? d.items : d); }
     } catch (e) {}
-  };
+  }, [apiUrl, headers, vendor]);
 
-  useEffect(() => { loadSelf(); }, []);
-  useEffect(() => { loadItems(); }, [vendor?.id]);
+  useEffect(() => { loadSelf(); }, [loadSelf]);
+  useEffect(() => { loadItems(); }, [loadItems]);
 
   const createSelf = async () => {
     setLoading(true);
@@ -124,4 +124,3 @@ export default function VendorSelfDashboard({ apiUrl, token }) {
     </div>
   );
 }
-
