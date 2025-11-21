@@ -1,20 +1,20 @@
 [
   {
-    "description": "  As a user creating delivery orders\n  I want to use an interactive map to select locations\n  So that I can accurately specify pickup and delivery addresses",
+    "description": "",
     "elements": [
       {
         "description": "",
-        "id": "map-location-picker;successfully-reverse-geocode-coordinates-on-map-click",
+        "id": "vendors-management;admin-creates-a-vendor-and-lists-vendors",
         "keyword": "Scenario",
-        "line": 11,
-        "name": "Successfully reverse geocode coordinates on map click",
+        "line": 3,
+        "name": "Admin creates a vendor and lists vendors",
         "steps": [
           {
             "keyword": "Before",
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 1170000
+              "duration": 3956200
             }
           },
           {
@@ -22,7 +22,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 3381493299
+              "duration": 6931198499
             }
           },
           {
@@ -30,89 +30,46 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 2784584300
+              "duration": 3403048899
             }
           },
           {
             "arguments": [],
             "keyword": "Given ",
-            "line": 7,
-            "name": "I am logged in as a customer",
-            "result": {
-              "status": "ambiguous",
-              "duration": 0
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 8,
-            "name": "the map location picker feature is enabled",
+            "line": 4,
+            "name": "an admin user exists",
             "match": {
-              "location": "tests\\step_definitions\\map_location_steps.js:130"
+              "location": "tests\\step_definitions\\vendors_steps.js:5"
             },
             "result": {
-              "status": "skipped",
-              "duration": 0
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "Given ",
-            "line": 12,
-            "name": "I am on the order creation page",
-            "result": {
-              "status": "ambiguous",
-              "duration": 0
+              "status": "passed",
+              "duration": 14756699
             }
           },
           {
             "arguments": [],
             "keyword": "When ",
-            "line": 13,
-            "name": "I click on a location on the map at coordinates (30.0131, 31.2089)",
+            "line": 5,
+            "name": "the admin creates a vendor with name \"Test Cafe\" city \"Alexandria\" country \"Egypt\"",
+            "match": {
+              "location": "tests\\step_definitions\\vendors_steps.js:20"
+            },
             "result": {
-              "status": "undefined",
-              "duration": 0
+              "status": "passed",
+              "duration": 165855499
             }
           },
           {
             "arguments": [],
             "keyword": "Then ",
-            "line": 14,
-            "name": "the reverse geocoding API should be called",
+            "line": 6,
+            "name": "the vendor list includes \"Test Cafe\"",
             "match": {
-              "location": "tests\\step_definitions\\map_location_steps.js:175"
+              "location": "tests\\step_definitions\\vendors_steps.js:35"
             },
             "result": {
-              "status": "skipped",
-              "duration": 0
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 15,
-            "name": "I should see the address details for \"Salah Salem Street, Giza\"",
-            "match": {
-              "location": "tests\\step_definitions\\map_location_steps.js:187"
-            },
-            "result": {
-              "status": "skipped",
-              "duration": 0
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 16,
-            "name": "the location should be marked on the map",
-            "match": {
-              "location": "tests\\step_definitions\\map_location_steps.js:195"
-            },
-            "result": {
-              "status": "skipped",
-              "duration": 0
+              "status": "passed",
+              "duration": 35020199
             }
           },
           {
@@ -120,7 +77,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 211300299
+              "duration": 288189000
             }
           },
           {
@@ -128,7 +85,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 531800
+              "duration": 876600
             }
           },
           {
@@ -136,35 +93,31 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 483699
+              "duration": 656999
             }
           }
         ],
         "tags": [
           {
-            "name": "@smoke",
-            "line": 10
-          },
-          {
-            "name": "@map-location-picker",
-            "line": 10
+            "name": "@vendors",
+            "line": 1
           }
         ],
         "type": "scenario"
       },
       {
         "description": "",
-        "id": "map-location-picker;calculate-route-between-pickup-and-delivery-locations",
+        "id": "vendors-management;admin-adds-an-item-to-a-vendor",
         "keyword": "Scenario",
-        "line": 19,
-        "name": "Calculate route between pickup and delivery locations",
+        "line": 8,
+        "name": "Admin adds an item to a vendor",
         "steps": [
           {
             "keyword": "Before",
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 402099
+              "duration": 450900
             }
           },
           {
@@ -172,7 +125,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 108114900
+              "duration": 309489699
             }
           },
           {
@@ -180,108 +133,59 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 399488400
+              "duration": 327709199
             }
           },
           {
             "arguments": [],
             "keyword": "Given ",
-            "line": 7,
-            "name": "I am logged in as a customer",
+            "line": 9,
+            "name": "an admin user exists",
+            "match": {
+              "location": "tests\\step_definitions\\vendors_steps.js:5"
+            },
             "result": {
-              "status": "ambiguous",
-              "duration": 0
+              "status": "passed",
+              "duration": 710800
             }
           },
           {
             "arguments": [],
             "keyword": "And ",
-            "line": 8,
-            "name": "the map location picker feature is enabled",
+            "line": 10,
+            "name": "a vendor exists with name \"Fresh Mart\" city \"Cairo\" country \"Egypt\"",
             "match": {
-              "location": "tests\\step_definitions\\map_location_steps.js:130"
+              "location": "tests\\step_definitions\\vendors_steps.js:43"
             },
             "result": {
-              "status": "skipped",
-              "duration": 0
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "Given ",
-            "line": 20,
-            "name": "I have selected a pickup location at \"Giza, Egypt\"",
-            "match": {
-              "location": "tests\\step_definitions\\map_location_steps.js:201"
-            },
-            "result": {
-              "status": "skipped",
-              "duration": 0
+              "status": "passed",
+              "duration": 116769699
             }
           },
           {
             "arguments": [],
             "keyword": "When ",
-            "line": 21,
-            "name": "I select a delivery location at \"Cairo Center, Egypt\"",
+            "line": 11,
+            "name": "the admin adds item \"Apple\" price \"1.50\" to that vendor",
             "match": {
-              "location": "tests\\step_definitions\\map_location_steps.js:214"
+              "location": "tests\\step_definitions\\vendors_steps.js:58"
             },
             "result": {
-              "status": "skipped",
-              "duration": 0
+              "status": "passed",
+              "duration": 29074800
             }
           },
           {
             "arguments": [],
             "keyword": "Then ",
-            "line": 22,
-            "name": "the route calculation API should be called",
+            "line": 12,
+            "name": "the vendor items include \"Apple\"",
             "match": {
-              "location": "tests\\step_definitions\\map_location_steps.js:227"
+              "location": "tests\\step_definitions\\vendors_steps.js:69"
             },
             "result": {
-              "status": "skipped",
-              "duration": 0
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 23,
-            "name": "I should see an estimated delivery time",
-            "match": {
-              "location": "tests\\step_definitions\\map_location_steps.js:239"
-            },
-            "result": {
-              "status": "skipped",
-              "duration": 0
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 24,
-            "name": "I should see the distance between locations",
-            "match": {
-              "location": "tests\\step_definitions\\map_location_steps.js:245"
-            },
-            "result": {
-              "status": "skipped",
-              "duration": 0
-            }
-          },
-          {
-            "arguments": [],
-            "keyword": "And ",
-            "line": 25,
-            "name": "the route should be displayed on the map",
-            "match": {
-              "location": "tests\\step_definitions\\map_location_steps.js:251"
-            },
-            "result": {
-              "status": "skipped",
-              "duration": 0
+              "status": "passed",
+              "duration": 26387000
             }
           },
           {
@@ -289,7 +193,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 746001799
+              "duration": 100993699
             }
           },
           {
@@ -297,7 +201,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 334999
+              "duration": 235899
             }
           },
           {
@@ -305,28 +209,416 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 224600
+              "duration": 141799
             }
           }
         ],
         "tags": [
           {
-            "name": "@smoke",
-            "line": 18
+            "name": "@vendors",
+            "line": 1
+          }
+        ],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "vendors-management;admin-updates-a-vendor",
+        "keyword": "Scenario",
+        "line": 14,
+        "name": "Admin updates a vendor",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 235699
+            }
           },
           {
-            "name": "@map-location-picker",
-            "line": 18
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 222195299
+            }
+          },
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 277665600
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 15,
+            "name": "an admin user exists",
+            "match": {
+              "location": "tests\\step_definitions\\vendors_steps.js:5"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 805800
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 16,
+            "name": "a vendor exists with name \"Old Name\" city \"Giza\" country \"Egypt\"",
+            "match": {
+              "location": "tests\\step_definitions\\vendors_steps.js:43"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 192741099
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 17,
+            "name": "the admin renames that vendor to \"New Name\"",
+            "match": {
+              "location": "tests\\step_definitions\\vendors_steps.js:77"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 34712399
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 18,
+            "name": "the vendor details show name \"New Name\"",
+            "match": {
+              "location": "tests\\step_definitions\\vendors_steps.js:92"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 20046999
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 213441999
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 191500
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 183900
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@vendors",
+            "line": 1
+          }
+        ],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "vendors-management;admin-deactivates-a-vendor",
+        "keyword": "Scenario",
+        "line": 20,
+        "name": "Admin deactivates a vendor",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 246800
+            }
+          },
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 284108399
+            }
+          },
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 401094799
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 21,
+            "name": "an admin user exists",
+            "match": {
+              "location": "tests\\step_definitions\\vendors_steps.js:5"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 582999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 22,
+            "name": "a vendor exists with name \"Temp Vendor\" city \"Hurghada\" country \"Egypt\"",
+            "match": {
+              "location": "tests\\step_definitions\\vendors_steps.js:43"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 113669999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 23,
+            "name": "the admin deactivates that vendor",
+            "match": {
+              "location": "tests\\step_definitions\\vendors_steps.js:99"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 14126100
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 24,
+            "name": "the vendor is no longer in the active list",
+            "match": {
+              "location": "tests\\step_definitions\\vendors_steps.js:111"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 15728999
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 235680100
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 201900
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 170200
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@vendors",
+            "line": 1
+          }
+        ],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "vendors-management;admin-updates-and-deactivates-an-item",
+        "keyword": "Scenario",
+        "line": 26,
+        "name": "Admin updates and deactivates an item",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 225200
+            }
+          },
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 288533899
+            }
+          },
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 307642399
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 27,
+            "name": "an admin user exists",
+            "match": {
+              "location": "tests\\step_definitions\\vendors_steps.js:5"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 552999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 28,
+            "name": "a vendor exists with name \"Mega Store\" city \"Cairo\" country \"Egypt\"",
+            "match": {
+              "location": "tests\\step_definitions\\vendors_steps.js:43"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 102300999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 29,
+            "name": "the admin adds item \"Banana\" price \"2.00\" to that vendor",
+            "match": {
+              "location": "tests\\step_definitions\\vendors_steps.js:58"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 17979899
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 30,
+            "name": "the admin updates that item price to \"2.50\"",
+            "match": {
+              "location": "tests\\step_definitions\\vendors_steps.js:119"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 24802600
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 31,
+            "name": "the vendor items include name \"Banana\" with price \"2.50\"",
+            "match": {
+              "location": "tests\\step_definitions\\vendors_steps.js:134"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 19269599
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 32,
+            "name": "the admin deactivates that item",
+            "match": {
+              "location": "tests\\step_definitions\\vendors_steps.js:143"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 14111000
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 33,
+            "name": "the vendor items do not include \"Banana\"",
+            "match": {
+              "location": "tests\\step_definitions\\vendors_steps.js:155"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 10670599
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 117902000
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 283800
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 141499
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@vendors",
+            "line": 1
           }
         ],
         "type": "scenario"
       }
     ],
-    "id": "map-location-picker",
-    "line": 1,
+    "id": "vendors-management",
+    "line": 2,
     "keyword": "Feature",
-    "name": "Map Location Picker",
-    "tags": [],
-    "uri": "tests\\features\\map_location_picker.feature"
+    "name": "Vendors management",
+    "tags": [
+      {
+        "name": "@vendors",
+        "line": 1
+      }
+    ],
+    "uri": "tests\\features\\vendors.feature"
   }
 ]

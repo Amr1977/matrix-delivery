@@ -25,43 +25,45 @@ class DBSeeder {
   }
 
   async createUser(name, email, password, phone, role, vehicleType = null, isVerified = true, isAvailable = true, country = 'Egypt', city = 'Alexandria', area = 'city_center') {
-    const response = await fetch(`${this.apiUrl}/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name,
-        email,
-        password,
-        phone,
-        role,
-        vehicle_type: vehicleType,
-        country,
-        city,
-        area
-      })
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      console.error(`Failed to create ${role}: ${error}`);
-      throw new Error(`Failed to create ${role}: ${error}`);
-    }
-
-    const data = await response.json();
-
-    // Manually set verification status if needed
-    if (isVerified && role !== 'admin') {
-      await fetch(`${this.apiUrl}/auth/verify-user`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
-      });
-    }
-
-    // For admin, we'll use direct DB insertion since no admin registration endpoint
-    let userData = data;
+    // Admin is created via direct DB insertion for tests
+    let userData;
     if (role === 'admin') {
       userData = await this.createAdminViaDB(name, email, password, phone);
+    } else {
+      const response = await fetch(`${this.apiUrl}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          phone,
+          role,
+          vehicle_type: vehicleType,
+          country,
+          city,
+          area
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        console.error(`Failed to create ${role}: ${error}`);
+        throw new Error(`Failed to create ${role}: ${error}`);
+      }
+
+      const data = await response.json();
+
+      // Manually set verification status if needed
+      if (isVerified) {
+        await fetch(`${this.apiUrl}/auth/verify-user`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+      }
+
+      userData = data;
     }
 
     const userObj = {
@@ -85,7 +87,6 @@ class DBSeeder {
   }
 
   async createAdminViaDB(name, email, password, phone) {
-    // For admin, we'll use direct database insertion
     const { Pool } = require('pg');
     const pool = new Pool({
       host: process.env.DB_HOST || 'localhost',
@@ -95,33 +96,59 @@ class DBSeeder {
       password: process.env.DB_PASSWORD || 'postgres',
     });
 
-    const bcrypt = require('bcryptjs');
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const jwt = require('jsonwebtoken');
-    const JWT_SECRET = process.env.JWT_SECRET;
+    // Ensure user exists via API registration as customer
+    let existing = await pool.query('SELECT id, name, email FROM users WHERE LOWER(email) = LOWER($1)', [email]);
+    if (existing.rows.length === 0) {
+      const regRes = await fetch(`${this.apiUrl}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          phone,
+          role: 'customer',
+          country: 'Egypt',
+          city: 'Cairo',
+          area: 'Downtown'
+        })
+      });
+      if (!regRes.ok) {
+        const errTxt = await regRes.text();
+        console.error('Failed to register admin as customer:', errTxt);
+        throw new Error(errTxt);
+      }
+      existing = await pool.query('SELECT id, name, email FROM users WHERE LOWER(email) = LOWER($1)', [email]);
+    }
 
-    const result = await pool.query(
-      'INSERT INTO users (id, name, email, password, phone, role, country, city, area, rating, completed_deliveries, is_verified, is_available) VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id, name, email',
-      [name, email, hashedPassword, phone, 'admin', 'Egypt', 'Cairo', 'Downtown', 5.0, 0, true, true]
-    );
+    const user = existing.rows[0];
 
-    const user = result.rows[0];
-    const token = jwt.sign(
-      { userId: user.id, email: user.email, name: user.name, role: 'admin' },
-      JWT_SECRET,
-      { expiresIn: '30d' }
-    );
+    // Update role to admin and roles array
+    await pool.query('UPDATE users SET role = $1, roles = $2 WHERE id = $3', ['admin', ['admin'], user.id]);
 
     await pool.end();
+
+    // Login to get a token with admin role
+    const loginRes = await fetch(`${this.apiUrl}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    if (!loginRes.ok) {
+      const errTxt = await loginRes.text();
+      console.error('Failed to login admin:', errTxt);
+      throw new Error(errTxt);
+    }
+    const loginData = await loginRes.json();
 
     return {
       user: {
         id: user.id,
-        name: user.name,
-        email: user.email,
+        name: name,
+        email: email,
         role: 'admin'
       },
-      token
+      token: loginData.token
     };
   }
 

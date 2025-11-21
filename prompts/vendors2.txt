@@ -1,0 +1,131 @@
+# 🏪 Vendors & Vendor Items Module — Updated BDD Plan (with Vendor Self-Management)
+
+This extension adds **Vendor Self-Management**:  
+Vendors can log in, manage their profiles, create/edit items, manage categories, and track item availability.
+
+---
+
+# 🚀 Feature 8 — Vendor Self-Management Dashboard
+
+## Feature 8.1 — Vendor Authentication
+### Scenario: Vendor logs in successfully
+**Given** a vendor account exists  
+**When** the vendor enters valid login credentials  
+**Then** they should be authenticated  
+**And** redirected to the Vendor Dashboard  
+
+### Scenario: Vendor fails login
+**Given** a vendor account exists  
+**When** they enter invalid credentials  
+**Then** the system should show an error  
+**And** prevent access to vendor resources  
+
+---
+
+# Feature 8.2 — Vendor Profile Management
+### Scenario: Vendor views their profile
+**Given** a vendor is authenticated  
+**When** they open the profile page  
+**Then** they see their stored information
+
+### Scenario: Vendor updates profile details
+**Given** a vendor is logged in  
+**When** they update their profile fields  
+**Then** the new details should be saved  
+**And** reflected immediately on customer side
+
+### Scenario: Vendor updates/changes their logo
+**Given** the vendor uploads a new logo  
+**When** the upload is successful  
+**Then** the new logo replaces the old one  
+
+---
+
+# Feature 8.3 — Vendor Item Management (CRUD)
+## Scenario: Vendor creates a new item
+**Given** a vendor is authenticated  
+**When** they submit a new item with name, price, category, and image  
+**Then** the item should be created  
+**And** shown on their items list  
+**And** visible to customers
+
+## Scenario: Vendor edits an existing item
+**Given** an item belongs to this vendor  
+**When** the vendor edits its price, name, description, or image  
+**Then** the system updates the item  
+**And** customers see the updated information  
+
+## Scenario: Vendor deletes (or hides) an item
+**Given** the vendor wants to remove an item  
+**When** they deactivate or delete it  
+**Then** the item should no longer appear to customers  
+**But** should remain in the vendor’s internal list for record-keeping  
+
+## Scenario: Vendor updates item stock/availability
+**Given** an item exists  
+**When** the vendor toggles its availability or adjusts stock  
+**Then** the customer sees the correct in-stock/out-of-stock status  
+
+---
+
+# Feature 8.4 — Vendor Item Categories
+### Scenario: Vendor creates a category
+**Given** the vendor is authenticated  
+**When** they create a new category  
+**Then** the category becomes available for assigning items  
+
+### Scenario: Vendor edits a category name
+**Given** the vendor has existing categories  
+**When** they rename a category  
+**Then** items mapped to that category retain their mapping  
+
+### Scenario: Vendor deletes a category
+**Given** a category exists  
+**When** the vendor deletes it  
+**Then** items belonging to that category must be reassigned or marked as uncategorized  
+
+---
+
+# Feature 8.5 — Vendor Dashboard Analytics (Optional, but recommended)
+### Scenario: Vendor sees item performance summary
+**Given** the vendor dashboard is loaded  
+**When** the vendor views analytics  
+**Then** they see number of orders per item, revenue estimates, and top items  
+
+---
+
+# Feature 8.6 — Vendor Access Control (RBAC)
+### Scenario: Vendor cannot access other vendors’ items
+**Given** vendor A is authenticated  
+**When** they attempt to access vendor B’s items or profile  
+**Then** the system must reject the request (403 Forbidden)
+
+### Scenario: Vendor cannot manipulate customer orders
+**Given** a vendor logs in  
+**When** they attempt to access customer-side operations  
+**Then** the system must block access  
+
+---
+
+# 🧩 Updated Implementation Roadmap (Vendor Self-Management Included)
+1. DB: Add user roles → `vendor_user` role  
+2. Vendor authentication API (login, sessions, tokens)  
+3. Vendor Dashboard (React Panel)  
+4. Vendor Profile Management pages  
+5. Vendor Items CRUD (frontend + backend)  
+6. Vendor Categories CRUD  
+7. Vendor access control middleware (RBAC)  
+8. Item visibility pipeline to customer side  
+9. Optional: Analytics + reporting  
+
+---
+
+# 🔒 Security Considerations
+- Vendors must only access **their own** data  
+- JWT/Session tokens must have `role=vendor`  
+- All vendor-end APIs must enforce vendor ID ownership  
+- Image uploads should be validated + stored safely  
+
+---
+
+# 📜 End of Updated Document

@@ -1,0 +1,182 @@
+# 🏪 Vendors & Vendor Items Module — BDD Plan & Scenarios
+This document describes the full feature plan and Behavior-Driven Development (BDD) scenarios required to implement Vendors and Vendor Items in the **Matrix Delivery Platform**.  
+The goal is to allow customers to browse vendors, search vendor items, and place delivery orders based on selected items.
+
+---
+
+## 📌 High-Level Architecture
+### Backend (Node.js + PostgreSQL)
+- **Tables**  
+  - `vendors`  
+    - id, name, address, city, location (lat/lng), phone, rating, opening_hours, logo_url
+  - `vendor_items`
+    - id, vendor_id (FK), item_name, description, price, image_url, category, stock_qty
+  - `vendor_categories`
+    - id, vendor_id, name
+  - Optional: `vendor_reviews`
+
+- **APIs**
+  - Vendor listing, search, details, categories
+  - Vendor items listing, search, category filtering
+  - Integration with order creation
+
+### Frontend (React)
+- Vendor list page
+- Vendor details page
+- Vendor items listing with search & filters
+- Item details modal/page
+- Add item to delivery request workflow
+
+---
+
+# 🧪 Feature BDD Scenarios
+
+## Feature 1 — Vendor Registration & Management
+### Scenario 1: Admin creates a new vendor
+**Given** the admin is authenticated  
+**When** they submit valid vendor details  
+**Then** a new vendor should be created  
+**And** the vendor becomes available for listing
+
+### Scenario 2: Admin edits vendor details
+**Given** a vendor already exists  
+**When** the admin updates its fields  
+**Then** the vendor information should be updated successfully
+
+### Scenario 3: Admin uploads vendor logo
+**Given** a vendor profile exists  
+**When** the admin uploads a logo image  
+**Then** the logo is stored and linked to the vendor
+
+### Scenario 4: Admin deactivates a vendor
+**Given** a vendor exists  
+**When** the admin deactivates it  
+**Then** customers should not see it in the vendor list
+
+---
+
+## Feature 2 — Vendor Listing on Customer Side
+### Scenario 1: Customer views vendors near them
+**Given** the customer location is available  
+**When** they open the Vendors page  
+**Then** the system should list nearby vendors  
+**And** show distance, rating, and categories
+
+### Scenario 2: Customer searches for a vendor by name
+**Given** vendors exist in the system  
+**When** the customer enters a vendor name in the search bar  
+**Then** matching vendors should be displayed
+
+### Scenario 3: Customer filters vendors by category (e.g., restaurants)
+**Given** vendors have categories  
+**When** the customer selects a category filter  
+**Then** only vendors that match the category appear
+
+### Scenario 4: Customer opens vendor details
+**Given** the customer is viewing vendors  
+**When** they click on a vendor  
+**Then** vendor details, opening hours, and items should be shown
+
+---
+
+## Feature 3 — Vendor Items Management
+### Scenario 1: Admin adds an item to a vendor
+**Given** a vendor exists  
+**When** the admin creates a new item  
+**Then** it is associated with the vendor  
+**And** becomes visible to customers
+
+### Scenario 2: Admin edits item details
+**Given** a vendor item exists  
+**When** the admin updates its fields  
+**Then** the item details should be updated
+
+### Scenario 3: Admin deletes or hides an item
+**Given** an item exists  
+**When** the admin hides/deletes it  
+**Then** the item should no longer be visible to customers
+
+---
+
+## Feature 4 — Customer Browsing Vendor Items
+### Scenario 1: Customer views all items of a vendor
+**Given** a vendor has items  
+**When** the customer opens its details page  
+**Then** the system should list all items in categories
+
+### Scenario 2: Customer filters items by category
+**Given** a vendor has categorized items  
+**When** the customer selects a category  
+**Then** only items from that category should appear
+
+### Scenario 3: Customer searches for an item
+**Given** a vendor has searchable items  
+**When** the customer enters keywords  
+**Then** only matching items appear
+
+### Scenario 4: Customer views item details
+**Given** an item exists  
+**When** the customer clicks on the item  
+**Then** a full page or modal shows item name, price, description, and photos
+
+---
+
+## Feature 5 — Add Items to Delivery Request
+### Scenario 1: Customer adds vendor item to a delivery order
+**Given** an item exists  
+**When** the customer clicks “Add to Order”  
+**Then** the item is added to their delivery request form
+
+### Scenario 2: Customer adjusts item quantity
+**Given** the customer added an item  
+**When** they increase or decrease quantity  
+**Then** the request updates accordingly
+
+### Scenario 3: Customer submits a delivery order with vendor items
+**Given** the customer has selected items  
+**When** they create the delivery request  
+**Then** the items are included in the order payload  
+**And** couriers see the vendor and item details in the job request
+
+---
+
+## Feature 6 — Courier Experience
+### Scenario 1: Courier views orders with vendor info
+**Given** an order contains vendor items  
+**When** the courier opens the job  
+**Then** they see vendor location  
+**And** item list to pick up  
+
+### Scenario 2: Courier marks vendor pickup as completed
+**Given** the courier arrived at the vendor  
+**When** they confirm pickup  
+**Then** the order status updates to “Picked Up”
+
+---
+
+## Feature 7 — Performance, Search Index, and Caching
+### Scenario 1: Vendor search uses indexed fields
+**Given** the system uses PostgreSQL  
+**When** the search query executes  
+**Then** results should be retrieved using `GIN`/`GiST` indexes
+
+### Scenario 2: Items list loads fast
+**Given** vendor items may be large in number  
+**When** the customer opens a vendor  
+**Then** pagination and caching are applied
+
+---
+
+# 🧩 Implementation Roadmap (Suggested Order)
+1. DB tables for vendors + vendor items  
+2. Admin APIs + Admin frontend pages  
+3. Vendor list API + FE vendor browsing page  
+4. Vendor details API + FE details page  
+5. Vendor items listing + search + filters  
+6. Integrate vendor items into delivery order flow  
+7. Courier-facing updates  
+8. Optimization & caching  
+
+---
+
+# 📜 End of Document

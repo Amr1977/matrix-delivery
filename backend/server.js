@@ -66,7 +66,7 @@ const initDatabase = async () => {
         email VARCHAR(255) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
         phone VARCHAR(50) NOT NULL,
-        role VARCHAR(50) NOT NULL CHECK (role IN ('customer', 'driver', 'admin')),
+        role VARCHAR(50) NOT NULL CHECK (role IN ('customer', 'driver', 'admin', 'vendor')),
         vehicle_type VARCHAR(100),
         rating DECIMAL(3,2) DEFAULT 5.00,
         completed_deliveries INTEGER DEFAULT 0,
@@ -301,6 +301,52 @@ const initDatabase = async () => {
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_reviews_reviewer ON reviews(reviewer_id)`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_reviews_reviewee ON reviews(reviewee_id)`);
 
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS vendors (
+        id VARCHAR(255) PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        phone VARCHAR(50),
+        address TEXT,
+        city VARCHAR(100),
+        country VARCHAR(100),
+        latitude DECIMAL(10,8),
+        longitude DECIMAL(11,8),
+        rating DECIMAL(3,2) DEFAULT 0.00,
+        opening_hours JSONB,
+        logo_url TEXT,
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS vendor_categories (
+        id SERIAL PRIMARY KEY,
+        vendor_id VARCHAR(255) NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
+        name VARCHAR(100) NOT NULL
+      )
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS vendor_items (
+        id VARCHAR(255) PRIMARY KEY,
+        vendor_id VARCHAR(255) NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
+        item_name VARCHAR(255) NOT NULL,
+        description TEXT,
+        price DECIMAL(10,2) NOT NULL,
+        image_url TEXT,
+        category VARCHAR(100),
+        stock_qty INTEGER DEFAULT 0,
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_vendors_city ON vendors(city)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_vendor_items_vendor ON vendor_items(vendor_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_vendor_items_category ON vendor_items(category)`);
+
     // Recalculate ratings and completed deliveries for existing users
     logger.info('🔄 Recalculating user statistics...', { category: 'database' });
     await pool.query(`
@@ -435,6 +481,15 @@ const verifyToken = (req, res, next) => {
   } catch (error) {
     res.status(401).json({ error: 'Invalid or expired token' });
   }
+};
+
+const isAdmin = (req, res, next) => {
+  const role = req.user?.role;
+  const roles = req.user?.roles || [];
+  if (role === 'admin' || (Array.isArray(roles) && roles.includes('admin'))) {
+    return next();
+  }
+  return res.status(403).json({ error: 'Forbidden' });
 };
 
 // Load driver status endpoints
@@ -1045,6 +1100,204 @@ app.get('/api/auth/me', verifyToken, async (req, res) => {
   } catch (error) {
     console.error('Get user error:', error);
     res.status(500).json({ error: 'Failed to get user' });
+  }
+});
+
+app.get('/api/vendors', async (req, res) => {
+  try {
+    const q = (req.query.q || '').trim();
+    let result;
+    if (q) {
+      result = await pool.query(
+        `SELECT * FROM vendors WHERE is_active = true AND LOWER(name) LIKE LOWER($1) ORDER BY created_at DESC`,
+        [`%${q}%`]
+      );
+    } else {
+      result = await pool.query(
+        `SELECT * FROM vendors WHERE is_active = true ORDER BY created_at DESC`
+      );
+    }
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to list vendors' });
+  }
+});
+
+app.post('/api/vendors', verifyToken, isAdmin, async (req, res) => {
+  try {
+    const { name, description, phone, address, city, country, latitude, longitude, logo_url } = req.body;
+    if (!name || !city || !country) {
+      return res.status(400).json({ error: 'name, city, country required' });
+    }
+    const id = generateId();
+    const result = await pool.query(
+      `INSERT INTO vendors (id, name, description, phone, address, city, country, latitude, longitude, logo_url)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+       RETURNING *`,
+      [id, name.trim(), description || null, phone || null, address || null, city.trim(), country.trim(), latitude || null, longitude || null, logo_url || null]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('Create vendor error:', error);
+    res.status(500).json({ error: 'Failed to create vendor', details: error.message });
+  }
+});
+
+app.get('/api/vendors/:id', async (req, res) => {
+  try {
+    const result = await pool.query(`SELECT * FROM vendors WHERE id = $1`, [req.params.id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Vendor not found' });
+    }
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get vendor' });
+  }
+});
+
+app.put('/api/vendors/:id', verifyToken, isAdmin, async (req, res) => {
+  try {
+    const fields = ['name','description','phone','address','city','country','latitude','longitude','logo_url','is_active'];
+    const updates = [];
+    const values = [];
+    let i = 1;
+    for (const f of fields) {
+      if (req.body[f] !== undefined) {
+        updates.push(`${f} = $${i}`);
+        values.push(req.body[f]);
+        i++;
+      }
+    }
+    if (updates.length === 0) {
+      return res.status(400).json({ error: 'No fields to update' });
+    }
+    values.push(req.params.id);
+    const sql = `UPDATE vendors SET ${updates.join(', ')} WHERE id = $${i} RETURNING *`;
+    const result = await pool.query(sql, values);
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update vendor' });
+  }
+});
+
+app.delete('/api/vendors/:id', verifyToken, isAdmin, async (req, res) => {
+  try {
+    await pool.query(`UPDATE vendors SET is_active = false WHERE id = $1`, [req.params.id]);
+    res.json({ message: 'Vendor deactivated' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to deactivate vendor' });
+  }
+});
+
+app.get('/api/vendors/:id/items', async (req, res) => {
+  try {
+    const result = await pool.query(`SELECT * FROM vendor_items WHERE vendor_id = $1 AND is_active = true ORDER BY created_at DESC`, [req.params.id]);
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to list items' });
+  }
+});
+
+app.post('/api/vendors/:id/items', verifyToken, isAdmin, async (req, res) => {
+  try {
+    const { item_name, description, price, image_url, category, stock_qty } = req.body;
+    if (!item_name || price === undefined) {
+      return res.status(400).json({ error: 'item_name and price required' });
+    }
+    const id = generateId();
+    const result = await pool.query(
+      `INSERT INTO vendor_items (id, vendor_id, item_name, description, price, image_url, category, stock_qty)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+       RETURNING *`,
+      [id, req.params.id, item_name.trim(), description || null, parseFloat(price), image_url || null, category || null, stock_qty || 0]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create item' });
+  }
+});
+
+app.put('/api/vendors/:id/items/:itemId', verifyToken, isAdmin, async (req, res) => {
+  try {
+    const fields = ['item_name','description','price','image_url','category','stock_qty','is_active'];
+    const updates = [];
+    const values = [];
+    let i = 1;
+    for (const f of fields) {
+      if (req.body[f] !== undefined) {
+        updates.push(`${f} = $${i}`);
+        values.push(req.body[f]);
+        i++;
+      }
+    }
+    if (updates.length === 0) {
+      return res.status(400).json({ error: 'No fields to update' });
+    }
+    values.push(req.params.itemId);
+    const sql = `UPDATE vendor_items SET ${updates.join(', ')} WHERE id = $${i} RETURNING *`;
+    const result = await pool.query(sql, values);
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update item' });
+  }
+});
+
+app.delete('/api/vendors/:id/items/:itemId', verifyToken, isAdmin, async (req, res) => {
+  try {
+    await pool.query(`UPDATE vendor_items SET is_active = false WHERE id = $1`, [req.params.itemId]);
+    res.json({ message: 'Item deactivated' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to deactivate item' });
+  }
+});
+
+app.get('/api/vendors/:id/categories', async (req, res) => {
+  try {
+    const result = await pool.query(`SELECT * FROM vendor_categories WHERE vendor_id = $1 ORDER BY name ASC`, [req.params.id]);
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to list categories' });
+  }
+});
+
+app.post('/api/vendors/:id/categories', verifyToken, isAdmin, async (req, res) => {
+  try {
+    const { name } = req.body;
+    if (!name) {
+      return res.status(400).json({ error: 'name required' });
+    }
+    const result = await pool.query(
+      `INSERT INTO vendor_categories (vendor_id, name) VALUES ($1, $2) RETURNING *`,
+      [req.params.id, name.trim()]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create category' });
+  }
+});
+
+app.put('/api/vendors/:id/categories/:categoryId', verifyToken, isAdmin, async (req, res) => {
+  try {
+    const { name } = req.body;
+    if (!name) {
+      return res.status(400).json({ error: 'name required' });
+    }
+    const result = await pool.query(
+      `UPDATE vendor_categories SET name = $1 WHERE id = $2 RETURNING *`,
+      [name.trim(), req.params.categoryId]
+    );
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update category' });
+  }
+});
+
+app.delete('/api/vendors/:id/categories/:categoryId', verifyToken, isAdmin, async (req, res) => {
+  try {
+    await pool.query(`DELETE FROM vendor_categories WHERE id = $1`, [req.params.categoryId]);
+    res.json({ message: 'Category deleted' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete category' });
   }
 });
 
@@ -5173,4 +5426,3 @@ process.on('SIGINT', async () => {
 module.exports = app;
 
 // ============ END OF SERVER.JS ============
-// Complete server.js by combining Parts 1 + 2 + 3 + 4 + 5
