@@ -1,16 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { debounce } from 'lodash';
 import { useI18n } from './i18n/i18nContext';
 import LanguageSwitcher from './LanguageSwitcher';
 import AdminPanel from './AdminPanel';
 import ErrorBoundary from './ErrorBoundary';
 import OrderCreationForm from './updated-order-creation-form';
-import LocationFilter from './components/orders/LocationFilter';
 import LiveTrackingMapView from './components/maps/LiveTrackingMap';
 import DriverBiddingMap from './components/maps/DriverBiddingMap';
-import { useMap } from 'react-leaflet';
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
-import L from 'leaflet';
 import io from 'socket.io-client';
 import ReCAPTCHA from 'react-google-recaptcha';
 import logger from './logger';
@@ -20,137 +15,6 @@ import BrowseVendors from './components/BrowseVendors';
 import BrowseItems from './components/BrowseItems';
 import VendorSelfDashboard from './components/VendorSelfDashboard';
 
-// Move LiveTrackingMap component outside DeliveryApp function for proper scoping
-const LiveTrackingMap = React.memo(({ order, token, currentUser, apiUrl }) => {
-  const [driverLocation, setDriverLocation] = React.useState(null);
-  const [locationHistory, setLocationHistory] = React.useState([]);
-  const [isConnected, setIsConnected] = React.useState(false);
-  const socketRef = React.useRef(null);
-  const mapRef = React.useRef(null);
-
-  const { t } = useI18n();
-
-  React.useEffect(() => {
-    const socketServerUrl = apiUrl.replace('/api', '');
-    const socket = io(socketServerUrl);
-    socketRef.current = socket;
-
-    socket.on('connect', () => {
-      setIsConnected(true);
-      socket.emit('join_order', { orderId: order._id, token: token });
-    });
-
-    socket.on('disconnect', () => {
-      setIsConnected(false);
-    });
-
-    socket.on('location_update', (data) => {
-      const newLocation = { lat: data.latitude, lng: data.longitude, timestamp: data.timestamp };
-      setDriverLocation(newLocation);
-      setLocationHistory(prev => [...prev, newLocation]);
-      if (mapRef.current && mapRef.current.setView) {
-        mapRef.current.setView([data.latitude, data.longitude], 15);
-      }
-    });
-
-    let locationInterval;
-    if (currentUser?.role === 'driver' && order.assignedDriver?.userId === currentUser.id) {
-      locationInterval = setInterval(() => {
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            (position) => {
-              socket.emit('update_location', {
-                orderId: order._id,
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude,
-                token: token
-              });
-            }
-          );
-        }
-      }, 30000);
-    }
-
-    return () => {
-      socket.emit('leave_order', order._id);
-      socket.disconnect();
-      if (locationInterval) clearInterval(locationInterval);
-    };
-  }, [order._id, token, currentUser?.id, apiUrl]);
-
-  const MapUpdater = () => {
-    const map = useMap();
-    React.useEffect(() => { mapRef.current = map; }, [map]);
-    return null;
-  };
-
-  return (
-    <div style={{ height: '500px', width: '100%', borderRadius: '0.5rem', overflow: 'hidden', marginBottom: '1rem' }}>
-      <div style={{ background: isConnected ? '#10B981' : '#EF4444', color: 'white', padding: '0.5rem', textAlign: 'center', fontSize: '0.875rem', fontWeight: '600' }}>
-        {isConnected ? (t ? t('tracking.liveTrackingActive') : 'Live Tracking Active') : (t ? t('tracking.connecting') : 'Connecting...')}
-      </div>
-      <MapContainer
-        center={driverLocation ? [driverLocation.lat, driverLocation.lng] : [order.from.lat, order.from.lng]}
-        zoom={13}
-        style={{ height: 'calc(100% - 40px)', width: '100%' }}
-        onClick={() => {}} // Explicitly handle click to prevent noop warning
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-          maxZoom={19}
-          minZoom={1}
-          errorTileUrl={null}
-          updateWhenZooming={true}
-          updateWhenIdle={false}
-          keepBuffer={4}
-          detectRetina={true}
-        />
-        <Marker
-          position={[order.from.lat, order.from.lng]}
-          icon={L.icon({
-            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-            iconSize: [25, 41],
-            iconAnchor: [12, 41]
-          })}
-        >
-          <Popup><strong>Pickup</strong></Popup>
-        </Marker>
-        <Marker
-          position={[order.to.lat, order.to.lng]}
-          icon={L.icon({
-            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-            iconSize: [25, 41],
-            iconAnchor: [12, 41]
-          })}
-        >
-          <Popup><strong>Delivery</strong></Popup>
-        </Marker>
-        {driverLocation && (
-          <Marker
-            position={[driverLocation.lat, driverLocation.lng]}
-            icon={L.icon({
-              iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-              iconSize: [25, 41],
-              iconAnchor: [12, 41]
-            })}
-          >
-            <Popup><strong>Driver</strong></Popup>
-          </Marker>
-        )}
-        {locationHistory.length > 1 && (
-          <Polyline
-            positions={locationHistory.map(loc => [loc.lat, loc.lng])}
-            color="#4F46E5"
-            weight={3}
-            opacity={0.7}
-          />
-        )}
-        <MapUpdater />
-      </MapContainer>
-    </div>
-  );
-});
 
 // Location data state and API functions
 const DeliveryApp = () => {
@@ -309,7 +173,6 @@ useEffect(() => {
     trackOrder: false
   });
   const [successMessage, setSuccessMessage] = useState('');
-  const [retryCount, setRetryCount] = useState(0);
   const [spokenNotifications, setSpokenNotifications] = useState(new Set());
   const ttsLastSpokenRef = useRef(0);
   const ttsSignaturesRef = useRef(new Set());
@@ -415,6 +278,45 @@ useEffect(() => {
 
 
 
+  const fetchOrders = useCallback(async (filters = {}) => {
+    try {
+      const queryParams = new URLSearchParams();
+
+      if (filters.country) queryParams.append('country', filters.country);
+      if (filters.city) queryParams.append('city', filters.city);
+      if (filters.area) queryParams.append('area', filters.area);
+
+      const queryString = queryParams.toString();
+      const url = queryString ? `${API_URL}/orders?${queryString}` : `${API_URL}/orders`;
+
+      const response = await fetch(url, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) {
+        console.error('Fetch orders failed:', response.status, response.statusText);
+        throw new Error(`Failed to fetch orders: ${response.status}`);
+      }
+      const data = await response.json();
+
+      const ordersWithBids = data.filter(order => order.bids && order.bids.length > 0);
+      if (ordersWithBids.length > 0) {
+        console.log('📡 Orders with bids found:', ordersWithBids.length);
+        ordersWithBids.forEach(order => {
+          console.log(`  📦 Order ${order._id}: ${order.bids.length} bids`);
+          order.bids.forEach((bid, i) => {
+            console.log(`    ${i+1}. ${bid.driverName}: $${bid.bidPrice}`);
+          });
+        });
+      } else {
+        console.log('📡 No orders with bids found');
+      }
+
+      setOrders(data);
+    } catch (err) {
+      console.error('Error fetching orders:', err.message);
+    }
+  }, [API_URL, token]);
+
 
   // Effects
   useEffect(() => {
@@ -432,6 +334,58 @@ useEffect(() => {
 
 
 
+  
+
+  const speakNotification = useCallback((notification) => {
+    if ('speechSynthesis' in window) {
+      try {
+        const now = Date.now();
+        const cooldownMs = 8000;
+        const sig = `${notification.id || ''}|${notification.title || ''}|${notification.message || ''}`;
+        if (window.speechSynthesis.speaking) {
+          return;
+        }
+        if (ttsSignaturesRef.current.has(sig) && (now - ttsLastSpokenRef.current) < cooldownMs) {
+          return;
+        }
+        ttsSignaturesRef.current.add(sig);
+        ttsLastSpokenRef.current = now;
+        let message = notification.message;
+
+        const orderNumberRegex = /order\s+(\w+)/gi;
+        message = message.replace(orderNumberRegex, (match, orderNum) => {
+          const lastThree = orderNum.replace(/\D/g, '').slice(-3);
+          return `${t('tracking.orderNumber')} ${lastThree}`;
+        });
+
+        const utterance = new SpeechSynthesisUtterance();
+        utterance.text = `${t('notifications.newNotification')}: ${notification.title}. ${message}`;
+        utterance.volume = 0.8;
+        utterance.rate = 1;
+        utterance.pitch = 0.7;
+
+        const voices = speechSynthesis.getVoices();
+        const preferredVoice = voices.find(voice =>
+          voice.name.includes('David') || voice.name.includes('Microsoft David') ||
+          voice.name.includes('Alex') || voice.name.includes('James') ||
+          voice.name.includes('Daniel') || voice.name.includes('Paul') ||
+          voice.name.includes('Mark') || voice.name.includes('George') ||
+          voice.name.includes('Michael') || voice.name.includes('Steven') ||
+          (voice.lang.includes('en-US') && !voice.name.toLowerCase().includes('female') && !voice.name.toLowerCase().includes('zira'))
+        );
+
+        if (preferredVoice) {
+          utterance.voice = preferredVoice;
+        }
+
+        try { speechSynthesis.cancel(); } catch (_) {}
+        speechSynthesis.speak(utterance);
+      } catch (error) {
+        console.warn('Could not speak notification:', error);
+      }
+    }
+  }, [t]);
+
   // Driver location effect
   useEffect(() => {
     if (currentUser?.role === 'driver' && token) {
@@ -445,19 +399,14 @@ useEffect(() => {
     }
   }, [currentUser, token]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Debounced location filter effect for drivers (waits 1.5 seconds after last filter change)
-  const debouncedFetchOrders = useCallback(
-    debounce((filters) => {
-      if (currentUser?.role === 'driver' && token && viewType === 'bidding') {
-        fetchOrders(filters);
-      }
-    }, 1500), // 1.5 second delay
-    [currentUser?.role, token, viewType]
-  );
-
   useEffect(() => {
-    debouncedFetchOrders({ country: countryFilter, city: cityFilter, area: areaFilter });
-  }, [countryFilter, cityFilter, areaFilter, debouncedFetchOrders]); // eslint-disable-line react-hooks/exhaustive-deps
+    const timer = setTimeout(() => {
+      if (currentUser?.role === 'driver' && token && viewType === 'bidding') {
+        fetchOrders({ country: countryFilter, city: cityFilter, area: areaFilter });
+      }
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [countryFilter, cityFilter, areaFilter, currentUser?.role, token, viewType, fetchOrders]);
 
   // Real-time notifications via WebSocket
   useEffect(() => {
@@ -476,13 +425,9 @@ useEffect(() => {
         console.log('📡 Notification type:', notification.type);
         console.log('📡 Notification message:', notification.message);
 
-        // Add to notifications list
         setNotifications(prev => [notification, ...prev]);
-
-        // Play notification sound
         playNotificationSound();
 
-        // Speak notification only once per ID and only if unread
         if (!notification.isRead) {
           setSpokenNotifications(prev => {
             if (prev.has(notification.id)) {
@@ -495,7 +440,6 @@ useEffect(() => {
           });
         }
 
-        // Refresh orders data for relevant notification types
         if (notification.type === 'new_bid' ||
             notification.type === 'bid_accepted' ||
             notification.type === 'order_picked_up' ||
@@ -504,7 +448,6 @@ useEffect(() => {
             notification.message?.toLowerCase().includes('bid') ||
             notification.message?.toLowerCase().includes('driver') ||
             notification.message?.toLowerCase().includes('order')) {
-          console.log('📡 Refreshing orders due to order status notification:', notification.type);
           try {
             await fetchOrders();
           } catch (error) {
@@ -521,7 +464,7 @@ useEffect(() => {
         socket.disconnect();
       };
     }
-  }, [token, currentUser]);
+  }, [token, currentUser, API_URL, fetchOrders, speakNotification]);
 
   // Fetch footer statistics
   useEffect(() => {
@@ -585,46 +528,7 @@ useEffect(() => {
 
 
 
-  const fetchOrders = async (filters = {}) => {
-    try {
-      const queryParams = new URLSearchParams();
-
-      if (filters.country) queryParams.append('country', filters.country);
-      if (filters.city) queryParams.append('city', filters.city);
-      if (filters.area) queryParams.append('area', filters.area);
-
-      const queryString = queryParams.toString();
-      const url = queryString ? `${API_URL}/orders?${queryString}` : `${API_URL}/orders`;
-
-      const response = await fetch(url, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (!response.ok) {
-        console.error('Fetch orders failed:', response.status, response.statusText);
-        throw new Error(`Failed to fetch orders: ${response.status}`);
-      }
-      const data = await response.json();
-
-      // Debug: Check if any orders have bids
-      const ordersWithBids = data.filter(order => order.bids && order.bids.length > 0);
-      if (ordersWithBids.length > 0) {
-        console.log('📡 Orders with bids found:', ordersWithBids.length);
-        ordersWithBids.forEach(order => {
-          console.log(`  📦 Order ${order._id}: ${order.bids.length} bids`);
-          order.bids.forEach((bid, i) => {
-            console.log(`    ${i+1}. ${bid.driverName}: $${bid.bidPrice}`);
-          });
-        });
-      } else {
-        console.log('📡 No orders with bids found');
-      }
-
-      setOrders(data);
-    } catch (err) {
-      console.error('Error fetching orders:', err.message);
-      // Don't show error to user for failed orders fetch, just log it
-    }
-  };
+  
 
   const fetchNotifications = async () => {
     try {
@@ -851,10 +755,10 @@ useEffect(() => {
   };
 
   // Enhanced UX Helper Functions
-  const showSuccess = (message) => {
+  const showSuccess = useCallback((message) => {
     setSuccessMessage(message);
-    setTimeout(() => setSuccessMessage(''), 5000); // Auto-hide after 5 seconds
-  };
+    setTimeout(() => setSuccessMessage(''), 5000);
+  }, []);
 
   const setLoadingState = (key, value) => {
     setLoadingStates(prev => ({ ...prev, [key]: value }));
@@ -897,61 +801,7 @@ useEffect(() => {
     };
   };
 
-  // Extract city from address string (legacy)
-  const extractCityFromAddress = (address) => {
-    const parts = extractLocationParts(address);
-    return parts.city;
-  };
-
-  // Filter orders based on driver view type and location filters
-  const filterDriverOrders = (orders, viewType, cityFilter = '', countryFilter = '', areaFilter = '') => {
-    if (currentUser?.role !== 'driver') return orders;
-
-    let filteredOrders;
-    switch (viewType) {
-      case 'active':
-        filteredOrders = orders.filter(order =>
-          order.assignedDriver?.userId === currentUser.id &&
-          ['accepted', 'picked_up', 'in_transit'].includes(order.status)
-        );
-        break;
-      case 'bidding':
-        filteredOrders = orders.filter(order =>
-          order.status === 'pending_bids' &&
-          !order.assignedDriver
-        );
-        // Apply location filters for bidding orders
-        if (countryFilter || cityFilter || areaFilter) {
-          filteredOrders = filteredOrders.filter(order => {
-            const pickupParts = extractLocationParts(order.pickupAddress);
-            const deliveryParts = extractLocationParts(order.deliveryAddress);
-
-            const pickupMatches =
-              (!countryFilter || pickupParts.country === countryFilter) &&
-              (!cityFilter || pickupParts.city === cityFilter) &&
-              (!areaFilter || pickupParts.area === areaFilter);
-
-            const deliveryMatches =
-              (!countryFilter || deliveryParts.country === countryFilter) &&
-              (!cityFilter || deliveryParts.city === cityFilter) &&
-              (!areaFilter || deliveryParts.area === areaFilter);
-
-            return pickupMatches || deliveryMatches;
-          });
-        }
-        break;
-      case 'history':
-        filteredOrders = orders.filter(order =>
-          order.status === 'delivered' ||
-          (order.assignedDriver?.userId === currentUser.id && order.status === 'cancelled')
-        );
-        break;
-      default:
-        filteredOrders = orders;
-    }
-
-    return filteredOrders;
-  };
+  
 
   // Function to get available countries from order addresses
   const getAvailableCountries = () => {
@@ -1017,60 +867,7 @@ const getDriverViewTitle = (viewType) => {
   }
 };
 
-  const speakNotification = (notification) => {
-    if ('speechSynthesis' in window) {
-      try {
-        const now = Date.now();
-        const cooldownMs = 8000;
-        const sig = `${notification.id || ''}|${notification.title || ''}|${notification.message || ''}`;
-        if (window.speechSynthesis.speaking) {
-          return;
-        }
-        if (ttsSignaturesRef.current.has(sig) && (now - ttsLastSpokenRef.current) < cooldownMs) {
-          return;
-        }
-        ttsSignaturesRef.current.add(sig);
-        ttsLastSpokenRef.current = now;
-        let message = notification.message;
-
-        // Extract and shorten order numbers to last 3 digits only
-        const orderNumberRegex = /order\s+(\w+)/gi;
-        message = message.replace(orderNumberRegex, (match, orderNum) => {
-          // Extract last 3 digits/numbers from order number
-          const lastThree = orderNum.replace(/\D/g, '').slice(-3);
-          return `${t('tracking.orderNumber')} ${lastThree}`;
-        });
-
-        const utterance = new SpeechSynthesisUtterance();
-        utterance.text = `${t('notifications.newNotification')}: ${notification.title}. ${message}`;
-        utterance.volume = 0.8;
-        utterance.rate = 1;
-        utterance.pitch = 0.7; // Lower pitch for deeper, more authoritative male voice
-
-        // Prefer male voices like Morpheus from The Matrix
-        const voices = speechSynthesis.getVoices();
-        const preferredVoice = voices.find(voice =>
-          // Try common male voice names
-          voice.name.includes('David') || voice.name.includes('Microsoft David') ||
-          voice.name.includes('Alex') || voice.name.includes('James') ||
-          voice.name.includes('Daniel') || voice.name.includes('Paul') ||
-          voice.name.includes('Mark') || voice.name.includes('George') ||
-          voice.name.includes('Michael') || voice.name.includes('Steven') ||
-          // Fallback to any male voice available
-          (voice.lang.includes('en-US') && !voice.name.toLowerCase().includes('female') && !voice.name.toLowerCase().includes('zira'))
-        );
-
-        if (preferredVoice) {
-          utterance.voice = preferredVoice;
-        }
-
-        try { speechSynthesis.cancel(); } catch (_) {}
-        speechSynthesis.speak(utterance);
-      } catch (error) {
-        console.warn('Could not speak notification:', error);
-      }
-    }
-  };
+  
 
   const countries = ['Egypt', 'Saudi Arabia', 'UAE', 'Jordan', 'Lebanon', 'Kuwait', 'Qatar', 'Bahrain', 'Oman', 'Morocco', 'Tunisia', 'Algeria', 'Libya', 'Sudan', 'Yemen', 'Iraq', 'Syria', 'Palestine'];
 
@@ -1351,7 +1148,7 @@ const getDriverViewTitle = (viewType) => {
     } finally {
       setLoadingState('createOrder', false);
     }
-  }, [token, showSuccess]);
+  }, [token, showSuccess, API_URL, fetchOrders]);
 
   const handleBidOnOrder = async (orderId) => {
     const bidPrice = bidInput[orderId];
@@ -1601,13 +1398,13 @@ const getDriverViewTitle = (viewType) => {
   };
 
   // Driver status functions
-  const hasActiveOrders = () => {
+  const hasActiveOrders = useCallback(() => {
     if (currentUser?.role !== 'driver') return false;
     return orders.some(order =>
       order.assignedDriver?.userId === currentUser.id &&
       ['accepted', 'picked_up', 'in_transit'].includes(order.status)
     );
-  };
+  }, [currentUser, orders]);
 
   const updateDriverStatus = async (isOnline) => {
     if (currentUser?.role !== 'driver') {
@@ -1635,7 +1432,7 @@ const getDriverViewTitle = (viewType) => {
     }
   };
 
-  const updateDriverLocationOnce = async () => {
+  const updateDriverLocationOnce = useCallback(async () => {
     if (currentUser?.role !== 'driver' || !driverOnline || loading) return;
 
     try {
@@ -1695,7 +1492,7 @@ const getDriverViewTitle = (viewType) => {
         setError('Failed to update location');
       }
     }
-  };
+  }, [currentUser, driverOnline, loading, API_URL, token, orders, fetchOrders]);
 
   const toggleOnline = async () => {
     if (driverOnline && hasActiveOrders()) {
@@ -1751,14 +1548,11 @@ const getDriverViewTitle = (viewType) => {
         locationIntervalRef.current = null;
       }
     };
-  }, [orders, driverOnline]);
+  }, [orders, driverOnline, hasActiveOrders, updateDriverLocationOnce]);
 
 
 
-  const handleViewTracking = (order) => {
-    setSelectedOrder(order);
-    setShowLiveTracking(true);
-  };
+  
 
   const getStatusLabel = (status) => {
     const statusKeyMap = {
@@ -2302,7 +2096,7 @@ const getDriverViewTitle = (viewType) => {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: '#E5E7EB', overflow: 'hidden', border: '2px solid #fff' }}>
                       {profileData.profile_picture_url ? (
-                        <img src={profileData.profile_picture_url} alt="Profile picture" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <img src={profileData.profile_picture_url} alt="User avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       ) : (
                         <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6B7280' }}>👤</div>
                       )}
