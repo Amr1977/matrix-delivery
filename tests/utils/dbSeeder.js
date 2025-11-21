@@ -54,14 +54,12 @@ class DBSeeder {
 
       const data = await response.json();
 
-      // Manually set verification status if needed
-      if (isVerified) {
-        await fetch(`${this.apiUrl}/auth/verify-user`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email })
-        });
-      }
+      // Manually set verification status if needed (skip rate limiting in tests)
+      await fetch(`${this.apiUrl}/auth/verify-user`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
 
       userData = data;
     }
@@ -149,6 +147,48 @@ class DBSeeder {
         role: 'admin'
       },
       token: loginData.token
+    };
+  }
+
+  async createUserViaDB(name, email, password, phone, role = 'vendor') {
+    const { Pool } = require('pg');
+    const pool = new Pool({
+      host: process.env.DB_HOST || 'localhost',
+      port: process.env.DB_PORT || 5432,
+      database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
+      user: process.env.DB_USER || 'postgres',
+      password: process.env.DB_PASSWORD || 'postgres',
+    });
+
+    // Ensure email unique
+    const existing = await pool.query('SELECT id FROM users WHERE LOWER(email) = LOWER($1)', [email]);
+    let userId;
+    if (existing.rows.length > 0) {
+      userId = existing.rows[0].id;
+      await pool.query('UPDATE users SET role = $1 WHERE id = $2', [role, userId]);
+    } else {
+      userId = `${Date.now().toString()}_${Math.random().toString(36).slice(2, 10)}`;
+      await pool.query(
+        `INSERT INTO users (id, name, email, password, phone, role)
+         VALUES ($1,$2,$3,$4,$5,$6)`,
+        [userId, name, email.toLowerCase(), password || 'password123', phone || '+100000000', 'customer']
+      );
+    }
+
+    await pool.end();
+
+    const crypto = require('crypto');
+    const JWT_SECRET = process.env.JWT_SECRET || 'test-secret-key-12345';
+    const header = { alg: 'HS256', typ: 'JWT' };
+    const payload = { userId, email, name, role };
+    const base64url = (obj) => Buffer.from(JSON.stringify(obj)).toString('base64').replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+    const data = `${base64url(header)}.${base64url(payload)}`;
+    const signature = crypto.createHmac('sha256', JWT_SECRET).update(data).digest('base64').replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+    const token = `${data}.${signature}`;
+
+    return {
+      user: { id: userId, name, email, role },
+      token
     };
   }
 
