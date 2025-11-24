@@ -1894,6 +1894,27 @@ const DeliveryApp = () => {
           <div className="header-actions">
             <LanguageSwitcher locale={locale} changeLocale={changeLocale} />
 
+            <a
+              href="https://www.paypal.com/ncp/payment/HVC6ZJ7PPYETS"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-primary"
+              style={{
+                backgroundColor: '#0070ba',
+                color: 'white',
+                padding: '0.75rem 1.5rem',
+                borderRadius: '0.5rem',
+                fontWeight: '600',
+                textDecoration: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}
+            >
+              <img src="https://www.paypalobjects.com/webstatic/mktg/logo/pp_cc_mark_34x23.jpg" alt="PayPal" style={{ height: '1.2em' }} />
+              Donate
+            </a>
+
             <button
               onClick={async () => {
                 setLoading(true);
