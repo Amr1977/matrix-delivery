@@ -32,7 +32,7 @@ if (!IS_PRODUCTION) {
   corsOptions = {
     origin: true, // Allow all origins
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-    allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization', 'Cache-Control, Pragma'],
+    allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization', 'Cache-Control', 'Pragma', 'User-Agent'],
     credentials: true,
     optionsSuccessStatus: 200
   };
@@ -272,6 +272,15 @@ const initDatabase = async () => {
       )
     `);
 
+    // Cache table for expensive location lookups
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS location_cache (
+        cache_key VARCHAR(255) PRIMARY KEY,
+        payload JSONB NOT NULL,
+        expires_at TIMESTAMP NOT NULL
+      )
+    `);
+
     // Create coordinate_mappings table for reverse geocoding
     await pool.query(`
       CREATE TABLE IF NOT EXISTS coordinate_mappings (
@@ -390,6 +399,122 @@ const initDatabase = async () => {
   } catch (error) {
     console.error('❌ Database initialization error:', error);
     throw error;
+  }
+};
+
+const LOCATION_CACHE_KEYS = {
+  COUNTRIES: 'countries'
+};
+
+const LOCATION_CACHE_TTLS = {
+  COUNTRIES: 1000 * 60 * 60 * 24 * 7, // cache countries for 7 days
+  CITIES: 1000 * 60 * 60 * 6,
+  AREAS: 1000 * 60 * 60 * 6,
+  STREETS: 1000 * 60 * 60 * 6
+};
+
+const locationMemoryCache = {
+  countries: { data: null, expiresAt: 0 },
+  cities: new Map(),
+  areas: new Map(),
+  streets: new Map()
+};
+
+const COMMON_COUNTRIES = [
+  'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
+  'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh',
+  'Barbados', 'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan', 'Bolivia', 'Bosnia and Herzegovina',
+  'Botswana', 'Brazil', 'Brunei', 'Bulgaria', 'Burkina Faso', 'Burundi', 'Cambodia', 'Cameroon',
+  'Canada', 'Cape Verde', 'Central African Republic', 'Chad', 'Chile', 'China', 'Colombia', 'Comoros',
+  'Costa Rica', "Côte d'Ivoire", 'Croatia', 'Cuba', 'Cyprus', 'Czech Republic', 'Democratic Republic of the Congo',
+  'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic', 'Ecuador', 'Egypt', 'El Salvador',
+  'Equatorial Guinea', 'Eritrea', 'Estonia', 'Eswatini', 'Ethiopia', 'Fiji', 'Finland', 'France',
+  'Gabon', 'Gambia', 'Georgia', 'Germany', 'Ghana', 'Greece', 'Grenada', 'Guatemala',
+  'Guinea', 'Guinea-Bissau', 'Guyana', 'Haiti', 'Honduras', 'Hungary', 'Iceland', 'India',
+  'Indonesia', 'Iran', 'Iraq', 'Ireland', 'Israel', 'Italy', 'Jamaica', 'Japan',
+  'Jordan', 'Kazakhstan', 'Kenya', 'Kiribati', 'Kuwait', 'Kyrgyzstan', 'Laos', 'Latvia',
+  'Lebanon', 'Lesotho', 'Liberia', 'Libya', 'Liechtenstein', 'Lithuania', 'Luxembourg', 'Madagascar',
+  'Malawi', 'Malaysia', 'Maldives', 'Mali', 'Malta', 'Marshall Islands', 'Mauritania', 'Mauritius',
+  'Mexico', 'Micronesia', 'Moldova', 'Monaco', 'Mongolia', 'Montenegro', 'Morocco', 'Mozambique',
+  'Myanmar', 'Namibia', 'Nauru', 'Nepal', 'Netherlands', 'New Zealand', 'Nicaragua', 'Niger',
+  'Nigeria', 'North Macedonia', 'Norway', 'Oman', 'Pakistan', 'Palau', 'Panama', 'Papua New Guinea',
+  'Paraguay', 'Peru', 'Philippines', 'Poland', 'Portugal', 'Qatar', 'Romania', 'Russia',
+  'Rwanda', 'Saint Kitts and Nevis', 'Saint Lucia', 'Saint Vincent and the Grenadines', 'Samoa',
+  'San Marino', 'Sao Tome and Principe', 'Saudi Arabia', 'Senegal', 'Serbia', 'Seychelles',
+  'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia', 'Solomon Islands', 'Somalia',
+  'South Africa', 'South Korea', 'South Sudan', 'Spain', 'Sri Lanka', 'Sudan', 'Suriname',
+  'Sweden', 'Switzerland', 'Syria', 'Taiwan', 'Tajikistan', 'Tanzania', 'Thailand', 'Timor-Leste',
+  'Togo', 'Tonga', 'Trinidad and Tobago', 'Tunisia', 'Turkey', 'Turkmenistan', 'Tuvalu',
+  'Uganda', 'Ukraine', 'United Arab Emirates', 'United Kingdom', 'United States', 'Uruguay',
+  'Uzbekistan', 'Vanuatu', 'Vatican City', 'Venezuela', 'Vietnam', 'Yemen', 'Zambia', 'Zimbabwe'
+];
+
+const getCountriesFromCache = () => {
+  const entry = locationMemoryCache.countries;
+  if (entry?.data && entry.expiresAt > Date.now()) {
+    return entry.data;
+  }
+  return null;
+};
+
+const setCountriesCache = (data) => {
+  locationMemoryCache.countries = {
+    data,
+    expiresAt: Date.now() + LOCATION_CACHE_TTLS.COUNTRIES
+  };
+};
+
+const getListFromMemory = (bucket, key) => {
+  const entry = bucket.get(key);
+  if (entry && entry.expiresAt > Date.now()) {
+    return entry.data;
+  }
+  if (entry) {
+    bucket.delete(key);
+  }
+  return null;
+};
+
+const setListInMemory = (bucket, key, data, ttl) => {
+  bucket.set(key, {
+    data,
+    expiresAt: Date.now() + ttl
+  });
+};
+
+const getPersistedCache = async (cacheKey) => {
+  try {
+    const result = await pool.query(
+      'SELECT payload, expires_at FROM location_cache WHERE cache_key = $1',
+      [cacheKey]
+    );
+    if (result.rows.length === 0) {
+      return null;
+    }
+    const record = result.rows[0];
+    if (new Date(record.expires_at) < new Date()) {
+      await pool.query('DELETE FROM location_cache WHERE cache_key = $1', [cacheKey]);
+      return null;
+    }
+    return record.payload;
+  } catch (error) {
+    console.warn('Location cache read error (non-critical):', error.message);
+    return null;
+  }
+};
+
+const persistCache = async (cacheKey, payload, ttlMs) => {
+  try {
+    const expiresAt = new Date(Date.now() + ttlMs);
+    await pool.query(
+      `INSERT INTO location_cache (cache_key, payload, expires_at)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (cache_key) DO UPDATE
+       SET payload = EXCLUDED.payload, expires_at = EXCLUDED.expires_at`,
+      [cacheKey, payload, expiresAt]
+    );
+  } catch (error) {
+    console.warn('Location cache write error (non-critical):', error.message);
   }
 };
 
@@ -3649,47 +3774,155 @@ app.post('/api/location/current', verifyToken, async (req, res) => {
 // Get all countries (hybrid approach)
 app.get('/api/locations/countries', async (req, res) => {
   try {
-    // First try to get from database
-    const dbResult = await pool.query('SELECT DISTINCT country FROM locations ORDER BY country');
-    if (dbResult.rows.length > 0) {
-      res.json(dbResult.rows.map(row => row.country));
-      return;
+    const searchTerm = (req.query.q || '').trim().toLowerCase();
+    const limit = Math.min(parseInt(req.query.limit, 10) || 250, 250);
+
+    const respond = (list, source) => {
+      const normalized = Array.isArray(list) ? list.filter(Boolean) : [];
+      if (!normalized.length) {
+        console.log('🌍 Countries endpoint: returning empty list');
+        return res.json([]);
+      }
+      const filtered = searchTerm
+        ? normalized.filter(name => name.toLowerCase().includes(searchTerm))
+        : normalized;
+      const result = filtered.slice(0, limit);
+      console.log(`🌍 Countries endpoint: returning ${result.length} countries from ${source}`, result.slice(0, 3));
+      res.json(result);
+    };
+
+    // In-memory cache first
+    const cachedCountries = getCountriesFromCache();
+    if (cachedCountries?.length) {
+      console.log('📦 Countries from in-memory cache');
+      return respond(cachedCountries, 'memory-cache');
     }
 
-    // Fallback to common countries if database is empty
-    const commonCountries = [
-      'Egypt', 'Saudi Arabia', 'UAE', 'Qatar', 'Kuwait', 'Bahrain', 'Oman',
-      'Jordan', 'Lebanon', 'Iraq', 'Syria', 'Turkey', 'Iran',
-      'USA', 'Canada', 'UK', 'Germany', 'France', 'Italy', 'Spain',
-      'Australia', 'New Zealand', 'Japan', 'South Korea', 'Singapore',
-      'India', 'China', 'Russia', 'Brazil', 'Mexico', 'Argentina',
-      'South Africa', 'Nigeria', 'Kenya', 'Morocco', 'Algeria'
-    ];
-    res.json(commonCountries);
+    // Persistent cache second
+    const persistedCountries = await getPersistedCache(LOCATION_CACHE_KEYS.COUNTRIES);
+    if (persistedCountries?.length) {
+      console.log('💾 Countries from persistent cache');
+      setCountriesCache(persistedCountries);
+      return respond(persistedCountries, 'persistent-cache');
+    }
+
+    // Database cache (locations table) - only use if we have a reasonable number of countries (>50)
+    const dbResult = await pool.query(
+      "SELECT DISTINCT country FROM locations WHERE country IS NOT NULL AND country <> '' ORDER BY country"
+    );
+    if (dbResult.rows.length > 50) {
+      const dbCountries = dbResult.rows.map(row => row.country).filter(Boolean);
+      console.log('🗄️ Countries from database:', dbCountries.length);
+      setCountriesCache(dbCountries);
+      await persistCache(LOCATION_CACHE_KEYS.COUNTRIES, dbCountries, LOCATION_CACHE_TTLS.COUNTRIES);
+      return respond(dbCountries, 'database');
+    } else if (dbResult.rows.length > 0) {
+      console.log('⚠️ Database has only', dbResult.rows.length, 'countries (too few), skipping to API');
+    }
+
+    // Fetch full list from RestCountries API
+    console.log('🌐 Fetching countries from RestCountries API...');
+    const response = await fetch(
+      'https://restcountries.com/v3.1/all?fields=name',
+      { headers: { 'User-Agent': 'Matrix-Delivery-App/1.0' } }
+    );
+    if (response.ok) {
+      const data = await response.json();
+      const countries = data
+        .map(country => country?.name?.common)
+        .filter(Boolean)
+        .sort((a, b) => a.localeCompare(b));
+
+      if (countries.length) {
+        console.log('✅ Got', countries.length, 'countries from RestCountries API');
+        setCountriesCache(countries);
+        await persistCache(LOCATION_CACHE_KEYS.COUNTRIES, countries, LOCATION_CACHE_TTLS.COUNTRIES);
+        return respond(countries, 'restcountries-api');
+      }
+    }
+
+    // Last resort fallback
+    console.log('⚠️ Using COMMON_COUNTRIES fallback:', COMMON_COUNTRIES.length, 'countries');
+    setCountriesCache(COMMON_COUNTRIES);
+    await persistCache(LOCATION_CACHE_KEYS.COUNTRIES, COMMON_COUNTRIES, LOCATION_CACHE_TTLS.COUNTRIES);
+    respond(COMMON_COUNTRIES, 'fallback');
   } catch (error) {
-    console.error('Get countries error:', error);
+    console.error('❌ Get countries error:', error);
     res.status(500).json({ error: 'Failed to get countries' });
+  }
+});
+
+// Clear location caches (for debugging/admin purposes)
+app.post('/api/locations/cache/clear', async (req, res) => {
+  try {
+    console.log('🧹 Clearing location caches...');
+    
+    // Clear in-memory cache
+    locationMemoryCache.countries = { data: null, expiresAt: 0 };
+    locationMemoryCache.cities.clear();
+    locationMemoryCache.areas.clear();
+    locationMemoryCache.streets.clear();
+    
+    // Clear persistent cache
+    await pool.query("DELETE FROM cache WHERE key LIKE 'locations:%'");
+    
+    console.log('✅ Location caches cleared successfully');
+    res.json({ message: 'Caches cleared successfully' });
+  } catch (error) {
+    console.error('❌ Error clearing caches:', error);
+    res.status(500).json({ error: 'Failed to clear caches' });
   }
 });
 
 // Get cities for a country (hybrid: database + Nominatim API fallback)
 app.get('/api/locations/countries/:country/cities', async (req, res) => {
   try {
-    // First try to get from database
-    const dbResult = await pool.query(
-      'SELECT DISTINCT city FROM locations WHERE country = $1 ORDER BY city',
-      [req.params.country]
-    );
+    const country = req.params.country;
+    const searchTermRaw = (req.query.q || '').trim();
+    const searchTerm = searchTermRaw.toLowerCase();
+    const limit = Math.min(parseInt(req.query.limit, 10) || 50, 100);
+    const cacheKey = `${country.toLowerCase()}::${searchTerm}`;
 
+    const respond = (list) => {
+      const unique = [...new Set(list.filter(Boolean))].sort((a, b) => a.localeCompare(b));
+      res.json(unique.slice(0, limit));
+    };
+
+    const cached = getListFromMemory(locationMemoryCache.cities, cacheKey);
+    if (cached?.length) {
+      return respond(cached);
+    }
+
+    // Database cache first
+    const dbQueryBase = "SELECT DISTINCT city FROM locations WHERE country = $1 AND city <> ''";
+    const dbQuery = searchTerm
+      ? `${dbQueryBase} AND city ILIKE $2 ORDER BY city LIMIT $3`
+      : `${dbQueryBase} ORDER BY city LIMIT $2`;
+    const dbParams = searchTerm
+      ? [country, `${searchTermRaw}%`, limit]
+      : [country, limit];
+    const dbResult = await pool.query(dbQuery, dbParams);
     if (dbResult.rows.length > 0) {
-      res.json(dbResult.rows.map(row => row.city));
-      return;
+      const cities = dbResult.rows.map(row => row.city).filter(Boolean);
+      setListInMemory(locationMemoryCache.cities, cacheKey, cities, LOCATION_CACHE_TTLS.CITIES);
+      return respond(cities);
     }
 
     // Fallback to Nominatim API for worldwide coverage
-    console.log(`🌍 Fetching cities for ${req.params.country} from Nominatim API...`);
-
-    const nominatimUrl = `https://nominatim.openstreetmap.org/search?country=${encodeURIComponent(req.params.country)}&format=json&addressdetails=1&limit=50&dedupe=1&type=city`;
+    console.log(`🌍 Fetching cities for ${country} from Nominatim API...`);
+    const searchParams = new URLSearchParams({
+      format: 'json',
+      addressdetails: '1',
+      limit: limit.toString(),
+      dedupe: '1'
+    });
+    if (searchTerm) {
+      searchParams.set('q', `${searchTermRaw}, ${country}`);
+    } else {
+      // Use country name directly in query instead of country parameter
+      searchParams.set('q', `city in ${country}`);
+    }
+    const nominatimUrl = `https://nominatim.openstreetmap.org/search?${searchParams.toString()}`;
 
     const response = await fetch(nominatimUrl, {
       headers: {
@@ -3705,21 +3938,20 @@ app.get('/api/locations/countries/:country/cities', async (req, res) => {
     const cities = [...new Set(data
       .filter(item => item.address && (item.address.city || item.address.town || item.address.village))
       .map(item => item.address.city || item.address.town || item.address.village)
-    )].sort();
+    )];
 
-    // Cache the results in database for future use
     if (cities.length > 0) {
       const client = await pool.connect();
       try {
         await client.query('BEGIN');
-        for (const city of cities.slice(0, 100)) { // Increased limit to 100 cities
+        for (const cityName of cities.slice(0, 100)) {
           await client.query(
             'INSERT INTO locations (country, city, area, street) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING',
-            [req.params.country, city, 'Unknown', 'Unknown']
+            [country, cityName, 'Unknown', 'Unknown']
           );
         }
         await client.query('COMMIT');
-        console.log(`✅ Cached ${cities.slice(0, 100).length} cities for ${req.params.country}`);
+        console.log(`✅ Cached ${Math.min(cities.length, 100)} cities for ${country}`);
       } catch (cacheError) {
         await client.query('ROLLBACK');
         console.log('Cache error (non-critical):', cacheError.message);
@@ -3728,8 +3960,8 @@ app.get('/api/locations/countries/:country/cities', async (req, res) => {
       }
     }
 
-    res.json(cities);
-
+    setListInMemory(locationMemoryCache.cities, cacheKey, cities, LOCATION_CACHE_TTLS.CITIES);
+    respond(cities);
   } catch (error) {
     console.error('Get cities error:', error);
     res.status(500).json({ error: 'Failed to get cities' });
@@ -3739,21 +3971,51 @@ app.get('/api/locations/countries/:country/cities', async (req, res) => {
 // Get areas for a country and city
 app.get('/api/locations/countries/:country/cities/:city/areas', async (req, res) => {
   try {
-    // First try to get from database
-    const dbResult = await pool.query(
-      'SELECT DISTINCT area FROM locations WHERE country = $1 AND city = $2 ORDER BY area',
-      [req.params.country, req.params.city]
-    );
+    const country = req.params.country;
+    const city = req.params.city;
+    const searchTermRaw = (req.query.q || '').trim();
+    const searchTerm = searchTermRaw.toLowerCase();
+    const limit = Math.min(parseInt(req.query.limit, 10) || 50, 100);
+    const cacheKey = `${country.toLowerCase()}::${city.toLowerCase()}::${searchTerm}`;
 
-    if (dbResult.rows.length > 0) {
-      res.json(dbResult.rows.map(row => row.area));
-      return;
+    const respond = (list) => {
+      const unique = [...new Set(list.filter(Boolean))].sort((a, b) => a.localeCompare(b));
+      res.json(unique.slice(0, limit));
+    };
+
+    const cached = getListFromMemory(locationMemoryCache.areas, cacheKey);
+    if (cached?.length) {
+      return respond(cached);
     }
 
-    // Fallback to Nominatim API
-    console.log(`🌍 Fetching areas for ${req.params.city}, ${req.params.country} from Nominatim API...`);
+    const dbQueryBase = "SELECT DISTINCT area FROM locations WHERE country = $1 AND city = $2 AND area <> ''";
+    const dbQuery = searchTerm
+      ? `${dbQueryBase} AND area ILIKE $3 ORDER BY area LIMIT $4`
+      : `${dbQueryBase} ORDER BY area LIMIT $3`;
+    const dbParams = searchTerm
+      ? [country, city, `%${searchTermRaw}%`, limit]
+      : [country, city, limit];
+    const dbResult = await pool.query(dbQuery, dbParams);
+    if (dbResult.rows.length > 0) {
+      const areas = dbResult.rows.map(row => row.area).filter(Boolean);
+      setListInMemory(locationMemoryCache.areas, cacheKey, areas, LOCATION_CACHE_TTLS.AREAS);
+      return respond(areas);
+    }
 
-    const nominatimUrl = `https://nominatim.openstreetmap.org/search?city=${encodeURIComponent(req.params.city)}&country=${encodeURIComponent(req.params.country)}&format=json&addressdetails=1&limit=50&dedupe=1`;
+    console.log(`🌍 Fetching areas for ${city}, ${country} from Nominatim API...`);
+    const searchParams = new URLSearchParams({
+      format: 'json',
+      addressdetails: '1',
+      limit: limit.toString(),
+      dedupe: '1'
+    });
+    if (searchTerm) {
+      searchParams.set('q', `${searchTermRaw}, ${city}, ${country}`);
+    } else {
+      // Use city and country names directly in query
+      searchParams.set('q', `area in ${city}, ${country}`);
+    }
+    const nominatimUrl = `https://nominatim.openstreetmap.org/search?${searchParams.toString()}`;
 
     const response = await fetch(nominatimUrl, {
       headers: {
@@ -3769,21 +4031,20 @@ app.get('/api/locations/countries/:country/cities/:city/areas', async (req, res)
     const areas = [...new Set(data
       .filter(item => item.address && (item.address.suburb || item.address.neighbourhood || item.address.district))
       .map(item => item.address.suburb || item.address.neighbourhood || item.address.district)
-    )].sort();
+    )];
 
-    // Cache the results in database for future use
     if (areas.length > 0) {
       const client = await pool.connect();
       try {
         await client.query('BEGIN');
-        for (const area of areas.slice(0, 50)) {
+        for (const areaName of areas.slice(0, 50)) {
           await client.query(
             'INSERT INTO locations (country, city, area, street) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING',
-            [req.params.country, req.params.city, area, 'Unknown']
+            [country, city, areaName, 'Unknown']
           );
         }
         await client.query('COMMIT');
-        console.log(`✅ Cached ${areas.slice(0, 50).length} areas for ${req.params.city}`);
+        console.log(`✅ Cached ${Math.min(areas.length, 50)} areas for ${city}`);
       } catch (cacheError) {
         await client.query('ROLLBACK');
         console.log('Cache error (non-critical):', cacheError.message);
@@ -3792,8 +4053,8 @@ app.get('/api/locations/countries/:country/cities/:city/areas', async (req, res)
       }
     }
 
-    res.json(areas);
-
+    setListInMemory(locationMemoryCache.areas, cacheKey, areas, LOCATION_CACHE_TTLS.AREAS);
+    respond(areas);
   } catch (error) {
     console.error('Get areas error:', error);
     res.status(500).json({ error: 'Failed to get areas' });
@@ -3803,21 +4064,52 @@ app.get('/api/locations/countries/:country/cities/:city/areas', async (req, res)
 // Get streets for a country, city, and area
 app.get('/api/locations/countries/:country/cities/:city/areas/:area/streets', async (req, res) => {
   try {
-    // First try to get from database
-    const dbResult = await pool.query(
-      'SELECT DISTINCT street FROM locations WHERE country = $1 AND city = $2 AND area = $3 ORDER BY street',
-      [req.params.country, req.params.city, req.params.area]
-    );
+    const country = req.params.country;
+    const city = req.params.city;
+    const area = req.params.area;
+    const searchTermRaw = (req.query.q || '').trim();
+    const searchTerm = searchTermRaw.toLowerCase();
+    const limit = Math.min(parseInt(req.query.limit, 10) || 50, 100);
+    const cacheKey = `${country.toLowerCase()}::${city.toLowerCase()}::${area.toLowerCase()}::${searchTerm}`;
 
-    if (dbResult.rows.length > 0) {
-      res.json(dbResult.rows.map(row => row.street));
-      return;
+    const respond = (list) => {
+      const unique = [...new Set(list.filter(Boolean))].sort((a, b) => a.localeCompare(b));
+      res.json(unique.slice(0, limit));
+    };
+
+    const cached = getListFromMemory(locationMemoryCache.streets, cacheKey);
+    if (cached?.length) {
+      return respond(cached);
     }
 
-    // Fallback to Nominatim API
-    console.log(`🌍 Fetching streets for ${req.params.area}, ${req.params.city}, ${req.params.country} from Nominatim API...`);
+    const dbQueryBase = "SELECT DISTINCT street FROM locations WHERE country = $1 AND city = $2 AND area = $3 AND street <> ''";
+    const dbQuery = searchTerm
+      ? `${dbQueryBase} AND street ILIKE $4 ORDER BY street LIMIT $5`
+      : `${dbQueryBase} ORDER BY street LIMIT $4`;
+    const dbParams = searchTerm
+      ? [country, city, area, `%${searchTermRaw}%`, limit]
+      : [country, city, area, limit];
+    const dbResult = await pool.query(dbQuery, dbParams);
+    if (dbResult.rows.length > 0) {
+      const streets = dbResult.rows.map(row => row.street).filter(Boolean);
+      setListInMemory(locationMemoryCache.streets, cacheKey, streets, LOCATION_CACHE_TTLS.STREETS);
+      return respond(streets);
+    }
 
-    const nominatimUrl = `https://nominatim.openstreetmap.org/search?city=${encodeURIComponent(req.params.city)}&country=${encodeURIComponent(req.params.country)}&format=json&addressdetails=1&limit=50&dedupe=1`;
+    console.log(`🌍 Fetching streets for ${area}, ${city}, ${country} from Nominatim API...`);
+    const searchParams = new URLSearchParams({
+      format: 'json',
+      addressdetails: '1',
+      limit: limit.toString(),
+      dedupe: '1'
+    });
+    if (searchTerm) {
+      searchParams.set('q', `${searchTermRaw}, ${area}, ${city}, ${country}`);
+    } else {
+      // Use area, city and country names directly in query
+      searchParams.set('q', `street in ${area}, ${city}, ${country}`);
+    }
+    const nominatimUrl = `https://nominatim.openstreetmap.org/search?${searchParams.toString()}`;
 
     const response = await fetch(nominatimUrl, {
       headers: {
@@ -3833,21 +4125,20 @@ app.get('/api/locations/countries/:country/cities/:city/areas/:area/streets', as
     const streets = [...new Set(data
       .filter(item => item.address && (item.address.road || item.address.street || item.address.pedestrian))
       .map(item => item.address.road || item.address.street || item.address.pedestrian)
-    )].sort();
+    )];
 
-    // Cache the results in database for future use
     if (streets.length > 0) {
       const client = await pool.connect();
       try {
         await client.query('BEGIN');
-        for (const street of streets.slice(0, 50)) {
+        for (const streetName of streets.slice(0, 50)) {
           await client.query(
             'INSERT INTO locations (country, city, area, street) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING',
-            [req.params.country, req.params.city, req.params.area, street]
+            [country, city, area, streetName]
           );
         }
         await client.query('COMMIT');
-        console.log(`✅ Cached ${streets.slice(0, 50).length} streets for ${req.params.area}`);
+        console.log(`✅ Cached ${Math.min(streets.length, 50)} streets for ${area}`);
       } catch (cacheError) {
         await client.query('ROLLBACK');
         console.log('Cache error (non-critical):', cacheError.message);
@@ -3856,8 +4147,8 @@ app.get('/api/locations/countries/:country/cities/:city/areas/:area/streets', as
       }
     }
 
-    res.json(streets);
-
+    setListInMemory(locationMemoryCache.streets, cacheKey, streets, LOCATION_CACHE_TTLS.STREETS);
+    respond(streets);
   } catch (error) {
     console.error('Get streets error:', error);
     res.status(500).json({ error: 'Failed to get streets' });
