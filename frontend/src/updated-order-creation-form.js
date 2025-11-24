@@ -1,7 +1,7 @@
 // ============ UPDATED OrderCreationForm.jsx WITH MAP INTEGRATION ============
 // Replace the existing OrderCreationForm component with this
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import 'leaflet/dist/leaflet.css';
 import logger from './logger';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
@@ -185,7 +185,8 @@ const ComboboxInput = ({
   disabled = false,
   loading = false,
   required = false,
-  error = false
+  error = false,
+  onSearch
 }) => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filteredOptions, setFilteredOptions] = useState([]);
@@ -211,6 +212,7 @@ const ComboboxInput = ({
   const handleInputChange = (e) => {
     const newValue = e.target.value;
     setInputValue(newValue);
+    setSelectedValue(newValue);
 
     // Filter options based on what user is typing
     const filtered = options.filter(option =>
@@ -222,20 +224,24 @@ const ComboboxInput = ({
     // Show suggestions if there are matches or if user is typing
     setShowSuggestions(filtered.length > 0 || (newValue.trim() && options.length > 0));
 
-    // Update the selected value - use the typed value directly if it's not empty
-    if (newValue.trim()) {
-      setSelectedValue(newValue);
-      onChange(newValue);
-    } else {
+    if (typeof onSearch === 'function') {
+      onSearch(newValue);
+    }
+
+    if (!newValue.trim()) {
       setSelectedValue('');
-      onChange('');
+      if (onChange) {
+        onChange('');
+      }
     }
   };
 
   const handleOptionSelect = (option) => {
     setInputValue(option.label);
     setSelectedValue(option.value);
-    onChange(option.value);
+    if (onChange) {
+      onChange(option.value);
+    }
     setShowSuggestions(false);
   };
 
@@ -243,9 +249,14 @@ const ComboboxInput = ({
     // Delay hiding suggestions to allow for click events
     setTimeout(() => {
       setShowSuggestions(false);
-      // On blur, if input doesn't match any option, treat it as custom text
-      if (inputValue.trim() && !options.some(opt => opt.label.toLowerCase() === inputValue.toLowerCase() || opt.value === inputValue)) {
-        onChange(inputValue);
+      if (!inputValue.trim()) {
+        return;
+      }
+      const matchesOption = options.some(opt =>
+        opt.label.toLowerCase() === inputValue.toLowerCase() || opt.value === inputValue
+      );
+      if (!matchesOption && typeof onChange === 'function') {
+        onChange(inputValue.trim());
       }
     }, 150);
   };
@@ -1963,15 +1974,18 @@ const useLocationData = (API_URL) => {
 
   // Function to search for cities by country
   const searchCities = async (country, query = '') => {
-    const cacheKey = `${country}-${query}`;
+    const normalizedQuery = (query || '').trim().toLowerCase();
+    const cacheKey = `${country}-${normalizedQuery}`;
     if (!country) return [];
 
-    // Return cached results if available
     if (cities[cacheKey]) return cities[cacheKey];
 
-    // Try backend API first
     try {
-      const res = await fetch(`${API_URL}/locations/countries/${encodeURIComponent(country)}/cities`);
+      const params = new URLSearchParams({ limit: '50' });
+      if (normalizedQuery) {
+        params.set('q', normalizedQuery);
+      }
+      const res = await fetch(`${API_URL}/locations/countries/${encodeURIComponent(country)}/cities?${params.toString()}`);
       if (res.ok) {
         const list = await res.json();
         const options = (Array.isArray(list) ? list : []).map(c => ({ value: c, label: c }));
@@ -1982,34 +1996,44 @@ const useLocationData = (API_URL) => {
       }
     } catch (_) {}
 
-    // First check if we have hardcoded fallback cities for this country
     if (FALLBACK_CITIES[country]) {
-      const fallbackCities = FALLBACK_CITIES[country];
-      setCities(prev => ({ ...prev, [cacheKey]: fallbackCities }));
-      return fallbackCities;
+      const fallbackCities = FALLBACK_CITIES[country].filter(city =>
+        !normalizedQuery || city.value.toLowerCase().includes(normalizedQuery)
+      );
+      if (fallbackCities.length) {
+        setCities(prev => ({ ...prev, [cacheKey]: fallbackCities }));
+        return fallbackCities;
+      }
     }
 
     try {
-      // Try Nominatim first - it's more reliable than Photon for geographic queries
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?country=${encodeURIComponent(country)}&format=json&limit=20&addressdetails=1&dedupe=1&bounded=1&extratags=1`
-      );
+      const nominatimParams = new URLSearchParams({
+        format: 'json',
+        limit: '20',
+        addressdetails: '1',
+        dedupe: '1',
+        extratags: '1'
+      });
+      if (normalizedQuery) {
+        nominatimParams.set('q', `${normalizedQuery}, ${country}`);
+      } else {
+        nominatimParams.set('q', `city in ${country}`);
+      }
+
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?${nominatimParams.toString()}`);
 
       if (response.ok) {
         const data = await response.json();
         console.log(`Nominatim results for ${country}:`, data.length);
 
         if (data.length > 0) {
-          // Extract unique cities from the response
           const uniqueCities = [...new Set(data
             .map(item => {
-              // Try multiple possible city fields
               const city = item.address?.city || item.address?.town || item.address?.village || item.address?.municipality || item.display_name?.split(',')[0];
-              return city ? { name: city.trim(), item: item } : null;
+              return city ? city.trim() : null;
             })
             .filter(Boolean)
-            .map(({ name }) => name)
-          )].slice(0, 15);
+          )].slice(0, 25);
 
           if (uniqueCities.length > 0) {
             const cityList = uniqueCities.map(city => ({
@@ -2024,11 +2048,11 @@ const useLocationData = (API_URL) => {
         }
       }
 
-      // If Nominatim doesn't work, try Photon API with country code
       console.log(`Trying Photon API for ${country}`);
-      const countryCode = COUNTRY_CODES[country] || country.toLowerCase();
+      const countryCode = COUNTRY_CODES[country] || country.toLowerCase().substring(0, 2);
+      const photonQuery = normalizedQuery ? `${normalizedQuery} ${countryCode}` : `city in ${countryCode}`;
       const photonResponse = await fetch(
-        `https://photon.komoot.io/api/?q=city+in+${encodeURIComponent(countryCode)}&lang=en&limit=20&layer=city&layer=town&layer=village&layer=suburb`
+        `https://photon.komoot.io/api/?q=${encodeURIComponent(photonQuery)}&lang=en&limit=20&layer=city&layer=town&layer=village&layer=suburb`
       );
 
       if (photonResponse.ok) {
@@ -2039,7 +2063,7 @@ const useLocationData = (API_URL) => {
           const uniqueCities = [...new Set(photonData.features
             .map(feature => feature.properties?.name)
             .filter(Boolean)
-          )].slice(0, 15);
+          )].slice(0, 25);
 
           const cityList = uniqueCities.map(city => ({
             value: city,
@@ -2052,23 +2076,25 @@ const useLocationData = (API_URL) => {
         }
       }
 
-      // If both APIs fail, use fallback cities
       console.warn(`All APIs failed for ${country}, using fallback`);
-      return await getFallbackCities(country, cacheKey);
+      return await getFallbackCities(country, cacheKey, normalizedQuery);
 
     } catch (error) {
       console.warn(`City search failed for ${country}:`, error);
-      return await getFallbackCities(country, cacheKey);
+      return await getFallbackCities(country, cacheKey, normalizedQuery);
     }
   };
 
-  // Get fallback cities for a country
-  const getFallbackCities = (country, cacheKey) => {
-    const fallbackCities = FALLBACK_CITIES[country] || [
+  const getFallbackCities = (country, cacheKey, normalizedQuery) => {
+    const baseFallback = FALLBACK_CITIES[country] || [
       { value: 'Capital City', label: 'Capital City' },
       { value: 'Main City', label: 'Main City' },
       { value: 'Central City', label: 'Central City' }
     ];
+
+    const fallbackCities = normalizedQuery
+      ? baseFallback.filter(city => city.value.toLowerCase().includes(normalizedQuery))
+      : baseFallback;
 
     setCities(prev => ({ ...prev, [cacheKey]: fallbackCities }));
     return fallbackCities;
@@ -2078,13 +2104,20 @@ const useLocationData = (API_URL) => {
   
 
   // Function to search for areas by country and city
-  const searchAreas = async (country, city) => {
-    const key = `${country}-${city}`;
-    if (!country || !city || areas[key]) return areas[key] || [];
+  const searchAreas = async (country, city, query = '') => {
+    const normalizedQuery = (query || '').trim().toLowerCase();
+    const baseKey = `${country}-${city}`;
+    const key = `${baseKey}-${normalizedQuery}`;
+    if (!country || !city) return [];
 
-    // Try backend API first
+    if (areas[key]) return areas[key];
+
     try {
-      const res = await fetch(`${API_URL}/locations/countries/${encodeURIComponent(country)}/cities/${encodeURIComponent(city)}/areas`);
+      const params = new URLSearchParams({ limit: '50' });
+      if (normalizedQuery) {
+        params.set('q', normalizedQuery);
+      }
+      const res = await fetch(`${API_URL}/locations/countries/${encodeURIComponent(country)}/cities/${encodeURIComponent(city)}/areas?${params.toString()}`);
       if (res.ok) {
         const list = await res.json();
         const options = (Array.isArray(list) ? list : []).map(a => ({ value: a, label: a }));
@@ -2095,17 +2128,20 @@ const useLocationData = (API_URL) => {
       }
     } catch (_) {}
 
-    // First check if we have fallback areas for this city/country combination
-    if (FALLBACK_AREAS[key]) {
-      const fallbackAreas = FALLBACK_AREAS[key];
-      setAreas(prev => ({ ...prev, [key]: fallbackAreas }));
-      return fallbackAreas;
+    if (FALLBACK_AREAS[baseKey]) {
+      const fallbackAreas = FALLBACK_AREAS[baseKey].filter(area =>
+        !normalizedQuery || area.value.toLowerCase().includes(normalizedQuery)
+      );
+      if (fallbackAreas.length) {
+        setAreas(prev => ({ ...prev, [key]: fallbackAreas }));
+        return fallbackAreas;
+      }
     }
 
     try {
-      // Use Photon API for areas (districts, neighborhoods, suburbs in the city)
+      const photonQuery = normalizedQuery ? `${normalizedQuery}, ${city}, ${country}` : `${city}, ${country}`;
       const response = await fetch(
-        `https://photon.komoot.io/api/?q=${encodeURIComponent(city)}, ${encodeURIComponent(country)}&lang=en&limit=20&layer=street&layer=locality`
+        `https://photon.komoot.io/api/?q=${encodeURIComponent(photonQuery)}&lang=en&limit=20&layer=street&layer=locality`
       );
 
       if (!response.ok) {
@@ -2115,16 +2151,14 @@ const useLocationData = (API_URL) => {
       const data = await response.json();
 
       if (data.features && data.features.length > 0) {
-        // Extract unique district/neighborhood names
         const areaOptions = data.features
           .map(feature => {
             const properties = feature.properties;
-      
+
             const localityName = properties.locality;
             const districtName = properties.district;
             const suburbName = properties.suburb;
 
-            // Use district, suburb, or locality names as areas
             const areaName = districtName || suburbName || localityName || properties.name;
 
             if (areaName && areaName !== city) {
@@ -2138,7 +2172,6 @@ const useLocationData = (API_URL) => {
           })
           .filter(Boolean);
 
-        // Remove duplicates based on area name
         const uniqueAreas = [];
         const seenNames = new Set();
 
@@ -2149,48 +2182,56 @@ const useLocationData = (API_URL) => {
           }
         });
 
-        const finalAreas = uniqueAreas.slice(0, 15);
+        const finalAreas = uniqueAreas.slice(0, 20);
         if (finalAreas.length > 0) {
           setAreas(prev => ({ ...prev, [key]: finalAreas }));
           return finalAreas;
         }
       }
 
-      // If Photon doesn't return results, try Nominatim as backup
-      return await fallbackSearchAreas(country, city, key);
+      return await fallbackSearchAreas(country, city, key, baseKey, normalizedQuery);
 
     } catch (error) {
       console.warn('Photon API failed for areas, falling back to Nominatim:', error);
-      return await fallbackSearchAreas(country, city, key);
+      return await fallbackSearchAreas(country, city, key, baseKey, normalizedQuery);
     }
   };
 
-  // Fallback search using Nominatim when Photon fails
-  const fallbackSearchAreas = async (country, city, key) => {
+  const fallbackSearchAreas = async (country, city, key, baseKey, normalizedQuery) => {
     try {
+      const params = new URLSearchParams({
+        country: country,
+        city: city,
+        format: 'json',
+        limit: '20',
+        addressdetails: '1',
+        dedupe: '1'
+      });
+      if (normalizedQuery) {
+        params.set('q', `${normalizedQuery}, ${city}, ${country}`);
+      }
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?country=${encodeURIComponent(country)}&city=${encodeURIComponent(city)}&format=json&limit=20&addressdetails=1&dedupe=1`
+        `https://nominatim.openstreetmap.org/search?${params.toString()}`
       );
 
       if (!response.ok) return [];
 
       const data = await response.json();
-      // Extract unique areas/suburbs
       const uniqueAreas = [...new Set(data.map(item =>
         item.address?.suburb || item.address?.neighbourhood || item.address?.district
-      ).filter(Boolean))].slice(0, 15);
+      ).filter(Boolean))].slice(0, 20);
 
       const areaList = uniqueAreas.map(area => ({ value: area, label: area }));
 
-      // If no areas found via API, use fallback for known cities
-      const finalAreas = areaList.length > 0 ? areaList : (FALLBACK_AREAS[key] || []);
-      setAreas(prev => ({ ...prev, [key]: finalAreas }));
-      return finalAreas;
+      const fallbackAreas = areaList.length > 0 ? areaList : (FALLBACK_AREAS[baseKey] || []);
+      setAreas(prev => ({ ...prev, [key]: fallbackAreas }));
+      return fallbackAreas;
 
     } catch (error) {
       console.warn('Failed to fetch areas:', error);
-      // Fallback to hardcoded areas if API fails
-      const fallbackAreas = FALLBACK_AREAS[key] || [];
+      const fallbackAreas = (FALLBACK_AREAS[baseKey] || []).filter(area =>
+        !normalizedQuery || area.value.toLowerCase().includes(normalizedQuery)
+      );
       if (fallbackAreas.length > 0) {
         setAreas(prev => ({ ...prev, [key]: fallbackAreas }));
         return fallbackAreas;
@@ -2200,13 +2241,20 @@ const useLocationData = (API_URL) => {
   };
 
   // Function to search for streets by country, city, and area
-  const searchStreets = async (country, city, area) => {
-    const key = `${country}-${city}-${area}`;
-    if (!country || !city || !area || streets[key]) return streets[key] || [];
+  const searchStreets = async (country, city, area, query = '') => {
+    const normalizedQuery = (query || '').trim().toLowerCase();
+    const baseKey = `${country}-${city}-${area}`;
+    const key = `${baseKey}-${normalizedQuery}`;
+    if (!country || !city || !area) return [];
 
-    // Try backend API first
+    if (streets[key]) return streets[key];
+
     try {
-      const res = await fetch(`${API_URL}/locations/countries/${encodeURIComponent(country)}/cities/${encodeURIComponent(city)}/areas/${encodeURIComponent(area)}/streets`);
+      const params = new URLSearchParams({ limit: '50' });
+      if (normalizedQuery) {
+        params.set('q', normalizedQuery);
+      }
+      const res = await fetch(`${API_URL}/locations/countries/${encodeURIComponent(country)}/cities/${encodeURIComponent(city)}/areas/${encodeURIComponent(area)}/streets?${params.toString()}`);
       if (res.ok) {
         const list = await res.json();
         const options = (Array.isArray(list) ? list : []).map(s => ({ value: s, label: s }));
@@ -2218,9 +2266,9 @@ const useLocationData = (API_URL) => {
     } catch (_) {}
 
     try {
-      // Try Photon API first for streets in the area
+      const photonQuery = normalizedQuery ? `${normalizedQuery}, ${area}, ${city}, ${country}` : `${area}, ${city}, ${country}`;
       const response = await fetch(
-        `https://photon.komoot.io/api/?q=${encodeURIComponent(area)}, ${encodeURIComponent(city)}, ${encodeURIComponent(country)}&lang=en&limit=20&layer=street&layer=locality`
+        `https://photon.komoot.io/api/?q=${encodeURIComponent(photonQuery)}&lang=en&limit=20&layer=street&layer=locality`
       );
 
       if (!response.ok) {
@@ -2230,11 +2278,10 @@ const useLocationData = (API_URL) => {
       const data = await response.json();
 
       if (data.features && data.features.length > 0) {
-        // Extract unique street names
         const streetOptions = data.features
           .map(feature => {
             const properties = feature.properties;
-            
+
             const streetName = properties.street || properties.name;
 
             if (streetName) {
@@ -2248,7 +2295,6 @@ const useLocationData = (API_URL) => {
           })
           .filter(Boolean);
 
-        // Remove duplicates based on street name
         const uniqueStreets = [];
         const seenNames = new Set();
 
@@ -2259,45 +2305,58 @@ const useLocationData = (API_URL) => {
           }
         });
 
-        const finalStreets = uniqueStreets.slice(0, 15);
+        const finalStreets = uniqueStreets.slice(0, 20);
         if (finalStreets.length > 0) {
           setStreets(prev => ({ ...prev, [key]: finalStreets }));
           return finalStreets;
         }
       }
 
-      // If Photon doesn't return results, try Nominatim as backup
-      return await fallbackSearchStreets(country, city, area, key);
+      return await fallbackSearchStreets(country, city, area, key, baseKey, normalizedQuery);
 
     } catch (error) {
       console.warn('Photon API failed for streets, falling back to Nominatim:', error);
-      return await fallbackSearchStreets(country, city, area, key);
+      return await fallbackSearchStreets(country, city, area, key, baseKey, normalizedQuery);
     }
   };
 
-  // Fallback search using Nominatim when Photon fails
-  const fallbackSearchStreets = async (country, city, area, key) => {
+  const fallbackSearchStreets = async (country, city, area, key, baseKey, normalizedQuery) => {
     try {
+      const params = new URLSearchParams({
+        country: country,
+        city: city,
+        suburb: area,
+        format: 'json',
+        limit: '20',
+        addressdetails: '1',
+        dedupe: '1'
+      });
+      if (normalizedQuery) {
+        params.set('q', `${normalizedQuery}, ${area}, ${city}, ${country}`);
+      }
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?country=${encodeURIComponent(country)}&city=${encodeURIComponent(city)}&suburb=${encodeURIComponent(area)}&format=json&limit=20&addressdetails=1&dedupe=1`
+        `https://nominatim.openstreetmap.org/search?${params.toString()}`
       );
 
       if (!response.ok) return [];
 
       const data = await response.json();
-      // Extract unique streets
       const uniqueStreets = [...new Set(data.map(item =>
         item.address?.road || item.address?.street || item.address?.pedestrian
-      ).filter(Boolean))].slice(0, 15);
+      ).filter(Boolean))].slice(0, 20);
 
       const streetList = uniqueStreets.map(street => ({ value: street, label: street }));
 
-      setStreets(prev => ({ ...prev, [key]: streetList }));
-      return streetList;
+      const finalList = streetList.length > 0 ? streetList : [];
+      setStreets(prev => ({ ...prev, [key]: finalList }));
+      return finalList;
 
     } catch (error) {
       console.warn('Failed to fetch streets:', error);
-      return [];
+      const cachedBase = streets[`${baseKey}-`] || [];
+      return cachedBase.filter(street =>
+        !normalizedQuery || street.value.toLowerCase().includes(normalizedQuery)
+      );
     }
   };
 
@@ -2354,9 +2413,9 @@ const useLocationData = (API_URL) => {
     searchAreas,
     searchStreets,
     geocodeAddress,
-    getCities: (country) => cities[country] || [],
-    getAreas: (country, city) => areas[`${country}-${city}`] || [],
-    getStreets: (country, city, area) => streets[`${country}-${city}-${area}`] || []
+    getCities: (country) => cities[`${country}-`] || [],
+    getAreas: (country, city) => areas[`${country}-${city}-`] || [],
+    getStreets: (country, city, area) => streets[`${country}-${city}-${area}-`] || []
   };
 };
 
@@ -2385,8 +2444,130 @@ const LocationEntryCombined = ({
   const [loadingCities, setLoadingCities] = useState(false);
   const [loadingAreas, setLoadingAreas] = useState(false);
   const [loadingStreets, setLoadingStreets] = useState(false);
+  const citySearchTimer = useRef(null);
+  const areaSearchTimer = useRef(null);
+  const streetSearchTimer = useRef(null);
 
-  
+  useEffect(() => {
+    return () => {
+      clearTimeout(citySearchTimer.current);
+      clearTimeout(areaSearchTimer.current);
+      clearTimeout(streetSearchTimer.current);
+    };
+  }, []);
+
+  const triggerCitySearch = (value = '', overrideCountry) => {
+    const selectedCountry = overrideCountry || addressData.country;
+    if (!selectedCountry) {
+      setAvailableCities([]);
+      return;
+    }
+    const normalizedQuery = (value || '').trim();
+    const effectiveQuery = normalizedQuery.length >= 2 ? normalizedQuery : '';
+    clearTimeout(citySearchTimer.current);
+    setLoadingCities(true);
+    const timer = setTimeout(async () => {
+      try {
+        const result = await locationData.searchCities(selectedCountry, effectiveQuery);
+        if (citySearchTimer.current === timer) {
+          setAvailableCities(result);
+        }
+      } catch (error) {
+        console.warn('City search error:', error);
+      } finally {
+        if (citySearchTimer.current === timer) {
+          setLoadingCities(false);
+        }
+      }
+    }, 250);
+    citySearchTimer.current = timer;
+  };
+
+  const triggerAreaSearch = (value = '', overrideCity) => {
+    const selectedCountry = addressData.country;
+    const selectedCity = overrideCity || addressData.city;
+    if (!selectedCountry || !selectedCity) {
+      setAvailableAreas([]);
+      return;
+    }
+    const normalizedQuery = (value || '').trim();
+    const effectiveQuery = normalizedQuery.length >= 2 ? normalizedQuery : '';
+    clearTimeout(areaSearchTimer.current);
+    setLoadingAreas(true);
+    const timer = setTimeout(async () => {
+      try {
+        const result = await locationData.searchAreas(selectedCountry, selectedCity, effectiveQuery);
+        if (areaSearchTimer.current === timer) {
+          setAvailableAreas(result);
+        }
+      } catch (error) {
+        console.warn('Area search error:', error);
+      } finally {
+        if (areaSearchTimer.current === timer) {
+          setLoadingAreas(false);
+        }
+      }
+    }, 250);
+    areaSearchTimer.current = timer;
+  };
+
+  const triggerStreetSearch = (value = '', overrideArea) => {
+    const selectedCountry = addressData.country;
+    const selectedCity = addressData.city;
+    const selectedArea = overrideArea || addressData.area;
+    if (!selectedCountry || !selectedCity || !selectedArea) {
+      setAvailableStreets([]);
+      return;
+    }
+    const normalizedQuery = (value || '').trim();
+    const effectiveQuery = normalizedQuery.length >= 2 ? normalizedQuery : '';
+    clearTimeout(streetSearchTimer.current);
+    setLoadingStreets(true);
+    const timer = setTimeout(async () => {
+      try {
+        const result = await locationData.searchStreets(selectedCountry, selectedCity, selectedArea, effectiveQuery);
+        if (streetSearchTimer.current === timer) {
+          setAvailableStreets(result);
+        }
+      } catch (error) {
+        console.warn('Street search error:', error);
+      } finally {
+        if (streetSearchTimer.current === timer) {
+          setLoadingStreets(false);
+        }
+      }
+    }, 250);
+    streetSearchTimer.current = timer;
+  };
+
+  useEffect(() => {
+    if (!addressData.country) {
+      setAvailableCities([]);
+      return;
+    }
+    triggerCitySearch('', addressData.country);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [addressData.country]);
+
+  useEffect(() => {
+    if (!addressData.country || !addressData.city) {
+      setAvailableAreas([]);
+      return;
+    }
+    triggerAreaSearch('', addressData.city);
+    // Geocode when city changes (with enough info)
+    setTimeout(() => locationData.geocodeAddress(addressData, onMapLocationChange), 100);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [addressData.city, addressData.country]);
+
+  useEffect(() => {
+    if (!addressData.country || !addressData.city || !addressData.area) {
+      setAvailableStreets([]);
+      return;
+    }
+    triggerStreetSearch('', addressData.area);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [addressData.area, addressData.city, addressData.country]);
 
   // Handle country change - load cities
   const handleCountryChange = async (country) => {
@@ -2493,9 +2674,8 @@ const LocationEntryCombined = ({
             <ComboboxInput
               value={addressData.country || ''}
               onChange={(value) => {
-                // Update both the address state and trigger country change
-                onAddressChange({...addressData, country: value});
-                handleCountryChange(value);
+                // Update address state - useEffect will handle city loading
+                onAddressChange({...addressData, country: value, city: '', area: '', street: ''});
               }}
               placeholder={t('orders.selectCountry')}
               options={countries.map(country => ({ value: country, label: country }))}
@@ -2518,9 +2698,8 @@ const LocationEntryCombined = ({
             <ComboboxInput
               value={addressData.city || ''}
               onChange={(value) => {
-                // Update the address state and trigger any validation/geocoding
-                onAddressChange({...addressData, city: value});
-                handleCityChange(value);
+                // Update the address state - useEffect will handle area loading and geocoding
+                onAddressChange({...addressData, city: value, area: '', street: ''});
               }}
               placeholder={loadingCities ? 'Loading cities...' : addressData.country ? 'Type or select city' : 'Select country first'}
               options={availableCities}

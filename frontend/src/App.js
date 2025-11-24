@@ -19,10 +19,10 @@ import VendorSelfDashboard from './components/VendorSelfDashboard';
 
 // Location data state and API functions
 const DeliveryApp = () => {
-   const { t, locale, changeLocale } = useI18n();
+  const { t, locale, changeLocale } = useI18n();
   const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
 
-// Fixed: LiveTrackingMap component moved outside DeliveryApp function for proper scoping
+  // Fixed: LiveTrackingMap component moved outside DeliveryApp function for proper scoping
   // State variables
   const [authState, setAuthState] = useState('login');
   const [token, setToken] = useState(localStorage.getItem('token') || null);
@@ -65,6 +65,8 @@ const DeliveryApp = () => {
   const [showBrowseVendors, setShowBrowseVendors] = useState(false);
   const [showBrowseItems, setShowBrowseItems] = useState(false);
   const [showVendorDashboard, setShowVendorDashboard] = useState(false);
+  const [countries, setCountries] = useState([]);
+  const [countriesLoading, setCountriesLoading] = useState(false);
 
   const optimizeAndUploadProfilePicture = async (file) => {
     if (!file || !token) return;
@@ -116,34 +118,34 @@ const DeliveryApp = () => {
   };
 
 
-// Add viewport meta tag if not present
-useEffect(() => {
-  let metaTag = document.querySelector('meta[name="viewport"]');
-  if (!metaTag) {
-    metaTag = document.createElement('meta');
-    metaTag.name = 'viewport';
-    document.head.appendChild(metaTag);
-  }
-  metaTag.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
-}, []);
+  // Add viewport meta tag if not present
+  useEffect(() => {
+    let metaTag = document.querySelector('meta[name="viewport"]');
+    if (!metaTag) {
+      metaTag = document.createElement('meta');
+      metaTag.name = 'viewport';
+      document.head.appendChild(metaTag);
+    }
+    metaTag.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+  }, []);
 
-// Hamburger menu handler
-const toggleMobileMenu = () => {
-  setShowMobileMenu(!showMobileMenu);
-};
-
-// Add effect to close menu when clicking backdrop
-useEffect(() => {
-  if (showMobileMenu) {
-    document.body.style.overflow = 'hidden';
-  } else {
-    document.body.style.overflow = 'unset';
-  }
-
-  return () => {
-    document.body.style.overflow = 'unset';
+  // Hamburger menu handler
+  const toggleMobileMenu = () => {
+    setShowMobileMenu(!showMobileMenu);
   };
-}, [showMobileMenu]);
+
+  // Add effect to close menu when clicking backdrop
+  useEffect(() => {
+    if (showMobileMenu) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [showMobileMenu]);
 
   // Mobile touch optimization
   const isMobile = () => window.innerWidth <= 768;
@@ -154,6 +156,58 @@ useEffect(() => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Fetch countries from backend API
+  const refetchCountries = useCallback(async () => {
+    try {
+      setCountriesLoading(true);
+      const response = await fetch(`${API_URL}/locations/countries?t=${Date.now()}`);
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Fetched countries from API:', data.length, 'countries', data.slice(0, 5));
+        if (Array.isArray(data) && data.length > 0) {
+          setCountries(data);
+        } else {
+          console.warn('⚠️ API returned empty countries list');
+        }
+      } else {
+        console.warn('❌ API response not ok:', response.status);
+      }
+    } catch (error) {
+      console.error('❌ Failed to fetch countries:', error);
+      // Fallback to default countries if API fails
+      const fallback = ['Egypt', 'Saudi Arabia', 'UAE', 'Jordan', 'Lebanon', 'Kuwait', 'Qatar', 'Bahrain', 'Oman', 'Morocco', 'Tunisia', 'Algeria', 'Libya', 'Sudan', 'Yemen', 'Iraq', 'Syria', 'Palestine'];
+      console.log('Using fallback countries:', fallback.length);
+      setCountries(fallback);
+    } finally {
+      setCountriesLoading(false);
+    }
+  }, [API_URL]);
+
+  useEffect(() => {
+    refetchCountries();
+  }, [refetchCountries]);
+
+  // Expose cache clearing function to window for debugging
+  useEffect(() => {
+    window.clearLocationCache = async () => {
+      try {
+        console.log('🧹 Clearing backend location cache...');
+        const response = await fetch(`${API_URL}/locations/cache/clear`, {
+          method: 'POST'
+        });
+        if (response.ok) {
+          console.log('✅ Cache cleared successfully');
+          // Refetch countries after clearing cache
+          setTimeout(() => refetchCountries(), 500);
+        } else {
+          console.error('❌ Failed to clear cache:', response.status);
+        }
+      } catch (error) {
+        console.error('❌ Error clearing cache:', error);
+      }
+    };
+  }, [API_URL, refetchCountries]);
 
   // Enhanced location state
   const [locationPermission, setLocationPermission] = useState('unknown'); // 'unknown', 'granted', 'denied', 'prompt'
@@ -190,7 +244,7 @@ useEffect(() => {
   const saveDriverPricing = (updates) => {
     const next = { ...driverPricing, ...updates };
     setDriverPricing(next);
-    try { localStorage.setItem('driverPricing', JSON.stringify(next)); } catch {}
+    try { localStorage.setItem('driverPricing', JSON.stringify(next)); } catch { }
   };
 
   const vehicleSpeeds = {
@@ -210,8 +264,8 @@ useEffect(() => {
     const R = 6371;
     const dLat = (b.lat - a.lat) * Math.PI / 180;
     const dLng = (b.lng - a.lng) * Math.PI / 180;
-    const aa = Math.sin(dLat/2) ** 2 + Math.cos(a.lat*Math.PI/180) * Math.cos(b.lat*Math.PI/180) * Math.sin(dLng/2) ** 2;
-    const c = 2 * Math.atan2(Math.sqrt(aa), Math.sqrt(1-aa));
+    const aa = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * Math.PI / 180) * Math.cos(b.lat * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(aa), Math.sqrt(1 - aa));
     return R * c;
   };
 
@@ -307,7 +361,7 @@ useEffect(() => {
         ordersWithBids.forEach(order => {
           console.log(`  📦 Order ${order._id}: ${order.bids.length} bids`);
           order.bids.forEach((bid, i) => {
-            console.log(`    ${i+1}. ${bid.driverName}: $${bid.bidPrice}`);
+            console.log(`    ${i + 1}. ${bid.driverName}: $${bid.bidPrice}`);
           });
         });
       } else {
@@ -337,7 +391,7 @@ useEffect(() => {
 
 
 
-  
+
 
   const speakNotification = useCallback((notification) => {
     if ('speechSynthesis' in window) {
@@ -381,7 +435,7 @@ useEffect(() => {
           utterance.voice = preferredVoice;
         }
 
-        try { speechSynthesis.cancel(); } catch (_) {}
+        try { speechSynthesis.cancel(); } catch (_) { }
         speechSynthesis.speak(utterance);
       } catch (error) {
         console.warn('Could not speak notification:', error);
@@ -444,13 +498,13 @@ useEffect(() => {
         }
 
         if (notification.type === 'new_bid' ||
-            notification.type === 'bid_accepted' ||
-            notification.type === 'order_picked_up' ||
-            notification.type === 'order_in_transit' ||
-            notification.type === 'order_delivered' ||
-            notification.message?.toLowerCase().includes('bid') ||
-            notification.message?.toLowerCase().includes('driver') ||
-            notification.message?.toLowerCase().includes('order')) {
+          notification.type === 'bid_accepted' ||
+          notification.type === 'order_picked_up' ||
+          notification.type === 'order_in_transit' ||
+          notification.type === 'order_delivered' ||
+          notification.message?.toLowerCase().includes('bid') ||
+          notification.message?.toLowerCase().includes('driver') ||
+          notification.message?.toLowerCase().includes('order')) {
           try {
             await fetchOrders();
           } catch (error) {
@@ -494,7 +548,7 @@ useEffect(() => {
   // Continue with Part 2 for API Functions
 
   // ============ APP.JS PART 2: API Functions ============
-// Add this after Part 1
+  // Add this after Part 1
 
   // Fetch Functions
   const fetchCurrentUser = async () => {
@@ -531,7 +585,7 @@ useEffect(() => {
 
 
 
-  
+
 
   const fetchNotifications = async () => {
     try {
@@ -804,7 +858,7 @@ useEffect(() => {
     };
   };
 
-  
+
 
   // Function to get available countries from order addresses
   const getAvailableCountries = () => {
@@ -848,11 +902,11 @@ useEffect(() => {
         const deliveryParts = extractLocationParts(order.deliveryAddress);
 
         if ((!countryFilter || pickupParts.country === countryFilter) &&
-            (!cityFilter || pickupParts.city === cityFilter)) {
+          (!cityFilter || pickupParts.city === cityFilter)) {
           if (pickupParts.area) areas.add(pickupParts.area);
         }
         if ((!countryFilter || deliveryParts.country === countryFilter) &&
-            (!cityFilter || deliveryParts.city === cityFilter)) {
+          (!cityFilter || deliveryParts.city === cityFilter)) {
           if (deliveryParts.area) areas.add(deliveryParts.area);
         }
       }
@@ -861,26 +915,22 @@ useEffect(() => {
   };
 
   // Get title for driver view
-const getDriverViewTitle = (viewType) => {
-  switch (viewType) {
-    case 'active': return t('driver.activeOrders');
-    case 'bidding': return t('driver.availableBids');
-    case 'history': return t('driver.myHistory');
-    case 'map': return 'Orders Map';
-    case 'my_bids': return 'My Pending Bids';
-    default: return t('driver.availableBids');
-  }
-};
-
-  
-
-  const countries = ['Egypt', 'Saudi Arabia', 'UAE', 'Jordan', 'Lebanon', 'Kuwait', 'Qatar', 'Bahrain', 'Oman', 'Morocco', 'Tunisia', 'Algeria', 'Libya', 'Sudan', 'Yemen', 'Iraq', 'Syria', 'Palestine'];
+  const getDriverViewTitle = (viewType) => {
+    switch (viewType) {
+      case 'active': return t('driver.activeOrders');
+      case 'bidding': return t('driver.availableBids');
+      case 'history': return t('driver.myHistory');
+      case 'map': return 'Orders Map';
+      case 'my_bids': return 'My Pending Bids';
+      default: return t('driver.availableBids');
+    }
+  };
 
   // ============ END OF PART 3 ============
   // Continue with Part 4 for Event Handlers
 
-// ============ APP.JS PART 3: Event Handlers ============
-// Add this after Part 2
+  // ============ APP.JS PART 3: Event Handlers ============
+  // Add this after Part 2
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -1557,7 +1607,7 @@ const getDriverViewTitle = (viewType) => {
 
 
 
-  
+
 
   const getStatusLabel = (status) => {
     const statusKeyMap = {
@@ -1572,11 +1622,11 @@ const getDriverViewTitle = (viewType) => {
     return translationKey ? t(translationKey) : status;
   };
 
-// ============ END OF PART 3 ============
-// Continue with Part 4 for Authentication UI
+  // ============ END OF PART 3 ============
+  // Continue with Part 4 for Authentication UI
 
-// ============ APP.JS PART 4: Authentication UI ============
-// Add this after Part 3
+  // ============ APP.JS PART 4: Authentication UI ============
+  // Add this after Part 3
 
   if (!token) {
     return (
@@ -1612,7 +1662,7 @@ const getDriverViewTitle = (viewType) => {
                     onChange={(e) => setAuthForm({ ...authForm, email: e.target.value })}
                     style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
                   />
-                  <div style={{ position: 'relative' }}>
+                  <div style={{ position: 'relative', width: '100%' }}>
                     <input
                       type={showPassword ? 'text' : 'password'}
                       placeholder={t('auth.password')}
@@ -1622,12 +1672,13 @@ const getDriverViewTitle = (viewType) => {
                     />
                     <button
                       type="button"
+                      className="password-toggle-btn"
                       onClick={() => setShowPassword(!showPassword)}
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
                       style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#6B7280', cursor: 'pointer', width: '2rem', height: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     >
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 5C7 5 3.1 8.1 1 12c2.1 3.9 6 7 11 7s8.9-3.1 11-7c-2.1-3.9-6-7-11-7z" stroke="currentColor" strokeWidth="2" fill="none"/>
+                        <path d="M12 5C7 5 3.1 8.1 1 12c2.1 3.9 6 7 11 7s8.9-3.1 11-7c-2.1-3.9-6-7-11-7z" stroke="currentColor" strokeWidth="2" fill="none" />
                         <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" fill={showPassword ? 'currentColor' : 'none'} />
                       </svg>
                     </button>
@@ -1681,7 +1732,7 @@ const getDriverViewTitle = (viewType) => {
                     onChange={(e) => setAuthForm({ ...authForm, phone: e.target.value })}
                     style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
                   />
-                  <div style={{ position: 'relative' }}>
+                  <div style={{ position: 'relative', width: '100%' }}>
                     <input
                       type={showPassword ? 'text' : 'password'}
                       placeholder={t('auth.password')}
@@ -1691,12 +1742,13 @@ const getDriverViewTitle = (viewType) => {
                     />
                     <button
                       type="button"
+                      className="password-toggle-btn"
                       onClick={() => setShowPassword(!showPassword)}
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
                       style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#6B7280', cursor: 'pointer', width: '2rem', height: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     >
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 5C7 5 3.1 8.1 1 12c2.1 3.9 6 7 11 7s8.9-3.1 11-7c-2.1-3.9-6-7-11-7z" stroke="currentColor" strokeWidth="2" fill="none"/>
+                        <path d="M12 5C7 5 3.1 8.1 1 12c2.1 3.9 6 7 11 7s8.9-3.1 11-7c-2.1-3.9-6-7-11-7z" stroke="currentColor" strokeWidth="2" fill="none" />
                         <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" fill={showPassword ? 'currentColor' : 'none'} />
                       </svg>
                     </button>
@@ -1797,7 +1849,7 @@ const getDriverViewTitle = (viewType) => {
           </div>
         )}
 
-      <footer style={{
+        <footer style={{
           padding: '1rem',
           textAlign: 'center',
           fontSize: '0.75rem',
@@ -1817,71 +1869,71 @@ const getDriverViewTitle = (viewType) => {
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
-// ============ END OF PART 4 ============
-// Continue with Part 5 for Main App UI (FINAL)
+  // ============ END OF PART 4 ============
+  // Continue with Part 5 for Main App UI (FINAL)
 
-// ============ APP.JS PART 5A: Main UI - Header & Modals ============
-// Add this after Part 4 (continues the return statement)
+  // ============ APP.JS PART 5A: Main UI - Header & Modals ============
+  // Add this after Part 4 (continues the return statement)
 
-    return (
-      <div style={{ minHeight: '100vh', background: '#090909' }}>
-        <header className="glow">
-          <div className="header-content">
-            {/* Logo */}
-            <div className="header-logo">
-              <img
-                src="/branding-hero-1.png"
-                alt="Matrix Heroes - Your trusted delivery heroes"
-                className="pulse"
-                style={{ width: '48px', height: '48px', marginBottom: '0.5rem' }}
-              />
-              <h1>{t('common.appName')}</h1>
-            </div>
+  return (
+    <div style={{ minHeight: '100vh', background: '#090909' }}>
+      <header className="glow">
+        <div className="header-content">
+          {/* Logo */}
+          <div className="header-logo">
+            <img
+              src="/branding-hero-1.png"
+              alt="Matrix Heroes - Your trusted delivery heroes"
+              className="pulse"
+              style={{ width: '48px', height: '48px', marginBottom: '0.5rem' }}
+            />
+            <h1>{t('common.appName')}</h1>
+          </div>
 
-            {/* Desktop Actions - Hidden on Mobile */}
-            <div className="header-actions">
-              <LanguageSwitcher locale={locale} changeLocale={changeLocale} />
+          {/* Desktop Actions - Hidden on Mobile */}
+          <div className="header-actions">
+            <LanguageSwitcher locale={locale} changeLocale={changeLocale} />
 
-              <button
-                onClick={async () => {
-                  setLoading(true);
-                  try {
-                    const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
-                    const pRes = await fetch(`${API_URL}/users/me/profile`, { headers });
-                    if (!pRes.ok) throw new Error('Failed to load profile');
-                    const pData = await pRes.json();
-                    setProfileData(pData);
-                    const prefRes = await fetch(`${API_URL}/users/me/preferences`, { headers });
-                    if (prefRes.ok) setPreferencesData(await prefRes.json());
-                    const pmRes = await fetch(`${API_URL}/users/me/payment-methods`, { headers });
-                    if (pmRes.ok) setPaymentMethods(await pmRes.json());
-                    const favRes = await fetch(`${API_URL}/users/me/favorites`, { headers });
-                    if (favRes.ok) setFavorites(await favRes.json());
-                    const actRes = await fetch(`${API_URL}/users/me/activity`, { headers });
-                    if (actRes.ok) setActivityData(await actRes.json());
-                    setShowProfile(true);
-                  } catch (e) {
-                    setError(e.message);
-                  } finally {
-                    setLoading(false);
-                  }
-                }}
-                className="btn-secondary"
-              >
-                Profile
-              </button>
+            <button
+              onClick={async () => {
+                setLoading(true);
+                try {
+                  const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+                  const pRes = await fetch(`${API_URL}/users/me/profile`, { headers });
+                  if (!pRes.ok) throw new Error('Failed to load profile');
+                  const pData = await pRes.json();
+                  setProfileData(pData);
+                  const prefRes = await fetch(`${API_URL}/users/me/preferences`, { headers });
+                  if (prefRes.ok) setPreferencesData(await prefRes.json());
+                  const pmRes = await fetch(`${API_URL}/users/me/payment-methods`, { headers });
+                  if (pmRes.ok) setPaymentMethods(await pmRes.json());
+                  const favRes = await fetch(`${API_URL}/users/me/favorites`, { headers });
+                  if (favRes.ok) setFavorites(await favRes.json());
+                  const actRes = await fetch(`${API_URL}/users/me/activity`, { headers });
+                  if (actRes.ok) setActivityData(await actRes.json());
+                  setShowProfile(true);
+                } catch (e) {
+                  setError(e.message);
+                } finally {
+                  setLoading(false);
+                }
+              }}
+              className="btn-secondary"
+            >
+              Profile
+            </button>
 
-              <button
-                onClick={() => setShowNotifications(!showNotifications)}
-                className={`notification-bell ${unreadCount > 0 ? 'bell-notification' : ''}`}
-              >
-                🔔
-                {unreadCount > 0 && (
-                  <span className="notification-badge">{unreadCount}</span>
-                )}
-              </button>
+            <button
+              onClick={() => setShowNotifications(!showNotifications)}
+              className={`notification-bell ${unreadCount > 0 ? 'bell-notification' : ''}`}
+            >
+              🔔
+              {unreadCount > 0 && (
+                <span className="notification-badge">{unreadCount}</span>
+              )}
+            </button>
 
-              {currentUser?.role === 'admin' && (
+            {currentUser?.role === 'admin' && (
               <button
                 onClick={toggleOnline}
                 disabled={loadingStates.toggleOnline || (!driverOnline && hasActiveOrders())}
@@ -1901,193 +1953,193 @@ const getDriverViewTitle = (viewType) => {
               >
                 {loadingStates.toggleOnline ? '...' : driverOnline ? '🔴 Go Offline' : '🟢 Go Online'}
               </button>
-              )}
+            )}
 
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                  <p style={{ fontWeight: '600', color: 'var(--matrix-bright-green)' }}>{currentUser?.name}</p>
-                  {currentUser?.isVerified && (
-                    <span style={{ background: '#10B981', color: 'white', padding: '0.125rem 0.5rem', borderRadius: '9999px', fontSize: '0.625rem', fontWeight: '600' }}>
-                      ✓ Verified
-                    </span>
-                  )}
-                  {!currentUser?.isVerified && (
-                    <button
-                      onClick={() => {
-                        const message = `Hello, I would like to verify my account. My user ID is: ${currentUser?.id}`;
-                        const whatsappUrl = `https://wa.me/${process.env.REACT_APP_WHATSAPP_ADMIN_NUMBER}?text=${encodeURIComponent(message)}`;
-                        window.open(whatsappUrl, '_blank');
-                        // Show message to refresh after verification
-                        setTimeout(() => {
-                          alert('After admin verifies your account, please refresh this page to see the verification badge.');
-                        }, 1000);
-                      }}
-                      style={{ background: '#25D366', color: 'white', padding: '0.125rem 0.5rem', borderRadius: '9999px', border: 'none', cursor: 'pointer', fontSize: '0.625rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
-                      title="Contact admin to verify account"
-                    >
-                      📱 Verify
-                    </button>
-                  )}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <p style={{ fontSize: '0.875rem', color: 'var(--matrix-green)', textTransform: 'capitalize' }}>
-                    {currentUser?.role} {currentUser?.completedDeliveries > 0 && `• ${currentUser.completedDeliveries} deliveries`}
-                  </p>
-                  {availableRoles.length > 1 && (
-                    <select
-                      value={currentUser?.role}
-                      onChange={(e) => switchRole(e.target.value)}
-                      style={{
-                        background: '#111827',
-                        color: '#10B981',
-                        border: '1px solid #374151',
-                        borderRadius: '0.375rem',
-                        padding: '0.25rem 0.5rem',
-                        fontSize: '0.75rem'
-                      }}
-                    >
-                      {availableRoles.map(r => (
-                        <option key={r} value={r}>{r}</option>
-                      ))}
-                    </select>
-                  )}
-                  {(currentUser?.role === 'admin' || availableRoles.includes('admin')) && (
-                    <button
-                      onClick={() => setShowAdminPanel(true)}
-                      style={{ background: '#4F46E5', color: 'white', padding: '0.375rem 0.75rem', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: '600' }}
-                    >
-                      🛡️ Admin Dashboard
-                    </button>
-                  )}
-                </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                <p style={{ fontWeight: '600', color: 'var(--matrix-bright-green)' }}>{currentUser?.name}</p>
+                {currentUser?.isVerified && (
+                  <span style={{ background: '#10B981', color: 'white', padding: '0.125rem 0.5rem', borderRadius: '9999px', fontSize: '0.625rem', fontWeight: '600' }}>
+                    ✓ Verified
+                  </span>
+                )}
+                {!currentUser?.isVerified && (
+                  <button
+                    onClick={() => {
+                      const message = `Hello, I would like to verify my account. My user ID is: ${currentUser?.id}`;
+                      const whatsappUrl = `https://wa.me/${process.env.REACT_APP_WHATSAPP_ADMIN_NUMBER}?text=${encodeURIComponent(message)}`;
+                      window.open(whatsappUrl, '_blank');
+                      // Show message to refresh after verification
+                      setTimeout(() => {
+                        alert('After admin verifies your account, please refresh this page to see the verification badge.');
+                      }, 1000);
+                    }}
+                    style={{ background: '#25D366', color: 'white', padding: '0.125rem 0.5rem', borderRadius: '9999px', border: 'none', cursor: 'pointer', fontSize: '0.625rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                    title="Contact admin to verify account"
+                  >
+                    📱 Verify
+                  </button>
+                )}
               </div>
-
-              <button onClick={logout} className="btn-danger">
-                {t('auth.logout')}
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <p style={{ fontSize: '0.875rem', color: 'var(--matrix-green)', textTransform: 'capitalize' }}>
+                  {currentUser?.role} {currentUser?.completedDeliveries > 0 && `• ${currentUser.completedDeliveries} deliveries`}
+                </p>
+                {availableRoles.length > 1 && (
+                  <select
+                    value={currentUser?.role}
+                    onChange={(e) => switchRole(e.target.value)}
+                    style={{
+                      background: '#111827',
+                      color: '#10B981',
+                      border: '1px solid #374151',
+                      borderRadius: '0.375rem',
+                      padding: '0.25rem 0.5rem',
+                      fontSize: '0.75rem'
+                    }}
+                  >
+                    {availableRoles.map(r => (
+                      <option key={r} value={r}>{r}</option>
+                    ))}
+                  </select>
+                )}
+                {(currentUser?.role === 'admin' || availableRoles.includes('admin')) && (
+                  <button
+                    onClick={() => setShowAdminPanel(true)}
+                    style={{ background: '#4F46E5', color: 'white', padding: '0.375rem 0.75rem', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: '600' }}
+                  >
+                    🛡️ Admin Dashboard
+                  </button>
+                )}
+              </div>
             </div>
 
-            {/* Hamburger Menu Button - Mobile Only */}
-            <button
-              className={`hamburger-btn ${showMobileMenu ? 'open' : ''}`}
-              onClick={toggleMobileMenu}
-              aria-label="Toggle menu"
-            >
-              <span></span>
-              <span></span>
-              <span></span>
+            <button onClick={logout} className="btn-danger">
+              {t('auth.logout')}
             </button>
           </div>
 
-          {/* Desktop Notification Panel */}
-          {showNotifications && (
-            <div className="notification-panel">
-              <div style={{ padding: 'var(--spacing-md)', borderBottom: '2px solid var(--matrix-border)' }}>
-                <h3 style={{ fontWeight: '600', fontSize: '1rem', color: 'var(--matrix-bright-green)' }}>Notifications</h3>
-              </div>
-              {notifications.length === 0 ? (
-                <p style={{ padding: 'var(--spacing-md)', textAlign: 'center', color: 'var(--matrix-green)' }}>No notifications</p>
-              ) : (
-                notifications.map((notif) => (
-                  <div
-                    key={notif.id}
-                    onClick={() => markNotificationRead(notif.id)}
-                    className={`notification-item ${!notif.isRead ? 'unread' : ''}`}
-                  >
-                    <p style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.25rem', color: 'var(--matrix-bright-green)' }}>{notif.title}</p>
-                    <p style={{ fontSize: '0.875rem', color: 'var(--matrix-green)' }}>{notif.message}</p>
-                    <p style={{ fontSize: '0.75rem', color: 'rgba(0, 255, 0, 0.6)', marginTop: '0.25rem' }}>
-                      {new Date(notif.createdAt).toLocaleString()}
-                    </p>
-                  </div>
-                ))
-              )}
+          {/* Hamburger Menu Button - Mobile Only */}
+          <button
+            className={`hamburger-btn ${showMobileMenu ? 'open' : ''}`}
+            onClick={toggleMobileMenu}
+            aria-label="Toggle menu"
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+        </div>
+
+        {/* Desktop Notification Panel */}
+        {showNotifications && (
+          <div className="notification-panel">
+            <div style={{ padding: 'var(--spacing-md)', borderBottom: '2px solid var(--matrix-border)' }}>
+              <h3 style={{ fontWeight: '600', fontSize: '1rem', color: 'var(--matrix-bright-green)' }}>Notifications</h3>
             </div>
-          )}
-
-          {/* Mobile Menu */}
-          <>
-            <div
-              className={`mobile-menu-backdrop ${showMobileMenu ? 'open' : ''}`}
-              onClick={toggleMobileMenu}
-            />
-            <nav className={`mobile-menu ${showMobileMenu ? 'open' : ''}`}>
-              <div className="mobile-menu-items">
-                {/* User Info Section */}
-                <div className="mobile-menu-section">
-                  <div className="mobile-user-info">
-                    <div className="mobile-user-name">
-                      {currentUser?.name}
-                      {currentUser?.isVerified && (
-                        <span style={{ background: '#10B981', color: 'white', padding: '0.125rem 0.5rem', borderRadius: '9999px', fontSize: '0.625rem', fontWeight: '600' }}>
-                          ✓ Verified
-                        </span>
-                      )}
-                    </div>
-                    <div className="mobile-user-role">
-                      {currentUser?.role}
-                      {currentUser?.completedDeliveries > 0 && ` • ${currentUser.completedDeliveries} deliveries`}
-                    </div>
-                  </div>
+            {notifications.length === 0 ? (
+              <p style={{ padding: 'var(--spacing-md)', textAlign: 'center', color: 'var(--matrix-green)' }}>No notifications</p>
+            ) : (
+              notifications.map((notif) => (
+                <div
+                  key={notif.id}
+                  onClick={() => markNotificationRead(notif.id)}
+                  className={`notification-item ${!notif.isRead ? 'unread' : ''}`}
+                >
+                  <p style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.25rem', color: 'var(--matrix-bright-green)' }}>{notif.title}</p>
+                  <p style={{ fontSize: '0.875rem', color: 'var(--matrix-green)' }}>{notif.message}</p>
+                  <p style={{ fontSize: '0.75rem', color: 'rgba(0, 255, 0, 0.6)', marginTop: '0.25rem' }}>
+                    {new Date(notif.createdAt).toLocaleString()}
+                  </p>
                 </div>
+              ))
+            )}
+          </div>
+        )}
 
-                {/* Language Selector */}
-                <div className="mobile-menu-section">
-                  <h4 style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--matrix-bright-green)', marginBottom: 'var(--spacing-sm)' }}>
-                    Language
-                  </h4>
-                  <LanguageSwitcher locale={locale} changeLocale={changeLocale} />
-                </div>
-
-                {/* Notifications */}
-                <div className="mobile-menu-section">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-sm)' }}>
-                    <h4 style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--matrix-bright-green)' }}>
-                      Notifications
-                    </h4>
-                    {unreadCount > 0 && (
-                      <span className="notification-badge">{unreadCount}</span>
+        {/* Mobile Menu */}
+        <>
+          <div
+            className={`mobile-menu-backdrop ${showMobileMenu ? 'open' : ''}`}
+            onClick={toggleMobileMenu}
+          />
+          <nav className={`mobile-menu ${showMobileMenu ? 'open' : ''}`}>
+            <div className="mobile-menu-items">
+              {/* User Info Section */}
+              <div className="mobile-menu-section">
+                <div className="mobile-user-info">
+                  <div className="mobile-user-name">
+                    {currentUser?.name}
+                    {currentUser?.isVerified && (
+                      <span style={{ background: '#10B981', color: 'white', padding: '0.125rem 0.5rem', borderRadius: '9999px', fontSize: '0.625rem', fontWeight: '600' }}>
+                        ✓ Verified
+                      </span>
                     )}
                   </div>
-                  {notifications.length === 0 ? (
-                    <p style={{ fontSize: '0.875rem', color: 'var(--matrix-green)' }}>No notifications</p>
-                  ) : (
-                    <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
-                      {notifications.slice(0, 5).map((notif) => (
-                        <div
-                          key={notif.id}
-                          onClick={() => {
-                            markNotificationRead(notif.id);
-                            setShowMobileMenu(false);
-                          }}
-                          className={`notification-item ${!notif.isRead ? 'unread' : ''}`}
-                          style={{ padding: 'var(--spacing-sm)', marginBottom: 'var(--spacing-xs)' }}
-                        >
-                          <p style={{ fontWeight: '600', fontSize: '0.75rem', color: 'var(--matrix-bright-green)' }}>{notif.title}</p>
-                          <p style={{ fontSize: '0.75rem', color: 'var(--matrix-green)' }}>{notif.message}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Logout Button */}
-                <div className="mobile-menu-section">
-                  <button
-                    onClick={() => {
-                      logout();
-                      setShowMobileMenu(false);
-                    }}
-                    className="btn-danger"
-                    style={{ width: '100%' }}
-                  >
-                    {t('auth.logout')}
-                  </button>
+                  <div className="mobile-user-role">
+                    {currentUser?.role}
+                    {currentUser?.completedDeliveries > 0 && ` • ${currentUser.completedDeliveries} deliveries`}
+                  </div>
                 </div>
               </div>
-            </nav>
-          </>
-        </header>
+
+              {/* Language Selector */}
+              <div className="mobile-menu-section">
+                <h4 style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--matrix-bright-green)', marginBottom: 'var(--spacing-sm)' }}>
+                  Language
+                </h4>
+                <LanguageSwitcher locale={locale} changeLocale={changeLocale} />
+              </div>
+
+              {/* Notifications */}
+              <div className="mobile-menu-section">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-sm)' }}>
+                  <h4 style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--matrix-bright-green)' }}>
+                    Notifications
+                  </h4>
+                  {unreadCount > 0 && (
+                    <span className="notification-badge">{unreadCount}</span>
+                  )}
+                </div>
+                {notifications.length === 0 ? (
+                  <p style={{ fontSize: '0.875rem', color: 'var(--matrix-green)' }}>No notifications</p>
+                ) : (
+                  <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                    {notifications.slice(0, 5).map((notif) => (
+                      <div
+                        key={notif.id}
+                        onClick={() => {
+                          markNotificationRead(notif.id);
+                          setShowMobileMenu(false);
+                        }}
+                        className={`notification-item ${!notif.isRead ? 'unread' : ''}`}
+                        style={{ padding: 'var(--spacing-sm)', marginBottom: 'var(--spacing-xs)' }}
+                      >
+                        <p style={{ fontWeight: '600', fontSize: '0.75rem', color: 'var(--matrix-bright-green)' }}>{notif.title}</p>
+                        <p style={{ fontSize: '0.75rem', color: 'var(--matrix-green)' }}>{notif.message}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Logout Button */}
+              <div className="mobile-menu-section">
+                <button
+                  onClick={() => {
+                    logout();
+                    setShowMobileMenu(false);
+                  }}
+                  className="btn-danger"
+                  style={{ width: '100%' }}
+                >
+                  {t('auth.logout')}
+                </button>
+              </div>
+            </div>
+          </nav>
+        </>
+      </header>
       {showProfile && profileData && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
           <div className="modal-content" style={{ background: 'white', borderRadius: '0.5rem', maxWidth: '80rem', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
@@ -2110,16 +2162,16 @@ const getDriverViewTitle = (viewType) => {
                   </div>
                   <div style={{ marginTop: '1rem' }}>
                     <label htmlFor="name" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.25rem' }}>Full name</label>
-                    <input id="name" value={profileData.name || ''} onChange={(e) => setProfileData({ ...profileData, name: e.target.value })} onBlur={async () => { try { const res = await fetch(`${API_URL}/users/me/profile`, { method:'PUT', headers:{ 'Authorization': `Bearer ${token}`, 'Content-Type':'application/json' }, body: JSON.stringify({ name: profileData.name }) }); if(!res.ok) throw new Error('Failed'); const d=await res.json(); setProfileData(prev=>({ ...prev, ...d.user })); setCurrentUser(d.user); } catch(err){ setError(err.message); } }} style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
+                    <input id="name" value={profileData.name || ''} onChange={(e) => setProfileData({ ...profileData, name: e.target.value })} onBlur={async () => { try { const res = await fetch(`${API_URL}/users/me/profile`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ name: profileData.name }) }); if (!res.ok) throw new Error('Failed'); const d = await res.json(); setProfileData(prev => ({ ...prev, ...d.user })); setCurrentUser(d.user); } catch (err) { setError(err.message); } }} style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
                   </div>
                   <div style={{ marginTop: '0.75rem' }}>
                     <label htmlFor="phone" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.25rem' }}>Contact</label>
-                    <input id="phone" value={profileData.phone || ''} onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })} onBlur={async () => { try { const res = await fetch(`${API_URL}/users/me/profile`, { method:'PUT', headers:{ 'Authorization': `Bearer ${token}`, 'Content-Type':'application/json' }, body: JSON.stringify({ phone: profileData.phone }) }); if(!res.ok) throw new Error('Failed'); const d=await res.json(); setProfileData(prev=>({ ...prev, ...d.user })); setCurrentUser(d.user); } catch(err){ setError(err.message); } }} style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
+                    <input id="phone" value={profileData.phone || ''} onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })} onBlur={async () => { try { const res = await fetch(`${API_URL}/users/me/profile`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ phone: profileData.phone }) }); if (!res.ok) throw new Error('Failed'); const d = await res.json(); setProfileData(prev => ({ ...prev, ...d.user })); setCurrentUser(d.user); } catch (err) { setError(err.message); } }} style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
                   </div>
                   <div style={{ marginTop: '0.75rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.5rem' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600 }}>Language</label>
-                      <select value={profileData.language || ''} onChange={async (e) => { try { const res = await fetch(`${API_URL}/users/me/profile`, { method:'PUT', headers:{ 'Authorization': `Bearer ${token}`, 'Content-Type':'application/json' }, body: JSON.stringify({ language: e.target.value }) }); if(!res.ok) throw new Error('Failed'); const d=await res.json(); setProfileData(prev=>({ ...prev, ...d.user })); } catch(err){ setError(err.message); } }} style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}>
+                      <select value={profileData.language || ''} onChange={async (e) => { try { const res = await fetch(`${API_URL}/users/me/profile`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ language: e.target.value }) }); if (!res.ok) throw new Error('Failed'); const d = await res.json(); setProfileData(prev => ({ ...prev, ...d.user })); } catch (err) { setError(err.message); } }} style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}>
                         <option value="">Default</option>
                         <option value="en">English</option>
                         <option value="ar">Arabic</option>
@@ -2128,7 +2180,7 @@ const getDriverViewTitle = (viewType) => {
                     </div>
                     <div>
                       <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600 }}>Theme</label>
-                      <select value={profileData.theme || ''} onChange={async (e) => { try { const res = await fetch(`${API_URL}/users/me/profile`, { method:'PUT', headers:{ 'Authorization': `Bearer ${token}`, 'Content-Type':'application/json' }, body: JSON.stringify({ theme: e.target.value }) }); if(!res.ok) throw new Error('Failed'); const d=await res.json(); setProfileData(prev=>({ ...prev, ...d.user })); } catch(err){ setError(err.message); } }} style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}>
+                      <select value={profileData.theme || ''} onChange={async (e) => { try { const res = await fetch(`${API_URL}/users/me/profile`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ theme: e.target.value }) }); if (!res.ok) throw new Error('Failed'); const d = await res.json(); setProfileData(prev => ({ ...prev, ...d.user })); } catch (err) { setError(err.message); } }} style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}>
                         <option value="">System</option>
                         <option value="dark">Dark</option>
                         <option value="light">Light</option>
@@ -2144,7 +2196,7 @@ const getDriverViewTitle = (viewType) => {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.5rem' }}>
                       <div>
                         <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600 }}>Vehicle type</label>
-                        <select value={profileData.vehicle_type || ''} onChange={async (e) => { const v=e.target.value; setProfileData({ ...profileData, vehicle_type: v }); try { const res = await fetch(`${API_URL}/users/me/profile`, { method:'PUT', headers:{ 'Authorization': `Bearer ${token}`, 'Content-Type':'application/json' }, body: JSON.stringify({ vehicle_type: v }) }); if(!res.ok) throw new Error('Failed'); const d=await res.json(); setProfileData(prev=>({ ...prev, ...d.user })); } catch(err){ setError(err.message); } }} style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}>
+                        <select value={profileData.vehicle_type || ''} onChange={async (e) => { const v = e.target.value; setProfileData({ ...profileData, vehicle_type: v }); try { const res = await fetch(`${API_URL}/users/me/profile`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ vehicle_type: v }) }); if (!res.ok) throw new Error('Failed'); const d = await res.json(); setProfileData(prev => ({ ...prev, ...d.user })); } catch (err) { setError(err.message); } }} style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}>
                           <option value="">Select</option>
                           <option value="bike">Bike</option>
                           <option value="car">Car</option>
@@ -2154,14 +2206,14 @@ const getDriverViewTitle = (viewType) => {
                       </div>
                       <div>
                         <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600 }}>License</label>
-                        <input value={profileData.license_number || ''} onChange={(e) => setProfileData({ ...profileData, license_number: e.target.value })} onBlur={async () => { try { const res = await fetch(`${API_URL}/users/me/profile`, { method:'PUT', headers:{ 'Authorization': `Bearer ${token}`, 'Content-Type':'application/json' }, body: JSON.stringify({ license_number: profileData.license_number }) }); if(!res.ok) throw new Error('Failed'); const d=await res.json(); setProfileData(prev=>({ ...prev, ...d.user })); } catch(err){ setError(err.message); } }} style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
+                        <input value={profileData.license_number || ''} onChange={(e) => setProfileData({ ...profileData, license_number: e.target.value })} onBlur={async () => { try { const res = await fetch(`${API_URL}/users/me/profile`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ license_number: profileData.license_number }) }); if (!res.ok) throw new Error('Failed'); const d = await res.json(); setProfileData(prev => ({ ...prev, ...d.user })); } catch (err) { setError(err.message); } }} style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
                       </div>
                       <div>
                         <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600 }}>Service area</label>
-                        <input value={profileData.service_area_zone || ''} onChange={(e) => setProfileData({ ...profileData, service_area_zone: e.target.value })} onBlur={async () => { try { const res = await fetch(`${API_URL}/users/me/profile`, { method:'PUT', headers:{ 'Authorization': `Bearer ${token}`, 'Content-Type':'application/json' }, body: JSON.stringify({ service_area_zone: profileData.service_area_zone }) }); if(!res.ok) throw new Error('Failed'); const d=await res.json(); setProfileData(prev=>({ ...prev, ...d.user })); } catch(err){ setError(err.message); } }} style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
+                        <input value={profileData.service_area_zone || ''} onChange={(e) => setProfileData({ ...profileData, service_area_zone: e.target.value })} onBlur={async () => { try { const res = await fetch(`${API_URL}/users/me/profile`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ service_area_zone: profileData.service_area_zone }) }); if (!res.ok) throw new Error('Failed'); const d = await res.json(); setProfileData(prev => ({ ...prev, ...d.user })); } catch (err) { setError(err.message); } }} style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
-                        <input id="availability" type="checkbox" checked={!!profileData.is_available} onChange={async (e) => { try { const res = await fetch(`${API_URL}/users/me/availability`, { method:'POST', headers:{ 'Authorization': `Bearer ${token}`, 'Content-Type':'application/json' }, body: JSON.stringify({ is_available: !!e.target.checked }) }); if(res.ok){ const d=await res.json(); setProfileData(prev=>({ ...prev, is_available: d.isAvailable })); } } catch(err){ setError(err.message); } }} />
+                        <input id="availability" type="checkbox" checked={!!profileData.is_available} onChange={async (e) => { try { const res = await fetch(`${API_URL}/users/me/availability`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ is_available: !!e.target.checked }) }); if (res.ok) { const d = await res.json(); setProfileData(prev => ({ ...prev, is_available: d.isAvailable })); } } catch (err) { setError(err.message); } }} />
                         <label htmlFor="availability" style={{ fontSize: '0.875rem' }}>Available</label>
                       </div>
                       <div style={{ marginTop: '0.5rem', fontSize: '0.875rem' }}>Rating: {profileData.rating || 0} • Deliveries: {profileData.completed_deliveries || 0} • Verified: {profileData.is_verified ? 'Yes' : 'No'}</div>
@@ -2175,11 +2227,11 @@ const getDriverViewTitle = (viewType) => {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.5rem' }}>
                       <div>
                         <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600 }}>Delivery preferences</label>
-                        <textarea value={JSON.stringify(preferencesData?.preferences || {})} onChange={(e) => setPreferencesData({ ...(preferencesData || {}), preferences: JSON.parse(e.target.value || '{}') })} onBlur={async () => { try { const res = await fetch(`${API_URL}/users/me/preferences`, { method:'PUT', headers:{ 'Authorization': `Bearer ${token}`, 'Content-Type':'application/json' }, body: JSON.stringify({ preferences: preferencesData?.preferences }) }); if(!res.ok) throw new Error('Failed'); const d=await res.json(); setPreferencesData(d); } catch(err){ setError(err.message); } }} style={{ width: '100%', minHeight: '80px', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
+                        <textarea value={JSON.stringify(preferencesData?.preferences || {})} onChange={(e) => setPreferencesData({ ...(preferencesData || {}), preferences: JSON.parse(e.target.value || '{}') })} onBlur={async () => { try { const res = await fetch(`${API_URL}/users/me/preferences`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ preferences: preferencesData?.preferences }) }); if (!res.ok) throw new Error('Failed'); const d = await res.json(); setPreferencesData(d); } catch (err) { setError(err.message); } }} style={{ width: '100%', minHeight: '80px', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
                       </div>
                       <div>
                         <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600 }}>Notification preferences</label>
-                        <textarea value={JSON.stringify(preferencesData?.notification_prefs || {})} onChange={(e) => setPreferencesData({ ...(preferencesData || {}), notification_prefs: JSON.parse(e.target.value || '{}') })} onBlur={async () => { try { const res = await fetch(`${API_URL}/users/me/preferences`, { method:'PUT', headers:{ 'Authorization': `Bearer ${token}`, 'Content-Type':'application/json' }, body: JSON.stringify({ notification_prefs: preferencesData?.notification_prefs }) }); if(!res.ok) throw new Error('Failed'); const d=await res.json(); setPreferencesData(d); } catch(err){ setError(err.message); } }} style={{ width: '100%', minHeight: '80px', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
+                        <textarea value={JSON.stringify(preferencesData?.notification_prefs || {})} onChange={(e) => setPreferencesData({ ...(preferencesData || {}), notification_prefs: JSON.parse(e.target.value || '{}') })} onBlur={async () => { try { const res = await fetch(`${API_URL}/users/me/preferences`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ notification_prefs: preferencesData?.notification_prefs }) }); if (!res.ok) throw new Error('Failed'); const d = await res.json(); setPreferencesData(d); } catch (err) { setError(err.message); } }} style={{ width: '100%', minHeight: '80px', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
                       </div>
                     </div>
                   </div>
@@ -2196,13 +2248,13 @@ const getDriverViewTitle = (viewType) => {
                     </select>
                     <input id="pmMask" placeholder="**** **** **** 1234" style={{ flex: 1, padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
                     <label style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><input id="pmDefault" type="checkbox" /> Default</label>
-                    <button onClick={async () => { const res = await fetch(`${API_URL}/users/me/payment-methods`, { method:'POST', headers:{ 'Authorization': `Bearer ${token}`, 'Content-Type':'application/json' }, body: JSON.stringify({ payment_method_type: document.getElementById('pmType').value, masked_details: document.getElementById('pmMask').value, is_default: document.getElementById('pmDefault').checked }) }); if(res.ok){ const pm = await res.json(); setPaymentMethods(prev => [pm, ...prev]); } }} style={{ padding: '0.5rem 1rem', background: '#4F46E5', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer' }}>Add</button>
+                    <button onClick={async () => { const res = await fetch(`${API_URL}/users/me/payment-methods`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ payment_method_type: document.getElementById('pmType').value, masked_details: document.getElementById('pmMask').value, is_default: document.getElementById('pmDefault').checked }) }); if (res.ok) { const pm = await res.json(); setPaymentMethods(prev => [pm, ...prev]); } }} style={{ padding: '0.5rem 1rem', background: '#4F46E5', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer' }}>Add</button>
                   </div>
                   <div>
                     {paymentMethods.map(pm => (
                       <div key={pm.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem', border: '1px solid #E5E7EB', borderRadius: '0.375rem', marginBottom: '0.5rem', background: 'white' }}>
                         <div style={{ fontSize: '0.875rem' }}>{pm.payment_method_type} • {pm.masked_details} {pm.is_default ? '• Default' : ''}</div>
-                        <button onClick={async () => { const res = await fetch(`${API_URL}/users/me/payment-methods/${pm.id}`, { method:'DELETE', headers:{ 'Authorization': `Bearer ${token}` } }); if(res.ok){ setPaymentMethods(prev => prev.filter(pp => pp.id !== pm.id)); } }} style={{ padding: '0.25rem 0.5rem', background: '#DC2626', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer' }}>Remove</button>
+                        <button onClick={async () => { const res = await fetch(`${API_URL}/users/me/payment-methods/${pm.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }); if (res.ok) { setPaymentMethods(prev => prev.filter(pp => pp.id !== pm.id)); } }} style={{ padding: '0.25rem 0.5rem', background: '#DC2626', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer' }}>Remove</button>
                       </div>
                     ))}
                   </div>
@@ -2214,7 +2266,7 @@ const getDriverViewTitle = (viewType) => {
                     {favorites.map(f => (
                       <div key={f.userId} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem', border: '1px solid #E5E7EB', borderRadius: '0.375rem', marginBottom: '0.5rem', background: 'white' }}>
                         <div style={{ fontSize: '0.875rem' }}>{f.name} • {f.role} • ⭐ {f.rating || 0} • {f.completed_deliveries || 0} • {f.is_verified ? 'Verified' : 'Unverified'}</div>
-                        <button onClick={async () => { const res = await fetch(`${API_URL}/users/me/favorites/${f.userId}`, { method:'DELETE', headers:{ 'Authorization': `Bearer ${token}` } }); if(res.ok){ setFavorites(prev => prev.filter(ff => ff.userId !== f.userId)); } }} style={{ padding: '0.25rem 0.5rem', background: '#DC2626', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer' }}>Remove</button>
+                        <button onClick={async () => { const res = await fetch(`${API_URL}/users/me/favorites/${f.userId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }); if (res.ok) { setFavorites(prev => prev.filter(ff => ff.userId !== f.userId)); } }} style={{ padding: '0.25rem 0.5rem', background: '#DC2626', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer' }}>Remove</button>
                       </div>
                     ))}
                   </div>
@@ -2225,7 +2277,7 @@ const getDriverViewTitle = (viewType) => {
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.5rem' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600 }}>Two-factor</label>
-                      <select value={Array.isArray(preferencesData?.two_factor_methods) ? preferencesData.two_factor_methods[0] || '' : ''} onChange={async (e) => { const res = await fetch(`${API_URL}/users/me/preferences`, { method:'PUT', headers:{ 'Authorization': `Bearer ${token}`, 'Content-Type':'application/json' }, body: JSON.stringify({ two_factor_methods: e.target.value ? [e.target.value] : [] }) }); if(res.ok){ const d=await res.json(); setPreferencesData(d); } }} style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}>
+                      <select value={Array.isArray(preferencesData?.two_factor_methods) ? preferencesData.two_factor_methods[0] || '' : ''} onChange={async (e) => { const res = await fetch(`${API_URL}/users/me/preferences`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ two_factor_methods: e.target.value ? [e.target.value] : [] }) }); if (res.ok) { const d = await res.json(); setPreferencesData(d); } }} style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}>
                         <option value="">Off</option>
                         <option value="sms">SMS</option>
                         <option value="email">Email</option>
@@ -2234,7 +2286,7 @@ const getDriverViewTitle = (viewType) => {
                     </div>
                     <div>
                       <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600 }}>Privacy</label>
-                      <select value={(preferencesData?.preferences || {}).privacy || ''} onChange={async (e) => { const res = await fetch(`${API_URL}/users/me/preferences`, { method:'PUT', headers:{ 'Authorization': `Bearer ${token}`, 'Content-Type':'application/json' }, body: JSON.stringify({ preferences: { ...(preferencesData?.preferences || {}), privacy: e.target.value } }) }); if(res.ok){ const d=await res.json(); setPreferencesData(d); } }} style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}>
+                      <select value={(preferencesData?.preferences || {}).privacy || ''} onChange={async (e) => { const res = await fetch(`${API_URL}/users/me/preferences`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ preferences: { ...(preferencesData?.preferences || {}), privacy: e.target.value } }) }); if (res.ok) { const d = await res.json(); setPreferencesData(d); } }} style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}>
                         <option value="public">Public</option>
                         <option value="friends">Friends</option>
                         <option value="private">Private</option>
@@ -2696,7 +2748,7 @@ const getDriverViewTitle = (viewType) => {
                   driverLocation={driverLocation}
                   driverVehicleType={(preferencesData?.preferences || {}).vehicleType || 'car'}
                   isFullscreen={false}
-                  onToggleFullscreen={() => {}}
+                  onToggleFullscreen={() => { }}
                 />
                 <div style={{ marginTop: '1rem', background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1rem' }}>
                   <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, marginBottom: '0.5rem' }}>Cost Estimate</h4>
@@ -2933,7 +2985,7 @@ const getDriverViewTitle = (viewType) => {
                   {currentUser?.role === 'driver'
                     ? viewType === 'active' ? t('driver.noActiveOrders')
                       : viewType === 'bidding' ? t('orders.noAvailableBids')
-                      : t('orders.noOrderHistory')
+                        : t('orders.noOrderHistory')
                     : t('orders.noOrdersAvailable')
                   }
                 </p>
@@ -2971,7 +3023,7 @@ const getDriverViewTitle = (viewType) => {
                         driverLocation={driverLocation}
                         driverVehicleType={driverPricing.vehicleType}
                         isFullscreen={false}
-                        onToggleFullscreen={() => {}}
+                        onToggleFullscreen={() => { }}
                       />
                     )}
 

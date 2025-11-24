@@ -81,21 +81,27 @@ body {
    MATRIX ANIMATIONS
    ============================================ */
 @keyframes matrix-glow {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 5px rgba(0, 255, 0, 0.2),
-                inset 0 0 5px rgba(0, 255, 0, 0.1);
+      inset 0 0 5px rgba(0, 255, 0, 0.1);
   }
+
   50% {
     box-shadow: 0 0 20px rgba(0, 255, 0, 0.4),
-                inset 0 0 10px rgba(0, 255, 0, 0.2);
+      inset 0 0 10px rgba(0, 255, 0, 0.2);
   }
 }
 
 @keyframes matrix-pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
     text-shadow: 0 0 5px var(--matrix-bright-green);
   }
+
   50% {
     opacity: 0.7;
     text-shadow: 0 0 15px var(--matrix-bright-green);
@@ -106,15 +112,29 @@ body {
   0% {
     background-position: 0% 0%;
   }
+
   100% {
     background-position: 100% 100%;
   }
 }
 
 @keyframes bell-ring {
-  0%, 100% { transform: rotate(0deg); }
-  10%, 30%, 50% { transform: rotate(-10deg); }
-  20%, 40% { transform: rotate(10deg); }
+
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  10%,
+  30%,
+  50% {
+    transform: rotate(-10deg);
+  }
+
+  20%,
+  40% {
+    transform: rotate(10deg);
+  }
 }
 
 /* ============================================
@@ -420,10 +440,27 @@ button:disabled,
 
 /* Mobile: Full width buttons by default */
 @media (max-width: 767px) {
+
   button,
   .btn {
     width: 100%;
   }
+
+  /* Override for password toggle button to prevent full width and extra padding */
+  .password-toggle-btn {
+    width: 2rem !important;
+    padding: 0 !important;
+    min-height: auto !important;
+    border: none !important;
+  }
+}
+
+/* Global override for password toggle button to ensure it works on desktop too */
+.password-toggle-btn {
+  width: 2rem !important;
+  padding: 0 !important;
+  min-height: auto !important;
+  border: none !important;
 }
 
 /* ============================================
@@ -448,6 +485,7 @@ button:disabled,
 
 /* Mobile: Reduce padding */
 @media (max-width: 767px) {
+
   .card,
   .order-card {
     padding: var(--spacing-md);
@@ -465,7 +503,8 @@ textarea {
   border: 2px solid var(--matrix-border);
   border-radius: var(--radius-sm);
   padding: var(--spacing-sm) var(--spacing-md);
-  font-size: 16px; /* Prevents iOS zoom */
+  font-size: 16px;
+  /* Prevents iOS zoom */
   font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
   width: 100%;
   transition: all 0.3s ease;
@@ -486,6 +525,7 @@ textarea::placeholder {
 
 /* Mobile: Ensure proper sizing */
 @media (max-width: 767px) {
+
   input,
   select,
   textarea {
@@ -777,7 +817,9 @@ textarea::placeholder {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ============================================
@@ -865,7 +907,9 @@ tr {
 }
 
 @keyframes routeDash {
-  to { stroke-dashoffset: 16; }
+  to {
+    stroke-dashoffset: 16;
+  }
 }
 
 /* ============================================
@@ -877,6 +921,7 @@ tr {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
@@ -888,6 +933,7 @@ tr {
 
 /* Touch feedback */
 @media (hover: none) and (pointer: coarse) {
+
   button:active,
   .clickable:active {
     opacity: 0.7;
