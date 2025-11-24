@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useI18n } from '../i18n/i18nContext';
 
 export default function BrowseItems({ apiUrl }) {
+  const { t } = useI18n();
   const [q, setQ] = useState('');
   const [category, setCategory] = useState('');
   const [vendorId, setVendorId] = useState('');
@@ -55,22 +57,22 @@ export default function BrowseItems({ apiUrl }) {
   return (
     <div style={{ border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1rem', background: '#F9FAFB' }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.5rem', marginBottom: '0.5rem' }}>
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Keyword" style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
-        <input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Category" style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
-        <input value={vendorId} onChange={(e) => setVendorId(e.target.value)} placeholder="Vendor ID" style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
-        <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="City" style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('common.keyword')} style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
+        <input value={category} onChange={(e) => setCategory(e.target.value)} placeholder={t('common.category')} style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
+        <input value={vendorId} onChange={(e) => setVendorId(e.target.value)} placeholder={t('common.vendorId')} style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
+        <input value={city} onChange={(e) => setCity(e.target.value)} placeholder={t('orders.city')} style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
         <select value={sort} onChange={(e) => setSort(e.target.value)} style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}>
           <option value="recent">Recent</option>
-          <option value="price_asc">Price Asc</option>
-          <option value="price_desc">Price Desc</option>
+          <option value="price_asc">{t('common.priceAsc')}</option>
+          <option value="price_desc">{t('common.priceDesc')}</option>
         </select>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem', marginBottom: '0.5rem' }}>
-        <input value={lat} onChange={(e) => setLat(e.target.value)} placeholder="Lat" style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
-        <input value={lng} onChange={(e) => setLng(e.target.value)} placeholder="Lng" style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
-        <input value={radiusKm} onChange={(e) => setRadiusKm(e.target.value)} placeholder="Radius km" style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
+        <input value={lat} onChange={(e) => setLat(e.target.value)} placeholder={t('common.lat')} style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
+        <input value={lng} onChange={(e) => setLng(e.target.value)} placeholder={t('common.lng')} style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
+        <input value={radiusKm} onChange={(e) => setRadiusKm(e.target.value)} placeholder={t('common.radius')} style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button onClick={() => { setUseNear(false); fetchData(); }} style={{ padding: '0.5rem 1rem', background: '#4F46E5', color: 'white', border: 'none', borderRadius: '0.375rem' }}>Search</button>
+          <button onClick={() => { setUseNear(false); fetchData(); }} style={{ padding: '0.5rem 1rem', background: '#4F46E5', color: 'white', border: 'none', borderRadius: '0.375rem' }}>{t('common.search')}</button>
           <button onClick={() => { setUseNear(true); fetchData(); }} style={{ padding: '0.5rem 1rem', background: '#10B981', color: 'white', border: 'none', borderRadius: '0.375rem' }}>Near</button>
         </div>
       </div>
