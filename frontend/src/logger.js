@@ -11,7 +11,7 @@ class FrontendLogger {
     };
 
     // Set default log level based on environment
-    this.currentLevel = process.env.NODE_ENV === 'production' ? 'warn' : 'debug';
+    this.currentLevel = process.env.NODE_ENV === 'production' ? 'warn' : 'warn'; // Changed to 'warn' to reduce console spam
 
     // Bind methods to preserve context
     this.error = this.error.bind(this);

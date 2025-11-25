@@ -38,7 +38,7 @@ const createPulseIcon = () => {
     `,
     className: '',
     iconSize: [size, size],
-    iconAnchor: [Math.floor(size/2), Math.floor(size/2)],
+    iconAnchor: [Math.floor(size / 2), Math.floor(size / 2)],
     popupAnchor: [0, -size]
   });
 };
@@ -59,10 +59,13 @@ const OrdersMap = ({
   driverLocation,
   radiusKm,
   onRadiusChange,
-  onSelectOrder
+  onSelectOrder,
+  theme = 'dark'
 }) => {
   const hasDriver = driverLocation && Number.isFinite(driverLocation.latitude) && Number.isFinite(driverLocation.longitude);
   const center = hasDriver ? [driverLocation.latitude, driverLocation.longitude] : [30.0444, 31.2357];
+
+  const tileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
 
   return (
     <div style={{ background: '#fff', borderRadius: '0.5rem', border: '1px solid #e5e7eb', overflow: 'hidden' }}>
@@ -84,8 +87,8 @@ const OrdersMap = ({
       <div style={{ height: '60vh', width: '100%' }}>
         <MapContainer center={center} zoom={13} style={{ height: '100%', width: '100%' }}>
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            url={tileUrl}
           />
 
           {hasDriver && (

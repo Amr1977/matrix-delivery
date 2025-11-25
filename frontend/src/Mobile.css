@@ -435,7 +435,79 @@ html {
   -webkit-tap-highlight-color: rgba(79, 70, 229, 0.1);
 }
 
-/* RTL Support */
+/* Mobile Nav Bar */
+.mobile-nav-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background-color: var(--matrix-black);
+  border-top: 1px solid var(--matrix-border);
+  padding: 0.5rem 0;
+  z-index: 1000;
+  box-shadow: 0 -2px 10px rgba(0, 255, 0, 0.1);
+}
+
+.mobile-nav-bar .nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--matrix-green);
+  font-size: 0.75rem;
+  text-decoration: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease-in-out;
+  background: none;
+  border: none;
+  cursor: pointer;
+  position: relative;
+}
+
+.mobile-nav-bar .nav-item:hover,
+.mobile-nav-bar .nav-item:focus {
+  color: var(--matrix-bright-green);
+  background-color: rgba(0, 255, 0, 0.1);
+  outline: none;
+}
+
+.mobile-nav-bar .nav-item svg {
+  width: 24px;
+  height: 24px;
+  margin-bottom: 0.25rem;
+  color: var(--matrix-green);
+}
+
+.mobile-nav-bar .nav-item:hover svg,
+.mobile-nav-bar .nav-item:focus svg {
+  color: var(--matrix-bright-green);
+}
+
+.mobile-nav-bar .nav-item .notification-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: red;
+  color: white;
+  border-radius: 50%;
+  padding: 2px 6px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  min-width: 20px;
+  text-align: center;
+}
+
+/* Hide on desktop */
+@media (min-width: 768px) {
+  .mobile-nav-bar {
+    display: none !important;
+  }
+}
+
+/* RTL Support 
 [dir="rtl"] {
   text-align: right;
 }

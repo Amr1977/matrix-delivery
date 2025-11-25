@@ -7,6 +7,8 @@ import OrderCreationForm from './updated-order-creation-form';
 import LiveTrackingMapView from './components/maps/LiveTrackingMap';
 import DriverBiddingMap from './components/maps/DriverBiddingMap';
 import OrdersMap from './components/maps/OrdersMap';
+import RoutePreviewMap from './components/RoutePreviewMap';
+import AsyncOrderMap from './components/AsyncOrderMap';
 import io from 'socket.io-client';
 import ReCAPTCHA from 'react-google-recaptcha';
 import logger from './logger';
@@ -15,6 +17,7 @@ import './MatrixTheme.css';
 import BrowseVendors from './components/BrowseVendors';
 import BrowseItems from './components/BrowseItems';
 import VendorSelfDashboard from './components/VendorSelfDashboard';
+import MobileNavBar from './components/MobileNavBar';
 
 
 // Location data state and API functions
@@ -57,7 +60,11 @@ const DeliveryApp = () => {
   const [footerStats, setFooterStats] = useState(null);
 
   const [showProfile, setShowProfile] = useState(false);
-  const [profileData, setProfileData] = useState(null);
+  const [profileData, setProfileData] = useState(() => {
+    // Try to load theme from local storage on initial render
+    const savedTheme = localStorage.getItem('matrix_theme');
+    return savedTheme ? { theme: savedTheme } : null;
+  });
   const [preferencesData, setPreferencesData] = useState(null);
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [favorites, setFavorites] = useState([]);
@@ -356,17 +363,6 @@ const DeliveryApp = () => {
       const data = await response.json();
 
       const ordersWithBids = data.filter(order => order.bids && order.bids.length > 0);
-      if (ordersWithBids.length > 0) {
-        console.log('📡 Orders with bids found:', ordersWithBids.length);
-        ordersWithBids.forEach(order => {
-          console.log(`  📦 Order ${order._id}: ${order.bids.length} bids`);
-          order.bids.forEach((bid, i) => {
-            console.log(`    ${i + 1}. ${bid.driverName}: $${bid.bidPrice}`);
-          });
-        });
-      } else {
-        console.log('📡 No orders with bids found');
-      }
 
       setOrders(data);
     } catch (err) {
@@ -1891,7 +1887,10 @@ const DeliveryApp = () => {
           </div>
 
           {/* Desktop Actions - Hidden on Mobile */}
-          <div className="header-actions">
+          <div className="header-actions desktop-only">
+
+
+
             <LanguageSwitcher locale={locale} changeLocale={changeLocale} />
 
             <a
@@ -2054,9 +2053,56 @@ const DeliveryApp = () => {
 
         {/* Desktop Notification Panel */}
         {showNotifications && (
-          <div className="notification-panel">
-            <div style={{ padding: 'var(--spacing-md)', borderBottom: '2px solid var(--matrix-border)' }}>
+          <div
+            className="notification-panel"
+            ref={(el) => {
+              if (el && !el.dataset.listenerAdded) {
+                el.dataset.listenerAdded = 'true';
+                const handleClickOutside = (e) => {
+                  if (!el.contains(e.target) && !e.target.closest('.notification-bell')) {
+                    setShowNotifications(false);
+                  }
+                };
+                setTimeout(() => document.addEventListener('click', handleClickOutside), 0);
+                el._cleanup = () => document.removeEventListener('click', handleClickOutside);
+              }
+            }}
+          >
+            <div style={{ padding: 'var(--spacing-md)', borderBottom: '2px solid var(--matrix-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h3 style={{ fontWeight: '600', fontSize: '1rem', color: 'var(--matrix-bright-green)' }}>Notifications</h3>
+              {notifications.some(n => !n.isRead) && (
+                <button
+                  className="notification-bell"
+                  onClick={() => {
+                    notifications.forEach(n => {
+                      if (!n.isRead) markNotificationRead(n.id);
+                    });
+                  }}
+                  style={{
+                    background: 'linear-gradient(135deg, #4F46E5 0%, #8B5CF6 50%, #4F46E5 100%)',
+                    color: '#FFFFFF',
+                    border: '2px solid #4F46E5',
+                    borderRadius: 'var(--radius-md)',
+                    cursor: 'pointer',
+                    fontSize: '0.875rem',
+                    fontWeight: '600',
+                    minHeight: '44px',
+                    padding: '0.5rem 1rem',
+                    fontFamily: 'Consolas, Monaco, Courier New, monospace',
+                    boxShadow: '0 0 10px rgba(79, 70, 229, 0.5)',
+                    textShadow: '0 0 5px rgba(139, 92, 246, 0.5)',
+                    position: 'relative'
+                  }}
+                  onMouseOver={(e) => {
+                    e.target.style.boxShadow = '0 0 15px rgba(79, 70, 229, 0.8)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.target.style.boxShadow = '0 0 10px rgba(79, 70, 229, 0.5)';
+                  }}
+                >
+                  ✓ Mark All Read
+                </button>
+              )}
             </div>
             {notifications.length === 0 ? (
               <p style={{ padding: 'var(--spacing-md)', textAlign: 'center', color: 'var(--matrix-green)' }}>No notifications</p>
@@ -2112,36 +2158,30 @@ const DeliveryApp = () => {
                 <LanguageSwitcher locale={locale} changeLocale={changeLocale} />
               </div>
 
-              {/* Notifications */}
+              {/* Mobile Menu Action Buttons */}
               <div className="mobile-menu-section">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-sm)' }}>
-                  <h4 style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--matrix-bright-green)' }}>
-                    Notifications
-                  </h4>
-                  {unreadCount > 0 && (
-                    <span className="notification-badge">{unreadCount}</span>
-                  )}
+                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                  <button className="nav-item" onClick={() => {
+                    setShowNotifications(prev => !prev);
+                    setShowMobileMenu(false);
+                  }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: 'var(--matrix-green)', background: 'none', border: 'none', cursor: 'pointer', padding: '0.5rem' }}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 22c1.1 0 2-0.9 2-2h-4c0 1.1 0.9 2 2 2zM18 16v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-0.83-0.67-1.5-1.5-1.5S10.5 3.17 10.5 4v0.68C7.63 5.36 6 7.93 6 11v5l-2 2v1h16v-1l-2-2z" fill="currentColor" />
+                    </svg>
+                    {notifications.filter(n => !n.isRead).length > 0 && <span style={{ background: '#EF4444', color: 'white', padding: '0.125rem 0.375rem', borderRadius: '9999px', fontSize: '0.625rem', fontWeight: '600', position: 'absolute', top: '0.25rem', right: '0.25rem' }}>{notifications.filter(n => !n.isRead).length}</span>}
+                    <span style={{ fontSize: '0.75rem', marginTop: '0.25rem' }}>{t('common.notifications')}</span>
+                  </button>
+
+                  <button className="nav-item" onClick={() => {
+                    setShowProfile(prev => !prev);
+                    setShowMobileMenu(false);
+                  }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: 'var(--matrix-green)', background: 'none', border: 'none', cursor: 'pointer', padding: '0.5rem' }}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="currentColor" />
+                    </svg>
+                    <span style={{ fontSize: '0.75rem', marginTop: '0.25rem' }}>{t('common.profile')}</span>
+                  </button>
                 </div>
-                {notifications.length === 0 ? (
-                  <p style={{ fontSize: '0.875rem', color: 'var(--matrix-green)' }}>No notifications</p>
-                ) : (
-                  <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
-                    {notifications.slice(0, 5).map((notif) => (
-                      <div
-                        key={notif.id}
-                        onClick={() => {
-                          markNotificationRead(notif.id);
-                          setShowMobileMenu(false);
-                        }}
-                        className={`notification-item ${!notif.isRead ? 'unread' : ''}`}
-                        style={{ padding: 'var(--spacing-sm)', marginBottom: 'var(--spacing-xs)' }}
-                      >
-                        <p style={{ fontWeight: '600', fontSize: '0.75rem', color: 'var(--matrix-bright-green)' }}>{notif.title}</p>
-                        <p style={{ fontSize: '0.75rem', color: 'var(--matrix-green)' }}>{notif.message}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
 
               {/* Logout Button */}
@@ -2201,7 +2241,19 @@ const DeliveryApp = () => {
                     </div>
                     <div>
                       <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600 }}>Theme</label>
-                      <select value={profileData.theme || ''} onChange={async (e) => { try { const res = await fetch(`${API_URL}/users/me/profile`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ theme: e.target.value }) }); if (!res.ok) throw new Error('Failed'); const d = await res.json(); setProfileData(prev => ({ ...prev, ...d.user })); } catch (err) { setError(err.message); } }} style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}>
+                      <select value={profileData.theme || ''} onChange={async (e) => {
+                        const newTheme = e.target.value;
+                        // Save to local storage immediately
+                        if (newTheme) localStorage.setItem('matrix_theme', newTheme);
+                        else localStorage.removeItem('matrix_theme');
+
+                        try {
+                          const res = await fetch(`${API_URL}/users/me/profile`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ theme: newTheme }) });
+                          if (!res.ok) throw new Error('Failed');
+                          const d = await res.json();
+                          setProfileData(prev => ({ ...prev, ...d.user }));
+                        } catch (err) { setError(err.message); }
+                      }} style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}>
                         <option value="">System</option>
                         <option value="dark">Dark</option>
                         <option value="light">Light</option>
@@ -3038,6 +3090,15 @@ const DeliveryApp = () => {
                       <p style={{ fontSize: '0.875rem', color: '#6B7280', marginBottom: '0.75rem' }}>{order.description}</p>
                     )}
 
+                    {/* Route Preview Map for all orders */}
+                    <div style={{ height: '200px', marginBottom: '1rem', borderRadius: '0.5rem', overflow: 'hidden', border: '1px solid #E5E7EB' }}>
+                      <AsyncOrderMap
+                        order={order}
+                        currentUser={currentUser}
+                        theme={profileData?.theme || 'dark'}
+                      />
+                    </div>
+
                     {currentUser?.role === 'driver' && viewType === 'bidding' && (
                       <DriverBiddingMap
                         order={order}
@@ -3645,6 +3706,12 @@ const DeliveryApp = () => {
             </div>
           </div>
         </div>
+        <MobileNavBar
+          unreadCount={notifications.filter(n => !n.isRead).length}
+          setShowNotifications={setShowNotifications}
+          setShowProfile={setShowProfile}
+          toggleMobileMenu={toggleMobileMenu}
+        />
       </footer>
     </div>
   );

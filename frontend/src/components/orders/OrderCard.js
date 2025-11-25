@@ -25,6 +25,18 @@ const OrderCard = ({
   const { t } = useI18n();
   const [showRouteMapFullscreen, setShowRouteMapFullscreen] = React.useState(false);
 
+  // Always log order data to debug
+  window.console.log('🎯 OrderCard Rendered:', {
+    orderId: order._id,
+    orderNumber: order.orderNumber,
+    status: order.status,
+    userRole: currentUser?.role,
+    hasRoutePolyline: !!order.routePolyline,
+    polylineLength: order.routePolyline?.length || 0,
+    estimatedDistanceKm: order.estimatedDistanceKm,
+    willShowMap: order.status === 'pending_bids' && currentUser?.role === 'customer'
+  });
+
   const statusColor = getStatusColor(order.status);
   const isDriverAssigned = order.assignedDriver?.userId === currentUser?.id;
 
@@ -102,9 +114,33 @@ const OrderCard = ({
           marginBottom: '1rem',
           marginTop: '0.5rem'
         }}>
+          {(() => {
+            const debugInfo = {
+              mapType: 'Customer Order Card - Pending Bids',
+              orderId: order._id,
+              orderNumber: order.orderNumber,
+              hasRoutePolyline: !!order.routePolyline,
+              polylineLength: order.routePolyline?.length || 0,
+              polylinePreview: order.routePolyline?.substring(0, 50),
+              estimatedDistanceKm: order.estimatedDistanceKm,
+              hasFrom: !!order.from,
+              hasTo: !!order.to,
+              fromCoords: order.from,
+              toCoords: order.to
+            };
+            // Force console.log to show
+            window.console.log('📦 [CUSTOMER PENDING] OrderCard - Order data:', debugInfo);
+            return null;
+          })()}
           <RoutePreviewMap
             pickup={order.from}
             dropoff={order.to}
+            routeInfo={{
+              polyline: order.routePolyline,
+              distance_km: order.estimatedDistanceKm,
+              route_found: !!order.routePolyline,
+              osrm_used: !!order.routePolyline
+            }}
             compact={true}
           />
         </div>
@@ -613,6 +649,12 @@ const OrderCard = ({
           <RoutePreviewMap
             pickup={order.from}
             dropoff={order.to}
+            routeInfo={{
+              polyline: order.routePolyline,
+              distance_km: order.estimatedDistanceKm,
+              route_found: !!order.routePolyline,
+              osrm_used: !!order.routePolyline
+            }}
             compact={true}
           />
         </div>

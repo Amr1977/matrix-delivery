@@ -65,7 +65,7 @@ const createCustomIcon = (iconType, color) => {
   });
 };
 
-const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType = 'car', isFullscreen = false, onToggleFullscreen }) => {
+const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType = 'car', isFullscreen = false, onToggleFullscreen, theme = 'dark' }) => {
   const [routePath, setRoutePath] = React.useState([]);
   const [routeInfo, setRouteInfo] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
@@ -73,6 +73,8 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
   const [pickupCoords, setPickupCoords] = React.useState(null);
   const [dropoffCoords, setDropoffCoords] = React.useState(null);
   const hasDriverCoords = !!(driverCoords && Number.isFinite(driverCoords.lat) && Number.isFinite(driverCoords.lng));
+
+  const tileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
 
   // Parse order locations (handle both old and new formats)
   React.useEffect(() => {
@@ -147,7 +149,7 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
         setDriverCoords({ lat: 30.0444, lng: 31.2357, accuracy: 1000 });
       }
       setLoading(false);
-  } else {
+    } else {
       // If no geolocation available, use order pickup or default location
       if (pickupCoords) {
         setDriverCoords({
@@ -256,10 +258,10 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
     const R = 6371; // Earth's radius in km
     const dLat = (point2.lat - point1.lat) * Math.PI / 180;
     const dLng = (point2.lng - point1.lng) * Math.PI / 180;
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
       Math.cos(point1.lat * Math.PI / 180) * Math.cos(point2.lat * Math.PI / 180) *
-      Math.sin(dLng/2) * Math.sin(dLng/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c; // Distance in km
   };
 
@@ -321,8 +323,8 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
         maxWidth: '800px',
         wordWrap: 'break-word'
       }}>
-        DEBUG: Map showing for order {order.title || order.orderNumber || order._id}<br/>
-        <strong>Order Status:</strong> {order.status}<br/>
+        DEBUG: Map showing for order {order.title || order.orderNumber || order._id}<br />
+        <strong>Order Status:</strong> {order.status}<br />
         <strong>Order Data:</strong> {JSON.stringify({
           hasPickupLocation: !!order.pickupLocation,
           hasPickupCoords: !!order.pickupLocation?.coordinates,
@@ -334,7 +336,7 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
           dropoffLng: order.dropoffLocation?.coordinates?.lng,
           hasLegacyFrom: !!order.from,
           hasLegacyTo: !!order.to
-        }, null, 0)}<br/>
+        }, null, 0)}<br />
         <strong>Driver Coords:</strong> {hasDriverCoords ? `Lat:${driverCoords.lat.toFixed(4)}, Lng:${driverCoords.lng.toFixed(4)}` : 'None'}
       </div>
 
@@ -400,8 +402,8 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
         >
           <MapView />
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            url={tileUrl}
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
             maxZoom={19}
             minZoom={1}
             updateWhenIdle={false}
@@ -537,7 +539,7 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
                 📍 Route Segments
               </div>
               <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-                You → Pickup: {routeInfo.driverToPickupDistance} km<br/>
+                You → Pickup: {routeInfo.driverToPickupDistance} km<br />
                 Pickup → Dropoff: {routeInfo.pickupToDropoffDistance} km
               </div>
             </div>
@@ -618,7 +620,7 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
                 driverLocation={driverLocation}
                 driverVehicleType={driverVehicleType}
                 isFullscreen={false}
-                onToggleFullscreen={() => {}}
+                onToggleFullscreen={() => { }}
               />
             </div>
           </div>

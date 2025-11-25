@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import 'leaflet/dist/leaflet.css';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
+import polyline from '@mapbox/polyline';
+import { ClickableMap } from '../FullscreenMapModal';
 import api from '../../api';
 
 const MAP_DEFAULT_CENTER = [30.0444, 31.2357];
@@ -103,7 +105,7 @@ const MapBoundsUpdater = ({ trackingData }) => {
 };
 
 // ========== LIVE TRACKING MAP COMPONENT ==========
-const LiveTrackingMap = ({ orderId, t, compact = false }) => {
+const LiveTrackingMap = ({ orderId, t, compact = false, theme = 'dark' }) => {
   const [trackingData, setTrackingData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -111,6 +113,8 @@ const LiveTrackingMap = ({ orderId, t, compact = false }) => {
   const mapRef = useRef(null);
   const [currentAddress, setCurrentAddress] = useState('');
   const [orderMeta, setOrderMeta] = useState(null);
+
+  const tileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
 
   // Fetch tracking data
   const fetchTrackingData = useCallback(async () => {
@@ -131,7 +135,7 @@ const LiveTrackingMap = ({ orderId, t, compact = false }) => {
               return;
             }
           }
-        } catch (_) {}
+        } catch (_) { }
       } else {
         if (orderMeta.status === 'pending_bids') {
           setError('Tracking is unavailable until a bid is accepted');
@@ -218,7 +222,7 @@ const LiveTrackingMap = ({ orderId, t, compact = false }) => {
             setCurrentAddress(data.display_name);
           }
         })
-        .catch(() => {});
+        .catch(() => { });
     } else {
       setCurrentAddress('');
     }
@@ -343,24 +347,45 @@ const LiveTrackingMap = ({ orderId, t, compact = false }) => {
   const deliveryLoc = trackingData?.delivery?.location;
   const currentLoc = trackingData?.currentLocation;
 
-  const expectedToPickup = (trackingData?.status === 'accepted' && currentLoc && pickupLoc)
-    ? [[currentLoc.lat, currentLoc.lng], [pickupLoc.lat, pickupLoc.lng]]
-    : [];
+  // Try to use OSRM route polyline if available, otherwise fall back to straight line
+  let expectedToPickup = [];
+  let expectedToDelivery = [];
 
-  const expectedToDelivery = (
-    (trackingData?.status === 'accepted' && pickupLoc && deliveryLoc) ||
-    ((trackingData?.status === 'picked_up' || trackingData?.status === 'in_transit') && currentLoc && deliveryLoc)
-  )
-    ? (
-        trackingData.status === 'accepted'
-          ? [[pickupLoc.lat, pickupLoc.lng], [deliveryLoc.lat, deliveryLoc.lng]]
-          : [[currentLoc.lat, currentLoc.lng], [deliveryLoc.lat, deliveryLoc.lng]]
-      )
-    : [];
+  // Decode route polyline if available from order data
+  if (trackingData?.routePolyline) {
+    try {
+      const decodedRoute = polyline.decode(trackingData.routePolyline);
+      // Use the full route for expected delivery path
+      if (trackingData?.status === 'accepted' && pickupLoc && deliveryLoc) {
+        expectedToDelivery = decodedRoute;
+      } else if ((trackingData?.status === 'picked_up' || trackingData?.status === 'in_transit') && currentLoc && deliveryLoc) {
+        // For in-transit, show route from current location to delivery
+        // Note: This is still the original route, ideally we'd recalculate from current position
+        expectedToDelivery = decodedRoute;
+      }
+    } catch (error) {
+      console.warn('Failed to decode route polyline:', error);
+    }
+  }
 
-  return (
+  // Fallback to straight lines if no polyline or decoding failed
+  if (expectedToPickup.length === 0 && trackingData?.status === 'accepted' && currentLoc && pickupLoc) {
+    expectedToPickup = [[currentLoc.lat, currentLoc.lng], [pickupLoc.lat, pickupLoc.lng]];
+  }
+
+  if (expectedToDelivery.length === 0) {
+    if (trackingData?.status === 'accepted' && pickupLoc && deliveryLoc) {
+      expectedToDelivery = [[pickupLoc.lat, pickupLoc.lng], [deliveryLoc.lat, deliveryLoc.lng]];
+    } else if ((trackingData?.status === 'picked_up' || trackingData?.status === 'in_transit') && currentLoc && deliveryLoc) {
+      expectedToDelivery = [[currentLoc.lat, currentLoc.lng], [deliveryLoc.lat, deliveryLoc.lng]];
+    }
+  }
+
+  const hasOsrmRoute = !!trackingData?.routePolyline;
+
+  const mapContent = (
     <div style={{
-      background: 'rgba(0, 17, 0, 0.8)',
+      background: 'transparent',
       border: '2px solid var(--matrix-border)',
       padding: compact ? '1rem' : '2rem',
       borderRadius: '0.5rem',
@@ -393,7 +418,7 @@ const LiveTrackingMap = ({ orderId, t, compact = false }) => {
           }}>
             Status: <span style={{
               color: trackingData.status === 'in_transit' ? '#10B981' :
-                     trackingData.status === 'picked_up' ? '#F59E0B' : '#6B7280',
+                trackingData.status === 'picked_up' ? '#F59E0B' : '#6B7280',
               fontWeight: 'bold'
             }}>
               {trackingData.status.replace(/_/g, ' ').toUpperCase()}
@@ -410,38 +435,38 @@ const LiveTrackingMap = ({ orderId, t, compact = false }) => {
           const etaMinutes = distanceKm ? Math.ceil((distanceKm / speedKmh) * 60) : null;
           return (distanceKm && etaMinutes);
         })() && (
-          <div style={{
-            background: 'rgba(239, 68, 68, 0.1)',
-            border: '1px solid #EF4444',
-            padding: '0.75rem',
-            borderRadius: '0.375rem',
-            textAlign: 'center'
-          }}>
-            <p style={{ margin: '0 0 0.25rem 0', fontSize: '0.875rem', color: '#F3F4F6' }}>
-              To {trackingData.status === 'accepted' ? 'pickup' : 'delivery'}
-            </p>
-            <p style={{ margin: 0, fontSize: '1.125rem', fontWeight: 'bold' }}>
-              {(() => {
-                const nextType = trackingData.status === 'accepted' ? 'pickup' : 'delivery';
-                const nextLoc = nextType === 'pickup' ? trackingData.pickup?.location : trackingData.delivery?.location;
-                const cur = trackingData.currentLocation;
-                const distanceKm = cur && nextLoc ? haversineKm({ lat: cur.lat, lng: cur.lng }, { lat: nextLoc.lat, lng: nextLoc.lng }) : null;
-                return formatDistance(distanceKm);
-              })()}
-            </p>
-            <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.75rem', color: '#9CA3AF' }}>
-              {(() => {
-                const nextType = trackingData.status === 'accepted' ? 'pickup' : 'delivery';
-                const nextLoc = nextType === 'pickup' ? trackingData.pickup?.location : trackingData.delivery?.location;
-                const cur = trackingData.currentLocation;
-                const distanceKm = cur && nextLoc ? haversineKm({ lat: cur.lat, lng: cur.lng }, { lat: nextLoc.lat, lng: nextLoc.lng }) : null;
-                const speedKmh = AVERAGE_CITY_SPEED_KMH_FOR_ETA;
-                const etaMinutes = distanceKm ? Math.ceil((distanceKm / speedKmh) * 60) : null;
-                return formatTime(etaMinutes);
-              })()} ETA
-            </p>
-          </div>
-        )}
+            <div style={{
+              background: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid #EF4444',
+              padding: '0.75rem',
+              borderRadius: '0.375rem',
+              textAlign: 'center'
+            }}>
+              <p style={{ margin: '0 0 0.25rem 0', fontSize: '0.875rem', color: '#F3F4F6' }}>
+                To {trackingData.status === 'accepted' ? 'pickup' : 'delivery'}
+              </p>
+              <p style={{ margin: 0, fontSize: '1.125rem', fontWeight: 'bold' }}>
+                {(() => {
+                  const nextType = trackingData.status === 'accepted' ? 'pickup' : 'delivery';
+                  const nextLoc = nextType === 'pickup' ? trackingData.pickup?.location : trackingData.delivery?.location;
+                  const cur = trackingData.currentLocation;
+                  const distanceKm = cur && nextLoc ? haversineKm({ lat: cur.lat, lng: cur.lng }, { lat: nextLoc.lat, lng: nextLoc.lng }) : null;
+                  return formatDistance(distanceKm);
+                })()}
+              </p>
+              <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.75rem', color: '#9CA3AF' }}>
+                {(() => {
+                  const nextType = trackingData.status === 'accepted' ? 'pickup' : 'delivery';
+                  const nextLoc = nextType === 'pickup' ? trackingData.pickup?.location : trackingData.delivery?.location;
+                  const cur = trackingData.currentLocation;
+                  const distanceKm = cur && nextLoc ? haversineKm({ lat: cur.lat, lng: cur.lng }, { lat: nextLoc.lat, lng: nextLoc.lng }) : null;
+                  const speedKmh = AVERAGE_CITY_SPEED_KMH_FOR_ETA;
+                  const etaMinutes = distanceKm ? Math.ceil((distanceKm / speedKmh) * 60) : null;
+                  return formatTime(etaMinutes);
+                })()} ETA
+              </p>
+            </div>
+          )}
       </div>
 
       {/* Route steps */}
@@ -518,17 +543,17 @@ const LiveTrackingMap = ({ orderId, t, compact = false }) => {
       {/* Map */}
       <div style={{ height: compact ? '300px' : '500px', marginBottom: '1rem', borderRadius: '0.5rem', overflow: 'hidden' }}>
         <MapContainer
-          center={center}
+          center={MAP_DEFAULT_CENTER}
           zoom={MAP_DEFAULT_ZOOM}
-          style={{ height: '100%', width: '100%' }}
+          style={{ width: '100%', height: '100%' }}
+          zoomControl={false}
           ref={mapRef}
         >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-
           <MapBoundsUpdater trackingData={trackingData} />
+          <TileLayer
+            url={tileUrl}
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          />
 
           {expectedToPickup.length === 2 && (
             <Polyline
@@ -632,10 +657,22 @@ const LiveTrackingMap = ({ orderId, t, compact = false }) => {
           <span>🚗 Driver</span>
         </div>
         <div>
-          Auto-refreshing every {['accepted','picked_up','in_transit'].includes(trackingData.status) ? `${LIVE_TRACK_REFRESH_INTERVAL_MS_ACTIVE/1000} seconds` : `${LIVE_TRACK_REFRESH_INTERVAL_MS_IDLE/1000} seconds`}
+          Auto-refreshing every {['accepted', 'picked_up', 'in_transit'].includes(trackingData.status) ? `${LIVE_TRACK_REFRESH_INTERVAL_MS_ACTIVE / 1000} seconds` : `${LIVE_TRACK_REFRESH_INTERVAL_MS_IDLE / 1000} seconds`}
         </div>
       </div>
     </div>
+  );
+
+  return (
+    <ClickableMap
+      title={`Live Tracking - Order ${trackingData.orderNumber}`}
+      osrmSuccess={hasOsrmRoute}
+      routeDistance={trackingData?.estimatedDistanceKm}
+      routeFound={hasOsrmRoute}
+      compact={compact}
+    >
+      {mapContent}
+    </ClickableMap>
   );
 };
 

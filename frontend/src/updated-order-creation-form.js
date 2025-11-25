@@ -484,7 +484,7 @@ const MessageModal = ({ isOpen, onClose, title, message, type }) => {
 
 const OrderCreationForm = ({ onSubmit, countries, t }) => {
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-  
+
   // Form state
   const [orderData, setOrderData] = useState({
     title: '',
@@ -496,7 +496,7 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
     special_instructions: '',
     estimated_delivery_date: ''
   });
-  
+
   // Location state
   const [pickupLocation, setPickupLocation] = useState(null);
   const [dropoffLocation, setDropoffLocation] = useState(null);
@@ -524,7 +524,7 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
     apartment: '',
     personName: ''
   });
-  
+
   // UI state
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [loading, setLoading] = useState(false);
@@ -544,7 +544,7 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-  
+
   // Get user location on mount
   useEffect(() => {
     if (navigator.geolocation) {
@@ -564,7 +564,7 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
       setUserLocation({ lat: 30.0444, lng: 31.2357 });
     }
   }, []);
-  
+
   // Calculate route when both locations are set
   const calculateRoute = useCallback(async () => {
     setLoading(true);
@@ -577,9 +577,18 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
           delivery: dropoffLocation.coordinates
         })
       });
-      
+
       if (!response.ok) throw new Error('Failed to calculate route');
       const data = await response.json();
+
+      console.log('🗺️ Route calculated:', {
+        distance: data.distance_km + ' km',
+        hasPolyline: !!data.polyline,
+        polylineLength: data.polyline?.length || 0,
+        routeFound: data.route_found,
+        osrmUsed: data.osrm_used
+      });
+
       setRouteInfo(data);
     } catch (err) {
       setModalState({ isOpen: true, type: 'error', title: 'Route Error', message: err.message || 'Failed to calculate route' });
@@ -593,13 +602,13 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
       calculateRoute();
     }
   }, [pickupLocation?.coordinates, dropoffLocation?.coordinates, calculateRoute]);
-  
-  
-  
+
+
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
 
     logger.user('Order creation form submitted', {
       hasTitle: !!orderData.title?.trim(),
@@ -656,7 +665,7 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
     });
 
     // Validate address fields for pickup and dropoff
-    const requiredFields = ['country','city','area','street','building','personName','personPhone'];
+    const requiredFields = ['country', 'city', 'area', 'street', 'building', 'personName', 'personPhone'];
     const computeErrors = (addr) => {
       const errs = {};
       requiredFields.forEach(f => {
@@ -724,7 +733,8 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
       pickupLocation,
       dropoffLocation,
       pickupAddress,
-      dropoffAddress
+      dropoffAddress,
+      routeInfo  // Include route info with OSRM polyline
     };
 
     logger.info('[COMPLETE_ORDER_DATA] Final order data structure analysis:', {
@@ -809,7 +819,7 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
       message: ''
     });
   };
-  
+
   return (
     <div className="card" style={{
       background: 'linear-gradient(135deg, #000000 0%, #001100 100%)',
@@ -829,7 +839,7 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
       }}>
         📦 {t('orders.createNewOrder')}
       </h2>
-      
+
       <form onSubmit={handleSubmit}>
         {/* Basic Order Details */}
         <div style={{ marginBottom: '1.5rem' }}>
@@ -863,7 +873,7 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
                 <input
                   type="text"
                   value={orderData.title}
-                  onChange={(e) => setOrderData({...orderData, title: e.target.value})}
+                  onChange={(e) => setOrderData({ ...orderData, title: e.target.value })}
                   placeholder="e.g., Deliver package to office"
                   required
                   style={{
@@ -895,7 +905,7 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
                 <input
                   type="number"
                   value={orderData.price}
-                  onChange={(e) => setOrderData({...orderData, price: e.target.value})}
+                  onChange={(e) => setOrderData({ ...orderData, price: e.target.value })}
                   placeholder="e.g., 50"
                   required
                   min="0"
@@ -928,7 +938,7 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
                 </label>
                 <textarea
                   value={orderData.description}
-                  onChange={(e) => setOrderData({...orderData, description: e.target.value})}
+                  onChange={(e) => setOrderData({ ...orderData, description: e.target.value })}
                   placeholder="Brief description of the delivery..."
                   rows="2"
                   style={{
@@ -947,7 +957,7 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
             </div>
           </div>
         </div>
-        
+
         {/* Location Selection - Combined Map + Manual Entry */}
         <div style={{ marginBottom: '1.5rem' }}>
           <div style={{
@@ -998,9 +1008,9 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
             </div>
           </div>
         </div>
-        
+
         {/* Route Preview removed to keep only two maps in the form */}
-        
+
         {/* Package Details */}
         <div style={{ marginBottom: '1.5rem' }}>
           <h3 style={{
@@ -1037,7 +1047,7 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
                 <input
                   type="text"
                   value={orderData.package_description}
-                  onChange={(e) => setOrderData({...orderData, package_description: e.target.value})}
+                  onChange={(e) => setOrderData({ ...orderData, package_description: e.target.value })}
                   placeholder="e.g., Documents, Electronics"
                   style={{
                     width: '100%',
@@ -1068,7 +1078,7 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
                 <input
                   type="number"
                   value={orderData.package_weight}
-                  onChange={(e) => setOrderData({...orderData, package_weight: e.target.value})}
+                  onChange={(e) => setOrderData({ ...orderData, package_weight: e.target.value })}
                   placeholder="e.g., 2.5"
                   min="0"
                   step="0.1"
@@ -1101,7 +1111,7 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
                 <input
                   type="number"
                   value={orderData.estimated_value}
-                  onChange={(e) => setOrderData({...orderData, estimated_value: e.target.value})}
+                  onChange={(e) => setOrderData({ ...orderData, estimated_value: e.target.value })}
                   placeholder="e.g., 100"
                   min="0"
                   step="0.01"
@@ -1134,7 +1144,7 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
                 <input
                   type="datetime-local"
                   value={orderData.estimated_delivery_date}
-                  onChange={(e) => setOrderData({...orderData, estimated_delivery_date: e.target.value})}
+                  onChange={(e) => setOrderData({ ...orderData, estimated_delivery_date: e.target.value })}
                   style={{
                     width: '100%',
                     height: '44px',
@@ -1163,7 +1173,7 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
                 </label>
                 <textarea
                   value={orderData.special_instructions}
-                  onChange={(e) => setOrderData({...orderData, special_instructions: e.target.value})}
+                  onChange={(e) => setOrderData({ ...orderData, special_instructions: e.target.value })}
                   placeholder="Any special handling instructions..."
                   rows="2"
                   style={{
@@ -1182,7 +1192,7 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
             </div>
           </div>
         </div>
-        
+
         {/* Submit Button */}
         <div style={{
           display: 'flex',
@@ -1228,7 +1238,7 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
             style={{
               padding: isMobile ? '0.625rem 1.25rem' : '0.75rem 1.5rem',
               background: (pickupLocation?.coordinates && dropoffLocation?.coordinates) ?
-                  'linear-gradient(135deg, #00AA00 0%, #30FF30 50%, #00AA00 100%)' : '#333333',
+                'linear-gradient(135deg, #00AA00 0%, #30FF30 50%, #00AA00 100%)' : '#333333',
               color: '#30FF30',
               border: '2px solid #00AA00',
               borderRadius: '0.375rem',
@@ -1238,7 +1248,7 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
               fontFamily: 'Consolas, Monaco, Courier New, monospace',
               opacity: (pickupLocation?.coordinates && dropoffLocation?.coordinates) ? 1 : 0.5,
               boxShadow: (pickupLocation?.coordinates && dropoffLocation?.coordinates) ?
-                  '0 0 20px rgba(0, 255, 0, 0.6)' : 'none',
+                '0 0 20px rgba(0, 255, 0, 0.6)' : 'none',
               transition: 'all 0.3s ease'
             }}
             onMouseOver={(e) => {
@@ -1279,16 +1289,16 @@ const MapLocationPicker = ({ location, onChange, onAddressFill, userLocation, ma
   const [showMap, setShowMap] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  
+
   const handleMapClick = async (coords) => {
     setLoading(true);
     setError('');
-    
+
     try {
       const response = await fetch(
         `${API_URL}/locations/reverse?lat=${coords.lat}&lng=${coords.lng}`
       );
-      
+
       if (!response.ok) throw new Error('Failed to geocode location');
       const data = await response.json();
       const loc = {
@@ -1323,20 +1333,20 @@ const MapLocationPicker = ({ location, onChange, onAddressFill, userLocation, ma
       setLoading(false);
     }
   };
-  
+
   const handleUrlPaste = async () => {
     if (!mapUrl.trim()) return;
-    
+
     setLoading(true);
     setError('');
-    
+
     try {
       const response = await fetch(`${API_URL}/locations/parse-maps-url`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: mapUrl })
       });
-      
+
       if (!response.ok) throw new Error('Invalid Google Maps URL');
       const data = await response.json();
       onChange(data);
@@ -1347,7 +1357,7 @@ const MapLocationPicker = ({ location, onChange, onAddressFill, userLocation, ma
       setLoading(false);
     }
   };
-  
+
   return (
     <div style={{
       background: '#F9FAFB',
@@ -1447,99 +1457,99 @@ const MapLocationPicker = ({ location, onChange, onAddressFill, userLocation, ma
           minWidth: '100%',
           cursor: 'zoom-in'
         }}>
-        {userLocation ? (
-          <MapContainer
-            center={location?.coordinates ? [location.coordinates.lat, location.coordinates.lng] : [userLocation.lat, userLocation.lng]}
-            zoom={15}
-            style={{
+          {userLocation ? (
+            <MapContainer
+              center={location?.coordinates ? [location.coordinates.lat, location.coordinates.lng] : [userLocation.lat, userLocation.lng]}
+              zoom={15}
+              style={{
+                height: '100%',
+                width: '100%',
+                zIndex: 1,
+                position: 'relative'
+              }}
+              whenReady={(map) => {
+                // Ensure map resizes properly and tiles load completely
+                setTimeout(() => {
+                  try {
+                    if (map && typeof map.invalidateSize === 'function') {
+                      map.invalidateSize();
+                      window.dispatchEvent(new Event('resize'));
+                    }
+                  } catch (error) {
+                    console.warn('Map invalidateSize failed:', error);
+                  }
+                }, 100);
+              }}
+              whenCreated={(map) => {
+                // Force tile loading when map is created
+                setTimeout(() => {
+                  try {
+                    if (map && typeof map.invalidateSize === 'function') {
+                      map.invalidateSize();
+                    }
+                  } catch (error) {
+                    console.warn('Map invalidateSize failed:', error);
+                  }
+                }, 200);
+              }}
+            >
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                maxZoom={19}
+                minZoom={1}
+                subdomains={['a', 'b', 'c']}
+                tileSize={256}
+                updateWhenZooming={true}
+                updateWhenIdle={false}
+                keepBuffer={4}
+                tms={false}
+                zoomReverse={false}
+                detectRetina={false}
+                maxNativeZoom={18}
+                minNativeZoom={0}
+                zoomOffset={0}
+                errorTileUrl="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjU2IiBoZWlnaHQ9IjI1NiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2IiBzdHJva2U9IiNiMmIyYjIiIHN0cm9rZS13aWR0aD0iMSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjE2IiBmaWxsPSIjNjY2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+TWlzc2luZyBUaWxlPC90ZXh0Pjwvc3ZnPg=="
+                crossOrigin={null}
+              />
+              <MapClickHandler onMapClick={handleMapClick} />
+              {location?.coordinates && (
+                <DraggableMarker
+                  key={`${location.coordinates.lat}-${location.coordinates.lng}`}
+                  position={[location.coordinates.lat, location.coordinates.lng]}
+                  icon={L.icon({
+                    iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${markerColor}.png`,
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    iconRetinaUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-${markerColor}.png`
+                  })}
+                  onDragEnd={async (newPos) => await handleMapClick(newPos)}
+                  isDragging={isDragging}
+                  setIsDragging={setIsDragging}
+                >
+                  <Popup>
+                    <strong>{locationType === 'pickup' ? t('orders.pickup') : t('orders.delivery')}</strong><br />
+                    {location.displayName}
+                  </Popup>
+                </DraggableMarker>
+              )}
+              <MapUpdater center={location?.coordinates || userLocation} />
+            </MapContainer>
+          ) : (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
               height: '100%',
               width: '100%',
-              zIndex: 1,
-              position: 'relative'
-            }}
-            whenReady={(map) => {
-              // Ensure map resizes properly and tiles load completely
-              setTimeout(() => {
-                try {
-                  if (map && typeof map.invalidateSize === 'function') {
-                    map.invalidateSize();
-                    window.dispatchEvent(new Event('resize'));
-                  }
-                } catch (error) {
-                  console.warn('Map invalidateSize failed:', error);
-                }
-              }, 100);
-            }}
-            whenCreated={(map) => {
-              // Force tile loading when map is created
-              setTimeout(() => {
-                try {
-                  if (map && typeof map.invalidateSize === 'function') {
-                    map.invalidateSize();
-                  }
-                } catch (error) {
-                  console.warn('Map invalidateSize failed:', error);
-                }
-              }, 200);
-            }}
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              maxZoom={19}
-              minZoom={1}
-              subdomains={['a', 'b', 'c']}
-              tileSize={256}
-              updateWhenZooming={true}
-              updateWhenIdle={false}
-              keepBuffer={4}
-              tms={false}
-              zoomReverse={false}
-              detectRetina={false}
-              maxNativeZoom={18}
-              minNativeZoom={0}
-              zoomOffset={0}
-              errorTileUrl="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjU2IiBoZWlnaHQ9IjI1NiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2IiBzdHJva2U9IiNiMmIyYjIiIHN0cm9rZS13aWR0aD0iMSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjE2IiBmaWxsPSIjNjY2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+TWlzc2luZyBUaWxlPC90ZXh0Pjwvc3ZnPg=="
-              crossOrigin={null}
-            />
-            <MapClickHandler onMapClick={handleMapClick} />
-            {location?.coordinates && (
-              <DraggableMarker
-                key={`${location.coordinates.lat}-${location.coordinates.lng}`}
-                position={[location.coordinates.lat, location.coordinates.lng]}
-                icon={L.icon({
-                  iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${markerColor}.png`,
-                  iconSize: [25, 41],
-                  iconAnchor: [12, 41],
-                  iconRetinaUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-${markerColor}.png`
-                })}
-                onDragEnd={async (newPos) => await handleMapClick(newPos)}
-                isDragging={isDragging}
-                setIsDragging={setIsDragging}
-              >
-                <Popup>
-                  <strong>{locationType === 'pickup' ? t('orders.pickup') : t('orders.delivery')}</strong><br />
-                  {location.displayName}
-                </Popup>
-              </DraggableMarker>
-            )}
-            <MapUpdater center={location?.coordinates || userLocation} />
-          </MapContainer>
-        ) : (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            height: '100%',
-            width: '100%',
-            background: '#F3F4F6',
-            color: '#6B7280',
-            fontSize: '1rem'
-          }}>
-            🔄 Loading map...
-          </div>
-        )}
-      </div>
+              background: '#F3F4F6',
+              color: '#6B7280',
+              fontSize: '1rem'
+            }}>
+              🔄 Loading map...
+            </div>
+          )}
+        </div>
       )}
 
       {isFullscreen && (
@@ -1566,7 +1576,7 @@ const MapLocationPicker = ({ location, onChange, onAddressFill, userLocation, ma
               zoom={16}
               style={{ height: '100%', width: '100%' }}
               whenReady={(map) => {
-                setTimeout(() => { try { map.invalidateSize(); } catch(_){} }, 150);
+                setTimeout(() => { try { map.invalidateSize(); } catch (_) { } }, 150);
               }}
             >
               <TileLayer
@@ -1643,7 +1653,7 @@ const MapLocationPicker = ({ location, onChange, onAddressFill, userLocation, ma
           {t('common.clear')}
         </button>
       </div>
-      
+
       {/* Address Display */}
       {location && (
         <div style={{ background: 'white', padding: '1rem', borderRadius: '0.375rem', border: '1px solid #E5E7EB' }}>
@@ -1673,7 +1683,7 @@ const MapLocationPicker = ({ location, onChange, onAddressFill, userLocation, ma
               <p style={{ fontSize: '0.875rem' }}>{location.address?.street || 'N/A'}</p>
             </div>
           </div>
-          
+
           {location.isRemote && (
             <div style={{ background: '#FEF3C7', padding: '0.75rem', borderRadius: '0.375rem', border: '1px solid #FCD34D' }}>
               <p style={{ fontSize: '0.875rem', fontWeight: '600', color: '#92400E' }}>
@@ -1688,7 +1698,7 @@ const MapLocationPicker = ({ location, onChange, onAddressFill, userLocation, ma
 };
 
 // ============ ROUTE PREVIEW MAP COMPONENT ============
-  
+
 
 // ============ DRAGGABLE MARKER COMPONENT ============
 const DraggableMarker = ({ position, icon, onDragEnd, children, isDragging, setIsDragging }) => {
@@ -1994,7 +2004,7 @@ const useLocationData = (API_URL) => {
           return options;
         }
       }
-    } catch (_) {}
+    } catch (_) { }
 
     if (FALLBACK_CITIES[country]) {
       const fallbackCities = FALLBACK_CITIES[country].filter(city =>
@@ -2101,7 +2111,7 @@ const useLocationData = (API_URL) => {
   };
 
   // Simplified fallback search for when APIs are definitely down
-  
+
 
   // Function to search for areas by country and city
   const searchAreas = async (country, city, query = '') => {
@@ -2126,7 +2136,7 @@ const useLocationData = (API_URL) => {
           return options;
         }
       }
-    } catch (_) {}
+    } catch (_) { }
 
     if (FALLBACK_AREAS[baseKey]) {
       const fallbackAreas = FALLBACK_AREAS[baseKey].filter(area =>
@@ -2263,7 +2273,7 @@ const useLocationData = (API_URL) => {
           return options;
         }
       }
-    } catch (_) {}
+    } catch (_) { }
 
     try {
       const photonQuery = normalizedQuery ? `${normalizedQuery}, ${area}, ${city}, ${country}` : `${area}, ${city}, ${country}`;
@@ -2435,7 +2445,7 @@ const LocationEntryCombined = ({
   validationErrors = {}
 }) => {
   const locationData = useLocationData(API_URL);
-  
+
 
   // State for cascaded dropdowns
   const [availableCities, setAvailableCities] = useState([]);
@@ -2652,7 +2662,7 @@ const LocationEntryCombined = ({
           marginBottom: '0.75rem',
           textShadow: '0 0 10px #30FF30'
         }}>
-              📝 {locationType === 'pickup' ? t('orders.pickupLocation') : t('orders.deliveryLocation')} Details
+          📝 {locationType === 'pickup' ? t('orders.pickupLocation') : t('orders.deliveryLocation')} Details
         </h4>
 
         <div className="address-fields-grid" style={{
@@ -2675,7 +2685,7 @@ const LocationEntryCombined = ({
               value={addressData.country || ''}
               onChange={(value) => {
                 // Update address state - useEffect will handle city loading
-                onAddressChange({...addressData, country: value, city: '', area: '', street: ''});
+                onAddressChange({ ...addressData, country: value, city: '', area: '', street: '' });
               }}
               placeholder={t('orders.selectCountry')}
               options={countries.map(country => ({ value: country, label: country }))}
@@ -2699,7 +2709,7 @@ const LocationEntryCombined = ({
               value={addressData.city || ''}
               onChange={(value) => {
                 // Update the address state - useEffect will handle area loading and geocoding
-                onAddressChange({...addressData, city: value, area: '', street: ''});
+                onAddressChange({ ...addressData, city: value, area: '', street: '' });
               }}
               placeholder={loadingCities ? 'Loading cities...' : addressData.country ? 'Type or select city' : 'Select country first'}
               options={availableCities}
@@ -2724,7 +2734,7 @@ const LocationEntryCombined = ({
             <ComboboxInput
               value={addressData.area || ''}
               onChange={(value) => {
-                onAddressChange({...addressData, area: value});
+                onAddressChange({ ...addressData, area: value });
                 handleAreaChange(value);
               }}
               placeholder={loadingAreas ? 'Loading areas...' : addressData.city ? 'Type or select area' : 'Select city first'}
@@ -2750,7 +2760,7 @@ const LocationEntryCombined = ({
             <ComboboxInput
               value={addressData.street || ''}
               onChange={(value) => {
-                onAddressChange({...addressData, street: value});
+                onAddressChange({ ...addressData, street: value });
                 handleFieldChange('street', value);
               }}
               placeholder={loadingStreets ? 'Loading streets...' : addressData.area ? 'Type or select street' : 'Select area first'}
@@ -2777,7 +2787,7 @@ const LocationEntryCombined = ({
               <input
                 type="text"
                 value={addressData.building || ''}
-                onChange={(e) => onAddressChange({...addressData, building: e.target.value})}
+                onChange={(e) => onAddressChange({ ...addressData, building: e.target.value })}
                 placeholder={t('orders.buildingNumber')}
                 style={{
                   width: '100%',
@@ -2796,7 +2806,7 @@ const LocationEntryCombined = ({
               <input
                 type="text"
                 value={addressData.floor || ''}
-                onChange={(e) => onAddressChange({...addressData, floor: e.target.value})}
+                onChange={(e) => onAddressChange({ ...addressData, floor: e.target.value })}
                 placeholder={t('orders.floor')}
                 style={{
                   width: '100%',
@@ -2814,7 +2824,7 @@ const LocationEntryCombined = ({
               <input
                 type="text"
                 value={addressData.apartment || ''}
-                onChange={(e) => onAddressChange({...addressData, apartment: e.target.value})}
+                onChange={(e) => onAddressChange({ ...addressData, apartment: e.target.value })}
                 placeholder={t('orders.aptNumber')}
                 style={{
                   width: '100%',
@@ -2846,7 +2856,7 @@ const LocationEntryCombined = ({
             <input
               type="text"
               value={addressData.personName || ''}
-              onChange={(e) => onAddressChange({...addressData, personName: e.target.value})}
+              onChange={(e) => onAddressChange({ ...addressData, personName: e.target.value })}
               placeholder={t('orders.contactPerson')}
               required
               style={{
@@ -2877,7 +2887,7 @@ const LocationEntryCombined = ({
             <input
               type="tel"
               value={addressData.personPhone || ''}
-              onChange={(e) => onAddressChange({...addressData, personPhone: e.target.value})}
+              onChange={(e) => onAddressChange({ ...addressData, personPhone: e.target.value })}
               placeholder={t('orders.phoneNumber')}
               required
               style={{
@@ -3150,7 +3160,7 @@ export const LocationEntry = ({
             <input
               type="text"
               value={addressData.building}
-              onChange={(e) => onAddressChange({...addressData, building: e.target.value})}
+              onChange={(e) => onAddressChange({ ...addressData, building: e.target.value })}
               placeholder={t('orders.buildingNumber')}
               style={{
                 width: '100%',
@@ -3175,7 +3185,7 @@ export const LocationEntry = ({
             <input
               type="text"
               value={addressData.floor}
-              onChange={(e) => onAddressChange({...addressData, floor: e.target.value})}
+              onChange={(e) => onAddressChange({ ...addressData, floor: e.target.value })}
               placeholder={t('orders.floor')}
               style={{
                 width: '100%',
@@ -3200,7 +3210,7 @@ export const LocationEntry = ({
             <input
               type="text"
               value={addressData.apartment}
-              onChange={(e) => onAddressChange({...addressData, apartment: e.target.value})}
+              onChange={(e) => onAddressChange({ ...addressData, apartment: e.target.value })}
               placeholder={t('orders.aptNumber')}
               style={{
                 width: '100%',
@@ -3225,7 +3235,7 @@ export const LocationEntry = ({
             <input
               type="text"
               value={addressData.personName}
-              onChange={(e) => onAddressChange({...addressData, personName: e.target.value})}
+              onChange={(e) => onAddressChange({ ...addressData, personName: e.target.value })}
               placeholder={t('orders.contactPerson')}
               required
               style={{
@@ -3243,22 +3253,22 @@ export const LocationEntry = ({
   } else {
     // Map Location Picker Mode
     return (
-            <MapLocationPicker
-              location={mapLocation}
-              onChange={onMapLocationChange}
-              onAddressFill={(addr) => {
-                onAddressChange({
-                  ...addressData,
-                  ...addr
-                });
-              }}
-              userLocation={userLocation}
-              markerColor={markerColor}
-              API_URL={API_URL}
-              locationType={locationType}
-              compact={compact}
-              t={t}
-            />
+      <MapLocationPicker
+        location={mapLocation}
+        onChange={onMapLocationChange}
+        onAddressFill={(addr) => {
+          onAddressChange({
+            ...addressData,
+            ...addr
+          });
+        }}
+        userLocation={userLocation}
+        markerColor={markerColor}
+        API_URL={API_URL}
+        locationType={locationType}
+        compact={compact}
+        t={t}
+      />
     );
   }
 };

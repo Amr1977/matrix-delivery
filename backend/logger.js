@@ -11,13 +11,13 @@ const levels = {
   debug: 4,
 };
 
-// Define colors for each level
+// Define colors for each level - using bright, high-contrast colors
 const colors = {
-  error: 'red',
-  warn: 'yellow',
-  info: 'green',
-  http: 'magenta',
-  debug: 'blue',
+  error: 'bold red',      // Bright red for errors
+  warn: 'bold yellow',    // Bright yellow for warnings
+  info: 'bold green',     // Bright green for info
+  http: 'bold magenta',   // Bright magenta for HTTP requests
+  debug: 'cyan',          // Cyan instead of blue for better visibility
 };
 
 // Add colors to winston

@@ -46,7 +46,7 @@ if (!IS_PRODUCTION) {
 // PostgreSQL Connection Pool
 const pool = new Pool({
   host: process.env.DB_HOST || 'localhost',
-   port: process.env.DB_PORT || 5432,
+  port: process.env.DB_PORT || 5432,
   database: IS_TEST ? (process.env.DB_NAME_TEST || 'matrix_delivery_test') : (process.env.DB_NAME || 'matrix_delivery'),
   user: process.env.DB_USER || 'postgres',
   password: process.env.DB_PASSWORD || 'postgres',
@@ -848,9 +848,9 @@ app.get('/api/health', async (req, res) => {
 app.get('/api/footer/stats', async (req, res) => {
   try {
     // Get users by role
-  const usersByRoleResult = await pool.query(
-    `SELECT role, COUNT(*) as count FROM users GROUP BY role`
-  );
+    const usersByRoleResult = await pool.query(
+      `SELECT role, COUNT(*) as count FROM users GROUP BY role`
+    );
     const usersByRole = {};
     usersByRoleResult.rows.forEach(row => {
       usersByRole[row.role] = parseInt(row.count);
@@ -1064,7 +1064,7 @@ app.post('/api/auth/register', async (req, res) => {
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
        RETURNING id, name, email, phone, role, vehicle_type, country, city, area`,
       [userId, name.trim(), email.toLowerCase().trim(), hashedPassword, phone.trim(), role,
-       role === 'driver' ? vehicle_type : null, country.trim(), city.trim(), area.trim(), 5, 0]
+        role === 'driver' ? vehicle_type : null, country.trim(), city.trim(), area.trim(), 5, 0]
     );
 
     const user = result.rows[0];
@@ -1308,7 +1308,7 @@ app.get('/api/browse/vendors', async (req, res) => {
     values.push(limit);
     values.push(offset);
 
-    const sql = `SELECT * FROM vendors WHERE ${whereClauses.join(' AND ')} ORDER BY ${orderBy} LIMIT $${values.length-1} OFFSET $${values.length}`;
+    const sql = `SELECT * FROM vendors WHERE ${whereClauses.join(' AND ')} ORDER BY ${orderBy} LIMIT $${values.length - 1} OFFSET $${values.length}`;
     const result = await pool.query(sql, values);
     res.json({ page, limit, count: result.rows.length, items: result.rows });
   } catch (error) {
@@ -1370,7 +1370,7 @@ app.get('/api/browse/items', async (req, res) => {
       JOIN vendors v ON v.id = vi.vendor_id
       WHERE ${whereClauses.join(' AND ')}
       ORDER BY ${orderBy}
-      LIMIT $${values.length-1} OFFSET $${values.length}
+      LIMIT $${values.length - 1} OFFSET $${values.length}
     `;
     const result = await pool.query(sql, values);
     res.json({ page, limit, count: result.rows.length, items: result.rows });
@@ -1437,7 +1437,7 @@ app.get('/api/browse/items-near', rateLimit(200, 60 * 1000), async (req, res) =>
       WHERE ${whereClauses.join(' AND ')}
         AND ST_DWithin(ST_MakePoint(v.longitude, v.latitude)::geography, ST_MakePoint($2, $1)::geography, $3)
       ORDER BY distance_m ASC, vi.created_at DESC
-      LIMIT $${values.length-1} OFFSET $${values.length}`;
+      LIMIT $${values.length - 1} OFFSET $${values.length}`;
     const result = await pool.query(sql, values);
     res.json({ page, limit, count: result.rows.length, items: result.rows });
   } catch (error) {
@@ -1581,7 +1581,7 @@ app.put('/api/vendors/self', verifyTokenOrTestBypass, isVendor, async (req, res)
     } else {
       vendorId = result.rows[0].id;
     }
-    const fields = ['name','description','phone','address','city','country','latitude','longitude','logo_url','is_active'];
+    const fields = ['name', 'description', 'phone', 'address', 'city', 'country', 'latitude', 'longitude', 'logo_url', 'is_active'];
     const updates = [];
     const values = [];
     let i = 1;
@@ -1604,7 +1604,7 @@ app.put('/api/vendors/self', verifyTokenOrTestBypass, isVendor, async (req, res)
 
 app.put('/api/vendors/:id', verifyTokenOrTestBypass, authorizeVendorManage, async (req, res) => {
   try {
-    const fields = ['name','description','phone','address','city','country','latitude','longitude','logo_url','is_active'];
+    const fields = ['name', 'description', 'phone', 'address', 'city', 'country', 'latitude', 'longitude', 'logo_url', 'is_active'];
     const updates = [];
     const values = [];
     let i = 1;
@@ -1666,7 +1666,7 @@ app.post('/api/vendors/:id/items', verifyTokenOrTestBypass, authorizeVendorManag
 
 app.put('/api/vendors/:id/items/:itemId', verifyTokenOrTestBypass, authorizeVendorManage, async (req, res) => {
   try {
-    const fields = ['item_name','description','price','image_url','category','stock_qty','is_active'];
+    const fields = ['item_name', 'description', 'price', 'image_url', 'category', 'stock_qty', 'is_active'];
     const updates = [];
     const values = [];
     let i = 1;
@@ -2349,13 +2349,13 @@ app.post('/api/orders', verifyToken, async (req, res) => {
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
        RETURNING *`,
       [orderId, orderNumber, title.trim(), description?.trim() || '', pickupAddress, dropoffAddress,
-       parseFloat(pickupLocation.coordinates.lat), parseFloat(pickupLocation.coordinates.lng),
-       pickupLocation.address.personName || pickupLocation.address.street,
-       parseFloat(dropoffLocation.coordinates.lat), parseFloat(dropoffLocation.coordinates.lng),
-       dropoffLocation.address.personName || dropoffLocation.address.street,
-       package_description || null, package_weight ? parseFloat(package_weight) : null,
-       estimated_value ? parseFloat(estimated_value) : null, special_instructions || null,
-       parseFloat(price), 'pending_bids', req.user.userId, req.user.name, estimated_delivery_date || null]
+        parseFloat(pickupLocation.coordinates.lat), parseFloat(pickupLocation.coordinates.lng),
+        pickupLocation.address.personName || pickupLocation.address.street,
+        parseFloat(dropoffLocation.coordinates.lat), parseFloat(dropoffLocation.coordinates.lng),
+        dropoffLocation.address.personName || dropoffLocation.address.street,
+        package_description || null, package_weight ? parseFloat(package_weight) : null,
+        estimated_value ? parseFloat(estimated_value) : null, special_instructions || null,
+        parseFloat(price), 'pending_bids', req.user.userId, req.user.name, estimated_delivery_date || null]
     );
 
     const order = result.rows[0];
@@ -2552,14 +2552,21 @@ app.get('/api/orders', verifyToken, async (req, res) => {
         customerJoinedAt: order.customerjoinedat,
         customerReviewCount: parseInt(order.customerreviewcount) || 0,
         customerGivenReviewCount: parseInt(order.customergivenreviewcount) || 0,
-        createdAt: order.created_at, acceptedAt: order.accepted_at, pickedUpAt: order.picked_up_at, deliveredAt: order.delivered_at
+        createdAt: order.created_at,
+        // OSRM route data
+        routePolyline: order.route_polyline,
+        estimatedDistanceKm: order.estimated_distance_km ? parseFloat(order.estimated_distance_km) : null,
+        estimatedDurationMinutes: order.estimated_duration_minutes,
+        isRemoteArea: order.is_remote_area,
+        isInternational: order.is_international,
+        acceptedAt: order.accepted_at, pickedUpAt: order.picked_up_at, deliveredAt: order.delivered_at
       }));
 
       return res.json(orders);
     }
 
     const result = await pool.query(query, params);
-    
+
     const orders = result.rows.map(order => ({
       _id: order.id, orderNumber: order.order_number, title: order.title, description: order.description,
       pickupAddress: order.pickup_address, deliveryAddress: order.delivery_address,
@@ -2572,6 +2579,12 @@ app.get('/api/orders', verifyToken, async (req, res) => {
       assignedDriver: order.assigned_driver_user_id ? { userId: order.assigned_driver_user_id, driverName: order.assigned_driver_name, bidPrice: parseFloat(order.assigned_driver_bid_price) } : null,
       estimatedDeliveryDate: order.estimated_delivery_date,
       currentLocation: order.current_location_lat ? { lat: parseFloat(order.current_location_lat), lng: parseFloat(order.current_location_lng) } : null,
+      // OSRM route data
+      routePolyline: order.route_polyline,
+      estimatedDistanceKm: order.estimated_distance_km ? parseFloat(order.estimated_distance_km) : null,
+      estimatedDurationMinutes: order.estimated_duration_minutes,
+      isRemoteArea: order.is_remote_area,
+      isInternational: order.is_international,
       createdAt: order.created_at, acceptedAt: order.accepted_at, pickedUpAt: order.picked_up_at, deliveredAt: order.delivered_at
     }));
 
@@ -2597,7 +2610,7 @@ app.get('/api/orders/:id', verifyToken, async (req, res) => {
     const order = result.rows[0];
 
     if (order.customer_id !== req.user.userId && order.assigned_driver_user_id !== req.user.userId &&
-        !order.bids.some(bid => bid.userId === req.user.userId) && order.status !== 'pending_bids') {
+      !order.bids.some(bid => bid.userId === req.user.userId) && order.status !== 'pending_bids') {
       return res.status(403).json({ error: 'Unauthorized to view this order' });
     }
 
@@ -2894,7 +2907,7 @@ app.post('/api/orders/:id/pickup', verifyToken, async (req, res) => {
   try {
     await client.query('BEGIN');
     const orderResult = await client.query('SELECT * FROM orders WHERE id = $1', [req.params.id]);
-    
+
     if (orderResult.rows.length === 0) {
       await client.query('ROLLBACK');
       return res.status(404).json({ error: 'Order not found' });
@@ -2937,7 +2950,7 @@ app.post('/api/orders/:id/in-transit', verifyToken, async (req, res) => {
   try {
     await client.query('BEGIN');
     const orderResult = await client.query('SELECT * FROM orders WHERE id = $1', [req.params.id]);
-    
+
     if (orderResult.rows.length === 0) {
       await client.query('ROLLBACK');
       return res.status(404).json({ error: 'Order not found' });
@@ -2980,7 +2993,7 @@ app.post('/api/orders/:id/complete', verifyToken, async (req, res) => {
   try {
     await client.query('BEGIN');
     const orderResult = await client.query('SELECT * FROM orders WHERE id = $1', [req.params.id]);
-    
+
     if (orderResult.rows.length === 0) {
       await client.query('ROLLBACK');
       return res.status(404).json({ error: 'Order not found' });
@@ -3059,36 +3072,36 @@ app.get('/api/orders/:id/tracking', verifyToken, async (req, res) => {
     );
 
     res.json({
-      orderNumber: order.order_number, 
+      orderNumber: order.order_number,
       status: order.status,
-      currentLocation: order.current_location_lat ? { 
-        lat: parseFloat(order.current_location_lat), 
-        lng: parseFloat(order.current_location_lng) 
+      currentLocation: order.current_location_lat ? {
+        lat: parseFloat(order.current_location_lat),
+        lng: parseFloat(order.current_location_lng)
       } : null,
-      pickup: { 
-        address: order.pickup_address, 
-        location: { 
-          lat: parseFloat(order.from_lat), 
-          lng: parseFloat(order.from_lng) 
-        } 
+      pickup: {
+        address: order.pickup_address,
+        location: {
+          lat: parseFloat(order.from_lat),
+          lng: parseFloat(order.from_lng)
+        }
       },
-      delivery: { 
-        address: order.delivery_address, 
-        location: { 
-          lat: parseFloat(order.to_lat), 
-          lng: parseFloat(order.to_lng) 
-        } 
+      delivery: {
+        address: order.delivery_address,
+        location: {
+          lat: parseFloat(order.to_lat),
+          lng: parseFloat(order.to_lng)
+        }
       },
       estimatedDelivery: order.estimated_delivery_date,
-      createdAt: order.created_at, 
-      acceptedAt: order.accepted_at, 
-      pickedUpAt: order.picked_up_at, 
+      createdAt: order.created_at,
+      acceptedAt: order.accepted_at,
+      pickedUpAt: order.picked_up_at,
       deliveredAt: order.delivered_at,
-      locationHistory: locationResult.rows.map(loc => ({ 
-        lat: parseFloat(loc.latitude), 
-        lng: parseFloat(loc.longitude), 
-        status: loc.status, 
-        timestamp: loc.created_at 
+      locationHistory: locationResult.rows.map(loc => ({
+        lat: parseFloat(loc.latitude),
+        lng: parseFloat(loc.longitude),
+        status: loc.status,
+        timestamp: loc.created_at
       }))
     });
   } catch (error) {
@@ -3856,16 +3869,16 @@ app.get('/api/locations/countries', async (req, res) => {
 app.post('/api/locations/cache/clear', async (req, res) => {
   try {
     console.log('🧹 Clearing location caches...');
-    
+
     // Clear in-memory cache
     locationMemoryCache.countries = { data: null, expiresAt: 0 };
     locationMemoryCache.cities.clear();
     locationMemoryCache.areas.clear();
     locationMemoryCache.streets.clear();
-    
+
     // Clear persistent cache
     await pool.query("DELETE FROM cache WHERE key LIKE 'locations:%'");
-    
+
     console.log('✅ Location caches cleared successfully');
     res.json({ message: 'Caches cleared successfully' });
   } catch (error) {
@@ -5898,33 +5911,33 @@ io.on('connection', (socket) => {
 
   socket.on('join_order', async (data) => {
     const { orderId, token } = data;
-    
+
     try {
       const decoded = jwt.verify(token, JWT_SECRET);
       const orderResult = await pool.query(
         'SELECT customer_id, assigned_driver_user_id FROM orders WHERE id = $1',
         [orderId]
       );
-      
+
       if (orderResult.rows.length === 0) {
         socket.emit('error', { message: 'Order not found' });
         return;
       }
-      
+
       const order = orderResult.rows[0];
       if (order.customer_id !== decoded.userId && order.assigned_driver_user_id !== decoded.userId) {
         socket.emit('error', { message: 'Unauthorized' });
         return;
       }
-      
+
       socket.join(`order_${orderId}`);
       console.log(`User ${decoded.name} joined tracking for order ${orderId}`);
-      
+
       const locationResult = await pool.query(
         'SELECT current_location_lat, current_location_lng FROM orders WHERE id = $1',
         [orderId]
       );
-      
+
       if (locationResult.rows[0].current_location_lat) {
         socket.emit('location_update', {
           orderId,
@@ -5933,7 +5946,7 @@ io.on('connection', (socket) => {
           timestamp: new Date().toISOString()
         });
       }
-      
+
     } catch (error) {
       console.error('Join order error:', error);
       socket.emit('error', { message: 'Failed to join order tracking' });
@@ -5942,36 +5955,36 @@ io.on('connection', (socket) => {
 
   socket.on('update_location', async (data) => {
     const { orderId, latitude, longitude, token } = data;
-    
+
     try {
       const decoded = jwt.verify(token, JWT_SECRET);
       const orderResult = await pool.query(
         'SELECT assigned_driver_user_id, status FROM orders WHERE id = $1',
         [orderId]
       );
-      
+
       if (orderResult.rows.length === 0 || orderResult.rows[0].assigned_driver_user_id !== decoded.userId) {
         socket.emit('error', { message: 'Unauthorized' });
         return;
       }
-      
+
       await pool.query(
         'UPDATE orders SET current_location_lat = $1, current_location_lng = $2 WHERE id = $3',
         [parseFloat(latitude), parseFloat(longitude), orderId]
       );
-      
+
       await pool.query(
         'INSERT INTO location_updates (order_id, driver_id, latitude, longitude, status) VALUES ($1, $2, $3, $4, $5)',
         [orderId, decoded.userId, parseFloat(latitude), parseFloat(longitude), orderResult.rows[0].status]
       );
-      
+
       io.to(`order_${orderId}`).emit('location_update', {
         orderId,
         latitude: parseFloat(latitude),
         longitude: parseFloat(longitude),
         timestamp: new Date().toISOString()
       });
-      
+
     } catch (error) {
       console.error('Update location error:', error);
     }
@@ -5993,12 +6006,12 @@ const server = httpServer.listen(PORT, '0.0.0.0', () => {
   console.log('         🚚 Matrix Delivery Server (PostgreSQL)');
   console.log('╚════════════════════════════════════════════════════╝');
   console.log('');
-console.log(`✅ Server running on: http://localhost:${PORT}`);
-console.log(`📍 API Base URL: http://localhost:${PORT}/api`);
-console.log(`💾 Database: PostgreSQL (Updated Schema)`);
-console.log(`🔒 Environment: ${IS_TEST ? 'Testing' : (IS_PRODUCTION ? 'Production' : 'Development')}`);
-console.log('');
-console.log('📊 API Endpoints:');
+  console.log(`✅ Server running on: http://localhost:${PORT}`);
+  console.log(`📍 API Base URL: http://localhost:${PORT}/api`);
+  console.log(`💾 Database: PostgreSQL (Updated Schema)`);
+  console.log(`🔒 Environment: ${IS_TEST ? 'Testing' : (IS_PRODUCTION ? 'Production' : 'Development')}`);
+  console.log('');
+  console.log('📊 API Endpoints:');
   console.log('   POST   /api/auth/register');
   console.log('   POST   /api/auth/login');
   console.log('   GET    /api/auth/me');
