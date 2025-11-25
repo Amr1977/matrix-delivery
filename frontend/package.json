@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
+    "@mapbox/polyline": "^1.2.1",
     "firebase": "^10.7.1",
     "leaflet": "^1.9.4",
     "react": "^18.2.0",
@@ -48,10 +49,10 @@
     ]
   },
   "devDependencies": {
-    "cross-env": "^10.1.0",
-    "@testing-library/react": "^13.4.0",
     "@testing-library/jest-dom": "^5.16.4",
+    "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^14.4.3",
+    "cross-env": "^10.1.0",
     "identity-obj-proxy": "^3.0.0",
     "jest-environment-jsdom": "^29.0.0"
   }

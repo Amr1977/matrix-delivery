@@ -17,10 +17,10 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371; // Earth's radius in km
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-            Math.sin(dLon/2) * Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 };
 
@@ -89,270 +89,286 @@ module.exports = (app, pool, jwt, verifyToken) => {
 
   // Reverse geocode coordinates to address (Enhanced)
   app.get('/api/locations/reverse-geocode', async (req, res) => {
-  try {
-    const { lat, lng } = req.query;
-    
-    if (!lat || !lng) {
-      return res.status(400).json({ error: 'Latitude and longitude are required' });
-    }
-    
-    const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`;
-    
-    const response = await fetch(nominatimUrl, {
-      headers: { 'User-Agent': 'Matrix-Delivery-App/1.0' }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Nominatim API error: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    
-    if (!data || data.error) {
-      return res.status(404).json({ error: 'Location not found' });
-    }
-    
-    // Transform to our format
-    const result = {
-      coordinates: { lat: parseFloat(data.lat), lng: parseFloat(data.lon) },
-      locationLink: `https://www.google.com/maps?q=${lat},${lng}`,
-      address: {
-        country: data.address?.country || '',
-        city: data.address?.city || data.address?.town || data.address?.village || '',
-        area: data.address?.suburb || data.address?.neighbourhood || data.address?.district || '',
-        street: data.address?.road || data.address?.street || data.address?.pedestrian || '',
-        buildingNumber: data.address?.house_number || '',
-        postcode: data.address?.postcode || ''
-      },
-      displayName: data.display_name,
-      isRemote: isRemoteArea(data.address)
-    };
-    
-    res.json(result);
-  } catch (error) {
-    console.error('Reverse geocoding error:', error);
-    res.status(500).json({ error: 'Failed to reverse geocode location' });
-  }
-});
-
-// Forward geocode address to coordinates
-app.get('/api/locations/forward-geocode', async (req, res) => {
-  try {
-    const { country, city, area, street, building } = req.query;
-
-    if (!country || !city) {
-      return res.status(400).json({ error: 'Country and city are required for geocoding' });
-    }
-
-    // Build search string from address components
-    const addressParts = [street, area, city, country].filter(Boolean);
-    const searchQuery = addressParts.join(', ');
-
-    // Use Nominatim for forward geocoding
-    const nominatimUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&format=json&limit=5`;
-
-    const response = await fetch(nominatimUrl, {
-      headers: { 'User-Agent': 'Matrix-Delivery-App/1.0' }
-    });
-
-    if (!response.ok) {
-      throw new Error(`Nominatim API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    if (!data || data.length === 0) {
-      return res.status(404).json({ error: 'No results found for this address' });
-    }
-
-    // Return the first result or all results
-    const results = data.map(item => ({
-      coordinates: { lat: parseFloat(item.lat), lng: parseFloat(item.lon) },
-      locationLink: `https://www.google.com/maps?q=${item.lat},${item.lon}`,
-      displayName: item.display_name,
-      address: {
-        country: item.address?.country || country,
-        city: item.address?.city || item.address?.town || item.address?.village || city,
-        area: item.address?.suburb || item.address?.neighbourhood || item.address?.district || area || '',
-        street: item.address?.road || item.address?.street || item.address?.pedestrian || street || '',
-        buildingNumber: item.address?.house_number || building || '',
-        postcode: item.address?.postcode || ''
-      },
-      confidence: parseFloat(item.importance) || 0
-    }));
-
-    // Return the best result (removing allResults to avoid circular reference)
-    const bestResult = results[0];
-    res.json(bestResult);
-  } catch (error) {
-    console.error('Forward geocoding error:', error);
-    res.status(500).json({ error: 'Failed to geocode address' });
-  }
-});
-
-// Parse Google Maps URL
-app.post('/api/locations/parse-maps-url', async (req, res) => {
-  try {
-    const { url } = req.body;
-    
-    if (!url) {
-      return res.status(400).json({ error: 'URL is required' });
-    }
-    
-    const coords = parseGoogleMapsUrl(url);
-    
-    if (!coords) {
-      return res.status(400).json({ error: 'Invalid Google Maps URL format' });
-    }
-    
-    // Now reverse geocode these coordinates
-    const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?lat=${coords.lat}&lon=${coords.lng}&format=json&addressdetails=1`;
-    
-    const response = await fetch(nominatimUrl, {
-      headers: { 'User-Agent': 'Matrix-Delivery-App/1.0' }
-    });
-    
-    const data = await response.json();
-    
-    res.json({
-      coordinates: coords,
-      locationLink: `https://www.google.com/maps?q=${coords.lat},${coords.lng}`,
-      address: {
-        country: data.address?.country || '',
-        city: data.address?.city || data.address?.town || data.address?.village || '',
-        area: data.address?.suburb || data.address?.neighbourhood || data.address?.district || '',
-        street: data.address?.road || data.address?.street || '',
-        buildingNumber: data.address?.house_number || '',
-        postcode: data.address?.postcode || ''
-      },
-      displayName: data.display_name
-    });
-  } catch (error) {
-    console.error('Parse URL error:', error);
-    res.status(500).json({ error: 'Failed to parse Google Maps URL' });
-  }
-});
-
-// Calculate route between two points
-app.post('/api/locations/calculate-route', async (req, res) => {
-  try {
-    const { pickup, delivery } = req.body;
-    
-    if (!pickup?.lat || !pickup?.lng || !delivery?.lat || !delivery?.lng) {
-      return res.status(400).json({ error: 'Pickup and delivery coordinates are required' });
-    }
-    
-    // Calculate straight-line distance
-    const straightDistance = calculateDistance(
-      pickup.lat, pickup.lng,
-      delivery.lat, delivery.lng
-    );
-    
-    // Try to get actual route from OSRM
-    let routeDistance = straightDistance;
-    let routePolyline = null;
-    
     try {
-      const osrmUrl = `http://router.project-osrm.org/route/v1/driving/${pickup.lng},${pickup.lat};${delivery.lng},${delivery.lat}?overview=full&geometries=polyline`;
-      
-      const osrmResponse = await fetch(osrmUrl);
-      
-      if (osrmResponse.ok) {
-        const osrmData = await osrmResponse.json();
-        
-        if (osrmData.code === 'Ok' && osrmData.routes && osrmData.routes.length > 0) {
-          routeDistance = osrmData.routes[0].distance / 1000; // Convert to km
-          routePolyline = osrmData.routes[0].geometry;
-        }
-      }
-    } catch (osrmError) {
-      console.warn('OSRM routing failed, using straight-line distance:', osrmError.message);
-      // Estimate route distance as straight-line * 1.3 (typical urban factor)
-      routeDistance = straightDistance * 1.3;
-    }
-    
-    // Calculate estimates for all vehicle types
-    const estimates = {
-      walker: {
-        duration_minutes: estimateDuration(routeDistance, 'walker'),
-        speed_kmh: 5,
-        icon: '🚶'
-      },
-      bicycle: {
-        duration_minutes: estimateDuration(routeDistance, 'bicycle'),
-        speed_kmh: 15,
-        icon: '🚲'
-      },
-      car: {
-        duration_minutes: estimateDuration(routeDistance, 'car'),
-        speed_kmh: 25,
-        icon: '🚗'
-      },
-      van: {
-        duration_minutes: estimateDuration(routeDistance, 'van'),
-        speed_kmh: 20,
-        icon: '🚐'
-      },
-      truck: {
-        duration_minutes: estimateDuration(routeDistance, 'truck'),
-        speed_kmh: 18,
-        icon: '🚛'
-      }
-    };
-    
-    res.json({
-      distance_km: parseFloat(routeDistance.toFixed(2)),
-      straight_line_distance_km: parseFloat(straightDistance.toFixed(2)),
-      polyline: routePolyline,
-      estimates,
-      route_found: !!routePolyline
-    });
-  } catch (error) {
-    console.error('Route calculation error:', error);
-    res.status(500).json({ error: 'Failed to calculate route' });
-  }
-});
+      const { lat, lng } = req.query;
 
-// Get/Update delivery agent preferences
-app.get('/api/delivery-agent/preferences', verifyToken, async (req, res) => {
-  try {
-    if (req.user.role !== 'driver') {
-      return res.status(403).json({ error: 'Only delivery agents can access preferences' });
+      if (!lat || !lng) {
+        return res.status(400).json({ error: 'Latitude and longitude are required' });
+      }
+
+      const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`;
+
+      const response = await fetch(nominatimUrl, {
+        headers: { 'User-Agent': 'Matrix-Delivery-App/1.0' }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Nominatim API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (!data || data.error) {
+        return res.status(404).json({ error: 'Location not found' });
+      }
+
+      // Transform to our format
+      const result = {
+        coordinates: { lat: parseFloat(data.lat), lng: parseFloat(data.lon) },
+        locationLink: `https://www.google.com/maps?q=${lat},${lng}`,
+        address: {
+          country: data.address?.country || '',
+          city: data.address?.city || data.address?.town || data.address?.village || '',
+          area: data.address?.suburb || data.address?.neighbourhood || data.address?.district || '',
+          street: data.address?.road || data.address?.street || data.address?.pedestrian || '',
+          buildingNumber: data.address?.house_number || '',
+          postcode: data.address?.postcode || ''
+        },
+        displayName: data.display_name,
+        isRemote: isRemoteArea(data.address)
+      };
+
+      res.json(result);
+    } catch (error) {
+      console.error('Reverse geocoding error:', error);
+      res.status(500).json({ error: 'Failed to reverse geocode location' });
     }
-    
-    const result = await pool.query(
-      `SELECT * FROM delivery_agent_preferences WHERE agent_id = $1`,
-      [req.user.userId]
-    );
-    
-    if (result.rows.length === 0) {
-      // Create default preferences
-      const defaultPrefs = await pool.query(
-        `INSERT INTO delivery_agent_preferences (agent_id, max_distance_km, accept_remote_areas, accept_international)
-         VALUES ($1, 50.00, false, false)
-         RETURNING *`,
+  });
+
+  // Forward geocode address to coordinates
+  app.get('/api/locations/forward-geocode', async (req, res) => {
+    try {
+      const { country, city, area, street, building } = req.query;
+
+      if (!country || !city) {
+        return res.status(400).json({ error: 'Country and city are required for geocoding' });
+      }
+
+      // Build search string from address components
+      const addressParts = [street, area, city, country].filter(Boolean);
+      const searchQuery = addressParts.join(', ');
+
+      // Use Nominatim for forward geocoding
+      const nominatimUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&format=json&limit=5`;
+
+      const response = await fetch(nominatimUrl, {
+        headers: { 'User-Agent': 'Matrix-Delivery-App/1.0' }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Nominatim API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (!data || data.length === 0) {
+        return res.status(404).json({ error: 'No results found for this address' });
+      }
+
+      // Return the first result or all results
+      const results = data.map(item => ({
+        coordinates: { lat: parseFloat(item.lat), lng: parseFloat(item.lon) },
+        locationLink: `https://www.google.com/maps?q=${item.lat},${item.lon}`,
+        displayName: item.display_name,
+        address: {
+          country: item.address?.country || country,
+          city: item.address?.city || item.address?.town || item.address?.village || city,
+          area: item.address?.suburb || item.address?.neighbourhood || item.address?.district || area || '',
+          street: item.address?.road || item.address?.street || item.address?.pedestrian || street || '',
+          buildingNumber: item.address?.house_number || building || '',
+          postcode: item.address?.postcode || ''
+        },
+        confidence: parseFloat(item.importance) || 0
+      }));
+
+      // Return the best result (removing allResults to avoid circular reference)
+      const bestResult = results[0];
+      res.json(bestResult);
+    } catch (error) {
+      console.error('Forward geocoding error:', error);
+      res.status(500).json({ error: 'Failed to geocode address' });
+    }
+  });
+
+  // Parse Google Maps URL
+  app.post('/api/locations/parse-maps-url', async (req, res) => {
+    try {
+      const { url } = req.body;
+
+      if (!url) {
+        return res.status(400).json({ error: 'URL is required' });
+      }
+
+      const coords = parseGoogleMapsUrl(url);
+
+      if (!coords) {
+        return res.status(400).json({ error: 'Invalid Google Maps URL format' });
+      }
+
+      // Now reverse geocode these coordinates
+      const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?lat=${coords.lat}&lon=${coords.lng}&format=json&addressdetails=1`;
+
+      const response = await fetch(nominatimUrl, {
+        headers: { 'User-Agent': 'Matrix-Delivery-App/1.0' }
+      });
+
+      const data = await response.json();
+
+      res.json({
+        coordinates: coords,
+        locationLink: `https://www.google.com/maps?q=${coords.lat},${coords.lng}`,
+        address: {
+          country: data.address?.country || '',
+          city: data.address?.city || data.address?.town || data.address?.village || '',
+          area: data.address?.suburb || data.address?.neighbourhood || data.address?.district || '',
+          street: data.address?.road || data.address?.street || '',
+          buildingNumber: data.address?.house_number || '',
+          postcode: data.address?.postcode || ''
+        },
+        displayName: data.display_name
+      });
+    } catch (error) {
+      console.error('Parse URL error:', error);
+      res.status(500).json({ error: 'Failed to parse Google Maps URL' });
+    }
+  });
+
+  // Calculate route between two points
+  app.post('/api/locations/calculate-route', async (req, res) => {
+    try {
+      const { pickup, delivery } = req.body;
+
+      if (!pickup?.lat || !pickup?.lng || !delivery?.lat || !delivery?.lng) {
+        return res.status(400).json({ error: 'Pickup and delivery coordinates are required' });
+      }
+
+      // Calculate straight-line distance
+      const straightDistance = calculateDistance(
+        pickup.lat, pickup.lng,
+        delivery.lat, delivery.lng
+      );
+
+      // Try to get actual route from OSRM
+      let routeDistance = straightDistance;
+      let routeDuration = null;
+      let routePolyline = null;
+      let osrmSuccess = false;
+
+      try {
+        // Use environment variable for OSRM server, default to public server
+        const osrmServer = process.env.OSRM_SERVER_URL || 'http://router.project-osrm.org';
+        const osrmUrl = `${osrmServer}/route/v1/driving/${pickup.lng},${pickup.lat};${delivery.lng},${delivery.lat}?overview=full&geometries=polyline`;
+
+        console.log(`Calculating route via OSRM: ${pickup.lat},${pickup.lng} -> ${delivery.lat},${delivery.lng}`);
+
+        const osrmResponse = await fetch(osrmUrl);
+
+        if (osrmResponse.ok) {
+          const osrmData = await osrmResponse.json();
+
+          if (osrmData.code === 'Ok' && osrmData.routes && osrmData.routes.length > 0) {
+            const route = osrmData.routes[0];
+            routeDistance = route.distance / 1000; // Convert meters to km
+            routeDuration = route.duration / 60; // Convert seconds to minutes
+            routePolyline = route.geometry;
+            osrmSuccess = true;
+
+            console.log(`OSRM route calculated: ${routeDistance.toFixed(2)}km, ${routeDuration.toFixed(0)}min`);
+          } else {
+            console.warn('OSRM returned no routes:', osrmData.code);
+          }
+        } else {
+          console.warn(`OSRM API error: HTTP ${osrmResponse.status}`);
+        }
+      } catch (osrmError) {
+        console.warn('OSRM routing failed, using straight-line distance:', osrmError.message);
+        // Estimate route distance as straight-line * 1.3 (typical urban factor)
+        routeDistance = straightDistance * 1.3;
+      }
+
+      // Calculate estimates for all vehicle types using actual or estimated distance
+      const estimates = {
+        walker: {
+          duration_minutes: routeDuration || estimateDuration(routeDistance, 'walker'),
+          speed_kmh: 5,
+          icon: '🚶'
+        },
+        bicycle: {
+          duration_minutes: routeDuration ? Math.ceil(routeDuration * 0.6) : estimateDuration(routeDistance, 'bicycle'),
+          speed_kmh: 15,
+          icon: '🚲'
+        },
+        car: {
+          duration_minutes: routeDuration || estimateDuration(routeDistance, 'car'),
+          speed_kmh: 25,
+          icon: '🚗'
+        },
+        van: {
+          duration_minutes: routeDuration ? Math.ceil(routeDuration * 1.25) : estimateDuration(routeDistance, 'van'),
+          speed_kmh: 20,
+          icon: '🚐'
+        },
+        truck: {
+          duration_minutes: routeDuration ? Math.ceil(routeDuration * 1.4) : estimateDuration(routeDistance, 'truck'),
+          speed_kmh: 18,
+          icon: '🚛'
+        }
+      };
+
+      res.json({
+        distance_km: parseFloat(routeDistance.toFixed(2)),
+        straight_line_distance_km: parseFloat(straightDistance.toFixed(2)),
+        polyline: routePolyline,
+        estimates,
+        route_found: osrmSuccess,
+        osrm_used: osrmSuccess
+      });
+    } catch (error) {
+      console.error('Route calculation error:', error);
+      res.status(500).json({ error: 'Failed to calculate route' });
+    }
+  });
+
+  // Get/Update delivery agent preferences
+  app.get('/api/delivery-agent/preferences', verifyToken, async (req, res) => {
+    try {
+      if (req.user.role !== 'driver') {
+        return res.status(403).json({ error: 'Only delivery agents can access preferences' });
+      }
+
+      const result = await pool.query(
+        `SELECT * FROM delivery_agent_preferences WHERE agent_id = $1`,
         [req.user.userId]
       );
-      return res.json(defaultPrefs.rows[0]);
-    }
-    
-    res.json(result.rows[0]);
-  } catch (error) {
-    console.error('Get preferences error:', error);
-    res.status(500).json({ error: 'Failed to get preferences' });
-  }
-});
 
-app.put('/api/delivery-agent/preferences', verifyToken, async (req, res) => {
-  try {
-    if (req.user.role !== 'driver') {
-      return res.status(403).json({ error: 'Only delivery agents can update preferences' });
+      if (result.rows.length === 0) {
+        // Create default preferences
+        const defaultPrefs = await pool.query(
+          `INSERT INTO delivery_agent_preferences (agent_id, max_distance_km, accept_remote_areas, accept_international)
+         VALUES ($1, 50.00, false, false)
+         RETURNING *`,
+          [req.user.userId]
+        );
+        return res.json(defaultPrefs.rows[0]);
+      }
+
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Get preferences error:', error);
+      res.status(500).json({ error: 'Failed to get preferences' });
     }
-    
-    const { max_distance_km, accept_remote_areas, accept_international } = req.body;
-    
-    const result = await pool.query(
-      `INSERT INTO delivery_agent_preferences (agent_id, max_distance_km, accept_remote_areas, accept_international, updated_at)
+  });
+
+  app.put('/api/delivery-agent/preferences', verifyToken, async (req, res) => {
+    try {
+      if (req.user.role !== 'driver') {
+        return res.status(403).json({ error: 'Only delivery agents can update preferences' });
+      }
+
+      const { max_distance_km, accept_remote_areas, accept_international } = req.body;
+
+      const result = await pool.query(
+        `INSERT INTO delivery_agent_preferences (agent_id, max_distance_km, accept_remote_areas, accept_international, updated_at)
        VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)
        ON CONFLICT (agent_id) 
        DO UPDATE SET 
@@ -361,94 +377,99 @@ app.put('/api/delivery-agent/preferences', verifyToken, async (req, res) => {
          accept_international = EXCLUDED.accept_international,
          updated_at = CURRENT_TIMESTAMP
        RETURNING *`,
-      [
-        req.user.userId,
-        max_distance_km !== undefined ? max_distance_km : 50.00,
-        accept_remote_areas !== undefined ? accept_remote_areas : false,
-        accept_international !== undefined ? accept_international : false
-      ]
-    );
-    
-    res.json(result.rows[0]);
-  } catch (error) {
-    console.error('Update preferences error:', error);
-    res.status(500).json({ error: 'Failed to update preferences' });
-  }
-});
+        [
+          req.user.userId,
+          max_distance_km !== undefined ? max_distance_km : 50.00,
+          accept_remote_areas !== undefined ? accept_remote_areas : false,
+          accept_international !== undefined ? accept_international : false
+        ]
+      );
 
-// Update the existing POST /api/orders endpoint to handle map location data
-// This replaces the existing order creation handler in server.js
-app.post('/api/orders', verifyToken, async (req, res) => {
-  const startTime = Date.now();
-
-  logger.order(`Order creation attempt`, {
-    userId: req.user.userId,
-    userName: req.user.name,
-    ip: req.ip,
-    category: 'order'
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Update preferences error:', error);
+      res.status(500).json({ error: 'Failed to update preferences' });
+    }
   });
 
-  try {
-    const {
-      title, description, price,
-      package_description, package_weight, estimated_value, special_instructions, estimated_delivery_date,
-      pickupLocation, dropoffLocation, routeInfo
-    } = req.body;
+  // Update the existing POST /api/orders endpoint to handle map location data
+  // This replaces the existing order creation handler in server.js
+  app.post('/api/orders', verifyToken, async (req, res) => {
+    const startTime = Date.now();
 
-    logger.debug(req.body);
+    logger.order(`Order creation attempt`, {
+      userId: req.user.userId,
+      userName: req.user.name,
+      ip: req.ip,
+      category: 'order'
+    });
 
-    // Validate required fields
-    if (!title || !price) {
-      return res.status(400).json({ error: 'Title and price are required' });
-    }
+    try {
+      const {
+        title, description, price,
+        package_description, package_weight, estimated_value, special_instructions, estimated_delivery_date,
+        pickupLocation, dropoffLocation, routeInfo,
+        pickupAddress: pickupAddressData, dropoffAddress: dropoffAddressData
+      } = req.body;
 
-    if (parseFloat(price) <= 0) {
-      return res.status(400).json({ error: 'Price must be greater than 0' });
-    }
+      logger.debug(req.body);
 
-    // Validate location data
-    if (!pickupLocation?.coordinates || !dropoffLocation?.coordinates) {
-      return res.status(400).json({ error: 'Pickup and delivery coordinates are required' });
-    }
+      // Validate required fields
+      if (!title || !price) {
+        return res.status(400).json({ error: 'Title and price are required' });
+      }
 
-    // Construct address strings
-    const pickupAddressParts = [
-      pickupLocation.address?.personName,
-      pickupLocation.address?.street,
-      pickupLocation.address?.buildingNumber ? `Building ${pickupLocation.address.buildingNumber}` : '',
-      pickupLocation.address?.floor ? `Floor ${pickupLocation.address.floor}` : '',
-      pickupLocation.address?.apartmentNumber ? `Apartment ${pickupLocation.address.apartmentNumber}` : '',
-      pickupLocation.address?.area,
-      pickupLocation.address?.city,
-      pickupLocation.address?.country
-    ].filter(Boolean);
+      if (parseFloat(price) <= 0) {
+        return res.status(400).json({ error: 'Price must be greater than 0' });
+      }
 
-    const dropoffAddressParts = [
-      dropoffLocation.address?.personName,
-      dropoffLocation.address?.street,
-      dropoffLocation.address?.buildingNumber ? `Building ${dropoffLocation.address.buildingNumber}` : '',
-      dropoffLocation.address?.floor ? `Floor ${dropoffLocation.address.floor}` : '',
-      dropoffLocation.address?.apartmentNumber ? `Apartment ${dropoffLocation.address.apartmentNumber}` : '',
-      dropoffLocation.address?.area,
-      dropoffLocation.address?.city,
-      dropoffLocation.address?.country
-    ].filter(Boolean);
+      // Validate location data
+      if (!pickupLocation?.coordinates || !dropoffLocation?.coordinates) {
+        return res.status(400).json({ error: 'Pickup and delivery coordinates are required' });
+      }
 
-    const pickupAddress = pickupAddressParts.join(', ');
-    const dropoffAddress = dropoffAddressParts.join(', ');
+      // Use address data from pickupAddress/dropoffAddress if available, otherwise from pickupLocation.address
+      const pickupAddr = pickupAddressData || pickupLocation.address || {};
+      const dropoffAddr = dropoffAddressData || dropoffLocation.address || {};
 
-    const orderId = generateId();
-    const orderNumber = generateOrderNumber();
+      // Construct address strings
+      const pickupAddressParts = [
+        pickupAddr.personName,
+        pickupAddr.street,
+        pickupAddr.building ? `Building ${pickupAddr.building}` : '',
+        pickupAddr.floor ? `Floor ${pickupAddr.floor}` : '',
+        pickupAddr.apartment ? `Apartment ${pickupAddr.apartment}` : '',
+        pickupAddr.area,
+        pickupAddr.city,
+        pickupAddr.country
+      ].filter(Boolean);
 
-    // Determine if remote area or international
-    const isRemote = isRemoteArea(pickupLocation.address) || isRemoteArea(dropoffLocation.address);
-    const isInternational = isInternationalOrder(
-      pickupLocation.address?.country,
-      dropoffLocation.address?.country
-    );
+      const dropoffAddressParts = [
+        dropoffAddr.personName,
+        dropoffAddr.street,
+        dropoffAddr.building ? `Building ${dropoffAddr.building}` : '',
+        dropoffAddr.floor ? `Floor ${dropoffAddr.floor}` : '',
+        dropoffAddr.apartment ? `Apartment ${dropoffAddr.apartment}` : '',
+        dropoffAddr.area,
+        dropoffAddr.city,
+        dropoffAddr.country
+      ].filter(Boolean);
 
-    const result = await pool.query(
-      `INSERT INTO orders (
+      const pickupAddress = pickupAddressParts.join(', ');
+      const dropoffAddress = dropoffAddressParts.join(', ');
+
+      const orderId = generateId();
+      const orderNumber = generateOrderNumber();
+
+      // Determine if remote area or international
+      const isRemote = isRemoteArea(pickupAddr) || isRemoteArea(dropoffAddr);
+      const isInternational = isInternationalOrder(
+        pickupAddr.country,
+        dropoffAddr.country
+      );
+
+      const result = await pool.query(
+        `INSERT INTO orders (
         id, order_number, title, description, 
         pickup_address, delivery_address,
         from_lat, from_lng, from_name, 
@@ -462,109 +483,133 @@ app.post('/api/orders', verifyToken, async (req, res) => {
       ) VALUES (
         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30
       ) RETURNING *`,
-      [
-        orderId, orderNumber, title.trim(), description?.trim() || '',
-        pickupAddress, dropoffAddress,
-        parseFloat(pickupLocation.coordinates.lat), parseFloat(pickupLocation.coordinates.lng),
-        pickupLocation.address?.personName || pickupLocation.address?.street,
-        parseFloat(dropoffLocation.coordinates.lat), parseFloat(dropoffLocation.coordinates.lng),
-        dropoffLocation.address?.personName || dropoffLocation.address?.street,
-        JSON.stringify(pickupLocation.coordinates), JSON.stringify(dropoffLocation.coordinates),
-        pickupLocation.locationLink || null, dropoffLocation.locationLink || null,
-        routeInfo?.distance_km || null, routeInfo?.estimates?.car?.duration_minutes || null,
-        routeInfo?.polyline || null,
-        isRemote, isInternational,
-        package_description || null, package_weight ? parseFloat(package_weight) : null,
-        estimated_value ? parseFloat(estimated_value) : null, special_instructions || null,
-        parseFloat(price), 'pending_bids', req.user.userId, req.user.name, estimated_delivery_date || null
-      ]
-    );
+        [
+          orderId, orderNumber, title.trim(), description?.trim() || '',
+          pickupAddress, dropoffAddress,
+          parseFloat(pickupLocation.coordinates.lat), parseFloat(pickupLocation.coordinates.lng),
+          pickupAddr.personName || pickupAddr.street,
+          parseFloat(dropoffLocation.coordinates.lat), parseFloat(dropoffLocation.coordinates.lng),
+          dropoffAddr.personName || dropoffAddr.street,
+          JSON.stringify(pickupLocation.coordinates), JSON.stringify(dropoffLocation.coordinates),
+          pickupLocation.locationLink || null, dropoffLocation.locationLink || null,
+          routeInfo?.distance_km || null,
+          routeInfo?.estimates?.car?.duration_minutes ? Math.round(routeInfo.estimates.car.duration_minutes) : null,
+          routeInfo?.polyline || null,
+          isRemote, isInternational,
+          package_description || null, package_weight ? parseFloat(package_weight) : null,
+          estimated_value ? parseFloat(estimated_value) : null, special_instructions || null,
+          parseFloat(price), 'pending_bids', req.user.userId, req.user.name, estimated_delivery_date || null
+        ]
+      );
 
-    const order = result.rows[0];
-    const duration = Date.now() - startTime;
+      const order = result.rows[0];
+      const duration = Date.now() - startTime;
 
-    logger.order(`Order created successfully`, {
-      orderId: order.id,
-      orderNumber: order.order_number,
-      title: order.title,
-      price: parseFloat(order.price),
-      distance_km: order.estimated_distance_km,
-      isRemoteArea: order.is_remote_area,
-      isInternational: order.is_international,
-      userId: req.user.userId,
-      userName: req.user.name,
-      duration: `${duration}ms`,
-      category: 'order'
-    });
+      logger.order(`Order created successfully`, {
+        orderId: order.id,
+        orderNumber: order.order_number,
+        title: order.title,
+        price: parseFloat(order.price),
+        distance_km: order.estimated_distance_km,
+        isRemoteArea: order.is_remote_area,
+        isInternational: order.is_international,
+        userId: req.user.userId,
+        userName: req.user.name,
+        duration: `${duration}ms`,
+        category: 'order'
+      });
 
-    res.status(201).json({
-      _id: order.id,
-      orderNumber: order.order_number,
-      title: order.title,
-      description: order.description,
-      pickupAddress: order.pickup_address,
-      deliveryAddress: order.delivery_address,
-      from: {
-        lat: parseFloat(order.from_lat),
-        lng: parseFloat(order.from_lng),
-        name: order.from_name
-      },
-      to: {
-        lat: parseFloat(order.to_lat),
-        lng: parseFloat(order.to_lng),
-        name: order.to_name
-      },
-      pickupCoordinates: order.pickup_coordinates,
-      deliveryCoordinates: order.delivery_coordinates,
-      pickupLocationLink: order.pickup_location_link,
-      deliveryLocationLink: order.delivery_location_link,
-      estimatedDistanceKm: order.estimated_distance_km ? parseFloat(order.estimated_distance_km) : null,
-      estimatedDurationMinutes: order.estimated_duration_minutes,
-      routePolyline: order.route_polyline,
-      isRemoteArea: order.is_remote_area,
-      isInternational: order.is_international,
-      packageDescription: order.package_description,
-      packageWeight: order.package_weight ? parseFloat(order.package_weight) : null,
-      estimatedValue: order.estimated_value ? parseFloat(order.estimated_value) : null,
-      specialInstructions: order.special_instructions,
-      price: parseFloat(order.price),
-      status: order.status,
-      bids: [],
-      customerId: order.customer_id,
-      customerName: order.customer_name,
-      assignedDriver: null,
-      estimatedDeliveryDate: order.estimated_delivery_date,
-      createdAt: order.created_at,
-      pickupLocation: pickupLocation,
-      dropoffLocation: dropoffLocation
-    });
-  } catch (error) {
-    const duration = Date.now() - startTime;
-    logger.error(`Order creation error: ${error.message}`, {
-      stack: error.stack,
-      userId: req.user.userId,
-      userName: req.user.name,
-      duration: `${duration}ms`,
-      category: 'error'
-    });
-    res.status(500).json({ error: 'Failed to create order' });
-  }
-});
+      res.status(201).json({
+        _id: order.id,
+        orderNumber: order.order_number,
+        title: order.title,
+        description: order.description,
+        pickupAddress: order.pickup_address,
+        deliveryAddress: order.delivery_address,
+        from: {
+          lat: parseFloat(order.from_lat),
+          lng: parseFloat(order.from_lng),
+          name: order.from_name
+        },
+        to: {
+          lat: parseFloat(order.to_lat),
+          lng: parseFloat(order.to_lng),
+          name: order.to_name
+        },
+        pickupCoordinates: order.pickup_coordinates,
+        deliveryCoordinates: order.delivery_coordinates,
+        pickupLocationLink: order.pickup_location_link,
+        deliveryLocationLink: order.delivery_location_link,
+        estimatedDistanceKm: order.estimated_distance_km ? parseFloat(order.estimated_distance_km) : null,
+        estimatedDurationMinutes: order.estimated_duration_minutes,
+        routePolyline: order.route_polyline,
+        isRemoteArea: order.is_remote_area,
+        isInternational: order.is_international,
+        packageDescription: order.package_description,
+        packageWeight: order.package_weight ? parseFloat(order.package_weight) : null,
+        estimatedValue: order.estimated_value ? parseFloat(order.estimated_value) : null,
+        specialInstructions: order.special_instructions,
+        price: parseFloat(order.price),
+        status: order.status,
+        bids: [],
+        customerId: order.customer_id,
+        customerName: order.customer_name,
+        assignedDriver: null,
+        estimatedDeliveryDate: order.estimated_delivery_date,
+        createdAt: order.created_at,
+        pickupLocation: pickupLocation,
+        dropoffLocation: dropoffLocation
+      });
+    } catch (error) {
+      const duration = Date.now() - startTime;
 
-// Update GET /api/orders to include filtering for delivery agents
-// This enhances the existing orders endpoint
-const originalGetOrders = app._router.stack.find(r => 
-  r.route?.path === '/api/orders' && r.route?.methods?.get
-);
+      // Log detailed error information
+      console.error('❌ Order creation failed:', {
+        errorMessage: error.message,
+        errorCode: error.code,
+        errorDetail: error.detail,
+        errorStack: error.stack,
+        requestBody: {
+          title,
+          hasPickupLocation: !!pickupLocation,
+          hasDropoffLocation: !!dropoffLocation,
+          hasRouteInfo: !!routeInfo,
+          pickupCoords: pickupLocation?.coordinates,
+          dropoffCoords: dropoffLocation?.coordinates
+        }
+      });
 
-// Enhanced GET /api/orders with delivery agent filtering
-app.get('/api/orders', verifyToken, async (req, res) => {
-  try {
-    let query, params;
+      logger.error(`Order creation error: ${error.message}`, {
+        errorCode: error.code,
+        errorDetail: error.detail,
+        stack: error.stack,
+        userId: req.user.userId,
+        userName: req.user.name,
+        duration: `${duration}ms`,
+        category: 'error'
+      });
 
-    if (req.user.role === 'customer') {
-      // Customer view - show all their orders
-      query = `SELECT o.*,
+      res.status(500).json({
+        error: 'Failed to create order',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+  });
+
+  // Update GET /api/orders to include filtering for delivery agents
+  // This enhances the existing orders endpoint
+  const originalGetOrders = app._router.stack.find(r =>
+    r.route?.path === '/api/orders' && r.route?.methods?.get
+  );
+
+  // Enhanced GET /api/orders with delivery agent filtering
+  app.get('/api/orders', verifyToken, async (req, res) => {
+    try {
+      let query, params;
+
+      if (req.user.role === 'customer') {
+        // Customer view - show all their orders
+        query = `SELECT o.*,
                COALESCE(json_agg(json_build_object(
                  'userId', b.user_id,
                  'driverName', b.driver_name,
@@ -583,10 +628,10 @@ app.get('/api/orders', verifyToken, async (req, res) => {
                LEFT JOIN users u ON b.user_id = u.id
                WHERE o.customer_id = $1
                GROUP BY o.id ORDER BY o.created_at DESC`;
-      params = [req.user.userId];
-    } else if (req.user.role === 'driver') {
-      // Driver view - show their assigned orders, bids, and available orders
-      query = `
+        params = [req.user.userId];
+      } else if (req.user.role === 'driver') {
+        // Driver view - show their assigned orders, bids, and available orders
+        query = `
         SELECT o.*,
                COALESCE(json_agg(json_build_object(
                  'userId', b.user_id,
@@ -618,10 +663,10 @@ app.get('/api/orders', verifyToken, async (req, res) => {
         GROUP BY o.id, cu.rating, cu.completed_deliveries, cu.is_verified, cu.created_at
         ORDER BY o.created_at DESC
       `;
-      params = [req.user.userId];
-    } else if (req.user.role === 'admin') {
-      // Admin view - show all orders
-      query = `SELECT o.*,
+        params = [req.user.userId];
+      } else if (req.user.role === 'admin') {
+        // Admin view - show all orders
+        query = `SELECT o.*,
                COALESCE(json_agg(json_build_object(
                  'userId', b.user_id,
                  'driverName', b.driver_name,
@@ -645,72 +690,72 @@ app.get('/api/orders', verifyToken, async (req, res) => {
                LEFT JOIN users c ON o.customer_id = c.id
                GROUP BY o.id, c.rating, c.completed_deliveries, c.is_verified, c.created_at
                ORDER BY o.created_at DESC`;
-      params = [];
+        params = [];
+      }
+
+      const result = await pool.query(query, params);
+
+      const orders = result.rows.map(order => ({
+        _id: order.id,
+        orderNumber: order.order_number,
+        title: order.title,
+        description: order.description,
+        pickupAddress: order.pickup_address,
+        deliveryAddress: order.delivery_address,
+        from: {
+          lat: parseFloat(order.from_lat),
+          lng: parseFloat(order.from_lng),
+          name: order.from_name
+        },
+        to: {
+          lat: parseFloat(order.to_lat),
+          lng: parseFloat(order.to_lng),
+          name: order.to_name
+        },
+        pickupCoordinates: order.pickup_coordinates,
+        deliveryCoordinates: order.delivery_coordinates,
+        pickupLocationLink: order.pickup_location_link,
+        deliveryLocationLink: order.delivery_location_link,
+        estimatedDistanceKm: order.estimated_distance_km ? parseFloat(order.estimated_distance_km) : null,
+        estimatedDurationMinutes: order.estimated_duration_minutes,
+        routePolyline: order.route_polyline,
+        isRemoteArea: order.is_remote_area,
+        isInternational: order.is_international,
+        packageDescription: order.package_description,
+        packageWeight: order.package_weight ? parseFloat(order.package_weight) : null,
+        estimatedValue: order.estimated_value ? parseFloat(order.estimated_value) : null,
+        specialInstructions: order.special_instructions,
+        price: parseFloat(order.price),
+        status: order.status,
+        bids: order.bids,
+        customerId: order.customer_id,
+        customerName: order.customer_name,
+        assignedDriver: order.assigned_driver_user_id ? {
+          userId: order.assigned_driver_user_id,
+          driverName: order.assigned_driver_name,
+          bidPrice: parseFloat(order.assigned_driver_bid_price)
+        } : null,
+        estimatedDeliveryDate: order.estimated_delivery_date,
+        currentLocation: order.current_location_lat ? {
+          lat: parseFloat(order.current_location_lat),
+          lng: parseFloat(order.current_location_lng)
+        } : null,
+        customerRating: order.customerrating ? parseFloat(order.customerrating) : 5.0,
+        customerCompletedOrders: order.customercompletedorders || 0,
+        customerIsVerified: order.customerisverified || false,
+        customerJoinedAt: order.customerjoinedat,
+        createdAt: order.created_at,
+        acceptedAt: order.accepted_at,
+        pickedUpAt: order.picked_up_at,
+        deliveredAt: order.delivered_at
+      }));
+
+      res.json(orders);
+    } catch (error) {
+      console.error('Get orders error:', error);
+      res.status(500).json({ error: 'Failed to get orders' });
     }
+  });
 
-    const result = await pool.query(query, params);
-    
-    const orders = result.rows.map(order => ({
-      _id: order.id,
-      orderNumber: order.order_number,
-      title: order.title,
-      description: order.description,
-      pickupAddress: order.pickup_address,
-      deliveryAddress: order.delivery_address,
-      from: {
-        lat: parseFloat(order.from_lat),
-        lng: parseFloat(order.from_lng),
-        name: order.from_name
-      },
-      to: {
-        lat: parseFloat(order.to_lat),
-        lng: parseFloat(order.to_lng),
-        name: order.to_name
-      },
-      pickupCoordinates: order.pickup_coordinates,
-      deliveryCoordinates: order.delivery_coordinates,
-      pickupLocationLink: order.pickup_location_link,
-      deliveryLocationLink: order.delivery_location_link,
-      estimatedDistanceKm: order.estimated_distance_km ? parseFloat(order.estimated_distance_km) : null,
-      estimatedDurationMinutes: order.estimated_duration_minutes,
-      routePolyline: order.route_polyline,
-      isRemoteArea: order.is_remote_area,
-      isInternational: order.is_international,
-      packageDescription: order.package_description,
-      packageWeight: order.package_weight ? parseFloat(order.package_weight) : null,
-      estimatedValue: order.estimated_value ? parseFloat(order.estimated_value) : null,
-      specialInstructions: order.special_instructions,
-      price: parseFloat(order.price),
-      status: order.status,
-      bids: order.bids,
-      customerId: order.customer_id,
-      customerName: order.customer_name,
-      assignedDriver: order.assigned_driver_user_id ? {
-        userId: order.assigned_driver_user_id,
-        driverName: order.assigned_driver_name,
-        bidPrice: parseFloat(order.assigned_driver_bid_price)
-      } : null,
-      estimatedDeliveryDate: order.estimated_delivery_date,
-      currentLocation: order.current_location_lat ? {
-        lat: parseFloat(order.current_location_lat),
-        lng: parseFloat(order.current_location_lng)
-      } : null,
-      customerRating: order.customerrating ? parseFloat(order.customerrating) : 5.0,
-      customerCompletedOrders: order.customercompletedorders || 0,
-      customerIsVerified: order.customerisverified || false,
-      customerJoinedAt: order.customerjoinedat,
-      createdAt: order.created_at,
-      acceptedAt: order.accepted_at,
-      pickedUpAt: order.picked_up_at,
-      deliveredAt: order.delivered_at
-    }));
-
-    res.json(orders);
-  } catch (error) {
-    console.error('Get orders error:', error);
-    res.status(500).json({ error: 'Failed to get orders' });
-  }
-});
-
-// End of function
+  // End of function
 };
