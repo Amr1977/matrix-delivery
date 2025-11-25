@@ -895,15 +895,18 @@ tr {
 }
 
 .expected-route-pickup {
-  filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.8));
+  filter: drop-shadow(0 0 8px rgba(255, 107, 0, 1.0));
+  stroke-width: 6px;
 }
 
 .expected-route-delivery {
-  filter: drop-shadow(0 0 6px rgba(14, 165, 233, 0.8));
+  filter: drop-shadow(0 0 8px rgba(0, 102, 255, 1.0));
+  stroke-width: 6px;
 }
 
 .actual-route {
-  filter: drop-shadow(0 0 8px rgba(0, 255, 0, 0.9));
+  filter: drop-shadow(0 0 10px rgba(0, 255, 0, 1.0));
+  stroke-width: 8px;
 }
 
 @keyframes routeDash {

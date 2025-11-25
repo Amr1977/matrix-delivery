@@ -133,19 +133,19 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, loading, compact = false,
                   {/* Expected Route (OSRM) - Dashed Orange/Yellow */}
                   <Polyline
                     positions={routePath}
-                    color={isLightMode ? "#D97706" : "#F59E0B"}
-                    weight={4}
-                    opacity={0.8}
-                    dashArray="10, 10"
+                    color="#FF6B00"
+                    weight={6}
+                    opacity={1.0}
+                    dashArray="12, 8"
                   />
 
                   {/* Actual Driver Route - Solid Green/Blue */}
                   {actualDriverPath.length > 0 && (
                     <Polyline
                       positions={actualDriverPath}
-                      color={isLightMode ? "#059669" : "#00FF00"}
-                      weight={5}
-                      opacity={0.9}
+                      color="#00FF00"
+                      weight={8}
+                      opacity={1.0}
                     />
                   )}
                 </>
