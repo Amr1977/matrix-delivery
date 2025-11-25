@@ -18,6 +18,7 @@ import BrowseVendors from './components/BrowseVendors';
 import BrowseItems from './components/BrowseItems';
 import VendorSelfDashboard from './components/VendorSelfDashboard';
 import MobileNavBar from './components/MobileNavBar';
+import useDriver from './hooks/useDriver';
 
 
 // Location data state and API functions
@@ -30,6 +31,10 @@ const DeliveryApp = () => {
   const [authState, setAuthState] = useState('login');
   const [token, setToken] = useState(localStorage.getItem('token') || null);
   const [currentUser, setCurrentUser] = useState(null);
+
+  // Use driver hook for location management
+  const driverHook = useDriver(token, currentUser);
+  const driverLocation = driverHook.driverLocation;
   const [orders, setOrders] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -301,7 +306,6 @@ const DeliveryApp = () => {
   const [viewType, setViewType] = useState('active'); // 'active', 'bidding', 'history', 'map', 'my_bids'
   const [ordersMapRadiusKm, setOrdersMapRadiusKm] = useState(5);
   const [selectedOrderForMap, setSelectedOrderForMap] = useState(null);
-  const [driverLocation, setDriverLocation] = useState({ latitude: null, longitude: null, lastUpdated: null });
   const [driverOnline, setDriverOnline] = useState(false); // Driver online/offline status
   const [countryFilter, setCountryFilter] = useState(''); // Country filter for bidding orders
   const [cityFilter, setCityFilter] = useState(''); // City filter for bidding orders
@@ -460,6 +464,16 @@ const DeliveryApp = () => {
     }, 1500);
     return () => clearTimeout(timer);
   }, [countryFilter, cityFilter, areaFilter, currentUser?.role, token, viewType, fetchOrders]);
+
+  // Start location tracking when driver enters bidding view
+  useEffect(() => {
+    if (currentUser?.role === 'driver' && token && viewType === 'bidding') {
+      // Get initial location
+      driverHook.getDriverLocation();
+      // Start continuous location updates
+      driverHook.updateDriverLocation();
+    }
+  }, [currentUser?.role, token, viewType, driverHook]);
 
   // Real-time notifications via WebSocket
   useEffect(() => {
@@ -1391,61 +1405,14 @@ const DeliveryApp = () => {
     }
   };
 
-  // Driver location functions
+  // Driver location functions - now using the driver hook
   const updateDriverLocation = async () => {
-    if (currentUser?.role !== 'driver') return;
-
-    try {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          async (position) => {
-            const { latitude, longitude } = position.coords;
-
-            const response = await fetch(`${API_URL}/drivers/location`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-              },
-              body: JSON.stringify({ latitude, longitude })
-            });
-
-            if (!response.ok) throw new Error('Failed to update location');
-
-            setDriverLocation({
-              latitude: parseFloat(latitude),
-              longitude: parseFloat(longitude),
-              lastUpdated: new Date()
-            });
-            setLocationPermission('granted');
-            fetchOrders(); // Refresh orders with new distance calculations
-          },
-          (error) => {
-            console.error('Geolocation error:', error);
-            setLocationPermission('denied');
-            setError('Location access denied. Please enable location services.');
-          }
-        );
-      } else {
-        setError('Geolocation is not supported by this browser.');
-      }
-    } catch (err) {
-      console.error('Update location error:', err);
-      setError('Failed to update location');
-    }
+    await driverHook.updateDriverLocation();
+    fetchOrders(); // Refresh orders with new distance calculations
   };
 
   const getDriverLocation = async () => {
-    try {
-      const response = await fetch(`${API_URL}/drivers/location`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (!response.ok) throw new Error('Failed to get location');
-      const data = await response.json();
-      setDriverLocation(data.location || { latitude: null, longitude: null, lastUpdated: null });
-    } catch (err) {
-      console.error('Get location error:', err);
-    }
+    await driverHook.getDriverLocation();
   };
 
   // Driver status functions
@@ -1492,23 +1459,9 @@ const DeliveryApp = () => {
           async (position) => {
             const { latitude, longitude } = position.coords;
 
-            const response = await fetch(`${API_URL}/drivers/location`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-              },
-              body: JSON.stringify({ latitude, longitude })
-            });
-
-            if (!response.ok) throw new Error('Failed to update location');
-
-            setDriverLocation({
-              latitude: parseFloat(latitude),
-              longitude: parseFloat(longitude),
-              lastUpdated: new Date()
-            });
-            setLocationPermission('granted');
+            // Update driver location using the hook
+            const success = await driverHook.updateDriverLocation();
+            if (!success) throw new Error('Failed to update location');
             const activeOrders = orders.filter(o => o.assignedDriver?.userId === currentUser.id && ['accepted', 'picked_up', 'in_transit'].includes(o.status));
             if (activeOrders.length > 0) {
               await Promise.all(activeOrders.map(o => (
@@ -1543,7 +1496,7 @@ const DeliveryApp = () => {
         setError('Failed to update location');
       }
     }
-  }, [currentUser, driverOnline, loading, API_URL, token, orders, fetchOrders]);
+  }, [currentUser, driverOnline, loading, API_URL, token, orders, fetchOrders, driverHook]);
 
   const toggleOnline = async () => {
     if (driverOnline && hasActiveOrders()) {
