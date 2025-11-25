@@ -472,7 +472,7 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, loading }) => {
           >
             <Popup><strong>Dropoff</strong></Popup>
           </Marker>
-          <Polyline positions={routePath} color="#4F46E5" weight={4} opacity={0.7} />
+          <Polyline positions={routePath} color="#FF6B00" weight={6} opacity={1.0} dashArray="12, 8" />
         </MapContainer>
       </div>
 

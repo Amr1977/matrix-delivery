@@ -483,10 +483,10 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
           {routePath.length > 1 && (
             <Polyline
               positions={routePath}
-              color="#4f46e5"
-              weight={4}
-              opacity={0.8}
-              dashArray="10, 10"
+              color="#FF6B00"
+              weight={6}
+              opacity={1.0}
+              dashArray="12, 8"
             />
           )}
         </MapContainer>
