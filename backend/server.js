@@ -5871,6 +5871,14 @@ const createAdminTables = async () => {
 // ============ END OF ADMIN BACKEND API ENDPOINTS ============
 // Continue with Error Handling
 
+// Load payments routes
+const paymentRoutes = require('./routes/payments');
+app.use('/api/payments', paymentRoutes);
+
+// Load messages routes
+const messageRoutes = require('./routes/messages');
+app.use('/api/messages', messageRoutes);
+
 // Error handling middleware
 app.use(logger.errorLogger);
 
@@ -6014,13 +6022,7 @@ io.on('connection', (socket) => {
   });
 });
 
-// Load payments routes
-const paymentRoutes = require('./routes/payments');
-app.use('/api/payments', paymentRoutes);
 
-// Load messages routes
-const messageRoutes = require('./routes/messages');
-app.use('/api/messages', messageRoutes);
 
 const PORT = process.env.PORT || 5000;
 const server = httpServer.listen(PORT, '0.0.0.0', () => {
