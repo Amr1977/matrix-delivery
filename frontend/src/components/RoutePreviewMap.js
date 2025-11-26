@@ -13,7 +13,7 @@ L.Icon.Default.mergeOptions({
 });
 
 // ============ ROUTE PREVIEW MAP COMPONENT ============
-const RoutePreviewMap = ({ pickup, dropoff, routeInfo, loading, compact = false, t, mapTitle = "Route Preview", theme = 'dark' }) => {
+const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, loading, compact = false, t, mapTitle = "Route Preview", theme = 'dark' }) => {
   const hasCoordinates = pickup && dropoff;
   const centerLat = hasCoordinates ? (pickup.lat + dropoff.lat) / 2 : 30.0444;
   const centerLng = hasCoordinates ? (pickup.lng + dropoff.lng) / 2 : 31.2357;
@@ -38,14 +38,21 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, loading, compact = false,
     distance: routeInfo?.distance_km,
     hasPickup: !!pickup,
     hasDropoff: !!dropoff,
+    hasDriverLocation: !!driverLocation,
+    hasBiddingRoute: !!routeInfo?.biddingRoute,
     hasActualRoute: !!routeInfo?.actualRoutePolyline,
     theme
   };
 
-  // Force console.log to always show
-  window.console.log(`\ud83d\uddfa\ufe0f [${mapTitle}] RoutePreviewMap Debug:`, debugInfo);
+  // Debug logging (can be removed in production)
+  // window.console.log(`\ud83d\uddfa\ufe0f [${mapTitle}] RoutePreviewMap Debug:`, debugInfo);
 
-  if (routeInfo?.polyline) {
+  if (routeInfo?.biddingRoute) {
+    // Use pre-decoded bidding route (driver -> pickup -> dropoff)
+    routePath = routeInfo.biddingRoute;
+    isActualRoute = true;
+    window.console.log(`\u2705 [${mapTitle}] Using bidding route:`, routePath.length, 'points');
+  } else if (routeInfo?.polyline) {
     try {
       // Decode OSRM polyline to array of [lat, lng] coordinates
       routePath = polyline.decode(routeInfo.polyline);
@@ -109,6 +116,32 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, loading, compact = false,
               {/* Show markers only if coordinates exist */}
               {hasCoordinates && (
                 <>
+                  {/* Driver Location Marker - only show if driverLocation is provided */}
+                  {driverLocation && Number.isFinite(driverLocation.latitude) && Number.isFinite(driverLocation.longitude) && (
+                    <Marker
+                      key={`driver-${driverLocation.latitude.toFixed(4)}-${driverLocation.longitude.toFixed(4)}`}
+                      position={[driverLocation.latitude, driverLocation.longitude]}
+                      icon={L.icon({
+                        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+                        iconSize: [25, 41],
+                        iconAnchor: [12, 41]
+                      })}
+                    >
+                      <Popup>
+                        <div style={{ fontSize: '0.875rem' }}>
+                          <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>🚗 Driver Location</div>
+                          <div>Lat: {driverLocation.latitude.toFixed(6)}</div>
+                          <div>Lng: {driverLocation.longitude.toFixed(6)}</div>
+                          {driverLocation.lastUpdated && (
+                            <div style={{ fontSize: '0.75rem', color: '#666', marginTop: '0.25rem' }}>
+                              Updated: {new Date(driverLocation.lastUpdated).toLocaleTimeString()}
+                            </div>
+                          )}
+                        </div>
+                      </Popup>
+                    </Marker>
+                  )}
+
                   <Marker
                     position={[pickup.lat, pickup.lng]}
                     icon={L.icon({
@@ -130,13 +163,13 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, loading, compact = false,
                     <Popup><strong>Dropoff Location</strong></Popup>
                   </Marker>
 
-                  {/* Expected Route (OSRM) - Dashed Orange/Yellow */}
+                  {/* Route Polyline - Solid for OSRM routes, dashed for estimated */}
                   <Polyline
                     positions={routePath}
-                    color="#FF6B00"
-                    weight={6}
+                    color={isActualRoute ? "#00FF00" : "#FF6B00"}
+                    weight={isActualRoute ? 8 : 6}
                     opacity={1.0}
-                    dashArray="12, 8"
+                    dashArray={isActualRoute ? undefined : "12, 8"}
                   />
 
                   {/* Actual Driver Route - Solid Green/Blue */}

@@ -5,7 +5,6 @@ import AdminPanel from './AdminPanel';
 import ErrorBoundary from './ErrorBoundary';
 import OrderCreationForm from './updated-order-creation-form';
 import LiveTrackingMapView from './components/maps/LiveTrackingMap';
-import DriverBiddingMap from './components/maps/DriverBiddingMap';
 import OrdersMap from './components/maps/OrdersMap';
 import RoutePreviewMap from './components/RoutePreviewMap';
 import AsyncOrderMap from './components/AsyncOrderMap';
@@ -2769,12 +2768,11 @@ const DeliveryApp = () => {
                 </div>
               </div>
               <div style={{ padding: '1rem' }}>
-                <DriverBiddingMap
+                <AsyncOrderMap
                   order={selectedOrderForMap}
+                  currentUser={currentUser}
                   driverLocation={driverLocation}
-                  driverVehicleType={(preferencesData?.preferences || {}).vehicleType || 'car'}
-                  isFullscreen={false}
-                  onToggleFullscreen={() => { }}
+                  theme={profileData?.theme || 'dark'}
                 />
                 <div style={{ marginTop: '1rem', background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1rem' }}>
                   <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, marginBottom: '0.5rem' }}>Cost Estimate</h4>
@@ -3048,19 +3046,11 @@ const DeliveryApp = () => {
                       <AsyncOrderMap
                         order={order}
                         currentUser={currentUser}
+                        driverLocation={driverLocation}
                         theme={profileData?.theme || 'dark'}
                       />
                     </div>
 
-                    {currentUser?.role === 'driver' && viewType === 'bidding' && (
-                      <DriverBiddingMap
-                        order={order}
-                        driverLocation={driverLocation}
-                        driverVehicleType={driverPricing.vehicleType}
-                        isFullscreen={false}
-                        onToggleFullscreen={() => { }}
-                      />
-                    )}
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem', padding: '1rem', background: '#F9FAFB', borderRadius: '0.375rem' }}>
                       <div>

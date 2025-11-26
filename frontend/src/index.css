@@ -1,5 +1,7 @@
 /* ============ MATRIX THEME STYLES ============ */
 
+@import './tailwind.css';
+
 * {
   margin: 0;
   padding: 0;

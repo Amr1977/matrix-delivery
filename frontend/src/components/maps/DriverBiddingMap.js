@@ -103,7 +103,21 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
 
   // Get real-time driver location if not provided
   React.useEffect(() => {
-    if (!driverLocation && navigator.geolocation) {
+    // Check if we have valid driverLocation coordinates from props
+    const hasValidDriverLocation = driverLocation &&
+      Number.isFinite(driverLocation.latitude) &&
+      Number.isFinite(driverLocation.longitude);
+
+    if (hasValidDriverLocation) {
+      // Use the driver location from props
+      setDriverCoords({
+        lat: driverLocation.latitude,
+        lng: driverLocation.longitude,
+        accuracy: driverLocation.accuracy || 100
+      });
+      setLoading(false);
+    } else if (navigator.geolocation) {
+      // Fall back to geolocation with proper options for mobile
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const coords = {
@@ -116,6 +130,17 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
         },
         (error) => {
           console.warn('Geolocation error:', error);
+          console.warn('Error code:', error.code, 'Message:', error.message);
+
+          // Provide better error messages for different error types
+          if (error.code === error.PERMISSION_DENIED) {
+            console.warn('Location permission denied. This is normal on mobile over HTTP.');
+          } else if (error.code === error.POSITION_UNAVAILABLE) {
+            console.warn('Location information unavailable.');
+          } else if (error.code === error.TIMEOUT) {
+            console.warn('Location request timed out.');
+          }
+
           // Fall back to order pickup location for demo
           if (pickupCoords) {
             setDriverCoords({
@@ -123,6 +148,7 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
               lng: pickupCoords.lng,
               accuracy: 1000
             });
+            console.log('Using pickup location as fallback:', pickupCoords);
           } else {
             // Fallback to Cairo if no coordinates available
             setDriverCoords({
@@ -130,25 +156,16 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
               lng: 31.2357,
               accuracy: 1000
             });
+            console.log('Using default Cairo location as fallback');
           }
           setLoading(false);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 300000 // Accept cached location up to 5 minutes old
         }
       );
-    } else if (driverLocation) {
-      const lat = driverLocation.latitude;
-      const lng = driverLocation.longitude;
-      if (Number.isFinite(lat) && Number.isFinite(lng)) {
-        setDriverCoords({
-          lat,
-          lng,
-          accuracy: driverLocation.accuracy || 100
-        });
-      } else if (pickupCoords) {
-        setDriverCoords({ lat: pickupCoords.lat, lng: pickupCoords.lng, accuracy: 1000 });
-      } else {
-        setDriverCoords({ lat: 30.0444, lng: 31.2357, accuracy: 1000 });
-      }
-      setLoading(false);
     } else {
       // If no geolocation available, use order pickup or default location
       if (pickupCoords) {
@@ -300,7 +317,7 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
           <p style={{ color: '#6b7280' }}>Loading route information...</p>
           {!driverCoords && navigator.geolocation && (
             <p style={{ fontSize: '0.875rem', color: '#374151', marginTop: '0.5rem' }}>
-              Please allow location access for best experience
+              📍 Location access may be denied on mobile over HTTP. Using order location as fallback.
             </p>
           )}
         </div>
