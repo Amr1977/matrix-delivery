@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useI18n } from '../../i18n/i18nContext';
-import { useAuth } from '../../hooks/useAuth';
+import useAuth from '../../hooks/useAuth';
 
 const EmailVerificationBanner = ({ currentUser }) => {
   const { t } = useI18n();

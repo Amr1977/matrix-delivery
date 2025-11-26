@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { usePayments } from '../../hooks/usePayments';
+import usePayments from '../../hooks/usePayments';
 import { useI18n } from '../../i18n/i18nContext';
 
 const PaymentMethodsManager = () => {
