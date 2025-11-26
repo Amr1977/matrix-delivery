@@ -1,0 +1,491 @@
+const request = require('supertest');
+const { Pool } = require('pg');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+
+// Load environment-specific .env file for tests
+const envFile = process.env.ENV_FILE || '.env';
+require('dotenv').config({ path: envFile });
+
+const JWT_SECRET = process.env.JWT_SECRET;
+const IS_TEST = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing';
+
+// PostgreSQL Connection Pool for tests
+const pool = new Pool({
+  host: process.env.DB_HOST || 'localhost',
+  port: process.env.DB_PORT || 5432,
+  database: IS_TEST ? (process.env.DB_NAME_TEST || 'matrix_delivery_test') : (process.env.DB_NAME || 'matrix_delivery'),
+  user: process.env.DB_USER || 'postgres',
+  password: process.env.DB_PASSWORD || 'postgres',
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
+});
+
+let server;
+let testUser;
+let testToken;
+
+describe('Authentication API Tests', () => {
+  beforeAll(async () => {
+    // Start the server for testing
+    const app = require('../server');
+    server = app.listen(5001); // Use a different port for tests
+  });
+
+  afterAll(async () => {
+    if (server) {
+      server.close();
+    }
+    await pool.end();
+  });
+
+  beforeEach(async () => {
+    // Clean up test data
+    await pool.query('DELETE FROM password_reset_tokens');
+    await pool.query('DELETE FROM users WHERE email LIKE \'test%\'');
+  });
+
+  describe('POST /api/auth/register', () => {
+    it('should register a new user successfully', async () => {
+      const userData = {
+        name: 'Test User',
+        email: 'test@example.com',
+        password: 'password123',
+        phone: '+1234567890',
+        role: 'customer',
+        country: 'Test Country',
+        city: 'Test City',
+        area: 'Test Area'
+      };
+
+      const response = await request(server)
+        .post('/api/auth/register')
+        .send(userData)
+        .expect(201);
+
+      expect(response.body).toHaveProperty('user');
+      expect(response.body).toHaveProperty('token');
+      expect(response.body.user.email).toBe(userData.email);
+      expect(response.body.user.role).toBe(userData.role);
+    });
+
+    it('should return 400 for missing required fields', async () => {
+      const incompleteData = {
+        name: 'Test User',
+        email: 'test@example.com'
+        // Missing password, phone, role, etc.
+      };
+
+      const response = await request(server)
+        .post('/api/auth/register')
+        .send(incompleteData)
+        .expect(400);
+
+      expect(response.body.error).toContain('All fields required');
+    });
+
+    it('should return 409 for duplicate email', async () => {
+      // First registration
+      const userData = {
+        name: 'Test User',
+        email: 'duplicate@example.com',
+        password: 'password123',
+        phone: '+1234567890',
+        role: 'customer',
+        country: 'Test Country',
+        city: 'Test City',
+        area: 'Test Area'
+      };
+
+      await request(server)
+        .post('/api/auth/register')
+        .send(userData)
+        .expect(201);
+
+      // Second registration with same email
+      const response = await request(server)
+        .post('/api/auth/register')
+        .send(userData)
+        .expect(409);
+
+      expect(response.body.error).toContain('already exists');
+    });
+  });
+
+  describe('POST /api/auth/login', () => {
+    beforeEach(async () => {
+      // Create a test user for login
+      const hashedPassword = await bcrypt.hash('password123', 10);
+      const result = await pool.query(
+        `INSERT INTO users (id, name, email, password, phone, role, country, city, area, rating, completed_deliveries)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+         RETURNING *`,
+        [
+          'test-user-id',
+          'Test User',
+          'login@example.com',
+          hashedPassword,
+          '+1234567890',
+          'customer',
+          'Test Country',
+          'Test City',
+          'Test Area',
+          5.0,
+          0
+        ]
+      );
+      testUser = result.rows[0];
+    });
+
+    it('should login successfully with correct credentials', async () => {
+      const loginData = {
+        email: 'login@example.com',
+        password: 'password123'
+      };
+
+      const response = await request(server)
+        .post('/api/auth/login')
+        .send(loginData)
+        .expect(200);
+
+      expect(response.body).toHaveProperty('user');
+      expect(response.body).toHaveProperty('token');
+      expect(response.body.user.email).toBe(loginData.email);
+      testToken = response.body.token;
+    });
+
+    it('should return 401 for invalid credentials', async () => {
+      const invalidData = {
+        email: 'login@example.com',
+        password: 'wrongpassword'
+      };
+
+      const response = await request(server)
+        .post('/api/auth/login')
+        .send(invalidData)
+        .expect(401);
+
+      expect(response.body.error).toContain('Invalid credentials');
+    });
+  });
+
+  describe('POST /api/auth/forgot-password', () => {
+    beforeEach(async () => {
+      // Create a test user
+      const hashedPassword = await bcrypt.hash('password123', 10);
+      const result = await pool.query(
+        `INSERT INTO users (id, name, email, password, phone, role, country, city, area, rating, completed_deliveries)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+         RETURNING *`,
+        [
+          'forgot-user-id',
+          'Forgot User',
+          'forgot@example.com',
+          hashedPassword,
+          '+1234567890',
+          'customer',
+          'Test Country',
+          'Test City',
+          'Test Area',
+          5.0,
+          0
+        ]
+      );
+      testUser = result.rows[0];
+    });
+
+    it('should send password reset email for existing user', async () => {
+      const forgotData = {
+        email: 'forgot@example.com',
+        recaptchaToken: 'test-token' // Would be validated in production
+      };
+
+      const response = await request(server)
+        .post('/api/auth/forgot-password')
+        .send(forgotData)
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.message).toContain('password reset link has been sent');
+
+      // Check that reset token was created
+      const tokenResult = await pool.query(
+        'SELECT * FROM password_reset_tokens WHERE user_id = $1',
+        [testUser.id]
+      );
+      expect(tokenResult.rows.length).toBe(1);
+      expect(tokenResult.rows[0].used).toBe(false);
+    });
+
+    it('should return success for non-existing user (security)', async () => {
+      const forgotData = {
+        email: 'nonexistent@example.com',
+        recaptchaToken: 'test-token'
+      };
+
+      const response = await request(server)
+        .post('/api/auth/forgot-password')
+        .send(forgotData)
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.message).toContain('password reset link has been sent');
+    });
+
+    it('should return 400 for missing email', async () => {
+      const forgotData = {
+        recaptchaToken: 'test-token'
+        // Missing email
+      };
+
+      const response = await request(server)
+        .post('/api/auth/forgot-password')
+        .send(forgotData)
+        .expect(400);
+
+      expect(response.body.error).toContain('Email is required');
+    });
+  });
+
+  describe('POST /api/auth/reset-password', () => {
+    let resetToken;
+
+    beforeEach(async () => {
+      // Create a test user
+      const hashedPassword = await bcrypt.hash('oldpassword', 10);
+      const result = await pool.query(
+        `INSERT INTO users (id, name, email, password, phone, role, country, city, area, rating, completed_deliveries)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+         RETURNING *`,
+        [
+          'reset-user-id',
+          'Reset User',
+          'reset@example.com',
+          hashedPassword,
+          '+1234567890',
+          'customer',
+          'Test Country',
+          'Test City',
+          'Test Area',
+          5.0,
+          0
+        ]
+      );
+      testUser = result.rows[0];
+
+      // Create a reset token
+      const tokenId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+      resetToken = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+      await pool.query(
+        `INSERT INTO password_reset_tokens (id, user_id, token, expires_at)
+         VALUES ($1, $2, $3, $4)`,
+        [tokenId, testUser.id, resetToken, expiresAt]
+      );
+    });
+
+    it('should reset password successfully with valid token', async () => {
+      const resetData = {
+        token: resetToken,
+        newPassword: 'newpassword123'
+      };
+
+      const response = await request(server)
+        .post('/api/auth/reset-password')
+        .send(resetData)
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.message).toContain('Password has been reset successfully');
+
+      // Check that password was updated
+      const userResult = await pool.query('SELECT password FROM users WHERE id = $1', [testUser.id]);
+      const isNewPasswordValid = await bcrypt.compare('newpassword123', userResult.rows[0].password);
+      expect(isNewPasswordValid).toBe(true);
+
+      // Check that token was marked as used
+      const tokenResult = await pool.query(
+        'SELECT used FROM password_reset_tokens WHERE token = $1',
+        [resetToken]
+      );
+      expect(tokenResult.rows[0].used).toBe(true);
+    });
+
+    it('should return 400 for invalid token', async () => {
+      const resetData = {
+        token: 'invalid-token',
+        newPassword: 'newpassword123'
+      };
+
+      const response = await request(server)
+        .post('/api/auth/reset-password')
+        .send(resetData)
+        .expect(400);
+
+      expect(response.body.error).toContain('Invalid or expired reset token');
+    });
+
+    it('should return 400 for short password', async () => {
+      const resetData = {
+        token: resetToken,
+        newPassword: 'short'
+      };
+
+      const response = await request(server)
+        .post('/api/auth/reset-password')
+        .send(resetData)
+        .expect(400);
+
+      expect(response.body.error).toContain('must be at least 8 characters');
+    });
+
+    it('should return 400 for expired token', async () => {
+      // Update token to be expired
+      await pool.query(
+        'UPDATE password_reset_tokens SET expires_at = $1 WHERE token = $2',
+        [new Date(Date.now() - 1000), resetToken] // Expired 1 second ago
+      );
+
+      const resetData = {
+        token: resetToken,
+        newPassword: 'newpassword123'
+      };
+
+      const response = await request(server)
+        .post('/api/auth/reset-password')
+        .send(resetData)
+        .expect(400);
+
+      expect(response.body.error).toContain('Invalid or expired reset token');
+    });
+  });
+
+  describe('GET /api/auth/me', () => {
+    beforeEach(async () => {
+      // Create a test user and get token
+      const hashedPassword = await bcrypt.hash('password123', 10);
+      const result = await pool.query(
+        `INSERT INTO users (id, name, email, password, phone, role, country, city, area, rating, completed_deliveries)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+         RETURNING *`,
+        [
+          'profile-user-id',
+          'Profile User',
+          'profile@example.com',
+          hashedPassword,
+          '+1234567890',
+          'customer',
+          'Test Country',
+          'Test City',
+          'Test Area',
+          5.0,
+          0
+        ]
+      );
+      testUser = result.rows[0];
+      testToken = jwt.sign(
+        { userId: testUser.id, email: testUser.email, name: testUser.name, role: testUser.role },
+        JWT_SECRET,
+        { expiresIn: '30d' }
+      );
+    });
+
+    it('should return user profile with valid token', async () => {
+      const response = await request(server)
+        .get('/api/auth/me')
+        .set('Authorization', `Bearer ${testToken}`)
+        .expect(200);
+
+      expect(response.body).toHaveProperty('user');
+      expect(response.body.user.email).toBe(testUser.email);
+      expect(response.body.user.name).toBe(testUser.name);
+    });
+
+    it('should return 401 without token', async () => {
+      const response = await request(server)
+        .get('/api/auth/me')
+        .expect(401);
+
+      expect(response.body.error).toContain('No token provided');
+    });
+
+    it('should return 401 with invalid token', async () => {
+      const response = await request(server)
+        .get('/api/auth/me')
+        .set('Authorization', 'Bearer invalid-token')
+        .expect(401);
+
+      expect(response.body.error).toContain('Invalid or expired token');
+    });
+  });
+
+  describe('POST /api/auth/switch-role', () => {
+    beforeEach(async () => {
+      // Create a test user with multiple roles
+      const hashedPassword = await bcrypt.hash('password123', 10);
+      const result = await pool.query(
+        `INSERT INTO users (id, name, email, password, phone, role, roles, country, city, area, rating, completed_deliveries)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+         RETURNING *`,
+        [
+          'switch-user-id',
+          'Switch User',
+          'switch@example.com',
+          hashedPassword,
+          '+1234567890',
+          'customer',
+          ['customer', 'driver'], // Multiple roles
+          'Test Country',
+          'Test City',
+          'Test Area',
+          5.0,
+          0
+        ]
+      );
+      testUser = result.rows[0];
+      testToken = jwt.sign(
+        {
+          userId: testUser.id,
+          email: testUser.email,
+          name: testUser.name,
+          role: testUser.role,
+          roles: testUser.roles
+        },
+        JWT_SECRET,
+        { expiresIn: '30d' }
+      );
+    });
+
+    it('should switch role successfully', async () => {
+      const switchData = {
+        role: 'driver'
+      };
+
+      const response = await request(server)
+        .post('/api/auth/switch-role')
+        .set('Authorization', `Bearer ${testToken}`)
+        .send(switchData)
+        .expect(200);
+
+      expect(response.body).toHaveProperty('token');
+      expect(response.body).toHaveProperty('role');
+      expect(response.body.role).toBe('driver');
+    });
+
+    it('should return 400 for invalid role', async () => {
+      const switchData = {
+        role: 'admin' // User doesn't have admin role
+      };
+
+      const response = await request(server)
+        .post('/api/auth/switch-role')
+        .set('Authorization', `Bearer ${testToken}`)
+        .send(switchData)
+        .expect(400);
+
+      expect(response.body.error).toContain('Role not assigned');
+    });
+  });
+});

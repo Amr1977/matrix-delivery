@@ -1,5 +1,6 @@
 const express = require('express');
 const authService = require('../services/authService');
+const emailService = require('../services/emailService');
 const { verifyToken, requireRole } = require('../middleware/auth');
 const { authRateLimit } = require('../middleware/rateLimit');
 const logger = require('../logger');
@@ -216,6 +217,134 @@ router.post('/verify-user', requireRole('admin'), async (req, res) => {
       category: 'error'
     });
     res.status(500).json({ error: error.message || 'Failed to verify user' });
+  }
+});
+
+// Forgot password - send reset email
+router.post('/forgot-password', authRateLimit, async (req, res) => {
+  const startTime = Date.now();
+  const clientIP = req.ip || req.connection.remoteAddress;
+
+  logger.auth(`Password reset request`, {
+    ip: clientIP,
+    userAgent: req.get('User-Agent'),
+    category: 'auth'
+  });
+
+  try {
+    const { email, recaptchaToken } = req.body;
+
+    // Verify reCAPTCHA token only in production
+    if (process.env.NODE_ENV === 'production' && !(await verifyRecaptcha(recaptchaToken))) {
+      logger.security(`Forgot password reCAPTCHA verification failed`, {
+        ip: clientIP,
+        category: 'security'
+      });
+      return res.status(400).json({ error: 'CAPTCHA verification failed' });
+    }
+
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    // Create reset token and send email
+    const { user, resetToken } = await authService.createPasswordResetToken(email);
+
+    try {
+      await emailService.sendPasswordResetEmail(user.email, user.name, resetToken);
+
+      const duration = Date.now() - startTime;
+      logger.performance(`Password reset email sent`, {
+        userId: user.id,
+        duration: `${duration}ms`,
+        category: 'performance'
+      });
+
+      res.json({
+        success: true,
+        message: 'If an account with this email exists, a password reset link has been sent.'
+      });
+    } catch (emailError) {
+      logger.error(`Password reset email failed: ${emailError.message}`, {
+        userId: user.id,
+        category: 'error'
+      });
+      // Don't expose email sending failures for security
+      res.json({
+        success: true,
+        message: 'If an account with this email exists, a password reset link has been sent.'
+      });
+    }
+  } catch (error) {
+    const duration = Date.now() - startTime;
+    logger.error(`Forgot password error: ${error.message}`, {
+      error: error.stack,
+      ip: clientIP,
+      duration: `${duration}ms`,
+      category: 'error'
+    });
+
+    // Always return success for security (don't reveal if email exists)
+    if (error.message === 'User not found') {
+      res.json({
+        success: true,
+        message: 'If an account with this email exists, a password reset link has been sent.'
+      });
+    } else {
+      res.status(500).json({ error: 'Failed to process password reset request' });
+    }
+  }
+});
+
+// Reset password with token
+router.post('/reset-password', authRateLimit, async (req, res) => {
+  const startTime = Date.now();
+  const clientIP = req.ip || req.connection.remoteAddress;
+
+  logger.auth(`Password reset attempt`, {
+    ip: clientIP,
+    userAgent: req.get('User-Agent'),
+    category: 'auth'
+  });
+
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      return res.status(400).json({ error: 'Token and new password are required' });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters long' });
+    }
+
+    // Reset the password
+    await authService.resetPassword(token, newPassword);
+
+    const duration = Date.now() - startTime;
+    logger.performance(`Password reset completed`, {
+      duration: `${duration}ms`,
+      category: 'performance'
+    });
+
+    res.json({
+      success: true,
+      message: 'Password has been reset successfully. You can now log in with your new password.'
+    });
+  } catch (error) {
+    const duration = Date.now() - startTime;
+    logger.error(`Reset password error: ${error.message}`, {
+      error: error.stack,
+      ip: clientIP,
+      duration: `${duration}ms`,
+      category: 'error'
+    });
+
+    if (error.message.includes('Invalid or expired')) {
+      res.status(400).json({ error: 'Invalid or expired reset token' });
+    } else {
+      res.status(500).json({ error: 'Failed to reset password' });
+    }
   }
 });
 
