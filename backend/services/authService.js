@@ -321,6 +321,108 @@ class AuthService {
     const token = jwt.sign({ userId: user.id, email: user.email, name: user.name, role, roles }, JWT_SECRET, { expiresIn: '30d' });
     return { token, role, roles };
   }
+
+  /**
+   * Create password reset token
+   */
+  async createPasswordResetToken(email) {
+    const user = await this.findUserByEmail(email);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Clean expired tokens for this user first
+    await this.cleanExpiredTokens(user.id);
+
+    const tokenId = this.generateId();
+    const resetToken = this.generateId(); // Generate secure token
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+    await pool.query(
+      `INSERT INTO password_reset_tokens (id, user_id, token, expires_at)
+       VALUES ($1, $2, $3, $4)`,
+      [tokenId, user.id, resetToken, expiresAt]
+    );
+
+    return { user, resetToken };
+  }
+
+  /**
+   * Find password reset token
+   */
+  async findPasswordResetToken(token) {
+    const result = await pool.query(
+      `SELECT prt.*, u.name, u.email
+       FROM password_reset_tokens prt
+       JOIN users u ON prt.user_id = u.id
+       WHERE prt.token = $1 AND prt.used = false AND prt.expires_at > NOW()`,
+      [token]
+    );
+    return result.rows[0] || null;
+  }
+
+  /**
+   * Use password reset token (mark as used)
+   */
+  async usePasswordResetToken(token) {
+    const result = await pool.query(
+      `UPDATE password_reset_tokens
+       SET used = true
+       WHERE token = $1 AND used = false AND expires_at > NOW()
+       RETURNING user_id`,
+      [token]
+    );
+    return result.rows[0] || null;
+  }
+
+  /**
+   * Reset user password
+   */
+  async resetPassword(token, newPassword) {
+    const tokenData = await this.findPasswordResetToken(token);
+    if (!tokenData) {
+      throw new Error('Invalid or expired reset token');
+    }
+
+    const hashedPassword = await this.hashPassword(newPassword);
+
+    // Update password and mark token as used in a transaction
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      await client.query(
+        'UPDATE users SET password = $1 WHERE id = $2',
+        [hashedPassword, tokenData.user_id]
+      );
+
+      await client.query(
+        'UPDATE password_reset_tokens SET used = true WHERE token = $1',
+        [token]
+      );
+
+      await client.query('COMMIT');
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+
+    return { success: true };
+  }
+
+  /**
+   * Clean expired password reset tokens
+   */
+  async cleanExpiredTokens(userId = null) {
+    const query = userId
+      ? 'DELETE FROM password_reset_tokens WHERE user_id = $1 AND expires_at < NOW()'
+      : 'DELETE FROM password_reset_tokens WHERE expires_at < NOW()';
+
+    const params = userId ? [userId] : [];
+    await pool.query(query, params);
+  }
 }
 
 module.exports = new AuthService();
