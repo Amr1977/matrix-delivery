@@ -88,6 +88,24 @@ router.post('/register', authRateLimit, async (req, res) => {
       name, email, password, phone, role, vehicle_type, country, city, area
     });
 
+    // Send verification email (don't block registration if email fails)
+    try {
+      const { verificationToken } = await authService.createEmailVerificationToken(email);
+      await emailService.sendEmailVerification(email, name, verificationToken);
+      logger.info(`Verification email sent to new user`, {
+        userId: result.user.id,
+        email: email,
+        category: 'auth'
+      });
+    } catch (emailError) {
+      logger.warn(`Failed to send verification email to new user: ${emailError.message}`, {
+        userId: result.user.id,
+        email: email,
+        category: 'auth'
+      });
+      // Don't fail registration if email sending fails
+    }
+
     const duration = Date.now() - startTime;
     logger.performance(`Registration completed`, {
       userId: result.user.id,
@@ -344,6 +362,109 @@ router.post('/reset-password', authRateLimit, async (req, res) => {
       res.status(400).json({ error: 'Invalid or expired reset token' });
     } else {
       res.status(500).json({ error: 'Failed to reset password' });
+    }
+  }
+});
+
+// Send email verification
+router.post('/send-verification', verifyToken, async (req, res) => {
+  const startTime = Date.now();
+  const clientIP = req.ip || req.connection.remoteAddress;
+
+  logger.auth(`Email verification request`, {
+    ip: clientIP,
+    userAgent: req.get('User-Agent'),
+    category: 'auth',
+    userId: req.user.userId
+  });
+
+  try {
+    // Create verification token for current user
+    const { user, verificationToken } = await authService.createEmailVerificationToken(req.user.email);
+
+    try {
+      await emailService.sendEmailVerification(user.email, user.name, verificationToken);
+
+      const duration = Date.now() - startTime;
+      logger.performance(`Email verification sent`, {
+        userId: user.id,
+        duration: `${duration}ms`,
+        category: 'performance'
+      });
+
+      res.json({
+        success: true,
+        message: 'Verification email sent successfully. Please check your email.'
+      });
+    } catch (emailError) {
+      logger.error(`Email verification sending failed: ${emailError.message}`, {
+        userId: user.id,
+        category: 'error'
+      });
+      res.status(500).json({ error: 'Failed to send verification email' });
+    }
+  } catch (error) {
+    const duration = Date.now() - startTime;
+    logger.error(`Send verification error: ${error.message}`, {
+      error: error.stack,
+      ip: clientIP,
+      duration: `${duration}ms`,
+      category: 'error'
+    });
+
+    if (error.message === 'User is already verified') {
+      res.status(400).json({ error: 'Email is already verified' });
+    } else {
+      res.status(500).json({ error: 'Failed to send verification email' });
+    }
+  }
+});
+
+// Verify email with token
+router.post('/verify-email', async (req, res) => {
+  const startTime = Date.now();
+  const clientIP = req.ip || req.connection.remoteAddress;
+
+  logger.auth(`Email verification attempt`, {
+    ip: clientIP,
+    userAgent: req.get('User-Agent'),
+    category: 'auth'
+  });
+
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({ error: 'Verification token is required' });
+    }
+
+    // Verify the email
+    const result = await authService.verifyEmail(token);
+
+    const duration = Date.now() - startTime;
+    logger.performance(`Email verification completed`, {
+      userId: result.userId,
+      duration: `${duration}ms`,
+      category: 'performance'
+    });
+
+    res.json({
+      success: true,
+      message: 'Email verified successfully. You can now access all features.'
+    });
+  } catch (error) {
+    const duration = Date.now() - startTime;
+    logger.error(`Verify email error: ${error.message}`, {
+      error: error.stack,
+      ip: clientIP,
+      duration: `${duration}ms`,
+      category: 'error'
+    });
+
+    if (error.message.includes('Invalid or expired')) {
+      res.status(400).json({ error: 'Invalid or expired verification token' });
+    } else {
+      res.status(500).json({ error: 'Failed to verify email' });
     }
   }
 });

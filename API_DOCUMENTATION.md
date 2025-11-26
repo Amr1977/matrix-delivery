@@ -127,7 +127,262 @@ Switch user role (for multi-role users).
 
 ---
 
-## 2. User Management Routes (`/users`)
+### POST `/auth/forgot-password`
+Request password reset email.
+
+**Request Body:**
+```json
+{
+  "email": "string",
+  "recaptchaToken": "string"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "If an account with this email exists, a password reset link has been sent."
+}
+```
+
+**Status Codes:** 200 (OK), 400 (Bad Request)
+
+---
+
+### POST `/auth/reset-password`
+Reset password using reset token.
+
+**Request Body:**
+```json
+{
+  "token": "string",
+  "newPassword": "string"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Password has been reset successfully. You can now log in with your new password."
+}
+```
+
+**Status Codes:** 200 (OK), 400 (Bad Request), 500 (Internal Server Error)
+
+---
+
+### POST `/auth/send-verification`
+Send email verification link to current user.
+
+**Headers:**
+- `Authorization: Bearer <token>`
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Verification email sent successfully. Please check your email."
+}
+```
+
+**Status Codes:** 200 (OK), 401 (Unauthorized), 400 (Bad Request), 500 (Internal Server Error)
+
+---
+
+### POST `/auth/verify-email`
+Verify email address using verification token.
+
+**Request Body:**
+```json
+{
+  "token": "string"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Email verified successfully. You can now access all features."
+}
+```
+
+**Status Codes:** 200 (OK), 400 (Bad Request), 500 (Internal Server Error)
+
+---
+
+## 3. Payment Routes (`/payments`)
+
+### POST `/payments/create-intent`
+Create a payment intent for an order (Stripe integration).
+
+**Headers:**
+- `Authorization: Bearer <token>`
+
+**Request Body:**
+```json
+{
+  "orderId": "string",
+  "amount": number,
+  "currency": "usd"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "paymentIntent": {
+    "paymentId": "string",
+    "clientSecret": "string",
+    "paymentIntentId": "string",
+    "amount": number,
+    "currency": "usd"
+  }
+}
+```
+
+**Status Codes:** 200 (OK), 400 (Bad Request), 401 (Unauthorized), 404 (Not Found), 409 (Conflict), 500 (Internal Server Error)
+
+---
+
+### GET `/payments/order/{orderId}`
+Get payment details for a specific order.
+
+**Headers:**
+- `Authorization: Bearer <token>`
+
+**Response:**
+```json
+{
+  "success": true,
+  "payment": {
+    "id": "string",
+    "orderId": "string",
+    "amount": number,
+    "currency": "string",
+    "paymentMethod": "string",
+    "status": "string",
+    "createdAt": "2024-01-01T12:00:00Z"
+  }
+}
+```
+
+**Status Codes:** 200 (OK), 401 (Unauthorized), 404 (Not Found)
+
+---
+
+### POST `/payments/refund/{paymentId}`
+Process a refund for a completed payment.
+
+**Headers:**
+- `Authorization: Bearer <token>`
+
+**Request Body (optional):**
+```json
+{
+  "amount": number,
+  "reason": "requested_by_customer"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "refund": {
+    "refundId": "string",
+    "amount": number,
+    "currency": "string",
+    "status": "processed"
+  }
+}
+```
+
+**Status Codes:** 200 (OK), 400 (Bad Request), 401 (Unauthorized), 404 (Not Found), 500 (Internal Server Error)
+
+---
+
+### GET `/payments/methods`
+Get user's saved payment methods.
+
+**Headers:**
+- `Authorization: Bearer <token>`
+
+**Response:**
+```json
+{
+  "success": true,
+  "paymentMethods": [
+    {
+      "id": "string",
+      "type": "card",
+      "lastFour": "4242",
+      "expiryMonth": 12,
+      "expiryYear": 2025,
+      "isDefault": true
+    }
+  ]
+}
+```
+
+**Status Codes:** 200 (OK), 401 (Unauthorized)
+
+---
+
+### POST `/payments/methods`
+Add a new payment method for the user.
+
+**Headers:**
+- `Authorization: Bearer <token>`
+
+**Request Body:**
+```json
+{
+  "paymentMethodId": "string"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "paymentMethod": {
+    "id": "string",
+    "type": "card",
+    "lastFour": "4242",
+    "expiryMonth": 12,
+    "expiryYear": 2025,
+    "isDefault": false
+  }
+}
+```
+
+**Status Codes:** 200 (OK), 400 (Bad Request), 401 (Unauthorized), 500 (Internal Server Error)
+
+---
+
+### DELETE `/payments/methods/{methodId}`
+Delete a saved payment method.
+
+**Headers:**
+- `Authorization: Bearer <token>`
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Payment method deleted successfully"
+}
+```
+
+**Status Codes:** 200 (OK), 401 (Unauthorized), 404 (Not Found), 500 (Internal Server Error)
+
+---
+
+## 4. User Management Routes (`/users`)
 
 ### GET `/users/me/profile`
 Get current user's profile information.
