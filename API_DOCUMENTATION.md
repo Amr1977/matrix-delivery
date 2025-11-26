@@ -1301,3 +1301,4 @@ WebSocket URL: `wss://matrix-api.oldantique50.com` or `ws://localhost:5000`
 - Authentication tokens expire after 24 hours
 - File uploads are limited to 5MB per file
 - Image uploads support JPG, PNG, and GIF formats
+
