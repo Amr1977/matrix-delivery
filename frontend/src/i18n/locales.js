@@ -103,6 +103,7 @@ const translations = {
       noActiveOrders: 'No active orders found',
       noAvailableBids: 'No available bids',
       noOrderHistory: 'No order history',
+      noOrdersAvailable: 'No orders available',
       bidAmount: 'Bid Amount ($)',
       pickupTime: 'Pickup Time',
       estimatedPickupTime: 'Estimated Pickup Time',
@@ -200,6 +201,11 @@ const translations = {
       newNotification: 'New notification'
     },
 
+    // Messages
+    messages: {
+      reviewSubmitted: 'Review submitted successfully!'
+    },
+
     // Tracking
     tracking: {
       orderTracking: 'Order Tracking',
@@ -211,6 +217,7 @@ const translations = {
       bidAccepted: 'Bid Accepted',
       packagePickedUp: 'Package Picked Up',
       locationHistory: 'Location History',
+      orderNumber: 'Order #',
       close: 'Close',
       liveTrackingActive: 'Live Tracking Active',
       connecting: 'Connecting...',
@@ -281,7 +288,10 @@ const translations = {
       orderData: 'Order Data',
       driverCoords: 'Driver Coordinates',
       costPerKm: 'Cost per KM',
-      waitingPerHour: 'Waiting per Hour'
+      waitingPerHour: 'Waiting per Hour',
+      notifications: 'Notifications',
+      profile: 'Profile',
+      menu: 'Menu'
     },
 
     // Languages
@@ -439,7 +449,8 @@ const translations = {
       clearFilter: 'مسح التصفية',
       noActiveOrders: 'لا توجد طلبات نشطة',
       noAvailableBids: 'لا توجد عروض متاحة',
-      noOrderHistory: 'لا يوجد سجل للطلبات'
+      noOrderHistory: 'لا يوجد سجل للطلبات',
+      noOrdersAvailable: 'لا توجد طلبات متاحة'
     },
 
     // السمعة
@@ -497,6 +508,7 @@ const translations = {
       bidAccepted: 'تم قبول العرض',
       packagePickedUp: 'تم استلام الطرد',
       locationHistory: 'سجل المواقع',
+      orderNumber: 'رقم الطلب #',
       close: 'إغلاق',
       liveTrackingActive: 'التتبع المباشر نشط',
       connecting: 'جارٍ الاتصال...',
@@ -567,7 +579,10 @@ const translations = {
       orderData: 'بيانات الطلب',
       driverCoords: 'إحداثيات السائق',
       costPerKm: 'التكلفة لكل كم',
-      waitingPerHour: 'الانتظار لكل ساعة'
+      waitingPerHour: 'الانتظار لكل ساعة',
+      notifications: 'الإشعارات',
+      profile: 'الملف الشخصي',
+      menu: 'القائمة'
     },
 
     // اللغات
@@ -725,7 +740,8 @@ const translations = {
       clearFilter: 'Limpiar Filtro',
       noActiveOrders: 'No se encontraron pedidos activos',
       noAvailableBids: 'No hay ofertas disponibles',
-      noOrderHistory: 'No hay historial de pedidos'
+      noOrderHistory: 'No hay historial de pedidos',
+      noOrdersAvailable: 'No hay pedidos disponibles'
     },
 
     // Reputación
@@ -783,6 +799,7 @@ const translations = {
       bidAccepted: 'Oferta Aceptada',
       packagePickedUp: 'Paquete Recogido',
       locationHistory: 'Historial de Ubicación',
+      orderNumber: 'Pedido #',
       close: 'Cerrar',
       liveTrackingActive: 'Seguimiento en Vivo Activo',
       connecting: 'Conectando...',
@@ -853,7 +870,10 @@ const translations = {
       orderData: 'Datos del Pedido',
       driverCoords: 'Coordenadas del Conductor',
       costPerKm: 'Costo por KM',
-      waitingPerHour: 'Espera por Hora'
+      waitingPerHour: 'Espera por Hora',
+      notifications: 'Notificaciones',
+      profile: 'Perfil',
+      menu: 'Menú'
     },
 
     // Idiomas
