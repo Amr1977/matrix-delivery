@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { useI18n } from '../../i18n/i18nContext';
 
-const LoginForm = ({ onSubmit, loading, error, t }) => {
+const LoginForm = ({ onSubmit, onForgotPassword, loading, error, t }) => {
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -70,6 +70,23 @@ const LoginForm = ({ onSubmit, loading, error, t }) => {
           {loading ? t('auth.loading') : t('auth.login')}
         </button>
       </form>
+
+      <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+        <button
+          onClick={onForgotPassword}
+          style={{
+            color: '#4F46E5',
+            textDecoration: 'underline',
+            fontWeight: '600',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: '0.875rem'
+          }}
+        >
+          {t('auth.forgotPassword')}
+        </button>
+      </div>
     </>
   );
 };
