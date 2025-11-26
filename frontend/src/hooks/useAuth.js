@@ -145,6 +145,126 @@ const useAuth = () => {
     setCurrentUser(userData);
   };
 
+  const handleForgotPassword = useCallback(async (email, recaptchaToken) => {
+    if (!email) {
+      setError('Email is required');
+      return false;
+    }
+
+    setLoading(true);
+    try {
+      await fetch(`${API_URL}/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, recaptchaToken })
+      });
+
+      setError('');
+      return true;
+    } catch (err) {
+      setError('Failed to send password reset email. Please try again.');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, [API_URL]);
+
+  const handleResetPassword = useCallback(async (token, newPassword) => {
+    if (!token || !newPassword) {
+      setError('Token and new password are required');
+      return false;
+    }
+
+    if (newPassword.length < 8) {
+      setError('Password must be at least 8 characters long');
+      return false;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, newPassword })
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to reset password');
+      }
+
+      setError('');
+      return true;
+    } catch (err) {
+      setError(err.message);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, [API_URL]);
+
+  const handleSendEmailVerification = useCallback(async () => {
+    if (!token) {
+      setError('Authentication required');
+      return false;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/auth/send-verification`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to send verification email');
+      }
+
+      setError('');
+      return true;
+    } catch (err) {
+      setError(err.message);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, [token, API_URL]);
+
+  const handleVerifyEmail = useCallback(async (verificationToken) => {
+    if (!verificationToken) {
+      setError('Verification token is required');
+      return false;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/auth/verify-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: verificationToken })
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to verify email');
+      }
+
+      // Refresh user data
+      await fetchCurrentUser();
+      setError('');
+      return true;
+    } catch (err) {
+      setError(err.message);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, [API_URL, fetchCurrentUser]);
+
   const resetForm = () => {
     setAuthForm({
       name: '',
@@ -174,6 +294,10 @@ const useAuth = () => {
     fetchCurrentUser,
     handleLogin,
     handleRegister,
+    handleForgotPassword,
+    handleResetPassword,
+    handleSendEmailVerification,
+    handleVerifyEmail,
     login,
     logout,
     updateUser,

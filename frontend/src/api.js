@@ -101,6 +101,77 @@ class ApiClient {
   async delete(endpoint, options = {}) {
     return this.request('DELETE', endpoint, null, options);
   }
+
+  // Authentication methods
+  async forgotPassword(email, recaptchaToken) {
+    return this.post('/auth/forgot-password', { email, recaptchaToken });
+  }
+
+  async resetPassword(token, newPassword) {
+    return this.post('/auth/reset-password', { token, newPassword });
+  }
+
+  async sendEmailVerification() {
+    return this.post('/auth/send-verification');
+  }
+
+  async verifyEmail(token) {
+    return this.post('/auth/verify-email', { token });
+  }
+
+  // Payment methods
+  async createPaymentIntent(orderId, amount, currency = 'usd') {
+    return this.post('/payments/create-intent', { orderId, amount, currency });
+  }
+
+  async getPaymentDetails(orderId) {
+    return this.get(`/payments/order/${orderId}`);
+  }
+
+  async processRefund(paymentId, amount, reason) {
+    return this.post(`/payments/refund/${paymentId}`, { amount, reason });
+  }
+
+  async getPaymentMethods() {
+    return this.get('/payments/methods');
+  }
+
+  async addPaymentMethod(paymentMethodId) {
+    return this.post('/payments/methods', { paymentMethodId });
+  }
+
+  async deletePaymentMethod(methodId) {
+    return this.delete(`/payments/methods/${methodId}`);
+  }
+
+  // Messaging methods
+  async sendMessage(orderId, recipientId, content, messageType = 'text') {
+    return this.post('/messages', { orderId, recipientId, content, messageType });
+  }
+
+  async getOrderMessages(orderId, page = 1, limit = 50) {
+    return this.get(`/messages/order/${orderId}?page=${page}&limit=${limit}`);
+  }
+
+  async getConversations(page = 1, limit = 20) {
+    return this.get(`/messages/conversations?page=${page}&limit=${limit}`);
+  }
+
+  async markMessagesRead(orderId) {
+    return this.post(`/messages/order/${orderId}/read`);
+  }
+
+  async getUnreadMessageCount() {
+    return this.get('/messages/unread-count');
+  }
+
+  async deleteMessage(messageId) {
+    return this.delete(`/messages/${messageId}`);
+  }
+
+  async reportMessage(messageId, reason) {
+    return this.post(`/messages/${messageId}/report`, { reason });
+  }
 }
 
 // Create singleton instance

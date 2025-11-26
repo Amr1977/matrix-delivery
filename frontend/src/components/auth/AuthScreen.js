@@ -3,10 +3,16 @@ import { useI18n } from '../../i18n/i18nContext';
 import LanguageSwitcher from '../../LanguageSwitcher';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
+import ForgotPasswordForm from './ForgotPasswordForm';
+import ResetPasswordForm from './ResetPasswordForm';
+import { useAuth } from '../../hooks/useAuth';
 
 const AuthScreen = ({ onLogin, onRegister, loading, error, countries }) => {
   const { t, locale, changeLocale } = useI18n();
   const [authState, setAuthState] = useState('login');
+  const { handleForgotPassword } = useAuth();
+  const [forgotPasswordSuccess, setForgotPasswordSuccess] = useState(false);
+  const [resetPasswordToken, setResetPasswordToken] = useState('');
 
   // Add viewport meta tag if not present
   useEffect(() => {
@@ -18,6 +24,30 @@ const AuthScreen = ({ onLogin, onRegister, loading, error, countries }) => {
     }
     metaTag.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
   }, []);
+
+  const handleForgotPassword = async (email, recaptchaToken) => {
+    const success = await handleForgotPassword(email, recaptchaToken);
+    if (success) {
+      setForgotPasswordSuccess(true);
+    }
+  };
+
+  const handleResetPassword = (token) => {
+    setResetPasswordToken(token);
+    setAuthState('reset-password');
+  };
+
+  const handleResetPasswordSuccess = () => {
+    setAuthState('login');
+    setResetPasswordToken('');
+    setForgotPasswordSuccess(false);
+  };
+
+  const handleBackToLogin = () => {
+    setAuthState('login');
+    setForgotPasswordSuccess(false);
+    setResetPasswordToken('');
+  };
 
   return (
     <div style={{ minHeight: '100vh', background: '#090909', display: 'flex', flexDirection: 'column' }}>
@@ -41,21 +71,43 @@ const AuthScreen = ({ onLogin, onRegister, loading, error, countries }) => {
           )}
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {authState === 'login' ? (
-              <LoginForm onSubmit={onLogin} loading={loading} error={error} t={t} />
+            {authState === 'reset-password' ? (
+              <ResetPasswordForm
+                token={resetPasswordToken}
+                onSuccess={handleResetPasswordSuccess}
+                onBack={handleBackToLogin}
+              />
+            ) : authState === 'forgot-password' ? (
+              <ForgotPasswordForm
+                onSubmit={handleForgotPassword}
+                onBack={handleBackToLogin}
+                loading={loading}
+                error={error}
+                success={forgotPasswordSuccess}
+              />
+            ) : authState === 'login' ? (
+              <LoginForm
+                onSubmit={onLogin}
+                onForgotPassword={() => setAuthState('forgot-password')}
+                loading={loading}
+                error={error}
+                t={t}
+              />
             ) : (
               <RegisterForm onSubmit={onRegister} loading={loading} error={error} t={t} countries={countries} />
             )}
 
-            <p style={{ textAlign: 'center', color: '#6B7280', fontSize: '0.875rem' }}>
-              {authState === 'login' ? t('auth.dontHaveAccount') : t('auth.alreadyHaveAccount')}{' '}
-              <button
-                onClick={() => { setAuthState(authState === 'login' ? 'register' : 'login'); }}
-                style={{ color: '#4F46E5', textDecoration: 'underline', fontWeight: '600', background: 'none', border: 'none', cursor: 'pointer' }}
-              >
-                {authState === 'login' ? t('auth.signUp') : t('auth.signIn')}
-              </button>
-            </p>
+            {authState !== 'forgot-password' && (
+              <p style={{ textAlign: 'center', color: '#6B7280', fontSize: '0.875rem' }}>
+                {authState === 'login' ? t('auth.dontHaveAccount') : t('auth.alreadyHaveAccount')}{' '}
+                <button
+                  onClick={() => { setAuthState(authState === 'login' ? 'register' : 'login'); }}
+                  style={{ color: '#4F46E5', textDecoration: 'underline', fontWeight: '600', background: 'none', border: 'none', cursor: 'pointer' }}
+                >
+                  {authState === 'login' ? t('auth.signUp') : t('auth.signIn')}
+                </button>
+              </p>
+            )}
           </div>
         </div>
       </div>
