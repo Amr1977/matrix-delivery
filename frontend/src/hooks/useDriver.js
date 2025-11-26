@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { extractCityFromAddress, getAvailableCities, filterDriverOrders, getStatusLabel, extractLocationParts } from '../utils/formatters';
 
 const useDriver = (token, currentUser) => {
@@ -12,17 +12,41 @@ const useDriver = (token, currentUser) => {
   const [currentLocationAddress, setCurrentLocationAddress] = useState(null);
   const [driverOnline, setDriverOnline] = useState(false); // Driver online/offline status
 
+  // Debouncing refs
+  const lastLocationUpdate = useRef(0);
+  const LOCATION_UPDATE_DEBOUNCE_MS = 5000; // 5 seconds minimum between updates
+
   const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
 
   // Driver location functions
   const updateDriverLocation = useCallback(async () => {
     if (currentUser?.role !== 'driver') return false;
 
+    // Debounce location updates to prevent excessive API calls and re-renders
+    const now = Date.now();
+    if (now - lastLocationUpdate.current < LOCATION_UPDATE_DEBOUNCE_MS) {
+      console.log('⏳ Skipping location update - too soon since last update');
+      return false;
+    }
+
     try {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           async (position) => {
             const { latitude, longitude } = position.coords;
+
+            // Check if location has actually changed significantly
+            const currentLocation = driverLocation;
+            const hasSignificantChange = !currentLocation?.latitude ||
+              Math.abs(currentLocation.latitude - latitude) > 0.0001 ||
+              Math.abs(currentLocation.longitude - longitude) > 0.0001;
+
+            if (!hasSignificantChange) {
+              console.log('📍 Location unchanged, skipping update');
+              return false;
+            }
+
+            lastLocationUpdate.current = Date.now();
 
             const response = await fetch(`${API_URL}/drivers/location`, {
               method: 'POST',
@@ -41,13 +65,33 @@ const useDriver = (token, currentUser) => {
               lastUpdated: new Date()
             });
             setLocationPermission('granted');
+            console.log('📍 Driver location updated:', { latitude, longitude });
             // Refresh orders after location update
             return true;
           },
           (error) => {
             console.error('Geolocation error:', error);
-            setLocationPermission('denied');
+            console.error('Error code:', error.code, 'Message:', error.message);
+
+            // Set permission status based on error type
+            if (error.code === error.PERMISSION_DENIED) {
+              console.warn('Location permission denied. This is expected on mobile over HTTP.');
+              setLocationPermission('denied');
+            } else if (error.code === error.POSITION_UNAVAILABLE) {
+              console.warn('Location information unavailable.');
+              setLocationPermission('unavailable');
+            } else if (error.code === error.TIMEOUT) {
+              console.warn('Location request timed out.');
+              setLocationPermission('timeout');
+            } else {
+              setLocationPermission('denied');
+            }
             return false;
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 300000 // Accept cached location up to 5 minutes old
           }
         );
       } else {
@@ -57,7 +101,7 @@ const useDriver = (token, currentUser) => {
       console.error('Update location error:', err);
       return false;
     }
-  }, [currentUser, token, API_URL]);
+  }, [currentUser, token, API_URL, driverLocation]);
 
   const getDriverLocation = useCallback(async () => {
     try {
@@ -202,18 +246,13 @@ const useDriver = (token, currentUser) => {
     }
   }, [driverLocation, countryFilter, cityFilter, areaFilter, API_URL]);
 
-  // Driver location effect
+  // Driver location effect - only get initial location, no automatic updates
+  // Location updates are now handled by App.js based on online status
   useEffect(() => {
     if (currentUser?.role === 'driver' && token) {
       getDriverLocation();
-      // Update location every 5 minutes for drivers
-      const locationInterval = setInterval(() => {
-        updateDriverLocation();
-      }, 5 * 60 * 1000); // 5 minutes
-
-      return () => clearInterval(locationInterval);
     }
-  }, [currentUser, token, getDriverLocation, updateDriverLocation]);
+  }, [currentUser, token, getDriverLocation]);
 
   // Effect to reverse geocode current location when it's updated
   useEffect(() => {
