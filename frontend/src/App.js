@@ -1825,7 +1825,7 @@ const DeliveryApp = () => {
 
   return (
     <div style={{ minHeight: '100vh', background: '#090909' }}>
-      <header className="glow">
+      {!mobileView && <header className="glow">
         <div className="header-content">
           {/* Logo */}
           <div className="header-logo">
@@ -2152,7 +2152,8 @@ const DeliveryApp = () => {
             </div>
           </nav>
         </>
-      </header>
+      </header>}
+
       {showProfile && profileData && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
           <div className="modal-content" style={{ background: 'white', borderRadius: '0.5rem', maxWidth: '80rem', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
