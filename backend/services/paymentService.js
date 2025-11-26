@@ -385,7 +385,7 @@ class PaymentService {
       id: method.id,
       type: method.payment_method_type,
       provider: method.provider,
-      lastFour: method.last_four_digits,
+      lastFour: method.last_four,
       expiryMonth: method.expiry_month,
       expiryYear: method.expiry_year,
       isDefault: method.is_default,
@@ -444,7 +444,7 @@ class PaymentService {
       // Store in database
       const methodId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
       await pool.query(
-        `INSERT INTO user_payment_methods (id, user_id, payment_method_type, provider, stripe_payment_method_id, last_four_digits, expiry_month, expiry_year, is_default)
+        `INSERT INTO user_payment_methods (id, user_id, payment_method_type, provider, provider_token, last_four, expiry_month, expiry_year, is_default)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
         [
           methodId,
@@ -472,7 +472,8 @@ class PaymentService {
         lastFour: paymentMethod.card?.last4,
         expiryMonth: paymentMethod.card?.exp_month,
         expiryYear: paymentMethod.card?.exp_year,
-        isDefault: false
+        isDefault: false,
+        createdAt: new Date()
       };
 
     } catch (error) {
