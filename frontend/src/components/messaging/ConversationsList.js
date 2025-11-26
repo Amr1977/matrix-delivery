@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useMessaging } from '../../hooks/useMessaging';
+import useMessaging from '../../hooks/useMessaging';
 import { useI18n } from '../../i18n/i18nContext';
 
 const ConversationsList = ({ onSelectConversation }) => {
