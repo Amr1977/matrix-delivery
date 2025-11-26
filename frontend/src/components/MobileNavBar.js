@@ -1,7 +1,7 @@
 import React from 'react';
 import { useI18n } from '../i18n/i18nContext';
 
-const MobileNavBar = ({ unreadCount, setShowNotifications, setShowProfile, toggleMobileMenu }) => {
+const MobileNavBar = ({ unreadCount, setShowNotifications, setShowProfile, setShowMessaging, toggleMobileMenu }) => {
   const { t } = useI18n();
 
   return (
@@ -19,6 +19,13 @@ const MobileNavBar = ({ unreadCount, setShowNotifications, setShowProfile, toggl
         </svg>
         {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
         <span>{t('common.notifications')}</span>
+      </button>
+
+      <button className="nav-item" onClick={() => setShowMessaging(true)}>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM7 9h10c.55 0 1 .45 1 1s-.45 1-1 1H7c-.55 0-1-.45-1-1s.45-1 1-1zm0 3h7c.55 0 1 .45 1 1s-.45 1-1 1H7c-.55 0-1-.45-1-1s.45-1 1-1z" fill="currentColor"/>
+        </svg>
+        <span>{t('messages.messages')}</span>
       </button>
 
       <button className="nav-item" onClick={() => setShowProfile(prev => !prev)}>

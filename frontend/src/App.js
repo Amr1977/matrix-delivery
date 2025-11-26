@@ -17,6 +17,9 @@ import BrowseVendors from './components/BrowseVendors';
 import BrowseItems from './components/BrowseItems';
 import VendorSelfDashboard from './components/VendorSelfDashboard';
 import MobileNavBar from './components/MobileNavBar';
+import MessagingPanel from './components/messaging/MessagingPanel';
+import PaymentMethodsManager from './components/payments/PaymentMethodsManager';
+import EmailVerificationBanner from './components/auth/EmailVerificationBanner';
 import useDriver from './hooks/useDriver';
 
 
@@ -76,6 +79,8 @@ const DeliveryApp = () => {
   const [showBrowseVendors, setShowBrowseVendors] = useState(false);
   const [showBrowseItems, setShowBrowseItems] = useState(false);
   const [showVendorDashboard, setShowVendorDashboard] = useState(false);
+  const [showMessaging, setShowMessaging] = useState(false);
+  const [showPaymentMethods, setShowPaymentMethods] = useState(false);
   const [countries, setCountries] = useState([]);
   const [countriesLoading, setCountriesLoading] = useState(false);
 
@@ -1896,6 +1901,21 @@ const DeliveryApp = () => {
             </button>
 
             <button
+              onClick={() => setShowMessaging(true)}
+              className="btn-secondary"
+              style={{ position: 'relative' }}
+            >
+              💬 Messages
+            </button>
+
+            <button
+              onClick={() => setShowPaymentMethods(true)}
+              className="btn-secondary"
+            >
+              💳 Payments
+            </button>
+
+            <button
               onClick={() => setShowNotifications(!showNotifications)}
               className={`notification-bell ${unreadCount > 0 ? 'bell-notification' : ''}`}
             >
@@ -1983,6 +2003,20 @@ const DeliveryApp = () => {
                     🛡️ Admin Dashboard
                   </button>
                 )}
+
+                <button
+                  onClick={() => setShowMessaging(true)}
+                  style={{ background: '#10B981', color: 'white', padding: '0.375rem 0.75rem', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: '600' }}
+                >
+                  💬 Messages
+                </button>
+
+                <button
+                  onClick={() => setShowPaymentMethods(true)}
+                  style={{ background: '#F59E0B', color: 'white', padding: '0.375rem 0.75rem', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: '600' }}
+                >
+                  💳 Payments
+                </button>
               </div>
             </div>
 
@@ -2356,6 +2390,9 @@ const DeliveryApp = () => {
             <button onClick={() => setSuccessMessage('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem', color: 'var(--matrix-bright-green)' }}>×</button>
           </div>
         )}
+
+        {/* Email Verification Banner */}
+        <EmailVerificationBanner currentUser={currentUser} />
 
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
           <button onClick={() => setShowBrowseVendors(v => !v)} className="btn-primary">🏪 Browse Vendors</button>
@@ -3564,6 +3601,42 @@ const DeliveryApp = () => {
         </div>
       )}
 
+      {showMessaging && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: '95%', height: '90%', maxWidth: '1200px', background: 'white', borderRadius: '0.5rem', overflow: 'hidden' }}>
+            <div style={{ padding: '1rem', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', margin: 0 }}>Messages</h2>
+              <button
+                onClick={() => setShowMessaging(false)}
+                style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', padding: '0.25rem' }}
+              >
+                ×
+              </button>
+            </div>
+            <MessagingPanel />
+          </div>
+        </div>
+      )}
+
+      {showPaymentMethods && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1900, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+          <div style={{ width: '100%', maxWidth: '600px', background: 'white', borderRadius: '0.5rem', overflow: 'hidden' }}>
+            <div style={{ padding: '1rem', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', margin: 0 }}>Payment Methods</h2>
+              <button
+                onClick={() => setShowPaymentMethods(false)}
+                style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', padding: '0.25rem' }}
+              >
+                ×
+              </button>
+            </div>
+            <div style={{ maxHeight: '80vh', overflowY: 'auto' }}>
+              <PaymentMethodsManager />
+            </div>
+          </div>
+        </div>
+      )}
+
       <footer style={{
         padding: '1.5rem 1rem',
         fontSize: '0.75rem',
@@ -3654,6 +3727,7 @@ const DeliveryApp = () => {
           unreadCount={notifications.filter(n => !n.isRead).length}
           setShowNotifications={setShowNotifications}
           setShowProfile={setShowProfile}
+          setShowMessaging={setShowMessaging}
           toggleMobileMenu={toggleMobileMenu}
         />
       </footer>
