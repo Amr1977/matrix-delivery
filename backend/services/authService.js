@@ -423,6 +423,113 @@ class AuthService {
     const params = userId ? [userId] : [];
     await pool.query(query, params);
   }
+
+  /**
+   * Create email verification token
+   */
+  async createEmailVerificationToken(email) {
+    const user = await this.findUserByEmail(email);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    if (user.is_verified) {
+      throw new Error('User is already verified');
+    }
+
+    // Clean expired tokens for this user first
+    await this.cleanExpiredEmailVerificationTokens(user.id);
+
+    const tokenId = this.generateId();
+    const verificationToken = this.generateId(); // Generate secure token
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+    await pool.query(
+      `INSERT INTO email_verification_tokens (id, user_id, token, expires_at)
+       VALUES ($1, $2, $3, $4)`,
+      [tokenId, user.id, verificationToken, expiresAt]
+    );
+
+    return { user, verificationToken };
+  }
+
+  /**
+   * Find email verification token
+   */
+  async findEmailVerificationToken(token) {
+    const result = await pool.query(
+      `SELECT ev.*, u.name, u.email
+       FROM email_verification_tokens ev
+       JOIN users u ON ev.user_id = u.id
+       WHERE ev.token = $1 AND ev.used = false AND ev.expires_at > NOW()`,
+      [token]
+    );
+    return result.rows[0] || null;
+  }
+
+  /**
+   * Verify email with token
+   */
+  async verifyEmail(token) {
+    const tokenData = await this.findEmailVerificationToken(token);
+    if (!tokenData) {
+      throw new Error('Invalid or expired verification token');
+    }
+
+    // Update user verification status and mark token as used in a transaction
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      await client.query(
+        'UPDATE users SET is_verified = true, verified_at = NOW() WHERE id = $1',
+        [tokenData.user_id]
+      );
+
+      await client.query(
+        'UPDATE email_verification_tokens SET used = true WHERE token = $1',
+        [token]
+      );
+
+      await client.query('COMMIT');
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+
+    return { success: true, userId: tokenData.user_id };
+  }
+
+  /**
+   * Clean expired email verification tokens
+   */
+  async cleanExpiredEmailVerificationTokens(userId = null) {
+    const query = userId
+      ? 'DELETE FROM email_verification_tokens WHERE user_id = $1 AND expires_at < NOW()'
+      : 'DELETE FROM email_verification_tokens WHERE expires_at < NOW()';
+
+    const params = userId ? [userId] : [];
+    await pool.query(query, params);
+  }
+
+  /**
+   * Resend email verification
+   */
+  async resendEmailVerification(email) {
+    const user = await this.findUserByEmail(email);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    if (user.is_verified) {
+      throw new Error('User is already verified');
+    }
+
+    // Create new verification token (this will clean up old ones)
+    return await this.createEmailVerificationToken(email);
+  }
 }
 
 module.exports = new AuthService();

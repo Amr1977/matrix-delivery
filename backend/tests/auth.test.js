@@ -488,4 +488,186 @@ describe('Authentication API Tests', () => {
       expect(response.body.error).toContain('Role not assigned');
     });
   });
+
+  describe('POST /api/auth/send-verification', () => {
+    beforeEach(async () => {
+      // Create an unverified test user
+      const hashedPassword = await bcrypt.hash('password123', 10);
+      const result = await pool.query(
+        `INSERT INTO users (id, name, email, password, phone, role, country, city, area, rating, completed_deliveries, is_verified)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+         RETURNING *`,
+        [
+          'unverified-user-id',
+          'Unverified User',
+          'unverified@example.com',
+          hashedPassword,
+          '+1234567890',
+          'customer',
+          'Test Country',
+          'Test City',
+          'Test Area',
+          5.0,
+          0,
+          false // Not verified
+        ]
+      );
+      testUser = result.rows[0];
+      testToken = jwt.sign(
+        { userId: testUser.id, email: testUser.email, name: testUser.name, role: testUser.role },
+        JWT_SECRET,
+        { expiresIn: '30d' }
+      );
+    });
+
+    it('should send verification email for unverified user', async () => {
+      const response = await request(server)
+        .post('/api/auth/send-verification')
+        .set('Authorization', `Bearer ${testToken}`)
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.message).toContain('Verification email sent successfully');
+
+      // Check that verification token was created
+      const tokenResult = await pool.query(
+        'SELECT * FROM email_verification_tokens WHERE user_id = $1',
+        [testUser.id]
+      );
+      expect(tokenResult.rows.length).toBe(1);
+      expect(tokenResult.rows[0].used).toBe(false);
+    });
+
+    it('should return 400 for already verified user', async () => {
+      // Mark user as verified
+      await pool.query('UPDATE users SET is_verified = true WHERE id = $1', [testUser.id]);
+
+      const response = await request(server)
+        .post('/api/auth/send-verification')
+        .set('Authorization', `Bearer ${testToken}`)
+        .expect(400);
+
+      expect(response.body.error).toContain('Email is already verified');
+    });
+
+    it('should return 401 without token', async () => {
+      const response = await request(server)
+        .post('/api/auth/send-verification')
+        .expect(401);
+
+      expect(response.body.error).toContain('No token provided');
+    });
+  });
+
+  describe('POST /api/auth/verify-email', () => {
+    let verificationToken;
+
+    beforeEach(async () => {
+      // Create an unverified test user
+      const hashedPassword = await bcrypt.hash('password123', 10);
+      const result = await pool.query(
+        `INSERT INTO users (id, name, email, password, phone, role, country, city, area, rating, completed_deliveries, is_verified)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+         RETURNING *`,
+        [
+          'verify-user-id',
+          'Verify User',
+          'verify@example.com',
+          hashedPassword,
+          '+1234567890',
+          'customer',
+          'Test Country',
+          'Test City',
+          'Test Area',
+          5.0,
+          0,
+          false // Not verified
+        ]
+      );
+      testUser = result.rows[0];
+
+      // Create a verification token
+      const tokenId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+      verificationToken = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+      await pool.query(
+        `INSERT INTO email_verification_tokens (id, user_id, token, expires_at)
+         VALUES ($1, $2, $3, $4)`,
+        [tokenId, testUser.id, verificationToken, expiresAt]
+      );
+    });
+
+    it('should verify email successfully with valid token', async () => {
+      const verifyData = {
+        token: verificationToken
+      };
+
+      const response = await request(server)
+        .post('/api/auth/verify-email')
+        .send(verifyData)
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.message).toContain('Email verified successfully');
+
+      // Check that user was marked as verified
+      const userResult = await pool.query('SELECT is_verified, verified_at FROM users WHERE id = $1', [testUser.id]);
+      expect(userResult.rows[0].is_verified).toBe(true);
+      expect(userResult.rows[0].verified_at).not.toBeNull();
+
+      // Check that token was marked as used
+      const tokenResult = await pool.query(
+        'SELECT used FROM email_verification_tokens WHERE token = $1',
+        [verificationToken]
+      );
+      expect(tokenResult.rows[0].used).toBe(true);
+    });
+
+    it('should return 400 for invalid token', async () => {
+      const verifyData = {
+        token: 'invalid-token'
+      };
+
+      const response = await request(server)
+        .post('/api/auth/verify-email')
+        .send(verifyData)
+        .expect(400);
+
+      expect(response.body.error).toContain('Invalid or expired verification token');
+    });
+
+    it('should return 400 for expired token', async () => {
+      // Update token to be expired
+      await pool.query(
+        'UPDATE email_verification_tokens SET expires_at = $1 WHERE token = $2',
+        [new Date(Date.now() - 1000), verificationToken] // Expired 1 second ago
+      );
+
+      const verifyData = {
+        token: verificationToken
+      };
+
+      const response = await request(server)
+        .post('/api/auth/verify-email')
+        .send(verifyData)
+        .expect(400);
+
+      expect(response.body.error).toContain('Invalid or expired verification token');
+    });
+
+    it('should return 400 for missing token', async () => {
+      const verifyData = {
+        // Missing token
+      };
+
+      const response = await request(server)
+        .post('/api/auth/verify-email')
+        .send(verifyData)
+        .expect(400);
+
+      expect(response.body.error).toContain('Verification token is required');
+    });
+  });
 });
+
