@@ -407,8 +407,29 @@ const initDatabase = async () => {
       ) WHERE role = 'customer'
     `);
 
+    // Create messages table for order messaging
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS messages (
+        id VARCHAR(255) PRIMARY KEY,
+        order_id VARCHAR(255) NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+        sender_id VARCHAR(255) NOT NULL REFERENCES users(id),
+        recipient_id VARCHAR(255) NOT NULL REFERENCES users(id),
+        content TEXT NOT NULL,
+        message_type VARCHAR(50) DEFAULT 'text',
+        is_read BOOLEAN DEFAULT false,
+        read_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_messages_order ON messages(order_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_messages_sender ON messages(sender_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_messages_recipient ON messages(recipient_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_messages_created ON messages(created_at)`);
+
     // Initialize admin tables
     await createAdminTables();
+
 
     logger.info('✅ PostgreSQL Database initialized and user statistics recalculated', { category: 'database' });
   } catch (error) {
