@@ -41,7 +41,7 @@ class MessagingService {
    */
   async canUsersMessage(orderId, userId1, userId2) {
     const result = await pool.query(
-      'SELECT customer_user_id, assigned_driver_user_id FROM orders WHERE id = $1',
+      'SELECT customer_id, assigned_driver_user_id FROM orders WHERE id = $1',
       [orderId]
     );
 
@@ -50,7 +50,7 @@ class MessagingService {
     }
 
     const order = result.rows[0];
-    const participants = [order.customer_user_id, order.assigned_driver_user_id].filter(Boolean);
+    const participants = [order.customer_id, order.assigned_driver_user_id].filter(Boolean);
 
     return participants.includes(userId1) && participants.includes(userId2);
   }
@@ -105,7 +105,7 @@ class MessagingService {
   async getOrderMessages(orderId, userId, page = 1, limit = 50) {
     // Verify user has access to this order
     const orderResult = await pool.query(
-      'SELECT customer_user_id, assigned_driver_user_id FROM orders WHERE id = $1',
+      'SELECT customer_id, assigned_driver_user_id FROM orders WHERE id = $1',
       [orderId]
     );
 
@@ -114,7 +114,7 @@ class MessagingService {
     }
 
     const order = orderResult.rows[0];
-    const participants = [order.customer_user_id, order.assigned_driver_user_id].filter(Boolean);
+    const participants = [order.customer_id, order.assigned_driver_user_id].filter(Boolean);
 
     if (!participants.includes(userId)) {
       throw new Error('Access denied to order messages');
@@ -212,7 +212,7 @@ class MessagingService {
         ) as last_message_content
        FROM orders o
        JOIN messages m ON o.id = m.order_id
-       WHERE (o.customer_user_id = $1 OR o.assigned_driver_user_id = $1)
+       WHERE (o.customer_id = $1 OR o.assigned_driver_user_id = $1)
        GROUP BY o.id, o.customer_name, o.pickup_address, o.delivery_address, o.status, o.created_at
        ORDER BY last_message_at DESC
        LIMIT $2 OFFSET $3`,
@@ -224,7 +224,7 @@ class MessagingService {
       `SELECT COUNT(DISTINCT o.id) as total
        FROM orders o
        JOIN messages m ON o.id = m.order_id
-       WHERE (o.customer_user_id = $1 OR o.assigned_driver_user_id = $1)`,
+       WHERE (o.customer_id = $1 OR o.assigned_driver_user_id = $1)`,
       [userId]
     );
 
