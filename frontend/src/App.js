@@ -21,6 +21,8 @@ import MessagingPanel from './components/messaging/MessagingPanel';
 import PaymentMethodsManager from './components/payments/PaymentMethodsManager';
 import EmailVerificationBanner from './components/auth/EmailVerificationBanner';
 import useDriver from './hooks/useDriver';
+import GeolocationStatus from './components/ui/GeolocationStatus';
+import './components/ui/GeolocationStatus.css';
 
 
 // Location data state and API functions
@@ -1842,7 +1844,9 @@ const DeliveryApp = () => {
             />
             <h1>{t('common.appName')}</h1>
           </div>
-
+          <div className="header-geolocation">
+            <GeolocationStatus />
+          </div>
           {/* Desktop Actions - Hidden on Mobile */}
           <div className="header-actions desktop-only">
 
