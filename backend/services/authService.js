@@ -2,6 +2,9 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { Pool } = require('pg');
 const logger = require('../logger');
+const { generateId } = require('../utils/generators');
+const { sanitizeString } = require('../utils/sanitizers');
+const { validateEmail, validatePassword } = require('../utils/validators');
 
 // Load environment-specific .env file
 const envFile = process.env.ENV_FILE || '.env';
@@ -23,37 +26,6 @@ const pool = new Pool({
 });
 
 class AuthService {
-  /**
-   * Generate a unique ID
-   */
-  generateId() {
-    return Date.now().toString() + Math.random().toString(36).substr(2, 9);
-  }
-
-  /**
-   * Sanitize string input
-   */
-  sanitizeString(str, maxLength = 1000) {
-    if (typeof str !== 'string') return '';
-    return str.trim().substring(0, maxLength).replace(/[<>\"'&]/g, '');
-  }
-
-  /**
-   * Validate email format
-   */
-  validateEmail(email) {
-    const sanitized = this.sanitizeString(email, 255);
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sanitized);
-  }
-
-  /**
-   * Validate password strength
-   */
-  validatePassword(password) {
-    const sanitized = this.sanitizeString(password, 255);
-    return sanitized && sanitized.length >= 8;
-  }
-
   /**
    * Hash password
    */
@@ -136,7 +108,7 @@ class AuthService {
     } = userData;
 
     const hashedPassword = await this.hashPassword(password);
-    const userId = this.generateId();
+    const userId = generateId();
 
     const result = await pool.query(
       `INSERT INTO users (id, name, email, password, phone, role, vehicle_type, country, city, area, rating, completed_deliveries)
@@ -144,15 +116,15 @@ class AuthService {
        RETURNING id, name, email, phone, role, vehicle_type, country, city, area`,
       [
         userId,
-        this.sanitizeString(name, 100),
+        sanitizeString(name, 100),
         email.toLowerCase().trim(),
         hashedPassword,
-        this.sanitizeString(phone, 20),
+        sanitizeString(phone, 20),
         role,
         role === 'driver' ? vehicle_type : null,
-        this.sanitizeString(country, 100),
-        this.sanitizeString(city, 100),
-        this.sanitizeString(area, 100),
+        sanitizeString(country, 100),
+        sanitizeString(city, 100),
+        sanitizeString(area, 100),
         5, // Default rating
         0  // Default completed deliveries
       ]
@@ -220,11 +192,11 @@ class AuthService {
     const { email, password, role, vehicle_type } = userData;
 
     // Validation
-    if (!this.validateEmail(email)) {
+    if (!validateEmail(email)) {
       throw new Error('Invalid email format');
     }
 
-    if (!this.validatePassword(password)) {
+    if (!validatePassword(password)) {
       throw new Error('Password must be at least 8 characters');
     }
 
@@ -334,8 +306,8 @@ class AuthService {
     // Clean expired tokens for this user first
     await this.cleanExpiredTokens(user.id);
 
-    const tokenId = this.generateId();
-    const resetToken = this.generateId(); // Generate secure token
+    const tokenId = generateId();
+    const resetToken = generateId(); // Generate secure token
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
     await pool.query(
@@ -355,8 +327,8 @@ class AuthService {
       `SELECT prt.*, u.name, u.email
        FROM password_reset_tokens prt
        JOIN users u ON prt.user_id = u.id
-       WHERE prt.token = $1 AND prt.used = false AND prt.expires_at > NOW()`,
-      [token]
+       WHERE prt.token = $1 AND prt.used = false AND prt.expires_at > $2`,
+      [token, new Date()]
     );
     return result.rows[0] || null;
   }
@@ -440,8 +412,8 @@ class AuthService {
     // Clean expired tokens for this user first
     await this.cleanExpiredEmailVerificationTokens(user.id);
 
-    const tokenId = this.generateId();
-    const verificationToken = this.generateId(); // Generate secure token
+    const tokenId = generateId();
+    const verificationToken = generateId(); // Generate secure token
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
     await pool.query(
@@ -461,8 +433,8 @@ class AuthService {
       `SELECT ev.*, u.name, u.email
        FROM email_verification_tokens ev
        JOIN users u ON ev.user_id = u.id
-       WHERE ev.token = $1 AND ev.used = false AND ev.expires_at > NOW()`,
-      [token]
+       WHERE ev.token = $1 AND ev.used = false AND ev.expires_at > $2`,
+      [token, new Date()]
     );
     return result.rows[0] || null;
   }

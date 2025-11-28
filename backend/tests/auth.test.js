@@ -43,7 +43,7 @@ describe('Authentication API Tests', () => {
   beforeEach(async () => {
     // Clean up test data
     await pool.query('DELETE FROM password_reset_tokens');
-    await pool.query('DELETE FROM users WHERE email LIKE \'test%\'');
+    await pool.query('DELETE FROM users');
   });
 
   describe('POST /api/auth/register', () => {
@@ -109,7 +109,7 @@ describe('Authentication API Tests', () => {
         .send(userData)
         .expect(409);
 
-      expect(response.body.error).toContain('already exists');
+      expect(response.body.error).toContain('Email already registered');
     });
   });
 
@@ -398,9 +398,9 @@ describe('Authentication API Tests', () => {
         .set('Authorization', `Bearer ${testToken}`)
         .expect(200);
 
-      expect(response.body).toHaveProperty('user');
-      expect(response.body.user.email).toBe(testUser.email);
-      expect(response.body.user.name).toBe(testUser.name);
+      expect(response.body).toHaveProperty('email');
+      expect(response.body.email).toBe(testUser.email);
+      expect(response.body.name).toBe(testUser.name);
     });
 
     it('should return 401 without token', async () => {

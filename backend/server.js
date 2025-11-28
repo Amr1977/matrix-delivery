@@ -12,6 +12,22 @@ const logger = require('./logger');
 const { exec } = require('child_process');
 // const Recaptcha = require('google-recaptcha-v2');
 
+// Import utility modules
+const { generateId, generateOrderNumber } = require('./utils/generators');
+const { sanitizeString, sanitizeHtml, sanitizeNumeric } = require('./utils/sanitizers');
+const { validateEmail, validatePassword, validatePhone, validateRole } = require('./utils/validators');
+const { COMMON_COUNTRIES, ORDER_STATUS, BID_STATUS, PAYMENT_STATUS, USER_ROLES, LOCATION_CACHE_TTLS } = require('./config/constants');
+const {
+  locationMemoryCache,
+  getCountriesFromCache,
+  setCountriesCache,
+  getListFromMemory,
+  setListInMemory,
+  getPersistedCache,
+  persistCache
+} = require('./utils/cache');
+
+
 // Load environment-specific .env file
 const envFile = process.env.ENV_FILE || '.env';
 dotenv.config({ path: envFile });
@@ -90,6 +106,12 @@ const initDatabase = async () => {
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS theme VARCHAR(20)`);
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS document_verification_status VARCHAR(50)`);
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS verified_at TIMESTAMP`);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_verified BOOLEAN DEFAULT false`);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS rating DECIMAL(3,2) DEFAULT 5.00`);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS completed_deliveries INTEGER DEFAULT 0`);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS country VARCHAR(100)`);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS city VARCHAR(100)`);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS area VARCHAR(100)`);
 
     // Create password_reset_tokens table
     await pool.query(`
@@ -105,6 +127,21 @@ const initDatabase = async () => {
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_user_id ON password_reset_tokens(user_id)`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_token ON password_reset_tokens(token)`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_expires_at ON password_reset_tokens(expires_at)`);
+
+    // Create email_verification_tokens table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS email_verification_tokens (
+        id VARCHAR(255) PRIMARY KEY,
+        user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        token VARCHAR(255) UNIQUE NOT NULL,
+        expires_at TIMESTAMP NOT NULL,
+        used BOOLEAN DEFAULT false,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_email_verification_tokens_user_id ON email_verification_tokens(user_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_email_verification_tokens_token ON email_verification_tokens(token)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_email_verification_tokens_expires_at ON email_verification_tokens(expires_at)`);
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS user_favorites (
@@ -438,137 +475,11 @@ const initDatabase = async () => {
   }
 };
 
-const LOCATION_CACHE_KEYS = {
-  COUNTRIES: 'countries'
-};
-
-const LOCATION_CACHE_TTLS = {
-  COUNTRIES: 1000 * 60 * 60 * 24 * 7, // cache countries for 7 days
-  CITIES: 1000 * 60 * 60 * 6,
-  AREAS: 1000 * 60 * 60 * 6,
-  STREETS: 1000 * 60 * 60 * 6
-};
-
-const locationMemoryCache = {
-  countries: { data: null, expiresAt: 0 },
-  cities: new Map(),
-  areas: new Map(),
-  streets: new Map()
-};
-
-const COMMON_COUNTRIES = [
-  'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
-  'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh',
-  'Barbados', 'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan', 'Bolivia', 'Bosnia and Herzegovina',
-  'Botswana', 'Brazil', 'Brunei', 'Bulgaria', 'Burkina Faso', 'Burundi', 'Cambodia', 'Cameroon',
-  'Canada', 'Cape Verde', 'Central African Republic', 'Chad', 'Chile', 'China', 'Colombia', 'Comoros',
-  'Costa Rica', "Côte d'Ivoire", 'Croatia', 'Cuba', 'Cyprus', 'Czech Republic', 'Democratic Republic of the Congo',
-  'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic', 'Ecuador', 'Egypt', 'El Salvador',
-  'Equatorial Guinea', 'Eritrea', 'Estonia', 'Eswatini', 'Ethiopia', 'Fiji', 'Finland', 'France',
-  'Gabon', 'Gambia', 'Georgia', 'Germany', 'Ghana', 'Greece', 'Grenada', 'Guatemala',
-  'Guinea', 'Guinea-Bissau', 'Guyana', 'Haiti', 'Honduras', 'Hungary', 'Iceland', 'India',
-  'Indonesia', 'Iran', 'Iraq', 'Ireland', 'Israel', 'Italy', 'Jamaica', 'Japan',
-  'Jordan', 'Kazakhstan', 'Kenya', 'Kiribati', 'Kuwait', 'Kyrgyzstan', 'Laos', 'Latvia',
-  'Lebanon', 'Lesotho', 'Liberia', 'Libya', 'Liechtenstein', 'Lithuania', 'Luxembourg', 'Madagascar',
-  'Malawi', 'Malaysia', 'Maldives', 'Mali', 'Malta', 'Marshall Islands', 'Mauritania', 'Mauritius',
-  'Mexico', 'Micronesia', 'Moldova', 'Monaco', 'Mongolia', 'Montenegro', 'Morocco', 'Mozambique',
-  'Myanmar', 'Namibia', 'Nauru', 'Nepal', 'Netherlands', 'New Zealand', 'Nicaragua', 'Niger',
-  'Nigeria', 'North Macedonia', 'Norway', 'Oman', 'Pakistan', 'Palau', 'Panama', 'Papua New Guinea',
-  'Paraguay', 'Peru', 'Philippines', 'Poland', 'Portugal', 'Qatar', 'Romania', 'Russia',
-  'Rwanda', 'Saint Kitts and Nevis', 'Saint Lucia', 'Saint Vincent and the Grenadines', 'Samoa',
-  'San Marino', 'Sao Tome and Principe', 'Saudi Arabia', 'Senegal', 'Serbia', 'Seychelles',
-  'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia', 'Solomon Islands', 'Somalia',
-  'South Africa', 'South Korea', 'South Sudan', 'Spain', 'Sri Lanka', 'Sudan', 'Suriname',
-  'Sweden', 'Switzerland', 'Syria', 'Taiwan', 'Tajikistan', 'Tanzania', 'Thailand', 'Timor-Leste',
-  'Togo', 'Tonga', 'Trinidad and Tobago', 'Tunisia', 'Turkey', 'Turkmenistan', 'Tuvalu',
-  'Uganda', 'Ukraine', 'United Arab Emirates', 'United Kingdom', 'United States', 'Uruguay',
-  'Uzbekistan', 'Vanuatu', 'Vatican City', 'Venezuela', 'Vietnam', 'Yemen', 'Zambia', 'Zimbabwe'
-];
-
-const getCountriesFromCache = () => {
-  const entry = locationMemoryCache.countries;
-  if (entry?.data && entry.expiresAt > Date.now()) {
-    return entry.data;
-  }
-  return null;
-};
-
-const setCountriesCache = (data) => {
-  locationMemoryCache.countries = {
-    data,
-    expiresAt: Date.now() + LOCATION_CACHE_TTLS.COUNTRIES
-  };
-};
-
-const getListFromMemory = (bucket, key) => {
-  const entry = bucket.get(key);
-  if (entry && entry.expiresAt > Date.now()) {
-    return entry.data;
-  }
-  if (entry) {
-    bucket.delete(key);
-  }
-  return null;
-};
-
-const setListInMemory = (bucket, key, data, ttl) => {
-  bucket.set(key, {
-    data,
-    expiresAt: Date.now() + ttl
-  });
-};
-
-const getPersistedCache = async (cacheKey) => {
-  try {
-    const result = await pool.query(
-      'SELECT payload, expires_at FROM location_cache WHERE cache_key = $1',
-      [cacheKey]
-    );
-    if (result.rows.length === 0) {
-      return null;
-    }
-    const record = result.rows[0];
-    if (new Date(record.expires_at) < new Date()) {
-      await pool.query('DELETE FROM location_cache WHERE cache_key = $1', [cacheKey]);
-      return null;
-    }
-    return record.payload;
-  } catch (error) {
-    console.warn('Location cache read error (non-critical):', error.message);
-    return null;
-  }
-};
-
-const persistCache = async (cacheKey, payload, ttlMs) => {
-  try {
-    const expiresAt = new Date(Date.now() + ttlMs);
-    await pool.query(
-      `INSERT INTO location_cache (cache_key, payload, expires_at)
-       VALUES ($1, $2, $3)
-       ON CONFLICT (cache_key) DO UPDATE
-       SET payload = EXCLUDED.payload, expires_at = EXCLUDED.expires_at`,
-      [cacheKey, payload, expiresAt]
-    );
-  } catch (error) {
-    console.warn('Location cache write error (non-critical):', error.message);
-  }
-};
-
 // Initialize database on startup
 initDatabase().catch(err => {
   console.error('Failed to initialize database:', err);
   process.exit(1);
 });
-
-const generateId = () => {
-  return Date.now().toString() + Math.random().toString(36).substr(2, 9);
-};
-
-const generateOrderNumber = () => {
-  const timestamp = Date.now();
-  const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-  return `ORD-${timestamp}-${random}`;
-};
 
 // Helper function to create notification with real-time WebSocket emission
 const createNotification = async (userId, orderId, type, title, message) => {
@@ -706,6 +617,9 @@ const authorizeVendorManage = async (req, res, next) => {
   }
 };
 
+// Load auth endpoints
+app.use('/api/auth', require('./routes/auth'));
+
 // Load driver status endpoints
 const driverRoutes = require('./routes/drivers');
 app.use('/api/drivers', driverRoutes);
@@ -713,23 +627,6 @@ app.use('/api/drivers', driverRoutes);
 // Load map location picker endpoints
 const mapPickerEndpoints = require('./map-location-picker-backend.js');
 mapPickerEndpoints(app, pool, jwt, verifyToken);
-
-// Input sanitization
-const sanitizeString = (str, maxLength = 1000) => {
-  if (typeof str !== 'string') return '';
-  return str.trim().substring(0, maxLength).replace(/[<>\"'&]/g, '');
-};
-
-const sanitizeHtml = (str, maxLength = 5000) => {
-  if (typeof str !== 'string') return '';
-  return str.trim().substring(0, maxLength).replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-};
-
-const sanitizeNumeric = (value, min = 0, max = 1000000) => {
-  const num = parseFloat(value);
-  if (isNaN(num) || num < min || num > max) return null;
-  return Math.round(num * 100) / 100; // Round to 2 decimal places
-};
 
 // Rate limiting store (simple in-memory for demo)
 const rateLimitStore = new Map();
@@ -759,17 +656,6 @@ const rateLimit = (maxRequests = 100, windowMs = 15 * 60 * 1000) => {
 
     next();
   };
-};
-
-// Validation helpers
-const validateEmail = (email) => {
-  const sanitized = sanitizeString(email, 255);
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sanitized);
-};
-
-const validatePassword = (password) => {
-  const sanitized = sanitizeString(password, 255);
-  return sanitized && sanitized.length >= 8;
 };
 
 // reCAPTCHA verification (using v2 checkbox)
@@ -6046,44 +5932,48 @@ io.on('connection', (socket) => {
 
 
 const PORT = process.env.PORT || 5000;
-const server = httpServer.listen(PORT, '0.0.0.0', () => {
-  console.log('');
-  console.log('╔════════════════════════════════════════════════════╗');
-  console.log('         🚚 Matrix Delivery Server (PostgreSQL)');
-  console.log('╚════════════════════════════════════════════════════╝');
-  console.log('');
-  console.log(`✅ Server running on: http://localhost:${PORT}`);
-  console.log(`📍 API Base URL: http://localhost:${PORT}/api`);
-  console.log(`💾 Database: PostgreSQL (Updated Schema)`);
-  console.log(`🔒 Environment: ${IS_TEST ? 'Testing' : (IS_PRODUCTION ? 'Production' : 'Development')}`);
-  console.log('');
-  console.log('📊 API Endpoints:');
-  console.log('   POST   /api/auth/register');
-  console.log('   POST   /api/auth/login');
-  console.log('   GET    /api/auth/me');
-  console.log('   GET    /api/health');
-  console.log('   POST   /api/orders');
-  console.log('   GET    /api/orders');
-  console.log('   GET    /api/orders/:id');
-  console.log('   POST   /api/orders/:id/bid');
-  console.log('   PUT    /api/orders/:id/bid');
-  console.log('   DELETE /api/orders/:id/bid');
-  console.log('   POST   /api/orders/:id/accept-bid');
-  console.log('   POST   /api/orders/:id/pickup');
-  console.log('   POST   /api/orders/:id/in-transit');
-  console.log('   POST   /api/orders/:id/complete');
-  console.log('   POST   /api/orders/:id/location');
-  console.log('   GET    /api/orders/:id/tracking');
-  console.log('   DELETE /api/orders/:id');
-  console.log('   GET    /api/notifications');
-  console.log('   PUT    /api/notifications/:id/read');
-  console.log('   POST   /api/orders/:id/review');
-  console.log('   GET    /api/orders/:id/reviews');
-  console.log('   GET    /api/orders/:id/review-status');
-  console.log('');
-  console.log('╚════════════════════════════════════════════════════╝');
-  console.log('');
-});
+let server;
+
+if (require.main === module) {
+  server = httpServer.listen(PORT, '0.0.0.0', () => {
+    console.log('');
+    console.log('╔════════════════════════════════════════════════════╗');
+    console.log('         🚚 Matrix Delivery Server (PostgreSQL)');
+    console.log('╚════════════════════════════════════════════════════╝');
+    console.log('');
+    console.log(`✅ Server running on: http://localhost:${PORT}`);
+    console.log(`📍 API Base URL: http://localhost:${PORT}/api`);
+    console.log(`💾 Database: PostgreSQL (Updated Schema)`);
+    console.log(`🔒 Environment: ${IS_TEST ? 'Testing' : (IS_PRODUCTION ? 'Production' : 'Development')}`);
+    console.log('');
+    console.log('📊 API Endpoints:');
+    console.log('   POST   /api/auth/register');
+    console.log('   POST   /api/auth/login');
+    console.log('   GET    /api/auth/me');
+    console.log('   GET    /api/health');
+    console.log('   POST   /api/orders');
+    console.log('   GET    /api/orders');
+    console.log('   GET    /api/orders/:id');
+    console.log('   POST   /api/orders/:id/bid');
+    console.log('   PUT    /api/orders/:id/bid');
+    console.log('   DELETE /api/orders/:id/bid');
+    console.log('   POST   /api/orders/:id/accept-bid');
+    console.log('   POST   /api/orders/:id/pickup');
+    console.log('   POST   /api/orders/:id/in-transit');
+    console.log('   POST   /api/orders/:id/complete');
+    console.log('   POST   /api/orders/:id/location');
+    console.log('   GET    /api/orders/:id/tracking');
+    console.log('   DELETE /api/orders/:id');
+    console.log('   GET    /api/notifications');
+    console.log('   PUT    /api/notifications/:id/read');
+    console.log('   POST   /api/orders/:id/review');
+    console.log('   GET    /api/orders/:id/reviews');
+    console.log('   GET    /api/orders/:id/review-status');
+    console.log('');
+    console.log('╚════════════════════════════════════════════════════╝');
+    console.log('');
+  });
+}
 
 // Graceful shutdown
 process.on('SIGINT', async () => {
