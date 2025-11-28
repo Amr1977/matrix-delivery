@@ -18,6 +18,10 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, loading, 
   const centerLat = hasCoordinates ? (pickup.lat + dropoff.lat) / 2 : 30.0444;
   const centerLng = hasCoordinates ? (pickup.lng + dropoff.lng) / 2 : 31.2357;
 
+  // If driver location is provided, adjust center to include driver
+  const effectiveCenterLat = driverLocation ? (centerLat + driverLocation.latitude) / 2 : centerLat;
+  const effectiveCenterLng = driverLocation ? (centerLng + driverLocation.longitude) / 2 : centerLng;
+
   // Use original OpenStreetMap tiles
   const tileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
   const isLightMode = theme === 'light';
@@ -97,7 +101,7 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, loading, 
         <>
           <div style={{ flex: 1, minHeight: 0 }}>
             <MapContainer
-              center={[centerLat, centerLng]}
+              center={[effectiveCenterLat, effectiveCenterLng]}
               zoom={13}
               style={{ width: '100%', height: '100%' }}
               zoomControl={false}
@@ -173,12 +177,26 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, loading, 
                   />
 
                   {/* Actual Driver Route - Solid Green/Blue */}
-                  {actualDriverPath.length > 0 && (
+                  {actualDriverPath && actualDriverPath.length > 0 && (
                     <Polyline
                       positions={actualDriverPath}
                       color="#00FF00"
                       weight={8}
                       opacity={1.0}
+                    />
+                  )}
+
+                  {/* Driver to Pickup Line (Dashed) */}
+                  {driverLocation && Number.isFinite(driverLocation.latitude) && Number.isFinite(driverLocation.longitude) && pickup && (
+                    <Polyline
+                      positions={[
+                        [driverLocation.latitude, driverLocation.longitude],
+                        [pickup.lat, pickup.lng]
+                      ]}
+                      color="#3B82F6"
+                      weight={4}
+                      opacity={0.8}
+                      dashArray="10, 10"
                     />
                   )}
                 </>
