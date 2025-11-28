@@ -11,9 +11,12 @@
 /* Matrix font - Monospace for that hacker/terminal feel */
 body {
   font-family: 'Courier New', 'Consolas', 'Monaco', 'Courier', monospace;
-  background-color: #090909; /* Deep black background */
-  color: #30FF30; /* Classic Matrix green text */
-  -webkit-font-smoothing: none; /* Crisp pixel look */
+  background-color: #090909;
+  /* Deep black background */
+  color: #30FF30;
+  /* Classic Matrix green text */
+  -webkit-font-smoothing: none;
+  /* Crisp pixel look */
   -moz-osx-font-smoothing: none;
   font-weight: 400;
   line-height: 1.4;
@@ -37,8 +40,13 @@ body::before {
 }
 
 @keyframes matrixRain {
-  0% { background-position: 0 0; }
-  100% { background-position: 0 200%; }
+  0% {
+    background-position: 0 0;
+  }
+
+  100% {
+    background-position: 0 200%;
+  }
 }
 
 /* Custom scrollbar - Matrix style */
@@ -75,14 +83,18 @@ button:hover {
 }
 
 /* Matrix-styled input fields */
-input, textarea, select {
+input,
+textarea,
+select {
   background-color: #111;
   color: #30FF30;
   border: 1px solid #30FF30;
   font-family: inherit;
 }
 
-input:focus, textarea:focus, select:focus {
+input:focus,
+textarea:focus,
+select:focus {
   outline: none;
   border-color: #00FF00;
   box-shadow: 0 0 10px rgba(48, 255, 48, 0.5);
@@ -138,11 +150,20 @@ header {
 
 /* Sliding text animation for headings */
 @keyframes slideIn {
-  from { transform: translateX(-100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
-h1, h2, h3 {
+h1,
+h2,
+h3 {
   animation: slideIn 0.5s ease-out;
   text-shadow: 0 0 10px #30FF30;
 }
@@ -164,8 +185,15 @@ h1, h2, h3 {
 }
 
 @keyframes pulse {
-  0%, 100% { box-shadow: 0 0 0 2px rgba(48, 255, 48, 0.3); }
-  50% { box-shadow: 0 0 0 4px rgba(48, 255, 48, 0.6); }
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 2px rgba(48, 255, 48, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 0 0 4px rgba(48, 255, 48, 0.6);
+  }
 }
 
 /* Matrix buttons with glow */
@@ -197,9 +225,20 @@ h1, h2, h3 {
 
 /* Notification bell animation */
 @keyframes bellRing {
-  0%, 50%, 100% { transform: rotate(0); }
-  25% { transform: rotate(5deg); }
-  75% { transform: rotate(-5deg); }
+
+  0%,
+  50%,
+  100% {
+    transform: rotate(0);
+  }
+
+  25% {
+    transform: rotate(5deg);
+  }
+
+  75% {
+    transform: rotate(-5deg);
+  }
 }
 
 .bell-notification {
@@ -235,10 +274,44 @@ code {
 }
 
 @keyframes fadeInOut {
-  0% { opacity: 0; transform: translateY(-10px); }
-  10% { opacity: 1; transform: translateY(0); }
-  90% { opacity: 1; transform: translateY(0); }
-  100% { opacity: 0; transform: translateY(-10px); }
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  10% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  90% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+/* =========== LEAFLET MAP TILE FIX =========== */
+/* Ensure map tiles display with original colors, no dark filters */
+.leaflet-tile-container img,
+.leaflet-tile,
+.leaflet-layer img {
+  filter: none !important;
+  opacity: 1 !important;
+  mix-blend-mode: normal !important;
+}
+
+.leaflet-container {
+  background: #fff !important;
+}
+
+.leaflet-tile-pane {
+  filter: none !important;
+  opacity: 1 !important;
 }
 
 /* =========== END MATRIX THEME =========== */

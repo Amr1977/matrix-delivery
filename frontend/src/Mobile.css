@@ -18,6 +18,7 @@ body {
 
 /* Mobile: < 768px */
 @media (max-width: 767px) {
+
   /* Container adjustments */
   .app-container {
     padding: 0 !important;
@@ -82,7 +83,8 @@ body {
   input,
   select,
   textarea {
-    font-size: 16px !important; /* Prevents iOS zoom */
+    font-size: 16px !important;
+    /* Prevents iOS zoom */
     width: 100% !important;
   }
 
@@ -230,10 +232,21 @@ body {
   }
 
   /* Text sizing */
-  h1 { font-size: 1.5rem !important; }
-  h2 { font-size: 1.25rem !important; }
-  h3 { font-size: 1.125rem !important; }
-  h4 { font-size: 1rem !important; }
+  h1 {
+    font-size: 1.5rem !important;
+  }
+
+  h2 {
+    font-size: 1.25rem !important;
+  }
+
+  h3 {
+    font-size: 1.125rem !important;
+  }
+
+  h4 {
+    font-size: 1rem !important;
+  }
 
   /* Driver location button */
   .location-button {
@@ -305,6 +318,7 @@ body {
 
 /* Touch-friendly targets */
 @media (hover: none) and (pointer: coarse) {
+
   /* Minimum touch target size: 44x44px (Apple HIG) */
   button,
   a,
@@ -316,7 +330,7 @@ body {
   }
 
   /* Increase spacing between interactive elements */
-  .interactive-list > * + * {
+  .interactive-list>*+* {
     margin-top: 0.75rem !important;
   }
 
@@ -335,6 +349,7 @@ body {
 
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
@@ -346,6 +361,7 @@ body {
 
 /* Print styles */
 @media print {
+
   .no-print,
   header,
   footer,
@@ -400,12 +416,10 @@ body {
 
 /* Loading states */
 .skeleton {
-  background: linear-gradient(
-    90deg,
-    #f0f0f0 25%,
-    #e0e0e0 50%,
-    #f0f0f0 75%
-  );
+  background: linear-gradient(90deg,
+      #f0f0f0 25%,
+      #e0e0e0 50%,
+      #f0f0f0 75%);
   background-size: 200% 100%;
   animation: loading 1.5s ease-in-out infinite;
 }
@@ -414,6 +428,7 @@ body {
   0% {
     background-position: 200% 0;
   }
+
   100% {
     background-position: -200% 0;
   }
@@ -447,7 +462,7 @@ html {
   background-color: var(--matrix-black);
   border-top: 1px solid var(--matrix-border);
   padding: 0.5rem 0;
-  z-index: 1000;
+  z-index: 9999;
   box-shadow: 0 -2px 10px rgba(0, 255, 0, 0.1);
 }
 
