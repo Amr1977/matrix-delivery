@@ -319,6 +319,18 @@ const initDatabase = async () => {
       )
     `);
 
+    // Update driver_locations table schema for live tracking
+    await pool.query(`ALTER TABLE driver_locations DROP CONSTRAINT IF EXISTS driver_locations_driver_id_key`);
+    await pool.query(`ALTER TABLE driver_locations ADD COLUMN IF NOT EXISTS order_id INTEGER REFERENCES orders(id) ON DELETE CASCADE`);
+    await pool.query(`ALTER TABLE driver_locations ADD COLUMN IF NOT EXISTS heading DECIMAL(5,2)`);
+    await pool.query(`ALTER TABLE driver_locations ADD COLUMN IF NOT EXISTS speed_kmh DECIMAL(5,2)`);
+    await pool.query(`ALTER TABLE driver_locations ADD COLUMN IF NOT EXISTS accuracy_meters DECIMAL(8,2)`);
+    await pool.query(`ALTER TABLE driver_locations ADD COLUMN IF NOT EXISTS context VARCHAR(50) DEFAULT 'idle'`);
+    await pool.query(`ALTER TABLE driver_locations RENAME COLUMN last_updated TO timestamp`).catch(() => { });
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_driver_locations_driver_timestamp ON driver_locations(driver_id, timestamp DESC)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_driver_locations_order ON driver_locations(order_id)`);
+
+
     // Create locations table for country/city/area/street data
     await pool.query(`
       CREATE TABLE IF NOT EXISTS locations (
