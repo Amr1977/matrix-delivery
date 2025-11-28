@@ -3170,12 +3170,6 @@ const DeliveryApp = () => {
                             </button>
                           </>
                         )}
-                        <button
-                          onClick={() => { setSelectedOrder(order); setShowLiveTracking(true); }}
-                          style={{ padding: '0.5rem 1rem', background: '#6366F1', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
-                        >
-                          🗺️ {t('orders.trackOrder')}
-                        </button>
                         {currentUser?.role === 'customer' && order.status === 'pending_bids' && order.customerId === currentUser?.id && (
                           <button
                             onClick={() => handleDeleteOrder(order._id)}
