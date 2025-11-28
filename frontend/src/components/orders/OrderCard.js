@@ -5,6 +5,8 @@ import DriverBiddingMap from '../maps/DriverBiddingMap';
 import RoutePreviewMap from '../RoutePreviewMap';
 import LiveTrackingMap from '../maps/LiveTrackingMap';
 import useAuth from '../../hooks/useAuth';
+import useDriverLocation from '../../hooks/useDriverLocation';
+import BidWithLiveLocation from './BidWithLiveLocation';
 
 const OrderCard = ({
   order,
@@ -24,23 +26,17 @@ const OrderCard = ({
 }) => {
   const { t } = useI18n();
   const [showRouteMapFullscreen, setShowRouteMapFullscreen] = React.useState(false);
-  const [driverLocation, setDriverLocation] = React.useState(null);
 
-  // Get driver location when component mounts (if driver)
-  React.useEffect(() => {
-    if (currentUser?.role === 'driver' && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setDriverLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          });
-        },
-        (error) => console.warn('Error getting location for bidding:', error),
-        { enableHighAccuracy: true }
-      );
-    }
-  }, [currentUser]);
+  // Live location tracking for drivers (own location)
+  const isDriver = currentUser?.role === 'driver';
+  const shouldTrackOwnLocation = isDriver && order.status === 'pending_bids';
+  const { location: myLiveLocation } = useDriverLocation(null, shouldTrackOwnLocation, true);
+
+  // Convert live location format for compatibility
+  const driverLocation = myLiveLocation ? {
+    lat: myLiveLocation.latitude,
+    lng: myLiveLocation.longitude
+  } : null;
 
   // Always log order data to debug
   window.console.log('🎯 OrderCard Rendered:', {
@@ -735,22 +731,9 @@ const OrderCard = ({
                 borderRadius: '0.5rem',
                 opacity: '0.95'
               }}>
-                {/* Show map for this bid if driver location exists */}
-                {bid.driverLocation && bid.driverLocation.lat && (
-                  <div style={{ height: '200px', marginBottom: '1rem', borderRadius: '0.5rem', overflow: 'hidden' }}>
-                    <RoutePreviewMap
-                      pickup={order.from}
-                      dropoff={order.to}
-                      driverLocation={{ latitude: bid.driverLocation.lat, longitude: bid.driverLocation.lng }}
-                      routeInfo={{
-                        polyline: order.routePolyline, // This is the order route, but RoutePreviewMap will calculate driver->pickup
-                        distance_km: order.estimatedDistanceKm
-                      }}
-                      compact={true}
-                      mapTitle={`Route for ${bid.driverName}`}
-                    />
-                  </div>
-                )}
+                {/* Show live location map for this bid */}
+                <BidWithLiveLocation bid={bid} order={order} compact={true} />
+
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.75rem' }}>
                   <div>
                     <p style={{

@@ -359,4 +359,143 @@ router.get('/location', verifyToken, requireRole('driver'), async (req, res) => 
   }
 });
 
+// Update driver location for bidding (not tied to specific order)
+router.post('/location/bidding', verifyToken, requireRole('driver'), apiRateLimit, async (req, res) => {
+  try {
+    const driverId = req.user.userId;
+    const { latitude, longitude, heading, speed, accuracy } = req.body;
+
+    if (!latitude || !longitude) {
+      return res.status(400).json({ error: 'Latitude and longitude are required' });
+    }
+
+    // Validate coordinates
+    if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+      return res.status(400).json({ error: 'Invalid coordinates' });
+    }
+
+    // Insert location update
+    await pool.query(
+      `INSERT INTO driver_locations (driver_id, latitude, longitude, heading, speed_kmh, accuracy_meters, context, timestamp)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
+      [driverId, latitude, longitude, heading || null, speed || null, accuracy || null, 'bidding']
+    );
+
+    logger.info(`Driver location updated (bidding)`, {
+      driverId,
+      latitude,
+      longitude,
+      category: 'location'
+    });
+
+    res.json({
+      success: true,
+      message: 'Location updated successfully'
+    });
+
+  } catch (error) {
+    logger.error(`Update bidding location error: ${error.message}`, {
+      driverId: req.user.userId,
+      category: 'error'
+    });
+    res.status(500).json({ error: error.message || 'Failed to update location' });
+  }
+});
+
+// Get driver's current location by driver ID
+router.get('/location/bidding/:driverId', verifyToken, async (req, res) => {
+  try {
+    const { driverId } = req.params;
+
+    // Get most recent location (within last 5 minutes)
+    const result = await pool.query(
+      `SELECT latitude, longitude, heading, speed_kmh, accuracy_meters, timestamp
+       FROM driver_locations
+       WHERE driver_id = $1
+       AND timestamp > NOW() - INTERVAL '5 minutes'
+       ORDER BY timestamp DESC
+       LIMIT 1`,
+      [driverId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'No recent location found' });
+    }
+
+    res.json({
+      success: true,
+      location: result.rows[0]
+    });
+
+  } catch (error) {
+    logger.error(`Get driver location error: ${error.message}`, {
+      driverId: req.params.driverId,
+      category: 'error'
+    });
+    res.status(500).json({ error: error.message || 'Failed to get location' });
+  }
+});
+
+// Get locations of all drivers who have bid on an order
+router.get('/location/order/:orderId/bidders', verifyToken, async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const userId = req.user.userId;
+
+    // Check if user has permission to view this order
+    const orderCheck = await pool.query(
+      'SELECT id, customer_id, assigned_driver_id FROM orders WHERE id = $1',
+      [orderId]
+    );
+
+    if (orderCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    const order = orderCheck.rows[0];
+
+    // Only customer or assigned driver can view bidder locations
+    if (order.customer_id !== userId && order.assigned_driver_id !== userId && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    // Get all bidders' locations
+    const result = await pool.query(
+      `SELECT 
+        b.driver_id,
+        b.driver_name,
+        b.bid_price,
+        dl.latitude,
+        dl.longitude,
+        dl.heading,
+        dl.speed_kmh,
+        dl.accuracy_meters,
+        dl.timestamp
+      FROM bids b
+      LEFT JOIN LATERAL (
+        SELECT * FROM driver_locations
+        WHERE driver_id = b.driver_id
+        ORDER BY timestamp DESC
+        LIMIT 1
+      ) dl ON true
+      WHERE b.order_id = $1
+      AND dl.timestamp > NOW() - INTERVAL '5 minutes'
+      ORDER BY b.created_at DESC`,
+      [orderId]
+    );
+
+    res.json({
+      success: true,
+      locations: result.rows
+    });
+
+  } catch (error) {
+    logger.error(`Get bidders locations error: ${error.message}`, {
+      orderId: req.params.orderId,
+      category: 'error'
+    });
+    res.status(500).json({ error: error.message || 'Failed to get locations' });
+  }
+});
+
 module.exports = router;
