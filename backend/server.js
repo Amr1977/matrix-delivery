@@ -246,6 +246,8 @@ const initDatabase = async () => {
         status VARCHAR(50) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'completed', 'failed', 'refunded', 'cancelled')),
         stripe_payment_intent_id VARCHAR(255),
         stripe_charge_id VARCHAR(255),
+        paypal_order_id VARCHAR(255),
+        paypal_capture_id VARCHAR(255),
         payer_id VARCHAR(255) NOT NULL REFERENCES users(id),
         payee_id VARCHAR(255),
         platform_fee DECIMAL(10,2) DEFAULT 0.00,

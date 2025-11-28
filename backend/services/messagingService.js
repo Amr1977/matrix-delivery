@@ -255,7 +255,7 @@ class MessagingService {
   /**
    * Mark messages as read
    */
-  async markMessagesAsRead(orderId, userId) {
+  async markMessagesRead(orderId, userId) {
     const result = await pool.query(
       `UPDATE messages
        SET is_read = true, read_at = CURRENT_TIMESTAMP
