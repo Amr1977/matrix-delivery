@@ -581,7 +581,7 @@ const OrderCard = ({
           {/* Route Preview Map */}
           <DriverBiddingMap
             order={order}
-            driverLocation={null} // Will get current location automatically
+            driverLocation={driverLocation} // Pass the tracked driver location
             driverVehicleType={currentUser?.vehicle_type || 'car'}
             onToggleFullscreen={() => setShowRouteMapFullscreen(prev => !prev)}
             isFullscreen={showRouteMapFullscreen}
