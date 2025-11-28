@@ -8,8 +8,8 @@ import api from '../../api';
 
 const MAP_DEFAULT_CENTER = [30.0444, 31.2357];
 const MAP_DEFAULT_ZOOM = 13;
-const LIVE_TRACK_REFRESH_INTERVAL_MS_ACTIVE = 3000;
-const LIVE_TRACK_REFRESH_INTERVAL_MS_IDLE = 10000;
+const LIVE_TRACK_REFRESH_INTERVAL_MS_ACTIVE = 10000; // 10 seconds (reduced from 3s)
+const LIVE_TRACK_REFRESH_INTERVAL_MS_IDLE = 30000; // 30 seconds (reduced from 10s)
 const SMART_TRACKING_DISTANCE_THRESHOLD_METERS = 50;
 const SMART_TRACKING_TIME_THRESHOLD_MS = 30000;
 const AVERAGE_CITY_SPEED_KMH_FOR_ETA = 25;
@@ -74,34 +74,26 @@ const createCustomIcon = (type, status) => {
 };
 
 // Map controller to auto-fit bounds
-const MapBoundsUpdater = ({ trackingData }) => {
+const MapEffect = () => {
+  const map = useMap();
+  // We need to access the bounds calculated in the main component.
+  // Since we can't easily pass props to a component defined inside another component's render,
+  // we'll move the bounds calculation inside MapEffect or pass it via context if needed.
+  // However, a cleaner way is to define MapEffect inside the main component so it closes over 'bounds'.
+  // But React warns against defining components during render.
+  // So we will use a different approach: a component that takes bounds as a prop.
+  return null;
+};
+
+// Better approach: A component that takes bounds as a prop
+const BoundsController = ({ bounds }) => {
   const map = useMap();
 
   useEffect(() => {
-    if (trackingData) {
-      const bounds = [];
-      // Add pickup and delivery points to bounds
-      if (trackingData.pickup && trackingData.pickup.location) {
-        bounds.push([trackingData.pickup.location.lat, trackingData.pickup.location.lng]);
-      }
-      if (trackingData.delivery && trackingData.delivery.location) {
-        bounds.push([trackingData.delivery.location.lat, trackingData.delivery.location.lng]);
-      }
-      // Add all route points to bounds
-      if (trackingData.locationHistory && trackingData.locationHistory.length > 0) {
-        trackingData.locationHistory.forEach(loc => {
-          bounds.push([loc.lat, loc.lng]);
-        });
-      }
-
-      // If we have bounds, fit the map to them
-      if (bounds.length > 1) {
-        map.fitBounds(bounds, { padding: [20, 20] });
-      } else if (bounds.length === 1) {
-        map.setView(bounds[0], 13);
-      }
+    if (bounds && bounds.isValid()) {
+      map.fitBounds(bounds, { padding: [50, 50] });
     }
-  }, [trackingData, map]);
+  }, [map, bounds]);
 
   return null;
 };
@@ -297,9 +289,9 @@ const LiveTrackingMap = ({ orderId, t, compact = false, theme = 'dark', isDriver
         handlePositionUpdate,
         (err) => console.warn('Tracking error:', err),
         {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0
+          enableHighAccuracy: false, // Changed to false to save battery
+          timeout: 15000, // Increased from 10s
+          maximumAge: 5000 // Allow 5s cached position
         }
       );
     }
@@ -369,6 +361,50 @@ const LiveTrackingMap = ({ orderId, t, compact = false, theme = 'dark', isDriver
     return R * c;
   };
 
+  // Calculate bounds to include all points
+  // Moved to top level to avoid conditional hook error
+  const bounds = React.useMemo(() => {
+    if (!trackingData) return null;
+
+    const points = [];
+
+    // Add pickup and delivery
+    if (trackingData.pickup && trackingData.pickup.location) {
+      points.push([trackingData.pickup.location.lat, trackingData.pickup.location.lng]);
+    }
+    if (trackingData.delivery && trackingData.delivery.location) {
+      points.push([trackingData.delivery.location.lat, trackingData.delivery.location.lng]);
+    }
+
+    // Add current driver location
+    if (trackingData.currentLocation && typeof trackingData.currentLocation.lat === 'number') {
+      points.push([trackingData.currentLocation.lat, trackingData.currentLocation.lng]);
+    }
+
+    // Add route history points
+    if (trackingData.locationHistory && Array.isArray(trackingData.locationHistory)) {
+      trackingData.locationHistory.forEach(loc => {
+        if (loc.lat && loc.lng) points.push([loc.lat, loc.lng]);
+      });
+    }
+
+    // Add route polyline points (sampled)
+    if (trackingData.routePolyline) {
+      try {
+        const decoded = polyline.decode(trackingData.routePolyline);
+        const sampleRate = Math.ceil(decoded.length / 20);
+        for (let i = 0; i < decoded.length; i += sampleRate) {
+          points.push(decoded[i]);
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    if (points.length === 0) return null;
+    return L.latLngBounds(points);
+  }, [trackingData]);
+
   // Render loading state
   if (loading) {
     return (
@@ -435,6 +471,8 @@ const LiveTrackingMap = ({ orderId, t, compact = false, theme = 'dark', isDriver
       </div>
     );
   }
+
+
 
   // Render tracking map
   const center = getCenter();
@@ -643,13 +681,13 @@ const LiveTrackingMap = ({ orderId, t, compact = false, theme = 'dark', isDriver
       {/* Map */}
       <div style={{ height: compact ? '300px' : '500px', marginBottom: '1rem', borderRadius: '0.5rem', overflow: 'hidden' }}>
         <MapContainer
-          center={MAP_DEFAULT_CENTER}
-          zoom={MAP_DEFAULT_ZOOM}
+          center={MAP_DEFAULT_CENTER} // Initial center, will be overridden by MapEffect
+          zoom={MAP_DEFAULT_ZOOM}     // Initial zoom, will be overridden by MapEffect
           style={{ width: '100%', height: '100%' }}
           zoomControl={false}
           ref={mapRef}
         >
-          <MapBoundsUpdater trackingData={trackingData} />
+          <BoundsController bounds={bounds} />
           <TileLayer
             url={tileUrl}
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'

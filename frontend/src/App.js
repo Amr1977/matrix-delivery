@@ -384,11 +384,11 @@ const DeliveryApp = () => {
     if (token) {
       fetchCurrentUser();
       fetchNotifications();
-      // Balanced polling for reliability and performance (7-second interval)
+      // Optimized polling interval (30 seconds) to reduce battery drain
       const interval = setInterval(() => {
         fetchOrders();
         fetchNotifications();
-      }, 7000); // 7 seconds polling for good balance
+      }, 30000); // 30 seconds - balanced for battery life
       return () => clearInterval(interval);
     }
   }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -1949,7 +1949,21 @@ const DeliveryApp = () => {
 
             <div style={{ textAlign: 'right' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                <p style={{ fontWeight: '600', color: 'var(--matrix-bright-green)' }}>{currentUser?.name}</p>
+                <button
+                  onClick={() => setShowProfile(true)}
+                  style={{
+                    fontWeight: '600',
+                    color: 'var(--matrix-bright-green)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 0,
+                    fontSize: '1rem',
+                    textDecoration: 'underline'
+                  }}
+                >
+                  {currentUser?.name}
+                </button>
                 {currentUser?.isVerified && (
                   <span style={{ background: '#10B981', color: 'white', padding: '0.125rem 0.5rem', borderRadius: '9999px', fontSize: '0.625rem', fontWeight: '600' }}>
                     ✓ Verified
@@ -2004,19 +2018,7 @@ const DeliveryApp = () => {
                   </button>
                 )}
 
-                <button
-                  onClick={() => setShowMessaging(true)}
-                  style={{ background: '#10B981', color: 'white', padding: '0.375rem 0.75rem', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: '600' }}
-                >
-                  💬 Messages
-                </button>
 
-                <button
-                  onClick={() => setShowPaymentMethods(true)}
-                  style={{ background: '#F59E0B', color: 'white', padding: '0.375rem 0.75rem', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: '600' }}
-                >
-                  💳 Payments
-                </button>
               </div>
             </div>
 

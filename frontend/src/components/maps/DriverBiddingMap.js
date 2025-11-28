@@ -286,17 +286,23 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
     const map = useMap();
 
     React.useEffect(() => {
-      if (driverCoords && Number.isFinite(driverCoords.lat) && Number.isFinite(driverCoords.lng) && pickupCoords && dropoffCoords && map) {
-        // Fit map to show all points with padding
-        const bounds = L.latLngBounds([
-          [driverCoords.lat, driverCoords.lng],
+      if (map && pickupCoords && dropoffCoords) {
+        // Create bounds array
+        const boundsPoints = [
           [pickupCoords.lat, pickupCoords.lng],
           [dropoffCoords.lat, dropoffCoords.lng]
-        ]);
+        ];
 
-        map.fitBounds(bounds, { padding: [20, 20] });
+        // Add driver location if available
+        if (driverCoords && Number.isFinite(driverCoords.lat) && Number.isFinite(driverCoords.lng)) {
+          boundsPoints.push([driverCoords.lat, driverCoords.lng]);
+        }
+
+        // Fit map to show all points with padding
+        const bounds = L.latLngBounds(boundsPoints);
+        map.fitBounds(bounds, { padding: [50, 50] });
       }
-    }, [map]);
+    }, [map, driverCoords, pickupCoords, dropoffCoords]);
 
     return null;
   };

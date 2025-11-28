@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import polyline from '@mapbox/polyline';
 import { ClickableMap } from './FullscreenMapModal';
@@ -87,6 +87,39 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, loading, 
     }
   }
 
+  // Calculate bounds to include all points
+  const bounds = React.useMemo(() => {
+    const points = [];
+    if (pickup) points.push([pickup.lat, pickup.lng]);
+    if (dropoff) points.push([dropoff.lat, dropoff.lng]);
+    if (driverLocation && Number.isFinite(driverLocation.latitude) && Number.isFinite(driverLocation.longitude)) {
+      points.push([driverLocation.latitude, driverLocation.longitude]);
+    }
+    // Also include route path points if available to ensure full route is visible
+    if (routePath && routePath.length > 0) {
+      // Sample points to avoid performance issues with large polylines
+      const sampleRate = Math.ceil(routePath.length / 20);
+      for (let i = 0; i < routePath.length; i += sampleRate) {
+        points.push(routePath[i]);
+      }
+    }
+
+    if (points.length === 0) return null;
+    return L.latLngBounds(points);
+  }, [pickup, dropoff, driverLocation, routePath]);
+
+  const MapEffect = () => {
+    const map = useMap();
+
+    React.useEffect(() => {
+      if (bounds && bounds.isValid()) {
+        map.fitBounds(bounds, { padding: [50, 50] });
+      }
+    }, [map, bounds]);
+
+    return null;
+  };
+
   const renderMapContent = (isCompact) => (
     <div style={{
       width: '100%',
@@ -98,134 +131,120 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, loading, 
       {loading ? (
         <div style={{ color: isLightMode ? '#059669' : '#00FF00', fontFamily: 'monospace', padding: '1rem', textAlign: 'center' }}>Loading Map...</div>
       ) : (
-        <>
-          <div style={{ flex: 1, minHeight: 0 }}>
-            <MapContainer
-              center={[effectiveCenterLat, effectiveCenterLng]}
-              zoom={13}
-              style={{ width: '100%', height: '100%' }}
-              zoomControl={false}
-              dragging={!isCompact}
-              touchZoom={!isCompact}
-              doubleClickZoom={!isCompact}
-              scrollWheelZoom={!isCompact}
-              boxZoom={!isCompact}
-              keyboard={!isCompact}
-              attributionControl={false}
-            >
-              <TileLayer
-                url={tileUrl}
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        <MapContainer
+          center={[effectiveCenterLat, effectiveCenterLng]}
+          zoom={13}
+          style={{ height: '100%', width: '100%', background: isLightMode ? '#e5e7eb' : '#000000' }}
+          zoomControl={!isCompact}
+          scrollWheelZoom={!isCompact}
+          dragging={!isCompact}
+          doubleClickZoom={!isCompact}
+          attributionControl={false}
+        >
+          <TileLayer
+            url={isLightMode ? tileUrl : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"}
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          />
+          <MapEffect />
+          {/* Show markers only if coordinates exist */}
+          {hasCoordinates && (
+            <>
+              {/* Driver Location Marker - only show if driverLocation is provided */}
+
+
+              <Marker
+                position={[pickup.lat, pickup.lng]}
+                icon={L.icon({
+                  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+                  iconSize: [25, 41],
+                  iconAnchor: [12, 41]
+                })}
+              >
+                <Popup><strong>Pickup Location</strong></Popup>
+              </Marker>
+              <Marker
+                position={[dropoff.lat, dropoff.lng]}
+                icon={L.icon({
+                  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                  iconSize: [25, 41],
+                  iconAnchor: [12, 41]
+                })}
+              >
+                <Popup><strong>Dropoff Location</strong></Popup>
+              </Marker>
+
+              {/* Route Polyline - Solid for OSRM routes, dashed for estimated */}
+              <Polyline
+                positions={routePath}
+                color={isActualRoute ? "#00FF00" : "#FF6B00"}
+                weight={isActualRoute ? 8 : 6}
+                opacity={1.0}
+                dashArray={isActualRoute ? undefined : "12, 8"}
               />
-              {/* Show markers only if coordinates exist */}
-              {hasCoordinates && (
-                <>
-                  {/* Driver Location Marker - only show if driverLocation is provided */}
-                  {driverLocation && Number.isFinite(driverLocation.latitude) && Number.isFinite(driverLocation.longitude) && (
-                    <Marker
-                      key={`driver-${driverLocation.latitude.toFixed(4)}-${driverLocation.longitude.toFixed(4)}`}
-                      position={[driverLocation.latitude, driverLocation.longitude]}
-                      icon={L.icon({
-                        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-                        iconSize: [25, 41],
-                        iconAnchor: [12, 41]
-                      })}
-                    >
-                      <Popup>
-                        <div style={{ fontSize: '0.875rem' }}>
-                          <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>🚗 Driver Location</div>
-                          <div>Lat: {driverLocation.latitude.toFixed(6)}</div>
-                          <div>Lng: {driverLocation.longitude.toFixed(6)}</div>
-                          {driverLocation.lastUpdated && (
-                            <div style={{ fontSize: '0.75rem', color: '#666', marginTop: '0.25rem' }}>
-                              Updated: {new Date(driverLocation.lastUpdated).toLocaleTimeString()}
-                            </div>
-                          )}
-                        </div>
-                      </Popup>
-                    </Marker>
-                  )}
 
-                  <Marker
-                    position={[pickup.lat, pickup.lng]}
-                    icon={L.icon({
-                      iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-                      iconSize: [25, 41],
-                      iconAnchor: [12, 41]
-                    })}
-                  >
-                    <Popup><strong>Pickup Location</strong></Popup>
-                  </Marker>
-                  <Marker
-                    position={[dropoff.lat, dropoff.lng]}
-                    icon={L.icon({
-                      iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-                      iconSize: [25, 41],
-                      iconAnchor: [12, 41]
-                    })}
-                  >
-                    <Popup><strong>Dropoff Location</strong></Popup>
-                  </Marker>
-
-                  {/* Route Polyline - Solid for OSRM routes, dashed for estimated */}
-                  <Polyline
-                    positions={routePath}
-                    color={isActualRoute ? "#00FF00" : "#FF6B00"}
-                    weight={isActualRoute ? 8 : 6}
-                    opacity={1.0}
-                    dashArray={isActualRoute ? undefined : "12, 8"}
-                  />
-
-                  {/* Actual Driver Route - Solid Green/Blue */}
-                  {actualDriverPath && actualDriverPath.length > 0 && (
-                    <Polyline
-                      positions={actualDriverPath}
-                      color="#00FF00"
-                      weight={8}
-                      opacity={1.0}
-                    />
-                  )}
-
-                  {/* Driver to Pickup Line (Dashed) */}
-                  {driverLocation && Number.isFinite(driverLocation.latitude) && Number.isFinite(driverLocation.longitude) && pickup && (
-                    <Polyline
-                      positions={[
-                        [driverLocation.latitude, driverLocation.longitude],
-                        [pickup.lat, pickup.lng]
-                      ]}
-                      color="#3B82F6"
-                      weight={4}
-                      opacity={0.8}
-                      dashArray="10, 10"
-                    />
-                  )}
-                </>
+              {/* Actual Driver Route - Solid Green/Blue */}
+              {actualDriverPath && actualDriverPath.length > 0 && (
+                <Polyline
+                  positions={actualDriverPath}
+                  color="#00FF00"
+                  weight={8}
+                  opacity={1.0}
+                />
               )}
-            </MapContainer>
-          </div>
 
-          {/* Notice if no coordinates */}
-          {!hasCoordinates && (
-            <div style={{
-              textAlign: 'center',
-              padding: '0.5rem',
-              background: isLightMode ? 'rgba(245, 158, 11, 0.1)' : 'rgba(245, 166, 11, 0.1)',
-              borderTop: `2px solid ${isLightMode ? '#D97706' : '#F59E0B'}`,
-              fontFamily: 'Consolas, Monaco, Courier New, monospace'
-            }}>
-              <p style={{
-                color: isLightMode ? '#B45309' : '#FBBF24',
-                margin: 0,
-                fontSize: '0.75rem',
-                textShadow: isLightMode ? 'none' : '0 0 10px rgba(251, 191, 36, 0.8)'
-              }}>
-                ⚠️ Default city view (no coordinates)
-              </p>
-            </div>
+              {/* Driver to Pickup Line (Dashed) */}
+              {driverLocation && Number.isFinite(driverLocation.latitude) && Number.isFinite(driverLocation.longitude) && pickup && (
+                <Polyline
+                  positions={[
+                    [driverLocation.latitude, driverLocation.longitude],
+                    [pickup.lat, pickup.lng]
+                  ]}
+                  color="#3B82F6"
+                  weight={4}
+                  opacity={0.8}
+                  dashArray="10, 10"
+                />
+              )}
+              {/* Driver Location Marker */}
+              {driverLocation && Number.isFinite(driverLocation.latitude) && Number.isFinite(driverLocation.longitude) && (
+                <Marker
+                  position={[driverLocation.latitude, driverLocation.longitude]}
+                  icon={L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                  })}
+                >
+                  <Popup><strong>Driver Location</strong></Popup>
+                </Marker>
+              )}
+            </>
           )}
-        </>
+        </MapContainer>
       )}
-    </div>
+
+      {/* Notice if no coordinates */}
+      {!hasCoordinates && (
+        <div style={{
+          textAlign: 'center',
+          padding: '0.5rem',
+          background: isLightMode ? 'rgba(245, 158, 11, 0.1)' : 'rgba(245, 166, 11, 0.1)',
+          borderTop: `2px solid ${isLightMode ? '#D97706' : '#F59E0B'}`,
+          fontFamily: 'Consolas, Monaco, Courier New, monospace'
+        }}>
+          <p style={{
+            color: isLightMode ? '#B45309' : '#FBBF24',
+            margin: 0,
+            fontSize: '0.75rem',
+            textShadow: isLightMode ? 'none' : '0 0 10px rgba(251, 191, 36, 0.8)'
+          }}>
+            ⚠️ Default city view (no coordinates)
+          </p>
+        </div>
+      )}
+    </div >
   );
 
   return (
