@@ -683,7 +683,7 @@ const LiveTrackingMap = ({ orderId, t, compact = false, theme = 'dark', isDriver
         <MapContainer
           center={MAP_DEFAULT_CENTER} // Initial center, will be overridden by MapEffect
           zoom={MAP_DEFAULT_ZOOM}     // Initial zoom, will be overridden by MapEffect
-          style={{ width: '100%', height: '100%' }}
+          style={{ width: '100%', height: '100%', zIndex: 1 }}
           zoomControl={false}
           ref={mapRef}
         >

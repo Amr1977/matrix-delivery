@@ -379,34 +379,7 @@ const OrderCard = ({
               </button>
             </>
           )}
-          <button
-            onClick={() => onViewTracking(order)}
-            style={{
-              background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 50%, #6366F1 100%)',
-              color: '#FFFFFF',
-              border: '2px solid #6366F1',
-              borderRadius: 'var(--radius-md)',
-              cursor: 'pointer',
-              fontSize: '0.875rem',
-              fontWeight: '600',
-              minHeight: '44px',
-              padding: '0.5rem 1rem',
-              fontFamily: 'Consolas, Monaco, Courier New, monospace',
-              boxShadow: '0 0 10px rgba(99, 102, 241, 0.5)',
-              textShadow: '0 0 5px rgba(139, 92, 246, 0.5)',
-              transition: 'all 0.3s ease'
-            }}
-            onMouseOver={(e) => {
-              e.target.style.boxShadow = '0 0 15px rgba(99, 102, 241, 0.8)';
-              e.target.style.transform = 'translateY(-2px)';
-            }}
-            onMouseOut={(e) => {
-              e.target.style.boxShadow = '0 0 10px rgba(99, 102, 241, 0.5)';
-              e.target.style.transform = 'translateY(0)';
-            }}
-          >
-            🗺️ Track Order
-          </button>
+
           {currentUser?.role === 'customer' && order.status === 'pending_bids' && order.customerId === currentUser?.id && typeof onDeleteOrder === 'function' && (
             <button
               onClick={() => onDeleteOrder(order._id)}

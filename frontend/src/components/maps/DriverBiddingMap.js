@@ -363,46 +363,7 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
         <strong>Driver Coords:</strong> {hasDriverCoords ? `Lat:${driverCoords.lat.toFixed(4)}, Lng:${driverCoords.lng.toFixed(4)}` : 'None'}
       </div>
 
-      {/* Map Header with Controls */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '1rem',
-        padding: '0.75rem',
-        background: '#ffffff',
-        borderRadius: '0.5rem',
-        border: '1px solid #e5e7eb'
-      }}>
-        <div>
-          <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#374151', margin: 0 }}>
-            📍 Route Preview - {order.title || `Order #${order.orderNumber}`}
-          </h3>
-          {routeInfo && (
-            <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: '0.25rem 0 0 0' }}>
-              Distance: {routeInfo.totalDistance} km • Time: ~{routeInfo.totalTimeMinutes} min
-            </p>
-          )}
-        </div>
-        <button
-          onClick={onToggleFullscreen}
-          style={{
-            padding: '0.5rem 1rem',
-            background: '#4f46e5',
-            color: 'white',
-            border: 'none',
-            borderRadius: '0.375rem',
-            cursor: 'pointer',
-            fontSize: '0.875rem',
-            fontWeight: '600',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.25rem'
-          }}
-        >
-          {isFullscreen ? '🗗️ Exit Fullscreen' : '⛶ Fullscreen'}
-        </button>
-      </div>
+
 
       {/* Map Container */}
       <div style={{
@@ -420,7 +381,7 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
               ? [pickupCoords.lat, pickupCoords.lng]
               : [30.0444, 31.2357]}
           zoom={13}
-          style={{ height: '100%', width: '100%' }}
+          style={{ height: '100%', width: '100%', zIndex: 1 }}
           zoomControl={!isFullscreen}
         >
           <MapView />
