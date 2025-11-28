@@ -5,7 +5,7 @@ import DriverBiddingMap from '../maps/DriverBiddingMap';
 import RoutePreviewMap from '../RoutePreviewMap';
 import LiveTrackingMap from '../maps/LiveTrackingMap';
 import useAuth from '../../hooks/useAuth';
-import LiveTrackingMap from '../maps/LiveTrackingMap';
+
 const OrderCard = ({
   order,
   currentUser,

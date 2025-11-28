@@ -10,7 +10,7 @@ import { useAuth } from '../../hooks/useAuth';
 const AuthScreen = ({ onLogin, onRegister, loading, error, countries }) => {
   const { t, locale, changeLocale } = useI18n();
   const [authState, setAuthState] = useState('login');
-  const { handleForgotPassword } = useAuth();
+  const { handleForgotPassword: authForgotPassword } = useAuth();
   const [forgotPasswordSuccess, setForgotPasswordSuccess] = useState(false);
   const [resetPasswordToken, setResetPasswordToken] = useState('');
 
@@ -26,7 +26,7 @@ const AuthScreen = ({ onLogin, onRegister, loading, error, countries }) => {
   }, []);
 
   const handleForgotPassword = async (email, recaptchaToken) => {
-    const success = await handleForgotPassword(email, recaptchaToken);
+    const success = await authForgotPassword(email, recaptchaToken);
     if (success) {
       setForgotPasswordSuccess(true);
     }

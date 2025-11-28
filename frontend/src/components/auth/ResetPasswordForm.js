@@ -11,7 +11,7 @@ const ResetPasswordForm = ({ token, onSuccess, onBack }) => {
     confirmPassword: ''
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [token, setToken] = useState('');
+
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
@@ -149,7 +149,7 @@ const ResetPasswordForm = ({ token, onSuccess, onBack }) => {
       }}>
         <div style={{ position: 'absolute', top: '0.5rem', right: '0.5rem' }}>
           <button
-            onClick={() => navigate('/login')}
+            onClick={onBack}
             style={{
               background: 'none',
               border: 'none',
