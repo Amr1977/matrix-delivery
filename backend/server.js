@@ -321,7 +321,8 @@ const initDatabase = async () => {
 
     // Update driver_locations table schema for live tracking
     await pool.query(`ALTER TABLE driver_locations DROP CONSTRAINT IF EXISTS driver_locations_driver_id_key`);
-    await pool.query(`ALTER TABLE driver_locations ADD COLUMN IF NOT EXISTS order_id INTEGER REFERENCES orders(id) ON DELETE CASCADE`);
+    await pool.query(`ALTER TABLE driver_locations DROP CONSTRAINT IF EXISTS driver_locations_order_id_fkey`);
+    await pool.query(`ALTER TABLE driver_locations ADD COLUMN IF NOT EXISTS order_id VARCHAR(255) REFERENCES orders(id) ON DELETE CASCADE`);
     await pool.query(`ALTER TABLE driver_locations ADD COLUMN IF NOT EXISTS heading DECIMAL(5,2)`);
     await pool.query(`ALTER TABLE driver_locations ADD COLUMN IF NOT EXISTS speed_kmh DECIMAL(5,2)`);
     await pool.query(`ALTER TABLE driver_locations ADD COLUMN IF NOT EXISTS accuracy_meters DECIMAL(8,2)`);
