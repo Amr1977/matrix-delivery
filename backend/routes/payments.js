@@ -305,4 +305,208 @@ router.delete('/methods/:methodId', verifyToken, async (req, res) => {
   }
 });
 
+// PayPal Routes
+
+// Create PayPal order
+router.post('/paypal/create-order', verifyToken, apiRateLimit, async (req, res) => {
+  const startTime = Date.now();
+  const clientIP = req.ip || req.connection.remoteAddress;
+
+  logger.payment(`PayPal order creation request`, {
+    ip: clientIP,
+    userId: req.user.userId,
+    category: 'payment'
+  });
+
+  try {
+    const { orderId, amount, currency = 'USD' } = req.body;
+
+    if (!orderId || !amount) {
+      return res.status(400).json({
+        error: 'Order ID and amount are required'
+      });
+    }
+
+    if (amount <= 0) {
+      return res.status(400).json({
+        error: 'Amount must be greater than 0'
+      });
+    }
+
+    const paypalOrder = await paymentService.createPayPalOrder(
+      orderId,
+      req.user.userId,
+      amount,
+      currency
+    );
+
+    const duration = Date.now() - startTime;
+    logger.performance(`PayPal order created`, {
+      userId: req.user.userId,
+      orderId: orderId,
+      amount: amount,
+      duration: `${duration}ms`,
+      category: 'performance'
+    });
+
+    res.json({
+      success: true,
+      ...paypalOrder
+    });
+
+  } catch (error) {
+    const duration = Date.now() - startTime;
+    logger.error(`PayPal order creation failed: ${error.message}`, {
+      error: error.stack,
+      ip: clientIP,
+      userId: req.user.userId,
+      duration: `${duration}ms`,
+      category: 'error'
+    });
+
+    if (error.message === 'PayPal not configured') {
+      res.status(503).json({
+        error: 'PayPal is currently unavailable'
+      });
+    } else if (error.message.includes('Order not found')) {
+      res.status(404).json({
+        error: 'Order not found or access denied'
+      });
+    } else if (error.message.includes('Payment already exists')) {
+      res.status(409).json({
+        error: 'Payment already exists for this order'
+      });
+    } else {
+      res.status(500).json({
+        error: 'Failed to create PayPal order'
+      });
+    }
+  }
+});
+
+// Capture PayPal payment
+router.post('/paypal/capture', verifyToken, async (req, res) => {
+  const startTime = Date.now();
+
+  try {
+    const { paypalOrderId } = req.body;
+
+    if (!paypalOrderId) {
+      return res.status(400).json({
+        error: 'PayPal order ID is required'
+      });
+    }
+
+    const result = await paymentService.capturePayPalPayment(paypalOrderId);
+
+    const duration = Date.now() - startTime;
+    logger.performance(`PayPal payment captured`, {
+      userId: req.user.userId,
+      paypalOrderId: paypalOrderId,
+      duration: `${duration}ms`,
+      category: 'performance'
+    });
+
+    res.json({
+      success: true,
+      ...result
+    });
+
+  } catch (error) {
+    const duration = Date.now() - startTime;
+    logger.error(`PayPal capture failed: ${error.message}`, {
+      error: error.stack,
+      userId: req.user.userId,
+      duration: `${duration}ms`,
+      category: 'error'
+    });
+
+    if (error.message === 'PayPal not configured') {
+      res.status(503).json({
+        error: 'PayPal is currently unavailable'
+      });
+    } else if (error.message.includes('not found')) {
+      res.status(404).json({
+        error: 'Payment not found'
+      });
+    } else {
+      res.status(500).json({
+        error: 'Failed to capture PayPal payment'
+      });
+    }
+  }
+});
+
+// Process PayPal refund
+router.post('/paypal/refund/:paymentId', verifyToken, apiRateLimit, async (req, res) => {
+  const startTime = Date.now();
+  const clientIP = req.ip || req.connection.remoteAddress;
+
+  logger.payment(`PayPal refund request`, {
+    ip: clientIP,
+    userId: req.user.userId,
+    paymentId: req.params.paymentId,
+    category: 'payment'
+  });
+
+  try {
+    const { paymentId } = req.params;
+    const { amount, reason = 'Customer requested refund' } = req.body;
+
+    const refund = await paymentService.processPayPalRefund(
+      paymentId,
+      req.user.userId,
+      amount,
+      reason
+    );
+
+    const duration = Date.now() - startTime;
+    logger.performance(`PayPal refund processed`, {
+      userId: req.user.userId,
+      paymentId: paymentId,
+      amount: amount,
+      duration: `${duration}ms`,
+      category: 'performance'
+    });
+
+    res.json({
+      success: true,
+      ...refund
+    });
+
+  } catch (error) {
+    const duration = Date.now() - startTime;
+    logger.error(`PayPal refund failed: ${error.message}`, {
+      error: error.stack,
+      ip: clientIP,
+      userId: req.user.userId,
+      paymentId: req.params.paymentId,
+      duration: `${duration}ms`,
+      category: 'error'
+    });
+
+    if (error.message === 'PayPal not configured') {
+      res.status(503).json({
+        error: 'PayPal is currently unavailable'
+      });
+    } else if (error.message.includes('not found')) {
+      res.status(404).json({
+        error: 'Payment not found or access denied'
+      });
+    } else if (error.message.includes('Can only refund')) {
+      res.status(400).json({
+        error: 'Can only refund completed payments'
+      });
+    } else if (error.message.includes('capture ID not found')) {
+      res.status(400).json({
+        error: 'Payment has not been captured yet'
+      });
+    } else {
+      res.status(500).json({
+        error: 'Failed to process PayPal refund'
+      });
+    }
+  }
+});
+
 module.exports = router;
