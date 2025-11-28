@@ -122,6 +122,10 @@ router.post('/register', authRateLimit, async (req, res) => {
       duration: `${duration}ms`,
       category: 'error'
     });
+    if (error.message === 'Email already registered') {
+      return res.status(409).json({ error: error.message });
+    }
+
     res.status(500).json({ error: error.message || 'Registration failed' });
   }
 });
@@ -171,6 +175,14 @@ router.post('/login', authRateLimit, async (req, res) => {
       duration: `${duration}ms`,
       category: 'error'
     });
+
+    if (error.message === 'Invalid email or password') {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+    if (error.message.includes('suspended')) {
+      return res.status(403).json({ error: error.message });
+    }
+
     res.status(500).json({ error: error.message || 'Login failed' });
   }
 });

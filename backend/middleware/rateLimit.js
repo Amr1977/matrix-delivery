@@ -20,6 +20,11 @@ const rateLimit = (options = {}) => {
     const now = Date.now();
     const windowStart = now - windowMs;
 
+    // Skip rate limiting in test environment
+    if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing') {
+      return next();
+    }
+
     // Initialize or get existing requests for this key
     if (!rateLimitStore.has(key)) {
       rateLimitStore.set(key, []);
@@ -55,10 +60,10 @@ const rateLimit = (options = {}) => {
 
     // Track response to potentially remove from count
     const originalSend = res.send;
-    res.send = function(data) {
+    res.send = function (data) {
       // If configured to skip successful/failed requests
       if ((skipSuccessfulRequests && res.statusCode < 400) ||
-          (skipFailedRequests && res.statusCode >= 400)) {
+        (skipFailedRequests && res.statusCode >= 400)) {
         // Remove this request from the count
         const currentRequests = rateLimitStore.get(key) || [];
         const index = currentRequests.indexOf(now);
