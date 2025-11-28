@@ -10,6 +10,8 @@ const MAP_DEFAULT_CENTER = [30.0444, 31.2357];
 const MAP_DEFAULT_ZOOM = 13;
 const LIVE_TRACK_REFRESH_INTERVAL_MS_ACTIVE = 3000;
 const LIVE_TRACK_REFRESH_INTERVAL_MS_IDLE = 10000;
+const SMART_TRACKING_DISTANCE_THRESHOLD_METERS = 50;
+const SMART_TRACKING_TIME_THRESHOLD_MS = 30000;
 const AVERAGE_CITY_SPEED_KMH_FOR_ETA = 25;
 const EARTH_RADIUS_KM_FOR_DISTANCE = 6371;
 const POLYLINE_WEIGHT_ACTUAL_ROUTE = 8;
@@ -105,7 +107,7 @@ const MapBoundsUpdater = ({ trackingData }) => {
 };
 
 // ========== LIVE TRACKING MAP COMPONENT ==========
-const LiveTrackingMap = ({ orderId, t, compact = false, theme = 'dark' }) => {
+const LiveTrackingMap = ({ orderId, t, compact = false, theme = 'dark', isDriver = false }) => {
   const [trackingData, setTrackingData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -113,6 +115,8 @@ const LiveTrackingMap = ({ orderId, t, compact = false, theme = 'dark' }) => {
   const mapRef = useRef(null);
   const [currentAddress, setCurrentAddress] = useState('');
   const [orderMeta, setOrderMeta] = useState(null);
+  const lastLocationUpdateRef = useRef({ timestamp: 0, lat: 0, lng: 0 });
+  const watchIdRef = useRef(null);
 
   const tileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
 
@@ -201,15 +205,111 @@ const LiveTrackingMap = ({ orderId, t, compact = false, theme = 'dark' }) => {
       clearInterval(refreshIntervalRef.current);
     }
     const activeStatuses = ['accepted', 'picked_up', 'in_transit'];
-    const intervalMs = activeStatuses.includes(trackingData.status) ? LIVE_TRACK_REFRESH_INTERVAL_MS_ACTIVE : LIVE_TRACK_REFRESH_INTERVAL_MS_IDLE;
+    const isActive = activeStatuses.includes(trackingData.status);
+    const intervalMs = isActive ? LIVE_TRACK_REFRESH_INTERVAL_MS_ACTIVE : LIVE_TRACK_REFRESH_INTERVAL_MS_IDLE;
     refreshIntervalRef.current = setInterval(fetchTrackingData, intervalMs);
+
+    // Start smart tracking if driver and order is active
+    // Note: In a real app, we would check if currentUser.id === trackingData.driver.userId
+    // For this demo, we'll assume if the component is mounted and we have geolocation, we might be the driver
+    // But strictly speaking, we should check role. Since we don't have currentUser prop here easily without context,
+    // we'll rely on the fact that only drivers see the "Start Tracking" button which usually leads to this view or similar.
+    // However, this component is used by BOTH driver and customer.
+    // We need to be careful not to have the CUSTOMER send location updates.
+    // We'll assume the parent component handles the "sending" part or we need to check permissions.
+    // Actually, looking at the requirements, "driver path should be traced on map".
+    // The requirement says "smart, effecient and balanced location tracking without overloading courier battery".
+    // This implies WE (the app) are doing the tracking.
+    // So we should only run watchPosition if we are the driver.
+    // Since we don't have user context here, we'll skip the ACTUAL sending implementation here and assume
+    // the "DriverBiddingMap" or a dedicated background service handles it, OR we add it here if we can verify user.
+    // Given the constraints, I will implement the logic but wrap it in a check that would need to be true.
+    // For now, let's assume this component is purely for VISUALIZATION as per its name "LiveTrackingMap".
+    // The actual tracking usually happens in a background service or a dedicated "DriverActiveOrder" component.
+    // BUT, the requirement says "current order map should be used for life tracking".
+    // So let's add the tracking logic but only enable it if we can confirm we are the driver.
+    // We'll add a prop `isDriver` to this component to enable sending updates.
+
     return () => {
       if (refreshIntervalRef.current) {
         clearInterval(refreshIntervalRef.current);
         refreshIntervalRef.current = null;
       }
+      if (watchIdRef.current) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
     };
   }, [trackingData, fetchTrackingData]);
+
+  // Smart tracking effect
+  useEffect(() => {
+    // We need to know if we are the driver to start sending updates.
+    // Since we don't have that prop yet, we'll add it to the component signature in a separate edit or assume false for safety.
+    // However, to fulfill the requirement, I will add the logic function here, ready to be used.
+
+    const sendLocationUpdate = async (lat, lng, heading, speed, accuracy) => {
+      try {
+        await api.post(`/drivers/location/${orderId}`, {
+          latitude: lat,
+          longitude: lng,
+          heading,
+          speedKmh: speed,
+          accuracyMeters: accuracy
+        });
+        lastLocationUpdateRef.current = {
+          timestamp: Date.now(),
+          lat,
+          lng
+        };
+        console.log('📍 Smart tracking: Location update sent');
+      } catch (err) {
+        console.error('Failed to send location update:', err);
+      }
+    };
+
+    const handlePositionUpdate = (position) => {
+      const { latitude, longitude, heading, speed, accuracy } = position.coords;
+      const now = Date.now();
+      const last = lastLocationUpdateRef.current;
+
+      // Calculate distance from last update
+      const dist = haversineKm({ lat: last.lat, lng: last.lng }, { lat: latitude, lng: longitude }) * 1000; // meters
+
+      // Smart tracking logic:
+      // 1. If distance > threshold (50m) -> Send
+      // 2. If time > threshold (30s) AND distance > small_threshold (10m) -> Send
+      // 3. If first update -> Send
+
+      const isFirstUpdate = last.timestamp === 0;
+      const movedEnough = dist > SMART_TRACKING_DISTANCE_THRESHOLD_METERS;
+      const timeElapsed = now - last.timestamp > SMART_TRACKING_TIME_THRESHOLD_MS;
+      const movedSlightly = dist > 10;
+
+      if (isFirstUpdate || movedEnough || (timeElapsed && movedSlightly)) {
+        sendLocationUpdate(latitude, longitude, heading, speed, accuracy);
+      }
+    };
+
+    // Only start watching if we are the driver
+    if (isDriver && navigator.geolocation) {
+      watchIdRef.current = navigator.geolocation.watchPosition(
+        handlePositionUpdate,
+        (err) => console.warn('Tracking error:', err),
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        }
+      );
+    }
+
+    return () => {
+      if (watchIdRef.current) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+      }
+    };
+  }, [orderId, isDriver]);
 
   useEffect(() => {
     const loc = trackingData?.currentLocation;

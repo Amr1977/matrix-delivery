@@ -203,10 +203,16 @@ const initDatabase = async () => {
         estimated_delivery_time TIMESTAMP,
         message TEXT,
         status VARCHAR(50) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'rejected')),
+        driver_location_lat DECIMAL(10,8),
+        driver_location_lng DECIMAL(11,8),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(order_id, user_id)
       )
     `);
+
+    // Ensure new columns exist for existing tables
+    await pool.query(`ALTER TABLE bids ADD COLUMN IF NOT EXISTS driver_location_lat DECIMAL(10,8)`);
+    await pool.query(`ALTER TABLE bids ADD COLUMN IF NOT EXISTS driver_location_lng DECIMAL(11,8)`);
 
     // Create notifications table
     await pool.query(`

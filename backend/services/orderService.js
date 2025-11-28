@@ -64,7 +64,8 @@ class OrderService {
               'driverRating', u.rating,
               'driverCompletedDeliveries', u.completed_deliveries,
               'driverReviewCount', COALESCE(dr.review_count, 0),
-              'driverIsVerified', u.is_verified
+              'driverIsVerified', u.is_verified,
+              'driverLocation', json_build_object('lat', b.driver_location_lat, 'lng', b.driver_location_lng)
             )
           ) FILTER (WHERE b.id IS NOT NULL) as bids,
           CASE
@@ -164,7 +165,8 @@ class OrderService {
               'driverRating', u.rating,
               'driverCompletedDeliveries', u.completed_deliveries,
               'driverReviewCount', COALESCE(dr.review_count, 0),
-              'driverIsVerified', u.is_verified
+              'driverIsVerified', u.is_verified,
+              'driverLocation', json_build_object('lat', b.driver_location_lat, 'lng', b.driver_location_lng)
             )
           ) FILTER (WHERE b.id IS NOT NULL) as bids,
           CASE
@@ -241,7 +243,8 @@ class OrderService {
               'driverRating', u.rating,
               'driverCompletedDeliveries', u.completed_deliveries,
               'driverReviewCount', COALESCE(dr.review_count, 0),
-              'driverIsVerified', u.is_verified
+              'driverIsVerified', u.is_verified,
+              'driverLocation', json_build_object('lat', b.driver_location_lat, 'lng', b.driver_location_lng)
             )
           ) FILTER (WHERE b.id IS NOT NULL) as bids,
           CASE
@@ -457,7 +460,7 @@ class OrderService {
    * Place a bid on an order
    */
   async placeBid(orderId, driverId, bidData) {
-    const { bidPrice, estimatedPickupTime, estimatedDeliveryTime, message } = bidData;
+    const { bidPrice, estimatedPickupTime, estimatedDeliveryTime, message, location } = bidData;
 
     // Check if order exists and is available for bidding
     const orderCheck = await pool.query(
@@ -488,8 +491,8 @@ class OrderService {
     await pool.query(
       `INSERT INTO bids (
         id, order_id, user_id, bid_price, estimated_pickup_time,
-        estimated_delivery_time, message, created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
+        estimated_delivery_time, message, driver_location_lat, driver_location_lng, created_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())`,
       [
         bidId,
         orderId,
@@ -497,7 +500,9 @@ class OrderService {
         parseFloat(bidPrice),
         estimatedPickupTime || null,
         estimatedDeliveryTime || null,
-        this.sanitizeString(message, 500)
+        this.sanitizeString(message, 500),
+        location ? parseFloat(location.lat) : null,
+        location ? parseFloat(location.lng) : null
       ]
     );
 

@@ -24,6 +24,23 @@ const OrderCard = ({
 }) => {
   const { t } = useI18n();
   const [showRouteMapFullscreen, setShowRouteMapFullscreen] = React.useState(false);
+  const [driverLocation, setDriverLocation] = React.useState(null);
+
+  // Get driver location when component mounts (if driver)
+  React.useEffect(() => {
+    if (currentUser?.role === 'driver' && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setDriverLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+        },
+        (error) => console.warn('Error getting location for bidding:', error),
+        { enableHighAccuracy: true }
+      );
+    }
+  }, [currentUser]);
 
   // Always log order data to debug
   window.console.log('🎯 OrderCard Rendered:', {
@@ -43,12 +60,41 @@ const OrderCard = ({
   const handleBidSubmit = (e) => {
     e.preventDefault();
     if (bidInput[order._id]) {
-      onBid(order._id, {
-        bidPrice: bidInput[order._id],
-        estimatedPickupTime: bidDetails[order._id]?.pickupTime,
-        estimatedDeliveryTime: bidDetails[order._id]?.deliveryTime,
-        message: bidDetails[order._id]?.message
-      });
+      // Refresh location before submitting
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const location = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            };
+            onBid(order._id, {
+              bidPrice: bidInput[order._id],
+              estimatedPickupTime: bidDetails[order._id]?.pickupTime,
+              estimatedDeliveryTime: bidDetails[order._id]?.deliveryTime,
+              message: bidDetails[order._id]?.message,
+              location: location
+            });
+          },
+          () => {
+            // Fallback if location fails (submit without location)
+            onBid(order._id, {
+              bidPrice: bidInput[order._id],
+              estimatedPickupTime: bidDetails[order._id]?.pickupTime,
+              estimatedDeliveryTime: bidDetails[order._id]?.deliveryTime,
+              message: bidDetails[order._id]?.message
+            });
+          },
+          { enableHighAccuracy: true, timeout: 5000 }
+        );
+      } else {
+        onBid(order._id, {
+          bidPrice: bidInput[order._id],
+          estimatedPickupTime: bidDetails[order._id]?.pickupTime,
+          estimatedDeliveryTime: bidDetails[order._id]?.deliveryTime,
+          message: bidDetails[order._id]?.message
+        });
+      }
     }
   };
 
@@ -649,6 +695,9 @@ const OrderCard = ({
           <RoutePreviewMap
             pickup={order.from}
             dropoff={order.to}
+            // Pass the first bid's location if available (or logic to select which driver to show)
+            // For now, we don't show a specific driver on the main card map until a bid is selected or we iterate bids
+            // But if we want to show the route for a specific bid, we'd need to pass that bid's location
             routeInfo={{
               polyline: order.routePolyline,
               distance_km: order.estimatedDistanceKm,
@@ -686,6 +735,22 @@ const OrderCard = ({
                 borderRadius: '0.5rem',
                 opacity: '0.95'
               }}>
+                {/* Show map for this bid if driver location exists */}
+                {bid.driverLocation && bid.driverLocation.lat && (
+                  <div style={{ height: '200px', marginBottom: '1rem', borderRadius: '0.5rem', overflow: 'hidden' }}>
+                    <RoutePreviewMap
+                      pickup={order.from}
+                      dropoff={order.to}
+                      driverLocation={{ latitude: bid.driverLocation.lat, longitude: bid.driverLocation.lng }}
+                      routeInfo={{
+                        polyline: order.routePolyline, // This is the order route, but RoutePreviewMap will calculate driver->pickup
+                        distance_km: order.estimatedDistanceKm
+                      }}
+                      compact={true}
+                      mapTitle={`Route for ${bid.driverName}`}
+                    />
+                  </div>
+                )}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.75rem' }}>
                   <div>
                     <p style={{
