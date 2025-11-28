@@ -10,6 +10,7 @@ import polyline from '@mapbox/polyline';
  */
 const AsyncOrderMap = ({ order, currentUser, driverLocation, theme = 'dark', ...props }) => {
     const [actualRoute, setActualRoute] = useState(null);
+    const [currentDriverLocation, setCurrentDriverLocation] = useState(null);
     const [loadingRoute, setLoadingRoute] = useState(false);
     const [hasFetched, setHasFetched] = useState(false);
     const [biddingRoute, setBiddingRoute] = useState(null);
@@ -205,6 +206,14 @@ const AsyncOrderMap = ({ order, currentUser, driverLocation, theme = 'dark', ...
             // Use the tracking endpoint which returns location history
             const response = await api.get(`/orders/${order._id}/tracking`);
 
+            // Store current driver location if available
+            if (response && response.currentLocation) {
+                setCurrentDriverLocation({
+                    latitude: response.currentLocation.lat,
+                    longitude: response.currentLocation.lng
+                });
+            }
+
             if (response && response.locationHistory && Array.isArray(response.locationHistory)) {
                 // Convert history to [[lat, lng], ...] array
                 // Sort by timestamp ascending to draw correct path
@@ -248,7 +257,7 @@ const AsyncOrderMap = ({ order, currentUser, driverLocation, theme = 'dark', ...
             <RoutePreviewMap
                 pickup={order.from}
                 dropoff={order.to}
-                driverLocation={driverLocation}
+                driverLocation={driverLocation || currentDriverLocation}
                 routeInfo={biddingRoute ? {
                     polyline: biddingRoute.polyline,
                     distance_km: biddingRoute.distance_km,
