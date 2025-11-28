@@ -67,8 +67,7 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, loading, 
       routePath = hasCoordinates ? [[pickup.lat, pickup.lng], [dropoff.lat, dropoff.lng]] : [];
     }
   } else {
-    // Fallback to straight line if no polyline available
-    window.console.warn(`\u26a0\ufe0f [${mapTitle}] No polyline available, using straight line`);
+    // Fallback to straight line if no polyline available (this is normal for orders without route calculation)
     routePath = hasCoordinates ? [[pickup.lat, pickup.lng], [dropoff.lat, dropoff.lng]] : [];
   }
 
@@ -135,7 +134,12 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, loading, 
           <MapContainer
             center={[effectiveCenterLat, effectiveCenterLng]}
             zoom={13}
-            style={{ height: '100%', width: '100%', background: isLightMode ? '#e5e7eb' : '#000000' }}
+            style={{
+              height: '100%',
+              width: '100%',
+              background: isLightMode ? '#e5e7eb' : '#000000',
+              zIndex: 1
+            }}
             zoomControl={!isCompact}
             scrollWheelZoom={!isCompact}
             dragging={!isCompact}

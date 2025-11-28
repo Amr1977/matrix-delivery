@@ -85,7 +85,7 @@ const OrdersMap = ({
       </div>
 
       <div style={{ height: '60vh', width: '100%' }}>
-        <MapContainer center={center} zoom={13} style={{ height: '100%', width: '100%' }}>
+        <MapContainer center={center} zoom={13} style={{ height: '100%', width: '100%', zIndex: 1 }}>
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
             url={tileUrl}
@@ -132,4 +132,3 @@ const OrdersMap = ({
 };
 
 export default OrdersMap;
-

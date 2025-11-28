@@ -136,21 +136,6 @@ export const ClickableMap = ({
                 overflow: 'hidden',
                 boxShadow: `0 0 15px ${borderColor}`
             }} title="Click to view fullscreen">
-                <div style={{
-                    position: 'absolute',
-                    top: '10px',
-                    right: '10px',
-                    background: isLightMode ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.8)',
-                    color: isLightMode ? '#059669' : '#30FF30',
-                    padding: '0.5rem 1rem',
-                    borderRadius: '0.375rem',
-                    fontSize: '0.875rem',
-                    fontWeight: 'bold',
-                    zIndex: 1000,
-                    border: `2px solid ${isLightMode ? '#059669' : '#00FF00'}`,
-                    boxShadow: `0 0 10px ${isLightMode ? 'rgba(5,150,105,0.5)' : 'rgba(0,255,0,0.5)'}`,
-                    pointerEvents: 'none'
-                }}>🔍 Click for Fullscreen</div>
                 {children}
             </div>
             <FullscreenMapModal
