@@ -22,9 +22,8 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, loading, 
   const effectiveCenterLat = driverLocation ? (centerLat + driverLocation.latitude) / 2 : centerLat;
   const effectiveCenterLng = driverLocation ? (centerLng + driverLocation.longitude) / 2 : centerLng;
 
-  // Use original OpenStreetMap tiles
+  // Use original OpenStreetMap tiles for all themes (no color effects)
   const tileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
-  const isLightMode = theme === 'light';
 
   // Decode polyline if available from OSRM, otherwise use straight line
   let routePath = [];
@@ -120,30 +119,32 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, loading, 
     return null;
   };
 
-  const renderMapContent = (isCompact) => (
-    <div style={{
-      width: '100%',
-      height: '100%',
-      display: 'flex',
-      flexDirection: 'column',
-      position: 'relative'
-    }}>
-      {loading ? (
-        <div style={{ color: isLightMode ? '#059669' : '#00FF00', fontFamily: 'monospace', padding: '1rem', textAlign: 'center' }}>Loading Map...</div>
-      ) : (
-        <MapContainer
-          center={[effectiveCenterLat, effectiveCenterLng]}
-          zoom={13}
-          style={{ height: '100%', width: '100%', background: isLightMode ? '#e5e7eb' : '#000000' }}
-          zoomControl={!isCompact}
-          scrollWheelZoom={!isCompact}
-          dragging={!isCompact}
-          doubleClickZoom={!isCompact}
-          attributionControl={false}
-        >
+  const renderMapContent = (isCompact) => {
+    const isLightMode = theme === 'light';
+    return (
+      <div style={{
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        position: 'relative'
+      }}>
+        {loading ? (
+          <div style={{ color: isLightMode ? '#059669' : '#00FF00', fontFamily: 'monospace', padding: '1rem', textAlign: 'center' }}>Loading Map...</div>
+        ) : (
+          <MapContainer
+            center={[effectiveCenterLat, effectiveCenterLng]}
+            zoom={13}
+            style={{ height: '100%', width: '100%', background: isLightMode ? '#e5e7eb' : '#000000' }}
+            zoomControl={!isCompact}
+            scrollWheelZoom={!isCompact}
+            dragging={!isCompact}
+            doubleClickZoom={!isCompact}
+            attributionControl={false}
+          >
           <TileLayer
-            url={isLightMode ? tileUrl : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"}
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            url={tileUrl}
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           />
           <MapEffect />
           {/* Show markers only if coordinates exist */}
@@ -222,30 +223,31 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, loading, 
               )}
             </>
           )}
-        </MapContainer>
-      )}
+          </MapContainer>
+        )}
 
-      {/* Notice if no coordinates */}
-      {!hasCoordinates && (
-        <div style={{
-          textAlign: 'center',
-          padding: '0.5rem',
-          background: isLightMode ? 'rgba(245, 158, 11, 0.1)' : 'rgba(245, 166, 11, 0.1)',
-          borderTop: `2px solid ${isLightMode ? '#D97706' : '#F59E0B'}`,
-          fontFamily: 'Consolas, Monaco, Courier New, monospace'
-        }}>
-          <p style={{
-            color: isLightMode ? '#B45309' : '#FBBF24',
-            margin: 0,
-            fontSize: '0.75rem',
-            textShadow: isLightMode ? 'none' : '0 0 10px rgba(251, 191, 36, 0.8)'
+        {/* Notice if no coordinates */}
+        {!hasCoordinates && (
+          <div style={{
+            textAlign: 'center',
+            padding: '0.5rem',
+            background: isLightMode ? 'rgba(245, 158, 11, 0.1)' : 'rgba(245, 166, 11, 0.1)',
+            borderTop: `2px solid ${isLightMode ? '#D97706' : '#F59E0B'}`,
+            fontFamily: 'Consolas, Monaco, Courier New, monospace'
           }}>
-            ⚠️ Default city view (no coordinates)
-          </p>
-        </div>
-      )}
-    </div >
-  );
+            <p style={{
+              color: isLightMode ? '#B45309' : '#FBBF24',
+              margin: 0,
+              fontSize: '0.75rem',
+              textShadow: isLightMode ? 'none' : '0 0 10px rgba(251, 191, 36, 0.8)'
+            }}>
+              ⚠️ Default city view (no coordinates)
+            </p>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <ClickableMap
