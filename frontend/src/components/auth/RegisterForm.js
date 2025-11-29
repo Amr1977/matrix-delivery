@@ -100,16 +100,13 @@ const RegisterForm = ({ onSubmit, loading, error, t, countries }) => {
 
       {/* Location Fields */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-        <select
+        <input
+          type="text"
+          placeholder={t('orders.selectCountry')}
           value={formData.country}
-          onChange={(e) => setFormData({ ...formData, country: e.target.value, city: '', area: '' })}
+          onChange={(e) => setFormData({ ...formData, country: e.target.value })}
           style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
-        >
-          <option value="">{t('orders.selectCountry')}</option>
-          {countries.map(country => (
-            <option key={country} value={country}>{country}</option>
-          ))}
-        </select>
+        />
         <input
           type="text"
           placeholder={t('orders.city')}
