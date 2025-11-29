@@ -58,3 +58,6 @@ reports/cucumber-report.json
 
 backend/nohup.out
 test-report*.txt
+
+# Test coverage
+backend/coverage/
