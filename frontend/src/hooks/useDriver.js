@@ -30,6 +30,42 @@ const useDriver = (token, currentUser) => {
     }
 
     try {
+      // Check for fake location first (for testing/development)
+      const fakeLocationStr = localStorage.getItem('fakeDriverLocation');
+      if (fakeLocationStr) {
+        try {
+          const fakeLoc = JSON.parse(fakeLocationStr);
+          if (fakeLoc.lat && fakeLoc.lng) {
+            console.log('🔧 Using fake location for update:', fakeLoc);
+
+            const response = await fetch(`${API_URL}/drivers/location`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({ latitude: fakeLoc.lat, longitude: fakeLoc.lng })
+            });
+
+            if (!response.ok) {
+              const errorData = await response.json().catch(() => ({}));
+              const errorMessage = errorData.error || `HTTP ${response.status}`;
+              console.error('❌ Failed to update fake location:', errorMessage, errorData);
+              throw new Error(`Failed to update location: ${errorMessage}`);
+            }
+
+            setDriverLocation({
+              latitude: parseFloat(fakeLoc.lat),
+              longitude: parseFloat(fakeLoc.lng),
+              lastUpdated: new Date()
+            });
+            return true;
+          }
+        } catch (e) {
+          console.warn('Invalid fake location data:', e);
+        }
+      }
+
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           async (position) => {
@@ -57,7 +93,12 @@ const useDriver = (token, currentUser) => {
               body: JSON.stringify({ latitude, longitude })
             });
 
-            if (!response.ok) throw new Error('Failed to update location');
+            if (!response.ok) {
+              const errorData = await response.json().catch(() => ({}));
+              const errorMessage = errorData.error || `HTTP ${response.status}`;
+              console.error('❌ Failed to update location:', errorMessage, errorData);
+              throw new Error(`Failed to update location: ${errorMessage}`);
+            }
 
             setDriverLocation({
               latitude: parseFloat(latitude),
@@ -141,8 +182,8 @@ const useDriver = (token, currentUser) => {
           const pickupParts = extractLocationParts(order.pickupAddress);
 
           return (!countryFilter || pickupParts.country === countryFilter) &&
-                 (!cityFilter || pickupParts.city === cityFilter) &&
-                 (!areaFilter || pickupParts.area === areaFilter);
+            (!cityFilter || pickupParts.city === cityFilter) &&
+            (!areaFilter || pickupParts.area === areaFilter);
         });
         break;
       case 'history':
@@ -208,11 +249,11 @@ const useDriver = (token, currentUser) => {
         const deliveryParts = extractLocationParts(order.deliveryAddress);
 
         if ((!country || pickupParts.country === country) &&
-            (!city || pickupParts.city === city)) {
+          (!city || pickupParts.city === city)) {
           if (pickupParts.area) areas.add(pickupParts.area);
         }
         if ((!country || deliveryParts.country === country) &&
-            (!city || deliveryParts.city === city)) {
+          (!city || deliveryParts.city === city)) {
           if (deliveryParts.area) areas.add(deliveryParts.area);
         }
       }

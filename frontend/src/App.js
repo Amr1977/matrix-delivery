@@ -18,6 +18,7 @@ import PaymentMethodsManager from './components/payments/PaymentMethodsManager';
 import EmailVerificationBanner from './components/auth/EmailVerificationBanner';
 import useDriver from './hooks/useDriver';
 import GeolocationStatus from './components/ui/GeolocationStatus';
+import InteractiveLocationPicker from './components/InteractiveLocationPicker';
 import './components/ui/GeolocationStatus.css';
 
 
@@ -320,6 +321,8 @@ const DeliveryApp = () => {
   const [cityFilter, setCityFilter] = useState(''); // City filter for bidding orders
   const [areaFilter, setAreaFilter] = useState(''); // Area filter for bidding orders
 
+
+
   const [reviewForm, setReviewForm] = useState({
     rating: 0,
     comment: '',
@@ -376,6 +379,14 @@ const DeliveryApp = () => {
         } catch (e) {
           console.warn('Invalid fake location data:', e);
         }
+      } else if (currentUser?.role === 'driver' && driverLocation?.latitude && driverLocation?.longitude) {
+        // Use real driver location for filtering if no fake location is set
+        queryParams.append('lat', driverLocation.latitude.toString());
+        queryParams.append('lng', driverLocation.longitude.toString());
+        console.log('📍 Using real driver location for order filtering:', {
+          lat: driverLocation.latitude,
+          lng: driverLocation.longitude
+        });
       }
 
       const queryString = queryParams.toString();
@@ -396,8 +407,16 @@ const DeliveryApp = () => {
     } catch (err) {
       console.error('Error fetching orders:', err.message);
     }
-  }, [API_URL, token, currentUser?.role]);
+  }, [API_URL, token, currentUser?.role, driverLocation]);
 
+  // Location picker callback - moved after fetchOrders to avoid initialization error
+  const handleLocationSelect = useCallback((lat, lng) => {
+    const location = { lat, lng };
+    localStorage.setItem('fakeDriverLocation', JSON.stringify(location));
+    setSuccessMessage(`Location set to ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+    // Debounce the fetchOrders call to prevent excessive API requests
+    setTimeout(() => fetchOrders(), 500);
+  }, [fetchOrders]);
 
   const fetchHistoryOrders = useCallback(async (page = 1) => {
     if (!token) return;
@@ -508,14 +527,7 @@ const DeliveryApp = () => {
     }
   }, [currentUser, token]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (currentUser?.role === 'driver' && token && viewType === 'bidding') {
-        fetchOrders({ country: countryFilter, city: cityFilter, area: areaFilter });
-      }
-    }, 1500);
-    return () => clearTimeout(timer);
-  }, [countryFilter, cityFilter, areaFilter, currentUser?.role, token, viewType, fetchOrders]);
+  
 
   // Start location tracking when driver enters bidding view
   useEffect(() => {
@@ -525,7 +537,7 @@ const DeliveryApp = () => {
       // Start continuous location updates
       driverHook.updateDriverLocation();
     }
-  }, [currentUser?.role, token, viewType, driverHook]);
+  }, [currentUser?.role, token, viewType]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Lazy load history orders when customer opens history tab
   useEffect(() => {
@@ -927,61 +939,6 @@ const DeliveryApp = () => {
     };
   };
 
-
-
-  // Function to get available countries from order addresses
-  const getAvailableCountries = () => {
-    const countries = new Set();
-    orders.forEach(order => {
-      if (order.status === 'pending_bids') {
-        const pickupParts = extractLocationParts(order.pickupAddress);
-        const deliveryParts = extractLocationParts(order.deliveryAddress);
-        if (pickupParts.country) countries.add(pickupParts.country);
-        if (deliveryParts.country) countries.add(deliveryParts.country);
-      }
-    });
-    return Array.from(countries).sort();
-  };
-
-  // Function to get available cities by country
-  const getAvailableCities = (countryFilter = '') => {
-    const cities = new Set();
-    orders.forEach(order => {
-      if (order.status === 'pending_bids') {
-        const pickupParts = extractLocationParts(order.pickupAddress);
-        const deliveryParts = extractLocationParts(order.deliveryAddress);
-
-        if (!countryFilter || pickupParts.country === countryFilter) {
-          if (pickupParts.city) cities.add(pickupParts.city);
-        }
-        if (!countryFilter || deliveryParts.country === countryFilter) {
-          if (deliveryParts.city) cities.add(deliveryParts.city);
-        }
-      }
-    });
-    return Array.from(cities).sort();
-  };
-
-  // Function to get available areas by country and city
-  const getAvailableAreas = (countryFilter = '', cityFilter = '') => {
-    const areas = new Set();
-    orders.forEach(order => {
-      if (order.status === 'pending_bids') {
-        const pickupParts = extractLocationParts(order.pickupAddress);
-        const deliveryParts = extractLocationParts(order.deliveryAddress);
-
-        if ((!countryFilter || pickupParts.country === countryFilter) &&
-          (!cityFilter || pickupParts.city === cityFilter)) {
-          if (pickupParts.area) areas.add(pickupParts.area);
-        }
-        if ((!countryFilter || deliveryParts.country === countryFilter) &&
-          (!cityFilter || deliveryParts.city === cityFilter)) {
-          if (deliveryParts.area) areas.add(deliveryParts.area);
-        }
-      }
-    });
-    return Array.from(areas).sort();
-  };
 
   // Get title for driver view
   const getDriverViewTitle = (viewType) => {
@@ -2863,174 +2820,6 @@ const DeliveryApp = () => {
           {currentUser?.role === 'customer' ? t('orders.myOrders') : getDriverViewTitle(viewType)}
         </h2>
 
-        {currentUser?.role === 'driver' && viewType === 'bidding' && (
-          <div style={{ marginBottom: '1rem', padding: '1rem', background: 'white', borderRadius: '0.5rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#374151' }}>Filter Orders by Location</h3>
-              <button
-                onClick={async () => {
-                  try {
-                    if (navigator.geolocation) {
-                      navigator.geolocation.getCurrentPosition(
-                        async (position) => {
-                          const { latitude, longitude } = position.coords;
-                          // Use a reverse geocoding service to get location details
-                          try {
-                            // Using OpenStreetMap's Nominatim geocoding service
-                            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1`);
-                            const data = await response.json();
-
-                            if (data && data.address) {
-                              const detectedCountry = data.address.country;
-                              const detectedCity = data.address.city || data.address.town || data.address.village;
-
-                              // Auto-fill the dropdowns with detected location
-                              if (detectedCountry && getAvailableCountries().includes(detectedCountry)) {
-                                setCountryFilter(detectedCountry);
-                                setCityFilter('');
-                                setAreaFilter('');
-                              }
-
-                              // Try to set city after a brief delay to allow country to be set first
-                              setTimeout(() => {
-                                if (detectedCountry && detectedCity && getAvailableCities(detectedCountry).includes(detectedCity)) {
-                                  setCityFilter(detectedCity);
-                                }
-                              }, 100);
-                            }
-                          } catch (reverseGeoError) {
-                            console.warn('Reverse geocoding failed:', reverseGeoError);
-                          }
-                        },
-                        (error) => {
-                          console.error('Geolocation error:', error);
-                          alert('Unable to get your location. Please ensure location permissions are enabled.');
-                        }
-                      );
-                    } else {
-                      alert('Geolocation is not supported by this browser.');
-                    }
-                  } catch (error) {
-                    console.error('Location prefill error:', error);
-                    alert('Failed to detect your location. Please fill filters manually.');
-                  }
-                }}
-                style={{
-                  padding: '0.5rem 1rem',
-                  background: '#10B981',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '0.375rem',
-                  cursor: 'pointer',
-                  fontSize: '0.875rem',
-                  fontWeight: '600',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.25rem'
-                }}
-                title="Prefill filters based on your current location"
-              >
-                📍 Detect My Location
-              </button>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', color: '#374151', marginBottom: '0.5rem' }}>
-                  Country
-                </label>
-                <select
-                  value={countryFilter}
-                  onChange={(e) => {
-                    setCountryFilter(e.target.value);
-                    setCityFilter(''); // Reset city when country changes
-                    setAreaFilter(''); // Reset area when country changes
-                  }}
-                  style={{
-                    width: '100%',
-                    padding: '0.5rem',
-                    border: '1px solid #D1D5DB',
-                    borderRadius: '0.375rem',
-                    fontSize: '0.875rem',
-                    background: 'white'
-                  }}
-                >
-                  <option value="">All Countries</option>
-                  {getAvailableCountries().map(country => (
-                    <option key={country} value={country}>{country}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', color: '#374151', marginBottom: '0.5rem' }}>
-                  🏙️ City
-                </label>
-                <select
-                  value={cityFilter}
-                  onChange={(e) => {
-                    setCityFilter(e.target.value);
-                    setAreaFilter(''); // Reset area when city changes
-                  }}
-                  disabled={!countryFilter}
-                  style={{
-                    width: '100%',
-                    padding: '0.5rem',
-                    border: '1px solid #D1D5DB',
-                    borderRadius: '0.375rem',
-                    fontSize: '0.875rem',
-                    background: 'white',
-                    opacity: !countryFilter ? 0.5 : 1
-                  }}
-                >
-                  <option value="">All Cities</option>
-                  {getAvailableCities(countryFilter).map(city => (
-                    <option key={city} value={city}>{city}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', color: '#374151', marginBottom: '0.5rem' }}>
-                  📍 Area
-                </label>
-                <select
-                  value={areaFilter}
-                  onChange={(e) => setAreaFilter(e.target.value)}
-                  disabled={!cityFilter}
-                  style={{
-                    width: '100%',
-                    padding: '0.5rem',
-                    border: '1px solid #D1D5DB',
-                    borderRadius: '0.375rem',
-                    fontSize: '0.875rem',
-                    background: 'white',
-                    opacity: !cityFilter ? 0.5 : 1
-                  }}
-                >
-                  <option value="">All Areas</option>
-                  {getAvailableAreas(countryFilter, cityFilter).map(area => (
-                    <option key={area} value={area}>{area}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {(countryFilter || cityFilter || areaFilter) && (
-              <div style={{ marginTop: '1rem', padding: '0.75rem', background: '#F0F9FF', borderRadius: '0.375rem', border: '1px solid #DBEAFE' }}>
-                <div style={{ fontSize: '0.75rem', fontWeight: '600', color: '#1E40AF', marginBottom: '0.25rem' }}>Active Filters:</div>
-                <div style={{ fontSize: '0.875rem', color: '#374151' }}>
-                  {countryFilter && <span>🇸 {countryFilter}</span>}
-                  {countryFilter && cityFilter && <span> → </span>}
-                  {cityFilter && <span>🏙️ {cityFilter}</span>}
-                  {cityFilter && areaFilter && <span> → </span>}
-                  {areaFilter && <span>📍 {areaFilter}</span>}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
         {currentUser?.role === 'driver' && viewType === 'map' && (
           <div style={{ marginBottom: '1rem' }}>
             <OrdersMap
@@ -3108,172 +2897,30 @@ const DeliveryApp = () => {
                 </div>
               </div>
 
-              {/* Map for Setting Location */}
+              {/* Interactive Map for Setting Location */}
               <div style={{ marginBottom: '1.5rem' }}>
                 <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem', fontWeight: '600', color: '#374151' }}>
-                  Set Location on Map
+                  Set Location on Interactive Map
                 </h3>
-                <div style={{ height: '400px', borderRadius: '0.375rem', overflow: 'hidden', border: '1px solid #E5E7EB' }}>
-                  <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-                    {/* Simple map placeholder - in a real app you'd use Google Maps, Mapbox, etc. */}
-                    <div style={{
-                      width: '100%',
-                      height: '100%',
-                      background: 'linear-gradient(45deg, #E5E7EB 25%, transparent 25%), linear-gradient(-45deg, #E5E7EB 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #E5E7EB 75%), linear-gradient(-45deg, transparent 75%, #E5E7EB 75%)',
-                      backgroundSize: '20px 20px',
-                      backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px',
-                      position: 'relative'
-                    }}>
-                      {/* World map outline */}
-                      <svg viewBox="0 0 1000 500" style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}>
-                        <path d="M150,200 Q200,150 300,180 Q400,120 500,150 Q600,120 700,180 Q800,150 850,200 Q900,250 850,300 Q800,350 700,320 Q600,380 500,350 Q400,380 300,320 Q200,350 150,300 Q100,250 150,200 Z"
-                              fill="#10B981" fillOpacity="0.1" stroke="#10B981" strokeWidth="2"/>
-                        <circle cx="300" cy="200" r="8" fill="#EF4444" stroke="#DC2626" strokeWidth="2"/>
-                        <circle cx="500" cy="180" r="8" fill="#3B82F6" stroke="#2563EB" strokeWidth="2"/>
-                        <circle cx="700" cy="220" r="8" fill="#F59E0B" stroke="#D97706" strokeWidth="2"/>
-                      </svg>
-
-                      {/* Clickable areas */}
-                      <div
-                        style={{
-                          position: 'absolute',
-                          top: '20%',
-                          left: '30%',
-                          width: '40px',
-                          height: '40px',
-                          borderRadius: '50%',
-                          background: '#EF4444',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: 'white',
-                          fontSize: '12px',
-                          fontWeight: 'bold'
-                        }}
-                        onClick={() => {
-                          const location = { lat: 31.2097, lng: 29.9147 }; // Alexandria, Egypt
-                          localStorage.setItem('fakeDriverLocation', JSON.stringify(location));
-                          setSuccessMessage('Location set to Alexandria, Egypt');
-                          // Refresh orders with new location
-                          fetchOrders();
-                        }}
-                        title="Alexandria, Egypt"
-                      >
-                        A
-                      </div>
-
-                      <div
-                        style={{
-                          position: 'absolute',
-                          top: '25%',
-                          left: '50%',
-                          width: '40px',
-                          height: '40px',
-                          borderRadius: '50%',
-                          background: '#3B82F6',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: 'white',
-                          fontSize: '12px',
-                          fontWeight: 'bold'
-                        }}
-                        onClick={() => {
-                          const location = { lat: 30.0444, lng: 31.2357 }; // Cairo, Egypt
-                          localStorage.setItem('fakeDriverLocation', JSON.stringify(location));
-                          setSuccessMessage('Location set to Cairo, Egypt');
-                          fetchOrders();
-                        }}
-                        title="Cairo, Egypt"
-                      >
-                        C
-                      </div>
-
-                      <div
-                        style={{
-                          position: 'absolute',
-                          top: '30%',
-                          left: '70%',
-                          width: '40px',
-                          height: '40px',
-                          borderRadius: '50%',
-                          background: '#F59E0B',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: 'white',
-                          fontSize: '12px',
-                          fontWeight: 'bold'
-                        }}
-                        onClick={() => {
-                          const location = { lat: 25.276987, lng: 55.296249 }; // Dubai, UAE
-                          localStorage.setItem('fakeDriverLocation', JSON.stringify(location));
-                          setSuccessMessage('Location set to Dubai, UAE');
-                          fetchOrders();
-                        }}
-                        title="Dubai, UAE"
-                      >
-                        D
-                      </div>
-                    </div>
-
-                    {/* Current fake location marker */}
-                    {(() => {
-                      const fakeLocation = localStorage.getItem('fakeDriverLocation');
-                      if (fakeLocation) {
-                        try {
-                          const loc = JSON.parse(fakeLocation);
-                          // Simple mapping of coordinates to screen positions
-                          const x = ((loc.lng - 25) / (55 - 25)) * 100; // Rough longitude mapping
-                          const y = ((35 - loc.lat) / (35 - 25)) * 100; // Rough latitude mapping
-
-                          return (
-                            <div style={{
-                              position: 'absolute',
-                              left: `${Math.max(0, Math.min(95, x))}%`,
-                              top: `${Math.max(0, Math.min(95, y))}%`,
-                              transform: 'translate(-50%, -50%)',
-                              zIndex: 10
-                            }}>
-                              <div style={{
-                                width: '20px',
-                                height: '20px',
-                                borderRadius: '50% 50% 50% 0',
-                                background: '#10B981',
-                                transform: 'rotate(-45deg)',
-                                border: '3px solid white',
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                              }} />
-                              <div style={{
-                                position: 'absolute',
-                                top: '20px',
-                                left: '50%',
-                                transform: 'translateX(-50%)',
-                                background: 'white',
-                                padding: '2px 6px',
-                                borderRadius: '3px',
-                                fontSize: '10px',
-                                color: '#374151',
-                                whiteSpace: 'nowrap',
-                                boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
-                              }}>
-                                Fake Location
-                              </div>
-                            </div>
-                          );
-                        } catch {
-                          return null;
-                        }
-                      }
-                      return null;
-                    })()}
-                  </div>
+                <div style={{
+                  height: '400px',
+                  borderRadius: '0.375rem',
+                  overflow: 'hidden',
+                  border: '2px solid #E5E7EB',
+                  background: '#F8FAFC'
+                }}>
+                  <InteractiveLocationPicker
+                    onLocationSelect={handleLocationSelect}
+                  />
                 </div>
-                <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.75rem', color: '#6B7280' }}>
-                  Click on the colored circles to set your location, or use the manual input below.
+                <p style={{
+                  margin: '0.75rem 0 0 0',
+                  fontSize: '0.875rem',
+                  color: '#374151',
+                  textAlign: 'center',
+                  fontWeight: '500'
+                }}>
+                  🗺️ Click anywhere on the map to set your test location. You can pan, zoom, and navigate freely.
                 </p>
               </div>
 
