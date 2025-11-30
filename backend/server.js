@@ -68,7 +68,7 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD || 'postgres',
   max: 20,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  connectionTimeoutMillis: parseInt(process.env.DB_CONNECTION_TIMEOUT) || 2000,
 });
 
 // Database initialization
@@ -507,11 +507,13 @@ const initDatabase = async () => {
   }
 };
 
-// Initialize database on startup
-initDatabase().catch(err => {
-  console.error('Failed to initialize database:', err);
-  process.exit(1);
-});
+// Initialize database on startup (skip in test mode)
+if (!IS_TEST) {
+  initDatabase().catch(err => {
+    console.error('Failed to initialize database:', err);
+    process.exit(1);
+  });
+}
 
 // Helper function to create notification with real-time WebSocket emission
 const createNotification = async (userId, orderId, type, title, message) => {

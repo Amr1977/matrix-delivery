@@ -608,7 +608,7 @@ module.exports = (app, pool, jwt, verifyToken) => {
       let query, params;
 
       if (req.user.role === 'customer') {
-        // Customer view - show all their orders
+        // Customer view - show only active orders (exclude delivered and cancelled)
         query = `SELECT o.*,
                COALESCE(json_agg(json_build_object(
                  'userId', b.user_id,
@@ -626,7 +626,7 @@ module.exports = (app, pool, jwt, verifyToken) => {
                FROM orders o
                LEFT JOIN bids b ON o.id = b.order_id
                LEFT JOIN users u ON b.user_id = u.id
-               WHERE o.customer_id = $1
+               WHERE o.customer_id = $1 AND o.status NOT IN ('delivered', 'cancelled')
                GROUP BY o.id ORDER BY o.created_at DESC`;
         params = [req.user.userId];
       } else if (req.user.role === 'driver') {
@@ -754,6 +754,210 @@ module.exports = (app, pool, jwt, verifyToken) => {
     } catch (error) {
       console.error('Get orders error:', error);
       res.status(500).json({ error: 'Failed to get orders' });
+    }
+  });
+
+  // Get order history with pagination (delivered and cancelled orders)
+  app.get('/api/orders/history', verifyToken, async (req, res) => {
+    try {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 20;
+      const offset = (page - 1) * limit;
+      const statusFilter = req.query.status; // Optional: 'delivered', 'cancelled', or both
+
+      // Build status condition
+      let statusCondition = "o.status IN ('delivered', 'cancelled')";
+      if (statusFilter === 'delivered') {
+        statusCondition = "o.status = 'delivered'";
+      } else if (statusFilter === 'cancelled') {
+        statusCondition = "o.status = 'cancelled'";
+      }
+
+      let query, params, countQuery, countParams;
+
+      if (req.user.role === 'customer') {
+        // Get total count
+        countQuery = `SELECT COUNT(*) as total FROM orders o WHERE o.customer_id = $1 AND ${statusCondition}`;
+        countParams = [req.user.userId];
+
+        // Get paginated orders
+        query = `SELECT o.*,
+               COALESCE(json_agg(json_build_object(
+                 'userId', b.user_id,
+                 'driverName', b.driver_name,
+                 'bidPrice', b.bid_price,
+                 'estimatedPickupTime', b.estimated_pickup_time,
+                 'estimatedDeliveryTime', b.estimated_delivery_time,
+                 'message', b.message,
+                 'status', b.status,
+                 'createdAt', b.created_at,
+                 'driverRating', u.rating,
+                 'driverCompletedDeliveries', u.completed_deliveries,
+                 'driverIsVerified', u.is_verified
+               ) ORDER BY b.created_at DESC) FILTER (WHERE b.id IS NOT NULL), '[]') as bids
+               FROM orders o
+               LEFT JOIN bids b ON o.id = b.order_id
+               LEFT JOIN users u ON b.user_id = u.id
+               WHERE o.customer_id = $1 AND ${statusCondition}
+               GROUP BY o.id 
+               ORDER BY COALESCE(o.delivered_at, o.cancelled_at, o.created_at) DESC
+               LIMIT $2 OFFSET $3`;
+        params = [req.user.userId, limit, offset];
+      } else if (req.user.role === 'driver') {
+        // Get total count for driver
+        countQuery = `SELECT COUNT(DISTINCT o.id) as total 
+                      FROM orders o 
+                      WHERE (o.assigned_driver_user_id = $1 OR EXISTS (SELECT 1 FROM bids WHERE order_id = o.id AND user_id = $1))
+                      AND ${statusCondition}`;
+        countParams = [req.user.userId];
+
+        // Get paginated orders for driver
+        query = `
+        SELECT o.*,
+               COALESCE(json_agg(json_build_object(
+                 'userId', b.user_id,
+                 'driverName', b.driver_name,
+                 'bidPrice', b.bid_price,
+                 'estimatedPickupTime', b.estimated_pickup_time,
+                 'estimatedDeliveryTime', b.estimated_delivery_time,
+                 'message', b.message,
+                 'status', b.status,
+                 'createdAt', b.created_at,
+                 'driverRating', u.rating,
+                 'driverCompletedDeliveries', u.completed_deliveries,
+                 'driverIsVerified', u.is_verified
+               ) ORDER BY b.created_at DESC) FILTER (WHERE b.id IS NOT NULL), '[]') as bids,
+               cu.rating as customerrating,
+               cu.completed_deliveries as customercompletedorders,
+               cu.is_verified as customerisverified,
+               cu.created_at as customerjoinedat
+        FROM orders o
+        LEFT JOIN bids b ON o.id = b.order_id
+        LEFT JOIN users u ON b.user_id = u.id
+        LEFT JOIN users cu ON o.customer_id = cu.id
+        WHERE (
+          o.assigned_driver_user_id = $1
+          OR EXISTS (SELECT 1 FROM bids WHERE order_id = o.id AND user_id = $1)
+        )
+        AND ${statusCondition}
+        GROUP BY o.id, cu.rating, cu.completed_deliveries, cu.is_verified, cu.created_at
+        ORDER BY COALESCE(o.delivered_at, o.cancelled_at, o.created_at) DESC
+        LIMIT $2 OFFSET $3
+      `;
+        params = [req.user.userId, limit, offset];
+      } else if (req.user.role === 'admin') {
+        // Get total count for admin
+        countQuery = `SELECT COUNT(*) as total FROM orders o WHERE ${statusCondition}`;
+        countParams = [];
+
+        // Get paginated orders for admin
+        query = `SELECT o.*,
+               COALESCE(json_agg(json_build_object(
+                 'userId', b.user_id,
+                 'driverName', b.driver_name,
+                 'bidPrice', b.bid_price,
+                 'estimatedPickupTime', b.estimated_pickup_time,
+                 'estimatedDeliveryTime', b.estimated_delivery_time,
+                 'message', b.message,
+                 'status', b.status,
+                 'createdAt', b.created_at,
+                 'driverRating', u.rating,
+                 'driverCompletedDeliveries', u.completed_deliveries,
+                 'driverIsVerified', u.is_verified
+               ) ORDER BY b.created_at DESC) FILTER (WHERE b.id IS NOT NULL), '[]') as bids,
+               c.rating as customerrating,
+               c.completed_deliveries as customercompletedorders,
+               c.is_verified as customerisverified,
+               c.created_at as customerjoinedat
+               FROM orders o
+               LEFT JOIN bids b ON o.id = b.order_id
+               LEFT JOIN users u ON b.user_id = u.id
+               LEFT JOIN users c ON o.customer_id = c.id
+               WHERE ${statusCondition}
+               GROUP BY o.id, c.rating, c.completed_deliveries, c.is_verified, c.created_at
+               ORDER BY COALESCE(o.delivered_at, o.cancelled_at, o.created_at) DESC
+               LIMIT $1 OFFSET $2`;
+        params = [limit, offset];
+      }
+
+      // Get total count
+      const countResult = await pool.query(countQuery, countParams);
+      const total = parseInt(countResult.rows[0].total);
+      const totalPages = Math.ceil(total / limit);
+      const hasMore = page < totalPages;
+
+      // Get orders
+      const result = await pool.query(query, params);
+
+      const orders = result.rows.map(order => ({
+        _id: order.id,
+        orderNumber: order.order_number,
+        title: order.title,
+        description: order.description,
+        pickupAddress: order.pickup_address,
+        deliveryAddress: order.delivery_address,
+        from: {
+          lat: parseFloat(order.from_lat),
+          lng: parseFloat(order.from_lng),
+          name: order.from_name
+        },
+        to: {
+          lat: parseFloat(order.to_lat),
+          lng: parseFloat(order.to_lng),
+          name: order.to_name
+        },
+        pickupCoordinates: order.pickup_coordinates,
+        deliveryCoordinates: order.delivery_coordinates,
+        pickupLocationLink: order.pickup_location_link,
+        deliveryLocationLink: order.delivery_location_link,
+        estimatedDistanceKm: order.estimated_distance_km ? parseFloat(order.estimated_distance_km) : null,
+        estimatedDurationMinutes: order.estimated_duration_minutes,
+        routePolyline: order.route_polyline,
+        isRemoteArea: order.is_remote_area,
+        isInternational: order.is_international,
+        packageDescription: order.package_description,
+        packageWeight: order.package_weight ? parseFloat(order.package_weight) : null,
+        estimatedValue: order.estimated_value ? parseFloat(order.estimated_value) : null,
+        specialInstructions: order.special_instructions,
+        price: parseFloat(order.price),
+        status: order.status,
+        bids: order.bids,
+        customerId: order.customer_id,
+        customerName: order.customer_name,
+        assignedDriver: order.assigned_driver_user_id ? {
+          userId: order.assigned_driver_user_id,
+          driverName: order.assigned_driver_name,
+          bidPrice: parseFloat(order.assigned_driver_bid_price)
+        } : null,
+        estimatedDeliveryDate: order.estimated_delivery_date,
+        currentLocation: order.current_location_lat ? {
+          lat: parseFloat(order.current_location_lat),
+          lng: parseFloat(order.current_location_lng)
+        } : null,
+        customerRating: order.customerrating ? parseFloat(order.customerrating) : 5.0,
+        customerCompletedOrders: order.customercompletedorders || 0,
+        customerIsVerified: order.customerisverified || false,
+        customerJoinedAt: order.customerjoinedat,
+        createdAt: order.created_at,
+        acceptedAt: order.accepted_at,
+        pickedUpAt: order.picked_up_at,
+        deliveredAt: order.delivered_at,
+        cancelledAt: order.cancelled_at
+      }));
+
+      res.json({
+        orders,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages,
+          hasMore
+        }
+      });
+    } catch (error) {
+      console.error('Get order history error:', error);
+      res.status(500).json({ error: 'Failed to get order history' });
     }
   });
 
