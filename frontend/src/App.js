@@ -79,6 +79,7 @@ const DeliveryApp = () => {
   const [showVendorDashboard, setShowVendorDashboard] = useState(false);
   const [showMessaging, setShowMessaging] = useState(false);
   const [showPaymentMethods, setShowPaymentMethods] = useState(false);
+  const [showLocationSettings, setShowLocationSettings] = useState(false);
   const [countries, setCountries] = useState([]);
   const [countriesLoading, setCountriesLoading] = useState(false);
 
@@ -362,6 +363,21 @@ const DeliveryApp = () => {
       if (filters.city) queryParams.append('city', filters.city);
       if (filters.area) queryParams.append('area', filters.area);
 
+      // Check for fake location in localStorage (development feature)
+      const fakeLocation = localStorage.getItem('fakeDriverLocation');
+      if (fakeLocation && currentUser?.role === 'driver') {
+        try {
+          const loc = JSON.parse(fakeLocation);
+          if (loc.lat && loc.lng) {
+            queryParams.append('lat', loc.lat.toString());
+            queryParams.append('lng', loc.lng.toString());
+            console.log('🔧 Using fake location for order filtering:', loc);
+          }
+        } catch (e) {
+          console.warn('Invalid fake location data:', e);
+        }
+      }
+
       const queryString = queryParams.toString();
       const url = queryString ? `${API_URL}/orders?${queryString}` : `${API_URL}/orders`;
 
@@ -380,7 +396,7 @@ const DeliveryApp = () => {
     } catch (err) {
       console.error('Error fetching orders:', err.message);
     }
-  }, [API_URL, token]);
+  }, [API_URL, token, currentUser?.role]);
 
 
   const fetchHistoryOrders = useCallback(async (page = 1) => {
@@ -2453,7 +2469,7 @@ const DeliveryApp = () => {
               </div>
             </div>
 
-            <div className="driver-tabs" style={{ display: 'flex', gap: '0.25rem', marginBottom: '1rem' }}>
+            <div className="driver-tabs" style={{ display: 'flex', gap: '0.25rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
               <button
                 onClick={() => setViewType('active')}
                 style={{
@@ -2501,7 +2517,6 @@ const DeliveryApp = () => {
                   background: viewType === 'my_bids' ? '#4F46E5' : '#F3F4F6',
                   color: viewType === 'my_bids' ? 'white' : '#374151',
                   border: 'none',
-                  borderRadius: '0 0.375rem 0.375rem 0',
                   cursor: 'pointer',
                   fontWeight: '500'
                 }}
@@ -2515,12 +2530,25 @@ const DeliveryApp = () => {
                   background: viewType === 'history' ? '#4F46E5' : '#F3F4F6',
                   color: viewType === 'history' ? 'white' : '#374151',
                   border: 'none',
-                  borderRadius: '0 0.375rem 0.375rem 0',
                   cursor: 'pointer',
                   fontWeight: '500'
                 }}
               >
                 {t('driver.myHistory')}
+              </button>
+              <button
+                onClick={() => setViewType('location_settings')}
+                style={{
+                  padding: '0.5rem 1rem',
+                  background: viewType === 'location_settings' ? '#4F46E5' : '#F3F4F6',
+                  color: viewType === 'location_settings' ? 'white' : '#374151',
+                  border: 'none',
+                  borderRadius: '0 0.375rem 0.375rem 0',
+                  cursor: 'pointer',
+                  fontWeight: '500'
+                }}
+              >
+                📍 Location
               </button>
             </div>
           </div>
@@ -2909,7 +2937,7 @@ const DeliveryApp = () => {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', color: '#374151', marginBottom: '0.5rem' }}>
-                  🇸 Country
+                  Country
                 </label>
                 <select
                   value={countryFilter}
@@ -3023,6 +3051,351 @@ const DeliveryApp = () => {
               onRadiusChange={setOrdersMapRadiusKm}
               onSelectOrder={(order) => setSelectedOrderForMap(order)}
             />
+          </div>
+        )}
+
+        {currentUser?.role === 'driver' && viewType === 'location_settings' && (
+          <div style={{ marginBottom: '1rem' }}>
+            <div style={{ background: 'white', padding: '1.5rem', borderRadius: '0.5rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}>
+              <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.25rem', fontWeight: 'bold', color: '#1F2937' }}>
+                📍 Location Settings (Development)
+              </h2>
+              <p style={{ margin: '0 0 1.5rem 0', color: '#6B7280', fontSize: '0.875rem' }}>
+                Set your fake location for testing distance filtering. This overrides your real GPS location.
+              </p>
+
+              {/* Current Location Display */}
+              <div style={{ marginBottom: '1.5rem', padding: '1rem', background: '#F8FAFC', borderRadius: '0.375rem', border: '1px solid #E2E8F0' }}>
+                <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem', fontWeight: '600', color: '#374151' }}>
+                  Current Location
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', fontSize: '0.875rem' }}>
+                  <div>
+                    <span style={{ color: '#6B7280' }}>Real GPS:</span>
+                    <div style={{ fontFamily: 'monospace', color: '#1F2937', marginTop: '0.25rem' }}>
+                      {driverLocation ? (
+                        <>
+                          Lat: {driverLocation.latitude?.toFixed(6)}<br />
+                          Lng: {driverLocation.longitude?.toFixed(6)}
+                        </>
+                      ) : (
+                        <span style={{ color: '#EF4444' }}>Not available</span>
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <span style={{ color: '#6B7280' }}>Fake Location:</span>
+                    <div style={{ fontFamily: 'monospace', color: '#1F2937', marginTop: '0.25rem' }}>
+                      {(() => {
+                        const fakeLocation = localStorage.getItem('fakeDriverLocation');
+                        if (fakeLocation) {
+                          try {
+                            const loc = JSON.parse(fakeLocation);
+                            return (
+                              <>
+                                Lat: {loc.lat?.toFixed(6)}<br />
+                                Lng: {loc.lng?.toFixed(6)}
+                              </>
+                            );
+                          } catch {
+                            return <span style={{ color: '#EF4444' }}>Invalid</span>;
+                          }
+                        }
+                        return <span style={{ color: '#6B7280' }}>Not set</span>;
+                      })()}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Map for Setting Location */}
+              <div style={{ marginBottom: '1.5rem' }}>
+                <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem', fontWeight: '600', color: '#374151' }}>
+                  Set Location on Map
+                </h3>
+                <div style={{ height: '400px', borderRadius: '0.375rem', overflow: 'hidden', border: '1px solid #E5E7EB' }}>
+                  <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+                    {/* Simple map placeholder - in a real app you'd use Google Maps, Mapbox, etc. */}
+                    <div style={{
+                      width: '100%',
+                      height: '100%',
+                      background: 'linear-gradient(45deg, #E5E7EB 25%, transparent 25%), linear-gradient(-45deg, #E5E7EB 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #E5E7EB 75%), linear-gradient(-45deg, transparent 75%, #E5E7EB 75%)',
+                      backgroundSize: '20px 20px',
+                      backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px',
+                      position: 'relative'
+                    }}>
+                      {/* World map outline */}
+                      <svg viewBox="0 0 1000 500" style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}>
+                        <path d="M150,200 Q200,150 300,180 Q400,120 500,150 Q600,120 700,180 Q800,150 850,200 Q900,250 850,300 Q800,350 700,320 Q600,380 500,350 Q400,380 300,320 Q200,350 150,300 Q100,250 150,200 Z"
+                              fill="#10B981" fillOpacity="0.1" stroke="#10B981" strokeWidth="2"/>
+                        <circle cx="300" cy="200" r="8" fill="#EF4444" stroke="#DC2626" strokeWidth="2"/>
+                        <circle cx="500" cy="180" r="8" fill="#3B82F6" stroke="#2563EB" strokeWidth="2"/>
+                        <circle cx="700" cy="220" r="8" fill="#F59E0B" stroke="#D97706" strokeWidth="2"/>
+                      </svg>
+
+                      {/* Clickable areas */}
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: '20%',
+                          left: '30%',
+                          width: '40px',
+                          height: '40px',
+                          borderRadius: '50%',
+                          background: '#EF4444',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: 'white',
+                          fontSize: '12px',
+                          fontWeight: 'bold'
+                        }}
+                        onClick={() => {
+                          const location = { lat: 31.2097, lng: 29.9147 }; // Alexandria, Egypt
+                          localStorage.setItem('fakeDriverLocation', JSON.stringify(location));
+                          setSuccessMessage('Location set to Alexandria, Egypt');
+                          // Refresh orders with new location
+                          fetchOrders();
+                        }}
+                        title="Alexandria, Egypt"
+                      >
+                        A
+                      </div>
+
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: '25%',
+                          left: '50%',
+                          width: '40px',
+                          height: '40px',
+                          borderRadius: '50%',
+                          background: '#3B82F6',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: 'white',
+                          fontSize: '12px',
+                          fontWeight: 'bold'
+                        }}
+                        onClick={() => {
+                          const location = { lat: 30.0444, lng: 31.2357 }; // Cairo, Egypt
+                          localStorage.setItem('fakeDriverLocation', JSON.stringify(location));
+                          setSuccessMessage('Location set to Cairo, Egypt');
+                          fetchOrders();
+                        }}
+                        title="Cairo, Egypt"
+                      >
+                        C
+                      </div>
+
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: '30%',
+                          left: '70%',
+                          width: '40px',
+                          height: '40px',
+                          borderRadius: '50%',
+                          background: '#F59E0B',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: 'white',
+                          fontSize: '12px',
+                          fontWeight: 'bold'
+                        }}
+                        onClick={() => {
+                          const location = { lat: 25.276987, lng: 55.296249 }; // Dubai, UAE
+                          localStorage.setItem('fakeDriverLocation', JSON.stringify(location));
+                          setSuccessMessage('Location set to Dubai, UAE');
+                          fetchOrders();
+                        }}
+                        title="Dubai, UAE"
+                      >
+                        D
+                      </div>
+                    </div>
+
+                    {/* Current fake location marker */}
+                    {(() => {
+                      const fakeLocation = localStorage.getItem('fakeDriverLocation');
+                      if (fakeLocation) {
+                        try {
+                          const loc = JSON.parse(fakeLocation);
+                          // Simple mapping of coordinates to screen positions
+                          const x = ((loc.lng - 25) / (55 - 25)) * 100; // Rough longitude mapping
+                          const y = ((35 - loc.lat) / (35 - 25)) * 100; // Rough latitude mapping
+
+                          return (
+                            <div style={{
+                              position: 'absolute',
+                              left: `${Math.max(0, Math.min(95, x))}%`,
+                              top: `${Math.max(0, Math.min(95, y))}%`,
+                              transform: 'translate(-50%, -50%)',
+                              zIndex: 10
+                            }}>
+                              <div style={{
+                                width: '20px',
+                                height: '20px',
+                                borderRadius: '50% 50% 50% 0',
+                                background: '#10B981',
+                                transform: 'rotate(-45deg)',
+                                border: '3px solid white',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                              }} />
+                              <div style={{
+                                position: 'absolute',
+                                top: '20px',
+                                left: '50%',
+                                transform: 'translateX(-50%)',
+                                background: 'white',
+                                padding: '2px 6px',
+                                borderRadius: '3px',
+                                fontSize: '10px',
+                                color: '#374151',
+                                whiteSpace: 'nowrap',
+                                boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                              }}>
+                                Fake Location
+                              </div>
+                            </div>
+                          );
+                        } catch {
+                          return null;
+                        }
+                      }
+                      return null;
+                    })()}
+                  </div>
+                </div>
+                <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.75rem', color: '#6B7280' }}>
+                  Click on the colored circles to set your location, or use the manual input below.
+                </p>
+              </div>
+
+              {/* Manual Location Input */}
+              <div style={{ marginBottom: '1.5rem', padding: '1rem', background: '#F8FAFC', borderRadius: '0.375rem', border: '1px solid #E2E8F0' }}>
+                <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem', fontWeight: '600', color: '#374151' }}>
+                  Manual Coordinates
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.75rem', color: '#6B7280', marginBottom: '0.25rem' }}>
+                      Latitude
+                    </label>
+                    <input
+                      type="number"
+                      step="0.000001"
+                      placeholder="31.209709"
+                      style={{
+                        width: '100%',
+                        padding: '0.5rem',
+                        border: '1px solid #D1D5DB',
+                        borderRadius: '0.375rem',
+                        fontSize: '0.875rem'
+                      }}
+                      onChange={(e) => {
+                        const lat = parseFloat(e.target.value);
+                        const fakeLocation = localStorage.getItem('fakeDriverLocation');
+                        let location = fakeLocation ? JSON.parse(fakeLocation) : { lat: 0, lng: 0 };
+                        location.lat = lat;
+                        localStorage.setItem('fakeDriverLocation', JSON.stringify(location));
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.75rem', color: '#6B7280', marginBottom: '0.25rem' }}>
+                      Longitude
+                    </label>
+                    <input
+                      type="number"
+                      step="0.000001"
+                      placeholder="29.914654"
+                      style={{
+                        width: '100%',
+                        padding: '0.5rem',
+                        border: '1px solid #D1D5DB',
+                        borderRadius: '0.375rem',
+                        fontSize: '0.875rem'
+                      }}
+                      onChange={(e) => {
+                        const lng = parseFloat(e.target.value);
+                        const fakeLocation = localStorage.getItem('fakeDriverLocation');
+                        let location = fakeLocation ? JSON.parse(fakeLocation) : { lat: 0, lng: 0 };
+                        location.lng = lng;
+                        localStorage.setItem('fakeDriverLocation', JSON.stringify(location));
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                <button
+                  onClick={() => {
+                    localStorage.removeItem('fakeDriverLocation');
+                    setSuccessMessage('Fake location cleared');
+                    fetchOrders();
+                  }}
+                  style={{
+                    padding: '0.75rem 1.5rem',
+                    background: '#EF4444',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '0.375rem',
+                    fontWeight: '600',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Clear Fake Location
+                </button>
+                <button
+                  onClick={() => {
+                    const fakeLocation = localStorage.getItem('fakeDriverLocation');
+                    if (fakeLocation) {
+                      try {
+                        const loc = JSON.parse(fakeLocation);
+                        setSuccessMessage(`Using fake location: ${loc.lat?.toFixed(4)}, ${loc.lng?.toFixed(4)}`);
+                        fetchOrders();
+                      } catch {
+                        setError('Invalid fake location data');
+                      }
+                    } else {
+                      setError('No fake location set');
+                    }
+                  }}
+                  style={{
+                    padding: '0.75rem 1.5rem',
+                    background: '#10B981',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '0.375rem',
+                    fontWeight: '600',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Apply Location
+                </button>
+              </div>
+
+              {/* Instructions */}
+              <div style={{ marginTop: '1.5rem', padding: '1rem', background: '#FEF3C7', borderRadius: '0.375rem', border: '1px solid #FCD34D' }}>
+                <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '0.875rem', fontWeight: '600', color: '#92400E' }}>
+                  Instructions
+                </h4>
+                <ul style={{ margin: 0, paddingLeft: '1.5rem', fontSize: '0.875rem', color: '#92400E' }}>
+                  <li>Set your fake location using the map or manual coordinates</li>
+                  <li>Click "Apply Location" to use it for filtering orders</li>
+                  <li>Orders will be filtered to show only those within 7km of your fake location</li>
+                  <li>Clear the fake location to use your real GPS position</li>
+                </ul>
+              </div>
+            </div>
           </div>
         )}
 
