@@ -82,6 +82,12 @@ const DeliveryApp = () => {
   const [countries, setCountries] = useState([]);
   const [countriesLoading, setCountriesLoading] = useState(false);
 
+  // Customer history view state
+  const [customerViewType, setCustomerViewType] = useState('active'); // 'active' | 'history'
+  const [historyOrders, setHistoryOrders] = useState([]);
+  const [historyPagination, setHistoryPagination] = useState(null);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
   const optimizeAndUploadProfilePicture = async (file) => {
     if (!file || !token) return;
     try {
@@ -377,6 +383,34 @@ const DeliveryApp = () => {
   }, [API_URL, token]);
 
 
+  const fetchHistoryOrders = useCallback(async (page = 1) => {
+    if (!token) return;
+
+    try {
+      setHistoryLoading(true);
+      const response = await fetch(`${API_URL}/orders/history?page=${page}&limit=20`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!response.ok) {
+        console.error('Fetch history orders failed:', response.status, response.statusText);
+        throw new Error(`Failed to fetch history orders: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // If page 1, replace all history orders; otherwise append
+      setHistoryOrders(prev => page === 1 ? data.orders : [...prev, ...data.orders]);
+      setHistoryPagination(data.pagination);
+    } catch (err) {
+      console.error('Error fetching history orders:', err.message);
+      setError('Failed to load order history');
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, [API_URL, token]);
+
+
   // Effects
   useEffect(() => {
     if (token) {
@@ -476,6 +510,13 @@ const DeliveryApp = () => {
       driverHook.updateDriverLocation();
     }
   }, [currentUser?.role, token, viewType, driverHook]);
+
+  // Lazy load history orders when customer opens history tab
+  useEffect(() => {
+    if (currentUser?.role === 'customer' && customerViewType === 'history' && historyOrders.length === 0 && !historyLoading) {
+      fetchHistoryOrders(1);
+    }
+  }, [customerViewType, currentUser?.role, historyOrders.length, historyLoading, fetchHistoryOrders]);
 
   // Real-time notifications via WebSocket
   useEffect(() => {
@@ -2337,6 +2378,42 @@ const DeliveryApp = () => {
             >
               📦 {showOrderForm ? t('common.cancel') : t('orders.createOrder')}
             </button>
+
+            {/* Customer Tab Switcher */}
+            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem', borderRadius: '0.375rem', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+              <button
+                onClick={() => setCustomerViewType('active')}
+                style={{
+                  flex: 1,
+                  padding: '0.75rem 1rem',
+                  background: customerViewType === 'active' ? '#4F46E5' : '#F3F4F6',
+                  color: customerViewType === 'active' ? 'white' : '#374151',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontWeight: '600',
+                  fontSize: '0.875rem',
+                  transition: 'all 0.2s'
+                }}
+              >
+                📋 {t('orders.activeOrders') || 'Active Orders'}
+              </button>
+              <button
+                onClick={() => setCustomerViewType('history')}
+                style={{
+                  flex: 1,
+                  padding: '0.75rem 1rem',
+                  background: customerViewType === 'history' ? '#4F46E5' : '#F3F4F6',
+                  color: customerViewType === 'history' ? 'white' : '#374151',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontWeight: '600',
+                  fontSize: '0.875rem',
+                  transition: 'all 0.2s'
+                }}
+              >
+                📜 {t('driver.myHistory') || 'Order History'}
+              </button>
+            </div>
           </div>
         )}
 
@@ -2951,7 +3028,21 @@ const DeliveryApp = () => {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {(() => {
-            return orders.length === 0 ? (
+            // Determine which orders to display based on role and view type
+            let ordersToDisplay = orders;
+            let emptyMessage = t('orders.noOrdersAvailable');
+
+            if (currentUser?.role === 'customer') {
+              if (customerViewType === 'history') {
+                ordersToDisplay = historyOrders;
+                emptyMessage = historyLoading ? t('common.loading') || 'Loading...' : (t('orders.noOrderHistory') || 'No order history');
+              } else {
+                ordersToDisplay = orders;
+                emptyMessage = t('orders.noOrdersAvailable');
+              }
+            }
+
+            return ordersToDisplay.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '3rem', background: 'white', borderRadius: '0.5rem' }}>
                 <p style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>📦</p>
                 <p style={{ color: '#6B7280' }}>
@@ -2959,12 +3050,12 @@ const DeliveryApp = () => {
                     ? viewType === 'active' ? t('driver.noActiveOrders')
                       : viewType === 'bidding' ? t('orders.noAvailableBids')
                         : t('orders.noOrderHistory')
-                    : t('orders.noOrdersAvailable')
+                    : emptyMessage
                   }
                 </p>
               </div>
             ) : (
-              orders.map((order) => {
+              ordersToDisplay.map((order) => {
                 const isDriverAssigned = order.assignedDriver?.userId === currentUser?.id;
                 const hasDriverBid = Array.isArray(order.bids) && order.bids.some(b => b.userId === currentUser?.id);
                 if (currentUser?.role === 'driver') {
@@ -3495,6 +3586,40 @@ const DeliveryApp = () => {
               })
             )
           })()}
+
+          {/* Load More Button for History */}
+          {currentUser?.role === 'customer' && customerViewType === 'history' && historyPagination?.hasMore && (
+            <button
+              onClick={() => fetchHistoryOrders(historyPagination.page + 1)}
+              disabled={historyLoading}
+              style={{
+                padding: '0.75rem',
+                background: 'white',
+                color: '#4F46E5',
+                border: '1px solid #E5E7EB',
+                borderRadius: '0.375rem',
+                cursor: historyLoading ? 'not-allowed' : 'pointer',
+                fontWeight: '600',
+                fontSize: '0.875rem',
+                marginTop: '1rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem'
+              }}
+            >
+              {historyLoading ? (
+                <>
+                  <span className="spinner-small"></span>
+                  {t('common.loading') || 'Loading...'}
+                </>
+              ) : (
+                <>
+                  ⬇️ {t('common.loadMore') || 'Load More'} ({historyPagination.total - historyOrders.length} remaining)
+                </>
+              )}
+            </button>
+          )}
         </div>
       </main>
 
