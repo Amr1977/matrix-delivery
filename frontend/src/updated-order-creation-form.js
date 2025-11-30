@@ -1710,7 +1710,9 @@ const DraggableMarker = ({ position, icon, onDragEnd, children, isDragging, setI
 
   const eventHandlers = {
     dragstart: () => {
-      setIsDragging(true);
+      if (setIsDragging) {
+        setIsDragging(true);
+      }
     },
     dragend: (e) => {
       const newPos = e.target.getLatLng();
@@ -1722,7 +1724,9 @@ const DraggableMarker = ({ position, icon, onDragEnd, children, isDragging, setI
         onDragEnd(coords);
       }
 
-      setIsDragging(false);
+      if (setIsDragging) {
+        setIsDragging(false);
+      }
     }
   };
 
