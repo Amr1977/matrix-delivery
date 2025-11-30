@@ -603,66 +603,8 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
     }
   }, [pickupLocation?.coordinates, dropoffLocation?.coordinates, calculateRoute]);
 
-
-
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-
-    logger.user('Order creation form submitted', {
-      hasTitle: !!orderData.title?.trim(),
-      hasDescription: !!orderData.description?.trim(),
-      price: parseFloat(orderData.price) || 0,
-      hasPackageDescription: !!orderData.package_description?.trim(),
-      packageWeight: orderData.package_weight,
-      estimatedValue: orderData.estimated_value,
-      hasSpecialInstructions: !!orderData.special_instructions?.trim(),
-      estimatedDeliveryDate: orderData.estimated_delivery_date,
-      timestamp: new Date().toISOString()
-    });
-
-    logger.info('[LOCATION_STATE] Current location state:', {
-      pickupLocation: pickupLocation ? {
-        coordinates: pickupLocation.coordinates,
-        displayName: pickupLocation.displayName,
-        hasAddress: !!pickupLocation.address,
-        addressKeys: pickupLocation.address ? Object.keys(pickupLocation.address) : []
-      } : null,
-      dropoffLocation: dropoffLocation ? {
-        coordinates: dropoffLocation.coordinates,
-        displayName: dropoffLocation.displayName,
-        hasAddress: !!dropoffLocation.address,
-        addressKeys: dropoffLocation.address ? Object.keys(dropoffLocation.address) : []
-      } : null,
-      routeInfo: routeInfo ? {
-        distance_km: routeInfo.distance_km,
-        estimatesCount: routeInfo.estimates ? Object.keys(routeInfo.estimates).length : 0,
-        hasPolyline: !!routeInfo.polyline,
-        routeFound: !!routeInfo.polyline
-      } : null
-    });
-
-    logger.info('[ADDRESS_DATA] Address data validation state:', {
-      pickupAddress: {
-        country: pickupAddress.country,
-        city: pickupAddress.city,
-        area: pickupAddress.area,
-        street: pickupAddress.street,
-        building: pickupAddress.building,
-        personName: pickupAddress.personName,
-        hasRequiredFields: !!(pickupAddress.country?.trim() && pickupAddress.city?.trim() && pickupAddress.personName?.trim())
-      },
-      dropoffAddress: {
-        country: dropoffAddress.country,
-        city: dropoffAddress.city,
-        area: dropoffAddress.area,
-        street: dropoffAddress.street,
-        building: dropoffAddress.building,
-        personName: dropoffAddress.personName,
-        hasRequiredFields: !!(dropoffAddress.country?.trim() && dropoffAddress.city?.trim() && dropoffAddress.personName?.trim())
-      }
-    });
 
     // Validate address fields for pickup and dropoff
     const requiredFields = ['country', 'city', 'area', 'street', 'building', 'personName', 'personPhone'];
@@ -695,13 +637,6 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
     const pickupCoordinates = pickupLocation?.coordinates;
     const dropoffCoordinates = dropoffLocation?.coordinates;
 
-    logger.info('[VALIDATION] Coordinate validation:', {
-      hasPickupCoords: !!pickupCoordinates,
-      hasDropoffCoords: !!dropoffCoordinates,
-      pickupCoords: pickupCoordinates,
-      dropoffCoords: dropoffCoordinates
-    });
-
     if (!pickupCoordinates || !dropoffCoordinates) {
       const errorParts = [];
       if (!pickupCoordinates) {
@@ -710,13 +645,6 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
       if (!dropoffCoordinates) {
         errorParts.push('Delivery location coordinates not set - click on map or fill address fields (country/city required)');
       }
-
-      logger.warn('[VALIDATION_FAILED] Showing error modal for missing coordinates:', {
-        hasPickupCoords: !!pickupCoordinates,
-        hasDropoffCoords: !!dropoffCoordinates,
-        errorMessage: errorParts.join('. '),
-        timestamp: new Date().toISOString()
-      });
 
       setModalState({
         isOpen: true,
@@ -736,50 +664,6 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
       dropoffAddress,
       routeInfo  // Include route info with OSRM polyline
     };
-
-    logger.info('[COMPLETE_ORDER_DATA] Final order data structure analysis:', {
-      orderDataKeys: Object.keys(orderData),
-      hasPickupAddress: !!completeOrderData.pickupAddress,
-      hasDropoffAddress: !!completeOrderData.dropoffAddress,
-      hasPickupLocation: !!completeOrderData.pickupLocation,
-      hasDropoffLocation: !!completeOrderData.dropoffLocation,
-      hasRouteInfo: !!completeOrderData.routeInfo,
-      maskedOrderDetails: {
-        ...completeOrderData,
-        pickupLocation: completeOrderData.pickupLocation ? {
-          coordinates: completeOrderData.pickupLocation.coordinates,
-          displayName: completeOrderData.pickupLocation.displayName,
-          hasAddress: !!completeOrderData.pickupLocation.address,
-          personNameMasked: completeOrderData.pickupLocation.address?.personName ?
-            `[${completeOrderData.pickupLocation.address.personName.length} chars]` : false
-        } : undefined,
-        dropoffLocation: completeOrderData.dropoffLocation ? {
-          coordinates: completeOrderData.dropoffLocation.coordinates,
-          displayName: completeOrderData.dropoffLocation.displayName,
-          hasAddress: !!completeOrderData.dropoffLocation.address,
-          personNameMasked: completeOrderData.dropoffLocation.address?.personName ?
-            `[${completeOrderData.dropoffLocation.address.personName.length} chars]` : false
-        } : undefined,
-        pickupAddress: completeOrderData.pickupAddress ? {
-          ...completeOrderData.pickupAddress,
-          personName: completeOrderData.pickupAddress.personName ?
-            `[${completeOrderData.pickupAddress.personName.length} chars]` : undefined
-        } : undefined,
-        dropoffAddress: completeOrderData.dropoffAddress ? {
-          ...completeOrderData.dropoffAddress,
-          personName: completeOrderData.dropoffAddress.personName ?
-            `[${completeOrderData.dropoffAddress.personName.length} chars]` : undefined
-        } : undefined
-      }
-    });
-
-    logger.user('Order submission about to be sent to API', {
-      title: completeOrderData.title,
-      price: parseFloat(completeOrderData.price),
-      hasPackageDescription: !!completeOrderData.package_description,
-      packageWeight: completeOrderData.package_weight,
-      timestamp: new Date().toISOString()
-    });
 
     try {
       // Show loading state
@@ -2657,8 +2541,46 @@ const LocationEntryCombined = ({
       borderRadius: '0.75rem',
       overflow: 'hidden'
     }}>
-      {/* Address Fields Section */}
+      {/* Map Section - Full Width - MOVED TO TOP */}
       <div style={{ padding: '1rem', borderBottom: '2px solid #00AA00' }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '0.75rem'
+        }}>
+          <h4 style={{
+            fontSize: '0.875rem',
+            fontWeight: '600',
+            color: '#30FF30',
+            textShadow: '0 0 10px #30FF30'
+          }}>
+            🗺️ Interactive Map
+          </h4>
+        </div>
+
+        <MapLocationPicker
+          location={mapLocation}
+          onChange={(loc) => {
+            onMapLocationChange(loc);
+          }}
+          onAddressFill={(addr) => {
+            onAddressChange({
+              ...addressData,
+              ...addr
+            });
+          }}
+          userLocation={userLocation}
+          markerColor={markerColor}
+          API_URL={API_URL}
+          locationType={locationType}
+          compact={true}
+          t={t}
+        />
+      </div>
+
+      {/* Address Fields Section - NOW BELOW MAP */}
+      <div style={{ padding: '1rem' }}>
         <h4 style={{
           fontSize: '0.875rem',
           fontWeight: '600',
@@ -2685,16 +2607,24 @@ const LocationEntryCombined = ({
             }}>
               🌍 {t('orders.country')} *
             </label>
-            <ComboboxInput
+            <input
+              type="text"
               value={addressData.country || ''}
-              onChange={(value) => {
-                // Update address state - useEffect will handle city loading
-                onAddressChange({ ...addressData, country: value, city: '', area: '', street: '' });
-              }}
+              onChange={(e) => onAddressChange({ ...addressData, country: e.target.value })}
               placeholder={t('orders.selectCountry')}
-              options={countries.map(country => ({ value: country, label: country }))}
-              required={true}
-              error={validationErrors?.country}
+              required
+              style={{
+                width: '100%',
+                height: '44px',
+                background: 'rgba(0, 17, 0, 0.8)',
+                color: '#30FF30',
+                border: validationErrors?.country ? '2px solid #EF4444' : '2px solid #00AA00',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem',
+                fontFamily: 'Consolas, Monaco, Courier New, monospace',
+                padding: '0.5rem',
+                outline: 'none'
+              }}
             />
           </div>
 
@@ -2709,18 +2639,24 @@ const LocationEntryCombined = ({
             }}>
               🏙️ {t('orders.city')} *
             </label>
-            <ComboboxInput
+            <input
+              type="text"
               value={addressData.city || ''}
-              onChange={(value) => {
-                // Update the address state - useEffect will handle area loading and geocoding
-                onAddressChange({ ...addressData, city: value, area: '', street: '' });
+              onChange={(e) => onAddressChange({ ...addressData, city: e.target.value })}
+              placeholder="Enter city"
+              required
+              style={{
+                width: '100%',
+                height: '44px',
+                background: 'rgba(0, 17, 0, 0.8)',
+                color: '#30FF30',
+                border: validationErrors?.city ? '2px solid #EF4444' : '2px solid #00AA00',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem',
+                fontFamily: 'Consolas, Monaco, Courier New, monospace',
+                padding: '0.5rem',
+                outline: 'none'
               }}
-              placeholder={loadingCities ? 'Loading cities...' : addressData.country ? 'Type or select city' : 'Select country first'}
-              options={availableCities}
-              disabled={!addressData.country}
-              loading={loadingCities}
-              required={true}
-              error={validationErrors?.city}
             />
           </div>
 
@@ -2733,20 +2669,26 @@ const LocationEntryCombined = ({
               marginBottom: '0.25rem',
               textShadow: '0 0 5px #30FF30'
             }}>
-              🏘️ {t('orders.area')}
+              🏘️ {t('orders.area')} *
             </label>
-            <ComboboxInput
+            <input
+              type="text"
               value={addressData.area || ''}
-              onChange={(value) => {
-                onAddressChange({ ...addressData, area: value });
-                handleAreaChange(value);
+              onChange={(e) => onAddressChange({ ...addressData, area: e.target.value })}
+              placeholder="Enter area"
+              required
+              style={{
+                width: '100%',
+                height: '44px',
+                background: 'rgba(0, 17, 0, 0.8)',
+                color: '#30FF30',
+                border: validationErrors?.area ? '2px solid #EF4444' : '2px solid #00AA00',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem',
+                fontFamily: 'Consolas, Monaco, Courier New, monospace',
+                padding: '0.5rem',
+                outline: 'none'
               }}
-              placeholder={loadingAreas ? 'Loading areas...' : addressData.city ? 'Type or select area' : 'Select city first'}
-              options={availableAreas}
-              disabled={!addressData.city}
-              loading={loadingAreas}
-              required={true}
-              error={validationErrors?.area}
             />
           </div>
 
@@ -2759,20 +2701,26 @@ const LocationEntryCombined = ({
               marginBottom: '0.25rem',
               textShadow: '0 0 5px #30FF30'
             }}>
-              🛣️ {t('orders.street')}
+              🛣️ {t('orders.street')} *
             </label>
-            <ComboboxInput
+            <input
+              type="text"
               value={addressData.street || ''}
-              onChange={(value) => {
-                onAddressChange({ ...addressData, street: value });
-                handleFieldChange('street', value);
+              onChange={(e) => onAddressChange({ ...addressData, street: e.target.value })}
+              placeholder="Enter street"
+              required
+              style={{
+                width: '100%',
+                height: '44px',
+                background: 'rgba(0, 17, 0, 0.8)',
+                color: '#30FF30',
+                border: validationErrors?.street ? '2px solid #EF4444' : '2px solid #00AA00',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem',
+                fontFamily: 'Consolas, Monaco, Courier New, monospace',
+                padding: '0.5rem',
+                outline: 'none'
               }}
-              placeholder={loadingStreets ? 'Loading streets...' : addressData.area ? 'Type or select street' : 'Select area first'}
-              options={availableStreets}
-              disabled={!addressData.area}
-              loading={loadingStreets}
-              required={true}
-              error={validationErrors?.street}
             />
           </div>
 
@@ -2909,44 +2857,6 @@ const LocationEntryCombined = ({
             />
           </div>
         </div>
-      </div>
-
-      {/* Map Section - Full Width */}
-      <div style={{ padding: '1rem' }}>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '0.75rem'
-        }}>
-          <h4 style={{
-            fontSize: '0.875rem',
-            fontWeight: '600',
-            color: '#30FF30',
-            textShadow: '0 0 10px #30FF30'
-          }}>
-            🗺️ Interactive Map
-          </h4>
-        </div>
-
-        <MapLocationPicker
-          location={mapLocation}
-          onChange={(loc) => {
-            onMapLocationChange(loc);
-          }}
-          onAddressFill={(addr) => {
-            onAddressChange({
-              ...addressData,
-              ...addr
-            });
-          }}
-          userLocation={userLocation}
-          markerColor={markerColor}
-          API_URL={API_URL}
-          locationType={locationType}
-          compact={true}
-          t={t}
-        />
       </div>
 
       {/* Fullscreen handled inside MapLocationPicker */}
