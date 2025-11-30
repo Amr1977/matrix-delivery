@@ -41,6 +41,7 @@ class OrderService {
   async getOrders(userId, userRole, filters = {}) {
     let query;
     let params = [];
+    let locationConditions = '';
 
     if (userRole === 'customer') {
       // Customers see their own orders
@@ -89,7 +90,7 @@ class OrderService {
                 FROM reviews
                 GROUP BY reviewee_id
               ) adr ON adr.reviewee_id = au.id
-              WHERE ab.order_id = o.id AND ab.user_id = o.assigned_driver_id)
+              WHERE ab.order_id = o.id AND ab.user_id = o.assigned_driver_user_id)
             ELSE NULL
           END as acceptedBid,
           json_build_object(
@@ -122,22 +123,76 @@ class OrderService {
       // Distance-based filtering using PostGIS (within 7km of pickup location)
       if (filters.driverLat !== undefined && filters.driverLng !== undefined) {
         locationConditions += ` AND ST_Distance(
-          ST_Point(
-            trim(split_part(o.from_coordinates, ',', 2))::float,
-            trim(split_part(o.from_coordinates, ',', 1))::float
-          )::geography,
-          ST_Point($${params.length + 1}, $${params.length + 2})::geography,
+          ST_Point(o.from_lng, o.from_lat)::geography,
+          ST_Point(CAST($2 AS FLOAT), CAST($3 AS FLOAT))::geography,
           true
         ) <= 7000`;
         filterParams.push(filters.driverLng, filters.driverLat);
-        console.log('🛠️ Added PostGIS distance filter:', {
-          lng: filters.driverLng,
-          lat: filters.driverLat,
-          paramIndexLng: params.length + 1,
-          paramIndexLat: params.length + 2
+        logger.info('PostGIS distance filter applied', {
+          driverLng: filters.driverLng,
+          driverLat: filters.driverLat,
+          distanceThresholdMeters: 7000,
+          category: 'orders'
+        });
+
+        // Add debugging query to check distances for all orders
+        logger.debug('Checking distances for all pending orders', {
+          driverLat: filters.driverLat,
+          driverLng: filters.driverLng,
+          category: 'orders'
+        });
+        const debugQuery = `
+          SELECT
+            o.id,
+            o.order_number,
+            o.pickup_coordinates,
+            (o.pickup_coordinates->>'lng')::float as pickup_lng,
+            (o.pickup_coordinates->>'lat')::float as pickup_lat,
+            ST_Distance(
+              ST_Point(
+                (o.pickup_coordinates->>'lng')::float,
+                (o.pickup_coordinates->>'lat')::float
+              )::geography,
+              ST_Point($1, $2)::geography,
+              true
+            ) / 1000 as distance_km
+          FROM orders o
+          WHERE o.status = 'pending_bids' AND o.assigned_driver_user_id IS NULL
+          ORDER BY distance_km ASC
+        `;
+        const debugResult = await pool.query(debugQuery, [filters.driverLng, filters.driverLat]);
+        logger.info('Distance calculation results', {
+          driverLat: filters.driverLat,
+          driverLng: filters.driverLng,
+          totalOrders: debugResult.rows.length,
+          distances: debugResult.rows.map(row => ({
+            orderId: row.id,
+            orderNumber: row.order_number,
+            pickupCoords: row.pickup_coordinates,
+            pickupLat: row.pickup_lat,
+            pickupLng: row.pickup_lng,
+            distanceKm: Number(row.distance_km).toFixed(2)
+          })),
+          category: 'orders'
+        });
+
+        // Log which orders should be filtered out
+        const ordersWithinRange = debugResult.rows.filter(row => Number(row.distance_km) <= 7);
+        const ordersOutsideRange = debugResult.rows.filter(row => Number(row.distance_km) > 7);
+
+        logger.info('Filter analysis', {
+          driverLat: filters.driverLat,
+          driverLng: filters.driverLng,
+          ordersWithin7km: ordersWithinRange.length,
+          ordersOutside7km: ordersOutsideRange.length,
+          shouldBeFilteredOut: ordersOutsideRange.map(o => ({ id: o.id, distance: Number(o.distance_km).toFixed(2) })),
+          category: 'orders'
         });
       } else {
-        console.log('⚠️ Skipping PostGIS filter - missing coordinates:', filters);
+        logger.warn('Skipping PostGIS filter - missing coordinates', {
+          filters,
+          category: 'orders'
+        });
       }
 
       // Additional text-based filters
@@ -192,7 +247,7 @@ class OrderService {
             )
           ) FILTER (WHERE b.id IS NOT NULL) as bids,
           CASE
-            WHEN o.assigned_driver_id IS NOT NULL THEN
+            WHEN o.assigned_driver_user_id IS NOT NULL THEN
               (SELECT json_build_object(
                 'userId', ab.user_id,
                 'driverName', au.name,
@@ -212,7 +267,7 @@ class OrderService {
                 FROM reviews
                 GROUP BY reviewee_id
               ) adr ON adr.reviewee_id = au.id
-              WHERE ab.order_id = o.id AND ab.user_id = o.assigned_driver_id)
+              WHERE ab.order_id = o.id AND ab.user_id = o.assigned_driver_user_id)
             ELSE NULL
           END as acceptedBid,
           json_build_object(
@@ -223,12 +278,12 @@ class OrderService {
             )
           ) as reviewStatus,
           CASE
-            WHEN o.assigned_driver_id = $1 THEN 0
+            WHEN o.assigned_driver_user_id = $1 THEN 0
             WHEN o.status = 'pending_bids' THEN 1
             ELSE 2
           END as sort_priority
         FROM orders o
-        LEFT JOIN users d ON o.assigned_driver_id = d.id
+        LEFT JOIN users d ON o.assigned_driver_user_id = d.id
         LEFT JOIN bids b ON o.id = b.order_id
         LEFT JOIN users u ON b.user_id = u.id
         LEFT JOIN reviews r ON o.id = r.order_id AND r.reviewer_id = $1 AND r.reviewee_id = o.customer_id
@@ -237,12 +292,13 @@ class OrderService {
           FROM reviews
           GROUP BY reviewee_id
         ) dr ON dr.reviewee_id = u.id
-        WHERE (o.status = 'pending_bids' AND o.assigned_driver_id IS NULL${locationConditions})
-           OR o.assigned_driver_id = $1
+        WHERE (o.status = 'pending_bids' AND o.assigned_driver_user_id IS NULL${locationConditions})
+           OR o.assigned_driver_user_id = $1
         GROUP BY o.id, d.id, d.name, d.rating, d.completed_deliveries, r.id
         ORDER BY sort_priority, o.created_at DESC
       `;
       params = [userId, ...filterParams];
+      // Note: userId is used in WHERE clause as $1, and filterParams contains the location coordinates
     } else {
       // Admin sees all orders
       query = `
@@ -270,7 +326,7 @@ class OrderService {
             )
           ) FILTER (WHERE b.id IS NOT NULL) as bids,
           CASE
-            WHEN o.assigned_driver_id IS NOT NULL THEN
+            WHEN o.assigned_driver_user_id IS NOT NULL THEN
               (SELECT json_build_object(
                 'userId', ab.user_id,
                 'driverName', au.name,
@@ -290,11 +346,11 @@ class OrderService {
                 FROM reviews
                 GROUP BY reviewee_id
               ) adr ON adr.reviewee_id = au.id
-              WHERE ab.order_id = o.id AND ab.user_id = o.assigned_driver_id)
+              WHERE ab.order_id = o.id AND ab.user_id = o.assigned_driver_user_id)
             ELSE NULL
           END as acceptedBid
         FROM orders o
-        LEFT JOIN users d ON o.assigned_driver_id = d.id
+        LEFT JOIN users d ON o.assigned_driver_user_id = d.id
         LEFT JOIN bids b ON o.id = b.order_id
         LEFT JOIN users u ON b.user_id = u.id
         LEFT JOIN (
@@ -307,7 +363,14 @@ class OrderService {
       `;
     }
 
+    console.log('🔍 EXECUTING DRIVER QUERY:');
+    console.log('Query:', query);
+    console.log('Params:', params);
+    console.log('Location conditions applied:', !!locationConditions);
+
     const result = await pool.query(query, params);
+
+    console.log('📊 Query returned', result.rows.length, 'orders');
 
     return result.rows.map(order => ({
       _id: order.id,
@@ -427,10 +490,11 @@ class OrderService {
     const result = await pool.query(
       `INSERT INTO orders (
         id, customer_id, title, description, pickup_address, delivery_address,
-        from_coordinates, to_coordinates, package_description, package_weight,
+        from_lat, from_lng, to_lat, to_lng, from_coordinates, to_coordinates,
+        pickup_coordinates, delivery_coordinates, package_description, package_weight,
         estimated_value, special_instructions, price, status, order_number,
         created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW())
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, NOW())
       RETURNING *`,
       [
         orderId,
@@ -439,8 +503,14 @@ class OrderService {
         this.sanitizeString(description, 1000),
         pickupAddress,
         deliveryAddress,
-        fromCoordinates,
-        toCoordinates,
+        parseFloat(fromCoordinates.split(',')[0]), // from_lat
+        parseFloat(fromCoordinates.split(',')[1]), // from_lng
+        parseFloat(toCoordinates.split(',')[0]), // to_lat
+        parseFloat(toCoordinates.split(',')[1]), // to_lng
+        fromCoordinates, // legacy from_coordinates
+        toCoordinates, // legacy to_coordinates
+        JSON.stringify({ lat: parseFloat(fromCoordinates.split(',')[0]), lng: parseFloat(fromCoordinates.split(',')[1]) }), // pickup_coordinates
+        JSON.stringify({ lat: parseFloat(toCoordinates.split(',')[0]), lng: parseFloat(toCoordinates.split(',')[1]) }), // delivery_coordinates
         this.sanitizeString(package_description, 500),
         package_weight ? parseFloat(package_weight) : null,
         estimated_value ? parseFloat(estimated_value) : null,

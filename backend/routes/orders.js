@@ -14,22 +14,64 @@ router.get('/', verifyToken, async (req, res) => {
     const { country, city, area, lat, lng } = req.query;
     const filters = { country, city, area };
 
-    console.log('🔍 GET /api/orders request:', {
+    logger.debug('GET /api/orders request', {
       userId: req.user.userId,
       role: req.user.role,
-      query: req.query
+      query: req.query,
+      hasLat: !!req.query.lat,
+      hasLng: !!req.query.lng,
+      category: 'orders'
     });
 
-    // For drivers, add location-based filtering
-    if (req.user.role === 'driver' && lat && lng) {
+    // For drivers, location-based filtering is MANDATORY
+    if (req.user.role === 'driver') {
+      if (!lat || !lng) {
+        logger.warn('Driver attempted to fetch orders without location - BLOCKED', {
+          userId: req.user.userId,
+          role: req.user.role,
+          hasLat: !!lat,
+          hasLng: !!lng,
+          category: 'orders'
+        });
+        return res.status(400).json({
+          error: 'Driver location (lat/lng) is required to fetch available orders. Please enable location services and try again.'
+        });
+      }
+
       filters.driverLat = parseFloat(lat);
       filters.driverLng = parseFloat(lng);
-      console.log('📍 Applying driver location filter:', { lat: filters.driverLat, lng: filters.driverLng });
+      logger.info('Driver location filter applied', {
+        driverLat: filters.driverLat,
+        driverLng: filters.driverLng,
+        rawLat: lat,
+        rawLng: lng,
+        userId: req.user.userId,
+        category: 'orders'
+      });
     } else {
-      console.log('⚠️ No driver location filter applied:', { role: req.user.role, lat, lng });
+      // Non-drivers should not provide lat/lng parameters (they don't get filtered)
+      if (lat || lng) {
+        logger.warn('Non-driver provided lat/lng parameters - ignoring (no filtering applied)', {
+          userId: req.user.userId,
+          role: req.user.role,
+          lat,
+          lng,
+          category: 'orders'
+        });
+      }
     }
 
     const orders = await orderService.getOrders(req.user.userId, req.user.role, filters);
+
+    console.log('📦 ORDERS RESPONSE:', {
+      userId: req.user.userId,
+      role: req.user.role,
+      totalOrders: orders.length,
+      pendingBidsOrders: orders.filter(o => o.status === 'pending_bids').length,
+      assignedOrders: orders.filter(o => o.assignedDriver).length,
+      appliedFilters: filters
+    });
+
     res.json(orders);
   } catch (error) {
     logger.error(`Get orders error: ${error.message}`, {
