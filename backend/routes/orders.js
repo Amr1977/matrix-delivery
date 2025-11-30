@@ -14,12 +14,13 @@ router.get('/', verifyToken, async (req, res) => {
     const { country, city, area, lat, lng } = req.query;
     const filters = { country, city, area };
 
-    logger.debug('GET /api/orders request', {
-      userId: req.user.userId,
-      role: req.user.role,
+    logger.info('GET /api/orders request received', {
+      userId: req.user?.userId || 'unauthenticated',
+      role: req.user?.role || 'unknown',
       query: req.query,
       hasLat: !!req.query.lat,
       hasLng: !!req.query.lng,
+      isAuthenticated: !!req.user,
       category: 'orders'
     });
 

@@ -179,57 +179,6 @@ const DeliveryApp = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Fetch countries from backend API
-  const refetchCountries = useCallback(async () => {
-    try {
-      setCountriesLoading(true);
-      const response = await fetch(`${API_URL}/locations/countries?t=${Date.now()}`);
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Fetched countries from API:', data.length, 'countries', data.slice(0, 5));
-        if (Array.isArray(data) && data.length > 0) {
-          setCountries(data);
-        } else {
-          console.warn('⚠️ API returned empty countries list');
-        }
-      } else {
-        console.warn('❌ API response not ok:', response.status);
-      }
-    } catch (error) {
-      console.error('❌ Failed to fetch countries:', error);
-      // Fallback to default countries if API fails
-      const fallback = ['Egypt', 'Saudi Arabia', 'UAE', 'Jordan', 'Lebanon', 'Kuwait', 'Qatar', 'Bahrain', 'Oman', 'Morocco', 'Tunisia', 'Algeria', 'Libya', 'Sudan', 'Yemen', 'Iraq', 'Syria', 'Palestine'];
-      console.log('Using fallback countries:', fallback.length);
-      setCountries(fallback);
-    } finally {
-      setCountriesLoading(false);
-    }
-  }, [API_URL]);
-
-  useEffect(() => {
-    refetchCountries();
-  }, [refetchCountries]);
-
-  // Expose cache clearing function to window for debugging
-  useEffect(() => {
-    window.clearLocationCache = async () => {
-      try {
-        console.log('🧹 Clearing backend location cache...');
-        const response = await fetch(`${API_URL}/locations/cache/clear`, {
-          method: 'POST'
-        });
-        if (response.ok) {
-          console.log('✅ Cache cleared successfully');
-          // Refetch countries after clearing cache
-          setTimeout(() => refetchCountries(), 500);
-        } else {
-          console.error('❌ Failed to clear cache:', response.status);
-        }
-      } catch (error) {
-        console.error('❌ Error clearing cache:', error);
-      }
-    };
-  }, [API_URL, refetchCountries]);
 
   // Enhanced location state
   const [locationPermission, setLocationPermission] = useState('unknown'); // 'unknown', 'granted', 'denied', 'prompt'
@@ -391,7 +340,9 @@ const DeliveryApp = () => {
 
       const queryString = queryParams.toString();
       const url = queryString ? `${API_URL}/orders?${queryString}` : `${API_URL}/orders`;
-
+      if (!queryString) {
+        return;
+      }
       const response = await fetch(url, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -459,6 +410,32 @@ const DeliveryApp = () => {
       return () => clearInterval(interval);
     }
   }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Fetch orders after user data is loaded and location is available for drivers
+  useEffect(() => {
+    if (token && currentUser) {
+      // For drivers, only fetch orders if we have location data
+      if (currentUser.role === 'driver') {
+        const fakeLocation = localStorage.getItem('fakeDriverLocation');
+        const hasFakeLocation = fakeLocation && (() => {
+          try {
+            const loc = JSON.parse(fakeLocation);
+            return loc.lat && loc.lng;
+          } catch {
+            return false;
+          }
+        })();
+        const hasRealLocation = driverLocation?.latitude && driverLocation?.longitude;
+
+        if (hasFakeLocation || hasRealLocation) {
+          fetchOrders();
+        }
+      } else {
+        // For non-drivers, fetch orders immediately
+        fetchOrders();
+      }
+    }
+  }, [token, currentUser, driverLocation]); // eslint-disable-line react-hooks/exhaustive-deps
 
 
 
@@ -649,8 +626,6 @@ const DeliveryApp = () => {
       setCurrentUser(data);
       setAvailableRoles(data.roles || (data.role ? [data.role] : []));
       setError('');
-      fetchOrders();
-
 
     } catch (err) {
       console.error('fetchCurrentUser error:', err);
