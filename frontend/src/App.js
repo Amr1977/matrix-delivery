@@ -1828,14 +1828,14 @@ const DeliveryApp = () => {
   // Add this after Part 4 (continues the return statement)
 
   return (
-    <div style={{ minHeight: '100vh', background: '#090909' }}>
+    <div style={{ minHeight: '100vh', background: '#090909', display: 'flex', flexDirection: 'column' }}>
       <header className="glow">
         <div className="header-content">
           {/* Logo */}
           <div className="header-logo">
             <img
               src="/branding-hero-1.png"
-              alt="Matrix Heroes - Your trusted delivery heroes"
+              alt="Matrix Heroes - Your trusted heroes"
               className="pulse"
               style={{ width: '48px', height: '48px', marginBottom: '0.5rem' }}
             />
@@ -1850,71 +1850,6 @@ const DeliveryApp = () => {
 
 
             <LanguageSwitcher locale={locale} changeLocale={changeLocale} />
-
-            <a
-              href="https://www.paypal.com/ncp/payment/HVC6ZJ7PPYETS"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-primary"
-              style={{
-                backgroundColor: '#0070ba',
-                color: 'white',
-                padding: '0.75rem 1.5rem',
-                borderRadius: '0.5rem',
-                fontWeight: '600',
-                textDecoration: 'none',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.5rem'
-              }}
-            >
-              <img src="https://www.paypalobjects.com/webstatic/mktg/logo/pp_cc_mark_34x23.jpg" alt="PayPal" style={{ height: '1.2em' }} />
-              Donate
-            </a>
-
-            <button
-              onClick={async () => {
-                setLoading(true);
-                try {
-                  const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
-                  const pRes = await fetch(`${API_URL}/users/me/profile`, { headers });
-                  if (!pRes.ok) throw new Error('Failed to load profile');
-                  const pData = await pRes.json();
-                  setProfileData(pData);
-                  const prefRes = await fetch(`${API_URL}/users/me/preferences`, { headers });
-                  if (prefRes.ok) setPreferencesData(await prefRes.json());
-                  const pmRes = await fetch(`${API_URL}/users/me/payment-methods`, { headers });
-                  if (pmRes.ok) setPaymentMethods(await pmRes.json());
-                  const favRes = await fetch(`${API_URL}/users/me/favorites`, { headers });
-                  if (favRes.ok) setFavorites(await favRes.json());
-                  const actRes = await fetch(`${API_URL}/users/me/activity`, { headers });
-                  if (actRes.ok) setActivityData(await actRes.json());
-                  setShowProfile(true);
-                } catch (e) {
-                  setError(e.message);
-                } finally {
-                  setLoading(false);
-                }
-              }}
-              className="btn-secondary"
-            >
-              Profile
-            </button>
-
-            <button
-              onClick={() => setShowMessaging(true)}
-              className="btn-secondary"
-              style={{ position: 'relative' }}
-            >
-              💬 Messages
-            </button>
-
-            <button
-              onClick={() => setShowPaymentMethods(true)}
-              className="btn-secondary"
-            >
-              💳 Payments
-            </button>
 
             <button
               onClick={() => setShowNotifications(!showNotifications)}
@@ -2379,7 +2314,7 @@ const DeliveryApp = () => {
           </div>
         </div>
       )}
-      <main style={{ maxWidth: '80rem', margin: '0 auto', padding: mobileView ? '1rem 0.5rem' : '2rem 1rem' }}>
+      <main style={{ maxWidth: '80rem', margin: '0 auto', padding: mobileView ? '1rem 0.5rem' : '2rem 1rem', flex: 1, width: '100%' }}>
         {error && (
           <div className="error-matrix" style={{ padding: 'var(--spacing-md)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--spacing-lg)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span className="text-danger pulse">⚠️ {error}</span>
@@ -2396,29 +2331,6 @@ const DeliveryApp = () => {
 
         {/* Email Verification Banner */}
         <EmailVerificationBanner currentUser={currentUser} />
-
-        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
-          <button onClick={() => setShowBrowseVendors(v => !v)} className="btn-primary">🏪 Browse Vendors</button>
-          <button onClick={() => setShowBrowseItems(v => !v)} className="btn-primary">🛒 Browse Items</button>
-          {Array.isArray(profileData?.roles) && profileData.roles.includes('vendor') && (
-            <button onClick={() => setShowVendorDashboard(v => !v)} className="btn-primary">🧑‍💼 Vendor Dashboard</button>
-          )}
-        </div>
-        {showBrowseVendors && (
-          <div style={{ marginBottom: '1rem' }}>
-            <BrowseVendors apiUrl={API_URL} />
-          </div>
-        )}
-        {showBrowseItems && (
-          <div style={{ marginBottom: '1rem' }}>
-            <BrowseItems apiUrl={API_URL} />
-          </div>
-        )}
-        {showVendorDashboard && Array.isArray(profileData?.roles) && profileData.roles.includes('vendor') && (
-          <div style={{ marginBottom: '1rem' }}>
-            <VendorSelfDashboard apiUrl={API_URL} token={token} />
-          </div>
-        )}
 
         {(currentUser?.role === 'customer' || currentUser?.role === 'admin') && (
           <div style={{ marginBottom: '1.5rem' }}>
@@ -3641,85 +3553,7 @@ const DeliveryApp = () => {
         borderTop: '1px solid #E5E7EB',
         background: '#F9FAFB'
       }}>
-        <div style={{ maxWidth: '80rem', margin: '0 auto' }}>
-          {/* System Status Bar */}
-          {footerStats && (
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: mobileView ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
-              gap: '1rem',
-              marginBottom: '1rem',
-              padding: '1rem',
-              background: 'white',
-              borderRadius: '0.5rem',
-              boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)'
-            }}>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>👥</div>
-                <div style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>
-                  {footerStats.usersByRole?.customer || 0} Customers
-                </div>
-                <div style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>
-                  {footerStats.usersByRole?.driver || 0} Drivers
-                </div>
-              </div>
 
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>📦</div>
-                <div style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>
-                  {footerStats.activeOrders || 0} Active Orders
-                </div>
-                <div style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>
-                  {footerStats.pendingOrders || 0} Pending Bids
-                </div>
-              </div>
-
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>💰</div>
-                <div style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>
-                  ${footerStats.totalRevenue?.toFixed(2) || '0.00'} Revenue
-                </div>
-                <div style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>
-                  ⭐ {footerStats.avgRating || '0.0'} Rating
-                </div>
-              </div>
-
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>🚚</div>
-                <div style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>
-                  {footerStats.activeDrivers || 0} Active Drivers
-                </div>
-                <div style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>
-                  {footerStats.todayOrders || 0} Orders Today
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Footer Links and Info */}
-          <div style={{
-            display: 'flex',
-            flexDirection: mobileView ? 'column' : 'row',
-            justifyContent: 'space-between',
-            alignItems: mobileView ? 'center' : 'center',
-            gap: '1rem'
-          }}>
-            <div style={{ textAlign: mobileView ? 'center' : 'left' }}>
-              <p style={{ margin: 0, fontWeight: '600', color: '#374151' }}>
-                Matrix Delivery v1.0.0
-              </p>
-              <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.625rem' }}>
-                Last deployment: {footerStats ? new Date(footerStats.deploymentTimestamp).toLocaleString() : 'Unknown'}
-              </p>
-            </div>
-
-            <div style={{ textAlign: mobileView ? 'center' : 'right' }}>
-              <p style={{ margin: 0, fontSize: '0.625rem' }}>
-                Server uptime: {footerStats ? `${Math.floor(footerStats.serverUptime / 3600)}h ${Math.floor((footerStats.serverUptime % 3600) / 60)}m` : 'Unknown'}
-              </p>
-            </div>
-          </div>
-        </div>
         <MobileNavBar
           unreadCount={notifications.filter(n => !n.isRead).length}
           setShowNotifications={setShowNotifications}
