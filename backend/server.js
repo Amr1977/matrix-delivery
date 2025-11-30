@@ -27,6 +27,9 @@ const {
   persistCache
 } = require('./utils/cache');
 
+// Import routes
+const ordersRouter = require('./routes/orders');
+
 
 // Load environment-specific .env file
 const envFile = process.env.ENV_FILE || '.env';
@@ -339,7 +342,13 @@ const initDatabase = async () => {
     `);
 
     // Update driver_locations table schema for live tracking
-    await pool.query(`ALTER TABLE driver_locations DROP CONSTRAINT IF EXISTS driver_locations_driver_id_key`);
+    // Restore unique constraint if it was dropped (deduplicate first)
+    await pool.query(`
+      DELETE FROM driver_locations a USING driver_locations b
+      WHERE a.id < b.id AND a.driver_id = b.driver_id
+    `);
+    await pool.query(`ALTER TABLE driver_locations ADD CONSTRAINT driver_locations_driver_id_key UNIQUE (driver_id)`).catch(() => { });
+
     await pool.query(`ALTER TABLE driver_locations DROP CONSTRAINT IF EXISTS driver_locations_order_id_fkey`);
     await pool.query(`ALTER TABLE driver_locations ADD COLUMN IF NOT EXISTS order_id VARCHAR(255) REFERENCES orders(id) ON DELETE CASCADE`);
     await pool.query(`ALTER TABLE driver_locations ADD COLUMN IF NOT EXISTS heading DECIMAL(5,2)`);
@@ -2390,8 +2399,13 @@ app.post('/api/orders', verifyToken, async (req, res) => {
   }
 });
 
+// ============ ORDERS ROUTES (with proximity filtering) ============
+// Mount the orders router which includes 7km radius filtering using PostGIS
+app.use('/api/orders', ordersRouter);
+
 // Get all orders
 app.get('/api/orders', verifyToken, async (req, res) => {
+  console.log('⚠️ INLINE /api/orders ENDPOINT HIT - ROUTER BYPASSED!');
   try {
     let query, params;
 
@@ -3098,7 +3112,7 @@ app.post('/api/drivers/location', verifyToken, async (req, res) => {
 
     await pool.query(
       `INSERT INTO driver_locations (driver_id, latitude, longitude) VALUES ($1, $2, $3)
-       ON CONFLICT (driver_id) DO UPDATE SET latitude = $2, longitude = $3, last_updated = CURRENT_TIMESTAMP`,
+       ON CONFLICT (driver_id) DO UPDATE SET latitude = $2, longitude = $3, timestamp = CURRENT_TIMESTAMP`,
       [req.user.userId, lat, lng]
     );
 
@@ -3124,7 +3138,7 @@ app.get('/api/drivers/location', verifyToken, async (req, res) => {
     }
 
     const result = await pool.query(
-      'SELECT latitude, longitude, last_updated FROM driver_locations WHERE driver_id = $1',
+      'SELECT latitude, longitude, timestamp as last_updated FROM driver_locations WHERE driver_id = $1',
       [req.user.userId]
     );
 

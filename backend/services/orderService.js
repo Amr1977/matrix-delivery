@@ -121,15 +121,23 @@ class OrderService {
 
       // Distance-based filtering using PostGIS (within 7km of pickup location)
       if (filters.driverLat !== undefined && filters.driverLng !== undefined) {
-        locationConditions += ` AND ST_DWithin(
+        locationConditions += ` AND ST_Distance(
           ST_Point(
-            split_part(o.from_coordinates, ',', 2)::float,
-            split_part(o.from_coordinates, ',', 1)::float
+            trim(split_part(o.from_coordinates, ',', 2))::float,
+            trim(split_part(o.from_coordinates, ',', 1))::float
           )::geography,
           ST_Point($${params.length + 1}, $${params.length + 2})::geography,
-          7000
-        )`;
+          true
+        ) <= 7000`;
         filterParams.push(filters.driverLng, filters.driverLat);
+        console.log('🛠️ Added PostGIS distance filter:', {
+          lng: filters.driverLng,
+          lat: filters.driverLat,
+          paramIndexLng: params.length + 1,
+          paramIndexLat: params.length + 2
+        });
+      } else {
+        console.log('⚠️ Skipping PostGIS filter - missing coordinates:', filters);
       }
 
       // Additional text-based filters

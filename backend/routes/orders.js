@@ -14,10 +14,19 @@ router.get('/', verifyToken, async (req, res) => {
     const { country, city, area, lat, lng } = req.query;
     const filters = { country, city, area };
 
+    console.log('🔍 GET /api/orders request:', {
+      userId: req.user.userId,
+      role: req.user.role,
+      query: req.query
+    });
+
     // For drivers, add location-based filtering
     if (req.user.role === 'driver' && lat && lng) {
       filters.driverLat = parseFloat(lat);
       filters.driverLng = parseFloat(lng);
+      console.log('📍 Applying driver location filter:', { lat: filters.driverLat, lng: filters.driverLng });
+    } else {
+      console.log('⚠️ No driver location filter applied:', { role: req.user.role, lat, lng });
     }
 
     const orders = await orderService.getOrders(req.user.userId, req.user.role, filters);
