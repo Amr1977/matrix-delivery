@@ -13,10 +13,6 @@ import ReCAPTCHA from 'react-google-recaptcha';
 import logger from './logger';
 import './Mobile.css';
 import './MatrixTheme.css';
-import BrowseVendors from './components/BrowseVendors';
-import BrowseItems from './components/BrowseItems';
-import VendorSelfDashboard from './components/VendorSelfDashboard';
-import MobileNavBar from './components/MobileNavBar';
 import MessagingPanel from './components/messaging/MessagingPanel';
 import PaymentMethodsManager from './components/payments/PaymentMethodsManager';
 import EmailVerificationBanner from './components/auth/EmailVerificationBanner';
@@ -3554,13 +3550,6 @@ const DeliveryApp = () => {
         background: '#F9FAFB'
       }}>
 
-        <MobileNavBar
-          unreadCount={notifications.filter(n => !n.isRead).length}
-          setShowNotifications={setShowNotifications}
-          setShowProfile={setShowProfile}
-          setShowMessaging={setShowMessaging}
-          toggleMobileMenu={toggleMobileMenu}
-        />
       </footer>
     </div>
   );

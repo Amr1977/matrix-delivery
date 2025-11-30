@@ -570,12 +570,12 @@ module.exports = (app, pool, jwt, verifyToken) => {
         errorDetail: error.detail,
         errorStack: error.stack,
         requestBody: {
-          title,
-          hasPickupLocation: !!pickupLocation,
-          hasDropoffLocation: !!dropoffLocation,
-          hasRouteInfo: !!routeInfo,
-          pickupCoords: pickupLocation?.coordinates,
-          dropoffCoords: dropoffLocation?.coordinates
+          title: req.body.title,
+          hasPickupLocation: !!req.body.pickupLocation,
+          hasDropoffLocation: !!req.body.dropoffLocation,
+          hasRouteInfo: !!req.body.routeInfo,
+          pickupCoords: req.body.pickupLocation?.coordinates,
+          dropoffCoords: req.body.dropoffLocation?.coordinates
         }
       });
 

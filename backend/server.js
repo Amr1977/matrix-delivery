@@ -191,6 +191,17 @@ const initDatabase = async () => {
       )
     `);
 
+    // Add missing columns for map location picker functionality
+    await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS pickup_coordinates JSONB`);
+    await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_coordinates JSONB`);
+    await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS pickup_location_link TEXT`);
+    await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_location_link TEXT`);
+    await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS estimated_distance_km DECIMAL(10,2)`);
+    await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS estimated_duration_minutes INTEGER`);
+    await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS route_polyline TEXT`);
+    await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS is_remote_area BOOLEAN DEFAULT false`);
+    await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS is_international BOOLEAN DEFAULT false`);
+
     // Create bids table with enhanced fields
     await pool.query(`
       CREATE TABLE IF NOT EXISTS bids (
