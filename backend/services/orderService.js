@@ -116,15 +116,18 @@ class OrderService {
       `;
       params = [userId];
     } else if (userRole === 'driver') {
-      // Build location filter conditions for pending_bids orders
-      let locationConditions = '';
+      // Reset location conditions for driver
+      locationConditions = '';
       const filterParams = [];
 
       // Distance-based filtering using PostGIS (within 7km of pickup location)
-      if (filters.driverLat !== undefined && filters.driverLng !== undefined) {
+      if (filters.driverLat !== undefined && filters.driverLng !== undefined && !isNaN(filters.driverLat) && !isNaN(filters.driverLng)) {
         locationConditions += ` AND ST_Distance(
-          ST_Point(o.from_lng, o.from_lat)::geography,
-          ST_Point(CAST($2 AS FLOAT), CAST($3 AS FLOAT))::geography,
+          ST_Point(
+            (o.pickup_coordinates->>'lng')::float,
+            (o.pickup_coordinates->>'lat')::float
+          )::geography,
+          ST_Point($2, $3)::geography,
           true
         ) <= 7000`;
         filterParams.push(filters.driverLng, filters.driverLat);
@@ -189,8 +192,11 @@ class OrderService {
           category: 'orders'
         });
       } else {
-        logger.warn('Skipping PostGIS filter - missing coordinates', {
-          filters,
+        logger.warn('Skipping PostGIS filter - missing or invalid coordinates', {
+          driverLat: filters.driverLat,
+          driverLng: filters.driverLng,
+          isNaNLat: isNaN(filters.driverLat),
+          isNaNLng: isNaN(filters.driverLng),
           category: 'orders'
         });
       }
@@ -198,7 +204,7 @@ class OrderService {
       // Additional text-based filters
       if (filters.country || filters.city || filters.area) {
         const conditions = [];
-        let paramIndex = params.length + filterParams.length + 1;
+        let paramIndex = filterParams.length + 1;
 
         if (filters.country) {
           conditions.push(`o.pickup_address ILIKE $${paramIndex}`);
@@ -363,10 +369,15 @@ class OrderService {
       `;
     }
 
-    console.log('🔍 EXECUTING DRIVER QUERY:');
+    console.log('🔍 EXECUTING QUERY:');
+    console.log('User role:', userRole);
     console.log('Query:', query);
     console.log('Params:', params);
     console.log('Location conditions applied:', !!locationConditions);
+    if (userRole === 'driver') {
+      console.log('Driver location from params:', { lng: params[1], lat: params[2] });
+    }
+    console.log('Filter object:', filters);
 
     const result = await pool.query(query, params);
 
