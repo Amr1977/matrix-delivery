@@ -1600,7 +1600,7 @@ const MapLocationPicker = ({ location, onChange, onAddressFill, userLocation, ma
                     iconSize: [25, 41],
                     iconAnchor: [12, 41]
                   })}
-                  onDragEnd={(e) => handleMapClick({ lat: e.target.getLatLng().lat, lng: e.target.getLatLng().lng })}
+                  onDragEnd={(newPos) => handleMapClick(newPos)}
                 >
                   <Popup>
                     <strong>{locationType === 'pickup' ? t('orders.pickup') : t('orders.delivery')}</strong><br />
