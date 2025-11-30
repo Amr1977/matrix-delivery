@@ -119,9 +119,23 @@ class OrderService {
       let locationConditions = '';
       const filterParams = [];
 
+      // Distance-based filtering using PostGIS (within 7km of pickup location)
+      if (filters.driverLat !== undefined && filters.driverLng !== undefined) {
+        locationConditions += ` AND ST_DWithin(
+          ST_Point(
+            split_part(o.from_coordinates, ',', 2)::float,
+            split_part(o.from_coordinates, ',', 1)::float
+          )::geography,
+          ST_Point($${params.length + 1}, $${params.length + 2})::geography,
+          7000
+        )`;
+        filterParams.push(filters.driverLng, filters.driverLat);
+      }
+
+      // Additional text-based filters
       if (filters.country || filters.city || filters.area) {
         const conditions = [];
-        let paramIndex = params.length + 1;
+        let paramIndex = params.length + filterParams.length + 1;
 
         if (filters.country) {
           conditions.push(`o.pickup_address ILIKE $${paramIndex}`);
@@ -140,7 +154,7 @@ class OrderService {
         }
 
         if (conditions.length > 0) {
-          locationConditions = ' AND (' + conditions.join(' AND ') + ') AND o.assigned_driver_id IS NULL';
+          locationConditions += ' AND (' + conditions.join(' AND ') + ')';
         }
       }
 

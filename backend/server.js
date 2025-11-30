@@ -74,6 +74,14 @@ const pool = new Pool({
 // Database initialization
 const initDatabase = async () => {
   try {
+    // Enable PostGIS extension
+    try {
+      await pool.query('CREATE EXTENSION IF NOT EXISTS postgis');
+      console.log('✅ PostGIS extension enabled');
+    } catch (postgisError) {
+      console.log('⚠️ PostGIS extension not available:', postgisError.message);
+    }
+
     // Create users table
     await pool.query(`
       CREATE TABLE IF NOT EXISTS users (

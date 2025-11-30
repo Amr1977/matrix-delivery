@@ -11,8 +11,16 @@ const router = express.Router();
 // Get orders (filtered by user role and location filters)
 router.get('/', verifyToken, async (req, res) => {
   try {
-    const { country, city, area } = req.query;
-    const orders = await orderService.getOrders(req.user.userId, req.user.role, { country, city, area });
+    const { country, city, area, lat, lng } = req.query;
+    const filters = { country, city, area };
+
+    // For drivers, add location-based filtering
+    if (req.user.role === 'driver' && lat && lng) {
+      filters.driverLat = parseFloat(lat);
+      filters.driverLng = parseFloat(lng);
+    }
+
+    const orders = await orderService.getOrders(req.user.userId, req.user.role, filters);
     res.json(orders);
   } catch (error) {
     logger.error(`Get orders error: ${error.message}`, {
