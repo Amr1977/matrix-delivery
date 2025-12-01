@@ -764,7 +764,7 @@ const OrderCard = ({
                         }
                       }}
                     >
-                      {loadingStates.acceptBid ? 'Accepting...' : 'Accept Bid'}
+                      {loadingStates.acceptBid ? t('orders.acceptingBid') : t('orders.acceptBid')}
                     </button>
                   </div>
                 </div>
