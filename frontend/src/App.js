@@ -340,9 +340,14 @@ const DeliveryApp = () => {
 
       const queryString = queryParams.toString();
       const url = queryString ? `${API_URL}/orders?${queryString}` : `${API_URL}/orders`;
-      if (!queryString) {
+
+      // Only require query parameters for drivers (they need lat/lng for distance filtering)
+      // Customers should be able to fetch their orders without any query parameters
+      if (currentUser?.role === 'driver' && !queryString) {
+        console.warn('⚠️ Driver location required for fetching orders');
         return;
       }
+
       const response = await fetch(url, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -504,7 +509,7 @@ const DeliveryApp = () => {
     }
   }, [currentUser, token]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  
+
 
   // Start location tracking when driver enters bidding view
   useEffect(() => {
