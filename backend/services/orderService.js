@@ -679,8 +679,8 @@ class OrderService {
 
     // Update order with accepted bid
     await pool.query(
-      'UPDATE orders SET status = $1, assigned_driver_user_id = $2, assigned_driver_name = (SELECT driver_name FROM bids WHERE order_id = $3 AND user_id = $2), assigned_driver_bid_price = (SELECT bid_price FROM bids WHERE order_id = $3 AND user_id = $2), price = (SELECT bid_price FROM bids WHERE order_id = $3 AND user_id = $2), accepted_at = NOW() WHERE id = $3',
-      ['accepted', driverId, orderId]
+      'UPDATE orders SET status = $1, assigned_driver_user_id = $2, assigned_driver_name = (SELECT driver_name FROM bids WHERE order_id = $3 AND user_id = $4), assigned_driver_bid_price = (SELECT bid_price FROM bids WHERE order_id = $3 AND user_id = $5), price = (SELECT bid_price FROM bids WHERE order_id = $3 AND user_id = $6), accepted_at = NOW() WHERE id = $3',
+      ['accepted', driverId, orderId, driverId, driverId, driverId]
     );
 
     logger.order('Bid accepted successfully', {
@@ -979,7 +979,14 @@ class OrderService {
       throw new Error('Can only review delivered orders');
     }
 
-    let reviewerIdFinal, revieweeId, revieweeRole;
+    let reviewerIdFinal, revieweeId, revieweeRole, reviewerRole;
+
+    // Get reviewer's role from database
+    const reviewerResult = await pool.query('SELECT role FROM users WHERE id = $1', [reviewerId]);
+    if (reviewerResult.rows.length === 0) {
+      throw new Error('Reviewer not found');
+    }
+    reviewerRole = reviewerResult.rows[0].role;
 
     if (reviewType === 'customer_to_driver') {
       if (order.customer_id !== reviewerId) {
@@ -1016,15 +1023,16 @@ class OrderService {
     const reviewId = this.generateId();
     await pool.query(
       `INSERT INTO reviews (
-        id, order_id, reviewer_id, reviewee_id, review_type, rating,
-        comment, professionalism_rating, communication_rating,
+        id, order_id, reviewer_id, reviewee_id, reviewer_role,
+        review_type, rating, comment, professionalism_rating, communication_rating,
         timeliness_rating, condition_rating, created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())`,
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())`,
       [
         reviewId,
         orderId,
         reviewerIdFinal,
         revieweeId,
+        reviewerRole,
         reviewType,
         rating,
         this.sanitizeString(comment, 1000),
