@@ -73,7 +73,7 @@ const RegisterForm = ({ onSubmit, loading, error, t, countries }) => {
           onClick={() => setShowPassword(!showPassword)}
           style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#6B7280', cursor: 'pointer', fontSize: '0.875rem' }}
         >
-          {showPassword ? 'Hide' : 'Show'}
+          {showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
         </button>
       </div>
       <select

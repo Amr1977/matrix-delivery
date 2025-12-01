@@ -115,7 +115,7 @@ const OrderCard = ({
               fontFamily: 'Consolas, Monaco, Courier New, monospace',
               textShadow: '0 0 5px rgba(0, 255, 0, 0.5)'
             }}>
-              Order #{order.orderNumber}
+              {t('orders.orderNumberLabel')}{order.orderNumber}
             </p>
           )}
         </div>
@@ -329,7 +329,7 @@ const OrderCard = ({
                   className="btn-success"
                   style={{ textShadow: '0 0 5px rgba(0, 0, 0, 0.5)' }}
                 >
-                  ⭐ Review Driver
+                  ⭐ {t('reviews.reviewDriver')}
                 </button>
               )}
               {currentUser?.role === 'driver' && order.assignedDriver?.userId === currentUser?.id && !order.reviewStatus?.reviews.toCustomer && (
@@ -338,7 +338,7 @@ const OrderCard = ({
                   className="btn-success"
                   style={{ textShadow: '0 0 5px rgba(0, 0, 0, 0.5)' }}
                 >
-                  ⭐ Review Customer
+                  ⭐ {t('reviews.reviewCustomer')}
                 </button>
               )}
               {!order.reviewStatus?.reviews.toPlatform && (

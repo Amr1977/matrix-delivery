@@ -25,7 +25,9 @@ const translations = {
       alreadyHaveAccount: 'Already have an account?',
       loading: 'Loading...',
       verify: 'Verify',
-      verified: 'Verified'
+      verified: 'Verified',
+      showPassword: 'Show',
+      hidePassword: 'Hide'
     },
 
     // Orders
@@ -112,7 +114,16 @@ const translations = {
       bidLabel: 'Bid',
       pickupLocationFields: 'Pickup location (country, city, contact name)',
       deliveryLocationFields: 'Delivery location (country, city, contact name)',
-      driver: 'Driver'
+      driver: 'Driver',
+      cancelOrder: 'Cancel Order',
+      orderNumberLabel: 'Order #',
+      km: 'km',
+      new: 'New',
+      unknown: 'Unknown',
+      packagePickedUpByDriver: 'Package has been picked up by the driver.',
+      packageInTransitToAddress: 'Package is in transit to the delivery address.',
+      orderCompletedSuccessfullyExclamation: 'Order completed successfully!',
+      orderHasBeenCancelled: 'Order has been cancelled.'
     },
 
     // Order Status
@@ -199,11 +210,6 @@ const translations = {
       notifications: 'Notifications',
       noNotifications: 'No notifications',
       newNotification: 'New notification'
-    },
-
-    // Messages
-    messages: {
-      reviewSubmitted: 'Review submitted successfully!'
     },
 
     // Tracking
