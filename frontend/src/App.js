@@ -632,60 +632,65 @@ const DeliveryApp = () => {
 
   // Real-time notifications via WebSocket
   useEffect(() => {
-    if (token && currentUser) {
-      const apiUrl = API_URL.replace('/api', '');
-      const socket = io(apiUrl, {
-        auth: { token }
-      });
+    if (!token || !currentUser?.id) return;
 
-      socket.on('connect', () => {
-        console.log('📡 Connected to real-time notifications');
-      });
+    const apiUrl = API_URL.replace('/api', '');
 
-      socket.on('notification', async (notification) => {
-        console.log('📡 Real-time notification received:', notification);
-        console.log('📡 Notification type:', notification.type);
-        console.log('📡 Notification message:', notification.message);
+    const socket = io(apiUrl, {
+      auth: { token }
+    });
 
-        setNotifications(prev => [notification, ...prev]);
-        playNotificationSound();
+    socket.on('connect', () => {
+      console.log('📡 Connected to real-time notifications');
 
-        if (!notification.isRead) {
-          setSpokenNotifications(prev => {
-            if (prev.has(notification.id)) {
-              return prev;
-            }
-            speakNotification(notification);
-            const next = new Set(prev);
-            next.add(notification.id);
-            return next;
-          });
-        }
+      // Join user's notification room
+      socket.emit('join_user_room', currentUser.id);
+      console.log(`📡 Joined user room: user_${currentUser.id}`);
+    });
 
-        if (notification.type === 'new_bid' ||
-          notification.type === 'bid_accepted' ||
-          notification.type === 'order_picked_up' ||
-          notification.type === 'order_in_transit' ||
-          notification.type === 'order_delivered' ||
-          notification.message?.toLowerCase().includes('bid') ||
-          notification.message?.toLowerCase().includes('driver') ||
-          notification.message?.toLowerCase().includes('order')) {
-          try {
-            await fetchOrders();
-          } catch (error) {
-            console.warn('Failed to refresh orders after notification:', error);
+    socket.on('notification', async (notification) => {
+      console.log('📡 Real-time notification received:', notification);
+      console.log('📡 Notification type:', notification.type);
+      console.log('📡 Notification message:', notification.message);
+
+      setNotifications(prev => [notification, ...prev]);
+      playNotificationSound();
+
+      if (!notification.isRead) {
+        setSpokenNotifications(prev => {
+          if (prev.has(notification.id)) {
+            return prev;
           }
+          speakNotification(notification);
+          const next = new Set(prev);
+          next.add(notification.id);
+          return next;
+        });
+      }
+
+      if (notification.type === 'new_bid' ||
+        notification.type === 'bid_accepted' ||
+        notification.type === 'order_picked_up' ||
+        notification.type === 'order_in_transit' ||
+        notification.type === 'order_delivered' ||
+        notification.message?.toLowerCase().includes('bid') ||
+        notification.message?.toLowerCase().includes('driver') ||
+        notification.message?.toLowerCase().includes('order')) {
+        try {
+          await fetchOrders();
+        } catch (error) {
+          console.warn('Failed to refresh orders after notification:', error);
         }
-      });
+      }
+    });
 
-      socket.on('disconnect', () => {
-        console.log('📡 Disconnected from real-time notifications');
-      });
+    socket.on('disconnect', () => {
+      console.log('📡 Disconnected from real-time notifications');
+    });
 
-      return () => {
-        socket.disconnect();
-      };
-    }
+    return () => {
+      socket.disconnect();
+    };
   }, [token, currentUser, API_URL, fetchOrders, speakNotification]);
 
   // Fetch footer statistics
@@ -951,10 +956,16 @@ const DeliveryApp = () => {
 
       setShowReviewModal(false);
       setError('');
-      alert(t('messages.reviewSubmitted'));
+      showSuccess('Review submitted successfully!');
       fetchOrders();
     } catch (err) {
-      setError(err.message);
+      // Handle "Review already submitted" error with a user-friendly message
+      if (err.message.includes('Review already submitted for this order')) {
+        setError('⚠️ You have already submitted a review for this order. You can only review each order once.');
+        setShowReviewModal(false);
+      } else {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
     }

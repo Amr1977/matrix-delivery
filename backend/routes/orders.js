@@ -141,6 +141,21 @@ router.post('/:orderId/accept-bid', verifyToken, async (req, res) => {
   }
 });
 
+// Submit review for order
+router.post('/:orderId/review', verifyToken, async (req, res) => {
+  try {
+    const result = await orderService.submitReview(req.params.orderId, req.user.userId, req.body);
+    res.json(result);
+  } catch (error) {
+    logger.error(`Review submission error: ${error.message}`, {
+      orderId: req.params.orderId,
+      userId: req.user.userId,
+      category: 'error'
+    });
+    res.status(500).json({ error: error.message || 'Failed to submit review' });
+  }
+});
+
 // Update order status (pickup, in-transit, complete)
 router.post('/:orderId/:action', verifyToken, async (req, res) => {
   try {
@@ -154,36 +169,6 @@ router.post('/:orderId/:action', verifyToken, async (req, res) => {
       category: 'error'
     });
     res.status(500).json({ error: error.message || 'Failed to update order status' });
-  }
-});
-
-// Get order tracking information
-router.get('/:orderId/tracking', verifyToken, async (req, res) => {
-  try {
-    const trackingData = await orderService.getOrderTracking(req.params.orderId, req.user.userId);
-    res.json(trackingData);
-  } catch (error) {
-    logger.error(`Get order tracking error: ${error.message}`, {
-      orderId: req.params.orderId,
-      userId: req.user.userId,
-      category: 'error'
-    });
-    res.status(500).json({ error: error.message || 'Failed to get tracking information' });
-  }
-});
-
-// Submit review for order
-router.post('/:orderId/review', verifyToken, async (req, res) => {
-  try {
-    const result = await orderService.submitReview(req.params.orderId, req.user.userId, req.body);
-    res.json(result);
-  } catch (error) {
-    logger.error(`Review submission error: ${error.message}`, {
-      orderId: req.params.orderId,
-      userId: req.user.userId,
-      category: 'error'
-    });
-    res.status(500).json({ error: error.message || 'Failed to submit review' });
   }
 });
 
