@@ -40,6 +40,12 @@ const DeliveryApp = () => {
   // Use driver hook for location management
   const driverHook = useDriver(token, currentUser);
   const driverLocation = driverHook.driverLocation;
+  const driverLocationRef = useRef(driverLocation);
+
+  useEffect(() => {
+    driverLocationRef.current = driverLocation;
+  }, [driverLocation]);
+
   const [orders, setOrders] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -462,9 +468,11 @@ const DeliveryApp = () => {
           } catch (e) { }
         }
 
-        if (!usedFake && driverLocation?.latitude && driverLocation?.longitude) {
-          queryParams.append('lat', driverLocation.latitude.toString());
-          queryParams.append('lng', driverLocation.longitude.toString());
+        // Use ref for driver location to avoid re-creating function on every location update
+        const currentDriverLocation = driverLocationRef.current;
+        if (!usedFake && currentDriverLocation?.latitude && currentDriverLocation?.longitude) {
+          queryParams.append('lat', currentDriverLocation.latitude.toString());
+          queryParams.append('lng', currentDriverLocation.longitude.toString());
         }
       }
 
@@ -482,29 +490,36 @@ const DeliveryApp = () => {
 
       if (data.notifications) {
         const newNotifications = data.notifications;
-        setNotifications(newNotifications);
 
-        const newUnreadCount = newNotifications.filter(n => !n.isRead).length;
-        const previousUnreadCount = notifications.filter(n => !n.isRead).length;
+        // Use functional update to avoid dependency on notifications
+        setNotifications(prevNotifications => {
+          const newUnreadCount = newNotifications.filter(n => !n.isRead).length;
+          const previousUnreadCount = prevNotifications.filter(n => !n.isRead).length;
 
-        if (newUnreadCount > previousUnreadCount && newNotifications.length > 0) {
-          playNotificationSound();
-          const unreadNotifications = newNotifications.filter(n => !n.isRead && !spokenNotifications.has(n.id));
-          if (unreadNotifications.length > 0) {
-            const latestUnspoken = unreadNotifications[0];
-            speakNotification(latestUnspoken);
-            setSpokenNotifications(prev => {
-              const next = new Set(prev);
-              next.add(latestUnspoken.id);
-              return next;
+          if (newUnreadCount > previousUnreadCount && newNotifications.length > 0) {
+            playNotificationSound();
+
+            // Use functional update for spokenNotifications too
+            setSpokenNotifications(prevSpoken => {
+              const unreadNotifications = newNotifications.filter(n => !n.isRead && !prevSpoken.has(n.id));
+              if (unreadNotifications.length > 0) {
+                const latestUnspoken = unreadNotifications[0];
+                speakNotification(latestUnspoken);
+                const next = new Set(prevSpoken);
+                next.add(latestUnspoken.id);
+                return next;
+              }
+              return prevSpoken;
             });
           }
-        }
+
+          return newNotifications;
+        });
       }
     } catch (err) {
       console.error('Fetch updates error:', err);
     }
-  }, [API_URL, token, currentUser?.role, driverLocation, notifications, spokenNotifications, playNotificationSound, speakNotification]);
+  }, [API_URL, token, currentUser?.role, playNotificationSound, speakNotification]);
 
   // Location picker callback - moved after fetchOrders to avoid initialization error
   const handleLocationSelect = useCallback((lat, lng) => {
@@ -595,24 +610,6 @@ const DeliveryApp = () => {
 
 
 
-
-  // Driver location effect
-  // Driver location effect
-  useEffect(() => {
-    if (currentUser?.role === 'driver' && token) {
-      if (isPageVisible) {
-        getDriverLocation();
-      }
-      // Update location every 5 minutes for drivers
-      const locationInterval = setInterval(() => {
-        if (isPageVisible) {
-          updateDriverLocation();
-        }
-      }, 5 * 60 * 1000); // 5 minutes
-
-      return () => clearInterval(locationInterval);
-    }
-  }, [currentUser, token, isPageVisible]); // eslint-disable-line react-hooks/exhaustive-deps
 
 
 
@@ -1620,24 +1617,6 @@ const DeliveryApp = () => {
       setLoadingState('toggleOnline', false);
     }
   };
-
-  useEffect(() => {
-    if (!driverOnline) return;
-    if (locationIntervalRef.current) {
-      clearInterval(locationIntervalRef.current);
-    }
-    const intervalMs = hasActiveOrders() ? DRIVER_LOCATION_UPDATE_INTERVAL_MS_ACTIVE_ORDER : DRIVER_LOCATION_UPDATE_INTERVAL_MS_NO_ACTIVE_ORDER;
-    locationIntervalRef.current = setInterval(() => {
-      updateDriverLocationOnce();
-    }, intervalMs);
-
-    return () => {
-      if (locationIntervalRef.current) {
-        clearInterval(locationIntervalRef.current);
-        locationIntervalRef.current = null;
-      }
-    };
-  }, [orders, driverOnline, hasActiveOrders, updateDriverLocationOnce]);
 
 
 
