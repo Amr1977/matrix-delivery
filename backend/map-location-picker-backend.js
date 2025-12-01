@@ -630,7 +630,25 @@ module.exports = (app, pool, jwt, verifyToken) => {
                GROUP BY o.id ORDER BY o.created_at DESC`;
         params = [req.user.userId];
       } else if (req.user.role === 'driver') {
-        // Driver view - show their assigned orders, bids, and available orders
+        // Driver view - show their assigned orders, bids, and available orders WITHIN 7KM
+        const { lat, lng } = req.query;
+
+        // For drivers, location is REQUIRED to fetch available orders
+        if (!lat || !lng) {
+          return res.status(400).json({
+            error: 'Driver location (lat/lng) is required to fetch available orders. Please enable location services and try again.'
+          });
+        }
+
+        const driverLat = parseFloat(lat);
+        const driverLng = parseFloat(lng);
+
+        if (isNaN(driverLat) || isNaN(driverLng)) {
+          return res.status(400).json({
+            error: 'Invalid latitude or longitude values'
+          });
+        }
+
         query = `
         SELECT o.*,
                COALESCE(json_agg(json_build_object(
@@ -657,13 +675,22 @@ module.exports = (app, pool, jwt, verifyToken) => {
         WHERE (
           o.assigned_driver_user_id = $1
           OR EXISTS (SELECT 1 FROM bids WHERE order_id = o.id AND user_id = $1)
-          OR (o.status = 'pending_bids')
+          OR (
+            o.status = 'pending_bids'
+            AND ST_Distance(
+              ST_Point(
+                (o.pickup_coordinates->>'lng')::float,
+                (o.pickup_coordinates->>'lat')::float
+              )::geography,
+              ST_Point($2, $3)::geography
+            ) <= 7000
+          )
         )
         AND o.status != 'delivered' AND o.status != 'cancelled'
         GROUP BY o.id, cu.rating, cu.completed_deliveries, cu.is_verified, cu.created_at
         ORDER BY o.created_at DESC
       `;
-        params = [req.user.userId];
+        params = [req.user.userId, driverLng, driverLat];
       } else if (req.user.role === 'admin') {
         // Admin view - show all orders
         query = `SELECT o.*,
