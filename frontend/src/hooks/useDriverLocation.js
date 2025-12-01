@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import api from '../api';
+import usePageVisibility from './usePageVisibility';
 
 /**
  * Custom hook for managing driver location tracking
@@ -16,8 +17,10 @@ const useDriverLocation = (driverId = null, shouldTrack = false, isOwnLocation =
     const pollingIntervalRef = useRef(null);
     const lastUpdateTimeRef = useRef(0);
 
-    // Minimum time between location updates (5 seconds)
-    const MIN_UPDATE_INTERVAL_MS = 5000;
+    const isPageVisible = usePageVisibility();
+
+    // Minimum time between location updates (10 seconds)
+    const MIN_UPDATE_INTERVAL_MS = 10000;
 
     /**
      * Update driver's location to backend
@@ -110,8 +113,20 @@ const useDriverLocation = (driverId = null, shouldTrack = false, isOwnLocation =
     /**
      * Start tracking own location
      */
+    /**
+     * Start tracking own location
+     */
     useEffect(() => {
         if (!isOwnLocation || !shouldTrack) return;
+
+        // Stop tracking if page is hidden to save battery
+        if (!isPageVisible) {
+            if (watchIdRef.current) {
+                navigator.geolocation.clearWatch(watchIdRef.current);
+                watchIdRef.current = null;
+            }
+            return;
+        }
 
         if (!navigator.geolocation) {
             setError('Geolocation is not supported by your browser');
@@ -124,8 +139,8 @@ const useDriverLocation = (driverId = null, shouldTrack = false, isOwnLocation =
             handlePositionError,
             {
                 enableHighAccuracy: false, // Battery-friendly
-                timeout: 15000,
-                maximumAge: 5000
+                timeout: 30000, // Increased from 15s
+                maximumAge: 30000 // Increased from 5s
             }
         );
 
@@ -135,8 +150,11 @@ const useDriverLocation = (driverId = null, shouldTrack = false, isOwnLocation =
                 watchIdRef.current = null;
             }
         };
-    }, [isOwnLocation, shouldTrack, handlePositionUpdate, handlePositionError]);
+    }, [isOwnLocation, shouldTrack, handlePositionUpdate, handlePositionError, isPageVisible]);
 
+    /**
+     * Poll for other driver's location
+     */
     /**
      * Poll for other driver's location
      */
@@ -144,10 +162,13 @@ const useDriverLocation = (driverId = null, shouldTrack = false, isOwnLocation =
         if (isOwnLocation || !shouldTrack || !driverId) return;
 
         // Initial fetch
-        fetchDriverLocation();
+        if (isPageVisible) {
+            fetchDriverLocation();
+        }
 
-        // Poll every 15 seconds
-        pollingIntervalRef.current = setInterval(fetchDriverLocation, 15000);
+        // Adaptive polling: 30s when visible, 5m when hidden
+        const interval = isPageVisible ? 30000 : 300000;
+        pollingIntervalRef.current = setInterval(fetchDriverLocation, interval);
 
         return () => {
             if (pollingIntervalRef.current) {
@@ -155,7 +176,7 @@ const useDriverLocation = (driverId = null, shouldTrack = false, isOwnLocation =
                 pollingIntervalRef.current = null;
             }
         };
-    }, [isOwnLocation, shouldTrack, driverId, fetchDriverLocation]);
+    }, [isOwnLocation, shouldTrack, driverId, fetchDriverLocation, isPageVisible]);
 
     return {
         location,

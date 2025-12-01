@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import usePageVisibility from './hooks/usePageVisibility';
 
 const AdminPanel = ({ token, onClose }) => {
   const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
 
   // Use the token passed from parent component
   const adminToken = token;
+  const isPageVisible = usePageVisibility();
 
   // Dashboard State
   const [activeTab, setActiveTab] = useState('overview');
@@ -107,11 +109,22 @@ const AdminPanel = ({ token, onClose }) => {
 
   useEffect(() => {
     if (adminToken) {
-      fetchDashboardData();
-      const interval = setInterval(fetchDashboardData, 30000);
+      // Initial fetch if visible
+      if (isPageVisible) {
+        fetchDashboardData();
+      }
+
+      // Adaptive polling: 30s visible, 5m hidden
+      const intervalTime = isPageVisible ? 30000 : 300000;
+      const interval = setInterval(() => {
+        if (isPageVisible || !document.hidden) {
+          fetchDashboardData();
+        }
+      }, intervalTime);
+
       return () => clearInterval(interval);
     }
-  }, [adminToken, fetchDashboardData]);
+  }, [adminToken, fetchDashboardData, isPageVisible]);
 
   useEffect(() => {
     if (adminToken && activeTab === 'logs') {
@@ -259,11 +272,11 @@ const AdminPanel = ({ token, onClose }) => {
               ✖ Close
             </button>
             <button
-            onClick={logout}
-            className="btn btn-danger"
-          >
-            🚪 Logout
-          </button>
+              onClick={logout}
+              className="btn btn-danger"
+            >
+              🚪 Logout
+            </button>
           </div>
         </div>
       </header>
@@ -367,8 +380,8 @@ const AdminPanel = ({ token, onClose }) => {
                   className={dateRange === range ? 'btn btn-primary' : 'btn'}
                 >
                   {range === '24h' ? 'Last 24 Hours' :
-                   range === '7d' ? 'Last 7 Days' :
-                   range === '30d' ? 'Last 30 Days' : 'Last 90 Days'}
+                    range === '7d' ? 'Last 7 Days' :
+                      range === '30d' ? 'Last 30 Days' : 'Last 90 Days'}
                 </button>
               ))}
             </div>

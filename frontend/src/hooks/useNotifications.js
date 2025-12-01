@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import io from 'socket.io-client';
+import usePageVisibility from './usePageVisibility';
 
 const useNotifications = (token, currentUser) => {
   const [notifications, setNotifications] = useState([]);
   const [spokenNotifications, setSpokenNotifications] = useState(new Set());
   const socketRef = useRef(null);
   const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
+  const isPageVisible = usePageVisibility();
 
   // Sound and Text-to-Speech Notifications
   const playNotificationSound = useCallback(() => {
@@ -160,14 +162,22 @@ const useNotifications = (token, currentUser) => {
   // Setup periodic polling
   useEffect(() => {
     if (token) {
-      fetchNotifications();
-      // Reduced polling interval to 60 seconds since we now have real-time notifications
-      const interval = setInterval(() => {
+      // Initial fetch if visible
+      if (isPageVisible) {
         fetchNotifications();
-      }, 60000);
+      }
+
+      // Adaptive polling: 60s visible, 5m hidden
+      const intervalTime = isPageVisible ? 60000 : 300000;
+      const interval = setInterval(() => {
+        if (isPageVisible || !document.hidden) {
+          fetchNotifications();
+        }
+      }, intervalTime);
+
       return () => clearInterval(interval);
     }
-  }, [token, fetchNotifications]);
+  }, [token, fetchNotifications, isPageVisible]);
 
   return {
     notifications,
