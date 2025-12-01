@@ -146,87 +146,117 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, loading, 
             doubleClickZoom={!isCompact}
             attributionControl={false}
           >
-          <TileLayer
-            url={tileUrl}
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          />
-          <MapEffect />
-          {/* Show markers only if coordinates exist */}
-          {hasCoordinates && (
-            <>
-              {/* Driver Location Marker - only show if driverLocation is provided */}
+            <TileLayer
+              url={tileUrl}
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            />
+            <MapEffect />
+            {/* Show markers only if coordinates exist */}
+            {hasCoordinates && (
+              <>
+                {/* Driver Location Marker - only show if driverLocation is provided */}
 
 
-              <Marker
-                position={[pickup.lat, pickup.lng]}
-                icon={L.icon({
-                  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-                  iconSize: [25, 41],
-                  iconAnchor: [12, 41]
-                })}
-              >
-                <Popup><strong>Pickup Location</strong></Popup>
-              </Marker>
-              <Marker
-                position={[dropoff.lat, dropoff.lng]}
-                icon={L.icon({
-                  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-                  iconSize: [25, 41],
-                  iconAnchor: [12, 41]
-                })}
-              >
-                <Popup><strong>Dropoff Location</strong></Popup>
-              </Marker>
-
-              {/* Route Polyline - Solid for OSRM routes, dashed for estimated */}
-              <Polyline
-                positions={routePath}
-                color={isActualRoute ? "#00FF00" : "#FF6B00"}
-                weight={isActualRoute ? 8 : 6}
-                opacity={1.0}
-                dashArray={isActualRoute ? undefined : "12, 8"}
-              />
-
-              {/* Actual Driver Route - Solid Green/Blue */}
-              {actualDriverPath && actualDriverPath.length > 0 && (
-                <Polyline
-                  positions={actualDriverPath}
-                  color="#00FF00"
-                  weight={8}
-                  opacity={1.0}
-                />
-              )}
-
-              {/* Driver to Pickup Line (Dashed) */}
-              {driverLocation && Number.isFinite(driverLocation.latitude) && Number.isFinite(driverLocation.longitude) && pickup && (
-                <Polyline
-                  positions={[
-                    [driverLocation.latitude, driverLocation.longitude],
-                    [pickup.lat, pickup.lng]
-                  ]}
-                  color="#3B82F6"
-                  weight={4}
-                  opacity={0.8}
-                  dashArray="10, 10"
-                />
-              )}
-              {/* Driver Location Marker */}
-              {driverLocation && Number.isFinite(driverLocation.latitude) && Number.isFinite(driverLocation.longitude) && (
                 <Marker
-                  position={[driverLocation.latitude, driverLocation.longitude]}
+                  position={[pickup.lat, pickup.lng]}
                   icon={L.icon({
-                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
                     iconSize: [25, 41],
-                    iconAnchor: [12, 41],
-                    popupAnchor: [1, -34],
-                    shadowSize: [41, 41]
+                    iconAnchor: [12, 41]
                   })}
                 >
-                  <Popup><strong>Driver Location</strong></Popup>
+                  <Popup><strong>Pickup Location</strong></Popup>
                 </Marker>
-              )}
-            </>
-          )}
+                <Marker
+                  position={[dropoff.lat, dropoff.lng]}
+                  icon={L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41]
+                  })}
+                >
+                  <Popup><strong>Dropoff Location</strong></Popup>
+                </Marker>
+
+                {/* Route Polyline - Solid for OSRM routes, dashed for estimated */}
+                <Polyline
+                  positions={routePath}
+                  color={isActualRoute ? "#00FF00" : "#FF6B00"}
+                  weight={isActualRoute ? 8 : 6}
+                  opacity={1.0}
+                  dashArray={isActualRoute ? undefined : "12, 8"}
+                />
+
+                {/* Actual Driver Route - Solid Green/Blue */}
+                {actualDriverPath && actualDriverPath.length > 0 && (
+                  <Polyline
+                    positions={actualDriverPath}
+                    color="#00FF00"
+                    weight={8}
+                    opacity={1.0}
+                  />
+                )}
+
+                {/* Driver to Pickup Line (Dashed) */}
+                {driverLocation && Number.isFinite(driverLocation.latitude) && Number.isFinite(driverLocation.longitude) && pickup && (
+                  <Polyline
+                    positions={[
+                      [driverLocation.latitude, driverLocation.longitude],
+                      [pickup.lat, pickup.lng]
+                    ]}
+                    color="#3B82F6"
+                    weight={4}
+                    opacity={0.8}
+                    dashArray="10, 10"
+                  />
+                )}
+                {/* Driver Location Marker - Enhanced visibility */}
+                {driverLocation && Number.isFinite(driverLocation.latitude) && Number.isFinite(driverLocation.longitude) && (
+                  <Marker
+                    position={[driverLocation.latitude, driverLocation.longitude]}
+                    icon={L.divIcon({
+                      html: `
+                      <div style="position: relative; width: 42px; height: 42px;">
+                        <div style="
+                          position: absolute; inset: 0;
+                          background: #3B82F6;
+                          border: 3px solid white;
+                          border-radius: 50%;
+                          box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+                        "></div>
+                        <div style="
+                          position: absolute; inset: 0;
+                          border-radius: 50%;
+                          animation: pulseRing 1.8s ease-out infinite;
+                          box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.6);
+                        "></div>
+                        <style>
+                        @keyframes pulseRing {
+                          0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.6); }
+                          70% { box-shadow: 0 0 0 18px rgba(59, 130, 246, 0); }
+                          100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+                        }
+                        </style>
+                      </div>
+                    `,
+                      className: '',
+                      iconSize: [42, 42],
+                      iconAnchor: [21, 21],
+                      popupAnchor: [0, -21]
+                    })}
+                    zIndexOffset={1000}
+                  >
+                    <Popup>
+                      <div style={{ fontSize: '0.875rem' }}>
+                        <strong>🚗 Driver Location</strong>
+                        <div>Lat: {driverLocation.latitude.toFixed(6)}</div>
+                        <div>Lng: {driverLocation.longitude.toFixed(6)}</div>
+                      </div>
+                    </Popup>
+                  </Marker>
+                )}
+              </>
+            )}
           </MapContainer>
         )}
 
