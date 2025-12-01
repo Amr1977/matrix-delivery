@@ -261,7 +261,11 @@ module.exports = (app, pool, jwt, verifyToken) => {
 
         console.log(`Calculating route via OSRM: ${pickup.lat},${pickup.lng} -> ${delivery.lat},${delivery.lng}`);
 
-        const osrmResponse = await fetch(osrmUrl);
+        const osrmResponse = await fetch(osrmUrl, {
+          headers: {
+            'User-Agent': 'Matrix-Delivery-App/1.0'
+          }
+        });
 
         if (osrmResponse.ok) {
           const osrmData = await osrmResponse.json();

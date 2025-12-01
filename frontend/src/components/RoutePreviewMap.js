@@ -211,6 +211,7 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, loading, 
                   />
                 )}
                 {/* Driver Location Marker - Enhanced visibility */}
+                {console.log('🚗 RoutePreviewMap Driver Marker Check:', { driverLocation })}
                 {driverLocation && Number.isFinite(driverLocation.latitude) && Number.isFinite(driverLocation.longitude) && (
                   <Marker
                     position={[driverLocation.latitude, driverLocation.longitude]}
