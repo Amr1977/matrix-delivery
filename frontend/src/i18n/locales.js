@@ -27,13 +27,17 @@ const translations = {
       verify: 'Verify',
       verified: 'Verified',
       showPassword: 'Show',
-      hidePassword: 'Hide'
+      hidePassword: 'Hide',
+      resendVerification: 'Resend Verification',
+      emailVerificationRequired: 'Email verification required',
+      verifyYourEmail: 'Verify your email'
     },
 
     // Orders
     orders: {
       myOrders: 'My Orders',
       createOrder: 'Create New Order',
+      createNewOrder: 'Create New Order',
       cancel: 'Cancel',
       orderTitle: 'Order Title',
       description: 'Description',
@@ -123,7 +127,13 @@ const translations = {
       packagePickedUpByDriver: 'Package has been picked up by the driver.',
       packageInTransitToAddress: 'Package is in transit to the delivery address.',
       orderCompletedSuccessfullyExclamation: 'Order completed successfully!',
-      orderHasBeenCancelled: 'Order has been cancelled.'
+      orderHasBeenCancelled: 'Order has been cancelled.',
+      activeOrders: 'Active Orders',
+      orderDetails: 'Order Details',
+      title: 'Title',
+      contactPhone: 'Contact Phone',
+      packageDetails: 'Package Details',
+      estimatedDeliveryDate: 'Estimated Delivery Date'
     },
 
     // Order Status
@@ -343,7 +353,10 @@ const translations = {
       alreadyHaveAccount: 'لديك حساب بالفعل؟',
       loading: 'جارٍ التحميل...',
       verify: 'توثيق',
-      verified: 'موثق'
+      verified: 'موثق',
+      resendVerification: 'إعادة إرسال التحقق',
+      emailVerificationRequired: 'التحقق من البريد الإلكتروني مطلوب',
+      verifyYourEmail: 'تحقق من بريدك الإلكتروني'
     },
 
     // الطلبات
@@ -413,7 +426,13 @@ const translations = {
       packagePickedUp: 'تم استلام طردك وهو في الطريق!',
       packageInTransit: 'طردك قيد التوصيل وسيتم تسليمه قريباً!',
       orderCompletedSuccessfully: 'تم إكمال الطلب بنجاح!',
-      orderCancelled: 'تم إلغاء الطلب.'
+      orderCancelled: 'تم إلغاء الطلب.',
+      activeOrders: 'الطلبات النشطة',
+      orderDetails: 'تفاصيل الطلب',
+      title: 'العنوان',
+      contactPhone: 'رقم الاتصال',
+      packageDetails: 'تفاصيل الحزمة',
+      estimatedDeliveryDate: 'تاريخ التسليم المتوقع'
     },
 
     // حالة الطلب
