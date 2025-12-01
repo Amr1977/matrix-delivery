@@ -988,5 +988,175 @@ module.exports = (app, pool, jwt, verifyToken) => {
     }
   });
 
+  // Combined updates endpoint for performance
+  app.get('/api/updates', verifyToken, async (req, res) => {
+    try {
+      // 1. Fetch Notifications
+      const notifQuery = `SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC LIMIT 50`;
+      const notifPromise = pool.query(notifQuery, [req.user.userId]);
+
+      // 2. Fetch Orders (reusing logic from /api/orders)
+      let orderQuery, orderParams;
+
+      if (req.user.role === 'customer') {
+        orderQuery = `SELECT o.*,
+               COALESCE(json_agg(json_build_object(
+                 'userId', b.user_id,
+                 'driverName', b.driver_name,
+                 'bidPrice', b.bid_price,
+                 'estimatedPickupTime', b.estimated_pickup_time,
+                 'estimatedDeliveryTime', b.estimated_delivery_time,
+                 'message', b.message,
+                 'status', b.status,
+                 'createdAt', b.created_at,
+                 'driverRating', u.rating,
+                 'driverCompletedDeliveries', u.completed_deliveries,
+                 'driverIsVerified', u.is_verified
+               ) ORDER BY b.created_at DESC) FILTER (WHERE b.id IS NOT NULL), '[]') as bids
+               FROM orders o
+               LEFT JOIN bids b ON o.id = b.order_id
+               LEFT JOIN users u ON b.user_id = u.id
+               WHERE o.customer_id = $1 AND o.status NOT IN ('delivered', 'cancelled')
+               GROUP BY o.id ORDER BY o.created_at DESC`;
+        orderParams = [req.user.userId];
+      } else if (req.user.role === 'driver') {
+        const { lat, lng } = req.query;
+        // For drivers, location is REQUIRED to fetch available orders
+        if (!lat || !lng) {
+          // If no location, return empty orders but still return notifications
+          const notifResult = await notifPromise;
+          return res.json({
+            orders: [],
+            notifications: notifResult.rows.map(notif => ({
+              id: notif.id, orderId: notif.order_id, type: notif.type, title: notif.title,
+              message: notif.message, isRead: notif.is_read, createdAt: notif.created_at
+            }))
+          });
+        }
+
+        const driverLat = parseFloat(lat);
+        const driverLng = parseFloat(lng);
+
+        orderQuery = `
+        SELECT o.*,
+               COALESCE(json_agg(json_build_object(
+                 'userId', b.user_id,
+                 'driverName', b.driver_name,
+                 'bidPrice', b.bid_price,
+                 'estimatedPickupTime', b.estimated_pickup_time,
+                 'estimatedDeliveryTime', b.estimated_delivery_time,
+                 'message', b.message,
+                 'status', b.status,
+                 'createdAt', b.created_at,
+                 'driverRating', u.rating,
+                 'driverCompletedDeliveries', u.completed_deliveries,
+                 'driverIsVerified', u.is_verified
+               ) ORDER BY b.created_at DESC) FILTER (WHERE b.id IS NOT NULL), '[]') as bids,
+               cu.rating as customerrating,
+               cu.completed_deliveries as customercompletedorders,
+               cu.is_verified as customerisverified,
+               cu.created_at as customerjoinedat
+        FROM orders o
+        LEFT JOIN bids b ON o.id = b.order_id
+        LEFT JOIN users u ON b.user_id = u.id
+        LEFT JOIN users cu ON o.customer_id = cu.id
+        WHERE (
+          o.assigned_driver_user_id = $1
+          OR EXISTS (SELECT 1 FROM bids WHERE order_id = o.id AND user_id = $1)
+          OR (
+            o.status = 'pending_bids'
+            AND ST_Distance(
+              ST_Point(
+                (o.pickup_coordinates->>'lng')::float,
+                (o.pickup_coordinates->>'lat')::float
+              )::geography,
+              ST_Point($2, $3)::geography
+            ) <= 7000
+          )
+        )
+        AND o.status != 'delivered' AND o.status != 'cancelled'
+        GROUP BY o.id, cu.rating, cu.completed_deliveries, cu.is_verified, cu.created_at
+        ORDER BY o.created_at DESC
+      `;
+        orderParams = [req.user.userId, driverLng, driverLat];
+      } else {
+        // Admin or other
+        orderQuery = `SELECT * FROM orders LIMIT 50`;
+        orderParams = [];
+      }
+
+      const [notifResult, orderResult] = await Promise.all([
+        notifPromise,
+        pool.query(orderQuery, orderParams)
+      ]);
+
+      const orders = orderResult.rows.map(order => ({
+        _id: order.id,
+        orderNumber: order.order_number,
+        title: order.title,
+        description: order.description,
+        pickupAddress: order.pickup_address,
+        deliveryAddress: order.delivery_address,
+        from: {
+          lat: parseFloat(order.from_lat),
+          lng: parseFloat(order.from_lng),
+          name: order.from_name
+        },
+        to: {
+          lat: parseFloat(order.to_lat),
+          lng: parseFloat(order.to_lng),
+          name: order.to_name
+        },
+        pickupCoordinates: order.pickup_coordinates,
+        deliveryCoordinates: order.delivery_coordinates,
+        pickupLocationLink: order.pickup_location_link,
+        deliveryLocationLink: order.delivery_location_link,
+        estimatedDistanceKm: order.estimated_distance_km ? parseFloat(order.estimated_distance_km) : null,
+        estimatedDurationMinutes: order.estimated_duration_minutes,
+        routePolyline: order.route_polyline,
+        isRemoteArea: order.is_remote_area,
+        isInternational: order.is_international,
+        packageDescription: order.package_description,
+        packageWeight: order.package_weight ? parseFloat(order.package_weight) : null,
+        estimatedValue: order.estimated_value ? parseFloat(order.estimated_value) : null,
+        specialInstructions: order.special_instructions,
+        price: parseFloat(order.price),
+        status: order.status,
+        bids: order.bids,
+        customerId: order.customer_id,
+        customerName: order.customer_name,
+        assignedDriver: order.assigned_driver_user_id ? {
+          userId: order.assigned_driver_user_id,
+          driverName: order.assigned_driver_name,
+          bidPrice: parseFloat(order.assigned_driver_bid_price)
+        } : null,
+        estimatedDeliveryDate: order.estimated_delivery_date,
+        currentLocation: order.current_location_lat ? {
+          lat: parseFloat(order.current_location_lat),
+          lng: parseFloat(order.current_location_lng)
+        } : null,
+        customerRating: order.customerrating ? parseFloat(order.customerrating) : 5.0,
+        customerCompletedOrders: order.customercompletedorders || 0,
+        customerIsVerified: order.customerisverified || false,
+        customerJoinedAt: order.customerjoinedat,
+        createdAt: order.created_at,
+        acceptedAt: order.accepted_at,
+        pickedUpAt: order.picked_up_at,
+        deliveredAt: order.delivered_at
+      }));
+
+      const notifications = notifResult.rows.map(notif => ({
+        id: notif.id, orderId: notif.order_id, type: notif.type, title: notif.title,
+        message: notif.message, isRead: notif.is_read, createdAt: notif.created_at
+      }));
+
+      res.json({ orders, notifications });
+
+    } catch (error) {
+      console.error('Get updates error:', error);
+      res.status(500).json({ error: 'Failed to get updates' });
+    }
+  });
+
   // End of function
 };

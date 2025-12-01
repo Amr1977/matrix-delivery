@@ -369,95 +369,28 @@ const DeliveryApp = () => {
     }
   }, [API_URL, token, currentUser?.role, driverLocation]);
 
-  // Location picker callback - moved after fetchOrders to avoid initialization error
-  const handleLocationSelect = useCallback((lat, lng) => {
-    const location = { lat, lng };
-    localStorage.setItem('fakeDriverLocation', JSON.stringify(location));
-    setSuccessMessage(`Location set to ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
-    // Debounce the fetchOrders call to prevent excessive API requests
-    setTimeout(() => fetchOrders(), 500);
-  }, [fetchOrders]);
-
-  const fetchHistoryOrders = useCallback(async (page = 1) => {
-    if (!token) return;
-
+  // Sound and Text-to-Speech Notifications (moved before fetchUpdates to avoid initialization error)
+  const playNotificationSound = useCallback(() => {
     try {
-      setHistoryLoading(true);
-      const response = await fetch(`${API_URL}/orders/history?page=${page}&limit=20`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
 
-      if (!response.ok) {
-        console.error('Fetch history orders failed:', response.status, response.statusText);
-        throw new Error(`Failed to fetch history orders: ${response.status}`);
-      }
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
 
-      const data = await response.json();
+      oscillator.frequency.setValueAtTime(800, audioContext.currentTime); // Frequency of the beep
+      oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1); // Drop to lower frequency
 
-      // If page 1, replace all history orders; otherwise append
-      setHistoryOrders(prev => page === 1 ? data.orders : [...prev, ...data.orders]);
-      setHistoryPagination(data.pagination);
-    } catch (err) {
-      console.error('Error fetching history orders:', err.message);
-      setError('Failed to load order history');
-    } finally {
-      setHistoryLoading(false);
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3);
+    } catch (error) {
+      console.warn('Could not play notification sound:', error);
     }
-  }, [API_URL, token]);
-
-
-  // Effects - Optimized polling with Page Visibility API
-  useEffect(() => {
-    if (token) {
-      fetchCurrentUser();
-      fetchNotifications();
-
-      // Adaptive polling interval based on page visibility
-      // Visible: 60s (reduced from 30s for better battery)
-      // Hidden: 5min (300s) - minimal background activity
-      const getPollingInterval = () => isPageVisible ? 60000 : 300000;
-
-      const interval = setInterval(() => {
-        // Only poll if page is visible or it's been a while
-        if (isPageVisible || !document.hidden) {
-          fetchOrders();
-          fetchNotifications();
-        }
-      }, getPollingInterval());
-
-      return () => clearInterval(interval);
-    }
-  }, [token, isPageVisible]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Fetch orders after user data is loaded and location is available for drivers
-  useEffect(() => {
-    if (token && currentUser) {
-      // For drivers, only fetch orders if we have location data
-      if (currentUser.role === 'driver') {
-        const fakeLocation = localStorage.getItem('fakeDriverLocation');
-        const hasFakeLocation = fakeLocation && (() => {
-          try {
-            const loc = JSON.parse(fakeLocation);
-            return loc.lat && loc.lng;
-          } catch {
-            return false;
-          }
-        })();
-        const hasRealLocation = driverLocation?.latitude && driverLocation?.longitude;
-
-        if (hasFakeLocation || hasRealLocation) {
-          fetchOrders();
-        }
-      } else {
-        // For non-drivers, fetch orders immediately
-        fetchOrders();
-      }
-    }
-  }, [token, currentUser, driverLocation]); // eslint-disable-line react-hooks/exhaustive-deps
-
-
-
-
+  }, []);
 
   const speakNotification = useCallback((notification) => {
     if ('speechSynthesis' in window) {
@@ -508,6 +441,160 @@ const DeliveryApp = () => {
       }
     }
   }, [t]);
+
+  // Combined fetch for performance
+  const fetchUpdates = useCallback(async () => {
+    try {
+      const queryParams = new URLSearchParams();
+
+      // Driver location logic
+      if (currentUser?.role === 'driver') {
+        const fakeLocation = localStorage.getItem('fakeDriverLocation');
+        let usedFake = false;
+        if (fakeLocation) {
+          try {
+            const loc = JSON.parse(fakeLocation);
+            if (loc.lat && loc.lng) {
+              queryParams.append('lat', loc.lat.toString());
+              queryParams.append('lng', loc.lng.toString());
+              usedFake = true;
+            }
+          } catch (e) { }
+        }
+
+        if (!usedFake && driverLocation?.latitude && driverLocation?.longitude) {
+          queryParams.append('lat', driverLocation.latitude.toString());
+          queryParams.append('lng', driverLocation.longitude.toString());
+        }
+      }
+
+      const queryString = queryParams.toString();
+      const url = `${API_URL}/updates${queryString ? '?' + queryString : ''}`;
+
+      const response = await fetch(url, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!response.ok) return;
+      const data = await response.json();
+
+      if (data.orders) setOrders(data.orders);
+
+      if (data.notifications) {
+        const newNotifications = data.notifications;
+        setNotifications(newNotifications);
+
+        const newUnreadCount = newNotifications.filter(n => !n.isRead).length;
+        const previousUnreadCount = notifications.filter(n => !n.isRead).length;
+
+        if (newUnreadCount > previousUnreadCount && newNotifications.length > 0) {
+          playNotificationSound();
+          const unreadNotifications = newNotifications.filter(n => !n.isRead && !spokenNotifications.has(n.id));
+          if (unreadNotifications.length > 0) {
+            const latestUnspoken = unreadNotifications[0];
+            speakNotification(latestUnspoken);
+            setSpokenNotifications(prev => {
+              const next = new Set(prev);
+              next.add(latestUnspoken.id);
+              return next;
+            });
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Fetch updates error:', err);
+    }
+  }, [API_URL, token, currentUser?.role, driverLocation, notifications, spokenNotifications, playNotificationSound, speakNotification]);
+
+  // Location picker callback - moved after fetchOrders to avoid initialization error
+  const handleLocationSelect = useCallback((lat, lng) => {
+    const location = { lat, lng };
+    localStorage.setItem('fakeDriverLocation', JSON.stringify(location));
+    setSuccessMessage(`Location set to ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+    // Debounce the fetchOrders call to prevent excessive API requests
+    setTimeout(() => fetchOrders(), 500);
+  }, [fetchOrders]);
+
+  const fetchHistoryOrders = useCallback(async (page = 1) => {
+    if (!token) return;
+
+    try {
+      setHistoryLoading(true);
+      const response = await fetch(`${API_URL}/orders/history?page=${page}&limit=20`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!response.ok) {
+        console.error('Fetch history orders failed:', response.status, response.statusText);
+        throw new Error(`Failed to fetch history orders: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // If page 1, replace all history orders; otherwise append
+      setHistoryOrders(prev => page === 1 ? data.orders : [...prev, ...data.orders]);
+      setHistoryPagination(data.pagination);
+    } catch (err) {
+      console.error('Error fetching history orders:', err.message);
+      setError('Failed to load order history');
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, [API_URL, token]);
+
+
+  // Effects - Optimized polling with Page Visibility API
+  useEffect(() => {
+    if (token) {
+      fetchCurrentUser();
+      fetchUpdates(); // Initial fetch
+
+      // Adaptive polling interval based on page visibility
+      // Visible: 60s (reduced from 30s for better battery)
+      // Hidden: 5min (300s) - minimal background activity
+      const getPollingInterval = () => isPageVisible ? 60000 : 300000;
+
+      const interval = setInterval(() => {
+        // Only poll if page is visible or it's been a while
+        if (isPageVisible || !document.hidden) {
+          fetchUpdates();
+        }
+      }, getPollingInterval());
+
+      return () => clearInterval(interval);
+    }
+  }, [token, isPageVisible, fetchUpdates]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Fetch orders after user data is loaded and location is available for drivers
+  useEffect(() => {
+    if (token && currentUser) {
+      // For drivers, only fetch orders if we have location data
+      if (currentUser.role === 'driver') {
+        const fakeLocation = localStorage.getItem('fakeDriverLocation');
+        const hasFakeLocation = fakeLocation && (() => {
+          try {
+            const loc = JSON.parse(fakeLocation);
+            return loc.lat && loc.lng;
+          } catch {
+            return false;
+          }
+        })();
+        const hasRealLocation = driverLocation?.latitude && driverLocation?.longitude;
+
+        if (hasFakeLocation || hasRealLocation) {
+          fetchOrders();
+        }
+      } else {
+        // For non-drivers, fetch orders immediately
+        fetchOrders();
+      }
+    }
+  }, [token, currentUser, driverLocation]); // eslint-disable-line react-hooks/exhaustive-deps
+
+
+
+
+
 
   // Driver location effect
   // Driver location effect
@@ -906,28 +993,6 @@ const DeliveryApp = () => {
     setLoadingStates(prev => ({ ...prev, [key]: value }));
   };
 
-  // Sound and Text-to-Speech Notifications
-  const playNotificationSound = () => {
-    try {
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-
-      oscillator.frequency.setValueAtTime(800, audioContext.currentTime); // Frequency of the beep
-      oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1); // Drop to lower frequency
-
-      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.3);
-    } catch (error) {
-      console.warn('Could not play notification sound:', error);
-    }
-  };
 
   // Extract location parts from address string
   const extractLocationParts = (address) => {
