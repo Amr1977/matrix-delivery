@@ -19,6 +19,7 @@ import EmailVerificationBanner from './components/auth/EmailVerificationBanner';
 import useDriver from './hooks/useDriver';
 import GeolocationStatus from './components/ui/GeolocationStatus';
 import InteractiveLocationPicker from './components/InteractiveLocationPicker';
+import usePageVisibility from './hooks/usePageVisibility';
 import './components/ui/GeolocationStatus.css';
 
 
@@ -26,6 +27,9 @@ import './components/ui/GeolocationStatus.css';
 const DeliveryApp = () => {
   const { t, locale, changeLocale } = useI18n();
   const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
+
+  // Performance optimization: Page visibility detection
+  const isPageVisible = usePageVisibility();
 
   // Fixed: LiveTrackingMap component moved outside DeliveryApp function for proper scoping
   // State variables
@@ -402,19 +406,28 @@ const DeliveryApp = () => {
   }, [API_URL, token]);
 
 
-  // Effects
+  // Effects - Optimized polling with Page Visibility API
   useEffect(() => {
     if (token) {
       fetchCurrentUser();
       fetchNotifications();
-      // Optimized polling interval (30 seconds) to reduce battery drain
+
+      // Adaptive polling interval based on page visibility
+      // Visible: 60s (reduced from 30s for better battery)
+      // Hidden: 5min (300s) - minimal background activity
+      const getPollingInterval = () => isPageVisible ? 60000 : 300000;
+
       const interval = setInterval(() => {
-        fetchOrders();
-        fetchNotifications();
-      }, 30000); // 30 seconds - balanced for battery life
+        // Only poll if page is visible or it's been a while
+        if (isPageVisible || !document.hidden) {
+          fetchOrders();
+          fetchNotifications();
+        }
+      }, getPollingInterval());
+
       return () => clearInterval(interval);
     }
-  }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [token, isPageVisible]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Fetch orders after user data is loaded and location is available for drivers
   useEffect(() => {
@@ -497,17 +510,22 @@ const DeliveryApp = () => {
   }, [t]);
 
   // Driver location effect
+  // Driver location effect
   useEffect(() => {
     if (currentUser?.role === 'driver' && token) {
-      getDriverLocation();
+      if (isPageVisible) {
+        getDriverLocation();
+      }
       // Update location every 5 minutes for drivers
       const locationInterval = setInterval(() => {
-        updateDriverLocation();
+        if (isPageVisible) {
+          updateDriverLocation();
+        }
       }, 5 * 60 * 1000); // 5 minutes
 
       return () => clearInterval(locationInterval);
     }
-  }, [currentUser, token]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [currentUser, token, isPageVisible]); // eslint-disable-line react-hooks/exhaustive-deps
 
 
 
@@ -600,12 +618,18 @@ const DeliveryApp = () => {
       }
     };
 
-    fetchFooterStats();
+    if (isPageVisible) {
+      fetchFooterStats();
+    }
 
     // Refresh stats every 5 minutes
-    const interval = setInterval(fetchFooterStats, 5 * 60 * 1000);
+    const interval = setInterval(() => {
+      if (isPageVisible) {
+        fetchFooterStats();
+      }
+    }, 5 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [API_URL]);
+  }, [API_URL, isPageVisible]);
 
   // ============ END OF PART 1 ============
   // Continue with Part 2 for API Functions

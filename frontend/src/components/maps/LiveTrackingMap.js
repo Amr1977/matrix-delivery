@@ -8,8 +8,9 @@ import api from '../../api';
 
 const MAP_DEFAULT_CENTER = [30.0444, 31.2357];
 const MAP_DEFAULT_ZOOM = 13;
-const LIVE_TRACK_REFRESH_INTERVAL_MS_ACTIVE = 10000; // 10 seconds (reduced from 3s)
-const LIVE_TRACK_REFRESH_INTERVAL_MS_IDLE = 30000; // 30 seconds (reduced from 10s)
+const LIVE_TRACK_REFRESH_INTERVAL_MS_ACTIVE = 15000; // 15 seconds (optimized from 10s)
+const LIVE_TRACK_REFRESH_INTERVAL_MS_IDLE = 60000; // 60 seconds (optimized from 30s)
+const LIVE_TRACK_REFRESH_INTERVAL_MS_HIDDEN = 300000; // 5 minutes when tab is hidden
 const SMART_TRACKING_DISTANCE_THRESHOLD_METERS = 50;
 const SMART_TRACKING_TIME_THRESHOLD_MS = 30000;
 const AVERAGE_CITY_SPEED_KMH_FOR_ETA = 25;
@@ -198,8 +199,27 @@ const LiveTrackingMap = ({ orderId, t, compact = false, theme = 'dark', isDriver
     }
     const activeStatuses = ['accepted', 'picked_up', 'in_transit'];
     const isActive = activeStatuses.includes(trackingData.status);
-    const intervalMs = isActive ? LIVE_TRACK_REFRESH_INTERVAL_MS_ACTIVE : LIVE_TRACK_REFRESH_INTERVAL_MS_IDLE;
-    refreshIntervalRef.current = setInterval(fetchTrackingData, intervalMs);
+
+    // Adaptive polling based on order status AND page visibility
+    const getInterval = () => {
+      if (document.hidden) {
+        return LIVE_TRACK_REFRESH_INTERVAL_MS_HIDDEN; // 5 minutes when hidden
+      }
+      return isActive ? LIVE_TRACK_REFRESH_INTERVAL_MS_ACTIVE : LIVE_TRACK_REFRESH_INTERVAL_MS_IDLE;
+    };
+
+    refreshIntervalRef.current = setInterval(fetchTrackingData, getInterval());
+
+    // Listen for visibility changes to adjust polling
+    const handleVisibilityChange = () => {
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+      }
+      refreshIntervalRef.current = setInterval(fetchTrackingData, getInterval());
+      console.log(`🔍 Live tracking interval adjusted: ${document.hidden ? 'HIDDEN (5min)' : isActive ? 'ACTIVE (15s)' : 'IDLE (60s)'}`);
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     // Start smart tracking if driver and order is active
     // Note: In a real app, we would check if currentUser.id === trackingData.driver.userId
@@ -227,6 +247,7 @@ const LiveTrackingMap = ({ orderId, t, compact = false, theme = 'dark', isDriver
         clearInterval(refreshIntervalRef.current);
         refreshIntervalRef.current = null;
       }
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       if (watchIdRef.current) {
         navigator.geolocation.clearWatch(watchIdRef.current);
         watchIdRef.current = null;
