@@ -165,7 +165,7 @@ async function debugBids() {
             )
           ) FILTER (WHERE b.id IS NOT NULL) as bids
         FROM orders o
-        LEFT JOIN users d ON o.assigned_driver_id = d.id
+        LEFT JOIN users d ON o.assigned_driver_user_id = d.id
         LEFT JOIN bids b ON o.id = b.order_id
         LEFT JOIN users u ON b.user_id = u.id
         LEFT JOIN (

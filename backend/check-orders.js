@@ -52,7 +52,7 @@ async function checkOrders() {
           ELSE NULL
         END as distance_km
       FROM orders o
-      WHERE o.status = 'pending_bids' AND o.assigned_driver_id IS NULL
+      WHERE o.status = 'pending_bids' AND o.assigned_driver_user_id IS NULL
       ORDER BY distance_km ASC
     `;
 

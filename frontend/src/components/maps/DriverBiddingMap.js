@@ -1,6 +1,8 @@
 import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
+import polyline from '@mapbox/polyline';
+import api from '../../api';
 
 // Fix default icon issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -19,6 +21,46 @@ const createCustomIcon = (iconType, color) => {
   };
 
   const size = 60;
+
+  if (iconType === 'driver') {
+    return L.divIcon({
+      html: `
+        <div style="position: relative; width: ${size}px; height: ${size}px;">
+          <div style="
+            position: absolute; inset: 0;
+            background: #3B82F6;
+            border: 4px solid white;
+            border-radius: 50%;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+          ">
+            ${icons[iconType]}
+          </div>
+          <div style="
+            position: absolute; inset: 0;
+            border-radius: 50%;
+            animation: pulseRing 1.8s ease-out infinite;
+            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.6);
+            z-index: -1;
+          "></div>
+        </div>
+        <style>
+          @keyframes pulseRing {
+            0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.6); }
+            70% { box-shadow: 0 0 0 20px rgba(59, 130, 246, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+          }
+        </style>
+      `,
+      className: '',
+      iconSize: [size, size],
+      iconAnchor: [Math.floor(size / 2), size],
+      popupAnchor: [0, -size]
+    });
+  }
 
   return L.divIcon({
     html: `
@@ -66,12 +108,15 @@ const createCustomIcon = (iconType, color) => {
 };
 
 const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType = 'car', isFullscreen = false, onToggleFullscreen, theme = 'dark' }) => {
-  const [routePath, setRoutePath] = React.useState([]);
+  const [routePath, setRoutePath] = React.useState([]); // Full route path
+  const [driverToPickupPath, setDriverToPickupPath] = React.useState([]);
+  const [pickupToDropoffPath, setPickupToDropoffPath] = React.useState([]);
   const [routeInfo, setRouteInfo] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   const [driverCoords, setDriverCoords] = React.useState(null);
   const [pickupCoords, setPickupCoords] = React.useState(null);
   const [dropoffCoords, setDropoffCoords] = React.useState(null);
+
   const hasDriverCoords = !!(driverCoords && Number.isFinite(driverCoords.lat) && Number.isFinite(driverCoords.lng));
 
   const tileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
@@ -79,26 +124,26 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
   // Parse order locations (handle both old and new formats)
   React.useEffect(() => {
     // Handle pickup location - support both old and new formats
-    let pickupCoords = null;
+    let pCoords = null;
     if (order.pickupLocation?.coordinates) {
       // New format
-      pickupCoords = order.pickupLocation.coordinates;
+      pCoords = order.pickupLocation.coordinates;
     } else if (order.from) {
       // Old format converted to new format
-      pickupCoords = { lat: order.from.lat, lng: order.from.lng };
+      pCoords = { lat: order.from.lat, lng: order.from.lng };
     }
-    setPickupCoords(pickupCoords);
+    setPickupCoords(pCoords);
 
     // Handle dropoff location
-    let dropoffCoords = null;
+    let dCoords = null;
     if (order.dropoffLocation?.coordinates) {
       // New format
-      dropoffCoords = order.dropoffLocation.coordinates;
+      dCoords = order.dropoffLocation.coordinates;
     } else if (order.to) {
       // Old format converted to new format
-      dropoffCoords = { lat: order.to.lat, lng: order.to.lng };
+      dCoords = { lat: order.to.lat, lng: order.to.lng };
     }
-    setDropoffCoords(dropoffCoords);
+    setDropoffCoords(dCoords);
   }, [order]);
 
   // Get real-time driver location if not provided
@@ -130,16 +175,6 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
         },
         (error) => {
           console.warn('Geolocation error:', error);
-          console.warn('Error code:', error.code, 'Message:', error.message);
-
-          // Provide better error messages for different error types
-          if (error.code === error.PERMISSION_DENIED) {
-            console.warn('Location permission denied. This is normal on mobile over HTTP.');
-          } else if (error.code === error.POSITION_UNAVAILABLE) {
-            console.warn('Location information unavailable.');
-          } else if (error.code === error.TIMEOUT) {
-            console.warn('Location request timed out.');
-          }
 
           // Fall back to order pickup location for demo
           if (pickupCoords) {
@@ -148,7 +183,6 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
               lng: pickupCoords.lng,
               accuracy: 1000
             });
-            console.log('Using pickup location as fallback:', pickupCoords);
           } else {
             // Fallback to Cairo if no coordinates available
             setDriverCoords({
@@ -156,7 +190,6 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
               lng: 31.2357,
               accuracy: 1000
             });
-            console.log('Using default Cairo location as fallback');
           }
           setLoading(false);
         },
@@ -194,65 +227,113 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
 
     const calculateRoute = async () => {
       try {
-        // For demo purposes, we'll calculate a simple route
-        // In production, you'd integrate with a routing service like GraphHopper, Mapbox, or OpenRouteService
+        console.log('🗺️ Starting route calculation...');
+        console.log('📍 Driver:', driverCoords);
+        console.log('📦 Pickup:', pickupCoords);
+        console.log('🏁 Dropoff:', dropoffCoords);
 
-        const driverPos = driverCoords;
-        const pickupPos = pickupCoords;
-        const dropoffPos = dropoffCoords;
+        // 1. Calculate Driver -> Pickup Route
+        let driverToPickupPolyline = [];
+        let driverToPickupDist = 0;
+        let driverToPickupTime = 0;
 
-        // Create waypoints: driver → pickup → dropoff
-        const waypoints = [
-          { lat: driverPos.lat, lng: driverPos.lng },
-          { lat: pickupPos.lat, lng: pickupPos.lng },
-          { lat: dropoffPos.lat, lng: dropoffPos.lng }
-        ];
+        try {
+          console.log('🚀 Requesting Driver->Pickup route from backend...');
+          const response = await api.post('/locations/calculate-route', {
+            pickup: { lat: driverCoords.lat, lng: driverCoords.lng },
+            delivery: { lat: pickupCoords.lat, lng: pickupCoords.lng }
+          });
 
-        // Calculate distances and times (simplified calculation)
-        const toPickupDistance = calculateDistance(driverPos, pickupPos);
-        const toDropoffDistance = calculateDistance(pickupPos, dropoffPos);
+          console.log('✅ Driver->Pickup response:', response);
 
-        // Calculate times based on vehicle type
-        const vehicleSpeeds = {
-          walker: 5,
-          pedestrian: 5,
-          bicycle: 15,
-          bike: 20,
-          scooter: 22,
-          motorbike: 25,
-          car: 35,
-          van: 30,
-          truck: 25
-        };
+          if (response.polyline) {
+            console.log('🧩 Decoding Driver->Pickup polyline...');
+            driverToPickupPolyline = polyline.decode(response.polyline);
+          } else {
+            console.warn('⚠️ No polyline in response, using straight line.');
+            // Fallback to straight line
+            driverToPickupPolyline = [[driverCoords.lat, driverCoords.lng], [pickupCoords.lat, pickupCoords.lng]];
+          }
 
-        const speed = vehicleSpeeds[driverVehicleType] || 35;
-        const toPickupTime = (toPickupDistance / speed) * 60; // minutes
-        const toDeliveryTime = (toDropoffDistance / speed) * 60; // minutes
+          driverToPickupDist = response.distance_km;
+          // Use vehicle specific estimate if available, otherwise generic duration
+          driverToPickupTime = response.estimates?.[driverVehicleType]?.duration_minutes || response.estimates?.car?.duration_minutes || 0;
 
-        // Create route path (simplified straight lines)
-        const path = waypoints.map(point => [point.lat, point.lng]);
+        } catch (err) {
+          console.warn('❌ Failed to calculate driver->pickup route:', err);
+          // Fallback
+          driverToPickupPolyline = [[driverCoords.lat, driverCoords.lng], [pickupCoords.lat, pickupCoords.lng]];
+          driverToPickupDist = calculateDistance(driverCoords, pickupCoords);
+          driverToPickupTime = (driverToPickupDist / 30) * 60; // Assume 30km/h
+        }
 
-        setRoutePath(path);
+        setDriverToPickupPath(driverToPickupPolyline);
+
+        // 2. Calculate Pickup -> Dropoff Route (or use existing)
+        let pickupToDropoffPolyline = [];
+        let pickupToDropoffDist = 0;
+        let pickupToDropoffTime = 0;
+
+        if (order.routePolyline) {
+          console.log('Using existing order polyline for Pickup->Dropoff');
+          // Use existing route from order
+          try {
+            pickupToDropoffPolyline = polyline.decode(order.routePolyline);
+            pickupToDropoffDist = order.estimatedDistanceKm || calculateDistance(pickupCoords, dropoffCoords);
+            pickupToDropoffTime = order.estimatedDurationMinutes || (pickupToDropoffDist / 30) * 60;
+          } catch (e) {
+            console.warn('Failed to decode order polyline:', e);
+            pickupToDropoffPolyline = [[pickupCoords.lat, pickupCoords.lng], [dropoffCoords.lat, dropoffCoords.lng]];
+          }
+        } else {
+          // Calculate new route
+          try {
+            console.log('🚀 Requesting Pickup->Dropoff route from backend...');
+            const response = await api.post('/locations/calculate-route', {
+              pickup: { lat: pickupCoords.lat, lng: pickupCoords.lng },
+              delivery: { lat: dropoffCoords.lat, lng: dropoffCoords.lng }
+            });
+
+            console.log('✅ Pickup->Dropoff response:', response);
+
+            if (response.polyline) {
+              pickupToDropoffPolyline = polyline.decode(response.polyline);
+            } else {
+              pickupToDropoffPolyline = [[pickupCoords.lat, pickupCoords.lng], [dropoffCoords.lat, dropoffCoords.lng]];
+            }
+
+            pickupToDropoffDist = response.distance_km;
+            pickupToDropoffTime = response.estimates?.[driverVehicleType]?.duration_minutes || response.estimates?.car?.duration_minutes || 0;
+
+          } catch (err) {
+            console.warn('❌ Failed to calculate pickup->dropoff route:', err);
+            pickupToDropoffPolyline = [[pickupCoords.lat, pickupCoords.lng], [dropoffCoords.lat, dropoffCoords.lng]];
+            pickupToDropoffDist = calculateDistance(pickupCoords, dropoffCoords);
+            pickupToDropoffTime = (pickupToDropoffDist / 30) * 60;
+          }
+        }
+
+        setPickupToDropoffPath(pickupToDropoffPolyline);
+
+        // Combine info
         setRouteInfo({
-          totalDistance: (toPickupDistance + toDropoffDistance).toFixed(1),
-          driverToPickupDistance: toPickupDistance.toFixed(1),
-          pickupToDropoffDistance: toDropoffDistance.toFixed(1),
-          totalTimeMinutes: Math.ceil(toPickupTime + toDeliveryTime),
-          pickupTimeMinutes: Math.ceil(toPickupTime),
-          deliveryTimeMinutes: Math.ceil(toDeliveryTime),
+          totalDistance: (driverToPickupDist + pickupToDropoffDist).toFixed(1),
+          driverToPickupDistance: driverToPickupDist.toFixed(1),
+          pickupToDropoffDistance: pickupToDropoffDist.toFixed(1),
+          totalTimeMinutes: Math.ceil(driverToPickupTime + pickupToDropoffTime),
+          pickupTimeMinutes: Math.ceil(driverToPickupTime),
+          deliveryTimeMinutes: Math.ceil(pickupToDropoffTime),
           vehicleType: driverVehicleType,
-          speed: speed,
+          speed: 'Variable', // Speed varies by segment/traffic
           routeFound: true
         });
+
       } catch (error) {
         console.error('Route calculation error:', error);
         // Fallback to straight line
-        const path = [
-          [driverCoords.lat, driverCoords.lng],
-          [pickupCoords.lat, pickupCoords.lng],
-          [dropoffCoords.lat, dropoffCoords.lng]
-        ];
-        setRoutePath(path);
+        setDriverToPickupPath([[driverCoords.lat, driverCoords.lng], [pickupCoords.lat, pickupCoords.lng]]);
+        setPickupToDropoffPath([[pickupCoords.lat, pickupCoords.lng], [dropoffCoords.lat, dropoffCoords.lng]]);
+
         setRouteInfo({
           totalDistance: 'Unknown',
           driverToPickupDistance: 'Unknown',
@@ -298,11 +379,19 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
           boundsPoints.push([driverCoords.lat, driverCoords.lng]);
         }
 
+        // Add path points to ensure full route is visible (sample if too many)
+        if (driverToPickupPath.length > 0) {
+          boundsPoints.push(driverToPickupPath[Math.floor(driverToPickupPath.length / 2)]);
+        }
+        if (pickupToDropoffPath.length > 0) {
+          boundsPoints.push(pickupToDropoffPath[Math.floor(pickupToDropoffPath.length / 2)]);
+        }
+
         // Fit map to show all points with padding
         const bounds = L.latLngBounds(boundsPoints);
         map.fitBounds(bounds, { padding: [50, 50] });
       }
-    }, [map, driverCoords, pickupCoords, dropoffCoords]);
+    }, [map, driverCoords, pickupCoords, dropoffCoords, driverToPickupPath, pickupToDropoffPath]);
 
     return null;
   };
@@ -335,8 +424,8 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
 
   return (
     <div style={{ width: '100%', marginBottom: '1rem' }}>
-      {/* Debug Info */}
-      <div style={{
+      {/* Debug Info - Can be removed in prod */}
+      {/* <div style={{
         background: 'yellow',
         color: 'black',
         padding: '0.5rem',
@@ -347,23 +436,8 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
         wordWrap: 'break-word'
       }}>
         DEBUG: Map showing for order {order.title || order.orderNumber || order._id}<br />
-        <strong>Order Status:</strong> {order.status}<br />
-        <strong>Order Data:</strong> {JSON.stringify({
-          hasPickupLocation: !!order.pickupLocation,
-          hasPickupCoords: !!order.pickupLocation?.coordinates,
-          pickupLat: order.pickupLocation?.coordinates?.lat,
-          pickupLng: order.pickupLocation?.coordinates?.lng,
-          hasDropoffLocation: !!order.dropoffLocation,
-          hasDropoffCoords: !!order.dropoffLocation?.coordinates,
-          dropoffLat: order.dropoffLocation?.coordinates?.lat,
-          dropoffLng: order.dropoffLocation?.coordinates?.lng,
-          hasLegacyFrom: !!order.from,
-          hasLegacyTo: !!order.to
-        }, null, 0)}<br />
         <strong>Driver Coords:</strong> {hasDriverCoords ? `Lat:${driverCoords.lat.toFixed(4)}, Lng:${driverCoords.lng.toFixed(4)}` : 'None'}
-      </div>
-
-
+      </div> */}
 
       {/* Map Container */}
       <div style={{
@@ -395,6 +469,7 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
           />
 
           {/* Driver Location Marker */}
+          {console.log('🚗 Rendering Driver Marker check:', { hasDriverCoords, driverCoords })}
           {hasDriverCoords && (
             <Marker
               position={[driverCoords.lat, driverCoords.lng]}
@@ -463,14 +538,25 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
             </Marker>
           )}
 
-          {/* Route Polyline */}
-          {routePath.length > 1 && (
+          {/* Route Polylines */}
+          {/* 1. Driver to Pickup (Dashed Blue) */}
+          {driverToPickupPath.length > 1 && (
             <Polyline
-              positions={routePath}
+              positions={driverToPickupPath}
+              color="#3B82F6"
+              weight={5}
+              opacity={0.8}
+              dashArray="10, 10"
+            />
+          )}
+
+          {/* 2. Pickup to Dropoff (Solid Orange) */}
+          {pickupToDropoffPath.length > 1 && (
+            <Polyline
+              positions={pickupToDropoffPath}
               color="#FF6B00"
               weight={6}
               opacity={1.0}
-              dashArray="12, 8"
             />
           )}
         </MapContainer>
@@ -514,7 +600,7 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
                 🚗 Vehicle Type
               </div>
               <div style={{ fontSize: '1rem', fontWeight: '600', color: '#374151' }}>
-                {driverVehicleType.charAt(0).toUpperCase() + driverVehicleType.slice(1)} ({routeInfo.speed} km/h)
+                {driverVehicleType.charAt(0).toUpperCase() + driverVehicleType.slice(1)}
               </div>
             </div>
 

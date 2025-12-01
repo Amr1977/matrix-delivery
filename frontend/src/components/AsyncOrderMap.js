@@ -110,18 +110,18 @@ const AsyncOrderMap = ({ order, currentUser, driverLocation, theme = 'dark', ...
             let decodedPath = [];
 
             // Use OSRM data if available
-            if (driverToPickupResponse?.routePolyline && pickupToDropoffResponse?.routePolyline) {
+            if (driverToPickupResponse?.polyline && pickupToDropoffResponse?.polyline) {
                 // Both routes have OSRM polylines - combine them
                 driverToPickupDistance = driverToPickupResponse.distance_km || driverToPickupDistance;
-                driverToPickupDuration = driverToPickupResponse.duration_minutes || driverToPickupDuration;
+                driverToPickupDuration = driverToPickupResponse.estimates?.car?.duration_minutes || driverToPickupDuration;
                 pickupToDropoffDistance = pickupToDropoffResponse.distance_km || pickupToDropoffDistance;
-                pickupToDropoffDuration = pickupToDropoffResponse.duration_minutes || pickupToDropoffDuration;
+                pickupToDropoffDuration = pickupToDropoffResponse.estimates?.car?.duration_minutes || pickupToDropoffDuration;
 
                 try {
-                    const driverToPickupPath = polyline.decode(driverToPickupResponse.routePolyline);
-                    const pickupToDropoffPath = polyline.decode(pickupToDropoffResponse.routePolyline);
+                    const driverToPickupPath = polyline.decode(driverToPickupResponse.polyline);
+                    const pickupToDropoffPath = polyline.decode(pickupToDropoffResponse.polyline);
                     decodedPath = [...driverToPickupPath, ...pickupToDropoffPath];
-                    combinedPolyline = `${driverToPickupResponse.routePolyline}${pickupToDropoffResponse.routePolyline}`;
+                    combinedPolyline = `${driverToPickupResponse.polyline}${pickupToDropoffResponse.polyline}`;
                     console.log(`✅ Combined OSRM routes: ${decodedPath.length} points`);
                 } catch (decodeError) {
                     console.warn('Failed to combine OSRM polylines:', decodeError);

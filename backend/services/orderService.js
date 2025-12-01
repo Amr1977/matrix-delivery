@@ -1,4 +1,5 @@
 const { Pool } = require('pg');
+const { getDistance } = require('geolib');
 const logger = require('../logger');
 
 // Load environment-specific .env file
@@ -20,6 +21,16 @@ const pool = new Pool({
 });
 
 class OrderService {
+  /**
+   * Calculate distance between two points using geolib
+   */
+  getDistance(point1, point2) {
+    return getDistance(
+      { lat: point1.latitude, lng: point1.longitude },
+      { lat: point2.lat, lng: point2.lng }
+    );
+  }
+
   /**
    * Generate a unique ID
    */
@@ -567,7 +578,7 @@ class OrderService {
 
     // Check if order exists and is available for bidding
     const orderCheck = await pool.query(
-      'SELECT status, assigned_driver_id FROM orders WHERE id = $1',
+      'SELECT status, assigned_driver_user_id FROM orders WHERE id = $1',
       [orderId]
     );
 
@@ -576,7 +587,7 @@ class OrderService {
     }
 
     const order = orderCheck.rows[0];
-    if (order.status !== 'pending_bids' || order.assigned_driver_id) {
+    if (order.status !== 'pending_bids' || order.assigned_driver_user_id) {
       throw new Error('Order is not available for bidding');
     }
 
@@ -590,16 +601,27 @@ class OrderService {
       throw new Error('You have already placed a bid on this order');
     }
 
-    const bidId = this.generateId();
-    await pool.query(
+    // Get driver's name
+    const driverResult = await pool.query(
+      'SELECT name FROM users WHERE id = $1',
+      [driverId]
+    );
+
+    if (driverResult.rows.length === 0) {
+      throw new Error('Driver not found');
+    }
+
+    const driverName = driverResult.rows[0].name;
+
+    const result = await pool.query(
       `INSERT INTO bids (
-        id, order_id, user_id, bid_price, estimated_pickup_time,
+        order_id, user_id, driver_name, bid_price, estimated_pickup_time,
         estimated_delivery_time, message, driver_location_lat, driver_location_lng, created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())`,
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW()) RETURNING id`,
       [
-        bidId,
         orderId,
         driverId,
+        driverName,
         parseFloat(bidPrice),
         estimatedPickupTime || null,
         estimatedDeliveryTime || null,
@@ -608,6 +630,8 @@ class OrderService {
         location ? parseFloat(location.lng) : null
       ]
     );
+
+    const bidId = result.rows[0].id;
 
     logger.order('Bid placed successfully', {
       bidId,
@@ -655,7 +679,7 @@ class OrderService {
 
     // Update order with accepted bid
     await pool.query(
-      'UPDATE orders SET status = $1, assigned_driver_user_id = $2, assigned_driver_name = (SELECT driver_name FROM bids WHERE order_id = $3 AND user_id = $2), assigned_driver_bid_price = (SELECT bid_price FROM bids WHERE order_id = $3 AND user_id = $2), accepted_at = NOW() WHERE id = $3',
+      'UPDATE orders SET status = $1, assigned_driver_user_id = $2, assigned_driver_name = (SELECT driver_name FROM bids WHERE order_id = $3 AND user_id = $2), assigned_driver_bid_price = (SELECT bid_price FROM bids WHERE order_id = $3 AND user_id = $2), price = (SELECT bid_price FROM bids WHERE order_id = $3 AND user_id = $2), accepted_at = NOW() WHERE id = $3',
       ['accepted', driverId, orderId]
     );
 
@@ -681,7 +705,7 @@ class OrderService {
 
     // Check order ownership/assignment
     const orderCheck = await pool.query(
-      'SELECT customer_id, assigned_driver_id, status FROM orders WHERE id = $1',
+      'SELECT customer_id, assigned_driver_user_id, status FROM orders WHERE id = $1',
       [orderId]
     );
 
@@ -692,7 +716,7 @@ class OrderService {
     const order = orderCheck.rows[0];
 
     // Validate permissions
-    if (order.assigned_driver_id !== driverId) {
+    if (order.assigned_driver_user_id !== driverId) {
       throw new Error('Only assigned driver can perform this action');
     }
 
@@ -708,16 +732,19 @@ class OrderService {
     }
 
     // Update order status
+    let query = `UPDATE orders SET status = $1 WHERE id = $2`;
+    let params = [statusMap[action].to, orderId];
+
     const updateFields = {
       pickup: 'picked_up_at = NOW()',
-      'in-transit': 'in_transit_at = NOW()',
       complete: 'delivered_at = NOW()'
     };
 
-    await pool.query(
-      `UPDATE orders SET status = $1, ${updateFields[action]} WHERE id = $2`,
-      [statusMap[action].to, orderId]
-    );
+    if (updateFields[action]) {
+      query = `UPDATE orders SET status = $1, ${updateFields[action]} WHERE id = $2`;
+    }
+
+    await pool.query(query, params);
 
     // If order is completed, update driver stats
     if (action === 'complete') {
@@ -770,9 +797,9 @@ class OrderService {
 
     // Get location history with additional data
     const locationHistory = await pool.query(
-      `SELECT latitude, longitude, timestamp, heading, speed_kmh, accuracy_meters, status as location_status
+      `SELECT latitude, longitude, timestamp, heading, speed_kmh, accuracy_meters, context as location_status
        FROM driver_locations
-       WHERE order_id = $1 AND status = 'active'
+       WHERE order_id = $1
        ORDER BY timestamp`,
       [orderId]
     );
@@ -939,7 +966,7 @@ class OrderService {
 
     // Check if order exists and user has permission
     const orderCheck = await pool.query(
-      'SELECT customer_id, assigned_driver_id, status FROM orders WHERE id = $1',
+      'SELECT customer_id, assigned_driver_user_id, status FROM orders WHERE id = $1',
       [orderId]
     );
 
@@ -959,10 +986,10 @@ class OrderService {
         throw new Error('Unauthorized');
       }
       reviewerIdFinal = reviewerId;
-      revieweeId = order.assigned_driver_id;
+      revieweeId = order.assigned_driver_user_id;
       revieweeRole = 'driver';
     } else if (reviewType === 'driver_to_customer') {
-      if (order.assigned_driver_id !== reviewerId) {
+      if (order.assigned_driver_user_id !== reviewerId) {
         throw new Error('Unauthorized');
       }
       reviewerIdFinal = reviewerId;

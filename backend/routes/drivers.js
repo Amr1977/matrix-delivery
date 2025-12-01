@@ -33,7 +33,7 @@ router.post('/tracking/:orderId/start', verifyToken, requireRole('driver'), apiR
 
     // Check if driver is assigned to this order
     const orderCheck = await pool.query(
-      'SELECT id, assigned_driver_id FROM orders WHERE id = $1',
+      'SELECT id, assigned_driver_user_id FROM orders WHERE id = $1',
       [orderId]
     );
 
@@ -42,7 +42,7 @@ router.post('/tracking/:orderId/start', verifyToken, requireRole('driver'), apiR
     }
 
     const order = orderCheck.rows[0];
-    if (order.assigned_driver_id !== driverId) {
+    if (order.assigned_driver_user_id !== driverId) {
       return res.status(403).json({ error: 'Driver not assigned to this order' });
     }
 
@@ -83,7 +83,7 @@ router.post('/tracking/:orderId/stop', verifyToken, requireRole('driver'), apiRa
 
     // Verify driver permission
     const orderCheck = await pool.query(
-      'SELECT id, assigned_driver_id FROM orders WHERE id = $1',
+      'SELECT id, assigned_driver_user_id FROM orders WHERE id = $1',
       [orderId]
     );
 
@@ -92,7 +92,7 @@ router.post('/tracking/:orderId/stop', verifyToken, requireRole('driver'), apiRa
     }
 
     const order = orderCheck.rows[0];
-    if (order.assigned_driver_id !== driverId) {
+    if (order.assigned_driver_user_id !== driverId) {
       return res.status(403).json({ error: 'Driver not assigned to this order' });
     }
 
@@ -140,7 +140,7 @@ router.get('/tracking/:orderId/status', verifyToken, async (req, res) => {
 
     // Check if user has permission to view this order
     const orderCheck = await pool.query(
-      'SELECT id, customer_id, assigned_driver_id, current_tracking_status FROM orders WHERE id = $1',
+      'SELECT id, customer_id, assigned_driver_user_id, current_tracking_status FROM orders WHERE id = $1',
       [orderId]
     );
 
@@ -149,7 +149,7 @@ router.get('/tracking/:orderId/status', verifyToken, async (req, res) => {
     }
 
     const order = orderCheck.rows[0];
-    if (order.customer_id !== userId && order.assigned_driver_id !== userId) {
+    if (order.customer_id !== userId && order.assigned_driver_user_id !== userId) {
       return res.status(403).json({ error: 'Unauthorized to view this order tracking' });
     }
 
@@ -160,7 +160,7 @@ router.get('/tracking/:orderId/status', verifyToken, async (req, res) => {
        FROM driver_locations dl
        WHERE dl.driver_id = $1 AND dl.order_id = $2 AND dl.status = 'active'
        ORDER BY dl.timestamp DESC LIMIT 1`,
-      [order.assigned_driver_id, orderId]
+      [order.assigned_driver_user_id, orderId]
     );
 
     res.json({
@@ -241,7 +241,7 @@ router.post('/location/:orderId', verifyToken, requireRole('driver'), apiRateLim
 
     // Check if driver is assigned to this order and tracking is active
     const orderCheck = await pool.query(
-      'SELECT id, assigned_driver_id, current_tracking_status FROM orders WHERE id = $1',
+      'SELECT id, assigned_driver_user_id, current_tracking_status FROM orders WHERE id = $1',
       [orderId]
     );
 
@@ -250,7 +250,7 @@ router.post('/location/:orderId', verifyToken, requireRole('driver'), apiRateLim
     }
 
     const order = orderCheck.rows[0];
-    if (order.assigned_driver_id !== driverId) {
+    if (order.assigned_driver_user_id !== driverId) {
       return res.status(403).json({ error: 'Driver not assigned to this order' });
     }
 
@@ -444,7 +444,7 @@ router.get('/location/order/:orderId/bidders', verifyToken, async (req, res) => 
 
     // Check if user has permission to view this order
     const orderCheck = await pool.query(
-      'SELECT id, customer_id, assigned_driver_id FROM orders WHERE id = $1',
+      'SELECT id, customer_id, assigned_driver_user_id FROM orders WHERE id = $1',
       [orderId]
     );
 
@@ -455,7 +455,7 @@ router.get('/location/order/:orderId/bidders', verifyToken, async (req, res) => 
     const order = orderCheck.rows[0];
 
     // Only customer or assigned driver can view bidder locations
-    if (order.customer_id !== userId && order.assigned_driver_id !== userId && req.user.role !== 'admin') {
+    if (order.customer_id !== userId && order.assigned_driver_user_id !== userId && req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
