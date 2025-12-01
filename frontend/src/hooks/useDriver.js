@@ -96,7 +96,13 @@ const useDriver = (token, currentUser) => {
             if (!response.ok) {
               const errorData = await response.json().catch(() => ({}));
               const errorMessage = errorData.error || `HTTP ${response.status}`;
-              console.error('❌ Failed to update location:', errorMessage, errorData);
+              console.error('❌ Failed to update location:', {
+                status: response.status,
+                statusText: response.statusText,
+                errorMessage,
+                errorData,
+                url: `${API_URL}/drivers/location`
+              });
               throw new Error(`Failed to update location: ${errorMessage}`);
             }
 
