@@ -75,40 +75,80 @@ const SideMenu: React.FC<SideMenuProps> = ({
             >
                 <div className="mobile-menu-items" style={{ padding: '1.5rem', overflowY: 'auto', height: '100%' }}>
 
-                    {/* User Info Section */}
+                    {/* User Info Section - Enhanced */}
                     <div className="mobile-menu-section" style={{ marginBottom: '2rem', borderBottom: '1px solid #374151', paddingBottom: '1rem' }}>
-                        <div className="mobile-user-info" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <div
+                            className="mobile-user-info"
+                            style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', cursor: 'pointer' }}
+                            onClick={() => { onNavigate('profile'); onClose(); }}
+                            onMouseOver={(e) => e.currentTarget.style.opacity = '0.8'}
+                            onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
+                        >
                             <div style={{
-                                width: '48px',
-                                height: '48px',
+                                width: '56px',
+                                height: '56px',
                                 borderRadius: '50%',
                                 background: '#374151',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 overflow: 'hidden',
-                                border: '2px solid var(--matrix-bright-green)'
+                                border: '2px solid var(--matrix-bright-green)',
+                                flexShrink: 0,
+                                transition: 'transform 0.2s'
                             }}>
                                 {currentUser?.profile_picture_url ? (
                                     <img src={currentUser.profile_picture_url} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                 ) : (
-                                    <span style={{ fontSize: '1.5rem' }}>👤</span>
+                                    <span style={{ fontSize: '1.75rem' }}>👤</span>
                                 )}
                             </div>
-                            <div>
-                                <div className="mobile-user-name" style={{ fontWeight: 'bold', color: 'white', fontSize: '1.1rem' }}>
-                                    {currentUser?.name}
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                                    <div className="mobile-user-name" style={{ fontWeight: 'bold', color: 'white', fontSize: '1.1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                        {currentUser?.name}
+                                    </div>
+                                    {currentUser?.isVerified && (
+                                        <span style={{
+                                            background: '#10B981',
+                                            color: 'white',
+                                            padding: '0.125rem 0.375rem',
+                                            borderRadius: '9999px',
+                                            fontSize: '0.625rem',
+                                            fontWeight: '700',
+                                            flexShrink: 0
+                                        }}>
+                                            ✓
+                                        </span>
+                                    )}
                                 </div>
-                                <div className="mobile-user-role" style={{ color: 'var(--matrix-green)', fontSize: '0.875rem', textTransform: 'capitalize' }}>
+                                <div className="mobile-user-role" style={{ color: 'var(--matrix-green)', fontSize: '0.75rem', textTransform: 'capitalize', marginBottom: '0.5rem' }}>
                                     {currentUser?.role}
                                 </div>
+                                {/* User Stats */}
+                                {currentUser?.role === 'driver' && (
+                                    <div style={{ fontSize: '0.75rem', color: '#9CA3AF', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                        {currentUser?.completedDeliveries !== undefined && (
+                                            <div>
+                                                🚚 {currentUser.completedDeliveries} {currentUser.completedDeliveries === 1 ? 'delivery' : 'deliveries'}
+                                            </div>
+                                        )}
+                                        {currentUser?.rating !== undefined && currentUser.rating > 0 && (
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                                <span style={{ color: '#FFD700' }}>
+                                                    {'★'.repeat(Math.floor(currentUser.rating))}
+                                                    {currentUser.rating % 1 >= 0.5 ? '½' : ''}
+                                                    {'☆'.repeat(5 - Math.ceil(currentUser.rating))}
+                                                </span>
+                                                <span style={{ color: '#D1D5DB', fontSize: '0.7rem' }}>
+                                                    {currentUser.rating.toFixed(1)}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </div>
-                        {currentUser?.isVerified && (
-                            <div style={{ marginTop: '0.5rem', display: 'inline-block', background: '#10B981', color: 'white', padding: '0.125rem 0.5rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: '600' }}>
-                                ✓ Verified Account
-                            </div>
-                        )}
                     </div>
 
                     {/* Navigation Links */}
@@ -138,15 +178,6 @@ const SideMenu: React.FC<SideMenuProps> = ({
                         )}
 
                         <button
-                            onClick={() => { onNavigate('profile'); onClose(); }}
-                            style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', fontSize: '1rem', borderRadius: '0.5rem', marginBottom: '0.5rem', transition: 'background 0.2s' }}
-                            onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
-                            onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
-                        >
-                            👤 My Profile
-                        </button>
-
-                        <button
                             onClick={() => { onNavigate('notifications'); onClose(); }}
                             style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', textAlign: 'left', padding: '0.75rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', fontSize: '1rem', borderRadius: '0.5rem', marginBottom: '0.5rem', transition: 'background 0.2s' }}
                             onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
@@ -160,6 +191,51 @@ const SideMenu: React.FC<SideMenuProps> = ({
                             )}
                         </button>
                     </div>
+
+                    {/* Driver Actions */}
+                    {currentUser?.role === 'driver' && (
+                        <div className="mobile-menu-section" style={{ marginBottom: '2rem' }}>
+                            <h4 style={{ color: '#9CA3AF', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '1rem', letterSpacing: '0.05em' }}>
+                                Driver Actions
+                            </h4>
+
+                            <button
+                                onClick={() => { onNavigate('bidding'); onClose(); }}
+                                style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', fontSize: '1rem', borderRadius: '0.5rem', marginBottom: '0.5rem', transition: 'background 0.2s' }}
+                                onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
+                                onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+                            >
+                                📋 Available Bids
+                            </button>
+
+                            <button
+                                onClick={() => { onNavigate('map'); onClose(); }}
+                                style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', fontSize: '1rem', borderRadius: '0.5rem', marginBottom: '0.5rem', transition: 'background 0.2s' }}
+                                onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
+                                onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+                            >
+                                🗺️ Map View
+                            </button>
+
+                            <button
+                                onClick={() => { onNavigate('my_bids'); onClose(); }}
+                                style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', fontSize: '1rem', borderRadius: '0.5rem', marginBottom: '0.5rem', transition: 'background 0.2s' }}
+                                onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
+                                onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+                            >
+                                🎯 My Bids
+                            </button>
+
+                            <button
+                                onClick={() => { onNavigate('history'); onClose(); }}
+                                style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', fontSize: '1rem', borderRadius: '0.5rem', marginBottom: '0.5rem', transition: 'background 0.2s' }}
+                                onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
+                                onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+                            >
+                                📜 My History
+                            </button>
+                        </div>
+                    )}
 
                     {/* Driver Controls */}
                     {currentUser?.role === 'driver' && onToggleOnline && (
