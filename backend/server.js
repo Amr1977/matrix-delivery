@@ -1,3 +1,6 @@
+const Sentry = require('@sentry/node');
+const { nodeProfilingIntegration } = require('@sentry/profiling-node');
+
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
@@ -35,13 +38,35 @@ const ordersRouter = require('./routes/orders');
 const envFile = process.env.ENV_FILE || '.env';
 dotenv.config({ path: envFile });
 logger.info(`🔧 Loading environment from: ${envFile}`, { envFile });
+
+// Initialize Sentry
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+const IS_TEST = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing';
+
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  environment: IS_PRODUCTION ? 'production' : IS_TEST ? 'test' : 'development',
+  integrations: [
+    nodeProfilingIntegration(),
+    // HTTP integration is built-in in newer versions
+  ],
+  tracesSampleRate: IS_PRODUCTION ? 0.1 : 1.0,
+  profilesSampleRate: IS_PRODUCTION ? 0.1 : 1.0,
+  beforeSend(event) {
+    // Filter out sensitive data
+    if (event.request?.data) {
+      delete event.request.data.password;
+      delete event.request.data.token;
+      delete event.request.data.recaptchaToken;
+    }
+    return event;
+  },
+});
+
 const app = express();
 
 // Add security middleware for production
 // NOT USED: helmet, rateLimit packages - using custom implementation for demo
-
-const IS_PRODUCTION = process.env.NODE_ENV === 'production';
-const IS_TEST = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing';
 
 // CORS Configuration - Only enabled in non-production environments
 // Apache2 reverse proxy handles CORS in production

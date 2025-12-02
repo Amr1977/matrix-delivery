@@ -6,7 +6,6 @@ import ErrorBoundary from './ErrorBoundary';
 import OrderCreationForm from './updated-order-creation-form';
 import LiveTrackingMapView from './components/maps/LiveTrackingMap';
 import OrdersMap from './components/maps/OrdersMap';
-import RoutePreviewMap from './components/RoutePreviewMap';
 import AsyncOrderMap from './components/AsyncOrderMap';
 import io from 'socket.io-client';
 import ReCAPTCHA from 'react-google-recaptcha';
@@ -25,6 +24,35 @@ import GeolocationStatus from './components/ui/GeolocationStatus';
 import InteractiveLocationPicker from './components/InteractiveLocationPicker';
 import usePageVisibility from './hooks/usePageVisibility';
 import './components/ui/GeolocationStatus.css';
+
+// Initialize Sentry
+import * as Sentry from '@sentry/react';
+
+Sentry.init({
+  dsn: process.env.REACT_APP_SENTRY_DSN,
+  environment: process.env.REACT_APP_ENV || 'development',
+  integrations: [
+    Sentry.browserTracingIntegration({
+      tracePropagationTargets: [process.env.REACT_APP_API_URL || 'localhost:5000'],
+    }),
+    Sentry.replayIntegration({
+      maskAllText: false,
+      blockAllMedia: false,
+    }),
+  ],
+  tracesSampleRate: process.env.REACT_APP_ENV === 'production' ? 0.1 : 1.0,
+  replaysSessionSampleRate: process.env.REACT_APP_ENV === 'production' ? 0.1 : 1.0,
+  replaysOnErrorSampleRate: 1.0,
+  beforeSend(event) {
+    // Filter out sensitive data
+    if (event.request?.data) {
+      delete event.request.data.password;
+      delete event.request.data.token;
+      delete event.request.data.recaptchaToken;
+    }
+    return event;
+  },
+});
 
 
 // Location data state and API functions
