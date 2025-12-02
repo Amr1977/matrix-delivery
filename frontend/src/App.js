@@ -16,6 +16,8 @@ import './MatrixTheme.css';
 import MessagingPanel from './components/messaging/MessagingPanel';
 import PaymentMethodsManager from './components/payments/PaymentMethodsManager';
 import EmailVerificationBanner from './components/auth/EmailVerificationBanner';
+import MainLayout from './components/layout/MainLayout';
+import DriverEarningsDashboard from './components/driver/DriverEarningsDashboard';
 import useDriver from './hooks/useDriver';
 import GeolocationStatus from './components/ui/GeolocationStatus';
 import InteractiveLocationPicker from './components/InteractiveLocationPicker';
@@ -54,7 +56,8 @@ const DeliveryApp = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  // const [showMobileMenu, setShowMobileMenu] = useState(false); // Moved to MainLayout
+
   const [availableRoles, setAvailableRoles] = useState([]);
 
   const locationIntervalRef = useRef(null);
@@ -162,22 +165,14 @@ const DeliveryApp = () => {
   }, []);
 
   // Hamburger menu handler
-  const toggleMobileMenu = () => {
-    setShowMobileMenu(!showMobileMenu);
-  };
+  // const toggleMobileMenu = () => setShowMobileMenu(!showMobileMenu); // Moved to MainLayout
 
   // Add effect to close menu when clicking backdrop
-  useEffect(() => {
-    if (showMobileMenu) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
+  // This useEffect was related to showMobileMenu, which is now handled by MainLayout.
+  // It should be removed or adapted if MainLayout needs to control body overflow.
+  // Given the instruction "Remove the old header and mobile menu JSX", this useEffect is part of the old mobile menu logic.
+  // So, remove it.
 
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [showMobileMenu]);
 
   // Mobile touch optimization
   const isMobile = () => window.innerWidth <= 768;
@@ -1025,6 +1020,7 @@ const DeliveryApp = () => {
       case 'history': return t('driver.myHistory');
       case 'map': return 'Orders Map';
       case 'my_bids': return 'My Pending Bids';
+      case 'earnings': return 'My Earnings';
       default: return t('driver.availableBids');
     }
   };
@@ -1179,17 +1175,10 @@ const DeliveryApp = () => {
   };
 
   // Add effect to close menu when clicking backdrop
-  useEffect(() => {
-    if (showMobileMenu) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [showMobileMenu]);
+  // This useEffect was related to showMobileMenu, which is now handled by MainLayout.
+  // It should be removed or adapted if MainLayout needs to control body overflow.
+  // Given the instruction "Remove the old header and mobile menu JSX", this useEffect is part of the old mobile menu logic.
+  // So, remove it.
 
   const handlePublishOrder = useCallback(async (orderData) => { // eslint-disable-line react-hooks/exhaustive-deps
     // Validation for required fields - must run BEFORE backend submission
@@ -1897,303 +1886,26 @@ const DeliveryApp = () => {
   // Add this after Part 4 (continues the return statement)
 
   return (
-    <div style={{ minHeight: '100vh', background: '#090909', display: 'flex', flexDirection: 'column' }}>
-      <header className="glow">
-        <div className="header-content">
-          {/* Logo */}
-          <div className="header-logo">
-            <img
-              src="/branding-hero-1.png"
-              alt="Matrix Heroes - Your trusted heroes"
-              className="pulse"
-              style={{ width: '48px', height: '48px', marginBottom: '0.5rem' }}
-            />
-            <h1>{t('common.appName')}</h1>
-          </div>
-          <div className="header-geolocation">
-            <GeolocationStatus />
-          </div>
-          {/* Desktop Actions - Hidden on Mobile */}
-          <div className="header-actions desktop-only">
+    <MainLayout
+      currentUser={currentUser}
+      notifications={notifications}
+      onNavigate={(view) => {
+        if (view === 'home') setViewType('active');
+        else if (view === 'earnings') setViewType('earnings');
+        else if (view === 'profile') setShowProfile(true);
+        else if (view === 'notifications') setShowNotifications(true);
+      }}
+      onLogout={logout}
+      onToggleOnline={toggleOnline}
+      isDriverOnline={driverOnline}
+      onSwitchRole={switchRole}
+      availableRoles={availableRoles}
+      onChangeLocale={changeLocale}
+      currentLocale={locale}
+      t={t}
+      unreadCount={unreadCount}
+    >
 
-
-
-            <LanguageSwitcher locale={locale} changeLocale={changeLocale} />
-
-            <button
-              onClick={() => setShowNotifications(!showNotifications)}
-              className={`notification-bell ${unreadCount > 0 ? 'bell-notification' : ''}`}
-            >
-              🔔
-              {unreadCount > 0 && (
-                <span className="notification-badge">{unreadCount}</span>
-              )}
-            </button>
-
-            {currentUser?.role === 'admin' && (
-              <button
-                onClick={toggleOnline}
-                disabled={loadingStates.toggleOnline || (!driverOnline && hasActiveOrders())}
-                style={{
-                  background: driverOnline ? '#EF4444' : '#10B981',
-                  color: 'white',
-                  padding: '0.75rem 1.5rem',
-                  borderRadius: '0.5rem',
-                  fontWeight: '600',
-                  border: 'none',
-                  cursor: (loadingStates.toggleOnline || (!driverOnline && hasActiveOrders())) ? 'not-allowed' : 'pointer',
-                  opacity: (loadingStates.toggleOnline || (!driverOnline && hasActiveOrders())) ? 0.5 : 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem'
-                }}
-              >
-                {loadingStates.toggleOnline ? '...' : driverOnline ? '🔴 Go Offline' : '🟢 Go Online'}
-              </button>
-            )}
-
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                <button
-                  onClick={() => setShowProfile(true)}
-                  style={{
-                    fontWeight: '600',
-                    color: 'var(--matrix-bright-green)',
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    padding: 0,
-                    fontSize: '1rem',
-                    textDecoration: 'underline'
-                  }}
-                >
-                  {currentUser?.name}
-                </button>
-                {currentUser?.isVerified && (
-                  <span style={{ background: '#10B981', color: 'white', padding: '0.125rem 0.5rem', borderRadius: '9999px', fontSize: '0.625rem', fontWeight: '600' }}>
-                    ✓ Verified
-                  </span>
-                )}
-                {!currentUser?.isVerified && (
-                  <button
-                    onClick={() => {
-                      const message = `Hello, I would like to verify my account. My user ID is: ${currentUser?.id}`;
-                      const whatsappUrl = `https://wa.me/${process.env.REACT_APP_WHATSAPP_ADMIN_NUMBER}?text=${encodeURIComponent(message)}`;
-                      window.open(whatsappUrl, '_blank');
-                      // Show message to refresh after verification
-                      setTimeout(() => {
-                        alert('After admin verifies your account, please refresh this page to see the verification badge.');
-                      }, 1000);
-                    }}
-                    style={{ background: '#25D366', color: 'white', padding: '0.125rem 0.5rem', borderRadius: '9999px', border: 'none', cursor: 'pointer', fontSize: '0.625rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
-                    title="Contact admin to verify account"
-                  >
-                    📱 Verify
-                  </button>
-                )}
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <p style={{ fontSize: '0.875rem', color: 'var(--matrix-green)', textTransform: 'capitalize' }}>
-                  {currentUser?.role} {currentUser?.completedDeliveries > 0 && `• ${currentUser.completedDeliveries} deliveries`}
-                </p>
-                {availableRoles.length > 1 && (
-                  <select
-                    value={currentUser?.role}
-                    onChange={(e) => switchRole(e.target.value)}
-                    style={{
-                      background: '#111827',
-                      color: '#10B981',
-                      border: '1px solid #374151',
-                      borderRadius: '0.375rem',
-                      padding: '0.25rem 0.5rem',
-                      fontSize: '0.75rem'
-                    }}
-                  >
-                    {availableRoles.map(r => (
-                      <option key={r} value={r}>{r}</option>
-                    ))}
-                  </select>
-                )}
-                {(currentUser?.role === 'admin' || availableRoles.includes('admin')) && (
-                  <button
-                    onClick={() => setShowAdminPanel(true)}
-                    style={{ background: '#4F46E5', color: 'white', padding: '0.375rem 0.75rem', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: '600' }}
-                  >
-                    🛡️ Admin Dashboard
-                  </button>
-                )}
-
-
-              </div>
-            </div>
-
-            <button onClick={logout} className="btn-danger">
-              {t('auth.logout')}
-            </button>
-          </div>
-
-          {/* Hamburger Menu Button - Mobile Only */}
-          <button
-            className={`hamburger-btn ${showMobileMenu ? 'open' : ''}`}
-            onClick={toggleMobileMenu}
-            aria-label="Toggle menu"
-          >
-            <span></span>
-            <span></span>
-            <span></span>
-          </button>
-        </div>
-
-        {/* Desktop Notification Panel */}
-        {showNotifications && (
-          <div
-            className="notification-panel"
-            ref={(el) => {
-              if (el && !el.dataset.listenerAdded) {
-                el.dataset.listenerAdded = 'true';
-                const handleClickOutside = (e) => {
-                  if (!el.contains(e.target) && !e.target.closest('.notification-bell')) {
-                    setShowNotifications(false);
-                  }
-                };
-                setTimeout(() => document.addEventListener('click', handleClickOutside), 0);
-                el._cleanup = () => document.removeEventListener('click', handleClickOutside);
-              }
-            }}
-          >
-            <div style={{ padding: 'var(--spacing-md)', borderBottom: '2px solid var(--matrix-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ fontWeight: '600', fontSize: '1rem', color: 'var(--matrix-bright-green)' }}>Notifications</h3>
-              {notifications.some(n => !n.isRead) && (
-                <button
-                  className="notification-bell"
-                  onClick={() => {
-                    notifications.forEach(n => {
-                      if (!n.isRead) markNotificationRead(n.id);
-                    });
-                  }}
-                  style={{
-                    background: 'linear-gradient(135deg, #4F46E5 0%, #8B5CF6 50%, #4F46E5 100%)',
-                    color: '#FFFFFF',
-                    border: '2px solid #4F46E5',
-                    borderRadius: 'var(--radius-md)',
-                    cursor: 'pointer',
-                    fontSize: '0.875rem',
-                    fontWeight: '600',
-                    minHeight: '44px',
-                    padding: '0.5rem 1rem',
-                    fontFamily: 'Consolas, Monaco, Courier New, monospace',
-                    boxShadow: '0 0 10px rgba(79, 70, 229, 0.5)',
-                    textShadow: '0 0 5px rgba(139, 92, 246, 0.5)',
-                    position: 'relative'
-                  }}
-                  onMouseOver={(e) => {
-                    e.target.style.boxShadow = '0 0 15px rgba(79, 70, 229, 0.8)';
-                  }}
-                  onMouseOut={(e) => {
-                    e.target.style.boxShadow = '0 0 10px rgba(79, 70, 229, 0.5)';
-                  }}
-                >
-                  ✓ Mark All Read
-                </button>
-              )}
-            </div>
-            {notifications.length === 0 ? (
-              <p style={{ padding: 'var(--spacing-md)', textAlign: 'center', color: 'var(--matrix-green)' }}>No notifications</p>
-            ) : (
-              notifications.map((notif) => (
-                <div
-                  key={notif.id}
-                  onClick={() => markNotificationRead(notif.id)}
-                  className={`notification-item ${!notif.isRead ? 'unread' : ''}`}
-                >
-                  <p style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.25rem', color: 'var(--matrix-bright-green)' }}>{notif.title}</p>
-                  <p style={{ fontSize: '0.875rem', color: 'var(--matrix-green)' }}>{notif.message}</p>
-                  <p style={{ fontSize: '0.75rem', color: 'rgba(0, 255, 0, 0.6)', marginTop: '0.25rem' }}>
-                    {new Date(notif.createdAt).toLocaleString()}
-                  </p>
-                </div>
-              ))
-            )}
-          </div>
-        )}
-
-        {/* Mobile Menu */}
-        <>
-          <div
-            className={`mobile-menu-backdrop ${showMobileMenu ? 'open' : ''}`}
-            onClick={toggleMobileMenu}
-          />
-          <nav className={`mobile-menu ${showMobileMenu ? 'open' : ''}`}>
-            <div className="mobile-menu-items">
-              {/* User Info Section */}
-              <div className="mobile-menu-section">
-                <div className="mobile-user-info">
-                  <div className="mobile-user-name">
-                    {currentUser?.name}
-                    {currentUser?.isVerified && (
-                      <span style={{ background: '#10B981', color: 'white', padding: '0.125rem 0.5rem', borderRadius: '9999px', fontSize: '0.625rem', fontWeight: '600' }}>
-                        ✓ Verified
-                      </span>
-                    )}
-                  </div>
-                  <div className="mobile-user-role">
-                    {currentUser?.role}
-                    {currentUser?.completedDeliveries > 0 && ` • ${currentUser.completedDeliveries} deliveries`}
-                  </div>
-                </div>
-              </div>
-
-              {/* Language Selector */}
-              <div className="mobile-menu-section">
-                <h4 style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--matrix-bright-green)', marginBottom: 'var(--spacing-sm)' }}>
-                  Language
-                </h4>
-                <LanguageSwitcher locale={locale} changeLocale={changeLocale} />
-              </div>
-
-              {/* Mobile Menu Action Buttons */}
-              <div className="mobile-menu-section">
-                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-                  <button className="nav-item" onClick={() => {
-                    setShowNotifications(prev => !prev);
-                    setShowMobileMenu(false);
-                  }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: 'var(--matrix-green)', background: 'none', border: 'none', cursor: 'pointer', padding: '0.5rem' }}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M12 22c1.1 0 2-0.9 2-2h-4c0 1.1 0.9 2 2 2zM18 16v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-0.83-0.67-1.5-1.5-1.5S10.5 3.17 10.5 4v0.68C7.63 5.36 6 7.93 6 11v5l-2 2v1h16v-1l-2-2z" fill="currentColor" />
-                    </svg>
-                    {notifications.filter(n => !n.isRead).length > 0 && <span style={{ background: '#EF4444', color: 'white', padding: '0.125rem 0.375rem', borderRadius: '9999px', fontSize: '0.625rem', fontWeight: '600', position: 'absolute', top: '0.25rem', right: '0.25rem' }}>{notifications.filter(n => !n.isRead).length}</span>}
-                    <span style={{ fontSize: '0.75rem', marginTop: '0.25rem' }}>{t('common.notifications')}</span>
-                  </button>
-
-                  <button className="nav-item" onClick={() => {
-                    setShowProfile(prev => !prev);
-                    setShowMobileMenu(false);
-                  }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: 'var(--matrix-green)', background: 'none', border: 'none', cursor: 'pointer', padding: '0.5rem' }}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="currentColor" />
-                    </svg>
-                    <span style={{ fontSize: '0.75rem', marginTop: '0.25rem' }}>{t('common.profile')}</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Logout Button */}
-              <div className="mobile-menu-section">
-                <button
-                  onClick={() => {
-                    logout();
-                    setShowMobileMenu(false);
-                  }}
-                  className="btn-danger"
-                  style={{ width: '100%' }}
-                >
-                  {t('auth.logout')}
-                </button>
-              </div>
-            </div>
-          </nav>
-        </>
-      </header>
 
       {showProfile && profileData && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
@@ -2538,6 +2250,19 @@ const DeliveryApp = () => {
                 }}
               >
                 🎯 My Bids
+              </button>
+              <button
+                onClick={() => setViewType('earnings')}
+                style={{
+                  padding: '0.5rem 1rem',
+                  background: viewType === 'earnings' ? '#4F46E5' : '#F3F4F6',
+                  color: viewType === 'earnings' ? 'white' : '#374151',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontWeight: '500'
+                }}
+              >
+                💰 Earnings
               </button>
               <button
                 onClick={() => setViewType('history')}
@@ -2900,6 +2625,10 @@ const DeliveryApp = () => {
               onSelectOrder={(order) => setSelectedOrderForMap(order)}
             />
           </div>
+        )}
+
+        {currentUser?.role === 'driver' && viewType === 'earnings' && (
+          <DriverEarningsDashboard token={token} API_URL={API_URL} t={t} />
         )}
 
         {currentUser?.role === 'driver' && viewType === 'location_settings' && (
@@ -3755,7 +3484,7 @@ const DeliveryApp = () => {
       }}>
 
       </footer>
-    </div>
+    </MainLayout>
   );
 };
 
