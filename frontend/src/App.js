@@ -17,6 +17,7 @@ import MessagingPanel from './components/messaging/MessagingPanel';
 import PaymentMethodsManager from './components/payments/PaymentMethodsManager';
 import EmailVerificationBanner from './components/auth/EmailVerificationBanner';
 import MainLayout from './components/layout/MainLayout';
+import ProfileOverlay from './components/ProfileOverlay';
 import SettingsModal from './components/layout/SettingsModal';
 import DriverEarningsDashboard from './components/driver/DriverEarningsDashboard';
 import useDriver from './hooks/useDriver';
@@ -1933,6 +1934,27 @@ const DeliveryApp = () => {
 
 
       {showProfile && profileData && (
+        <ProfileOverlay
+          profileData={profileData}
+          onClose={() => setShowProfile(false)}
+          API_URL={API_URL}
+          token={token}
+          setProfileData={setProfileData}
+          setCurrentUser={setCurrentUser}
+          optimizeAndUploadProfilePicture={optimizeAndUploadProfilePicture}
+          setError={setError}
+          preferencesData={preferencesData}
+          setPreferencesData={setPreferencesData}
+          activityData={activityData}
+          paymentMethods={paymentMethods}
+          setPaymentMethods={setPaymentMethods}
+          favorites={favorites}
+          setFavorites={setFavorites}
+        />
+      )}
+
+      {/* OLD INLINE MODAL - REMOVED - Kept commented for reference */}
+      {false && showProfile && profileData && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
           <div className="modal-content" style={{ background: 'white', borderRadius: '0.5rem', maxWidth: '80rem', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ padding: '1.5rem', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -2119,7 +2141,7 @@ const DeliveryApp = () => {
             </div>
           </div>
         </div>
-      )}
+      )} {/* OLD INLINE MODAL - DISABLED */}
 
       <SettingsModal
         isOpen={showSettings}
