@@ -85,25 +85,62 @@ const LanguageSwitcher = ({ locale, changeLocale }) => {
   }, [open, languages.length]);
 
   return (
-    <div ref={ref} style={{ position: 'relative', display: 'inline-block' }}>
+    <>
+      <style>
+        {`
+          @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+        `}
+      </style>
+      <div ref={ref} style={{ position: 'relative', display: 'inline-block' }}>
       <button
         type="button"
         title={t('common.selectLanguage') || 'Select Language'}
         onClick={() => setOpen(!open)}
         style={{
-          padding: '0.25rem 0.5rem',
-          background: 'rgba(48, 255, 48, 0.1)',
+          padding: '8px 12px',
+          background: 'transparent',
           color: '#30FF30',
           border: '1px solid #30FF30',
-          borderRadius: '0.375rem',
+          borderRadius: '5px',
           cursor: 'pointer',
-          fontSize: '0.875rem',
-          fontWeight: '700',
-          minWidth: '3rem',
-          lineHeight: '1'
+          fontSize: '12px',
+          fontWeight: '400',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          transition: 'all 0.3s ease',
+          position: 'relative',
+          overflow: 'hidden'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = '#30FF30';
+          e.currentTarget.style.color = '#000';
+          e.currentTarget.style.boxShadow = '0 0 15px rgba(0, 255, 0, 0.6)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'transparent';
+          e.currentTarget.style.color = '#30FF30';
+          e.currentTarget.style.boxShadow = 'none';
         }}
       >
-        {current.label}
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          style={{
+            animation: 'rotate 4s linear infinite'
+          }}
+        >
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </svg>
+        <span>{current.label}</span>
       </button>
       {open && (
         <div
@@ -137,6 +174,7 @@ const LanguageSwitcher = ({ locale, changeLocale }) => {
         </div>
       )}
     </div>
+    </>
   );
 };
 
