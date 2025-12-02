@@ -498,4 +498,156 @@ router.get('/location/order/:orderId/bidders', verifyToken, async (req, res) => 
   }
 });
 
+// Get driver earnings statistics
+router.get('/earnings/stats', verifyToken, requireRole('driver'), async (req, res) => {
+  try {
+    const driverId = req.user.userId;
+    const now = new Date();
+
+    // Calculate start of today, week, and month
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay()); // Sunday as start of week
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    // Helper to get earnings sum
+    const getEarningsSum = async (startDate) => {
+      // Try to get from payments table first (more accurate if populated)
+      const paymentResult = await pool.query(
+        `SELECT SUM(driver_earnings) as total 
+         FROM payments 
+         WHERE payee_id = $1 
+         AND status = 'completed' 
+         AND created_at >= $2`,
+        [driverId, startDate]
+      );
+
+      if (paymentResult.rows[0].total !== null) {
+        return parseFloat(paymentResult.rows[0].total);
+      }
+
+      // Fallback to orders price/bids if payments table not fully utilized yet
+      // This sums up the accepted bid price for delivered orders
+      const orderResult = await pool.query(
+        `SELECT SUM(COALESCE(assigned_driver_bid_price, price)) as total
+         FROM orders
+         WHERE assigned_driver_user_id = $1
+         AND status = 'delivered'
+         AND delivered_at >= $2`,
+        [driverId, startDate]
+      );
+
+      return parseFloat(orderResult.rows[0].total) || 0;
+    };
+
+    const [todayEarnings, weekEarnings, monthEarnings] = await Promise.all([
+      getEarningsSum(startOfDay),
+      getEarningsSum(startOfWeek),
+      getEarningsSum(startOfMonth)
+    ]);
+
+    // Get earnings for last 7 days for the chart
+    const last7Days = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(now.getDate() - i);
+      const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+      const dayEnd = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
+
+      // We need a specific query for this day range
+      const dayResult = await pool.query(
+        `SELECT SUM(COALESCE(assigned_driver_bid_price, price)) as total
+         FROM orders
+         WHERE assigned_driver_user_id = $1
+         AND status = 'delivered'
+         AND delivered_at >= $2 AND delivered_at <= $3`,
+        [driverId, dayStart, dayEnd]
+      );
+
+      last7Days.push({
+        date: d.toLocaleDateString('en-US', { weekday: 'short' }),
+        fullDate: d.toISOString().split('T')[0],
+        amount: parseFloat(dayResult.rows[0].total) || 0
+      });
+    }
+
+    res.json({
+      today: todayEarnings,
+      week: weekEarnings,
+      month: monthEarnings,
+      chartData: last7Days
+    });
+
+  } catch (error) {
+    logger.error(`Get earnings stats error: ${error.message}`, {
+      driverId: req.user.userId,
+      category: 'error'
+    });
+    res.status(500).json({ error: error.message || 'Failed to get earnings stats' });
+  }
+});
+
+// Get driver earnings history (paginated orders)
+router.get('/earnings/history', verifyToken, requireRole('driver'), async (req, res) => {
+  try {
+    const driverId = req.user.userId;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+
+    // Get total count
+    const countResult = await pool.query(
+      `SELECT COUNT(*) 
+       FROM orders 
+       WHERE assigned_driver_user_id = $1 
+       AND status = 'delivered'`,
+      [driverId]
+    );
+    const totalOrders = parseInt(countResult.rows[0].count);
+
+    // Get orders with rating
+    const ordersResult = await pool.query(
+      `SELECT 
+        o.id, 
+        o.order_number, 
+        o.delivered_at, 
+        COALESCE(o.assigned_driver_bid_price, o.price) as amount,
+        r.rating as rating
+       FROM orders o
+       LEFT JOIN reviews r ON o.id = r.order_id AND r.reviewee_id = $1
+       WHERE o.assigned_driver_user_id = $1 
+       AND o.status = 'delivered'
+       ORDER BY o.delivered_at DESC
+       LIMIT $2 OFFSET $3`,
+      [driverId, limit, offset]
+    );
+
+    res.json({
+      orders: ordersResult.rows.map(row => ({
+        id: row.id,
+        orderNumber: row.order_number,
+        date: row.delivered_at,
+        amount: parseFloat(row.amount),
+        rating: row.rating ? parseInt(row.rating) : null
+      })),
+      pagination: {
+        page,
+        limit,
+        total: totalOrders,
+        totalPages: Math.ceil(totalOrders / limit)
+      }
+    });
+
+  } catch (error) {
+    logger.error(`Get earnings history error: ${error.message}`, {
+      driverId: req.user.userId,
+      category: 'error'
+    });
+    res.status(500).json({ error: error.message || 'Failed to get earnings history' });
+  }
+});
+
 module.exports = router;

@@ -29,6 +29,7 @@ body {
     position: sticky;
     top: 0;
     z-index: 100;
+    min-height: 3rem;
   }
 
   .header-title {
@@ -37,6 +38,23 @@ body {
 
   .header-user-info {
     font-size: 0.75rem !important;
+  }
+
+  /* Hide header elements on mobile, only show hamburger button */
+  .header-content .header-logo,
+  .header-content .header-geolocation,
+  .header-content .header-actions {
+    display: none !important;
+  }
+
+  .header-content .hamburger-btn {
+    display: flex !important;
+    margin-left: auto;
+  }
+
+  .header-content {
+    justify-content: flex-end !important;
+    padding: 0.5rem 1rem !important;
   }
 
   /* Navigation & Tabs */
