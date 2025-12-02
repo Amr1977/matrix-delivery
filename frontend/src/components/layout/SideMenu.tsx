@@ -1,6 +1,5 @@
 import React from 'react';
 import { User, Notification } from '../../types';
-import LanguageSwitcher from '../../LanguageSwitcher';
 
 interface SideMenuProps {
     isOpen: boolean;
