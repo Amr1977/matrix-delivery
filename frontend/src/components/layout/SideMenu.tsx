@@ -289,7 +289,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
                                 onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
                                 onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
                             >
-                                🗺️ Map View
+                                🗺️ Orders Map
                             </button>
 
                             <button
