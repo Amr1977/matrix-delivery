@@ -25,7 +25,6 @@ import InteractiveLocationPicker from './components/InteractiveLocationPicker';
 import usePageVisibility from './hooks/usePageVisibility';
 import './components/ui/GeolocationStatus.css';
 
-// Initialize Sentry
 import * as Sentry from '@sentry/react';
 
 Sentry.init({
@@ -1912,23 +1911,9 @@ const DeliveryApp = () => {
           </div>
         )}
 
-        <footer style={{
-          padding: '1rem',
-          textAlign: 'center',
-          fontSize: '0.75rem',
-          color: '#6B7280',
-          borderTop: '1px solid #E5E7EB',
-          background: '#F9FAFB'
-        }}>
-          <div style={{ maxWidth: '80rem', margin: '0 auto' }}>
-            <p style={{ margin: 0 }}>
-              Matrix Delivery v1.0.0 | Commit: 0cc5c8d | {new Date().toLocaleDateString()}
-            </p>
-          </div>
-        </footer>
-      </div>
-    );
-  }
+        </div>
+      );
+    }
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
@@ -1963,6 +1948,7 @@ const DeliveryApp = () => {
       currentLocale={locale}
       t={t}
       unreadCount={unreadCount}
+      footerStats={footerStats}
     >
 
 
@@ -3431,15 +3417,7 @@ const DeliveryApp = () => {
         </div>
       )}
 
-      <footer style={{
-        padding: '1.5rem 1rem',
-        fontSize: '0.75rem',
-        color: '#6B7280',
-        borderTop: '1px solid #E5E7EB',
-        background: '#F9FAFB'
-      }}>
-
-      </footer>
+      
     </MainLayout>
   );
 };
