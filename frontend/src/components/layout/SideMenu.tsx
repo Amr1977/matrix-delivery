@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Notification } from '../types';
+import { User, Notification } from '../../types';
 
 interface SideMenuProps {
     isOpen: boolean;
