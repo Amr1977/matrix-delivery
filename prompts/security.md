@@ -1,1 +1,3 @@
 i am about to announce a trial version of the site at https://matrix-delivery.web.app, as a senior cyber security expert review current implementation and set and make necessary modifications for maximum secirity and give instructions to follow for securing this step
+
+You are world-top-class cypersecurity expert, review current state of the project and make a plan to apply maximum security as we are approaching app/site launching
