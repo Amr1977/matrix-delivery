@@ -14,7 +14,7 @@ import './Mobile.css';
 import './MatrixTheme.css';
 import MessagingPanel from './components/messaging/MessagingPanel';
 import PaymentMethodsManager from './components/payments/PaymentMethodsManager';
-import EmailVerificationBanner from './components/auth/EmailVerificationBanner';
+// Email verification banner moved into profile modal
 import MainLayout from './components/layout/MainLayout';
 import ProfileOverlay from './components/ProfileOverlay';
 import SettingsModal from './components/layout/SettingsModal';
@@ -1948,6 +1948,11 @@ const DeliveryApp = () => {
         else if (view === 'profile') setShowProfile(true);
         else if (view === 'notifications') setShowNotifications(true);
         else if (view === 'settings') setShowSettings(true);
+        else if (view === 'bidding') setViewType('bidding');
+        else if (view === 'map') setViewType('map');
+        else if (view === 'my_bids') setViewType('my_bids');
+        else if (view === 'history') setViewType('history');
+        else if (view === 'location_settings') setViewType('location_settings');
       }}
       onLogout={logout}
       onToggleOnline={toggleOnline}
@@ -1969,6 +1974,7 @@ const DeliveryApp = () => {
           token={token}
           setProfileData={setProfileData}
           setCurrentUser={setCurrentUser}
+          currentUser={currentUser}
           optimizeAndUploadProfilePicture={optimizeAndUploadProfilePicture}
           setError={setError}
           preferencesData={preferencesData}
@@ -2193,8 +2199,7 @@ const DeliveryApp = () => {
           </div>
         )}
 
-        {/* Email Verification Banner */}
-        <EmailVerificationBanner currentUser={currentUser} />
+        {/* Email verification moved into profile modal */}
 
         {(currentUser?.role === 'customer' || currentUser?.role === 'admin') && (
           <div style={{ marginBottom: '1.5rem' }}>
@@ -2244,139 +2249,7 @@ const DeliveryApp = () => {
           </div>
         )}
 
-        {currentUser?.role === 'driver' && (
-          <div style={{ marginBottom: '1.5rem' }}>
-            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1rem' }}>
-              <button
-                onClick={async () => {
-                  await toggleOnline();
-                }}
-                disabled={!driverOnline && hasActiveOrders()}
-                style={{
-                  background: driverOnline ? '#EF4444' : '#10B981',
-                  color: 'white',
-                  padding: '0.75rem 1.5rem',
-                  borderRadius: '0.5rem',
-                  fontWeight: '600',
-                  border: 'none',
-                  cursor: (!driverOnline && hasActiveOrders()) ? 'not-allowed' : 'pointer',
-                  opacity: (!driverOnline && hasActiveOrders()) ? 0.5 : 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem'
-                }}
-              >
-                {loadingStates.toggleOnline ? '...' : driverOnline ? '🔴' : '🟢'} {loadingStates.toggleOnline ? 'Switching...' : driverOnline ? 'Go Offline' : 'Go Online'}
-              </button>
-              <div style={{ fontSize: '0.875rem', color: '#6B7280' }}>
-                {driverOnline ? (
-                  <span>Location sync active (30s)</span>
-                ) : (
-                  <span>Offline - no location sync</span>
-                )}
-                {driverOnline && locationPermission === 'granted' && driverLocation.latitude ? (
-                  <span> 📍 Lat: {driverLocation.latitude.toFixed(4)}, Lng: {driverLocation.longitude.toFixed(4)}</span>
-                ) : null}
-              </div>
-            </div>
-
-            <div className="driver-tabs" style={{ display: 'flex', gap: '0.25rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-              <button
-                onClick={() => setViewType('active')}
-                style={{
-                  padding: '0.5rem 1rem',
-                  background: viewType === 'active' ? '#4F46E5' : '#F3F4F6',
-                  color: viewType === 'active' ? 'white' : '#374151',
-                  border: 'none',
-                  borderRadius: '0.375rem 0 0 0.375rem',
-                  cursor: 'pointer',
-                  fontWeight: '500'
-                }}
-              >
-                {t('driver.activeOrders')}
-              </button>
-              <button
-                onClick={() => setViewType('bidding')}
-                style={{
-                  padding: '0.5rem 1rem',
-                  background: viewType === 'bidding' ? '#4F46E5' : '#F3F4F6',
-                  color: viewType === 'bidding' ? 'white' : '#374151',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontWeight: '500'
-                }}
-              >
-                {t('driver.availableBids')}
-              </button>
-              <button
-                onClick={() => setViewType('map')}
-                style={{
-                  padding: '0.5rem 1rem',
-                  background: viewType === 'map' ? '#4F46E5' : '#F3F4F6',
-                  color: viewType === 'map' ? 'white' : '#374151',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontWeight: '500'
-                }}
-              >
-                🗺️ Map
-              </button>
-              <button
-                onClick={() => setViewType('my_bids')}
-                style={{
-                  padding: '0.5rem 1rem',
-                  background: viewType === 'my_bids' ? '#4F46E5' : '#F3F4F6',
-                  color: viewType === 'my_bids' ? 'white' : '#374151',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontWeight: '500'
-                }}
-              >
-                🎯 My Bids
-              </button>
-              <button
-                onClick={() => setViewType('earnings')}
-                style={{
-                  padding: '0.5rem 1rem',
-                  background: viewType === 'earnings' ? '#4F46E5' : '#F3F4F6',
-                  color: viewType === 'earnings' ? 'white' : '#374151',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontWeight: '500'
-                }}
-              >
-                💰 Earnings
-              </button>
-              <button
-                onClick={() => setViewType('history')}
-                style={{
-                  padding: '0.5rem 1rem',
-                  background: viewType === 'history' ? '#4F46E5' : '#F3F4F6',
-                  color: viewType === 'history' ? 'white' : '#374151',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontWeight: '500'
-                }}
-              >
-                {t('driver.myHistory')}
-              </button>
-              <button
-                onClick={() => setViewType('location_settings')}
-                style={{
-                  padding: '0.5rem 1rem',
-                  background: viewType === 'location_settings' ? '#4F46E5' : '#F3F4F6',
-                  color: viewType === 'location_settings' ? 'white' : '#374151',
-                  border: 'none',
-                  borderRadius: '0 0.375rem 0.375rem 0',
-                  cursor: 'pointer',
-                  fontWeight: '500'
-                }}
-              >
-                📍 Location
-              </button>
-            </div>
-          </div>
-        )}
+       
 
 
 

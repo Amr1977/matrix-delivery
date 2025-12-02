@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import EmailVerificationBanner from './auth/EmailVerificationBanner';
 
 interface PaymentMethod {
   id: string | number;
@@ -21,6 +22,7 @@ interface ProfileOverlayProps {
   token: string | null;
   setProfileData: (updater: any) => void;
   setCurrentUser?: (u: any) => void;
+  currentUser?: any;
   optimizeAndUploadProfilePicture?: (file: File) => void;
   setError?: (msg: string) => void;
   preferencesData?: any;
@@ -39,6 +41,7 @@ const ProfileOverlay: React.FC<ProfileOverlayProps> = ({
   token,
   setProfileData,
   setCurrentUser,
+  currentUser,
   optimizeAndUploadProfilePicture,
   setError,
   preferencesData,
@@ -99,6 +102,11 @@ const ProfileOverlay: React.FC<ProfileOverlayProps> = ({
             <button onClick={onClose} style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.06)', color: '#9CA3AF', padding: '8px 12px', borderRadius: 8 }}>Close</button>
             <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} style={{ background: 'linear-gradient(90deg,#24be79,#10b981)', border: 'none', color: '#041014', padding: '9px 14px', borderRadius: 8, fontWeight: 700 }}>Save</button>
           </div>
+        </div>
+
+        {/* Email verification (render inside profile modal) */}
+        <div data-email-verification-banner>
+          <EmailVerificationBanner currentUser={currentUser || profileData} />
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: 12 }}>
