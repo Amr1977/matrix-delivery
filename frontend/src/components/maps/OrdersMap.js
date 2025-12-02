@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
 
@@ -62,10 +62,37 @@ const OrdersMap = ({
   onSelectOrder,
   theme = 'dark'
 }) => {
-  const hasDriver = driverLocation && Number.isFinite(driverLocation.latitude) && Number.isFinite(driverLocation.longitude);
-  const center = hasDriver ? [driverLocation.latitude, driverLocation.longitude] : [30.0444, 31.2357];
+  // Check for fake location first (development/testing feature)
+  const getActiveLocation = () => {
+    try {
+      const fakeLocationStr = localStorage.getItem('fakeDriverLocation');
+      if (fakeLocationStr) {
+        const fakeLoc = JSON.parse(fakeLocationStr);
+        if (fakeLoc && Number.isFinite(fakeLoc.latitude) && Number.isFinite(fakeLoc.longitude)) {
+          return fakeLoc;
+        }
+      }
+    } catch (e) {
+      // ignore parse errors
+    }
+    return driverLocation;
+  };
+
+  const activeLocation = getActiveLocation();
+  const hasDriver = activeLocation && Number.isFinite(activeLocation.latitude) && Number.isFinite(activeLocation.longitude);
+  const center = hasDriver ? [activeLocation.latitude, activeLocation.longitude] : [30.0444, 31.2357];
 
   const tileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+
+  const zoom = hasDriver ? 15 : 13;
+
+  const [map, setMap] = useState(null);
+
+  useEffect(() => {
+    if (map && hasDriver) {
+      try { map.setView(center, zoom, { animate: true }); } catch (e) { /* ignore if map not ready */ }
+    }
+  }, [map, driverLocation]);
 
   return (
     <div style={{ background: '#fff', borderRadius: '0.5rem', border: '1px solid #e5e7eb', overflow: 'hidden' }}>
@@ -85,19 +112,19 @@ const OrdersMap = ({
       </div>
 
       <div style={{ height: '60vh', width: '100%' }}>
-        <MapContainer center={center} zoom={13} style={{ height: '100%', width: '100%', zIndex: 1 }}>
+        <MapContainer center={center} zoom={zoom} whenCreated={setMap} style={{ height: '100%', width: '100%', zIndex: 1 }}>
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
             url={tileUrl}
           />
 
           {hasDriver && (
-            <Marker position={[driverLocation.latitude, driverLocation.longitude]} icon={createPulseIcon()}>
+            <Marker position={[activeLocation.latitude, activeLocation.longitude]} icon={createPulseIcon()}>
               <Popup>
                 <div style={{ fontSize: '0.875rem' }}>
                   <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Your Location</div>
-                  <div>Lat: {driverLocation.latitude.toFixed(6)}</div>
-                  <div>Lng: {driverLocation.longitude.toFixed(6)}</div>
+                  <div>Lat: {activeLocation.latitude.toFixed(6)}</div>
+                  <div>Lng: {activeLocation.longitude.toFixed(6)}</div>
                 </div>
               </Popup>
             </Marker>
