@@ -43,13 +43,46 @@ const LanguageSwitcher = ({ locale, changeLocale }) => {
     if (!btn) return;
     const rect = btn.getBoundingClientRect();
     const viewportW = window.innerWidth;
+    const viewportH = window.innerHeight;
     const menuW = 192;
+    const estimatedMenuH = Math.min(240, languages.length * 40); // Estimate menu height
+
     let left = rect.left;
+    let top = rect.bottom + 6;
+    let transform = '';
+
+    // Handle horizontal overflow
     if (left + menuW + 8 > viewportW) {
       left = Math.max(8, viewportW - menuW - 8);
     }
-    setMenuStyle({ position: 'fixed', top: rect.bottom + 6, left, zIndex: 20000, minWidth: '12rem' });
-  }, [open]);
+
+    // Handle vertical overflow - check if menu would go off bottom
+    if (top + estimatedMenuH > viewportH) {
+      // Not enough space below, check if there's more space above
+      const spaceAbove = rect.top;
+      const spaceBelow = viewportH - rect.bottom;
+
+      if (spaceAbove > spaceBelow && spaceAbove >= estimatedMenuH) {
+        // More space above, open upwards
+        top = rect.top - estimatedMenuH - 6;
+      } else {
+        // Less space above or below, adjust maxHeight to fit available space
+        const availableHeight = Math.max(spaceBelow, spaceAbove) - 12; // 12px margin
+        top = spaceBelow > spaceAbove ? rect.bottom + 6 : rect.top - availableHeight - 6;
+        estimatedMenuH = availableHeight;
+      }
+    }
+
+    setMenuStyle({
+      position: 'fixed',
+      top,
+      left,
+      zIndex: 20000,
+      minWidth: '12rem',
+      maxHeight: `${Math.min(estimatedMenuH, 240)}px`,
+      transform
+    });
+  }, [open, languages.length]);
 
   return (
     <div ref={ref} style={{ position: 'relative', display: 'inline-block' }}>
