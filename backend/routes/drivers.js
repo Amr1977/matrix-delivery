@@ -504,6 +504,10 @@ router.get('/earnings/stats', verifyToken, requireRole('driver'), async (req, re
     const driverId = req.user.userId;
     const now = new Date();
 
+    // Optional date range filtering
+    const { startDate, endDate } = req.query;
+    const hasDateFilter = startDate && endDate;
+
     // Calculate start of today, week, and month
     const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
@@ -513,41 +517,75 @@ router.get('/earnings/stats', verifyToken, requireRole('driver'), async (req, re
 
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    // Helper to get earnings sum
-    const getEarningsSum = async (startDate) => {
+    // Helper to get earnings sum with optional end date
+    const getEarningsSum = async (startDateParam, endDateParam = null) => {
       // Try to get from payments table first (more accurate if populated)
-      const paymentResult = await pool.query(
-        `SELECT SUM(driver_earnings) as total 
+      let paymentQuery, paymentParams;
+      if (endDateParam) {
+        paymentQuery = `SELECT SUM(driver_earnings) as total 
          FROM payments 
          WHERE payee_id = $1 
          AND status = 'completed' 
-         AND created_at >= $2`,
-        [driverId, startDate]
-      );
+         AND created_at >= $2 AND created_at <= $3`;
+        paymentParams = [driverId, startDateParam, endDateParam];
+      } else {
+        paymentQuery = `SELECT SUM(driver_earnings) as total 
+         FROM payments 
+         WHERE payee_id = $1 
+         AND status = 'completed' 
+         AND created_at >= $2`;
+        paymentParams = [driverId, startDateParam];
+      }
+
+      const paymentResult = await pool.query(paymentQuery, paymentParams);
 
       if (paymentResult.rows[0].total !== null) {
         return parseFloat(paymentResult.rows[0].total);
       }
 
       // Fallback to orders price/bids if payments table not fully utilized yet
-      // This sums up the accepted bid price for delivered orders
-      const orderResult = await pool.query(
-        `SELECT SUM(COALESCE(assigned_driver_bid_price, price)) as total
+      let orderQuery, orderParams;
+      if (endDateParam) {
+        orderQuery = `SELECT SUM(COALESCE(assigned_driver_bid_price, price)) as total
          FROM orders
          WHERE assigned_driver_user_id = $1
          AND status = 'delivered'
-         AND delivered_at >= $2`,
-        [driverId, startDate]
-      );
+         AND delivered_at >= $2 AND delivered_at <= $3`;
+        orderParams = [driverId, startDateParam, endDateParam];
+      } else {
+        orderQuery = `SELECT SUM(COALESCE(assigned_driver_bid_price, price)) as total
+         FROM orders
+         WHERE assigned_driver_user_id = $1
+         AND status = 'delivered'
+         AND delivered_at >= $2`;
+        orderParams = [driverId, startDateParam];
+      }
+
+      const orderResult = await pool.query(orderQuery, orderParams);
 
       return parseFloat(orderResult.rows[0].total) || 0;
     };
 
-    const [todayEarnings, weekEarnings, monthEarnings] = await Promise.all([
-      getEarningsSum(startOfDay),
-      getEarningsSum(startOfWeek),
-      getEarningsSum(startOfMonth)
-    ]);
+    // If date filter is provided, use it; otherwise use default periods
+    let todayEarnings, weekEarnings, monthEarnings;
+
+    if (hasDateFilter) {
+      const filterStart = new Date(startDate);
+      const filterEnd = new Date(endDate);
+      filterEnd.setHours(23, 59, 59, 999);
+
+      // When filtering, all three stats show the same filtered range
+      const filteredEarnings = await getEarningsSum(filterStart, filterEnd);
+      todayEarnings = filteredEarnings;
+      weekEarnings = filteredEarnings;
+      monthEarnings = filteredEarnings;
+    } else {
+      [todayEarnings, weekEarnings, monthEarnings] = await Promise.all([
+        getEarningsSum(startOfDay),
+        getEarningsSum(startOfWeek),
+        getEarningsSum(startOfMonth)
+      ]);
+    }
 
     // Get earnings for last 7 days for the chart
     const last7Days = [];
@@ -598,19 +636,55 @@ router.get('/earnings/history', verifyToken, requireRole('driver'), async (req, 
     const limit = parseInt(req.query.limit) || 10;
     const offset = (page - 1) * limit;
 
-    // Get total count
-    const countResult = await pool.query(
-      `SELECT COUNT(*) 
+    // Optional date range filtering
+    const { startDate, endDate } = req.query;
+    const hasDateFilter = startDate && endDate;
+
+    let countQuery, countParams;
+    if (hasDateFilter) {
+      const filterEnd = new Date(endDate);
+      filterEnd.setHours(23, 59, 59, 999);
+
+      countQuery = `SELECT COUNT(*) 
        FROM orders 
        WHERE assigned_driver_user_id = $1 
-       AND status = 'delivered'`,
-      [driverId]
-    );
+       AND status = 'delivered'
+       AND delivered_at >= $2 AND delivered_at <= $3`;
+      countParams = [driverId, new Date(startDate), filterEnd];
+    } else {
+      countQuery = `SELECT COUNT(*) 
+       FROM orders 
+       WHERE assigned_driver_user_id = $1 
+       AND status = 'delivered'`;
+      countParams = [driverId];
+    }
+
+    // Get total count
+    const countResult = await pool.query(countQuery, countParams);
     const totalOrders = parseInt(countResult.rows[0].count);
 
     // Get orders with rating
-    const ordersResult = await pool.query(
-      `SELECT 
+    let ordersQuery, ordersParams;
+    if (hasDateFilter) {
+      const filterEnd = new Date(endDate);
+      filterEnd.setHours(23, 59, 59, 999);
+
+      ordersQuery = `SELECT 
+        o.id, 
+        o.order_number, 
+        o.delivered_at, 
+        COALESCE(o.assigned_driver_bid_price, o.price) as amount,
+        r.rating as rating
+       FROM orders o
+       LEFT JOIN reviews r ON o.id = r.order_id AND r.reviewee_id = $1
+       WHERE o.assigned_driver_user_id = $1 
+       AND o.status = 'delivered'
+       AND o.delivered_at >= $2 AND o.delivered_at <= $3
+       ORDER BY o.delivered_at DESC
+       LIMIT $4 OFFSET $5`;
+      ordersParams = [driverId, new Date(startDate), filterEnd, limit, offset];
+    } else {
+      ordersQuery = `SELECT 
         o.id, 
         o.order_number, 
         o.delivered_at, 
@@ -621,9 +695,11 @@ router.get('/earnings/history', verifyToken, requireRole('driver'), async (req, 
        WHERE o.assigned_driver_user_id = $1 
        AND o.status = 'delivered'
        ORDER BY o.delivered_at DESC
-       LIMIT $2 OFFSET $3`,
-      [driverId, limit, offset]
-    );
+       LIMIT $2 OFFSET $3`;
+      ordersParams = [driverId, limit, offset];
+    }
+
+    const ordersResult = await pool.query(ordersQuery, ordersParams);
 
     res.json({
       orders: ordersResult.rows.map(row => ({
