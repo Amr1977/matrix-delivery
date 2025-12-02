@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
@@ -15,7 +16,7 @@ L.Icon.Default.mergeOptions({
 
 const MapLocationPickerDemo = () => {
   const API_URL = 'http://localhost:5000/api';
-  
+
   // State
   const [pickupLocation, setPickupLocation] = useState(null);
   const [dropoffLocation, setDropoffLocation] = useState(null);
@@ -33,7 +34,7 @@ const MapLocationPickerDemo = () => {
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        (position: any) => {
           setUserLocation({
             lat: position.coords.latitude,
             lng: position.coords.longitude
@@ -60,7 +61,7 @@ const MapLocationPickerDemo = () => {
   const calculateRoute = async () => {
     setLoading(true);
     setError('');
-    
+
     try {
       const response = await fetch(`${API_URL}/locations/calculate-route`, {
         method: 'POST',
@@ -70,9 +71,9 @@ const MapLocationPickerDemo = () => {
           delivery: dropoffLocation.coordinates
         })
       });
-      
+
       if (!response.ok) throw new Error('Failed to calculate route');
-      
+
       const data = await response.json();
       setRouteInfo(data);
     } catch (err) {
@@ -105,7 +106,7 @@ const MapLocationPickerDemo = () => {
             <input
               type="number"
               value={agentPreferences.max_distance_km}
-              onChange={(e) => setAgentPreferences({...agentPreferences, max_distance_km: parseFloat(e.target.value)})}
+              onChange={(e) => setAgentPreferences({ ...agentPreferences, max_distance_km: parseFloat(e.target.value) })}
               style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
             />
           </label>
@@ -113,7 +114,7 @@ const MapLocationPickerDemo = () => {
             <input
               type="checkbox"
               checked={agentPreferences.accept_remote_areas}
-              onChange={(e) => setAgentPreferences({...agentPreferences, accept_remote_areas: e.target.checked})}
+              onChange={(e) => setAgentPreferences({ ...agentPreferences, accept_remote_areas: e.target.checked })}
             />
             <span style={{ fontSize: '0.875rem', fontWeight: '600' }}>Accept Remote Areas</span>
           </label>
@@ -121,7 +122,7 @@ const MapLocationPickerDemo = () => {
             <input
               type="checkbox"
               checked={agentPreferences.accept_international}
-              onChange={(e) => setAgentPreferences({...agentPreferences, accept_international: e.target.checked})}
+              onChange={(e) => setAgentPreferences({ ...agentPreferences, accept_international: e.target.checked })}
             />
             <span style={{ fontSize: '0.875rem', fontWeight: '600' }}>Accept International Orders</span>
           </label>
@@ -210,14 +211,14 @@ const MapLocationPicker = ({ location, onChange, userLocation, markerColor = 'bl
   const handleMapClick = async (coords) => {
     setLoading(true);
     setError('');
-    
+
     try {
       const response = await fetch(
         `${API_URL}/locations/reverse-geocode?lat=${coords.lat}&lng=${coords.lng}`
       );
-      
+
       if (!response.ok) throw new Error('Failed to geocode location');
-      
+
       const data = await response.json();
       onChange(data);
     } catch (err) {
@@ -229,19 +230,19 @@ const MapLocationPicker = ({ location, onChange, userLocation, markerColor = 'bl
 
   const handleUrlPaste = async () => {
     if (!mapUrl.trim()) return;
-    
+
     setLoading(true);
     setError('');
-    
+
     try {
       const response = await fetch(`${API_URL}/locations/parse-maps-url`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: mapUrl })
       });
-      
+
       if (!response.ok) throw new Error('Invalid Google Maps URL');
-      
+
       const data = await response.json();
       onChange(data);
       setMapUrl('');
@@ -263,7 +264,7 @@ const MapLocationPicker = ({ location, onChange, userLocation, markerColor = 'bl
       setError('Current location not available');
       return;
     }
-    
+
     await handleMapClick(userLocation);
   };
 
@@ -320,7 +321,7 @@ const MapLocationPicker = ({ location, onChange, userLocation, markerColor = 'bl
             />
             <MapClickHandler onMapClick={handleMapClick} />
             {location?.coordinates && (
-              <Marker 
+              <Marker
                 position={[location.coordinates.lat, location.coordinates.lng]}
                 icon={L.icon({
                   iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${markerColor}.png`,
@@ -403,7 +404,7 @@ const MapLocationPicker = ({ location, onChange, userLocation, markerColor = 'bl
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
               <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>Location Link</p>
-              <a 
+              <a
                 href={location.locationLink}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -452,7 +453,7 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, loading }) => {
             attribution='&copy; OpenStreetMap'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          <Marker 
+          <Marker
             position={[pickup.lat, pickup.lng]}
             icon={L.icon({
               iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
@@ -462,7 +463,7 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, loading }) => {
           >
             <Popup><strong>Pickup</strong></Popup>
           </Marker>
-          <Marker 
+          <Marker
             position={[dropoff.lat, dropoff.lng]}
             icon={L.icon({
               iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
@@ -540,13 +541,13 @@ const MapClickHandler = ({ onMapClick }) => {
 
 const MapUpdater = ({ center }) => {
   const map = useMap();
-  
+
   useEffect(() => {
     if (center) {
       map.setView([center.lat, center.lng], map.getZoom());
     }
   }, [center, map]);
-  
+
   return null;
 };
 

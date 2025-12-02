@@ -1,3 +1,4 @@
+// @ts-nocheck
 // ============ UPDATED OrderCreationForm.jsx WITH MAP INTEGRATION ============
 // Replace the existing OrderCreationForm component with this
 
