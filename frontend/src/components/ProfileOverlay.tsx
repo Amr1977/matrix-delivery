@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import EmailVerificationBanner from './auth/EmailVerificationBanner';
 
 interface PaymentMethod {
   id: string | number;
@@ -104,10 +103,7 @@ const ProfileOverlay: React.FC<ProfileOverlayProps> = ({
           </div>
         </div>
 
-        {/* Email verification (render inside profile modal) */}
-        <div data-email-verification-banner>
-          <EmailVerificationBanner currentUser={currentUser || profileData} />
-        </div>
+        {/* Email verification moved to SideMenu to reduce distraction */}
 
         <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: 12 }}>
           <aside style={{ padding: 12, borderRadius: 12, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.02)' }}>

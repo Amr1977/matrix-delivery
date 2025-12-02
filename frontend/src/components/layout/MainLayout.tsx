@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import SideMenu from './SideMenu';
+import Footer from './Footer';
 import { User, Notification } from '../../types';
 
 interface MainLayoutProps {
@@ -16,6 +17,7 @@ interface MainLayoutProps {
     currentLocale?: string;
     t: (key: string) => string;
     unreadCount?: number;
+    footerStats?: any;
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({
@@ -32,6 +34,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     currentLocale,
     t,
     unreadCount = 0
+    ,
+    footerStats
 }) => {
     const [isSideMenuOpen, setIsSideMenuOpen] = useState(false);
 
@@ -167,8 +171,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({
             />
 
             {/* Main Content */}
-            <main style={{ flex: 1, position: 'relative', overflowX: 'hidden' }}>
-                {children}
+            <main style={{ flex: 1, position: 'relative', overflowX: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ flex: 1 }}>
+                    {children}
+                </div>
+
+                <Footer footerStats={footerStats} />
             </main>
         </div>
     );

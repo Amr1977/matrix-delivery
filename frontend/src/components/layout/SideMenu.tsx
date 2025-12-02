@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import useAuth from '../../hooks/useAuth';
 import { User, Notification } from '../../types';
 
 interface SideMenuProps {
@@ -33,6 +34,20 @@ const SideMenu: React.FC<SideMenuProps> = ({
     t
 }) => {
     const unreadCount = notifications.filter(n => !n.isRead).length;
+    const { handleSendEmailVerification, loading: sending, error: authError } = useAuth();
+    const [resent, setResent] = useState(false);
+
+    const handleResend = async () => {
+        try {
+            const ok = await handleSendEmailVerification();
+            if (ok) {
+                setResent(true);
+                setTimeout(() => setResent(false), 5000);
+            }
+        } catch (e) {
+            // swallow — useAuth surfaces errors via hook state
+        }
+    };
 
     return (
         <>
@@ -151,7 +166,32 @@ const SideMenu: React.FC<SideMenuProps> = ({
                                     </div>
                                 )}
                             </div>
-                        </div>
+                            </div>
+
+                            {/* Email verification warning (matrix-styled) */}
+                            {currentUser && !currentUser.isVerified && (
+                                <div style={{
+                                    marginTop: '1rem',
+                                    padding: '0.75rem',
+                                    borderRadius: '0.5rem',
+                                    background: 'linear-gradient(180deg, rgba(4,8,7,0.6), rgba(6,10,9,0.9))',
+                                    border: '1px solid rgba(36,190,121,0.12)',
+                                    boxShadow: '0 6px 18px rgba(0,0,0,0.6)',
+                                    color: 'var(--matrix-bright-green)'
+                                }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                            <div style={{ minWidth: 0 }}>
+                                                <div style={{ fontWeight: 700, color: 'var(--matrix-bright-green)', marginBottom: 4, wordBreak: 'break-word' }}>✉️ {t('auth.verifyYourEmail')}</div>
+                                                <div style={{ fontSize: '0.85rem', color: 'rgba(167,243,208,0.9)', wordBreak: 'break-word' }}>{t('auth.emailVerificationRequired')}</div>
+                                            </div>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                                <button onClick={handleResend} disabled={sending} style={{ width: '100%', background: 'transparent', border: '1px solid rgba(36,190,121,0.12)', color: 'var(--matrix-bright-green)', padding: '8px 10px', borderRadius: 8, cursor: 'pointer' }}>{sending ? t('auth.sending') : (resent ? t('auth.resent') : t('auth.resendVerification'))}</button>
+                                                <button onClick={() => { onNavigate('profile'); onClose(); }} style={{ width: '100%', background: 'linear-gradient(90deg,#24be79,#10b981)', border: 'none', color: '#041014', padding: '8px 10px', borderRadius: 8, cursor: 'pointer' }}>{t('auth.verifyNow') || 'Verify'}</button>
+                                            </div>
+                                        </div>
+                                    {authError && <div style={{ marginTop: 8, color: '#FCA5A5', fontSize: '0.8rem' }}>{authError}</div>}
+                                </div>
+                            )}
                     </div>
 
                     {/* Navigation Links */}
