@@ -82,7 +82,7 @@ const DeliveryApp = () => {
   const [profileData, setProfileData] = useState(() => {
     // Try to load theme from local storage on initial render
     const savedTheme = localStorage.getItem('matrix_theme');
-    return savedTheme ? { theme: savedTheme } : null;
+    return savedTheme ? { theme: savedTheme } : {};
   });
   const [preferencesData, setPreferencesData] = useState(null);
   const [paymentMethods, setPaymentMethods] = useState([]);
@@ -94,6 +94,7 @@ const DeliveryApp = () => {
   const [showMessaging, setShowMessaging] = useState(false);
   const [showPaymentMethods, setShowPaymentMethods] = useState(false);
   const [showLocationSettings, setShowLocationSettings] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [countries, setCountries] = useState([]);
   const [countriesLoading, setCountriesLoading] = useState(false);
 
@@ -147,6 +148,7 @@ const DeliveryApp = () => {
       if (!res.ok) throw new Error('Failed to upload picture');
       const d = await res.json();
       setProfileData(prev => ({ ...prev, profile_picture_url: d.profilePictureUrl }));
+      setCurrentUser(prev => prev ? { ...prev, profile_picture_url: d.profilePictureUrl } : null);
     } catch (err) {
       setError(err.message || 'Failed to upload picture');
     }
@@ -557,6 +559,7 @@ const DeliveryApp = () => {
   useEffect(() => {
     if (token) {
       fetchCurrentUser();
+      fetchProfileData();
       fetchUpdates(); // Initial fetch
 
       // Adaptive polling interval based on page visibility
@@ -749,6 +752,26 @@ const DeliveryApp = () => {
         // For other errors, still logout
         logout();
       }
+    }
+  };
+
+  const fetchProfileData = async () => {
+    try {
+      const response = await fetch(`${API_URL}/users/me/profile`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) {
+        console.error('Failed to fetch profile data:', response.status);
+        return;
+      }
+      const data = await response.json();
+      setProfileData(data);
+      // Update currentUser with profile picture URL if available
+      if (data.profile_picture_url) {
+        setCurrentUser(prev => prev ? { ...prev, profile_picture_url: data.profile_picture_url } : null);
+      }
+    } catch (err) {
+      console.error('fetchProfileData error:', err);
     }
   };
 
@@ -1894,6 +1917,7 @@ const DeliveryApp = () => {
         else if (view === 'earnings') setViewType('earnings');
         else if (view === 'profile') setShowProfile(true);
         else if (view === 'notifications') setShowNotifications(true);
+        else if (view === 'settings') setShowSettings(true);
       }}
       onLogout={logout}
       onToggleOnline={toggleOnline}
@@ -2095,6 +2119,27 @@ const DeliveryApp = () => {
           </div>
         </div>
       )}
+
+      {showSettings && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
+          <div className="modal-content" style={{ background: 'white', borderRadius: '0.5rem', maxWidth: '80rem', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ padding: '1.5rem', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Settings</h2>
+              <button onClick={() => setShowSettings(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
+            </div>
+            <div style={{ padding: '1.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
+                <div style={{ background: '#F9FAFB', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #E5E7EB' }}>
+                  <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '600', marginBottom: '0.5rem' }}>Language</h3>
+                  <p style={{ margin: '0 0 1rem 0', color: '#6B7280', fontSize: '0.875rem' }}>Choose your preferred language</p>
+                  <LanguageSwitcher locale={locale} changeLocale={changeLocale} />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <main style={{ maxWidth: '80rem', margin: '0 auto', padding: mobileView ? '1rem 0.5rem' : '2rem 1rem', flex: 1, width: '100%' }}>
         {error && (
           <div className="error-matrix" style={{ padding: 'var(--spacing-md)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--spacing-lg)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

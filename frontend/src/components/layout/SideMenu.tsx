@@ -1,5 +1,6 @@
 import React from 'react';
 import { User, Notification } from '../../types';
+import LanguageSwitcher from '../../LanguageSwitcher';
 
 interface SideMenuProps {
     isOpen: boolean;
@@ -79,24 +80,27 @@ const SideMenu: React.FC<SideMenuProps> = ({
                     <div className="mobile-menu-section" style={{ marginBottom: '2rem', borderBottom: '1px solid #374151', paddingBottom: '1rem' }}>
                         <div
                             className="mobile-user-info"
-                            style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', cursor: 'pointer' }}
-                            onClick={() => { onNavigate('profile'); onClose(); }}
-                            onMouseOver={(e) => e.currentTarget.style.opacity = '0.8'}
-                            onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
+                            style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}
                         >
-                            <div style={{
-                                width: '56px',
-                                height: '56px',
-                                borderRadius: '50%',
-                                background: '#374151',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                overflow: 'hidden',
-                                border: '2px solid var(--matrix-bright-green)',
-                                flexShrink: 0,
-                                transition: 'transform 0.2s'
-                            }}>
+                            <div
+                                style={{
+                                    width: '56px',
+                                    height: '56px',
+                                    borderRadius: '50%',
+                                    background: '#374151',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    overflow: 'hidden',
+                                    border: '2px solid var(--matrix-bright-green)',
+                                    flexShrink: 0,
+                                    transition: 'transform 0.2s',
+                                    cursor: 'pointer'
+                                }}
+                                onClick={() => { onNavigate('profile'); onClose(); }}
+                                onMouseOver={(e) => e.currentTarget.style.opacity = '0.8'}
+                                onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
+                            >
                                 {currentUser?.profile_picture_url ? (
                                     <img src={currentUser.profile_picture_url} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                 ) : (
@@ -190,6 +194,15 @@ const SideMenu: React.FC<SideMenuProps> = ({
                                 </span>
                             )}
                         </button>
+
+                        <button
+                            onClick={() => { onNavigate('settings'); onClose(); }}
+                            style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', fontSize: '1rem', borderRadius: '0.5rem', marginBottom: '0.5rem', transition: 'background 0.2s' }}
+                            onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
+                            onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+                        >
+                            ⚙️ Settings
+                        </button>
                     </div>
 
                     {/* Driver Actions */}
@@ -271,31 +284,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
                             System
                         </h4>
 
-                        {/* Language */}
-                        <div style={{ marginBottom: '1rem' }}>
-                            <label style={{ display: 'block', color: '#D1D5DB', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Language</label>
-                            <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                {['en', 'ar', 'tr'].map(lang => (
-                                    <button
-                                        key={lang}
-                                        onClick={() => onChangeLocale && onChangeLocale(lang)}
-                                        style={{
-                                            flex: 1,
-                                            padding: '0.5rem',
-                                            background: currentLocale === lang ? 'var(--matrix-bright-green)' : '#374151',
-                                            color: currentLocale === lang ? 'black' : 'white',
-                                            border: 'none',
-                                            borderRadius: '0.25rem',
-                                            cursor: 'pointer',
-                                            textTransform: 'uppercase',
-                                            fontWeight: 'bold'
-                                        }}
-                                    >
-                                        {lang}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
+
 
                         {/* Role Switcher */}
                         {availableRoles.length > 1 && onSwitchRole && (
