@@ -18,6 +18,13 @@ const useDriver = (token, currentUser) => {
 
   const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
 
+  // Helper to get position as a promise
+  const getPosition = (options) => {
+    return new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, options);
+    });
+  };
+
   // Driver location functions
   const updateDriverLocation = useCallback(async () => {
     if (currentUser?.role !== 'driver') return false;
@@ -51,7 +58,8 @@ const useDriver = (token, currentUser) => {
               const errorData = await response.json().catch(() => ({}));
               const errorMessage = errorData.error || `HTTP ${response.status}`;
               console.error('❌ Failed to update fake location:', errorMessage, errorData);
-              throw new Error(`Failed to update location: ${errorMessage}`);
+              // Don't throw, just return false to avoid crashing app
+              return false;
             }
 
             setDriverLocation({
@@ -67,62 +75,67 @@ const useDriver = (token, currentUser) => {
       }
 
       if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          async (position) => {
-            const { latitude, longitude } = position.coords;
+        try {
+          const position = await getPosition({
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 300000 // Accept cached location up to 5 minutes old
+          });
 
-            // Check if location has actually changed significantly
-            const currentLocation = driverLocation;
-            const hasSignificantChange = !currentLocation?.latitude ||
-              Math.abs(currentLocation.latitude - latitude) > 0.0001 ||
-              Math.abs(currentLocation.longitude - longitude) > 0.0001;
+          const { latitude, longitude } = position.coords;
 
-            if (!hasSignificantChange) {
-              console.log('📍 Location unchanged, skipping update');
-              return false;
-            }
+          // Check if location has actually changed significantly
+          const currentLocation = driverLocation;
+          const hasSignificantChange = !currentLocation?.latitude ||
+            Math.abs(currentLocation.latitude - latitude) > 0.0001 ||
+            Math.abs(currentLocation.longitude - longitude) > 0.0001;
 
-            lastLocationUpdate.current = Date.now();
+          if (!hasSignificantChange) {
+            console.log('📍 Location unchanged, skipping update');
+            return false;
+          }
 
-            const response = await fetch(`${API_URL}/drivers/location`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-              },
-              body: JSON.stringify({ latitude, longitude })
+          lastLocationUpdate.current = Date.now();
+
+          const response = await fetch(`${API_URL}/drivers/location`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ latitude, longitude })
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            const errorMessage = errorData.error || `HTTP ${response.status}`;
+            console.error('❌ Failed to update location:', {
+              status: response.status,
+              statusText: response.statusText,
+              errorMessage,
+              errorData,
+              url: `${API_URL}/drivers/location`
             });
+            // Don't throw, just return false
+            return false;
+          }
 
-            if (!response.ok) {
-              const errorData = await response.json().catch(() => ({}));
-              const errorMessage = errorData.error || `HTTP ${response.status}`;
-              console.error('❌ Failed to update location:', {
-                status: response.status,
-                statusText: response.statusText,
-                errorMessage,
-                errorData,
-                url: `${API_URL}/drivers/location`
-              });
-              throw new Error(`Failed to update location: ${errorMessage}`);
-            }
+          setDriverLocation({
+            latitude: parseFloat(latitude),
+            longitude: parseFloat(longitude),
+            lastUpdated: new Date()
+          });
+          setLocationPermission('granted');
+          console.log('📍 Driver location updated:', { latitude, longitude });
+          return true;
 
-            setDriverLocation({
-              latitude: parseFloat(latitude),
-              longitude: parseFloat(longitude),
-              lastUpdated: new Date()
-            });
-            setLocationPermission('granted');
-            console.log('📍 Driver location updated:', { latitude, longitude });
-            // Refresh orders after location update
-            return true;
-          },
-          (error) => {
+        } catch (error) {
+          // Handle geolocation errors or fetch errors here
+          if (error.code) {
+            // Geolocation error
             console.error('Geolocation error:', error);
-            console.error('Error code:', error.code, 'Message:', error.message);
-
-            // Set permission status based on error type
             if (error.code === error.PERMISSION_DENIED) {
-              console.warn('Location permission denied. This is expected on mobile over HTTP.');
+              console.warn('Location permission denied.');
               setLocationPermission('denied');
             } else if (error.code === error.POSITION_UNAVAILABLE) {
               console.warn('Location information unavailable.');
@@ -133,19 +146,17 @@ const useDriver = (token, currentUser) => {
             } else {
               setLocationPermission('denied');
             }
-            return false;
-          },
-          {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 300000 // Accept cached location up to 5 minutes old
+          } else {
+            // Fetch or other error
+            console.error('Update location error:', error);
           }
-        );
+          return false;
+        }
       } else {
         return false;
       }
     } catch (err) {
-      console.error('Update location error:', err);
+      console.error('Update location error (unexpected):', err);
       return false;
     }
   }, [currentUser, token, API_URL, driverLocation]);
