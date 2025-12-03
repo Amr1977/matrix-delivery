@@ -59,24 +59,6 @@ export const csrfProtection = csrf({
 });
 
 /**
- * Cookie parser middleware (required for CSRF)
- */
-export const cookieParserMiddleware = cookieParser();
-
-/**
- * HTTPS redirect middleware for production
- */
-export const httpsRedirect: RequestHandler = (req: Request, res: Response, next: NextFunction) => {
-    if (IS_PRODUCTION && req.header('x-forwarded-proto') !== 'https') {
-        return res.redirect(301, `https://${req.header('host')}${req.url}`);
-    }
-    next();
-};
-
-/**
- * Strict CORS configuration
- */
-export const strictCorsConfig = {
     origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
         const allowedOrigins = CORS_ORIGIN.split(',').map(o => o.trim()).filter(Boolean);
 
