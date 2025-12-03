@@ -1329,6 +1329,10 @@ const DeliveryApp = () => {
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          logout();
+          throw new Error('Session expired. Please log in again.');
+        }
         const data = await response.json();
         throw new Error(data.error || 'Failed to publish order');
       }
@@ -1911,9 +1915,9 @@ const DeliveryApp = () => {
           </div>
         )}
 
-        </div>
-      );
-    }
+      </div>
+    );
+  }
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
@@ -2235,7 +2239,7 @@ const DeliveryApp = () => {
           </div>
         )}
 
-       
+
 
 
 
@@ -3417,7 +3421,7 @@ const DeliveryApp = () => {
         </div>
       )}
 
-      
+
     </MainLayout>
   );
 };
