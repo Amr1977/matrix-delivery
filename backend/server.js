@@ -88,8 +88,8 @@ const app = express();
 // SECURITY MIDDLEWARE
 // ============================================================================
 
-// HTTPS redirect (must be first)
-app.use(httpsRedirect);
+// HTTPS redirect - DISABLED: Apache handles HTTPS termination
+// app.use(httpsRedirect);
 
 // Helmet.js security headers
 app.use(helmetConfig);
