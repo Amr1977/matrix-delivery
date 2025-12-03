@@ -8,7 +8,7 @@ module.exports = {
     env: {
       NODE_ENV: 'production',
       PORT: 5000,
-      ENV_FILE: '.env.production'
+      ENV_FILE: '.env'
     },
     env_develop: {
       NODE_ENV: 'development',
@@ -28,7 +28,7 @@ module.exports = {
     env_production: {
       NODE_ENV: 'production',
       PORT: 5000,
-      ENV_FILE: '.env.production'
+      ENV_FILE: '.env'
     },
     error_file: './logs/pm2-error.log',
     out_file: './logs/pm2-out.log',
