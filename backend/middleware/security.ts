@@ -36,7 +36,7 @@ export const helmetConfig = helmet({
         includeSubDomains: true,
         preload: true
     },
-    frameGuard: {
+    frameguard: {
         action: 'deny'
     },
     xssFilter: true,

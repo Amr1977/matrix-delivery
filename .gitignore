@@ -19,10 +19,38 @@ yarn-error.log*
 
 # Environment variables
 .env
+.env.*
+*.env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+backend/.env
+backend/.env.*
+
+# Secrets and sensitive files
+secrets_*.txt
+*.key
+*.pem
+*.crt
+*.p12
+*.pfx
+keystore.*
+*.jks
+
+# Deployment guides (temporary)
+VPS_*.md
+UPLOAD_*.md
+WSL_SETUP.md
+
+# Compiled TypeScript (keep .ts, ignore .js in specific dirs)
+backend/utils/*.js
+backend/middleware/*.js
+backend/types/*.js
+!backend/utils/generators.js
+!backend/utils/sanitizers.js
+!backend/utils/validators.js
+!backend/utils/cache.js
 
 # IDE
 .vscode/

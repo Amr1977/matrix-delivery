@@ -33,11 +33,30 @@ const {
 // Import routes
 const ordersRouter = require('./routes/orders');
 
+// Import security middleware (TypeScript compiled to JS)
+const {
+  helmetConfig,
+  cookieParserMiddleware,
+  httpsRedirect,
+  strictCorsConfig,
+  additionalSecurityHeaders,
+  sanitizeRequest,
+  validateSecurityConfig
+} = require('./middleware/security');
+const { initAuditLogger } = require('./middleware/auditLogger');
 
 // Load environment-specific .env file
 const envFile = process.env.ENV_FILE || '.env';
 dotenv.config({ path: envFile });
 logger.info(`🔧 Loading environment from: ${envFile}`, { envFile });
+
+// Validate security configuration on startup
+try {
+  validateSecurityConfig();
+} catch (error) {
+  console.error('❌ Security configuration validation failed:', error.message);
+  process.exit(1);
+}
 
 // Initialize Sentry
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
@@ -65,38 +84,66 @@ Sentry.init({
 
 const app = express();
 
-// Add security middleware for production
-// NOT USED: helmet, rateLimit packages - using custom implementation for demo
+// ============================================================================
+// SECURITY MIDDLEWARE
+// ============================================================================
 
-// CORS Configuration - Only enabled in non-production environments
-// Apache2 reverse proxy handles CORS in production
+// HTTPS redirect (must be first)
+app.use(httpsRedirect);
 
-let corsOptions;
-if (!IS_PRODUCTION) {
-  corsOptions = {
-    origin: true, // Allow all origins
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-    allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization', 'Cache-Control', 'Pragma', 'User-Agent'],
-    credentials: true,
-    optionsSuccessStatus: 200
-  };
+// Helmet.js security headers
+app.use(helmetConfig);
 
-  app.use(cors(corsOptions));
+// Additional security headers
+app.use(additionalSecurityHeaders);
 
-  // Handle preflight requests
-  app.options('*', cors(corsOptions));
+// Cookie parser (required for CSRF)
+app.use(cookieParserMiddleware);
+
+// Request sanitization
+app.use(sanitizeRequest);
+
+// CORS Configuration - Strict validation for all environments
+app.use(cors(strictCorsConfig));
+
+// Handle preflight requests
+app.options('*', cors(strictCorsConfig));
+
+// ============================================================================
+// DATABASE CONNECTION
+// ============================================================================
+
+// Validate required database environment variables
+if (!IS_TEST) {
+  const requiredDbVars = ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'];
+  const missingVars = requiredDbVars.filter(varName => !process.env[varName]);
+
+  if (missingVars.length > 0) {
+    console.error(`❌ Missing required database environment variables: ${missingVars.join(', ')}`);
+    process.exit(1);
+  }
+
+  if (IS_PRODUCTION && process.env.DB_PASSWORD.length < 12) {
+    console.error('❌ DB_PASSWORD must be at least 12 characters in production');
+    process.exit(1);
+  }
 }
 
-// PostgreSQL Connection Pool
+// PostgreSQL Connection Pool with SSL for production
 const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 5432,
-  database: IS_TEST ? (process.env.DB_NAME_TEST || 'matrix_delivery_test') : (process.env.DB_NAME || 'matrix_delivery'),
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'postgres',
+  host: process.env.DB_HOST,
+  port: parseInt(process.env.DB_PORT),
+  database: IS_TEST ? (process.env.DB_NAME_TEST || 'matrix_delivery_test') : process.env.DB_NAME,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: parseInt(process.env.DB_CONNECTION_TIMEOUT) || 2000,
+  // SSL configuration for production
+  ssl: IS_PRODUCTION && process.env.DB_SSL === 'true' ? {
+    rejectUnauthorized: true,
+    ca: process.env.DB_CA_CERT ? require('fs').readFileSync(process.env.DB_CA_CERT) : undefined
+  } : false
 });
 
 // Database initialization
@@ -541,6 +588,8 @@ const initDatabase = async () => {
     // Initialize admin tables
     await createAdminTables();
 
+    // Initialize audit logging
+    initAuditLogger(pool);
 
     logger.info('✅ PostgreSQL Database initialized and user statistics recalculated', { category: 'database' });
   } catch (error) {
@@ -623,25 +672,57 @@ app.use(logger.requestLogger);
 
 
 const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 
 // Load admin panel endpoints
 require('./admin-panel.js')(app, pool, jwt, createNotification, generateId, JWT_SECRET);
 
-if (!JWT_SECRET) {
-  console.error('❌ JWT_SECRET environment variable is required');
+// Validate JWT secrets
+if (!JWT_SECRET || JWT_SECRET.length < 64) {
+  console.error('❌ JWT_SECRET must be at least 64 characters');
   process.exit(1);
 }
 
-// Middleware
+if (!JWT_REFRESH_SECRET || JWT_REFRESH_SECRET.length < 64) {
+  console.error('❌ JWT_REFRESH_SECRET must be at least 64 characters');
+  process.exit(1);
+}
+
+// ============================================================================
+// AUTHENTICATION MIDDLEWARE
+// ============================================================================
+
+// Enhanced token verification middleware
 const verifyToken = (req, res, next) => {
-  const token = req.headers['authorization']?.split(' ')[1];
-  if (!token) return res.status(401).json({ error: 'No token provided' });
+  const authHeader = req.headers['authorization'];
+  const token = authHeader?.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ error: 'No token provided' });
+  }
+
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, JWT_SECRET, {
+      algorithms: ['HS256'],
+      issuer: 'matrix-delivery',
+      audience: 'matrix-delivery-api'
+    });
+
     req.user = decoded;
     next();
   } catch (error) {
-    res.status(401).json({ error: 'Invalid or expired token' });
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        error: 'Token expired',
+        code: 'TOKEN_EXPIRED'
+      });
+    } else if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({
+        error: 'Invalid token',
+        code: 'INVALID_TOKEN'
+      });
+    }
+    return res.status(401).json({ error: 'Authentication failed' });
   }
 };
 
