@@ -186,35 +186,35 @@ const SideMenu: React.FC<SideMenuProps> = ({
                                     </div>
                                 )}
                             </div>
-                            </div>
+                        </div>
 
-                            {/* Email verification warning (matrix-styled) */}
-                            {currentUser && !currentUser.isVerified && !dismissed && (
-                                <div style={{
-                                    marginTop: '1rem',
-                                    padding: '0.75rem',
-                                    borderRadius: '0.5rem',
-                                    background: 'linear-gradient(180deg, rgba(2,6,5,0.55), rgba(4,10,8,0.85))',
-                                    border: '1px solid rgba(36,190,121,0.18)',
-                                    boxShadow: '0 8px 30px rgba(16,185,129,0.06), inset 0 1px 0 rgba(255,255,255,0.02)',
-                                    color: 'var(--matrix-bright-green)',
-                                    position: 'relative',
-                                    fontFamily: 'monospace'
-                                }}>
-                                    <button onClick={handleDismiss} aria-label="Dismiss verification" style={{ position: 'absolute', right: 8, top: 8, background: 'transparent', border: 'none', color: 'rgba(36,190,121,0.8)', fontSize: '1rem', cursor: 'pointer' }}>×</button>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                                        <div style={{ minWidth: 0 }}>
-                                            <div style={{ fontWeight: 700, color: 'var(--matrix-bright-green)', marginBottom: 4, wordBreak: 'break-word' }}>✉️ {t('auth.verifyYourEmail')}</div>
-                                            <div style={{ fontSize: '0.85rem', color: 'rgba(167,243,208,0.95)', wordBreak: 'break-word' }}>{t('auth.emailVerificationRequired')}</div>
-                                        </div>
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                                            <button onClick={handleResend} disabled={sending} style={{ width: '100%', background: 'transparent', border: '1px solid rgba(36,190,121,0.12)', color: 'var(--matrix-bright-green)', padding: '8px 10px', borderRadius: 8, cursor: 'pointer' }}>{sending ? t('auth.sending') : (resent ? t('auth.resent') : t('auth.resendVerification'))}</button>
-                                            <button onClick={() => { onNavigate('profile'); onClose(); }} style={{ width: '100%', background: 'linear-gradient(90deg,#24be79,#10b981)', border: 'none', color: '#041014', padding: '8px 10px', borderRadius: 8, cursor: 'pointer' }}>{t('auth.verifyNow') || 'Verify'}</button>
-                                        </div>
+                        {/* Email verification warning (matrix-styled) */}
+                        {currentUser && !currentUser.isVerified && !dismissed && (
+                            <div style={{
+                                marginTop: '1rem',
+                                padding: '0.75rem',
+                                borderRadius: '0.5rem',
+                                background: 'linear-gradient(180deg, rgba(2,6,5,0.55), rgba(4,10,8,0.85))',
+                                border: '1px solid rgba(36,190,121,0.18)',
+                                boxShadow: '0 8px 30px rgba(16,185,129,0.06), inset 0 1px 0 rgba(255,255,255,0.02)',
+                                color: 'var(--matrix-bright-green)',
+                                position: 'relative',
+                                fontFamily: 'monospace'
+                            }}>
+                                <button onClick={handleDismiss} aria-label="Dismiss verification" style={{ position: 'absolute', right: 8, top: 8, background: 'transparent', border: 'none', color: 'rgba(36,190,121,0.8)', fontSize: '1rem', cursor: 'pointer' }}>×</button>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                    <div style={{ minWidth: 0 }}>
+                                        <div style={{ fontWeight: 700, color: 'var(--matrix-bright-green)', marginBottom: 4, wordBreak: 'break-word' }}>✉️ {t('auth.verifyYourEmail')}</div>
+                                        <div style={{ fontSize: '0.85rem', color: 'rgba(167,243,208,0.95)', wordBreak: 'break-word' }}>{t('auth.emailVerificationRequired')}</div>
                                     </div>
-                                    {authError && <div style={{ marginTop: 8, color: '#FCA5A5', fontSize: '0.8rem' }}>{authError}</div>}
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                        <button onClick={handleResend} disabled={sending} style={{ width: '100%', background: 'transparent', border: '1px solid rgba(36,190,121,0.12)', color: 'var(--matrix-bright-green)', padding: '8px 10px', borderRadius: 8, cursor: 'pointer' }}>{sending ? t('auth.sending') : (resent ? t('auth.resent') : t('auth.resendVerification'))}</button>
+                                        <button onClick={() => { onNavigate('profile'); onClose(); }} style={{ width: '100%', background: 'linear-gradient(90deg,#24be79,#10b981)', border: 'none', color: '#041014', padding: '8px 10px', borderRadius: 8, cursor: 'pointer' }}>{t('auth.verifyNow') || 'Verify'}</button>
+                                    </div>
                                 </div>
-                            )}
+                                {authError && <div style={{ marginTop: 8, color: '#FCA5A5', fontSize: '0.8rem' }}>{authError}</div>}
+                            </div>
+                        )}
                     </div>
 
                     {/* Navigation Links */}
@@ -355,7 +355,37 @@ const SideMenu: React.FC<SideMenuProps> = ({
                             System
                         </h4>
 
-
+                        {/* Admin Panel - Only for admins */}
+                        {(currentUser?.role === 'admin' || availableRoles.includes('admin')) && (
+                            <button
+                                onClick={() => { onNavigate('admin_panel'); onClose(); }}
+                                style={{
+                                    display: 'block',
+                                    width: '100%',
+                                    textAlign: 'left',
+                                    padding: '0.75rem',
+                                    background: 'linear-gradient(135deg, rgba(79, 70, 229, 0.2) 0%, rgba(99, 102, 241, 0.1) 100%)',
+                                    border: '1px solid rgba(99, 102, 241, 0.3)',
+                                    color: '#A5B4FC',
+                                    cursor: 'pointer',
+                                    fontSize: '1rem',
+                                    borderRadius: '0.5rem',
+                                    marginBottom: '1rem',
+                                    transition: 'all 0.2s',
+                                    fontWeight: '600'
+                                }}
+                                onMouseOver={(e) => {
+                                    e.currentTarget.style.background = 'linear-gradient(135deg, rgba(79, 70, 229, 0.3) 0%, rgba(99, 102, 241, 0.2) 100%)';
+                                    e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.5)';
+                                }}
+                                onMouseOut={(e) => {
+                                    e.currentTarget.style.background = 'linear-gradient(135deg, rgba(79, 70, 229, 0.2) 0%, rgba(99, 102, 241, 0.1) 100%)';
+                                    e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.3)';
+                                }}
+                            >
+                                🛡️ Admin Panel
+                            </button>
+                        )}
 
                         {/* Role Switcher */}
                         {availableRoles.length > 1 && onSwitchRole && (
