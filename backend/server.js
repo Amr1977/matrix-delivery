@@ -115,18 +115,24 @@ const corsOptions = {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
 
-  const envOrigins = (process.env.CORS_ORIGIN || '').split(',').map(o => o.trim()).filter(Boolean);
-  const allowedOrigins = [
+    const envOrigins = (process.env.CORS_ORIGIN || '').split(',').map(o => o.trim()).filter(Boolean);
+    const allowedOrigins = [
       'http://localhost:3000',
       'http://192.168.1.200:3000',
       'https://matrix.oldantique50.com',
       'https://matrix-api.oldantique50.com',
+      'https://matrix-delivery.web.app',
+      'https://matrix-delivery.firebaseapp.com',
       ...envOrigins
     ];
 
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
+      logger.warn(`CORS blocked origin: ${origin}`, {
+        category: 'security',
+        allowedOrigins: allowedOrigins.join(', ')
+      });
       callback(new Error('Not allowed by CORS'));
     }
   },
