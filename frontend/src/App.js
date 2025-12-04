@@ -319,7 +319,7 @@ const DeliveryApp = () => {
 
   // Driver location functionality
   const [viewType, setViewType] = useState('active'); // 'active', 'bidding', 'history', 'map', 'my_bids'
-  const [ordersMapRadiusKm, setOrdersMapRadiusKm] = useState(5);
+  const [ordersMapRadiusKm, setOrdersMapRadiusKm] = useState(7);
   const [selectedOrderForMap, setSelectedOrderForMap] = useState(null);
   const [driverOnline, setDriverOnline] = useState(false); // Driver online/offline status
   const [countryFilter, setCountryFilter] = useState(''); // Country filter for bidding orders
