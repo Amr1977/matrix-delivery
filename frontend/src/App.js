@@ -1942,6 +1942,7 @@ const DeliveryApp = () => {
         else if (view === 'my_bids') setViewType('my_bids');
         else if (view === 'history') setViewType('history');
         else if (view === 'location_settings') setViewType('location_settings');
+        else if (view === 'admin_panel') setShowAdminPanel(true);
       }}
       onLogout={logout}
       onToggleOnline={toggleOnline}
