@@ -68,7 +68,7 @@ if (!window.__fetchPatched) {
         }
         merged.headers = headers;
       }
-    } catch (_) {}
+    } catch (_) { }
     return originalFetch(url, merged);
   };
   window.__fetchPatched = true;
@@ -85,7 +85,7 @@ const DeliveryApp = () => {
   // Fixed: LiveTrackingMap component moved outside DeliveryApp function for proper scoping
   // State variables
   const [authState, setAuthState] = useState('login');
-  const [token, setToken] = useState(null); // Remove localStorage - tokens are in httpOnly cookies
+  const [token, setToken] = useState(() => localStorage.getItem('token')); // Initialize from localStorage
   const [currentUser, setCurrentUser] = useState(null);
 
   // Use driver hook for location management
@@ -1154,10 +1154,10 @@ const DeliveryApp = () => {
       const data = await response.json();
       if (data.token && typeof data.token === 'string') {
         setToken(data.token);
-        try { localStorage.setItem('token', data.token); } catch (_) {}
+        try { localStorage.setItem('token', data.token); } catch (_) { }
       } else {
         setToken('authenticated');
-        try { localStorage.removeItem('token'); } catch (_) {}
+        try { localStorage.removeItem('token'); } catch (_) { }
       }
       setCurrentUser(data.user);
       setAuthForm({ name: '', email: '', password: '', phone: '', role: 'customer', vehicle_type: '', country: '', city: '', area: '' });
@@ -1242,7 +1242,7 @@ const DeliveryApp = () => {
   const logout = () => {
     // Don't remove token from localStorage - server handles cookie clearing
     setToken(null);
-    try { localStorage.removeItem('token'); } catch (_) {}
+    try { localStorage.removeItem('token'); } catch (_) { }
     setCurrentUser(null);
     setOrders([]);
     setNotifications([]);
