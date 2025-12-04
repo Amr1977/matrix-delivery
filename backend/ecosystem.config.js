@@ -38,8 +38,19 @@ module.exports = {
     merge_logs: true,
     max_memory_restart: '500M',
     autorestart: true,
-    watch: false, // Enable with --watch for development
-    ignore_watch: ['node_modules', 'logs', '.git'],
+    // Watch mode: enabled for development, disabled for production
+    watch: process.env.NODE_ENV === 'development',
+    watch_delay: 1000, // Wait 1 second before restarting after file change
+    ignore_watch: [
+      'node_modules',
+      'logs',
+      '.git',
+      '*.log',
+      'tests',
+      '__tests__',
+      '*.test.js',
+      'coverage'
+    ],
     max_restarts: 10,
     min_uptime: '30s',
     restart_delay: 5000,
