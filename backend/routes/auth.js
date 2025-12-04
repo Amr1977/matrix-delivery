@@ -188,21 +188,33 @@ router.post('/login', authRateLimit, async (req, res) => {
     const token = result.token;
     const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
-    res.cookie('token', token, {
+    // Cookie configuration for cross-origin authentication
+    const cookieOptions = {
       httpOnly: true,
-      secure: IS_PRODUCTION,
-      sameSite: IS_PRODUCTION ? 'none' : 'lax',
+      secure: IS_PRODUCTION, // HTTPS only in production
+      sameSite: IS_PRODUCTION ? 'none' : 'lax', // 'none' required for cross-origin
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
       path: '/'
+      // NOTE: Do NOT set 'domain' - let browser handle it automatically
+      // Setting domain would restrict cookie to specific domain/subdomains
+    };
+
+    res.cookie('token', token, cookieOptions);
+
+    logger.info('Login successful - cookie set', {
+      userId: result.user.userId,
+      email: result.user.email,
+      cookieOptions: {
+        ...cookieOptions,
+        maxAge: '30 days'
+      },
+      category: 'auth'
     });
 
-    // Remove token from response body for security
-    const response = { ...result };
-    if (process.env.NODE_ENV === 'production') {
-      delete response.token;
-    }
-
-    res.json(response);
+    // ALWAYS return token in response body for cross-origin compatibility
+    // Cookies don't work reliably across different domains
+    // Frontend will store in localStorage and send via Authorization header
+    res.json(result);
   } catch (error) {
     const duration = Date.now() - startTime;
     logger.error(`Login error: ${error.message}`, {
