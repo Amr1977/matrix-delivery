@@ -130,80 +130,43 @@ class OrderService {
       // Reset location conditions for driver
       locationConditions = '';
       const filterParams = [];
+      let usePostGIS = false;
 
-      // Distance-based filtering using PostGIS (within 7km of pickup location)
+      // Distance-based filtering - try PostGIS first, fallback to geolib
       if (filters.driverLat !== undefined && filters.driverLng !== undefined && !isNaN(filters.driverLat) && !isNaN(filters.driverLng)) {
-        locationConditions += ` AND ST_Distance(
-          ST_Point(
-            (o.pickup_coordinates->>'lng')::float,
-            (o.pickup_coordinates->>'lat')::float
-          )::geography,
-          ST_Point($2, $3)::geography,
-          true
-        ) <= 7000`;
-        filterParams.push(filters.driverLng, filters.driverLat);
-        logger.info('PostGIS distance filter applied', {
-          driverLng: filters.driverLng,
-          driverLat: filters.driverLat,
-          distanceThresholdMeters: 7000,
-          category: 'orders'
-        });
+        // Try to use PostGIS for distance filtering
+        try {
+          // Test if PostGIS is available
+          await pool.query('SELECT PostGIS_version()');
 
-        // Add debugging query to check distances for all orders
-        logger.debug('Checking distances for all pending orders', {
-          driverLat: filters.driverLat,
-          driverLng: filters.driverLng,
-          category: 'orders'
-        });
-        const debugQuery = `
-          SELECT
-            o.id,
-            o.order_number,
-            o.pickup_coordinates,
-            (o.pickup_coordinates->>'lng')::float as pickup_lng,
-            (o.pickup_coordinates->>'lat')::float as pickup_lat,
-            ST_Distance(
-              ST_Point(
-                (o.pickup_coordinates->>'lng')::float,
-                (o.pickup_coordinates->>'lat')::float
-              )::geography,
-              ST_Point($1, $2)::geography,
-              true
-            ) / 1000 as distance_km
-          FROM orders o
-          WHERE o.status = 'pending_bids' AND o.assigned_driver_user_id IS NULL
-          ORDER BY distance_km ASC
-        `;
-        const debugResult = await pool.query(debugQuery, [filters.driverLng, filters.driverLat]);
-        logger.info('Distance calculation results', {
-          driverLat: filters.driverLat,
-          driverLng: filters.driverLng,
-          totalOrders: debugResult.rows.length,
-          distances: debugResult.rows.map(row => ({
-            orderId: row.id,
-            orderNumber: row.order_number,
-            pickupCoords: row.pickup_coordinates,
-            pickupLat: row.pickup_lat,
-            pickupLng: row.pickup_lng,
-            distanceKm: Number(row.distance_km).toFixed(2)
-          })),
-          category: 'orders'
-        });
+          locationConditions += ` AND ST_Distance(
+            ST_Point(
+              (o.pickup_coordinates->>'lng')::float,
+              (o.pickup_coordinates->>'lat')::float
+            )::geography,
+            ST_Point($2, $3)::geography
+          ) <= 7000`;
+          filterParams.push(filters.driverLng, filters.driverLat);
+          usePostGIS = true;
 
-        // Log which orders should be filtered out
-        const ordersWithinRange = debugResult.rows.filter(row => Number(row.distance_km) <= 7);
-        const ordersOutsideRange = debugResult.rows.filter(row => Number(row.distance_km) > 7);
-
-        logger.info('Filter analysis', {
-          driverLat: filters.driverLat,
-          driverLng: filters.driverLng,
-          ordersWithin7km: ordersWithinRange.length,
-          ordersOutside7km: ordersOutsideRange.length,
-          shouldBeFilteredOut: ordersOutsideRange.map(o => ({ id: o.id, distance: Number(o.distance_km).toFixed(2) })),
-          category: 'orders'
-        });
+          logger.info('PostGIS distance filter applied', {
+            driverLng: filters.driverLng,
+            driverLat: filters.driverLat,
+            distanceThresholdMeters: 7000,
+            category: 'orders'
+          });
+        } catch (postgisError) {
+          logger.warn('PostGIS not available, will use geolib fallback', {
+            error: postgisError.message,
+            driverLat: filters.driverLat,
+            driverLng: filters.driverLng,
+            category: 'orders'
+          });
+          // Will filter in JavaScript after fetching all orders
+          usePostGIS = false;
+        }
       } else {
-        logger.warn('Skipping PostGIS filter - missing or invalid coordinates', {
+        logger.warn('Skipping distance filter - missing or invalid coordinates', {
           driverLat: filters.driverLat,
           driverLng: filters.driverLng,
           isNaNLat: isNaN(filters.driverLat),
@@ -387,6 +350,7 @@ class OrderService {
     console.log('Location conditions applied:', !!locationConditions);
     if (userRole === 'driver') {
       console.log('Driver location from params:', { lng: params[1], lat: params[2] });
+      console.log('Using PostGIS:', usePostGIS);
     }
     console.log('Filter object:', filters);
 
@@ -394,7 +358,73 @@ class OrderService {
 
     console.log('📊 Query returned', result.rows.length, 'orders');
 
-    return result.rows.map(order => ({
+    let ordersToReturn = result.rows;
+
+    // Apply geolib fallback filtering for drivers if PostGIS wasn't used
+    if (userRole === 'driver' && !usePostGIS && filters.driverLat && filters.driverLng) {
+      logger.info('Applying geolib distance filter', {
+        totalOrders: ordersToReturn.length,
+        driverLat: filters.driverLat,
+        driverLng: filters.driverLng,
+        category: 'orders'
+      });
+
+      ordersToReturn = ordersToReturn.filter(order => {
+        // Only filter pending_bids orders, keep assigned orders
+        if (order.assigned_driver_user_id === params[0]) {
+          return true; // Always include driver's assigned orders
+        }
+
+        if (order.status !== 'pending_bids') {
+          return true; // Keep non-pending orders
+        }
+
+        try {
+          const pickupCoords = order.pickup_coordinates;
+          if (!pickupCoords || !pickupCoords.lat || !pickupCoords.lng) {
+            logger.warn('Order missing pickup coordinates', {
+              orderId: order.id,
+              category: 'orders'
+            });
+            return false;
+          }
+
+          const distance = getDistance(
+            { latitude: filters.driverLat, longitude: filters.driverLng },
+            { latitude: pickupCoords.lat, longitude: pickupCoords.lng }
+          );
+
+          const distanceKm = distance / 1000;
+          const withinRange = distanceKm <= 7;
+
+          logger.debug('Geolib distance calculated', {
+            orderId: order.id,
+            orderNumber: order.order_number,
+            distanceKm: distanceKm.toFixed(2),
+            withinRange,
+            category: 'orders'
+          });
+
+          return withinRange;
+        } catch (error) {
+          logger.error('Error calculating distance with geolib', {
+            error: error.message,
+            orderId: order.id,
+            category: 'orders'
+          });
+          return false;
+        }
+      });
+
+      logger.info('Geolib filter applied', {
+        originalCount: result.rows.length,
+        filteredCount: ordersToReturn.length,
+        removedCount: result.rows.length - ordersToReturn.length,
+        category: 'orders'
+      });
+    }
+
+    return ordersToReturn.map(order => ({
       _id: order.id,
       title: order.title,
       description: order.description,
