@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import usePageVisibility from './hooks/usePageVisibility';
+import LogsViewer from './components/admin/LogsViewer';
 
 const AdminPanel = ({ token, onClose }) => {
   const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
@@ -875,83 +876,7 @@ const AdminPanel = ({ token, onClose }) => {
         )}
 
         {activeTab === 'logs' && (
-          <div>
-            <div style={{
-              background: 'white',
-              padding: '1.5rem',
-              borderRadius: '0.75rem',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-            }}>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>
-                📋 System Activity Logs
-              </h2>
-
-              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
-                {['all', 'user', 'order', 'payment', 'system', 'error'].map(filter => (
-                  <button
-                    key={filter}
-                    onClick={() => setLogsType(filter)}
-                    style={{
-                      padding: '0.5rem 1rem',
-                      background: logsType === filter ? '#667eea' : '#F3F4F6',
-                      color: logsType === filter ? 'white' : '#6B7280',
-                      border: 'none',
-                      borderRadius: '0.375rem',
-                      cursor: 'pointer',
-                      fontWeight: '600',
-                      fontSize: '0.875rem'
-                    }}
-                  >
-                    {filter.charAt(0).toUpperCase() + filter.slice(1)}
-                  </button>
-                ))}
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {loading ? (
-                  <div style={{ padding: '2rem', textAlign: 'center', color: '#6B7280' }}>🔄 Loading logs...</div>
-                ) : systemLogs.length === 0 ? (
-                  <div style={{ padding: '2rem', textAlign: 'center', color: '#6B7280' }}>📭 No logs found</div>
-                ) : (
-                  systemLogs.map((log) => (
-                    <div key={log.id} style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '1rem',
-                      padding: '1rem',
-                      background: '#F9FAFB',
-                      borderRadius: '0.5rem',
-                      borderLeft: '4px solid #667eea'
-                    }}>
-                      <div style={{ flex: 1 }}>
-                        <p style={{ fontWeight: '600', fontSize: '0.875rem', marginBottom: '0.125rem' }}>
-                          {log.action}
-                        </p>
-                        <p style={{ fontSize: '0.75rem', color: '#6B7280' }}>
-                          Admin: {log.adminName || log.adminEmail || log.adminId} • Target: {log.targetType || '—'} {log.targetId || ''}
-                        </p>
-                        {log.details && (
-                          <p style={{ fontSize: '0.75rem', color: '#6B7280' }}>{JSON.stringify(log.details).slice(0, 200)}</p>
-                        )}
-                      </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <p style={{ fontSize: '0.75rem', color: '#6B7280' }}>{new Date(log.createdAt).toLocaleString()}</p>
-                        <p style={{ fontSize: '0.75rem', color: '#6B7280' }}>IP: {log.ipAddress || '—'}</p>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-
-              {logsPagination && (
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginTop: '1rem' }}>
-                  <button disabled={logsPagination.page <= 1} onClick={() => setLogsPage(logsPagination.page - 1)} style={{ padding: '0.5rem 1rem' }}>Prev</button>
-                  <span>Page {logsPagination.page} / {logsPagination.totalPages}</span>
-                  <button disabled={logsPagination.page >= logsPagination.totalPages} onClick={() => setLogsPage(logsPagination.page + 1)} style={{ padding: '0.5rem 1rem' }}>Next</button>
-                </div>
-              )}
-            </div>
-          </div>
+          <LogsViewer apiUrl={API_URL} token={adminToken} />
         )}
 
         {activeTab === 'settings' && (
