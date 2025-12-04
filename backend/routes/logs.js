@@ -13,9 +13,9 @@ module.exports = (pool, verifyToken, isAdmin) => {
 
     /**
      * POST /api/logs/frontend
-     * Receive logs from frontend (authenticated users only)
+     * Receive logs from frontend (no authentication required for better logging coverage)
      */
-    router.post('/frontend', verifyToken, async (req, res) => {
+    router.post('/frontend', async (req, res) => {
         try {
             const logData = req.body;
 

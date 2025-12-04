@@ -725,8 +725,14 @@ if (!JWT_REFRESH_SECRET || JWT_REFRESH_SECRET.length < 64) {
 
 // Enhanced token verification middleware
 const verifyToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader?.split(' ')[1];
+  // Check for token in cookies first (preferred method)
+  let token = req.cookies?.token;
+
+  // Fall back to Authorization header for backward compatibility
+  if (!token) {
+    const authHeader = req.headers['authorization'];
+    token = authHeader?.split(' ')[1];
+  }
 
   if (!token) {
     return res.status(401).json({ error: 'No token provided' });
@@ -1185,8 +1191,21 @@ app.post('/api/auth/register', async (req, res) => {
     const token = jwt.sign(
       { userId: user.id, email: user.email, name: user.name, role: user.role },
       JWT_SECRET,
-      { expiresIn: '30d' }
+      {
+        expiresIn: '30d',
+        issuer: 'matrix-delivery',
+        audience: 'matrix-delivery-api'
+      }
     );
+
+    // Set httpOnly cookie for security
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: IS_PRODUCTION,
+      sameSite: 'strict',
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+      path: '/'
+    });
 
     const duration = Date.now() - startTime;
     logger.auth(`User registered successfully`, {
@@ -1206,7 +1225,6 @@ app.post('/api/auth/register', async (req, res) => {
 
     res.status(201).json({
       message: 'User registered successfully',
-      token,
       user: {
         id: user.id,
         name: user.name,
@@ -1317,8 +1335,21 @@ app.post('/api/auth/login', async (req, res) => {
     const token = jwt.sign(
       { userId: user.id, email: user.email, name: user.name, role: user.role },
       JWT_SECRET,
-      { expiresIn: '30d' }
+      {
+        expiresIn: '30d',
+        issuer: 'matrix-delivery',
+        audience: 'matrix-delivery-api'
+      }
     );
+
+    // Set httpOnly cookie for security
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: IS_PRODUCTION,
+      sameSite: 'strict',
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+      path: '/'
+    });
 
     const duration = Date.now() - startTime;
     logger.auth(`User logged in successfully`, {
@@ -1338,7 +1369,6 @@ app.post('/api/auth/login', async (req, res) => {
 
     res.json({
       message: 'Login successful',
-      token,
       user: {
         id: user.id,
         name: user.name,
@@ -1348,7 +1378,8 @@ app.post('/api/auth/login', async (req, res) => {
         completedDeliveries: user.completed_deliveries,
         country: user.country,
         city: user.city,
-        area: user.area
+        area: user.area,
+        roles: user.roles || [user.role]
       }
     });
   } catch (error) {
@@ -1394,6 +1425,23 @@ app.get('/api/auth/me', verifyToken, async (req, res) => {
     console.error('Get user error:', error);
     res.status(500).json({ error: 'Failed to get user' });
   }
+});
+
+// Logout endpoint - clears httpOnly cookie
+app.post('/api/auth/logout', (req, res) => {
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: IS_PRODUCTION,
+    sameSite: 'strict',
+    path: '/'
+  });
+
+  logger.auth('User logged out', {
+    ip: req.ip,
+    category: 'auth'
+  });
+
+  res.json({ message: 'Logged out successfully' });
 });
 
 app.get('/api/browse/vendors', async (req, res) => {

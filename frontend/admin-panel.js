@@ -3,12 +3,12 @@ import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, Cart
 
 const AdminDashboard = () => {
   const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
-  
-  // Authentication
-  const [adminToken, setAdminToken] = useState(localStorage.getItem('adminToken'));
+
+  // Authentication - using cookie-based auth
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
-  
+
   // Dashboard State
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(false);
@@ -20,30 +20,30 @@ const AdminDashboard = () => {
   const [filterRole, setFilterRole] = useState('all');
   const [dateRange, setDateRange] = useState('7d');
   const [deployStatus, setDeployStatus] = useState(null);
-  
+
   // User Management
   const [selectedUser, setSelectedUser] = useState(null);
   const [showUserModal, setShowUserModal] = useState(false);
-  
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
   useEffect(() => {
-    if (adminToken) {
+    if (isAuthenticated) {
       fetchDashboardData();
       const interval = setInterval(fetchDashboardData, 30000); // Refresh every 30s
       return () => clearInterval(interval);
     }
-  }, [adminToken, dateRange]);
+  }, [isAuthenticated, dateRange]);
 
   const triggerBackendDeploy = async () => {
-    if (!adminToken) return;
+    if (!isAuthenticated) return;
     setDeployStatus('running');
     try {
       const response = await fetch(`${API_URL}/admin/deploy`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${adminToken}` }
+        credentials: 'include'
       });
       const data = await response.json();
       setDeployStatus(response.ok ? `completed (code ${data.exitCode})` : `failed: ${data.error || 'unknown'}`);
@@ -56,25 +56,25 @@ const AdminDashboard = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    
+
     try {
       const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(loginForm)
       });
 
       if (!response.ok) throw new Error('Login failed');
 
       const data = await response.json();
-      
-      // Check if user is admin (you'll need to add admin role to your system)
-      if (data.user.role !== 'admin') {
+
+      // Check if user is admin
+      if (data.user.role !== 'admin' && !data.user.roles?.includes('admin')) {
         throw new Error('Unauthorized: Admin access only');
       }
 
-      localStorage.setItem('adminToken', data.token);
-      setAdminToken(data.token);
+      setIsAuthenticated(true);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -84,14 +84,19 @@ const AdminDashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const headers = { 'Authorization': `Bearer ${adminToken}` };
-      
-      // Fetch all data in parallel
+      // Fetch all data in parallel using cookie-based auth
       const [statsRes, usersRes, ordersRes] = await Promise.all([
-        fetch(`${API_URL}/admin/stats?range=${dateRange}`, { headers }),
-        fetch(`${API_URL}/admin/users?page=${currentPage}&limit=${itemsPerPage}`, { headers }),
-        fetch(`${API_URL}/admin/orders?page=${currentPage}&limit=${itemsPerPage}`, { headers })
+        fetch(`${API_URL}/admin/stats?range=${dateRange}`, { credentials: 'include' }),
+        fetch(`${API_URL}/admin/users?page=${currentPage}&limit=${itemsPerPage}`, { credentials: 'include' }),
+        fetch(`${API_URL}/admin/orders?page=${currentPage}&limit=${itemsPerPage}`, { credentials: 'include' })
       ]);
+
+      // Handle authentication errors
+      if (statsRes.status === 401 || usersRes.status === 401 || ordersRes.status === 401) {
+        console.warn('Admin session expired, logging out');
+        logout();
+        return;
+      }
 
       if (statsRes.ok) setStats(await statsRes.json());
       if (usersRes.ok) setUsers(await usersRes.json());
@@ -107,14 +112,14 @@ const AdminDashboard = () => {
       const response = await fetch(`${API_URL}/admin/users/${userId}/${action}`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${adminToken}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify(data)
       });
 
       if (!response.ok) throw new Error('Action failed');
-      
+
       fetchDashboardData();
       setShowUserModal(false);
     } catch (err) {
@@ -124,9 +129,16 @@ const AdminDashboard = () => {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('adminToken');
-    setAdminToken(null);
+  const logout = async () => {
+    try {
+      await fetch(`${API_URL}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+    setIsAuthenticated(false);
   };
 
   // Mock stats for demonstration (replace with actual API data)
@@ -161,7 +173,7 @@ const AdminDashboard = () => {
 
   const displayStats = stats || mockStats;
 
-  if (!adminToken) {
+  if (!isAuthenticated) {
     return (
       <div style={{
         minHeight: '100vh',
@@ -387,63 +399,63 @@ const AdminDashboard = () => {
         top: 0,
         zIndex: 10
       }}>
-      <div style={{
-        maxWidth: '1400px',
-        margin: '0 auto',
-        display: 'flex',
-        gap: '0.5rem',
-        padding: '0 2rem',
-        alignItems: 'center'
-      }}>
-        {[
-          { id: 'overview', label: '📊 Overview', icon: '📊' },
-          { id: 'users', label: '👥 Users', icon: '👥' },
-          { id: 'orders', label: '📦 Orders', icon: '📦' },
-          { id: 'analytics', label: '📈 Analytics', icon: '📈' },
-          { id: 'logs', label: '📋 Logs', icon: '📋' },
-          { id: 'settings', label: '⚙️ Settings', icon: '⚙️' }
-        ].map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            style={{
-              padding: '1rem 1.5rem',
-              background: activeTab === tab.id ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 'transparent',
-              color: activeTab === tab.id ? 'white' : '#6B7280',
-              border: 'none',
-              borderBottom: activeTab === tab.id ? '3px solid #667eea' : '3px solid transparent',
-              cursor: 'pointer',
-              fontWeight: '600',
-              fontSize: '0.875rem',
-              transition: 'all 0.2s'
-            }}
-          >
-            {tab.label}
-          </button>
-        ))}
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          <button
-            onClick={triggerBackendDeploy}
-            style={{
-              padding: '0.75rem 1rem',
-              background: '#F59E0B',
-              color: 'white',
-              border: 'none',
-              borderRadius: '0.375rem',
-              cursor: 'pointer',
-              fontWeight: '600',
-              fontSize: '0.875rem'
-            }}
-          >
-            🚀 Deploy Backend
-          </button>
-          {deployStatus && (
-            <span style={{ fontSize: '0.75rem', color: deployStatus.startsWith('completed') ? '#10B981' : '#EF4444' }}>
-              {`Deploy: ${deployStatus}`}
-            </span>
-          )}
+        <div style={{
+          maxWidth: '1400px',
+          margin: '0 auto',
+          display: 'flex',
+          gap: '0.5rem',
+          padding: '0 2rem',
+          alignItems: 'center'
+        }}>
+          {[
+            { id: 'overview', label: '📊 Overview', icon: '📊' },
+            { id: 'users', label: '👥 Users', icon: '👥' },
+            { id: 'orders', label: '📦 Orders', icon: '📦' },
+            { id: 'analytics', label: '📈 Analytics', icon: '📈' },
+            { id: 'logs', label: '📋 Logs', icon: '📋' },
+            { id: 'settings', label: '⚙️ Settings', icon: '⚙️' }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              style={{
+                padding: '1rem 1.5rem',
+                background: activeTab === tab.id ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 'transparent',
+                color: activeTab === tab.id ? 'white' : '#6B7280',
+                border: 'none',
+                borderBottom: activeTab === tab.id ? '3px solid #667eea' : '3px solid transparent',
+                cursor: 'pointer',
+                fontWeight: '600',
+                fontSize: '0.875rem',
+                transition: 'all 0.2s'
+              }}
+            >
+              {tab.label}
+            </button>
+          ))}
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <button
+              onClick={triggerBackendDeploy}
+              style={{
+                padding: '0.75rem 1rem',
+                background: '#F59E0B',
+                color: 'white',
+                border: 'none',
+                borderRadius: '0.375rem',
+                cursor: 'pointer',
+                fontWeight: '600',
+                fontSize: '0.875rem'
+              }}
+            >
+              🚀 Deploy Backend
+            </button>
+            {deployStatus && (
+              <span style={{ fontSize: '0.75rem', color: deployStatus.startsWith('completed') ? '#10B981' : '#EF4444' }}>
+                {`Deploy: ${deployStatus}`}
+              </span>
+            )}
+          </div>
         </div>
-      </div>
       </div>
 
       {/* Main Content */}
@@ -475,9 +487,9 @@ const AdminDashboard = () => {
                     fontSize: '0.875rem'
                   }}
                 >
-                  {range === '24h' ? 'Last 24 Hours' : 
-                   range === '7d' ? 'Last 7 Days' :
-                   range === '30d' ? 'Last 30 Days' : 'Last 90 Days'}
+                  {range === '24h' ? 'Last 24 Hours' :
+                    range === '7d' ? 'Last 7 Days' :
+                      range === '30d' ? 'Last 30 Days' : 'Last 90 Days'}
                 </button>
               ))}
             </div>
@@ -796,7 +808,7 @@ const AdminDashboard = () => {
               <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>
                 📦 Order Management
               </h2>
-              
+
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
                 <div style={{ padding: '1rem', background: '#FEF3C7', borderRadius: '0.5rem' }}>
                   <p style={{ fontSize: '0.875rem', color: '#6B7280', marginBottom: '0.25rem' }}>Pending Bids</p>
