@@ -65,7 +65,7 @@ const DeliveryApp = () => {
   // Fixed: LiveTrackingMap component moved outside DeliveryApp function for proper scoping
   // State variables
   const [authState, setAuthState] = useState('login');
-  const [token, setToken] = useState(localStorage.getItem('token') || null);
+  const [token, setToken] = useState(null); // Remove localStorage - tokens are in httpOnly cookies
   const [currentUser, setCurrentUser] = useState(null);
 
   // Use driver hook for location management
@@ -385,7 +385,7 @@ const DeliveryApp = () => {
       }
 
       const response = await fetch(url, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include' // Include cookies for authentication
       });
       if (!response.ok) {
         console.error('Fetch orders failed:', response.status, response.statusText);
@@ -506,7 +506,7 @@ const DeliveryApp = () => {
       const url = `${API_URL}/updates${queryString ? '?' + queryString : ''}`;
 
       const response = await fetch(url, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include' // Include cookies for authentication
       });
 
       if (!response.ok) return;
@@ -757,7 +757,7 @@ const DeliveryApp = () => {
   const fetchCurrentUser = async () => {
     try {
       const response = await fetch(`${API_URL}/auth/me`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include' // Include cookies for authentication
       });
       if (!response.ok) {
         // Only logout for authentication errors (401/403), not network/server errors
@@ -787,7 +787,7 @@ const DeliveryApp = () => {
   const fetchProfileData = async () => {
     try {
       const response = await fetch(`${API_URL}/users/me/profile`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include' // Include cookies for authentication
       });
       if (!response.ok) {
         console.error('Failed to fetch profile data:', response.status);
@@ -811,7 +811,7 @@ const DeliveryApp = () => {
   const fetchNotifications = async () => {
     try {
       const response = await fetch(`${API_URL}/notifications`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include' // Include cookies for authentication
       });
       if (!response.ok) return;
       const data = await response.json();
@@ -849,7 +849,7 @@ const DeliveryApp = () => {
     try {
       await fetch(`${API_URL}/notifications/${notificationId}/read`, {
         method: 'PUT',
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include' // Include cookies for authentication
       });
       fetchNotifications();
     } catch (err) {
@@ -862,7 +862,7 @@ const DeliveryApp = () => {
   const fetchReviewStatus = async (orderId) => {
     try {
       const response = await fetch(`${API_URL}/orders/${orderId}/review-status`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include' // Include cookies for authentication
       });
       if (!response.ok) return;
       const data = await response.json();
@@ -875,7 +875,7 @@ const DeliveryApp = () => {
   const fetchOrderReviews = async (orderId) => {
     try {
       const response = await fetch(`${API_URL}/orders/${orderId}/reviews`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include' // Include cookies for authentication
       });
       if (!response.ok) return;
       const data = await response.json();
@@ -1130,8 +1130,8 @@ const DeliveryApp = () => {
       }
 
       const data = await response.json();
-      localStorage.setItem('token', data.token);
-      setToken(data.token);
+      // Token is now set in httpOnly cookie by server, no need to store in localStorage
+      setToken('authenticated'); // Just a flag to indicate user is logged in
       setCurrentUser(data.user);
       setAuthForm({ name: '', email: '', password: '', phone: '', role: 'customer', vehicle_type: '', country: '', city: '', area: '' });
       setError('');
@@ -1179,8 +1179,8 @@ const DeliveryApp = () => {
       }
 
       const data = await response.json();
-      localStorage.setItem('token', data.token);
-      setToken(data.token);
+      // Token is now set in httpOnly cookie by server, no need to store in localStorage
+      setToken('authenticated'); // Just a flag to indicate user is logged in
       setCurrentUser(data.user);
       setAvailableRoles(data.user.roles || (data.user.role ? [data.user.role] : []));
       setAuthForm({ name: '', email: '', password: '', phone: '', role: 'customer', vehicle_type: '' });
@@ -1214,7 +1214,7 @@ const DeliveryApp = () => {
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
+    // Don't remove token from localStorage - server handles cookie clearing
     setToken(null);
     setCurrentUser(null);
     setOrders([]);
@@ -1322,9 +1322,9 @@ const DeliveryApp = () => {
       const response = await fetch(`${API_URL}/orders`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include', // Include cookies for authentication
         body: JSON.stringify(newOrder)
       });
 
