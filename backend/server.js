@@ -2,6 +2,7 @@ const Sentry = require('@sentry/node');
 const { nodeProfilingIntegration } = require('@sentry/profiling-node');
 
 const express = require('express');
+console.error('🔥 CRITICAL DEBUG: server.js is running!');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const jwt = require('jsonwebtoken');
@@ -97,17 +98,46 @@ app.use(helmetConfig);
 // Additional security headers
 app.use(additionalSecurityHeaders);
 
-// Cookie parser (required for CSRF)
+// Cookie parser - use standard cookie-parser for httpOnly cookies
+const cookieParser = require('cookie-parser');
+app.use(cookieParser());
+
+// Cookie parser from security middleware (required for CSRF)
 app.use(cookieParserMiddleware);
 
 // Request sanitization
 app.use(sanitizeRequest);
 
-// CORS Configuration - Strict validation for all environments
-app.use(cors(strictCorsConfig));
+
+// CORS Configuration - Allow credentials for cookie-based auth
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+
+  const envOrigins = (process.env.CORS_ORIGIN || '').split(',').map(o => o.trim()).filter(Boolean);
+  const allowedOrigins = [
+      'http://localhost:3000',
+      'http://192.168.1.200:3000',
+      'https://matrix.oldantique50.com',
+      'https://matrix-api.oldantique50.com',
+      ...envOrigins
+    ];
+
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true, // CRITICAL: Allow credentials (cookies)
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
 
 // Handle preflight requests
-app.options('*', cors(strictCorsConfig));
+app.options('*', cors(corsOptions));
 
 // ============================================================================
 // DATABASE CONNECTION
@@ -1202,7 +1232,7 @@ app.post('/api/auth/register', async (req, res) => {
     res.cookie('token', token, {
       httpOnly: true,
       secure: IS_PRODUCTION,
-      sameSite: 'strict',
+      sameSite: IS_PRODUCTION ? 'none' : 'lax',
       maxAge: 30 * 24 * 60 * 60 * 1000,
       path: '/'
     });
@@ -1343,13 +1373,32 @@ app.post('/api/auth/login', async (req, res) => {
     );
 
     // Set httpOnly cookie for security
+    // Set httpOnly cookie for security
+    // Set httpOnly cookie for security
+    // Set httpOnly cookie for security
+    console.error('🔥 DEBUG: ABOUT TO SET COOKIE');
+    logger.warn('🍪 DEBUG: Setting cookie', {
+      category: 'debug',
+      isProduction: IS_PRODUCTION,
+      options: {
+        httpOnly: true,
+        secure: false, // FORCE FALSE FOR DEBUGGING
+        sameSite: 'strict',
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+        path: '/'
+      }
+    });
+
     res.cookie('token', token, {
       httpOnly: true,
       secure: IS_PRODUCTION,
-      sameSite: 'strict',
+      sameSite: IS_PRODUCTION ? 'none' : 'lax',
       maxAge: 30 * 24 * 60 * 60 * 1000,
       path: '/'
     });
+
+    console.error('🔥 DEBUG: COOKIE SET CALLED');
+    logger.warn('✅ DEBUG: Cookie set command executed', { category: 'debug' });
 
     const duration = Date.now() - startTime;
     logger.auth(`User logged in successfully`, {
@@ -1432,7 +1481,7 @@ app.post('/api/auth/logout', (req, res) => {
   res.clearCookie('token', {
     httpOnly: true,
     secure: IS_PRODUCTION,
-    sameSite: 'strict',
+    sameSite: IS_PRODUCTION ? 'none' : 'lax',
     path: '/'
   });
 
