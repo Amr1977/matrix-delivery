@@ -4418,7 +4418,11 @@ app.get('/api/locations/countries/:country/cities/search', async (req, res) => {
 // Admin authentication middleware
 const verifyAdmin = async (req, res, next) => {
   try {
-    const token = req.headers['authorization']?.split(' ')[1];
+    let token = req.cookies?.token;
+    if (!token) {
+      const authHeader = req.headers['authorization'];
+      token = authHeader?.split(' ')[1];
+    }
     if (!token) return res.status(401).json({ error: 'No token provided' });
 
     const decoded = jwt.verify(token, JWT_SECRET);
@@ -5960,14 +5964,42 @@ const io = socketIo(httpServer, {
 io.engine.opts.pingTimeout = 60000;
 io.engine.opts.pingInterval = 25000;
 
+const getSocketToken = (socket) => {
+  const a = socket.handshake?.auth?.token;
+  if (a) return a;
+  const ch = socket.request.headers.cookie || '';
+  const m = ch.split(';').map(s => s.trim()).find(s => s.startsWith('token='));
+  if (m) return decodeURIComponent(m.split('=')[1]);
+  return null;
+};
+
 io.on('connection', (socket) => {
   console.log('Connected client:', socket.id);
+
+  socket.on('join_user_room', async (userId) => {
+    try {
+      const t = getSocketToken(socket);
+      if (!t) {
+        socket.emit('error', { message: 'Unauthorized' });
+        return;
+      }
+      const d = jwt.verify(t, JWT_SECRET);
+      if (d.userId !== userId) {
+        socket.emit('error', { message: 'Unauthorized' });
+        return;
+      }
+      socket.join(`user_${userId}`);
+    } catch (error) {
+      socket.emit('error', { message: 'Failed to join user room' });
+    }
+  });
 
   socket.on('join_order', async (data) => {
     const { orderId, token } = data;
 
     try {
-      const decoded = jwt.verify(token, JWT_SECRET);
+      const useToken = token || getSocketToken(socket);
+      const decoded = jwt.verify(useToken, JWT_SECRET);
       const orderResult = await pool.query(
         'SELECT customer_id, assigned_driver_user_id FROM orders WHERE id = $1',
         [orderId]
@@ -6011,7 +6043,8 @@ io.on('connection', (socket) => {
     const { orderId, latitude, longitude, token } = data;
 
     try {
-      const decoded = jwt.verify(token, JWT_SECRET);
+      const useToken = token || getSocketToken(socket);
+      const decoded = jwt.verify(useToken, JWT_SECRET);
       const orderResult = await pool.query(
         'SELECT assigned_driver_user_id, status FROM orders WHERE id = $1',
         [orderId]
