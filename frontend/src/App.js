@@ -58,6 +58,17 @@ if (!window.__fetchPatched) {
   const originalFetch = window.fetch.bind(window);
   window.fetch = (url, options = {}) => {
     const merged = { credentials: 'include', ...options };
+    try {
+      const devToken = localStorage.getItem('token');
+      const isJwt = typeof devToken === 'string' && devToken.split('.').length === 3;
+      if (isJwt) {
+        const headers = { ...(merged.headers || {}) };
+        if (!headers.Authorization) {
+          headers.Authorization = `Bearer ${devToken}`;
+        }
+        merged.headers = headers;
+      }
+    } catch (_) {}
     return originalFetch(url, merged);
   };
   window.__fetchPatched = true;
@@ -393,8 +404,10 @@ const DeliveryApp = () => {
         return;
       }
 
+      const isJwt = typeof token === 'string' && token.split('.').length === 3;
       const response = await fetch(url, {
-        credentials: 'include' // Include cookies for authentication
+        credentials: 'include',
+        headers: isJwt ? { 'Authorization': `Bearer ${token}` } : undefined
       });
       if (!response.ok) {
         console.error('Fetch orders failed:', response.status, response.statusText);
@@ -1139,8 +1152,13 @@ const DeliveryApp = () => {
       }
 
       const data = await response.json();
-      // Token is now set in httpOnly cookie by server, no need to store in localStorage
-      setToken('authenticated'); // Just a flag to indicate user is logged in
+      if (data.token && typeof data.token === 'string') {
+        setToken(data.token);
+        try { localStorage.setItem('token', data.token); } catch (_) {}
+      } else {
+        setToken('authenticated');
+        try { localStorage.removeItem('token'); } catch (_) {}
+      }
       setCurrentUser(data.user);
       setAuthForm({ name: '', email: '', password: '', phone: '', role: 'customer', vehicle_type: '', country: '', city: '', area: '' });
       setError('');
@@ -1224,6 +1242,7 @@ const DeliveryApp = () => {
   const logout = () => {
     // Don't remove token from localStorage - server handles cookie clearing
     setToken(null);
+    try { localStorage.removeItem('token'); } catch (_) {}
     setCurrentUser(null);
     setOrders([]);
     setNotifications([]);

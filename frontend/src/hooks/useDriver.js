@@ -164,6 +164,7 @@ const useDriver = (token, currentUser) => {
   const getDriverLocation = useCallback(async () => {
     try {
       const response = await fetch(`${API_URL}/drivers/location`, {
+        credentials: 'include',
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!response.ok) throw new Error('Failed to get location');
