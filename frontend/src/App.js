@@ -1691,6 +1691,24 @@ const DeliveryApp = () => {
     return translationKey ? t(translationKey) : status;
   };
 
+  // Admin Panel Navigation Handler
+  const handleAdminPanelNavigation = () => {
+    // Check if user has admin privileges
+    if (!currentUser || (!currentUser.role === 'admin' && !availableRoles.includes('admin'))) {
+      setError('Access denied: Admin privileges required');
+      return;
+    }
+
+    // Check if token is available
+    if (!token) {
+      setError('Authentication required: Please log in');
+      return;
+    }
+
+    // Set admin panel visibility
+    setShowAdminPanel(true);
+  };
+
   // ============ END OF PART 3 ============
   // Continue with Part 4 for Authentication UI
 
@@ -1942,7 +1960,7 @@ const DeliveryApp = () => {
         else if (view === 'my_bids') setViewType('my_bids');
         else if (view === 'history') setViewType('history');
         else if (view === 'location_settings') setViewType('location_settings');
-        else if (view === 'admin_panel') setShowAdminPanel(true);
+        else if (view === 'admin_panel') handleAdminPanelNavigation();
       }}
       onLogout={logout}
       onToggleOnline={toggleOnline}
