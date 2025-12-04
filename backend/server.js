@@ -5964,6 +5964,11 @@ if (require.main === module) {
     console.log('');
     console.log('╚════════════════════════════════════════════════════╝');
     console.log('');
+
+    // Signal PM2 that the application is ready
+    if (process.send) {
+      process.send('ready');
+    }
   });
 }
 
