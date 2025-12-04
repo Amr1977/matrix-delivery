@@ -585,6 +585,37 @@ const initDatabase = async () => {
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_messages_recipient ON messages(recipient_id)`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_messages_created ON messages(created_at)`);
 
+    // Create logs table for comprehensive logging system
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS logs (
+        id SERIAL PRIMARY KEY,
+        timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        level VARCHAR(20) NOT NULL CHECK (level IN ('error', 'warn', 'info', 'debug', 'http')),
+        source VARCHAR(20) NOT NULL CHECK (source IN ('frontend', 'backend')),
+        category VARCHAR(50),
+        message TEXT NOT NULL,
+        user_id VARCHAR(255) REFERENCES users(id) ON DELETE SET NULL,
+        session_id VARCHAR(100),
+        url TEXT,
+        method VARCHAR(10),
+        status_code INTEGER,
+        duration_ms INTEGER,
+        ip_address VARCHAR(45),
+        user_agent TEXT,
+        stack_trace TEXT,
+        metadata JSONB,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Create indexes for efficient log querying
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_logs_timestamp ON logs(timestamp DESC)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_logs_level ON logs(level)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_logs_source ON logs(source)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_logs_category ON logs(category)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_logs_user_id ON logs(user_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_logs_session_id ON logs(session_id)`);
+
     // Initialize admin tables
     await createAdminTables();
 
@@ -784,6 +815,10 @@ app.use('/api/drivers', driverRoutes);
 // Load map location picker endpoints
 const mapPickerEndpoints = require('./map-location-picker-backend.js');
 mapPickerEndpoints(app, pool, jwt, verifyToken);
+
+// Load logs endpoints
+const logsRouter = require('./routes/logs')(pool, verifyToken, isAdmin);
+app.use('/api/logs', logsRouter);
 
 // Rate limiting store (simple in-memory for demo)
 const rateLimitStore = new Map();

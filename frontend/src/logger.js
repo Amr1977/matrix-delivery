@@ -1,6 +1,8 @@
 // Frontend Logger Utility
 // Provides structured logging for React frontend with different log levels
 
+import LogBatcher from './services/logBatcher';
+
 class FrontendLogger {
   constructor() {
     this.levels = {
@@ -11,7 +13,27 @@ class FrontendLogger {
     };
 
     // Set default log level based on environment
-    this.currentLevel = process.env.NODE_ENV === 'production' ? 'warn' : 'warn'; // Changed to 'warn' to reduce console spam
+    // Capture all levels as per user request
+    this.currentLevel = process.env.NODE_ENV === 'production' ? 'info' : 'debug';
+
+    // Initialize log batcher
+    const apiUrl = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
+    this.batcher = new LogBatcher(apiUrl);
+
+    // Store original console methods
+    this.originalConsole = {
+      error: console.error,
+      warn: console.warn,
+      info: console.info,
+      log: console.log,
+      debug: console.debug
+    };
+
+    // Override console methods to capture all logs
+    this.overrideConsole();
+
+    // Setup global error handlers
+    this.setupGlobalErrorHandlers();
 
     // Bind methods to preserve context
     this.error = this.error.bind(this);
@@ -29,7 +51,7 @@ class FrontendLogger {
 
   formatMessage(level, message, data = {}) {
     const timestamp = new Date().toISOString();
-    const userId = localStorage.getItem('userId') || 'anonymous';
+    const userId = localStorage.getItem('userId') || null;
     const sessionId = this.getSessionId();
 
     return {
@@ -58,28 +80,30 @@ class FrontendLogger {
 
     const logData = this.formatMessage(level, message, data);
 
-    // Console logging with appropriate method
+    // Console logging with appropriate method (using original methods)
     const consoleMethod = level === 'debug' ? 'log' : level;
-    console[consoleMethod](`[${level.toUpperCase()}] ${message}`, logData);
+    this.originalConsole[consoleMethod](`[${level.toUpperCase()}] ${message}`, logData);
 
-    // Send all logs to backend for file storage (don't await to avoid blocking)
-    this.sendToBackend(logData);
+    // Send to backend via batcher (only error, warn, and info by default)
+    if (level === 'error' || level === 'warn' || level === 'info') {
+      this.batcher.addLog(logData);
+    }
   }
 
   error(message, data = {}) {
-    this.log('error', message, { ...data, category: 'error' });
+    this.log('error', message, { ...data, category: data.category || 'error' });
   }
 
   warn(message, data = {}) {
-    this.log('warn', message, { ...data, category: 'warning' });
+    this.log('warn', message, { ...data, category: data.category || 'warning' });
   }
 
   info(message, data = {}) {
-    this.log('info', message, { ...data, category: 'info' });
+    this.log('info', message, { ...data, category: data.category || 'info' });
   }
 
   debug(message, data = {}) {
-    this.log('debug', message, { ...data, category: 'debug' });
+    this.log('debug', message, { ...data, category: data.category || 'debug' });
   }
 
   // Specialized logging methods
@@ -90,8 +114,8 @@ class FrontendLogger {
       category: 'api',
       method,
       url,
-      status,
-      duration: `${duration}ms`
+      statusCode: status,
+      durationMs: duration
     });
   }
 
@@ -108,37 +132,18 @@ class FrontendLogger {
       ...data,
       category: 'performance',
       action,
-      duration: `${duration}ms`
+      durationMs: duration
     });
-  }
-
-  // Send critical logs to backend for server-side storage
-  async sendToBackend(logData) {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
-
-      await fetch('/api/logs/frontend', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(logData)
-      });
-    } catch (error) {
-      // Don't log this recursively
-      console.error('Failed to send log to backend:', error);
-    }
   }
 
   // Error boundary logging
   logError(error, errorInfo, componentStack) {
     this.error('React Error Boundary caught an error', {
       error: error.message,
-      stack: error.stack,
+      stackTrace: error.stack,
       componentStack,
-      category: 'react_error'
+      category: 'react_error',
+      metadata: { errorInfo }
     });
   }
 
@@ -150,9 +155,79 @@ class FrontendLogger {
       category: 'navigation'
     });
   }
+
+  /**
+   * Override console methods to capture all console output
+   */
+  overrideConsole() {
+    const self = this;
+
+    console.error = function (...args) {
+      self.originalConsole.error.apply(console, args);
+      const message = args.map(arg =>
+        typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+      ).join(' ');
+
+      self.error(message, {
+        category: 'console',
+        args: args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : arg)
+      });
+    };
+
+    console.warn = function (...args) {
+      self.originalConsole.warn.apply(console, args);
+      const message = args.map(arg =>
+        typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+      ).join(' ');
+
+      self.warn(message, {
+        category: 'console',
+        args: args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : arg)
+      });
+    };
+
+    // Don't override info and debug to avoid excessive logging
+    // but keep them available for explicit logger.info() calls
+  }
+
+  /**
+   * Setup global error handlers
+   */
+  setupGlobalErrorHandlers() {
+    // Catch uncaught JavaScript errors
+    window.onerror = (message, source, lineno, colno, error) => {
+      this.error('Uncaught JavaScript error', {
+        message: String(message),
+        source,
+        lineno,
+        colno,
+        stackTrace: error?.stack,
+        category: 'uncaught_error'
+      });
+      return false; // Let default handler run
+    };
+
+    // Catch unhandled promise rejections
+    window.onunhandledrejection = (event) => {
+      this.error('Unhandled Promise Rejection', {
+        reason: String(event.reason),
+        promise: event.promise,
+        stackTrace: event.reason?.stack,
+        category: 'unhandled_rejection'
+      });
+    };
+  }
+
+  /**
+   * Manually flush logs (useful before navigation)
+   */
+  flush() {
+    this.batcher.flush();
+  }
 }
 
 // Create singleton instance
 const logger = new FrontendLogger();
 
 export default logger;
+
