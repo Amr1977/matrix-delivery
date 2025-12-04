@@ -54,7 +54,11 @@ class AuthService {
         roles
       },
       JWT_SECRET,
-      { expiresIn: '30d' }
+      {
+        expiresIn: '30d',
+        issuer: 'matrix-delivery',
+        audience: 'matrix-delivery-api'
+      }
     );
   }
 
@@ -290,7 +294,11 @@ class AuthService {
     const user = result.rows[0];
     const roles = Array.isArray(user.roles) && user.roles.length ? user.roles : [user.role].filter(Boolean);
     if (!roles.includes(role)) throw new Error('Role not assigned to user');
-    const token = jwt.sign({ userId: user.id, email: user.email, name: user.name, role, roles }, JWT_SECRET, { expiresIn: '30d' });
+    const token = jwt.sign(
+      { userId: user.id, email: user.email, name: user.name, role, roles },
+      JWT_SECRET,
+      { expiresIn: '30d', issuer: 'matrix-delivery', audience: 'matrix-delivery-api' }
+    );
     return { token, role, roles };
   }
 

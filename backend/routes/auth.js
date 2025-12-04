@@ -113,7 +113,25 @@ router.post('/register', authRateLimit, async (req, res) => {
       category: 'performance'
     });
 
-    res.status(201).json(result);
+    // Set httpOnly cookie for security
+    const token = result.token;
+    const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: IS_PRODUCTION,
+      sameSite: IS_PRODUCTION ? 'none' : 'lax',
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      path: '/'
+    });
+
+    // Remove token from response body for security
+    const response = { ...result };
+    if (process.env.NODE_ENV === 'production') {
+      delete response.token;
+    }
+
+    res.status(201).json(response);
   } catch (error) {
     const duration = Date.now() - startTime;
     logger.error(`Registration error: ${error.message}`, {
@@ -166,7 +184,25 @@ router.post('/login', authRateLimit, async (req, res) => {
       category: 'performance'
     });
 
-    res.json(result);
+    // Set httpOnly cookie for security
+    const token = result.token;
+    const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: IS_PRODUCTION,
+      sameSite: IS_PRODUCTION ? 'none' : 'lax',
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      path: '/'
+    });
+
+    // Remove token from response body for security
+    const response = { ...result };
+    if (process.env.NODE_ENV === 'production') {
+      delete response.token;
+    }
+
+    res.json(response);
   } catch (error) {
     const duration = Date.now() - startTime;
     logger.error(`Login error: ${error.message}`, {
@@ -185,6 +221,26 @@ router.post('/login', authRateLimit, async (req, res) => {
 
     res.status(500).json({ error: error.message || 'Login failed' });
   }
+});
+
+// Logout
+router.post('/logout', (req, res) => {
+  const clientIP = req.ip || req.connection.remoteAddress;
+
+  logger.auth('User logged out', {
+    ip: clientIP,
+    userId: req.user?.userId,
+    category: 'auth'
+  });
+
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    path: '/'
+  });
+
+  res.json({ message: 'Logged out successfully' });
 });
 
 // Get current user
@@ -209,7 +265,15 @@ router.post('/switch-role', verifyToken, async (req, res) => {
       return res.status(400).json({ error: 'Role is required' });
     }
     const { token, roles } = await authService.switchRole(req.user.userId, role);
-    res.json({ token, role, roles });
+    const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: IS_PRODUCTION,
+      sameSite: IS_PRODUCTION ? 'none' : 'lax',
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+      path: '/'
+    });
+    res.json({ role, roles });
   } catch (error) {
     logger.error(`Switch role error: ${error.message}`, { userId: req.user.userId, category: 'error' });
     res.status(400).json({ error: error.message || 'Failed to switch role' });

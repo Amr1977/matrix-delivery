@@ -54,10 +54,19 @@ Sentry.init({
 });
 
 
+if (!window.__fetchPatched) {
+  const originalFetch = window.fetch.bind(window);
+  window.fetch = (url, options = {}) => {
+    const merged = { credentials: 'include', ...options };
+    return originalFetch(url, merged);
+  };
+  window.__fetchPatched = true;
+}
+
 // Location data state and API functions
 const DeliveryApp = () => {
   const { t, locale, changeLocale } = useI18n();
-  const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
   // Performance optimization: Page visibility detection
   const isPageVisible = usePageVisibility();
@@ -1205,8 +1214,7 @@ const DeliveryApp = () => {
         throw new Error(err.error || 'Failed to switch role');
       }
       const data = await response.json();
-      localStorage.setItem('token', data.token);
-      setToken(data.token);
+      setToken('authenticated');
       setCurrentUser((prev) => ({ ...(prev || {}), role }));
     } catch (err) {
       setError(err.message);
