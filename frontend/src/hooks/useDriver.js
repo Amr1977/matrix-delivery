@@ -162,19 +162,37 @@ const useDriver = (token, currentUser) => {
   }, [currentUser, token, API_URL, driverLocation]);
 
   const getDriverLocation = useCallback(async () => {
+    // Only call if user is authenticated driver
+    if (!token || currentUser?.role !== 'driver') {
+      return null;
+    }
+
     try {
       const response = await fetch(`${API_URL}/drivers/location`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      if (!response.ok) throw new Error('Failed to get location');
+
+      // Handle 401 gracefully - user might not be authenticated yet
+      if (response.status === 401) {
+        return null;
+      }
+
+      if (!response.ok) {
+        console.warn('Failed to get driver location:', response.status);
+        return null;
+      }
+
       const data = await response.json();
       setDriverLocation(data.location || { latitude: null, longitude: null, lastUpdated: null });
       return data.location;
     } catch (err) {
-      console.error('Get location error:', err);
+      // Don't log errors for authentication issues
+      if (err.message !== 'Failed to get location') {
+        console.warn('Get location error:', err.message);
+      }
       return null;
     }
-  }, [token, API_URL]);
+  }, [token, currentUser, API_URL]);
 
   // Filter orders based on driver view type and city filter
   const getFilteredDriverOrders = useCallback(() => {

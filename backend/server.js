@@ -857,6 +857,10 @@ mapPickerEndpoints(app, pool, jwt, verifyToken);
 const logsRouter = require('./routes/logs')(pool, verifyToken, isAdmin);
 app.use('/api/logs', logsRouter);
 
+// Load statistics endpoints
+const statisticsRouter = require('./routes/statistics');
+app.use('/api/stats', statisticsRouter);
+
 // Rate limiting store (simple in-memory for demo)
 const rateLimitStore = new Map();
 let HAS_POSTGIS = false;
