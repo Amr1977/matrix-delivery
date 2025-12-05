@@ -665,8 +665,8 @@ const initDatabase = async () => {
   }
 };
 
-// Initialize database on startup (skip in test mode)
-if (!IS_TEST) {
+// Initialize database on startup (skip in test mode unless strictly requested)
+if (!IS_TEST || process.env.INIT_TEST_DB === 'true') {
   initDatabase().catch(err => {
     console.error('Failed to initialize database:', err);
     process.exit(1);

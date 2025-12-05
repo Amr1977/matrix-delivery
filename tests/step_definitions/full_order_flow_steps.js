@@ -70,7 +70,8 @@ When('I log in as {string} with password {string}', async function (email, passw
         await logoutButton.first().click();
         await this.page.waitForTimeout(1000);
         await this.page.waitForSelector('button:has-text("Logout"), button:has-text("تسجيل الخروج"), button:has-text("Cerrar Sesión")', { timeout: 10000 });
-    });
+    }
+});
 
 When('I navigate to the create order page', async function () {
     const createButton = this.page.locator('button:has-text("Create New Order"), a:has-text("Create New Order")');

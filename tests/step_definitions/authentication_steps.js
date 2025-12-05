@@ -4,13 +4,13 @@ const { expect } = require('chai');
 // Common step definitions
 
 // Background steps for translation testing
-Given('I am using the production environment', async function() {
+Given('I am using the production environment', async function () {
   // Set environment to production for testing
   this.environment = 'production';
   console.log('Using production environment for testing');
 });
 
-Given('I have a driver account {string} with password {string}', async function(email, password) {
+Given('I have a driver account {string} with password {string}', async function (email, password) {
   // Store driver credentials for testing
   this.testData.driver = {
     email: email,
@@ -19,7 +19,7 @@ Given('I have a driver account {string} with password {string}', async function(
   console.log(`Driver account set: ${email}`);
 });
 
-Given('I have a customer account {string} with password {string}', async function(email, password) {
+Given('I have a customer account {string} with password {string}', async function (email, password) {
   // Store customer credentials for testing
   this.testData.customer = {
     email: email,
@@ -28,17 +28,17 @@ Given('I have a customer account {string} with password {string}', async functio
   console.log(`Customer account set: ${email}`);
 });
 
-Given('I am on the login page', async function() {
+Given('I am on the login page', async function () {
   await this.page.goto(this.baseUrl);
   await this.page.waitForLoadState('networkidle');
   console.log('On login page');
 });
-Given('I am on the home page', async function() {
+Given('I am on the home page', async function () {
   await this.page.goto(this.baseUrl);
   await this.page.waitForLoadState('networkidle');
 });
 
-Given('there is a registered customer account', async function() {
+Given('there is a registered customer account', async function () {
   // Create test customer via API to ensure isolation
   const timestamp = Date.now();
   const customerData = {
@@ -63,7 +63,7 @@ Given('there is a registered customer account', async function() {
   this.testData.customer = { ...customerData, id: result.user.id, token: result.token };
 });
 
-Given('there is a registered driver account', async function() {
+Given('there is a registered driver account', async function () {
   // Create test driver via API
   const timestamp = Date.now();
   const driverData = {
@@ -90,33 +90,33 @@ Given('there is a registered driver account', async function() {
 });
 
 // Authentication navigation steps
-When('I click on the register button', async function() {
+When('I click on the register button', async function () {
   // The register button is directly in the login form as the switch link
   const registerLink = this.page.locator('button:has-text("Sign Up")');
   await registerLink.click();
   await this.page.waitForTimeout(500); // Allow form to switch
 });
 
-When('I click on the login button', async function() {
+When('I click on the login button', async function () {
   const loginButton = this.page.locator('button:has-text("Sign In")');
   await loginButton.click();
   await this.page.waitForTimeout(500); // Allow form processing
 });
 
-When('I click on the register link', async function() {
+When('I click on the register link', async function () {
   const registerLink = this.page.locator('button:has-text("Sign Up")');
   await registerLink.click();
   await this.page.waitForTimeout(500);
 });
 
-When('I click on the login link', async function() {
+When('I click on the login link', async function () {
   const loginLink = this.page.locator('button:has-text("Sign In")');
   await loginLink.click();
   await this.page.waitForTimeout(500);
 });
 
 // Form filling steps
-When('I fill in registration details for a customer:', async function(dataTable) {
+When('I fill in registration details for a customer:', async function (dataTable) {
   const data = dataTable.rowsHash();
   await this.page.fill('input[placeholder="Full Name"]', data.name);
   await this.page.fill('input[placeholder="Email"]', data.email);
@@ -131,7 +131,7 @@ When('I fill in registration details for a customer:', async function(dataTable)
   this.testData.currentRegistration = data;
 });
 
-When('I fill in registration details for a driver:', async function(dataTable) {
+When('I fill in registration details for a driver:', async function (dataTable) {
   // Same as customer but with driver role
   const data = dataTable.rowsHash();
   await this.page.fill('input[placeholder="Full Name"]', data.name);
@@ -146,52 +146,52 @@ When('I fill in registration details for a driver:', async function(dataTable) {
   this.testData.currentRegistration = data;
 });
 
-When('I fill in login credentials:', async function(dataTable) {
+When('I fill in login credentials:', async function (dataTable) {
   const data = dataTable.rowsHash();
   await this.page.fill('input[placeholder="Email"]', data.email);
   await this.page.fill('input[placeholder="Password"]', data.password);
 });
 
-When('I fill in invalid login credentials:', async function(dataTable) {
+When('I fill in invalid login credentials:', async function (dataTable) {
   const data = dataTable.rowsHash();
   await this.page.fill('input[placeholder="Email"]', data.email);
   await this.page.fill('input[placeholder="Password"]', data.password);
 });
 
 // Form submission and results
-When('I submit the registration form', async function() {
+When('I submit the registration form', async function () {
   const registerButton = this.page.locator('button:has-text("Create Account")');
   await registerButton.click();
   await this.page.waitForTimeout(2000); // Wait for registration to process
 });
 
-When('I submit the login form', async function() {
+When('I submit the login form', async function () {
   const loginButton = this.page.locator('button:has-text("Sign In")');
   await loginButton.click();
   await this.page.waitForTimeout(2000); // Wait for login to process
 });
 
 // Page state assertions
-Then('I should see the registration form', async function() {
+Then('I should see the registration form', async function () {
   await this.page.waitForSelector('h2:has-text("Create Account")', { timeout: 5000 });
   const formTitle = await this.page.locator('h2').textContent();
   expect(formTitle).to.include('Create Account');
 });
 
-Then('I should see the login form', async function() {
+Then('I should see the login form', async function () {
   await this.page.waitForSelector('h2:has-text("Sign In")', { timeout: 5000 });
   const formTitle = await this.page.locator('h2').textContent();
   expect(formTitle).to.include('Sign In');
 });
 
-Then('I should be logged in successfully', async function() {
+Then('I should be logged in successfully', async function () {
   // Check if we're redirected to the dashboard (authentication components disappear)
   await this.page.waitForSelector('.logout', { timeout: 10000 });
   const logoutButton = await this.page.locator('button:has-text("Logout")');
   expect(await logoutButton.isVisible()).to.be.true;
 });
 
-Then('I should see my dashboard with customer content', async function() {
+Then('I should see my dashboard with customer content', async function () {
   await this.page.waitForSelector('button:has-text("Publish New Order")', { timeout: 5000 });
   await this.page.waitForSelector('text="My Orders"', { timeout: 5000 });
 
@@ -199,7 +199,7 @@ Then('I should see my dashboard with customer content', async function() {
   expect(roleIndicator.toLowerCase()).to.include('customer');
 });
 
-Then('I should see my dashboard with driver content', async function() {
+Then('I should see my dashboard with driver content', async function () {
   await this.page.waitForSelector('text="Available Orders"', { timeout: 5000 });
 
   const roleIndicator = await this.page.locator('[class*="role"]').textContent();
@@ -207,14 +207,14 @@ Then('I should see my dashboard with driver content', async function() {
 });
 
 // Error handling
-Then('I should see a login error message {string}', async function(expectedMessage) {
+Then('I should see a login error message {string}', async function (expectedMessage) {
   const errorElement = await this.page.locator('.error').or(this.page.locator('[class*="error"]'));
   await errorElement.waitFor({ state: 'visible', timeout: 5000 });
   const errorText = await errorElement.textContent();
   expect(errorText).to.include(expectedMessage);
 });
 
-Then('I should see a registration error message {string}', async function(expectedMessage) {
+Then('I should see a registration error message {string}', async function (expectedMessage) {
   const errorElement = await this.page.locator('.error').or(this.page.locator('[class*="error"]'));
   await errorElement.waitFor({ state: 'visible', timeout: 5000 });
   const errorText = await errorElement.textContent();
@@ -222,24 +222,28 @@ Then('I should see a registration error message {string}', async function(expect
 });
 
 // Navigation steps
-Then('I should be redirected to the login page', async function() {
+Then('I should be redirected to the login page', async function () {
   await this.page.waitForURL(this.baseUrl, { timeout: 5000 });
   expect(this.page.url()).to.equal(this.baseUrl);
 });
 
-When('I logout', async function() {
+When('I logout', async function () {
   const logoutButton = this.page.locator('button:has-text("Logout")');
   await logoutButton.click();
   await this.page.waitForTimeout(1000);
 });
 
-When('I go back to the home page', async function() {
+When('I go back to the home page', async function () {
   await this.page.goto(this.baseUrl);
   await this.page.waitForLoadState('networkidle');
 });
 
+
+
 // Login scenario
-Given('I am logged in as a customer', async function() {
+
+
+Given('I am logged in as a customer', async function () {
   await this.page.goto(this.baseUrl);
   await this.page.waitForLoadState('networkidle');
 
@@ -253,7 +257,7 @@ Given('I am logged in as a customer', async function() {
   await this.page.waitForSelector('button:has-text("Logout")', { timeout: 10000 });
 });
 
-Given('I am logged in as a driver', async function() {
+Given('I am logged in as a driver', async function () {
   await this.page.goto(this.baseUrl);
   await this.page.waitForLoadState('networkidle');
 
@@ -267,7 +271,7 @@ Given('I am logged in as a driver', async function() {
   await this.page.waitForSelector('button:has-text("Logout")', { timeout: 10000 });
 });
 
-Given('I am logged in as customer {string}', async function(email) {
+Given('I am logged in as customer {string}', async function (email) {
   // Login customer via API
   const loginResponse = await fetch(`${this.apiUrl}/auth/login`, {
     method: 'POST',
@@ -292,12 +296,12 @@ Given('I am logged in as customer {string}', async function(email) {
   await this.setupTestDriver();
 });
 
-When('I am logged in as the customer', async function() {
+When('I am logged in as the customer', async function () {
   await this.amLoggedInAsACustomer();
 });
 
 // Review functionality steps
-When('I submit a review with rating {string} and comment {string}', async function(rating, comment) {
+When('I submit a review with rating {string} and comment {string}', async function (rating, comment) {
   // Use the completed order ID created in the background setup
   const orderId = this.testData.completedOrderId || 'ORD-001';
 
@@ -319,19 +323,19 @@ When('I submit a review with rating {string} and comment {string}', async functi
   this.testData.lastReviewData = reviewData;
 });
 
-Then('the review should be saved successfully', async function() {
+Then('the review should be saved successfully', async function () {
   expect(this.testData.lastReviewResponse.ok).to.be.true;
   expect(this.testData.lastReviewData.message).to.include('submitted successfully');
 });
 
-Then('the driver\'s rating should be updated', async function() {
+Then('the driver\'s rating should be updated', async function () {
   // This would require querying the driver's updated rating
   // For now, just check that the response indicates success
   expect(this.testData.lastReviewResponse.status).to.equal(201);
 });
 
 // Order creation for testing
-Given('there is a completed order', async function() {
+Given('there is a completed order', async function () {
   // Create a test order via API
   const orderResponse = await fetch(`${this.apiUrl}/orders`, {
     method: 'POST',
@@ -407,7 +411,7 @@ Given('there is a completed order', async function() {
 });
 
 // Helper method to setup test driver
-Given('setup test driver', async function() {
+Given('setup test driver', async function () {
   if (!this.testData.driver) {
     // Register a test driver
     const driverResponse = await fetch(`${this.apiUrl}/auth/register`, {
