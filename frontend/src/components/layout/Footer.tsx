@@ -54,22 +54,23 @@ const Footer: React.FC<FooterProps> = () => {
         return () => clearInterval(interval);
     }, []);
 
-    const StatItem = ({ label, value, icon: Icon, color = '#6B7280' }: any) => (
-        <div style={{ display: 'flex', alignItems: 'center', margin: '0 8px', fontSize: '0.7rem' }}>
-            <Icon size={12} style={{ marginRight: '4px', color }} />
-            <span style={{ marginRight: '4px', fontWeight: 600 }}>{value}</span>
-            <span style={{ color: '#9CA3AF' }}>{label}</span>
+    const StatItem = ({ label, value, icon: Icon }: any) => (
+        <div style={{ display: 'flex', alignItems: 'center', margin: '0 12px', fontSize: '0.75rem', fontFamily: 'monospace' }}>
+            <Icon size={14} style={{ marginRight: '6px', color: '#00FF41' }} />
+            <span style={{ marginRight: '6px', fontWeight: 600, color: '#00FF41' }}>{value}</span>
+            <span style={{ color: '#008F11' }}>{label}</span>
         </div>
     );
 
     return (
         <footer className="site-footer" style={{
-            padding: '1rem',
+            padding: '1.5rem 1rem',
             textAlign: 'center',
             fontSize: '0.75rem',
-            color: '#6B7280',
-            borderTop: '1px solid #E5E7EB',
-            background: '#F9FAFB'
+            color: '#008F11',
+            borderTop: '1px solid #003300',
+            background: '#000000',
+            fontFamily: 'monospace'
         }}>
             {stats && (
                 <div style={{
@@ -78,24 +79,22 @@ const Footer: React.FC<FooterProps> = () => {
                     display: 'flex',
                     flexWrap: 'wrap',
                     justifyContent: 'center',
-                    gap: '8px 16px',
-                    borderBottom: '1px solid #E5E7EB',
+                    gap: '12px 24px',
+                    borderBottom: '1px solid #003300',
                     paddingBottom: '1rem'
                 }}>
-                    <StatItem icon={Truck} label="Online Drivers" value={`${stats.drivers.online}/${stats.drivers.total}`} color="#10B981" />
-                    <StatItem icon={Users} label="Online Customers" value={`${stats.customers.online}/${stats.customers.total}`} color="#3B82F6" />
-                    <StatItem icon={Users} label="Online Support" value={`${stats.support.online}/${stats.support.total}`} color="#8B5CF6" />
-                    <StatItem icon={Users} label="Online Admins" value={`${stats.admins.online}/${stats.admins.total}`} color="#EF4444" />
-                    <StatItem icon={ShoppingBag} label="Orders Today" value={stats.ordersCompletedToday} color="#F59E0B" />
-                    <StatItem icon={Activity} label="Active Orders" value={stats.activeOrders} color="#EC4899" />
-                    <StatItem icon={Globe} label="Countries" value={stats.countriesReached} color="#6366F1" />
-                    <StatItem icon={BarChart2} label="System Load" value={`${stats.systemLoad.status} (${stats.systemLoad.rpm} rpm)`}
-                        color={stats.systemLoad.status === 'High' ? '#EF4444' : stats.systemLoad.status === 'Medium' ? '#F59E0B' : '#10B981'}
-                    />
+                    <StatItem icon={Truck} label="Online Drivers" value={`${stats.drivers.online}/${stats.drivers.total}`} />
+                    <StatItem icon={Users} label="Online Customers" value={`${stats.customers.online}/${stats.customers.total}`} />
+                    <StatItem icon={Users} label="Online Support" value={`${stats.support.online}/${stats.support.total}`} />
+                    <StatItem icon={Users} label="Online Admins" value={`${stats.admins.online}/${stats.admins.total}`} />
+                    <StatItem icon={ShoppingBag} label="Orders Today" value={stats.ordersCompletedToday} />
+                    <StatItem icon={Activity} label="Active Orders" value={stats.activeOrders} />
+                    <StatItem icon={Globe} label="Countries" value={stats.countriesReached} />
+                    <StatItem icon={BarChart2} label="System Load" value={`${stats.systemLoad.status} (${stats.systemLoad.rpm} rpm)`} />
                 </div>
             )}
             <div style={{ maxWidth: '80rem', margin: '0 auto' }}>
-                <p style={{ margin: 0 }}>
+                <p style={{ margin: 0, color: '#004400' }}>
                     {`Matrix Delivery v${version} | Commit: ${commit} | ${date} ${time}`}
                 </p>
             </div>
