@@ -166,7 +166,12 @@ class OrderService {
           usePostGIS = false;
         }
       } else {
-        logger.warn('Skipping distance filter - missing or invalid coordinates', {
+        // Driver has NO location. We must NOT show pending bids (unless we want to show all global bids, which might be too much)
+        // Correct logic: If no location, invalidating the "pending_bids" part of the query by adding a FALSE condition
+        // The OR clause (assigned orders) will still work.
+        locationConditions += ' AND 1=0';
+
+        logger.warn('Skipping distance filter - missing or invalid coordinates. Hiding pending bids.', {
           driverLat: filters.driverLat,
           driverLng: filters.driverLng,
           isNaNLat: isNaN(filters.driverLat),

@@ -24,31 +24,28 @@ router.get('/', verifyToken, async (req, res) => {
       category: 'orders'
     });
 
-    // For drivers, location-based filtering is MANDATORY
+    // For drivers, location-based filtering is preferred but no longer mandatory for fetching ASSIGNED orders
     if (req.user.role === 'driver') {
       if (!lat || !lng) {
-        logger.warn('Driver attempted to fetch orders without location - BLOCKED', {
+        logger.warn('Driver fetching orders without location - showing only assigned orders', {
           userId: req.user.userId,
           role: req.user.role,
-          hasLat: !!lat,
-          hasLng: !!lng,
           category: 'orders'
         });
-        return res.status(400).json({
-          error: 'Driver location (lat/lng) is required to fetch available orders. Please enable location services and try again.'
+        // We do NOT return 400 here anymore. We let it pass to the service,
+        // which will handle filtering (showing only assigned orders, no pending bids)
+      } else {
+        filters.driverLat = parseFloat(lat);
+        filters.driverLng = parseFloat(lng);
+        logger.info('Driver location filter applied', {
+          driverLat: filters.driverLat,
+          driverLng: filters.driverLng,
+          rawLat: lat,
+          rawLng: lng,
+          userId: req.user.userId,
+          category: 'orders'
         });
       }
-
-      filters.driverLat = parseFloat(lat);
-      filters.driverLng = parseFloat(lng);
-      logger.info('Driver location filter applied', {
-        driverLat: filters.driverLat,
-        driverLng: filters.driverLng,
-        rawLat: lat,
-        rawLng: lng,
-        userId: req.user.userId,
-        category: 'orders'
-      });
     } else {
       // Non-drivers should not provide lat/lng parameters (they don't get filtered)
       if (lat || lng) {

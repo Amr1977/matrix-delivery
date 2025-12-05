@@ -397,11 +397,10 @@ const DeliveryApp = () => {
       const queryString = queryParams.toString();
       const url = queryString ? `${API_URL}/orders?${queryString}` : `${API_URL}/orders`;
 
-      // Only require query parameters for drivers (they need lat/lng for distance filtering)
-      // Customers should be able to fetch their orders without any query parameters
+      // Drivers need lat/lng for distance filtering, but we allow fetching without it
+      // so they can see their assigned orders (even if GPS is off)
       if (currentUser?.role === 'driver' && !queryString) {
-        console.warn('⚠️ Driver location required for fetching orders');
-        return;
+        console.warn('⚠️ Driver location missing - fetching only assigned orders');
       }
 
       const isJwt = typeof token === 'string' && token.split('.').length === 3;
