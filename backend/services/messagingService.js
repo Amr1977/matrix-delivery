@@ -58,7 +58,7 @@ class MessagingService {
   /**
    * Send a message
    */
-  async sendMessage(orderId, senderId, recipientId, content, messageType = 'text') {
+  async sendMessage(orderId, senderId, recipientId, content, messageType = 'text', mediaData = null) {
     // Validate that users can message each other
     const canMessage = await this.canUsersMessage(orderId, senderId, recipientId);
     if (!canMessage) {
@@ -68,15 +68,36 @@ class MessagingService {
     const messageId = this.generateId();
     const sanitizedContent = this.sanitizeContent(content);
 
-    if (!sanitizedContent.trim()) {
+    // For media messages, content can be empty
+    if (!mediaData && !sanitizedContent.trim()) {
       throw new Error('Message content cannot be empty');
     }
 
-    await pool.query(
-      `INSERT INTO messages (id, order_id, sender_id, recipient_id, content, message_type)
-       VALUES ($1, $2, $3, $4, $5, $6)`,
-      [messageId, orderId, senderId, recipientId, sanitizedContent, messageType]
-    );
+    // Build query based on whether media is included
+    let query, values;
+    if (mediaData) {
+      query = `INSERT INTO messages (id, order_id, sender_id, recipient_id, content, message_type, media_url, media_type, media_size, media_duration, thumbnail_url)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`;
+      values = [
+        messageId,
+        orderId,
+        senderId,
+        recipientId,
+        sanitizedContent || '',
+        messageType,
+        mediaData.mediaUrl,
+        mediaData.mediaType,
+        mediaData.mediaSize,
+        mediaData.mediaDuration || null,
+        mediaData.thumbnailUrl || null
+      ];
+    } else {
+      query = `INSERT INTO messages (id, order_id, sender_id, recipient_id, content, message_type)
+               VALUES ($1, $2, $3, $4, $5, $6)`;
+      values = [messageId, orderId, senderId, recipientId, sanitizedContent, messageType];
+    }
+
+    await pool.query(query, values);
 
     logger.info('Message sent', {
       messageId: messageId,
@@ -84,6 +105,7 @@ class MessagingService {
       senderId: senderId,
       recipientId: recipientId,
       messageType: messageType,
+      hasMedia: !!mediaData,
       category: 'messaging'
     });
 
@@ -94,8 +116,61 @@ class MessagingService {
       recipientId: recipientId,
       content: sanitizedContent,
       messageType: messageType,
+      mediaUrl: mediaData?.mediaUrl || null,
+      mediaType: mediaData?.mediaType || null,
+      mediaSize: mediaData?.mediaSize || null,
+      mediaDuration: mediaData?.mediaDuration || null,
+      thumbnailUrl: mediaData?.thumbnailUrl || null,
       isRead: false,
       createdAt: new Date()
+    };
+  }
+
+  /**
+   * Get a single message by ID
+   */
+  async getMessage(messageId) {
+    const result = await pool.query(
+      `SELECT
+        m.id,
+        m.order_id,
+        m.sender_id,
+        m.recipient_id,
+        m.content,
+        m.message_type,
+        m.media_url,
+        m.media_type,
+        m.media_size,
+        m.media_duration,
+        m.thumbnail_url,
+        m.is_read,
+        m.read_at,
+        m.created_at
+       FROM messages m
+       WHERE m.id = $1`,
+      [messageId]
+    );
+
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    const msg = result.rows[0];
+    return {
+      id: msg.id,
+      orderId: msg.order_id,
+      senderId: msg.sender_id,
+      recipientId: msg.recipient_id,
+      content: msg.content,
+      messageType: msg.message_type,
+      mediaUrl: msg.media_url,
+      mediaType: msg.media_type,
+      mediaSize: msg.media_size,
+      mediaDuration: msg.media_duration,
+      thumbnailUrl: msg.thumbnail_url,
+      isRead: msg.is_read,
+      readAt: msg.read_at,
+      createdAt: msg.created_at
     };
   }
 
@@ -130,6 +205,11 @@ class MessagingService {
         m.recipient_id,
         m.content,
         m.message_type,
+        m.media_url,
+        m.media_type,
+        m.media_size,
+        m.media_duration,
+        m.thumbnail_url,
         m.is_read,
         m.read_at,
         m.created_at,
@@ -167,6 +247,11 @@ class MessagingService {
         },
         content: msg.content,
         messageType: msg.message_type,
+        mediaUrl: msg.media_url,
+        mediaType: msg.media_type,
+        mediaSize: msg.media_size,
+        mediaDuration: msg.media_duration,
+        thumbnailUrl: msg.thumbnail_url,
         isRead: msg.is_read,
         readAt: msg.read_at,
         createdAt: msg.created_at

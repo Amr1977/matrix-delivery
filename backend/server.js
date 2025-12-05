@@ -605,11 +605,23 @@ const initDatabase = async () => {
         recipient_id VARCHAR(255) NOT NULL REFERENCES users(id),
         content TEXT NOT NULL,
         message_type VARCHAR(50) DEFAULT 'text',
+        media_url TEXT,
+        media_type VARCHAR(50),
+        media_size INTEGER,
+        media_duration INTEGER,
+        thumbnail_url TEXT,
         is_read BOOLEAN DEFAULT false,
         read_at TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // Add media columns to existing messages table if they don't exist
+    await pool.query(`ALTER TABLE messages ADD COLUMN IF NOT EXISTS media_url TEXT`);
+    await pool.query(`ALTER TABLE messages ADD COLUMN IF NOT EXISTS media_type VARCHAR(50)`);
+    await pool.query(`ALTER TABLE messages ADD COLUMN IF NOT EXISTS media_size INTEGER`);
+    await pool.query(`ALTER TABLE messages ADD COLUMN IF NOT EXISTS media_duration INTEGER`);
+    await pool.query(`ALTER TABLE messages ADD COLUMN IF NOT EXISTS thumbnail_url TEXT`);
 
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_messages_order ON messages(order_id)`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_messages_sender ON messages(sender_id)`);
@@ -5914,6 +5926,10 @@ app.use('/api/payments', paymentRoutes);
 // Load messages routes
 const messageRoutes = require('./routes/messages');
 app.use('/api/messages', messageRoutes);
+
+// Load upload routes
+const uploadRoutes = require('./routes/uploads');
+app.use('/api/uploads', uploadRoutes);
 
 // Error handling middleware
 app.use(logger.errorLogger);
