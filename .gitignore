@@ -89,3 +89,5 @@ test-report*.txt
 
 # Test coverage
 backend/coverage/
+reports/cucumber-report.html
+reports/cucumber-report.json
