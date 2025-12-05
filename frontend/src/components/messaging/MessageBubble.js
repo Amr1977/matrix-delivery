@@ -1,7 +1,9 @@
 import React from 'react';
 import ReactPlayer from 'react-player';
+import VoiceMessagePlayer from './VoiceMessagePlayer';
+import MessageReactions from './MessageReactions';
 
-const MessageBubble = ({ message, isOwnMessage, onMediaClick }) => {
+const MessageBubble = ({ message, isOwnMessage, onMediaClick, onReact }) => {
     const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
     const renderMediaContent = () => {
@@ -61,30 +63,14 @@ const MessageBubble = ({ message, isOwnMessage, onMediaClick }) => {
                 return (
                     <div
                         style={{
-                            marginTop: message.content ? '0.5rem' : 0,
-                            width: '250px'
+                            marginTop: message.content ? '0.5rem' : 0
                         }}
                     >
-                        <audio
-                            controls
-                            style={{
-                                width: '100%',
-                                height: '40px'
-                            }}
-                        >
-                            <source src={fullMediaUrl} type="audio/webm" />
-                            <source src={fullMediaUrl} type="audio/mpeg" />
-                            Your browser does not support the audio element.
-                        </audio>
-                        {message.mediaDuration && (
-                            <div style={{
-                                fontSize: '0.75rem',
-                                opacity: 0.7,
-                                marginTop: '0.25rem'
-                            }}>
-                                Duration: {Math.floor(message.mediaDuration / 60)}:{(message.mediaDuration % 60).toString().padStart(2, '0')}
-                            </div>
-                        )}
+                        <VoiceMessagePlayer
+                            audioUrl={fullMediaUrl}
+                            duration={message.mediaDuration}
+                            isOwnMessage={isOwnMessage}
+                        />
                     </div>
                 );
 
@@ -101,7 +87,8 @@ const MessageBubble = ({ message, isOwnMessage, onMediaClick }) => {
     return (
         <div style={{
             display: 'flex',
-            justifyContent: isOwnMessage ? 'flex-end' : 'flex-start',
+            flexDirection: 'column',
+            alignItems: isOwnMessage ? 'flex-end' : 'flex-start',
             marginBottom: '0.75rem'
         }}>
             <div style={{
@@ -143,6 +130,14 @@ const MessageBubble = ({ message, isOwnMessage, onMediaClick }) => {
                     )}
                 </div>
             </div>
+
+            {/* Message Reactions */}
+            <MessageReactions
+                messageId={message.id}
+                reactions={message.reactions || {}}
+                onReact={onReact}
+                isOwnMessage={isOwnMessage}
+            />
         </div>
     );
 };
