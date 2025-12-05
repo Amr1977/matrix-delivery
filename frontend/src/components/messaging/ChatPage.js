@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import MessageBubble from './MessageBubble';
+import MediaViewer from './MediaViewer';
+import DragDropUpload from './DragDropUpload';
 import useMessaging from '../../hooks/useMessaging';
 import useVoiceRecorder from '../../hooks/useVoiceRecorder';
 import useMediaUpload from '../../hooks/useMediaUpload';
+import useTypingIndicator from '../../hooks/useTypingIndicator';
 import api from '../../api';
 import { useI18n } from '../../i18n/i18nContext';
 
@@ -51,6 +54,14 @@ const ChatPage = () => {
     const [recipientId, setRecipientId] = useState(null);
     const [showMediaOptions, setShowMediaOptions] = useState(false);
     const [selectedMedia, setSelectedMedia] = useState(null);
+    const [viewerMessage, setViewerMessage] = useState(null);
+
+    const { socket } = useMessaging();
+    const { typingUsers, isAnyoneTyping, emitTyping, emitStoppedTyping } = useTypingIndicator(
+        socket,
+        orderId,
+        currentUser?.userId
+    );
 
     const messagesEndRef = useRef(null);
     const fileInputRef = useRef(null);
@@ -126,7 +137,7 @@ const ChatPage = () => {
     };
 
     const handleImageSelect = async (e) => {
-        const file = e.target.files[0];
+        const file = e.target?.files?.[0];
         if (!file) return;
 
         try {
@@ -135,6 +146,24 @@ const ChatPage = () => {
             setShowMediaOptions(false);
         } catch (error) {
             console.error('Failed to upload image:', error);
+        }
+    };
+
+    const handleImageDrop = async (file) => {
+        try {
+            const result = await uploadImage(orderId, file);
+            setSelectedMedia(result);
+        } catch (error) {
+            console.error('Failed to upload image:', error);
+        }
+    };
+
+    const handleVideoDrop = async (file) => {
+        try {
+            const result = await uploadVideo(orderId, file);
+            setSelectedMedia(result);
+        } catch (error) {
+            console.error('Failed to upload video:', error);
         }
     };
 
@@ -287,6 +316,11 @@ const ChatPage = () => {
                                     <MessageBubble
                                         message={message}
                                         isOwnMessage={message.sender.id === currentUser?.userId}
+                                        onMediaClick={setViewerMessage}
+                                        onReact={(messageId, emoji) => {
+                                            console.log('React:', messageId, emoji);
+                                            // TODO: Implement reaction API
+                                        }}
                                     />
                                 </React.Fragment>
                             );
@@ -528,7 +562,11 @@ const ChatPage = () => {
                     <div style={{ flex: 1 }}>
                         <textarea
                             value={newMessage}
-                            onChange={(e) => setNewMessage(e.target.value)}
+                            onChange={(e) => {
+                                setNewMessage(e.target.value);
+                                emitTyping();
+                            }}
+                            onBlur={emitStoppedTyping}
                             placeholder="Type a message..."
                             style={{
                                 width: '100%',
@@ -585,10 +623,65 @@ const ChatPage = () => {
                 )}
             </div>
 
+            {/* Typing Indicator */}
+            {isAnyoneTyping && (
+                <div style={{
+                    position: 'absolute',
+                    bottom: '80px',
+                    left: '1rem',
+                    background: 'rgba(0, 0, 0, 0.7)',
+                    color: 'white',
+                    padding: '0.5rem 1rem',
+                    borderRadius: '9999px',
+                    fontSize: '0.875rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem'
+                }}>
+                    <span>Typing</span>
+                    <span className="typing-dots">
+                        <span>.</span><span>.</span><span>.</span>
+                    </span>
+                </div>
+            )}
+
+            {/* Media Viewer */}
+            {viewerMessage && (
+                <MediaViewer
+                    message={viewerMessage}
+                    messages={messages}
+                    onClose={() => setViewerMessage(null)}
+                />
+            )}
+
+            {/* Drag and Drop Upload */}
+            <DragDropUpload
+                onImageDrop={handleImageDrop}
+                onVideoDrop={handleVideoDrop}
+                disabled={uploading || sending}
+            />
+
             <style>{`
         @keyframes pulse {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.5; }
+        }
+        .typing-dots span {
+          animation: typing 1.4s infinite;
+          opacity: 0;
+        }
+        .typing-dots span:nth-child(1) {
+          animation-delay: 0s;
+        }
+        .typing-dots span:nth-child(2) {
+          animation-delay: 0.2s;
+        }
+        .typing-dots span:nth-child(3) {
+          animation-delay: 0.4s;
+        }
+        @keyframes typing {
+          0%, 60%, 100% { opacity: 0; }
+          30% { opacity: 1; }
         }
       `}</style>
         </div>

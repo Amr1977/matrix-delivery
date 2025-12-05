@@ -6048,6 +6048,7 @@ io.on('connection', (socket) => {
         [parseFloat(latitude), parseFloat(longitude), orderId]
       );
 
+
       await pool.query(
         'INSERT INTO location_updates (order_id, driver_id, latitude, longitude, status) VALUES ($1, $2, $3, $4, $5)',
         [orderId, decoded.userId, parseFloat(latitude), parseFloat(longitude), orderResult.rows[0].status]
@@ -6062,6 +6063,29 @@ io.on('connection', (socket) => {
 
     } catch (error) {
       console.error('Update location error:', error);
+    }
+  });
+
+  // Typing indicator events
+  socket.on('typing', (data) => {
+    const { orderId, userId } = data;
+    if (orderId && userId) {
+      socket.to(`order_${orderId}`).emit('user_typing', {
+        orderId,
+        userId,
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
+  socket.on('stopped_typing', (data) => {
+    const { orderId, userId } = data;
+    if (orderId && userId) {
+      socket.to(`order_${orderId}`).emit('user_stopped_typing', {
+        orderId,
+        userId,
+        timestamp: new Date().toISOString()
+      });
     }
   });
 
