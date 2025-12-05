@@ -29,13 +29,13 @@
   "scripts": {
     "dev": "node ../../start-dev.js",
     "dev:stop": "node ../../stop-dev.js",
-    "start": "react-scripts start",
+    "start": "node scripts/generate-git-info.js && react-scripts start",
     "build": "react-scripts build",
     "build:dev": "node -e \"require('fs').copyFileSync('.env.develop', '.env')\" && set REACT_APP_ENV=development && react-scripts build",
     "build:lan": "node -e \"require('fs').copyFileSync('.env.lan', '.env')\" && set REACT_APP_ENV=lan && react-scripts build",
     "build:staging": "node -e \"require('fs').copyFileSync('.env.staging', '.env')\" && set REACT_APP_ENV=staging && react-scripts build",
     "build:test": "node -e \"require('fs').copyFileSync('.env.test', '.env')\" && set REACT_APP_ENV=test && react-scripts build",
-    "build:prod": "node -e \"require('fs').copyFileSync('.env.production', '.env')\" && cross-env NODE_OPTIONS=--max_old_space_size=4096 REACT_APP_ENV=production DISABLE_ESLINT_PLUGIN=true react-scripts build",
+    "build:prod": "node scripts/generate-git-info.js && node -e \"require('fs').copyFileSync('.env.production', '.env')\" && cross-env NODE_OPTIONS=--max_old_space_size=4096 REACT_APP_ENV=production DISABLE_ESLINT_PLUGIN=true react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

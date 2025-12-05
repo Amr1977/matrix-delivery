@@ -33,6 +33,7 @@ const {
 
 // Import routes
 const ordersRouter = require('./routes/orders');
+const statisticsRouter = require('./routes/statistics');
 
 // Import security middleware (TypeScript compiled to JS)
 const {
@@ -743,6 +744,9 @@ const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 
 // Load admin panel endpoints
 require('./admin-panel.js')(app, pool, jwt, createNotification, generateId, JWT_SECRET);
+
+// Load statistics endpoints
+app.use('/api/stats', statisticsRouter);
 
 // Validate JWT secrets
 if (!JWT_SECRET || JWT_SECRET.length < 64) {
