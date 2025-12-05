@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import SideMenu from './SideMenu';
 import Footer from './Footer';
+import SupportDeveloperModal from './SupportDeveloperModal';
+import ContactUsModal from './ContactUsModal';
 import { User, Notification } from '../../types';
 
 interface MainLayoutProps {
@@ -33,11 +35,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     onChangeLocale,
     currentLocale,
     t,
-    unreadCount = 0
-    ,
+    unreadCount = 0,
     footerStats
 }) => {
     const [isSideMenuOpen, setIsSideMenuOpen] = useState(false);
+    const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
+    const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
     // Close menu when clicking outside (handled by backdrop in SideMenu) or pressing Escape
     useEffect(() => {
@@ -168,6 +171,24 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                 onChangeLocale={onChangeLocale}
                 currentLocale={currentLocale}
                 t={t}
+                onSupportClick={() => {
+                    setIsSideMenuOpen(false);
+                    setIsSupportModalOpen(true);
+                }}
+                onContactClick={() => {
+                    setIsSideMenuOpen(false);
+                    setIsContactModalOpen(true);
+                }}
+            />
+
+            <SupportDeveloperModal
+                isOpen={isSupportModalOpen}
+                onClose={() => setIsSupportModalOpen(false)}
+            />
+
+            <ContactUsModal
+                isOpen={isContactModalOpen}
+                onClose={() => setIsContactModalOpen(false)}
             />
 
             {/* Main Content */}

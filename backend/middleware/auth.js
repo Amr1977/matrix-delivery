@@ -11,7 +11,14 @@ const JWT_SECRET = process.env.JWT_SECRET;
  * Middleware to verify JWT token and attach user to request
  */
 const verifyToken = (req, res, next) => {
-  const token = req.headers['authorization']?.split(' ')[1];
+  // Check for token in cookies first (preferred method)
+  let token = req.cookies?.token;
+
+  // Fall back to Authorization header
+  if (!token) {
+    token = req.headers['authorization']?.split(' ')[1];
+  }
+
   const clientIP = req.ip || req.connection.remoteAddress;
 
   if (!token) {

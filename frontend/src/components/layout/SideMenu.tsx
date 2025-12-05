@@ -16,6 +16,8 @@ interface SideMenuProps {
     onChangeLocale?: (locale: string) => void;
     currentLocale?: string;
     t: (key: string) => string;
+    onSupportClick?: () => void;
+    onContactClick?: () => void;
 }
 
 const SideMenu: React.FC<SideMenuProps> = ({
@@ -31,7 +33,9 @@ const SideMenu: React.FC<SideMenuProps> = ({
     availableRoles = [],
     onChangeLocale,
     currentLocale,
-    t
+    t,
+    onSupportClick,
+    onContactClick
 }) => {
     const unreadCount = notifications.filter(n => !n.isRead).length;
     const { handleSendEmailVerification, loading: sending, error: authError } = useAuth();
@@ -350,10 +354,29 @@ const SideMenu: React.FC<SideMenuProps> = ({
                     )}
 
                     {/* Settings & System */}
-                    <div className="mobile-menu-section" style={{ marginTop: 'auto' }}>
+                    <div className="mobile-menu-section" style={{ marginTop: '2rem' }}>
                         <h4 style={{ color: '#9CA3AF', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '1rem', letterSpacing: '0.05em' }}>
                             System
                         </h4>
+
+
+                        <button
+                            onClick={() => { if (onContactClick) onContactClick(); onClose(); }}
+                            style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', fontSize: '1rem', borderRadius: '0.5rem', marginBottom: '0.5rem', transition: 'background 0.2s', fontWeight: 'bold' }}
+                            onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
+                            onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+                        >
+                            📞 Contact Us
+                        </button>
+
+                        <button
+                            onClick={() => { if (onSupportClick) onSupportClick(); onClose(); }}
+                            style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem', background: 'transparent', border: 'none', color: '#10B981', cursor: 'pointer', fontSize: '1rem', borderRadius: '0.5rem', marginBottom: '0.5rem', transition: 'background 0.2s', fontWeight: 'bold' }}
+                            onMouseOver={(e) => e.currentTarget.style.background = 'rgba(16, 185, 129, 0.1)'}
+                            onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+                        >
+                            ☕ Support Developer
+                        </button>
 
                         {/* Admin Panel - Only for admins */}
                         {(currentUser?.role === 'admin' || availableRoles.includes('admin')) && (
