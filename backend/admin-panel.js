@@ -6,11 +6,7 @@ module.exports = (app, pool, jwt, createNotification, generateId, JWT_SECRET) =>
 // Admin authentication middleware
 const verifyAdmin = async (req, res, next) => {
   try {
-    let token = req.cookies?.token;
-    if (!token) {
-      const authHeader = req.headers['authorization'];
-      token = authHeader?.split(' ')[1];
-    }
+    const token = req.headers['authorization']?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token provided' });
     
     const decoded = jwt.verify(token, JWT_SECRET);

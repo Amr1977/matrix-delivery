@@ -94,8 +94,29 @@ const OrderCard = ({
     }
   };
 
+  // Helper function to format address for display
+  const formatAddress = (address) => {
+    if (!address) return 'Not specified';
+
+    // If it's already a simple string without commas, return it
+    if (!address.includes(',')) return address;
+
+    // Parse comma-separated address
+    const parts = address.split(',').map(p => p.trim()).filter(p => p);
+
+    // Format: Show first part (person/building), then last 3 parts (area, city, country)
+    if (parts.length >= 4) {
+      const personOrBuilding = parts[0];
+      const location = parts.slice(-3).join(', '); // area, city, country
+      return `${personOrBuilding}, ${location}`;
+    }
+
+    // If less than 4 parts, just show last 3 or all available
+    return parts.slice(-3).join(', ');
+  };
+
   return (
-    <div className="order-card">
+    <div className="order-card" style={{ border: '5px solid red' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
         <div>
           <h3 style={{
@@ -188,42 +209,147 @@ const OrderCard = ({
         </div>
       )}
 
-      <div className="location-grid" style={{ marginBottom: '1rem', padding: '1rem', background: 'rgba(0, 17, 0, 0.3)', borderRadius: '0.5rem', border: '2px solid var(--matrix-border)', opacity: '0.95' }}>
-        <div>
-          <p style={{
-            fontSize: '0.75rem',
-            fontWeight: '600',
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr',
+        gap: '0.5rem',
+        marginBottom: '1rem',
+        background: 'rgba(0, 17, 0, 0.3)',
+        border: '2px solid var(--matrix-border)',
+        borderRadius: '0.5rem',
+        padding: '1rem',
+        boxShadow: '0 0 10px rgba(0, 255, 0, 0.2)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+          <div style={{
+            marginTop: '0.25rem',
+            width: '1.5rem',
+            height: '1.5rem',
+            borderRadius: '50%',
+            background: 'rgba(0, 255, 0, 0.2)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             color: 'var(--matrix-bright-green)',
-            marginBottom: '0.25rem',
-            textShadow: 'var(--shadow-glow)',
-            fontFamily: 'Consolas, Monaco, Courier New, monospace'
-          }}>
-            📤 Pickup
-          </p>
-          <p className="text-matrix" style={{
             fontSize: '0.875rem',
-            fontFamily: 'Consolas, Monaco, Courier New, monospace'
-          }}>
-            {order.pickupAddress || order.from?.name}
-          </p>
+            boxShadow: '0 0 5px rgba(0, 255, 0, 0.5)'
+          }}>📍</div>
+          <div>
+            <p style={{
+              fontSize: '0.75rem',
+              color: 'var(--matrix-green)',
+              marginBottom: '0.25rem',
+              fontFamily: 'Consolas, Monaco, Courier New, monospace',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em'
+            }}>Pickup</p>
+            <p style={{
+              color: 'var(--matrix-bright-green)',
+              fontSize: '0.95rem',
+              lineHeight: '1.4',
+              fontFamily: 'Consolas, Monaco, Courier New, monospace',
+              textShadow: '0 0 5px rgba(48, 255, 48, 0.5)'
+            }}>{formatAddress(order.pickupAddress || order.from?.name)}</p>
+          </div>
         </div>
-        <div>
-          <p className="text-matrix" style={{
-            fontSize: '0.75rem',
-            fontWeight: '600',
-            marginBottom: '0.25rem',
-            textShadow: 'var(--shadow-glow)',
-            fontFamily: 'Consolas, Monaco, Courier New, monospace'
-          }}>
-            📥 Delivery
-          </p>
-          <p className="text-matrix" style={{
+
+        <div style={{
+          marginLeft: '0.75rem',
+          borderLeft: '2px dashed var(--matrix-border)',
+          height: '1rem',
+          opacity: 0.5
+        }}></div>
+
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+          <div style={{
+            marginTop: '0.25rem',
+            width: '1.5rem',
+            height: '1.5rem',
+            borderRadius: '50%',
+            background: 'rgba(0, 255, 0, 0.2)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'var(--matrix-bright-green)',
             fontSize: '0.875rem',
-            fontFamily: 'Consolas, Monaco, Courier New, monospace'
-          }}>
-            {order.deliveryAddress || order.to?.name}
-          </p>
+            boxShadow: '0 0 5px rgba(0, 255, 0, 0.5)'
+          }}>🎯</div>
+          <div>
+            <p style={{
+              fontSize: '0.75rem',
+              color: 'var(--matrix-green)',
+              marginBottom: '0.25rem',
+              fontFamily: 'Consolas, Monaco, Courier New, monospace',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em'
+            }}>Delivery</p>
+            <p style={{
+              color: 'var(--matrix-bright-green)',
+              fontSize: '0.95rem',
+              lineHeight: '1.4',
+              fontFamily: 'Consolas, Monaco, Courier New, monospace',
+              textShadow: '0 0 5px rgba(48, 255, 48, 0.5)'
+            }}>{formatAddress(order.deliveryAddress || order.to?.name)}</p>
+          </div>
         </div>
+      </div>
+
+      {order.assignedDriver && (
+        <div style={{
+          marginBottom: '1rem',
+          background: '#1F2937',
+          borderRadius: '0.5rem',
+          padding: '1rem',
+          border: '1px solid #374151'
+        }}>
+          <h4 style={{ fontSize: '0.875rem', fontWeight: '600', color: '#9CA3AF', marginBottom: '0.75rem', textTransform: 'uppercase' }}>Assigned Driver</h4>
+
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1rem' }}>
+            <div style={{
+              width: '3rem',
+              height: '3rem',
+              borderRadius: '50%',
+              background: '#374151',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '1.5rem'
+            }}>
+              {order.assignedDriver.profilePicture ? (
+                <img src={order.assignedDriver.profilePicture} alt="Driver" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+              ) : (
+                '👤'
+              )}
+            </div>
+            <div>
+              <p style={{ color: '#F3F4F6', fontWeight: '600', fontSize: '1rem' }}>{order.assignedDriver.name || 'Unknown Driver'}</p>
+              <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.875rem', color: '#9CA3AF', marginTop: '0.25rem' }}>
+                <span>⭐ {order.assignedDriver.rating?.toFixed(1) || 'New'}</span>
+                <span>•</span>
+                <span>{order.assignedDriver.totalDeliveries || 0} deliveries</span>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gap: '0.75rem', fontSize: '0.875rem' }}>
+            {order.assignedDriver.vehicleDescription && (
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <span style={{ color: '#9CA3AF', minWidth: '4.5rem' }}>Vehicle:</span>
+                <span style={{ color: '#E5E7EB' }}>{order.assignedDriver.vehicleDescription}</span>
+              </div>
+            )}
+            {/* Contact Info - Only show to customer if order is active */}
+            {currentUser?.role === 'customer' && ['accepted', 'picked_up', 'in_transit'].includes(order.status) && (
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <span style={{ color: '#9CA3AF', minWidth: '4.5rem' }}>Contact:</span>
+                <a href={`tel:${order.assignedDriver.phone}`} style={{ color: '#60A5FA', textDecoration: 'none' }}>{order.assignedDriver.phone}</a>
+              </div>
+            )}
+
+          </div>
+        </div>
+      )}
+      <div className="details-grid" style={{ marginBottom: '1rem', padding: '1rem', background: 'rgba(0, 17, 0, 0.3)', borderRadius: '0.5rem', border: '1px solid var(--matrix-border)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
         {order.packageDescription && (
           <div style={{ gridColumn: '1 / -1' }}>
             <p style={{
@@ -394,651 +520,673 @@ const OrderCard = ({
       </div>
 
       {/* Driver bidding section */}
-      {order.status === 'pending_bids' && currentUser?.role === 'driver' && (
-        <div style={{
-          borderTop: '2px solid var(--matrix-border)',
-          paddingTop: '1rem',
-          marginTop: '0.5rem'
-        }}>
-          {/* Customer Reputation Section */}
-          {(order.customerRating || order.customerReviewCount) && (
-            <div style={{
-              background: 'rgba(0, 17, 0, 0.3)',
-              border: '2px solid var(--matrix-border)',
-              padding: '1rem',
-              borderRadius: '0.5rem',
-              marginBottom: '1rem',
-              opacity: '0.95'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                <h4 style={{
-                  fontSize: '0.875rem',
-                  fontWeight: '600',
-                  color: 'var(--matrix-bright-green)',
-                  fontFamily: 'Consolas, Monaco, Courier New, monospace',
-                  textShadow: 'var(--shadow-glow)'
-                }}>
-                  👤 Customer Reputation
-                </h4>
-                {order.customerIsVerified && (
-                  <span style={{
-                    background: 'linear-gradient(135deg, #00AA00 0%, #30FF30 50%, #00AA00 100%)',
-                    color: '#000000',
-                    padding: '0.125rem 0.5rem',
-                    borderRadius: '9999px',
-                    fontSize: '0.625rem',
+      {
+        order.status === 'pending_bids' && currentUser?.role === 'driver' && (
+          <div style={{
+            borderTop: '2px solid var(--matrix-border)',
+            paddingTop: '1rem',
+            marginTop: '0.5rem'
+          }}>
+            {/* Customer Reputation Section */}
+            {(order.customerRating || order.customerReviewCount) && (
+              <div style={{
+                background: 'rgba(0, 17, 0, 0.3)',
+                border: '2px solid var(--matrix-border)',
+                padding: '1rem',
+                borderRadius: '0.5rem',
+                marginBottom: '1rem',
+                opacity: '0.95'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                  <h4 style={{
+                    fontSize: '0.875rem',
                     fontWeight: '600',
+                    color: 'var(--matrix-bright-green)',
                     fontFamily: 'Consolas, Monaco, Courier New, monospace',
-                    textShadow: '0 0 5px rgba(0, 0, 0, 0.5)',
-                    boxShadow: '0 0 5px rgba(0, 255, 0, 0.5)'
+                    textShadow: 'var(--shadow-glow)'
                   }}>
-                    ✓ Verified
-                  </span>
-                )}
-                {!order.customerIsVerified && (
-                  <button
-                    onClick={() => window.open(`https://wa.me/${process.env.REACT_APP_WHATSAPP_ADMIN_NUMBER}?text=${encodeURIComponent(`Hello, I would like to verify my account for order ${order.orderNumber || order._id}. My user ID is: ${currentUser?.id}`)}`, '_blank')}
-                    style={{
-                      background: 'linear-gradient(135deg, #25D366 0%, #10B981 50%, #25D366 100%)',
-                      color: '#FFFFFF',
-                      border: '2px solid #25D366',
+                    👤 Customer Reputation
+                  </h4>
+                  {order.customerIsVerified && (
+                    <span style={{
+                      background: 'linear-gradient(135deg, #00AA00 0%, #30FF30 50%, #00AA00 100%)',
+                      color: '#000000',
                       padding: '0.125rem 0.5rem',
                       borderRadius: '9999px',
-                      cursor: 'pointer',
                       fontSize: '0.625rem',
                       fontWeight: '600',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.25rem',
                       fontFamily: 'Consolas, Monaco, Courier New, monospace',
-                      textShadow: '0 0 5px rgba(16, 185, 129, 0.5)',
-                      boxShadow: '0 0 5px rgba(37, 211, 102, 0.5)'
-                    }}
-                    title="Contact admin to verify account"
-                  >
-                    📱 Verify
-                  </button>
-                )}
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                <div>
-                  <p style={{
-                    fontSize: '0.75rem',
-                    color: 'var(--matrix-green)',
-                    marginBottom: '0.25rem',
-                    fontFamily: 'Consolas, Monaco, Courier New, monospace'
-                  }}>
-                    Rating
-                  </p>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                    {renderStars(order.customerRating || 0)}
-                    <span style={{
+                      textShadow: '0 0 5px rgba(0, 0, 0, 0.5)',
+                      boxShadow: '0 0 5px rgba(0, 255, 0, 0.5)'
+                    }}>
+                      ✓ Verified
+                    </span>
+                  )}
+                  {!order.customerIsVerified && (
+                    <button
+                      onClick={() => window.open(`https://wa.me/${process.env.REACT_APP_WHATSAPP_ADMIN_NUMBER}?text=${encodeURIComponent(`Hello, I would like to verify my account for order ${order.orderNumber || order._id}. My user ID is: ${currentUser?.id}`)}`, '_blank')}
+                      style={{
+                        background: 'linear-gradient(135deg, #25D366 0%, #10B981 50%, #25D366 100%)',
+                        color: '#FFFFFF',
+                        border: '2px solid #25D366',
+                        padding: '0.125rem 0.5rem',
+                        borderRadius: '9999px',
+                        cursor: 'pointer',
+                        fontSize: '0.625rem',
+                        fontWeight: '600',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.25rem',
+                        fontFamily: 'Consolas, Monaco, Courier New, monospace',
+                        textShadow: '0 0 5px rgba(16, 185, 129, 0.5)',
+                        boxShadow: '0 0 5px rgba(37, 211, 102, 0.5)'
+                      }}
+                      title="Contact admin to verify account"
+                    >
+                      📱 Verify
+                    </button>
+                  )}
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                  <div>
+                    <p style={{
+                      fontSize: '0.75rem',
+                      color: 'var(--matrix-green)',
+                      marginBottom: '0.25rem',
+                      fontFamily: 'Consolas, Monaco, Courier New, monospace'
+                    }}>
+                      Rating
+                    </p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                      {renderStars(order.customerRating || 0)}
+                      <span style={{
+                        fontSize: '0.875rem',
+                        fontWeight: '600',
+                        color: 'var(--matrix-bright-green)',
+                        fontFamily: 'Consolas, Monaco, Courier New, monospace'
+                      }}>
+                        {order.customerRating ? order.customerRating.toFixed(1) : 'New'}
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <p style={{
+                      fontSize: '0.75rem',
+                      color: 'var(--matrix-green)',
+                      marginBottom: '0.25rem',
+                      fontFamily: 'Consolas, Monaco, Courier New, monospace'
+                    }}>
+                      Deliveries
+                    </p>
+                    <p style={{
                       fontSize: '0.875rem',
                       fontWeight: '600',
                       color: 'var(--matrix-bright-green)',
                       fontFamily: 'Consolas, Monaco, Courier New, monospace'
                     }}>
-                      {order.customerRating ? order.customerRating.toFixed(1) : 'New'}
-                    </span>
+                      {order.customerCompletedOrders || 0}
+                    </p>
                   </div>
-                </div>
-                <div>
-                  <p style={{
-                    fontSize: '0.75rem',
-                    color: 'var(--matrix-green)',
-                    marginBottom: '0.25rem',
-                    fontFamily: 'Consolas, Monaco, Courier New, monospace'
-                  }}>
-                    Deliveries
-                  </p>
-                  <p style={{
-                    fontSize: '0.875rem',
-                    fontWeight: '600',
-                    color: 'var(--matrix-bright-green)',
-                    fontFamily: 'Consolas, Monaco, Courier New, monospace'
-                  }}>
-                    {order.customerCompletedOrders || 0}
-                  </p>
-                </div>
-                <div>
-                  <p style={{
-                    fontSize: '0.75rem',
-                    color: 'var(--matrix-green)',
-                    marginBottom: '0.25rem',
-                    fontFamily: 'Consolas, Monaco, Courier New, monospace'
-                  }}>
-                    Reviews
-                  </p>
-                  <p style={{
-                    fontSize: '0.875rem',
-                    fontWeight: '600',
-                    color: 'var(--matrix-bright-green)',
-                    fontFamily: 'Consolas, Monaco, Courier New, monospace'
-                  }}>
-                    {order.customerReviewCount || 0}
-                  </p>
-                </div>
-                <div style={{ gridColumn: '1 / -1' }}>
-                  <p style={{
-                    fontSize: '0.75rem',
-                    color: 'var(--matrix-green)',
-                    marginBottom: '0.25rem',
-                    fontFamily: 'Consolas, Monaco, Courier New, monospace'
-                  }}>
-                    Member Since
-                  </p>
-                  <p style={{
-                    fontSize: '0.875rem',
-                    color: 'var(--matrix-green)',
-                    fontFamily: 'Consolas, Monaco, Courier New, monospace'
-                  }}>
-                    {order.customerJoinedAt ? new Date(order.customerJoinedAt).toLocaleDateString() : 'Unknown'}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {order.distance && (
-            <div style={{
-              marginBottom: '0.75rem',
-              fontSize: '0.875rem',
-              color: 'var(--matrix-green)',
-              fontFamily: 'Consolas, Monaco, Courier New, monospace',
-              textShadow: '0 0 5px rgba(0, 255, 0, 0.5)'
-            }}>
-              📍 Distance from pickup: {order.distance ? `${order.distance.toFixed(2)} km` : 'Unknown'}
-            </div>
-          )}
-
-          {/* Route Preview Map */}
-          <DriverBiddingMap
-            order={order}
-            driverLocation={driverLocation} // Pass the tracked driver location
-            driverVehicleType={currentUser?.vehicle_type || 'car'}
-            onToggleFullscreen={() => setShowRouteMapFullscreen(prev => !prev)}
-            isFullscreen={showRouteMapFullscreen}
-          />
-
-          <p style={{
-            fontWeight: '600',
-            marginBottom: '0.75rem',
-            marginTop: '1rem',
-            fontSize: '0.875rem',
-            color: 'var(--matrix-bright-green)',
-            fontFamily: 'Consolas, Monaco, Courier New, monospace',
-            textShadow: 'var(--shadow-glow)'
-          }}>
-            Place Your Bid
-          </p>
-          <form onSubmit={handleBidSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.5rem' }}>
-            <input
-              type="number"
-              placeholder="Bid Amount"
-              value={bidInput[order._id] || ''}
-              onChange={(e) => setBidInput({ ...bidInput, [order._id]: e.target.value })}
-              className="form-control"
-              style={{
-                padding: '0.5rem',
-                border: '2px solid var(--matrix-border)',
-                borderRadius: 'var(--radius-md)',
-                background: 'rgba(0, 17, 0, 0.8)',
-                color: 'var(--matrix-bright-green)',
-                fontFamily: 'Consolas, Monaco, Courier New, monospace'
-              }}
-              step="0.01"
-            />
-            <input
-              type="datetime-local"
-              placeholder="Pickup Time"
-              value={bidDetails[order._id]?.pickupTime || ''}
-              onChange={(e) => setBidDetails({ ...bidDetails, [order._id]: { ...bidDetails[order._id], pickupTime: e.target.value } })}
-              style={{
-                padding: '0.5rem',
-                border: '2px solid var(--matrix-border)',
-                borderRadius: 'var(--radius-md)',
-                background: 'rgba(0, 17, 0, 0.8)',
-                color: 'var(--matrix-bright-green)',
-                fontFamily: 'Consolas, Monaco, Courier New, monospace'
-              }}
-            />
-          </form>
-          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
-            <input
-              type="text"
-              placeholder="Message (optional)"
-              value={bidDetails[order._id]?.message || ''}
-              onChange={(e) => setBidDetails({ ...bidDetails, [order._id]: { ...bidDetails[order._id], message: e.target.value } })}
-              style={{
-                flex: 1,
-                padding: '0.5rem',
-                border: '2px solid var(--matrix-border)',
-                borderRadius: 'var(--radius-md)',
-                background: 'rgba(0, 17, 0, 0.8)',
-                color: 'var(--matrix-bright-green)',
-                fontFamily: 'Consolas, Monaco, Courier New, monospace'
-              }}
-            />
-            <button
-              type="submit"
-              disabled={loadingStates.placeBid}
-              style={{
-                padding: '0.5rem 1rem',
-                background: 'linear-gradient(135deg, #4F46E5 0%, #8B5CF6 50%, #4F46E5 100%)',
-                color: '#FFFFFF',
-                border: '2px solid #4F46E5',
-                borderRadius: 'var(--radius-md)',
-                cursor: loadingStates.placeBid ? 'not-allowed' : 'pointer',
-                fontWeight: '600',
-                fontFamily: 'Consolas, Monaco, Courier New, monospace',
-                boxShadow: '0 0 10px rgba(79, 70, 229, 0.5)',
-                textShadow: '0 0 5px rgba(139, 92, 246, 0.5)',
-                opacity: loadingStates.placeBid ? 0.5 : 1
-              }}
-              onMouseOver={(e) => {
-                if (!loadingStates.placeBid) {
-                  e.target.style.boxShadow = '0 0 15px rgba(79, 70, 229, 0.8)';
-                  e.target.style.transform = 'translateY(-2px)';
-                }
-              }}
-              onMouseOut={(e) => {
-                if (!loadingStates.placeBid) {
-                  e.target.style.boxShadow = '0 0 10px rgba(79, 70, 229, 0.5)';
-                  e.target.style.transform = 'translateY(0)';
-                }
-              }}
-            >
-              {loadingStates.placeBid ? 'Bidding...' : 'Place Bid'}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Route Preview Map for Customers */}
-      {order.status === 'pending_bids' && currentUser?.role === 'customer' && (
-        <div style={{
-          borderTop: '2px solid var(--matrix-border)',
-          paddingTop: '1rem',
-          marginTop: '0.5rem'
-        }}>
-          <RoutePreviewMap
-            pickup={order.from}
-            dropoff={order.to}
-            // Pass the first bid's location if available (or logic to select which driver to show)
-            // For now, we don't show a specific driver on the main card map until a bid is selected or we iterate bids
-            // But if we want to show the route for a specific bid, we'd need to pass that bid's location
-            routeInfo={{
-              polyline: order.routePolyline,
-              distance_km: order.estimatedDistanceKm,
-              route_found: !!order.routePolyline,
-              osrm_used: !!order.routePolyline
-            }}
-            compact={true}
-          />
-        </div>
-      )}
-
-      {/* Customer bid acceptance section */}
-      {order.status === 'pending_bids' && currentUser?.role === 'customer' && order.bids && order.bids.length > 0 && (
-        <div style={{
-          borderTop: '2px solid var(--matrix-border)',
-          paddingTop: '1rem',
-          marginTop: '0.5rem'
-        }}>
-          <h4 style={{
-            fontSize: '0.875rem',
-            fontWeight: '600',
-            marginBottom: '0.75rem',
-            color: 'var(--matrix-bright-green)',
-            fontFamily: 'Consolas, Monaco, Courier New, monospace',
-            textShadow: 'var(--shadow-glow)'
-          }}>
-            Driver Bids ({order.bids.length})
-          </h4>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {order.bids.map((bid, index) => (
-              <div key={index} style={{
-                background: 'rgba(0, 17, 0, 0.3)',
-                border: '2px solid var(--matrix-border)',
-                padding: '1rem',
-                borderRadius: '0.5rem',
-                opacity: '0.95'
-              }}>
-                {/* Show live location map for this bid */}
-                <BidWithLiveLocation bid={bid} order={order} compact={true} />
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.75rem' }}>
                   <div>
                     <p style={{
+                      fontSize: '0.75rem',
+                      color: 'var(--matrix-green)',
+                      marginBottom: '0.25rem',
+                      fontFamily: 'Consolas, Monaco, Courier New, monospace'
+                    }}>
+                      Reviews
+                    </p>
+                    <p style={{
+                      fontSize: '0.875rem',
                       fontWeight: '600',
                       color: 'var(--matrix-bright-green)',
-                      marginBottom: '0.25rem',
-                      fontFamily: 'Consolas, Monaco, Courier New, monospace',
-                      textShadow: 'var(--shadow-glow)'
+                      fontFamily: 'Consolas, Monaco, Courier New, monospace'
                     }}>
-                      {bid.driverName}
+                      {order.customerReviewCount || 0}
+                    </p>
+                  </div>
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <p style={{
+                      fontSize: '0.75rem',
+                      color: 'var(--matrix-green)',
+                      marginBottom: '0.25rem',
+                      fontFamily: 'Consolas, Monaco, Courier New, monospace'
+                    }}>
+                      Member Since
                     </p>
                     <p style={{
                       fontSize: '0.875rem',
-                      color: 'var(--matrix-bright-green)',
-                      fontFamily: 'Consolas, Monaco, Courier New, monospace',
-                      textShadow: '0 0 5px rgba(48, 255, 48, 0.5)'
+                      color: 'var(--matrix-green)',
+                      fontFamily: 'Consolas, Monaco, Courier New, monospace'
                     }}>
-                      Bid: <span style={{
-                        fontWeight: '600',
-                        color: 'var(--matrix-bright-green)',
-                        textShadow: 'var(--shadow-glow)'
-                      }}>
-                        {formatCurrency(bid.bidPrice)}
-                      </span>
+                      {order.customerJoinedAt ? new Date(order.customerJoinedAt).toLocaleDateString() : 'Unknown'}
                     </p>
-                    {bid.estimatedPickupTime && (
-                      <p style={{
-                        fontSize: '0.75rem',
-                        color: 'var(--matrix-green)',
-                        marginTop: '0.25rem',
-                        fontFamily: 'Consolas, Monaco, Courier New, monospace'
-                      }}>
-                        Pickup: {formatDateTime(bid.estimatedPickupTime)}
-                      </p>
-                    )}
-                  </div>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button
-                      onClick={() => onAcceptBid(order._id, bid.userId)}
-                      disabled={loadingStates.acceptBid}
-                      className="btn-success"
-                      style={{
-                        opacity: loadingStates.acceptBid ? 0.5 : 1
-                      }}
-                      onMouseOver={(e) => {
-                        if (!loadingStates.acceptBid) {
-                          e.target.style.boxShadow = '0 0 15px rgba(0, 255, 0, 0.8)';
-                          e.target.style.transform = 'translateY(-2px)';
-                        }
-                      }}
-                      onMouseOut={(e) => {
-                        if (!loadingStates.acceptBid) {
-                          e.target.style.boxShadow = '0 0 10px rgba(0, 255, 0, 0.5)';
-                          e.target.style.transform = 'translateY(0)';
-                        }
-                      }}
-                    >
-                      {loadingStates.acceptBid ? t('orders.acceptingBid') : t('orders.acceptBid')}
-                    </button>
                   </div>
                 </div>
-                {bid.message && (
-                  <div style={{
-                    background: 'rgba(0, 17, 0, 0.8)',
-                    border: '2px solid var(--matrix-border)',
-                    padding: '0.75rem',
-                    borderRadius: '0.25rem',
-                    marginTop: '0.5rem'
-                  }}>
-                    <p style={{
-                      fontSize: '0.875rem',
-                      fontStyle: 'italic',
-                      color: 'var(--matrix-bright-green)',
-                      fontFamily: 'Consolas, Monaco, Courier New, monospace',
-                      textShadow: '0 0 5px rgba(48, 255, 48, 0.5)'
-                    }}>
-                      "{bid.message}"
-                    </p>
-                  </div>
-                )}
               </div>
-            ))}
-          </div>
-        </div>
-      )}
+            )}
 
-      {/* Status-specific action buttons */}
-      {order.status === 'accepted' && currentUser?.role === 'customer' && (
-        <div style={{
-          borderTop: '2px solid var(--matrix-border)',
-          paddingTop: '1rem',
-          marginTop: '0.5rem'
-        }}>
-          <div style={{
-            background: 'rgba(245, 166, 11, 0.1)',
-            border: '2px solid #F59E0B',
-            padding: '1rem',
-            borderRadius: '0.5rem',
-            boxShadow: '0 0 10px rgba(245, 158, 11, 0.3)'
-          }}>
-            <p style={{
-              fontSize: '0.875rem',
-              color: '#FBBF24',
-              marginBottom: '0.5rem',
-              fontFamily: 'Consolas, Monaco, Courier New, monospace',
-              textShadow: '0 0 10px rgba(251, 191, 36, 0.8)'
-            }}>
-              <strong>Driver:</strong> {order.assignedDriver?.name || 'Assigned Driver'}
-            </p>
-            <p style={{
-              fontSize: '0.875rem',
-              color: '#FCD34D',
-              fontFamily: 'Consolas, Monaco, Courier New, monospace'
-            }}>
-              Order accepted and driver assigned.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {order.status === 'accepted' && currentUser?.role === 'driver' && isDriverAssigned && (
-        <div style={{
-          borderTop: '2px solid var(--matrix-border)',
-          paddingTop: '1rem',
-          marginTop: '0.5rem'
-        }}>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button
-              onClick={() => onUpdateStatus(order._id, 'pickup')}
-              disabled={loadingStates.pickupOrder}
-              className="btn-success"
-              style={{
-                flex: 1,
-                opacity: loadingStates.pickupOrder ? 0.5 : 1
-              }}
-              onMouseOver={(e) => {
-                if (!loadingStates.pickupOrder) {
-                  e.target.style.boxShadow = '0 0 15px rgba(0, 255, 0, 0.8)';
-                  e.target.style.transform = 'translateY(-2px)';
-                }
-              }}
-              onMouseOut={(e) => {
-                if (!loadingStates.pickupOrder) {
-                  e.target.style.boxShadow = '0 0 10px rgba(0, 255, 0, 0.5)';
-                  e.target.style.transform = 'translateY(0)';
-                }
-              }}
-            >
-              {loadingStates.pickupOrder ? 'Marking as picked up...' : 'Mark as Picked Up'}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {order.status === 'picked_up' && currentUser?.role === 'driver' && isDriverAssigned && (
-        <div style={{
-          borderTop: '2px solid var(--matrix-border)',
-          paddingTop: '1rem',
-          marginTop: '0.5rem'
-        }}>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button
-              onClick={() => onUpdateStatus(order._id, 'in-transit')}
-              disabled={loadingStates.updateInTransit}
-              style={{
-                flex: 1,
-                padding: '0.75rem',
-                background: 'linear-gradient(135deg, #F59E0B 0%, #FBBF24 50%, #F59E0B 100%)',
-                color: '#000000',
-                border: '2px solid #F59E0B',
-                borderRadius: 'var(--radius-md)',
-                cursor: loadingStates.updateInTransit ? 'not-allowed' : 'pointer',
-                fontWeight: '600',
+            {order.distance && (
+              <div style={{
+                marginBottom: '0.75rem',
+                fontSize: '0.875rem',
+                color: 'var(--matrix-green)',
                 fontFamily: 'Consolas, Monaco, Courier New, monospace',
-                boxShadow: '0 0 10px rgba(245, 158, 11, 0.5)',
-                textShadow: '0 0 5px rgba(251, 191, 36, 0.5)',
-                opacity: loadingStates.updateInTransit ? 0.5 : 1
-              }}
-              onMouseOver={(e) => {
-                if (!loadingStates.updateInTransit) {
-                  e.target.style.boxShadow = '0 0 15px rgba(245, 158, 11, 0.8)';
-                  e.target.style.transform = 'translateY(-2px)';
-                }
-              }}
-              onMouseOut={(e) => {
-                if (!loadingStates.updateInTransit) {
-                  e.target.style.boxShadow = '0 0 10px rgba(245, 158, 11, 0.5)';
-                  e.target.style.transform = 'translateY(0)';
-                }
-              }}
-            >
-              {loadingStates.updateInTransit ? 'Updating...' : 'Mark as In Transit'}
-            </button>
-          </div>
-        </div>
-      )}
+                textShadow: '0 0 5px rgba(0, 255, 0, 0.5)'
+              }}>
+                📍 Distance from pickup: {order.distance ? `${order.distance.toFixed(2)} km` : 'Unknown'}
+              </div>
+            )}
 
-      {order.status === 'in_transit' && currentUser?.role === 'driver' && isDriverAssigned && (
-        <div style={{
-          borderTop: '2px solid var(--matrix-border)',
-          paddingTop: '1rem',
-          marginTop: '0.5rem'
-        }}>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button
-              onClick={() => onUpdateStatus(order._id, 'complete')}
-              disabled={loadingStates.completeOrder}
-              className="btn-success"
-              style={{
-                flex: 1,
-                opacity: loadingStates.completeOrder ? 0.5 : 1
-              }}
-              onMouseOver={(e) => {
-                if (!loadingStates.completeOrder) {
-                  e.target.style.boxShadow = '0 0 15px rgba(0, 255, 0, 0.8)';
-                  e.target.style.transform = 'translateY(-2px)';
-                }
-              }}
-              onMouseOut={(e) => {
-                if (!loadingStates.completeOrder) {
-                  e.target.style.boxShadow = '0 0 10px rgba(0, 255, 0, 0.5)';
-                  e.target.style.transform = 'translateY(0)';
-                }
-              }}
-            >
-              {loadingStates.completeOrder ? 'Completing...' : 'Mark as Delivered'}
-            </button>
-          </div>
-        </div>
-      )}
+            {/* Route Preview Map */}
+            <DriverBiddingMap
+              order={order}
+              driverLocation={driverLocation} // Pass the tracked driver location
+              driverVehicleType={currentUser?.vehicle_type || 'car'}
+              onToggleFullscreen={() => setShowRouteMapFullscreen(prev => !prev)}
+              isFullscreen={showRouteMapFullscreen}
+            />
 
-      {/* Status messages */}
-      {order.status === 'picked_up' && currentUser?.role === 'customer' && (
-        <div style={{
-          borderTop: '2px solid var(--matrix-border)',
-          paddingTop: '1rem',
-          marginTop: '0.5rem'
-        }}>
-          <div style={{
-            background: 'rgba(101, 56, 234, 0.1)',
-            border: '2px solid #6366F1',
-            padding: '1rem',
-            borderRadius: '0.5rem',
-            boxShadow: '0 0 10px rgba(99, 102, 241, 0.3)'
-          }}>
             <p style={{
-              fontSize: '0.875rem',
-              color: '#8B5CF6',
-              fontFamily: 'Consolas, Monaco, Courier New, monospace',
-              textShadow: '0 0 10px rgba(139, 92, 246, 0.8)'
-            }}>
-              Package has been picked up by the driver.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {order.status === 'in_transit' && currentUser?.role === 'customer' && (
-        <div style={{
-          borderTop: '2px solid var(--matrix-border)',
-          paddingTop: '1rem',
-          marginTop: '0.5rem'
-        }}>
-          <div style={{
-            background: 'rgba(244, 114, 182, 0.1)',
-            border: '2px solid #F472B6',
-            padding: '1rem',
-            borderRadius: '0.5rem',
-            boxShadow: '0 0 10px rgba(244, 114, 182, 0.3)'
-          }}>
-            <p style={{
-              fontSize: '0.875rem',
-              color: '#FCA5D6',
-              fontFamily: 'Consolas, Monaco, Courier New, monospace',
-              textShadow: '0 0 10px rgba(252, 165, 214, 0.8)'
-            }}>
-              Package is in transit to the delivery address.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {order.status === 'delivered' && (
-        <div style={{
-          borderTop: '2px solid var(--matrix-border)',
-          paddingTop: '1rem',
-          marginTop: '0.5rem'
-        }}>
-          <div style={{
-            background: 'rgba(0, 170, 0, 0.1)',
-            border: '2px solid var(--matrix-border)',
-            padding: '1rem',
-            borderRadius: '0.5rem',
-            boxShadow: '0 0 10px rgba(0, 170, 0, 0.3)'
-          }}>
-            <p style={{
+              fontWeight: '600',
+              marginBottom: '0.75rem',
+              marginTop: '1rem',
               fontSize: '0.875rem',
               color: 'var(--matrix-bright-green)',
               fontFamily: 'Consolas, Monaco, Courier New, monospace',
               textShadow: 'var(--shadow-glow)'
             }}>
-              Order completed successfully!
+              Place Your Bid
             </p>
+            <form onSubmit={handleBidSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.5rem' }}>
+              <input
+                type="number"
+                placeholder="Bid Amount"
+                value={bidInput[order._id] || ''}
+                onChange={(e) => setBidInput({ ...bidInput, [order._id]: e.target.value })}
+                className="form-control"
+                style={{
+                  padding: '0.5rem',
+                  border: '2px solid var(--matrix-border)',
+                  borderRadius: 'var(--radius-md)',
+                  background: 'rgba(0, 17, 0, 0.8)',
+                  color: 'var(--matrix-bright-green)',
+                  fontFamily: 'Consolas, Monaco, Courier New, monospace'
+                }}
+                step="0.01"
+              />
+              <input
+                type="datetime-local"
+                placeholder="Pickup Time"
+                value={bidDetails[order._id]?.pickupTime || ''}
+                onChange={(e) => setBidDetails({ ...bidDetails, [order._id]: { ...bidDetails[order._id], pickupTime: e.target.value } })}
+                style={{
+                  padding: '0.5rem',
+                  border: '2px solid var(--matrix-border)',
+                  borderRadius: 'var(--radius-md)',
+                  background: 'rgba(0, 17, 0, 0.8)',
+                  color: 'var(--matrix-bright-green)',
+                  fontFamily: 'Consolas, Monaco, Courier New, monospace'
+                }}
+              />
+            </form>
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+              <input
+                type="text"
+                placeholder="Message (optional)"
+                value={bidDetails[order._id]?.message || ''}
+                onChange={(e) => setBidDetails({ ...bidDetails, [order._id]: { ...bidDetails[order._id], message: e.target.value } })}
+                style={{
+                  flex: 1,
+                  padding: '0.5rem',
+                  border: '2px solid var(--matrix-border)',
+                  borderRadius: 'var(--radius-md)',
+                  background: 'rgba(0, 17, 0, 0.8)',
+                  color: 'var(--matrix-bright-green)',
+                  fontFamily: 'Consolas, Monaco, Courier New, monospace'
+                }}
+              />
+              <button
+                type="submit"
+                disabled={loadingStates.placeBid}
+                style={{
+                  padding: '0.5rem 1rem',
+                  background: 'linear-gradient(135deg, #4F46E5 0%, #8B5CF6 50%, #4F46E5 100%)',
+                  color: '#FFFFFF',
+                  border: '2px solid #4F46E5',
+                  borderRadius: 'var(--radius-md)',
+                  cursor: loadingStates.placeBid ? 'not-allowed' : 'pointer',
+                  fontWeight: '600',
+                  fontFamily: 'Consolas, Monaco, Courier New, monospace',
+                  boxShadow: '0 0 10px rgba(79, 70, 229, 0.5)',
+                  textShadow: '0 0 5px rgba(139, 92, 246, 0.5)',
+                  opacity: loadingStates.placeBid ? 0.5 : 1
+                }}
+                onMouseOver={(e) => {
+                  if (!loadingStates.placeBid) {
+                    e.target.style.boxShadow = '0 0 15px rgba(79, 70, 229, 0.8)';
+                    e.target.style.transform = 'translateY(-2px)';
+                  }
+                }}
+                onMouseOut={(e) => {
+                  if (!loadingStates.placeBid) {
+                    e.target.style.boxShadow = '0 0 10px rgba(79, 70, 229, 0.5)';
+                    e.target.style.transform = 'translateY(0)';
+                  }
+                }}
+              >
+                {loadingStates.placeBid ? 'Bidding...' : 'Place Bid'}
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
-      {order.status === 'cancelled' && (
-        <div style={{
-          borderTop: '2px solid var(--matrix-border)',
-          paddingTop: '1rem',
-          marginTop: '0.5rem'
-        }}>
+      {/* Route Preview Map for Customers */}
+      {
+        order.status === 'pending_bids' && currentUser?.role === 'customer' && (
           <div style={{
-            background: 'rgba(239, 68, 68, 0.1)',
-            border: '2px solid #EF4444',
-            padding: '1rem',
-            borderRadius: '0.5rem',
-            boxShadow: '0 0 10px rgba(239, 68, 68, 0.3)'
+            borderTop: '2px solid var(--matrix-border)',
+            paddingTop: '1rem',
+            marginTop: '0.5rem'
           }}>
-            <p style={{
-              fontSize: '0.875rem',
-              color: '#F87171',
-              fontFamily: 'Consolas, Monaco, Courier New, monospace',
-              textShadow: '0 0 10px rgba(248, 113, 113, 0.8)'
-            }}>
-              Order has been cancelled.
-            </p>
+            <RoutePreviewMap
+              pickup={order.from}
+              dropoff={order.to}
+              // Pass the first bid's location if available (or logic to select which driver to show)
+              // For now, we don't show a specific driver on the main card map until a bid is selected or we iterate bids
+              // But if we want to show the route for a specific bid, we'd need to pass that bid's location
+              routeInfo={{
+                polyline: order.routePolyline,
+                distance_km: order.estimatedDistanceKm,
+                route_found: !!order.routePolyline,
+                osrm_used: !!order.routePolyline
+              }}
+              compact={true}
+            />
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+
+      {/* Customer bid acceptance section */}
+      {
+        order.status === 'pending_bids' && currentUser?.role === 'customer' && order.bids && order.bids.length > 0 && (
+          <div style={{
+            borderTop: '2px solid var(--matrix-border)',
+            paddingTop: '1rem',
+            marginTop: '0.5rem'
+          }}>
+            <h4 style={{
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              marginBottom: '0.75rem',
+              color: 'var(--matrix-bright-green)',
+              fontFamily: 'Consolas, Monaco, Courier New, monospace',
+              textShadow: 'var(--shadow-glow)'
+            }}>
+              Driver Bids ({order.bids.length})
+            </h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {order.bids.map((bid, index) => (
+                <div key={index} style={{
+                  background: 'rgba(0, 17, 0, 0.3)',
+                  border: '2px solid var(--matrix-border)',
+                  padding: '1rem',
+                  borderRadius: '0.5rem',
+                  opacity: '0.95'
+                }}>
+                  {/* Show live location map for this bid */}
+                  <BidWithLiveLocation bid={bid} order={order} compact={true} />
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.75rem' }}>
+                    <div>
+                      <p style={{
+                        fontWeight: '600',
+                        color: 'var(--matrix-bright-green)',
+                        marginBottom: '0.25rem',
+                        fontFamily: 'Consolas, Monaco, Courier New, monospace',
+                        textShadow: 'var(--shadow-glow)'
+                      }}>
+                        {bid.driverName}
+                      </p>
+                      <p style={{
+                        fontSize: '0.875rem',
+                        color: 'var(--matrix-bright-green)',
+                        fontFamily: 'Consolas, Monaco, Courier New, monospace',
+                        textShadow: '0 0 5px rgba(48, 255, 48, 0.5)'
+                      }}>
+                        Bid: <span style={{
+                          fontWeight: '600',
+                          color: 'var(--matrix-bright-green)',
+                          textShadow: 'var(--shadow-glow)'
+                        }}>
+                          {formatCurrency(bid.bidPrice)}
+                        </span>
+                      </p>
+                      {bid.estimatedPickupTime && (
+                        <p style={{
+                          fontSize: '0.75rem',
+                          color: 'var(--matrix-green)',
+                          marginTop: '0.25rem',
+                          fontFamily: 'Consolas, Monaco, Courier New, monospace'
+                        }}>
+                          Pickup: {formatDateTime(bid.estimatedPickupTime)}
+                        </p>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button
+                        onClick={() => onAcceptBid(order._id, bid.userId)}
+                        disabled={loadingStates.acceptBid}
+                        className="btn-success"
+                        style={{
+                          opacity: loadingStates.acceptBid ? 0.5 : 1
+                        }}
+                        onMouseOver={(e) => {
+                          if (!loadingStates.acceptBid) {
+                            e.target.style.boxShadow = '0 0 15px rgba(0, 255, 0, 0.8)';
+                            e.target.style.transform = 'translateY(-2px)';
+                          }
+                        }}
+                        onMouseOut={(e) => {
+                          if (!loadingStates.acceptBid) {
+                            e.target.style.boxShadow = '0 0 10px rgba(0, 255, 0, 0.5)';
+                            e.target.style.transform = 'translateY(0)';
+                          }
+                        }}
+                      >
+                        {loadingStates.acceptBid ? t('orders.acceptingBid') : t('orders.acceptBid')}
+                      </button>
+                    </div>
+                  </div>
+                  {bid.message && (
+                    <div style={{
+                      background: 'rgba(0, 17, 0, 0.8)',
+                      border: '2px solid var(--matrix-border)',
+                      padding: '0.75rem',
+                      borderRadius: '0.25rem',
+                      marginTop: '0.5rem'
+                    }}>
+                      <p style={{
+                        fontSize: '0.875rem',
+                        fontStyle: 'italic',
+                        color: 'var(--matrix-bright-green)',
+                        fontFamily: 'Consolas, Monaco, Courier New, monospace',
+                        textShadow: '0 0 5px rgba(48, 255, 48, 0.5)'
+                      }}>
+                        "{bid.message}"
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      }
+
+      {/* Status-specific action buttons */}
+      {
+        order.status === 'accepted' && currentUser?.role === 'customer' && (
+          <div style={{
+            borderTop: '2px solid var(--matrix-border)',
+            paddingTop: '1rem',
+            marginTop: '0.5rem'
+          }}>
+            <div style={{
+              background: 'rgba(245, 166, 11, 0.1)',
+              border: '2px solid #F59E0B',
+              padding: '1rem',
+              borderRadius: '0.5rem',
+              boxShadow: '0 0 10px rgba(245, 158, 11, 0.3)'
+            }}>
+              <p style={{
+                fontSize: '0.875rem',
+                color: '#FBBF24',
+                marginBottom: '0.5rem',
+                fontFamily: 'Consolas, Monaco, Courier New, monospace',
+                textShadow: '0 0 10px rgba(251, 191, 36, 0.8)'
+              }}>
+                <strong>Driver:</strong> {order.assignedDriver?.name || 'Assigned Driver'}
+              </p>
+              <p style={{
+                fontSize: '0.875rem',
+                color: '#FCD34D',
+                fontFamily: 'Consolas, Monaco, Courier New, monospace'
+              }}>
+                Order accepted and driver assigned.
+              </p>
+            </div>
+          </div>
+        )
+      }
+
+      {
+        order.status === 'accepted' && currentUser?.role === 'driver' && isDriverAssigned && (
+          <div style={{
+            borderTop: '2px solid var(--matrix-border)',
+            paddingTop: '1rem',
+            marginTop: '0.5rem'
+          }}>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button
+                onClick={() => onUpdateStatus(order._id, 'pickup')}
+                disabled={loadingStates.pickupOrder}
+                className="btn-success"
+                style={{
+                  flex: 1,
+                  opacity: loadingStates.pickupOrder ? 0.5 : 1
+                }}
+                onMouseOver={(e) => {
+                  if (!loadingStates.pickupOrder) {
+                    e.target.style.boxShadow = '0 0 15px rgba(0, 255, 0, 0.8)';
+                    e.target.style.transform = 'translateY(-2px)';
+                  }
+                }}
+                onMouseOut={(e) => {
+                  if (!loadingStates.pickupOrder) {
+                    e.target.style.boxShadow = '0 0 10px rgba(0, 255, 0, 0.5)';
+                    e.target.style.transform = 'translateY(0)';
+                  }
+                }}
+              >
+                {loadingStates.pickupOrder ? 'Marking as picked up...' : 'Mark as Picked Up'}
+              </button>
+            </div>
+          </div>
+        )
+      }
+
+      {
+        order.status === 'picked_up' && currentUser?.role === 'driver' && isDriverAssigned && (
+          <div style={{
+            borderTop: '2px solid var(--matrix-border)',
+            paddingTop: '1rem',
+            marginTop: '0.5rem'
+          }}>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button
+                onClick={() => onUpdateStatus(order._id, 'in-transit')}
+                disabled={loadingStates.updateInTransit}
+                style={{
+                  flex: 1,
+                  padding: '0.75rem',
+                  background: 'linear-gradient(135deg, #F59E0B 0%, #FBBF24 50%, #F59E0B 100%)',
+                  color: '#000000',
+                  border: '2px solid #F59E0B',
+                  borderRadius: 'var(--radius-md)',
+                  cursor: loadingStates.updateInTransit ? 'not-allowed' : 'pointer',
+                  fontWeight: '600',
+                  fontFamily: 'Consolas, Monaco, Courier New, monospace',
+                  boxShadow: '0 0 10px rgba(245, 158, 11, 0.5)',
+                  textShadow: '0 0 5px rgba(251, 191, 36, 0.5)',
+                  opacity: loadingStates.updateInTransit ? 0.5 : 1
+                }}
+                onMouseOver={(e) => {
+                  if (!loadingStates.updateInTransit) {
+                    e.target.style.boxShadow = '0 0 15px rgba(245, 158, 11, 0.8)';
+                    e.target.style.transform = 'translateY(-2px)';
+                  }
+                }}
+                onMouseOut={(e) => {
+                  if (!loadingStates.updateInTransit) {
+                    e.target.style.boxShadow = '0 0 10px rgba(245, 158, 11, 0.5)';
+                    e.target.style.transform = 'translateY(0)';
+                  }
+                }}
+              >
+                {loadingStates.updateInTransit ? 'Updating...' : 'Mark as In Transit'}
+              </button>
+            </div>
+          </div>
+        )
+      }
+
+      {
+        order.status === 'in_transit' && currentUser?.role === 'driver' && isDriverAssigned && (
+          <div style={{
+            borderTop: '2px solid var(--matrix-border)',
+            paddingTop: '1rem',
+            marginTop: '0.5rem'
+          }}>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button
+                onClick={() => onUpdateStatus(order._id, 'complete')}
+                disabled={loadingStates.completeOrder}
+                className="btn-success"
+                style={{
+                  flex: 1,
+                  opacity: loadingStates.completeOrder ? 0.5 : 1
+                }}
+                onMouseOver={(e) => {
+                  if (!loadingStates.completeOrder) {
+                    e.target.style.boxShadow = '0 0 15px rgba(0, 255, 0, 0.8)';
+                    e.target.style.transform = 'translateY(-2px)';
+                  }
+                }}
+                onMouseOut={(e) => {
+                  if (!loadingStates.completeOrder) {
+                    e.target.style.boxShadow = '0 0 10px rgba(0, 255, 0, 0.5)';
+                    e.target.style.transform = 'translateY(0)';
+                  }
+                }}
+              >
+                {loadingStates.completeOrder ? 'Completing...' : 'Mark as Delivered'}
+              </button>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Status messages */}
+      {
+        order.status === 'picked_up' && currentUser?.role === 'customer' && (
+          <div style={{
+            borderTop: '2px solid var(--matrix-border)',
+            paddingTop: '1rem',
+            marginTop: '0.5rem'
+          }}>
+            <div style={{
+              background: 'rgba(101, 56, 234, 0.1)',
+              border: '2px solid #6366F1',
+              padding: '1rem',
+              borderRadius: '0.5rem',
+              boxShadow: '0 0 10px rgba(99, 102, 241, 0.3)'
+            }}>
+              <p style={{
+                fontSize: '0.875rem',
+                color: '#8B5CF6',
+                fontFamily: 'Consolas, Monaco, Courier New, monospace',
+                textShadow: '0 0 10px rgba(139, 92, 246, 0.8)'
+              }}>
+                Package has been picked up by the driver.
+              </p>
+            </div>
+          </div>
+        )
+      }
+
+      {
+        order.status === 'in_transit' && currentUser?.role === 'customer' && (
+          <div style={{
+            borderTop: '2px solid var(--matrix-border)',
+            paddingTop: '1rem',
+            marginTop: '0.5rem'
+          }}>
+            <div style={{
+              background: 'rgba(244, 114, 182, 0.1)',
+              border: '2px solid #F472B6',
+              padding: '1rem',
+              borderRadius: '0.5rem',
+              boxShadow: '0 0 10px rgba(244, 114, 182, 0.3)'
+            }}>
+              <p style={{
+                fontSize: '0.875rem',
+                color: '#FCA5D6',
+                fontFamily: 'Consolas, Monaco, Courier New, monospace',
+                textShadow: '0 0 10px rgba(252, 165, 214, 0.8)'
+              }}>
+                Package is in transit to the delivery address.
+              </p>
+            </div>
+          </div>
+        )
+      }
+
+      {
+        order.status === 'delivered' && (
+          <div style={{
+            borderTop: '2px solid var(--matrix-border)',
+            paddingTop: '1rem',
+            marginTop: '0.5rem'
+          }}>
+            <div style={{
+              background: 'rgba(0, 170, 0, 0.1)',
+              border: '2px solid var(--matrix-border)',
+              padding: '1rem',
+              borderRadius: '0.5rem',
+              boxShadow: '0 0 10px rgba(0, 170, 0, 0.3)'
+            }}>
+              <p style={{
+                fontSize: '0.875rem',
+                color: 'var(--matrix-bright-green)',
+                fontFamily: 'Consolas, Monaco, Courier New, monospace',
+                textShadow: 'var(--shadow-glow)'
+              }}>
+                Order completed successfully!
+              </p>
+            </div>
+          </div>
+        )
+      }
+
+      {
+        order.status === 'cancelled' && (
+          <div style={{
+            borderTop: '2px solid var(--matrix-border)',
+            paddingTop: '1rem',
+            marginTop: '0.5rem'
+          }}>
+            <div style={{
+              background: 'rgba(239, 68, 68, 0.1)',
+              border: '2px solid #EF4444',
+              padding: '1rem',
+              borderRadius: '0.5rem',
+              boxShadow: '0 0 10px rgba(239, 68, 68, 0.3)'
+            }}>
+              <p style={{
+                fontSize: '0.875rem',
+                color: '#F87171',
+                fontFamily: 'Consolas, Monaco, Courier New, monospace',
+                textShadow: '0 0 10px rgba(248, 113, 113, 0.8)'
+              }}>
+                Order has been cancelled.
+              </p>
+            </div>
+          </div>
+        )
+      }
+    </div >
   );
 };
 

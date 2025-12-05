@@ -68,13 +68,8 @@ const OrdersMap = ({
       const fakeLocationStr = localStorage.getItem('fakeDriverLocation');
       if (fakeLocationStr) {
         const fakeLoc = JSON.parse(fakeLocationStr);
-        if (fakeLoc) {
-          if (Number.isFinite(fakeLoc.latitude) && Number.isFinite(fakeLoc.longitude)) {
-            return fakeLoc;
-          }
-          if (Number.isFinite(fakeLoc.lat) && Number.isFinite(fakeLoc.lng)) {
-            return { latitude: fakeLoc.lat, longitude: fakeLoc.lng };
-          }
+        if (fakeLoc && Number.isFinite(fakeLoc.latitude) && Number.isFinite(fakeLoc.longitude)) {
+          return fakeLoc;
         }
       }
     } catch (e) {
@@ -89,24 +84,15 @@ const OrdersMap = ({
 
   const tileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
 
-  const computeZoom = (lat, rk) => {
-    const w = typeof window !== 'undefined' ? window.innerWidth || 1024 : 1024;
-    const mppTarget = (rk * 1000) / (w / 2);
-    const c = Math.cos((lat || 0) * Math.PI / 180);
-    const z = Math.log2(156543.03392 * c / mppTarget);
-    const zr = Math.round(z);
-    return Math.max(10, Math.min(17, zr));
-  };
-
-  const zoom = hasDriver ? computeZoom(activeLocation.latitude, radiusKm) : 13;
+  const zoom = hasDriver ? 15 : 13;
 
   const [map, setMap] = useState(null);
 
   useEffect(() => {
     if (map && hasDriver) {
-      try { map.setView(center, zoom, { animate: true }); } catch (e) {}
+      try { map.setView(center, zoom, { animate: true }); } catch (e) { /* ignore if map not ready */ }
     }
-  }, [map, hasDriver, activeLocation?.latitude, activeLocation?.longitude, radiusKm]);
+  }, [map, driverLocation]);
 
   return (
     <div style={{ background: '#fff', borderRadius: '0.5rem', border: '1px solid #e5e7eb', overflow: 'hidden' }}>

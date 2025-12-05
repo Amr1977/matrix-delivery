@@ -11,13 +11,8 @@ const JWT_SECRET = process.env.JWT_SECRET;
  * Middleware to verify JWT token and attach user to request
  */
 const verifyToken = (req, res, next) => {
+  const token = req.headers['authorization']?.split(' ')[1];
   const clientIP = req.ip || req.connection.remoteAddress;
-
-  let token = req.cookies?.token;
-  if (!token) {
-    const authHeader = req.headers['authorization'];
-    token = authHeader?.split(' ')[1];
-  }
 
   if (!token) {
     logger.security('Access attempt without token', {
@@ -30,11 +25,7 @@ const verifyToken = (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET, {
-      algorithms: ['HS256'],
-      issuer: 'matrix-delivery',
-      audience: 'matrix-delivery-api'
-    });
+    const decoded = jwt.verify(token, JWT_SECRET);
     req.user = decoded;
 
     logger.auth('Token verified successfully', {
@@ -46,15 +37,13 @@ const verifyToken = (req, res, next) => {
 
     next();
   } catch (error) {
-    const code = error.name === 'TokenExpiredError' ? 'TOKEN_EXPIRED' : 'INVALID_TOKEN';
     logger.security('Invalid token provided', {
       error: error.message,
-      code,
       ip: clientIP,
       path: req.path,
       category: 'security'
     });
-    res.status(401).json({ error: error.name === 'TokenExpiredError' ? 'Token expired' : 'Invalid or expired token', code });
+    res.status(401).json({ error: 'Invalid or expired token' });
   }
 };
 

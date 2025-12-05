@@ -4,7 +4,7 @@ import usePageVisibility from './hooks/usePageVisibility';
 import LogsViewer from './components/admin/LogsViewer';
 
 const AdminPanel = ({ token, onClose }) => {
-  const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
+  const API_URL = process.env.REACT_APP_API_URL;
 
   // Use the token passed from parent component
   const adminToken = token;

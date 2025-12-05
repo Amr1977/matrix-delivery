@@ -17,7 +17,7 @@ class FrontendLogger {
     this.currentLevel = process.env.NODE_ENV === 'production' ? 'info' : 'debug';
 
     // Initialize log batcher
-    const apiUrl = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
+    const apiUrl = process.env.REACT_APP_API_URL;
     this.batcher = new LogBatcher(apiUrl);
 
     // Store original console methods

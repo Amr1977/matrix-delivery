@@ -33,7 +33,6 @@ const {
 
 // Import routes
 const ordersRouter = require('./routes/orders');
-const statisticsRouter = require('./routes/statistics');
 
 // Import security middleware (TypeScript compiled to JS)
 const {
@@ -116,24 +115,15 @@ const corsOptions = {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
 
-    const envOrigins = (process.env.CORS_ORIGIN || '').split(',').map(o => o.trim()).filter(Boolean);
     const allowedOrigins = [
       'http://localhost:3000',
       'http://192.168.1.200:3000',
-      'https://matrix.oldantique50.com',
-      'https://matrix-api.oldantique50.com',
-      'https://matrix-delivery.web.app',
-      'https://matrix-delivery.firebaseapp.com',
-      ...envOrigins
+      'https://matrix.oldantique50.com'
     ];
 
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
-      logger.warn(`CORS blocked origin: ${origin}`, {
-        category: 'security',
-        allowedOrigins: allowedOrigins.join(', ')
-      });
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -666,8 +656,8 @@ const initDatabase = async () => {
   }
 };
 
-// Initialize database on startup (skip in test mode unless strictly requested)
-if (!IS_TEST || process.env.INIT_TEST_DB === 'true') {
+// Initialize database on startup (skip in test mode)
+if (!IS_TEST) {
   initDatabase().catch(err => {
     console.error('Failed to initialize database:', err);
     process.exit(1);
@@ -744,9 +734,6 @@ const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 
 // Load admin panel endpoints
 require('./admin-panel.js')(app, pool, jwt, createNotification, generateId, JWT_SECRET);
-
-// Load statistics endpoints
-app.use('/api/stats', statisticsRouter);
 
 // Validate JWT secrets
 if (!JWT_SECRET || JWT_SECRET.length < 64) {
@@ -1242,7 +1229,7 @@ app.post('/api/auth/register', async (req, res) => {
     res.cookie('token', token, {
       httpOnly: true,
       secure: IS_PRODUCTION,
-      sameSite: IS_PRODUCTION ? 'none' : 'lax',
+      sameSite: 'strict',
       maxAge: 30 * 24 * 60 * 60 * 1000,
       path: '/'
     });
@@ -1401,8 +1388,8 @@ app.post('/api/auth/login', async (req, res) => {
 
     res.cookie('token', token, {
       httpOnly: true,
-      secure: IS_PRODUCTION,
-      sameSite: IS_PRODUCTION ? 'none' : 'lax',
+      secure: false, // FORCE FALSE FOR DEBUGGING
+      sameSite: 'strict',
       maxAge: 30 * 24 * 60 * 60 * 1000,
       path: '/'
     });
@@ -1491,7 +1478,7 @@ app.post('/api/auth/logout', (req, res) => {
   res.clearCookie('token', {
     httpOnly: true,
     secure: IS_PRODUCTION,
-    sameSite: IS_PRODUCTION ? 'none' : 'lax',
+    sameSite: 'strict',
     path: '/'
   });
 
@@ -4428,11 +4415,7 @@ app.get('/api/locations/countries/:country/cities/search', async (req, res) => {
 // Admin authentication middleware
 const verifyAdmin = async (req, res, next) => {
   try {
-    let token = req.cookies?.token;
-    if (!token) {
-      const authHeader = req.headers['authorization'];
-      token = authHeader?.split(' ')[1];
-    }
+    const token = req.headers['authorization']?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token provided' });
 
     const decoded = jwt.verify(token, JWT_SECRET);
@@ -5974,42 +5957,14 @@ const io = socketIo(httpServer, {
 io.engine.opts.pingTimeout = 60000;
 io.engine.opts.pingInterval = 25000;
 
-const getSocketToken = (socket) => {
-  const a = socket.handshake?.auth?.token;
-  if (a) return a;
-  const ch = socket.request.headers.cookie || '';
-  const m = ch.split(';').map(s => s.trim()).find(s => s.startsWith('token='));
-  if (m) return decodeURIComponent(m.split('=')[1]);
-  return null;
-};
-
 io.on('connection', (socket) => {
   console.log('Connected client:', socket.id);
-
-  socket.on('join_user_room', async (userId) => {
-    try {
-      const t = getSocketToken(socket);
-      if (!t) {
-        socket.emit('error', { message: 'Unauthorized' });
-        return;
-      }
-      const d = jwt.verify(t, JWT_SECRET);
-      if (d.userId !== userId) {
-        socket.emit('error', { message: 'Unauthorized' });
-        return;
-      }
-      socket.join(`user_${userId}`);
-    } catch (error) {
-      socket.emit('error', { message: 'Failed to join user room' });
-    }
-  });
 
   socket.on('join_order', async (data) => {
     const { orderId, token } = data;
 
     try {
-      const useToken = token || getSocketToken(socket);
-      const decoded = jwt.verify(useToken, JWT_SECRET);
+      const decoded = jwt.verify(token, JWT_SECRET);
       const orderResult = await pool.query(
         'SELECT customer_id, assigned_driver_user_id FROM orders WHERE id = $1',
         [orderId]
@@ -6053,8 +6008,7 @@ io.on('connection', (socket) => {
     const { orderId, latitude, longitude, token } = data;
 
     try {
-      const useToken = token || getSocketToken(socket);
-      const decoded = jwt.verify(useToken, JWT_SECRET);
+      const decoded = jwt.verify(token, JWT_SECRET);
       const orderResult = await pool.query(
         'SELECT assigned_driver_user_id, status FROM orders WHERE id = $1',
         [orderId]

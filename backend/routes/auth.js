@@ -120,16 +120,14 @@ router.post('/register', authRateLimit, async (req, res) => {
     res.cookie('token', token, {
       httpOnly: true,
       secure: IS_PRODUCTION,
-      sameSite: IS_PRODUCTION ? 'none' : 'lax',
+      sameSite: 'strict',
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
       path: '/'
     });
 
     // Remove token from response body for security
     const response = { ...result };
-    if (process.env.NODE_ENV === 'production') {
-      delete response.token;
-    }
+    delete response.token;
 
     res.status(201).json(response);
   } catch (error) {
@@ -188,33 +186,19 @@ router.post('/login', authRateLimit, async (req, res) => {
     const token = result.token;
     const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
-    // Cookie configuration for cross-origin authentication
-    const cookieOptions = {
+    res.cookie('token', token, {
       httpOnly: true,
-      secure: IS_PRODUCTION, // HTTPS only in production
-      sameSite: IS_PRODUCTION ? 'none' : 'lax', // 'none' required for cross-origin
+      secure: IS_PRODUCTION,
+      sameSite: 'strict',
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
       path: '/'
-      // NOTE: Do NOT set 'domain' - let browser handle it automatically
-      // Setting domain would restrict cookie to specific domain/subdomains
-    };
-
-    res.cookie('token', token, cookieOptions);
-
-    logger.info('Login successful - cookie set', {
-      userId: result.user.userId,
-      email: result.user.email,
-      cookieOptions: {
-        ...cookieOptions,
-        maxAge: '30 days'
-      },
-      category: 'auth'
     });
 
-    // ALWAYS return token in response body for cross-origin compatibility
-    // Cookies don't work reliably across different domains
-    // Frontend will store in localStorage and send via Authorization header
-    res.json(result);
+    // Remove token from response body for security
+    const response = { ...result };
+    delete response.token;
+
+    res.json(response);
   } catch (error) {
     const duration = Date.now() - startTime;
     logger.error(`Login error: ${error.message}`, {
@@ -248,7 +232,7 @@ router.post('/logout', (req, res) => {
   res.clearCookie('token', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    sameSite: 'strict',
     path: '/'
   });
 
@@ -277,15 +261,7 @@ router.post('/switch-role', verifyToken, async (req, res) => {
       return res.status(400).json({ error: 'Role is required' });
     }
     const { token, roles } = await authService.switchRole(req.user.userId, role);
-    const IS_PRODUCTION = process.env.NODE_ENV === 'production';
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: IS_PRODUCTION,
-      sameSite: IS_PRODUCTION ? 'none' : 'lax',
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-      path: '/'
-    });
-    res.json({ role, roles });
+    res.json({ token, role, roles });
   } catch (error) {
     logger.error(`Switch role error: ${error.message}`, { userId: req.user.userId, category: 'error' });
     res.status(400).json({ error: error.message || 'Failed to switch role' });

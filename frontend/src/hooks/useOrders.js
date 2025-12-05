@@ -5,7 +5,7 @@ const useOrders = (token) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
+  const API_URL = process.env.REACT_APP_API_URL;
 
   const fetchOrders = useCallback(async (filters = {}) => {
     if (!token) return;
