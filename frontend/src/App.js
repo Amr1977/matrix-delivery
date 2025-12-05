@@ -589,6 +589,25 @@ const DeliveryApp = () => {
     }
   }, [API_URL, token]);
 
+  const markNotificationRead = useCallback(async (notificationId) => {
+    try {
+      await fetch(`${API_URL}/notifications/${notificationId}/read`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n));
+    } catch (err) {
+      console.error('markNotificationRead error:', err);
+    }
+  }, [API_URL])
+
+
+  // Initialize authentication on app mount - restore session from httpOnly cookies
+  useEffect(() => {
+    // On initial mount, attempt to restore authentication from httpOnly cookies
+    // This fixes the "hard refresh logs user out" issue
+    fetchCurrentUser();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Effects - Optimized polling with Page Visibility API
   useEffect(() => {
@@ -846,18 +865,6 @@ const DeliveryApp = () => {
           });
         }
       }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const markNotificationRead = async (notificationId) => {
-    try {
-      await fetch(`${API_URL}/notifications/${notificationId}/read`, {
-        method: 'PUT',
-        credentials: 'include' // Include cookies for authentication
-      });
-      fetchNotifications();
     } catch (err) {
       console.error(err);
     }
@@ -1464,6 +1471,30 @@ const DeliveryApp = () => {
     }
   };
 
+  // Navigation handler for MainLayout
+  const handleNavigate = (view) => {
+    switch (view) {
+      case 'notifications':
+        setShowNotifications(prev => !prev);
+        break;
+      case 'profile':
+        setShowProfile(true);
+        break;
+      case 'settings':
+        setShowSettings(true);
+        break;
+      case 'admin':
+        setShowAdminPanel(true);
+        break;
+      case 'earnings':
+        // Driver earnings view
+        setViewType('earnings');
+        break;
+      default:
+        console.log('Unknown navigation view:', view);
+    }
+  };
+
   const handleAcceptBid = async (orderId, userId) => {
     setLoadingState('acceptBid', true);
     setError('');
@@ -1577,9 +1608,9 @@ const DeliveryApp = () => {
       const response = await fetch(`${API_URL}/drivers/status`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include', // Use httpOnly cookies for authentication
         body: JSON.stringify({ isOnline })
       });
 
@@ -1976,7 +2007,7 @@ const DeliveryApp = () => {
         if (view === 'home') setViewType('active');
         else if (view === 'earnings') setViewType('earnings');
         else if (view === 'profile') setShowProfile(true);
-        else if (view === 'notifications') setShowNotifications(true);
+        else if (view === 'notifications') setShowNotifications(prev => !prev);
         else if (view === 'settings') setShowSettings(true);
         else if (view === 'bidding') setViewType('bidding');
         else if (view === 'map') setViewType('map');
@@ -3459,6 +3490,35 @@ const DeliveryApp = () => {
             </div>
             <div style={{ maxHeight: '80vh', overflowY: 'auto' }}>
               <PaymentMethodsManager />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showNotifications && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1900, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
+          onClick={() => setShowNotifications(false)}
+        >
+          <div
+            style={{ width: '100%', maxWidth: '600px', background: 'var(--matrix-bg)', borderRadius: '0.5rem', overflow: 'hidden', border: '2px solid var(--matrix-border)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ padding: '1rem', borderBottom: '2px solid var(--matrix-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', margin: 0, color: 'var(--matrix-bright-green)' }}>{t('notifications.title') || 'Notifications'}</h2>
+              <button
+                onClick={() => setShowNotifications(false)}
+                style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', padding: '0.25rem', color: 'var(--matrix-bright-green)' }}
+              >
+                ×
+              </button>
+            </div>
+            <div style={{ maxHeight: '80vh', overflowY: 'auto' }}>
+              <NotificationPanel
+                notifications={notifications}
+                onMarkAsRead={markNotificationRead}
+                showHeader={false}
+              />
             </div>
           </div>
         </div>
