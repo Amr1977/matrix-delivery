@@ -172,6 +172,80 @@ class ApiClient {
   async reportMessage(messageId, reason) {
     return this.post(`/messages/${messageId}/report`, { reason });
   }
+
+  // Media upload methods
+  async uploadImage(orderId, file, onProgress) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('orderId', orderId);
+
+    return this.uploadFile('/uploads/image', formData, onProgress);
+  }
+
+  async uploadVideo(orderId, file, onProgress) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('orderId', orderId);
+
+    return this.uploadFile('/uploads/video', formData, onProgress);
+  }
+
+  async uploadVoice(orderId, blob, onProgress) {
+    const formData = new FormData();
+    formData.append('file', blob, 'voice-recording.webm');
+    formData.append('orderId', orderId);
+
+    return this.uploadFile('/uploads/voice', formData, onProgress);
+  }
+
+  async uploadFile(endpoint, formData, onProgress) {
+    const url = `${this.baseURL}${endpoint}`;
+    const token = localStorage.getItem('token');
+
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable && onProgress) {
+          const percentComplete = (e.loaded / e.total) * 100;
+          onProgress(percentComplete);
+        }
+      });
+
+      xhr.addEventListener('load', () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const response = JSON.parse(xhr.responseText);
+            resolve(response);
+          } catch (error) {
+            reject(new Error('Failed to parse response'));
+          }
+        } else {
+          reject(new Error(`Upload failed with status ${xhr.status}`));
+        }
+      });
+
+      xhr.addEventListener('error', () => {
+        reject(new Error('Upload failed'));
+      });
+
+      xhr.open('POST', url);
+      if (token) {
+        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+      }
+      xhr.send(formData);
+    });
+  }
+
+  async sendMediaMessage(orderId, recipientId, mediaData, caption = '') {
+    return this.post('/messages', {
+      orderId,
+      recipientId,
+      content: caption,
+      messageType: mediaData.mediaType,
+      mediaData
+    });
+  }
 }
 
 // Create singleton instance

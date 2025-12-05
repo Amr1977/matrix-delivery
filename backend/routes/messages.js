@@ -18,21 +18,22 @@ router.post('/', verifyToken, apiRateLimit, async (req, res) => {
   });
 
   try {
-    const { orderId, recipientId, content, messageType = 'text' } = req.body;
+    const { orderId, recipientId, content, messageType = 'text', mediaData } = req.body;
 
-    if (!orderId || !recipientId || !content) {
+    if (!orderId || !recipientId) {
       return res.status(400).json({
-        error: 'Order ID, recipient ID, and content are required'
+        error: 'Order ID and recipient ID are required'
       });
     }
 
-    if (content.trim().length === 0) {
+    // For text messages, content is required
+    if (!mediaData && (!content || content.trim().length === 0)) {
       return res.status(400).json({
         error: 'Message content cannot be empty'
       });
     }
 
-    if (content.length > 1000) {
+    if (content && content.length > 1000) {
       return res.status(400).json({
         error: 'Message content cannot exceed 1000 characters'
       });
@@ -42,8 +43,9 @@ router.post('/', verifyToken, apiRateLimit, async (req, res) => {
       orderId,
       req.user.userId,
       recipientId,
-      content,
-      messageType
+      content || '',
+      messageType,
+      mediaData
     );
 
     const duration = Date.now() - startTime;
