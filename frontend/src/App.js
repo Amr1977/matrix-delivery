@@ -17,8 +17,14 @@ import PaymentMethodsManager from './components/payments/PaymentMethodsManager';
 // Email verification banner moved into profile modal
 import MainLayout from './components/layout/MainLayout';
 import ProfileOverlay from './components/ProfileOverlay';
+import NotificationPanel from './components/notifications/NotificationPanel';
 import SettingsModal from './components/layout/SettingsModal';
 import DriverEarningsDashboard from './components/driver/DriverEarningsDashboard';
+import PrivacyPolicy from './components/legal/PrivacyPolicy';
+import TermsOfService from './components/legal/TermsOfService';
+import RefundPolicy from './components/legal/RefundPolicy';
+import DriverAgreement from './components/legal/DriverAgreement';
+import CookiePolicy from './components/legal/CookiePolicy';
 import useDriver from './hooks/useDriver';
 import GeolocationStatus from './components/ui/GeolocationStatus';
 import InteractiveLocationPicker from './components/InteractiveLocationPicker';
@@ -1942,6 +1948,23 @@ const DeliveryApp = () => {
   // ============ END OF PART 4 ============
   // Continue with Part 5 for Main App UI (FINAL)
 
+  // Legal Pages Routing
+  if (viewType === 'legal_privacy') {
+    return <PrivacyPolicy onBack={() => setViewType('active')} />;
+  }
+  if (viewType === 'legal_terms') {
+    return <TermsOfService onBack={() => setViewType('active')} />;
+  }
+  if (viewType === 'legal_refund') {
+    return <RefundPolicy onBack={() => setViewType('active')} />;
+  }
+  if (viewType === 'legal_driver_agreement') {
+    return <DriverAgreement onBack={() => setViewType('active')} />;
+  }
+  if (viewType === 'legal_cookies') {
+    return <CookiePolicy onBack={() => setViewType('active')} />;
+  }
+
   // ============ APP.JS PART 5A: Main UI - Header & Modals ============
   // Add this after Part 4 (continues the return statement)
 
@@ -1961,6 +1984,7 @@ const DeliveryApp = () => {
         else if (view === 'history') setViewType('history');
         else if (view === 'location_settings') setViewType('location_settings');
         else if (view === 'admin_panel') handleAdminPanelNavigation();
+        else if (view.startsWith('legal_')) setViewType(view);
       }}
       onLogout={logout}
       onToggleOnline={toggleOnline}
