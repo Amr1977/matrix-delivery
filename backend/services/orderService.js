@@ -528,8 +528,8 @@ class OrderService {
 
     if (pa && da) {
       // Build addresses from manual entry if provided
-      pickupAddress = `${pa.personName || 'Contact'}, ${pa.street || ''} ${pa.building || ''}, ${pa.floor ? `Floor ${pa.floor}` : ''}, ${pa.apartment ? `Apt ${pa.apartment}` : ''}, ${pa.area || ''}, ${pa.city || ''}, ${pa.country || ''}`.replace(/, ,/g, ',').replace(/^,|,$/g, '').replace(/,+/g, ', ');
-      deliveryAddress = `${da.personName || 'Contact'}, ${da.street || ''} ${da.building || ''}, ${da.floor ? `Floor ${da.floor}` : ''}, ${da.apartment ? `Apt ${da.apartment}` : ''}, ${da.area || ''}, ${da.city || ''}, ${da.country || ''}`.replace(/, ,/g, ',').replace(/^,|,$/g, '').replace(/,+/g, ', ');
+      pickupAddress = `${pa.personName || 'Contact'} ${pa.personPhone ? `(${pa.personPhone})` : ''}, ${pa.street || ''} ${pa.building || ''}, ${pa.floor ? `Floor ${pa.floor}` : ''}, ${pa.apartment ? `Apt ${pa.apartment}` : ''}, ${pa.area || ''}, ${pa.city || ''}, ${pa.country || ''}`.replace(/, ,/g, ',').replace(/^,|,$/g, '').replace(/,+/g, ', ');
+      deliveryAddress = `${da.personName || 'Contact'} ${da.personPhone ? `(${da.personPhone})` : ''}, ${da.street || ''} ${da.building || ''}, ${da.floor ? `Floor ${da.floor}` : ''}, ${da.apartment ? `Apt ${da.apartment}` : ''}, ${da.area || ''}, ${da.city || ''}, ${da.country || ''}`.replace(/, ,/g, ',').replace(/^,|,$/g, '').replace(/,+/g, ', ');
     } else {
       // Use coordinates-only addresses (from map click)
       const pickupCoords = orderData.pickupLocation.coordinates;

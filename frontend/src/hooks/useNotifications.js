@@ -6,7 +6,7 @@ const useNotifications = (token, currentUser) => {
   const [notifications, setNotifications] = useState([]);
   const [spokenNotifications, setSpokenNotifications] = useState(new Set());
   const socketRef = useRef(null);
-  const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
+  const API_URL = process.env.REACT_APP_API_URL;
   const isPageVisible = usePageVisibility();
 
   // Sound and Text-to-Speech Notifications

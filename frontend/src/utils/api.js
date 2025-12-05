@@ -1,4 +1,4 @@
-const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
+const API_URL = process.env.REACT_APP_API_URL;
 
 export const apiRequest = async (endpoint, options = {}) => {
   const url = `${API_URL}${endpoint}`;

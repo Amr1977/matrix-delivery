@@ -2,14 +2,16 @@ import React from 'react';
 import { useI18n } from '../../i18n/i18nContext';
 import { formatRelativeTime } from '../../utils/formatters';
 
-const NotificationPanel = ({ notifications, onMarkAsRead }) => {
+const NotificationPanel = ({ notifications, onMarkAsRead, showHeader = true }) => {
   const { t } = useI18n();
 
   return (
     <div className="notification-panel">
-      <div style={{ padding: 'var(--spacing-md)', borderBottom: '2px solid var(--matrix-border)' }}>
-        <h3 style={{ fontWeight: '600', fontSize: '1rem', color: 'var(--matrix-bright-green)' }}>Notifications</h3>
-      </div>
+      {showHeader && (
+        <div style={{ padding: 'var(--spacing-md)', borderBottom: '2px solid var(--matrix-border)' }}>
+          <h3 style={{ fontWeight: '600', fontSize: '1rem', color: 'var(--matrix-bright-green)' }}>Notifications</h3>
+        </div>
+      )}
       {notifications.length === 0 ? (
         <p style={{ padding: 'var(--spacing-md)', textAlign: 'center', color: 'var(--matrix-green)' }}>No notifications</p>
       ) : (

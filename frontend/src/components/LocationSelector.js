@@ -10,7 +10,7 @@ const LocationSelector = ({
   style = {}
 }) => {
   const { t } = useI18n();
-  const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
+  const API_URL = process.env.REACT_APP_API_URL;
 
   const [countries, setCountries] = useState([]);
   const [cities, setCities] = useState([]);

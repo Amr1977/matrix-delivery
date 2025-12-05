@@ -54,30 +54,10 @@ Sentry.init({
 });
 
 
-if (!window.__fetchPatched) {
-  const originalFetch = window.fetch.bind(window);
-  window.fetch = (url, options = {}) => {
-    const merged = { credentials: 'include', ...options };
-    try {
-      const devToken = localStorage.getItem('token');
-      const isJwt = typeof devToken === 'string' && devToken.split('.').length === 3;
-      if (isJwt) {
-        const headers = { ...(merged.headers || {}) };
-        if (!headers.Authorization) {
-          headers.Authorization = `Bearer ${devToken}`;
-        }
-        merged.headers = headers;
-      }
-    } catch (_) { }
-    return originalFetch(url, merged);
-  };
-  window.__fetchPatched = true;
-}
-
 // Location data state and API functions
 const DeliveryApp = () => {
   const { t, locale, changeLocale } = useI18n();
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+  const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
 
   // Performance optimization: Page visibility detection
   const isPageVisible = usePageVisibility();
@@ -85,7 +65,7 @@ const DeliveryApp = () => {
   // Fixed: LiveTrackingMap component moved outside DeliveryApp function for proper scoping
   // State variables
   const [authState, setAuthState] = useState('login');
-  const [token, setToken] = useState(() => localStorage.getItem('token')); // Initialize from localStorage
+  const [token, setToken] = useState(null); // Remove localStorage - tokens are in httpOnly cookies
   const [currentUser, setCurrentUser] = useState(null);
 
   // Use driver hook for location management
@@ -319,7 +299,7 @@ const DeliveryApp = () => {
 
   // Driver location functionality
   const [viewType, setViewType] = useState('active'); // 'active', 'bidding', 'history', 'map', 'my_bids'
-  const [ordersMapRadiusKm, setOrdersMapRadiusKm] = useState(7);
+  const [ordersMapRadiusKm, setOrdersMapRadiusKm] = useState(5);
   const [selectedOrderForMap, setSelectedOrderForMap] = useState(null);
   const [driverOnline, setDriverOnline] = useState(false); // Driver online/offline status
   const [countryFilter, setCountryFilter] = useState(''); // Country filter for bidding orders
@@ -397,16 +377,15 @@ const DeliveryApp = () => {
       const queryString = queryParams.toString();
       const url = queryString ? `${API_URL}/orders?${queryString}` : `${API_URL}/orders`;
 
-      // Drivers need lat/lng for distance filtering, but we allow fetching without it
-      // so they can see their assigned orders (even if GPS is off)
+      // Only require query parameters for drivers (they need lat/lng for distance filtering)
+      // Customers should be able to fetch their orders without any query parameters
       if (currentUser?.role === 'driver' && !queryString) {
-        console.warn('⚠️ Driver location missing - fetching only assigned orders');
+        console.warn('⚠️ Driver location required for fetching orders');
+        return;
       }
 
-      const isJwt = typeof token === 'string' && token.split('.').length === 3;
       const response = await fetch(url, {
-        credentials: 'include',
-        headers: isJwt ? { 'Authorization': `Bearer ${token}` } : undefined
+        credentials: 'include' // Include cookies for authentication
       });
       if (!response.ok) {
         console.error('Fetch orders failed:', response.status, response.statusText);
@@ -1151,14 +1130,8 @@ const DeliveryApp = () => {
       }
 
       const data = await response.json();
-      if (data.token && typeof data.token === 'string') {
-        setToken(data.token);
-        try { localStorage.setItem('token', data.token); } catch (_) { }
-      } else {
-        // Backend set httpOnly cookie, but we need a flag for frontend state
-        setToken('authenticated');
-        try { localStorage.setItem('token', 'authenticated'); } catch (_) { }
-      }
+      // Token is now set in httpOnly cookie by server, no need to store in localStorage
+      setToken('authenticated'); // Just a flag to indicate user is logged in
       setCurrentUser(data.user);
       setAuthForm({ name: '', email: '', password: '', phone: '', role: 'customer', vehicle_type: '', country: '', city: '', area: '' });
       setError('');
@@ -1206,18 +1179,8 @@ const DeliveryApp = () => {
       }
 
       const data = await response.json();
-
-      // Handle both JWT (dev) and Cookie (prod) auth
-      if (data.token && typeof data.token === 'string') {
-        setToken(data.token);
-        try { localStorage.setItem('token', data.token); } catch (_) { }
-      } else {
-        // Token is set in httpOnly cookie by server (prod), but we need a flag
-        // in localStorage so the app knows we're logged in on refresh
-        setToken('authenticated');
-        try { localStorage.setItem('token', 'authenticated'); } catch (_) { }
-      }
-
+      // Token is now set in httpOnly cookie by server, no need to store in localStorage
+      setToken('authenticated'); // Just a flag to indicate user is logged in
       setCurrentUser(data.user);
       setAvailableRoles(data.user.roles || (data.user.role ? [data.user.role] : []));
       setAuthForm({ name: '', email: '', password: '', phone: '', role: 'customer', vehicle_type: '' });
@@ -1242,7 +1205,8 @@ const DeliveryApp = () => {
         throw new Error(err.error || 'Failed to switch role');
       }
       const data = await response.json();
-      setToken('authenticated');
+      localStorage.setItem('token', data.token);
+      setToken(data.token);
       setCurrentUser((prev) => ({ ...(prev || {}), role }));
     } catch (err) {
       setError(err.message);
@@ -1252,7 +1216,6 @@ const DeliveryApp = () => {
   const logout = () => {
     // Don't remove token from localStorage - server handles cookie clearing
     setToken(null);
-    try { localStorage.removeItem('token'); } catch (_) { }
     setCurrentUser(null);
     setOrders([]);
     setNotifications([]);
