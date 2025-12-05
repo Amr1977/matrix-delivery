@@ -353,6 +353,28 @@ const SideMenu: React.FC<SideMenuProps> = ({
                         </div>
                     )}
 
+                    {/* Legal Section */}
+                    <div className="mobile-menu-section" style={{ marginTop: '2rem' }}>
+                        <h4 style={{ color: '#9CA3AF', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '1rem', letterSpacing: '0.05em' }}>
+                            Legal
+                        </h4>
+                        <button onClick={() => { onNavigate('legal_privacy'); onClose(); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', fontSize: '1rem', borderRadius: '0.5rem', marginBottom: '0.5rem', transition: 'background 0.2s' }} onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'} onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}>
+                            🔒 Privacy Policy
+                        </button>
+                        <button onClick={() => { onNavigate('legal_terms'); onClose(); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', fontSize: '1rem', borderRadius: '0.5rem', marginBottom: '0.5rem', transition: 'background 0.2s' }} onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'} onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}>
+                            📜 Terms of Service
+                        </button>
+                        <button onClick={() => { onNavigate('legal_refund'); onClose(); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', fontSize: '1rem', borderRadius: '0.5rem', marginBottom: '0.5rem', transition: 'background 0.2s' }} onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'} onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}>
+                            💸 Refund Policy
+                        </button>
+                        <button onClick={() => { onNavigate('legal_driver_agreement'); onClose(); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', fontSize: '1rem', borderRadius: '0.5rem', marginBottom: '0.5rem', transition: 'background 0.2s' }} onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'} onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}>
+                            🤝 Driver Agreement
+                        </button>
+                        <button onClick={() => { onNavigate('legal_cookies'); onClose(); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', fontSize: '1rem', borderRadius: '0.5rem', marginBottom: '0.5rem', transition: 'background 0.2s' }} onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'} onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}>
+                            🍪 Cookie Policy
+                        </button>
+                    </div>
+
                     {/* Settings & System */}
                     <div className="mobile-menu-section" style={{ marginTop: '2rem' }}>
                         <h4 style={{ color: '#9CA3AF', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '1rem', letterSpacing: '0.05em' }}>
