@@ -16,24 +16,22 @@ class ServerManager {
       console.log('Backend already running');
       return;
     }
-    
+
     console.log('🚀 Starting backend server...');
-    
+
     return new Promise((resolve, reject) => {
       this.backendProcess = spawn('node', ['server.js'], {
         cwd: path.join(__dirname, '../../backend'),
         shell: true,
         env: {
           ...process.env,
-          NODE_ENV: 'testing',
-          DB_NAME_TEST: 'matrix_delivery_test',
-          PORT: this.backendPort,
-          JWT_SECRET: 'test-secret-key-12345'
+          ENV_FILE: '.env.testing',
+          INIT_TEST_DB: 'true'
         }
       });
 
       let output = '';
-      
+
       this.backendProcess.stdout.on('data', (data) => {
         output += data.toString();
         if (output.includes('Server running')) {
@@ -51,12 +49,12 @@ class ServerManager {
         reject(error);
       });
 
-      // Timeout after 30 seconds
+      // Timeout after 60 seconds
       setTimeout(() => {
         if (!output.includes('Server running')) {
-          reject(new Error('Backend server did not start in time'));
+          reject(new Error('Backend server did not start in time. Output: ' + output.slice(-500)));
         }
-      }, 30000);
+      }, 60000);
     });
   }
 
@@ -65,9 +63,9 @@ class ServerManager {
       console.log('Frontend already running');
       return;
     }
-    
+
     console.log('🚀 Starting frontend server...');
-    
+
     return new Promise((resolve, reject) => {
       this.frontendProcess = spawn('npm.cmd', ['start'], {
         cwd: path.join(__dirname, '../../frontend'),
@@ -77,12 +75,13 @@ class ServerManager {
           PORT: this.frontendPort,
           HOST: 'localhost',
           BROWSER: 'none',
-          REACT_APP_API_URL: `${this.backendUrl}/api`
+          REACT_APP_API_URL: `${this.backendUrl}/api`,
+          NODE_OPTIONS: '--max-old-space-size=4096'
         }
       });
 
       let output = '';
-      
+
       this.frontendProcess.stdout.on('data', (data) => {
         output += data.toString();
         console.log('Frontend stdout:', data.toString().trim());
@@ -121,20 +120,20 @@ class ServerManager {
 
   async stop() {
     console.log('\n🛑 Stopping servers...');
-    
+
     const killProcess = (process, name) => {
       return new Promise(async (resolve) => {
         if (process && !process.killed) {
           console.log(`   Stopping ${name}...`);
-          
+
           try {
             // On Windows, use taskkill to ensure process and children are killed
             if (process.pid) {
-              const taskkill = spawn('taskkill', ['/pid', process.pid, '/f', '/t'], { 
+              const taskkill = spawn('taskkill', ['/pid', process.pid, '/f', '/t'], {
                 shell: true,
                 stdio: 'pipe'
               });
-              
+
               // Wait for taskkill to complete
               await new Promise((taskkillResolve) => {
                 taskkill.on('close', taskkillResolve);
@@ -142,13 +141,13 @@ class ServerManager {
                 setTimeout(taskkillResolve, 3000); // 3 second timeout
               });
             }
-            
+
             // Try graceful shutdown first
             process.kill('SIGTERM');
-            
+
             // Wait a bit for graceful shutdown
             await new Promise(resolve => setTimeout(resolve, 1000));
-            
+
             // Force kill if still running
             if (!process.killed) {
               process.kill('SIGKILL');
@@ -161,31 +160,31 @@ class ServerManager {
         resolve();
       });
     };
-    
+
     // Stop both processes in parallel
     await Promise.all([
       killProcess(this.frontendProcess, 'frontend'),
       killProcess(this.backendProcess, 'backend')
     ]);
-    
+
     this.frontendProcess = null;
     this.backendProcess = null;
-    
+
     // Additional cleanup: kill any remaining processes on our ports
     try {
       const killPort = (port) => {
         return new Promise((resolve) => {
           const netstat = spawn('netstat', ['-ano'], { shell: true, stdio: 'pipe' });
           let output = '';
-          
+
           netstat.stdout.on('data', (data) => {
             output += data.toString();
           });
-          
+
           netstat.on('close', () => {
             const lines = output.split('\n');
             const portLines = lines.filter(line => line.includes(`:${port}`) && line.includes('LISTENING'));
-            
+
             portLines.forEach(line => {
               const parts = line.trim().split(/\s+/);
               const pid = parts[parts.length - 1];
@@ -197,7 +196,7 @@ class ServerManager {
           });
         });
       };
-      
+
       await Promise.all([
         killPort(3000),
         killPort(5000)
@@ -205,7 +204,7 @@ class ServerManager {
     } catch (error) {
       console.log('   Warning: Error cleaning up ports:', error.message);
     }
-    
+
     console.log('   ✅ All servers stopped\n');
   }
 }

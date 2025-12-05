@@ -20,8 +20,8 @@ const rateLimit = (options = {}) => {
     const now = Date.now();
     const windowStart = now - windowMs;
 
-    // Skip rate limiting in test environment
-    if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing') {
+    // Skip rate limiting in test/development environment
+    if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing' || process.env.NODE_ENV === 'development') {
       return next();
     }
 

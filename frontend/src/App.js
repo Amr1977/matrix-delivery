@@ -1156,8 +1156,9 @@ const DeliveryApp = () => {
         setToken(data.token);
         try { localStorage.setItem('token', data.token); } catch (_) { }
       } else {
+        // Backend set httpOnly cookie, but we need a flag for frontend state
         setToken('authenticated');
-        try { localStorage.removeItem('token'); } catch (_) { }
+        try { localStorage.setItem('token', 'authenticated'); } catch (_) { }
       }
       setCurrentUser(data.user);
       setAuthForm({ name: '', email: '', password: '', phone: '', role: 'customer', vehicle_type: '', country: '', city: '', area: '' });
@@ -1206,8 +1207,18 @@ const DeliveryApp = () => {
       }
 
       const data = await response.json();
-      // Token is now set in httpOnly cookie by server, no need to store in localStorage
-      setToken('authenticated'); // Just a flag to indicate user is logged in
+
+      // Handle both JWT (dev) and Cookie (prod) auth
+      if (data.token && typeof data.token === 'string') {
+        setToken(data.token);
+        try { localStorage.setItem('token', data.token); } catch (_) { }
+      } else {
+        // Token is set in httpOnly cookie by server (prod), but we need a flag
+        // in localStorage so the app knows we're logged in on refresh
+        setToken('authenticated');
+        try { localStorage.setItem('token', 'authenticated'); } catch (_) { }
+      }
+
       setCurrentUser(data.user);
       setAvailableRoles(data.user.roles || (data.user.role ? [data.user.role] : []));
       setAuthForm({ name: '', email: '', password: '', phone: '', role: 'customer', vehicle_type: '' });

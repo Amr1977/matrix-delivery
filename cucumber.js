@@ -13,6 +13,7 @@ module.exports = {
     paths: [
       // Core implementable features (Priority 1)
       'tests/features/user_management.feature',
+      'tests/features/auth_persistence.feature',
       'tests/features/driver_operations.feature',
       'tests/features/driver_bidding.feature',
       'tests/features/driver_location.feature',
