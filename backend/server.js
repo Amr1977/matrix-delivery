@@ -33,6 +33,7 @@ const {
 
 // Import routes
 const ordersRouter = require('./routes/orders');
+const cryptoPaymentRoutes = require('./routes/cryptoPayments');
 
 // Import security middleware (TypeScript compiled to JS)
 const {
@@ -5930,6 +5931,9 @@ app.use('/api/messages', messageRoutes);
 // Load upload routes
 const uploadRoutes = require('./routes/uploads');
 app.use('/api/uploads', uploadRoutes);
+
+// Load crypto payment routes
+app.use('/api/crypto', cryptoPaymentRoutes);
 
 // Error handling middleware
 app.use(logger.errorLogger);
