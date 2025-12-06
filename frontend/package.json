@@ -10,6 +10,7 @@
     "@sentry/tracing": "^7.120.4",
     "@stripe/react-stripe-js": "^5.4.1",
     "@stripe/stripe-js": "^8.5.3",
+    "ethers": "^6.9.0",
     "firebase": "^10.7.1",
     "jspdf": "^3.0.4",
     "jspdf-autotable": "^5.0.2",
