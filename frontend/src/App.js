@@ -25,6 +25,7 @@ import TermsOfService from './components/legal/TermsOfService';
 import RefundPolicy from './components/legal/RefundPolicy';
 import DriverAgreement from './components/legal/DriverAgreement';
 import CookiePolicy from './components/legal/CookiePolicy';
+import CryptoTest from './pages/CryptoTest';
 import useDriver from './hooks/useDriver';
 import GeolocationStatus from './components/ui/GeolocationStatus';
 import InteractiveLocationPicker from './components/InteractiveLocationPicker';
@@ -130,6 +131,7 @@ const DeliveryApp = () => {
   const [showPaymentMethods, setShowPaymentMethods] = useState(false);
   const [showLocationSettings, setShowLocationSettings] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showCryptoTest, setShowCryptoTest] = useState(false);
   const [countries, setCountries] = useState([]);
   const [countriesLoading, setCountriesLoading] = useState(false);
 
@@ -785,9 +787,17 @@ const DeliveryApp = () => {
         credentials: 'include' // Include cookies for authentication
       });
       if (!response.ok) {
-        // Only logout for authentication errors (401/403), not network/server errors
+        // On initial load, if there's no session (401/403), just silently return
+        // Don't call logout() as that would clear state unnecessarily
         if (response.status === 401 || response.status === 403) {
-          logout();
+          // Only logout if we previously had a user (session expired)
+          // Don't logout on initial page load when there's no session
+          if (currentUser) {
+            console.log('Session expired, logging out');
+            logout();
+          } else {
+            console.log('No active session on initial load');
+          }
           return;
         }
         throw new Error(`Failed to fetch user: ${response.status}`);
@@ -795,15 +805,16 @@ const DeliveryApp = () => {
       const data = await response.json();
       setCurrentUser(data);
       setAvailableRoles(data.roles || (data.role ? [data.role] : []));
+      setToken('authenticated'); // Set token flag to indicate logged in
       setError('');
 
     } catch (err) {
       console.error('fetchCurrentUser error:', err);
       // Only show error for network/server issues, don't logout automatically
       if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError') || err.message.includes('500')) {
-        setError('Connection issue: Failed to get user (500). Please try refreshing the page.');
-      } else {
-        // For other errors, still logout
+        setError('Connection issue: Failed to get user. Please try refreshing the page.');
+      } else if (currentUser) {
+        // Only logout if we had a user before (session expired)
         logout();
       }
     }
@@ -1490,6 +1501,9 @@ const DeliveryApp = () => {
         // Driver earnings view
         setViewType('earnings');
         break;
+      case 'crypto-test':
+        setShowCryptoTest(true);
+        break;
       default:
         console.log('Unknown navigation view:', view);
     }
@@ -2015,6 +2029,7 @@ const DeliveryApp = () => {
         else if (view === 'history') setViewType('history');
         else if (view === 'location_settings') setViewType('location_settings');
         else if (view === 'admin_panel') handleAdminPanelNavigation();
+        else if (view === 'crypto-test') setShowCryptoTest(true);
         else if (view.startsWith('legal_')) setViewType(view);
       }}
       onLogout={logout}
@@ -3520,6 +3535,46 @@ const DeliveryApp = () => {
                 showHeader={false}
               />
             </div>
+          </div>
+        </div>
+      )}
+
+      {showCryptoTest && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.8)',
+          zIndex: 2000,
+          overflow: 'auto'
+        }}>
+          <div style={{
+            width: '100%',
+            maxWidth: '1200px',
+            margin: '2rem auto',
+            background: '#f7fafc',
+            borderRadius: '16px',
+            position: 'relative'
+          }}>
+            <button
+              onClick={() => setShowCryptoTest(false)}
+              style={{
+                position: 'absolute',
+                top: '1rem',
+                right: '1rem',
+                padding: '0.5rem 1rem',
+                background: '#e53e3e',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontWeight: '600',
+                zIndex: 10,
+                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+              }}
+            >
+              ✕ Close
+            </button>
+            <CryptoTest />
           </div>
         </div>
       )}

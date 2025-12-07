@@ -22,7 +22,10 @@ const WalletConnect = ({ onConnected, onDisconnected }) => {
             window.ethereum.on('chainChanged', () => window.location.reload());
 
             return () => {
-                window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+                // Add null checks for test cleanup
+                if (window.ethereum?.removeListener) {
+                    window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+                }
             };
         }
     }, []);
