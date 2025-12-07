@@ -3,11 +3,8 @@ import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, Cart
 import usePageVisibility from './hooks/usePageVisibility';
 import LogsViewer from './components/admin/LogsViewer';
 
-const AdminPanel = ({ token, onClose }) => {
+const AdminPanel = ({ onClose }) => {
   const API_URL = process.env.REACT_APP_API_URL;
-
-  // Use the token passed from parent component
-  const adminToken = token;
   const isPageVisible = usePageVisibility();
 
   // Dashboard State
@@ -41,14 +38,13 @@ const AdminPanel = ({ token, onClose }) => {
   const fetchDashboardData = useCallback(async () => {
     try {
       setLoading(true);
-      const headers = { 'Authorization': `Bearer ${adminToken}` };
 
       const roleParam = filterRole === 'all' ? '' : filterRole;
       const [statsRes, usersRes, ordersRes, verifiedCountRes] = await Promise.all([
-        fetch(`${API_URL}/admin/stats?range=${dateRange}`, { headers }),
-        fetch(`${API_URL}/admin/users?page=${usersPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchQuery)}&role=${roleParam}`, { headers }),
-        fetch(`${API_URL}/admin/orders?page=${ordersPage}&limit=${itemsPerPage}`, { headers }),
-        fetch(`${API_URL}/admin/users?page=1&limit=1&status=verified`, { headers })
+        fetch(`${API_URL}/admin/stats?range=${dateRange}`, { credentials: 'include' }),
+        fetch(`${API_URL}/admin/users?page=${usersPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchQuery)}&role=${roleParam}`, { credentials: 'include' }),
+        fetch(`${API_URL}/admin/orders?page=${ordersPage}&limit=${itemsPerPage}`, { credentials: 'include' }),
+        fetch(`${API_URL}/admin/users?page=1&limit=1&status=verified`, { credentials: 'include' })
       ]);
 
       if (statsRes.ok) {
@@ -87,13 +83,12 @@ const AdminPanel = ({ token, onClose }) => {
     } finally {
       setLoading(false);
     }
-  }, [adminToken, API_URL, dateRange, usersPage, ordersPage, itemsPerPage, searchQuery, filterRole]);
+  }, [API_URL, dateRange, usersPage, ordersPage, itemsPerPage, searchQuery, filterRole]);
 
   const fetchLogs = useCallback(async () => {
     try {
       setLoading(true);
-      const headers = { 'Authorization': `Bearer ${adminToken}` };
-      const res = await fetch(`${API_URL}/admin/logs?page=${logsPage}&limit=50&type=${logsType}`, { headers });
+      const res = await fetch(`${API_URL}/admin/logs?page=${logsPage}&limit=50&type=${logsType}`, { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
         setSystemLogs(data.logs || []);
@@ -106,42 +101,39 @@ const AdminPanel = ({ token, onClose }) => {
     } finally {
       setLoading(false);
     }
-  }, [adminToken, API_URL, logsPage, logsType]);
+  }, [API_URL, logsPage, logsType]);
 
   useEffect(() => {
-    if (adminToken) {
-      // Initial fetch if visible
-      if (isPageVisible) {
+    // Initial fetch if visible
+    if (isPageVisible) {
+      fetchDashboardData();
+    }
+
+    // Adaptive polling: 30s visible, 5m hidden
+    const intervalTime = isPageVisible ? 30000 : 300000;
+    const interval = setInterval(() => {
+      if (isPageVisible || !document.hidden) {
         fetchDashboardData();
       }
+    }, intervalTime);
 
-      // Adaptive polling: 30s visible, 5m hidden
-      const intervalTime = isPageVisible ? 30000 : 300000;
-      const interval = setInterval(() => {
-        if (isPageVisible || !document.hidden) {
-          fetchDashboardData();
-        }
-      }, intervalTime);
-
-      return () => clearInterval(interval);
-    }
-  }, [adminToken, fetchDashboardData, isPageVisible]);
+    return () => clearInterval(interval);
+  }, [fetchDashboardData, isPageVisible]);
 
   useEffect(() => {
-    if (adminToken && activeTab === 'logs') {
+    if (activeTab === 'logs') {
       fetchLogs();
     }
-  }, [adminToken, activeTab, fetchLogs]);
+  }, [activeTab, fetchLogs]);
 
 
 
   const triggerBackendDeploy = async () => {
-    if (!adminToken) return;
     setDeployStatus('running');
     try {
       const response = await fetch(`${API_URL}/admin/deploy`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${adminToken}` }
+        credentials: 'include'
       });
       const data = await response.json();
       setDeployStatus(response.ok ? `completed (code ${data.exitCode})` : `failed: ${data.error || 'unknown'}`);
@@ -156,9 +148,9 @@ const AdminPanel = ({ token, onClose }) => {
       const response = await fetch(`${API_URL}/admin/users/${userId}/${action}`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${adminToken}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify(data)
       });
 
@@ -174,8 +166,7 @@ const AdminPanel = ({ token, onClose }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem('adminToken');
-    // Since adminToken is passed as props, parent component will handle logout
+    // Authentication is handled via httpOnly cookies by the parent component
     onClose(); // Close the admin panel
   };
 
@@ -185,9 +176,9 @@ const AdminPanel = ({ token, onClose }) => {
       const response = await fetch(`${API_URL}/admin/users/${userId}/roles`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${adminToken}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({ add, remove })
       });
       if (!response.ok) throw new Error('Failed to update roles');
@@ -876,7 +867,7 @@ const AdminPanel = ({ token, onClose }) => {
         )}
 
         {activeTab === 'logs' && (
-          <LogsViewer apiUrl={API_URL} token={adminToken} />
+          <LogsViewer apiUrl={API_URL} />
         )}
 
         {activeTab === 'settings' && (

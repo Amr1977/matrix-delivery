@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './LogsViewer.css';
 
-const LogsViewer = ({ apiUrl, token }) => {
+const LogsViewer = ({ apiUrl }) => {
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -37,9 +37,7 @@ const LogsViewer = ({ apiUrl, token }) => {
             });
 
             const response = await fetch(`${apiUrl}/logs?${queryParams.toString()}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                credentials: 'include'
             });
 
             if (!response.ok) {
@@ -55,15 +53,13 @@ const LogsViewer = ({ apiUrl, token }) => {
         } finally {
             setLoading(false);
         }
-    }, [apiUrl, token, filters]);
+    }, [apiUrl, filters]);
 
     // Fetch stats
     const fetchStats = useCallback(async () => {
         try {
             const response = await fetch(`${apiUrl}/logs/stats`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                credentials: 'include'
             });
 
             if (!response.ok) {
@@ -75,7 +71,7 @@ const LogsViewer = ({ apiUrl, token }) => {
         } catch (err) {
             console.error('Error fetching stats:', err);
         }
-    }, [apiUrl, token]);
+    }, [apiUrl]);
 
     // Initial fetch
     useEffect(() => {
