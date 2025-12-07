@@ -31,7 +31,7 @@ async function seedTestDatabase() {
         const hashedPassword = await bcrypt.hash('password123', 10);
 
         const customerResult = await client.query(
-            `INSERT INTO users (id, email, password_hash, role, created_at)
+            `INSERT INTO users (id, email, password_hash, primary_role, created_at)
        VALUES ($1, $2, $3, $4, NOW())
        RETURNING id`,
             ['test-customer-1', 'customer@test.com', hashedPassword, 'customer']
@@ -39,7 +39,7 @@ async function seedTestDatabase() {
         const customerId = customerResult.rows[0].id;
 
         const driverResult = await client.query(
-            `INSERT INTO users (id, email, password_hash, role, created_at)
+            `INSERT INTO users (id, email, password_hash, primary_role, created_at)
        VALUES ($1, $2, $3, $4, NOW())
        RETURNING id`,
             ['test-driver-1', 'driver@test.com', hashedPassword, 'driver']
@@ -47,7 +47,7 @@ async function seedTestDatabase() {
         const driverId = driverResult.rows[0].id;
 
         const adminResult = await client.query(
-            `INSERT INTO users (id, email, password_hash, role, created_at)
+            `INSERT INTO users (id, email, password_hash, primary_role, created_at)
        VALUES ($1, $2, $3, $4, NOW())
        RETURNING id`,
             ['test-admin-1', 'admin@test.com', hashedPassword, 'admin']

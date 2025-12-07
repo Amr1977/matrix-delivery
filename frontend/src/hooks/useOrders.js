@@ -22,7 +22,7 @@ const useOrders = (token) => {
       const url = queryString ? `${API_URL}/orders?${queryString}` : `${API_URL}/orders`;
 
       const response = await fetch(url, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include'
       });
 
       if (!response.ok) throw new Error('Failed to fetch orders');
@@ -44,9 +44,9 @@ const useOrders = (token) => {
       const response = await fetch(`${API_URL}/orders`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify(orderData)
       });
 
@@ -72,9 +72,9 @@ const useOrders = (token) => {
       const response = await fetch(`${API_URL}/orders/${orderId}/bid`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify(bidData)
       });
 
@@ -102,9 +102,9 @@ const useOrders = (token) => {
       const response = await fetch(`${API_URL}/orders/${orderId}/accept-bid`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({ userId })
       });
 
@@ -131,7 +131,7 @@ const useOrders = (token) => {
       setLoading(true);
       const response = await fetch(`${API_URL}/orders/${orderId}/${action}`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include'
       });
 
       if (!response.ok) throw new Error(`Failed to ${action} order`);

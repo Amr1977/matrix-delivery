@@ -1004,7 +1004,7 @@ class OrderService {
     let reviewerIdFinal, revieweeId, revieweeRole, reviewerRole;
 
     // Get reviewer's role from database
-    const reviewerResult = await pool.query('SELECT role FROM users WHERE id = $1', [reviewerId]);
+    const reviewerResult = await pool.query('SELECT primary_role FROM users WHERE id = $1', [reviewerId]);
     if (reviewerResult.rows.length === 0) {
       throw new Error('Reviewer not found');
     }

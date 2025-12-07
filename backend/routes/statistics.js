@@ -19,18 +19,18 @@ router.get('/footer', async (req, res) => {
     const onlineDrivers = parseInt(onlineDriversResult.rows[0].count);
 
     // Total Drivers
-    const totalDriversResult = await pool.query("SELECT COUNT(*) as count FROM users WHERE role = 'driver'");
+    const totalDriversResult = await pool.query("SELECT COUNT(*) as count FROM users WHERE primary_role = 'driver'");
     const totalDrivers = parseInt(totalDriversResult.rows[0].count);
 
     // For other roles, usage checks via logs table might be heavy if table is huge. 
     // Optimization: query distinct user_ids from logs where timestamp > now - 10m
     const onlineUsersResult = await pool.query(`
-      SELECT u.role, COUNT(DISTINCT l.user_id) as count
+      SELECT u.primary_role, COUNT(DISTINCT l.user_id) as count
       FROM logs l
       JOIN users u ON l.user_id = u.id
       WHERE l.timestamp > NOW() - INTERVAL '10 minutes'
-      AND u.role IN ('customer', 'admin', 'support')
-      GROUP BY u.role
+      AND u.primary_role IN ('customer', 'admin', 'support')
+      GROUP BY u.primary_role
     `);
 
     const onlineCounts = {
@@ -44,9 +44,8 @@ router.get('/footer', async (req, res) => {
 
     // Total counts for other roles
     const totalRolesResult = await pool.query(`
-      SELECT role, COUNT(*) as count 
-      FROM users 
-      WHERE role IN ('customer', 'admin', 'support') 
+      SELECT primary_role, COUNT(*) as count FROM users 
+      WHERE primary_role IN ('customer', 'admin', 'support') 
       GROUP BY role
     `);
     const totalCounts = {

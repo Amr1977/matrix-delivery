@@ -15,7 +15,7 @@ async function testLocationUpdate() {
 
     try {
         // 1. Get a driver user
-        const driverRes = await pool.query("SELECT id, email FROM users WHERE role = 'driver' LIMIT 1");
+        const driverRes = await pool.query("SELECT id, email FROM users WHERE primary_role = 'driver' LIMIT 1");
         if (driverRes.rows.length === 0) {
             console.error('❌ No driver found in database');
             process.exit(1);

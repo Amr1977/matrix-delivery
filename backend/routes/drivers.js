@@ -123,7 +123,7 @@ router.get('/tracking/:orderId/status', verifyToken, async (req, res) => {
   try {
     const { orderId } = req.params;
     const userId = req.user.userId;
-    const userRole = req.user.role;
+    const userRole = req.user.primary_role || req.user.role;
 
     // Check if user has permission to view this order
     const orderCheck = await pool.query(

@@ -144,7 +144,7 @@ router.post('/wallet/connect', verifyToken, async (req, res) => {
 router.post('/order/:orderId/complete', verifyToken, async (req, res) => {
     try {
         // Verify admin or system
-        if (req.user.role !== 'admin') {
+        if ((req.user.primary_role || (req.user.primary_role || req.user.role)) !== 'admin') {
             return res.status(403).json({ error: 'Unauthorized' });
         }
 

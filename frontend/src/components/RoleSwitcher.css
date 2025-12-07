@@ -1,0 +1,88 @@
+.role-switcher {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.role-switcher-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+    margin: 0;
+}
+
+.role-switcher-select {
+    padding: 6px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.95);
+    color: #333;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.role-switcher-select:hover:not(:disabled) {
+    background: white;
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.role-switcher-select:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.role-switcher-select option {
+    padding: 8px;
+    font-size: 14px;
+}
+
+.role-switcher-loading {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.9);
+    font-style: italic;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.role-switcher-error {
+    font-size: 12px;
+    color: #ffebee;
+    background: rgba(244, 67, 54, 0.8);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .role-switcher {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+        padding: 10px;
+    }
+
+    .role-switcher-select {
+        width: 100%;
+    }
+}

@@ -31,14 +31,18 @@ class AuthService {
    * Generate JWT token
    */
   generateToken(user) {
-    const roles = Array.isArray(user.roles) && user.roles.length > 0 ? user.roles : [user.role].filter(Boolean);
+    const primaryRole = user.primary_role || user.role;
+    const grantedRoles = user.granted_roles || user.roles || (primaryRole ? [primaryRole] : []);
+
     return jwt.sign(
       {
         userId: user.id,
         email: user.email,
         name: user.name,
-        role: user.role,
-        roles
+        role: primaryRole, // Backward compatibility
+        primary_role: primaryRole,
+        roles: grantedRoles, // Backward compatibility
+        granted_roles: grantedRoles
       },
       JWT_SECRET,
       { expiresIn: '30d' }
@@ -72,7 +76,7 @@ class AuthService {
    */
   async findUserById(id) {
     const result = await pool.query(
-      'SELECT id, name, email, role, roles, rating, completed_deliveries, is_verified, country, city, area, created_at FROM users WHERE id = $1',
+      'SELECT id, name, email, primary_role, roles, rating, completed_deliveries, is_verified, country, city, area, created_at FROM users WHERE id = $1',
       [id]
     );
     return result.rows[0] || null;
@@ -86,8 +90,7 @@ class AuthService {
       name,
       email,
       password,
-      phone,
-      role,
+      phone, primary_role,
       vehicle_type,
       country,
       city,
@@ -98,17 +101,16 @@ class AuthService {
     const userId = generateId();
 
     const result = await pool.query(
-      `INSERT INTO users (id, name, email, password, phone, role, vehicle_type, country, city, area, rating, completed_deliveries)
+      `INSERT INTO users (id, name, email, password, phone, primary_role, vehicle_type, country, city, area, rating, completed_deliveries)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-       RETURNING id, name, email, phone, role, vehicle_type, country, city, area`,
+       RETURNING id, name, email, phone, primary_role, vehicle_type, country, city, area`,
       [
         userId,
         sanitizeString(name, 100),
         email.toLowerCase().trim(),
         hashedPassword,
-        sanitizeString(phone, 20),
-        role,
-        role === 'driver' ? vehicle_type : null,
+        sanitizeString(phone, 20), primary_role,
+        primary_role === 'driver' ? vehicle_type : null,
         sanitizeString(country, 100),
         sanitizeString(city, 100),
         sanitizeString(area, 100),
@@ -176,7 +178,7 @@ class AuthService {
    * Register new user
    */
   async registerUser(userData) {
-    const { email, password, role, vehicle_type } = userData;
+    const { email, password, primary_role, vehicle_type } = userData;
 
     // Validation
     if (!validateEmail(email)) {
@@ -187,11 +189,11 @@ class AuthService {
       throw new Error('Password must be at least 8 characters');
     }
 
-    if (!['customer', 'driver'].includes(role)) {
+    if (!['customer', 'driver'].includes(primary_role)) {
       throw new Error('Invalid role');
     }
 
-    if (role === 'driver' && !vehicle_type) {
+    if (primary_role === 'driver' && !vehicle_type) {
       throw new Error('Vehicle type is required for drivers');
     }
 
@@ -259,8 +261,10 @@ class AuthService {
       id: user.id,
       name: user.name,
       email: user.email,
-      role: user.role,
-      roles: Array.isArray(user.roles) && user.roles.length ? user.roles : [user.role].filter(Boolean),
+      role: user.primary_role || user.role,
+      primary_role: user.primary_role || user.role,
+      roles: user.granted_roles || user.roles || (user.primary_role ? [user.primary_role] : []),
+      granted_roles: user.granted_roles || user.roles || (user.primary_role ? [user.primary_role] : []),
       rating: parseFloat(user.rating),
       completedDeliveries: user.completed_deliveries,
       isVerified: user.is_verified,
@@ -272,13 +276,26 @@ class AuthService {
   }
 
   async switchRole(userId, role) {
-    const result = await pool.query('SELECT id, name, email, role, roles FROM users WHERE id = $1', [userId]);
+    const result = await pool.query('SELECT id, name, email, primary_role, roles FROM users WHERE id = $1', [userId]);
     if (result.rows.length === 0) throw new Error('User not found');
     const user = result.rows[0];
-    const roles = Array.isArray(user.roles) && user.roles.length ? user.roles : [user.role].filter(Boolean);
+    const roles = user.granted_roles || user.roles || (user.primary_role ? [user.primary_role] : []);
     if (!roles.includes(role)) throw new Error('Role not assigned to user');
-    const token = jwt.sign({ userId: user.id, email: user.email, name: user.name, role, roles }, JWT_SECRET, { expiresIn: '30d' });
-    return { token, role, roles };
+
+    // Update primary_role in database for persistence
+    await pool.query('UPDATE users SET primary_role = $1 WHERE id = $2', [role, userId]);
+
+    const token = jwt.sign({
+      userId: user.id,
+      email: user.email,
+      name: user.name,
+      role: role,
+      primary_role: role,
+      roles: roles,
+      granted_roles: roles
+    }, JWT_SECRET, { expiresIn: '30d' });
+
+    return { token, primary_role: role, roles };
   }
 
   /**

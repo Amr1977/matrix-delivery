@@ -13,7 +13,7 @@ const verifyAdmin = async (req, res, next) => {
     
     // Check if user is admin
     const userResult = await pool.query(
-      'SELECT id, email, name, role, roles FROM users WHERE id = $1',
+      'SELECT id, email, name, primary_role, roles FROM users WHERE id = $1',
       [decoded.userId]
     );
     
@@ -82,7 +82,7 @@ app.get('/api/admin/stats', verifyAdmin, async (req, res) => {
 
     // Get users by role
     const usersByRoleResult = await pool.query(
-      `SELECT role, COUNT(*) as count FROM users GROUP BY role`
+      `SELECT primary_role, COUNT(*) as count FROM users GROUP BY role`
     );
     const usersByRole = {};
     usersByRoleResult.rows.forEach(row => {
@@ -270,13 +270,11 @@ app.get('/api/admin/users', verifyAdmin, async (req, res) => {
 
     queryParams.push(parseInt(limit), offset);
     const usersResult = await pool.query(
-      `SELECT 
-        u.id, u.name, u.email, u.phone, u.role, u.vehicle_type,
+      `SELECT u.id, u.name, u.email, u.phone, u.primary_role, u.vehicle_type,
         u.rating, u.completed_deliveries, u.is_verified, u.is_available,
         u.country, u.city, u.area, u.created_at,
         (SELECT COUNT(*) FROM orders WHERE customer_id = u.id OR assigned_driver_user_id = u.id) as total_orders,
-        (SELECT COUNT(*) FROM reviews WHERE reviewee_id = u.id) as total_reviews
-       FROM users u
+        (SELECT COUNT(*) FROM reviews WHERE reviewee_id = u.id) as total_reviews FROM users u
        ${whereClause}
        ORDER BY u.created_at DESC
        LIMIT $${paramCount} OFFSET $${paramCount + 1}`,
@@ -312,7 +310,7 @@ app.get('/api/admin/users', verifyAdmin, async (req, res) => {
       }
     });
 
-    await logAdminAction(req.admin.id, 'VIEW_USERS', 'users', null, { page, limit, search, role, ip: req.ip });
+    await logAdminAction(req.admin.id, 'VIEW_USERS', 'users', null, { page, limit, search, primary_role, ip: req.ip });
   } catch (error) {
     console.error('Get users error:', error);
     res.status(500).json({ error: 'Failed to get users' });
@@ -922,7 +920,7 @@ app.get('/api/admin/analytics/performance', verifyAdmin, async (req, res) => {
         COALESCE(SUM(o.assigned_driver_bid_price), 0) as earnings
        FROM users u
        JOIN orders o ON o.assigned_driver_user_id = u.id
-       WHERE u.role = 'driver' 
+       WHERE u.primary_role = 'driver' 
          AND o.status = 'delivered'
          AND o.delivered_at >= $1
        GROUP BY u.id, u.name, u.email, u.rating
