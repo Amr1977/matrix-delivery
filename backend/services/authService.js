@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const pool = require('../config/db');
-const logger = require('../logger');
+const logger = require('../config/logger');
 const { generateId } = require('../utils/generators');
 const { sanitizeString } = require('../utils/sanitizers');
 const { validateEmail, validatePassword } = require('../utils/validators');

@@ -1,4 +1,4 @@
-const logger = require('../logger');
+const logger = require('../config/logger');
 
 /**
  * Middleware to validate request body against a schema

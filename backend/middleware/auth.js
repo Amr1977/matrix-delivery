@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const logger = require('../logger');
+const logger = require('../config/logger');
 
 // Environment is already loaded by server.js or jest.setup.js
 // No need to call dotenv.config() here

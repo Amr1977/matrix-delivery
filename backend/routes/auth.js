@@ -3,7 +3,7 @@ const authService = require('../services/authService');
 const emailService = require('../services/emailService');
 const { verifyToken, requireRole } = require('../middleware/auth');
 const { authRateLimit } = require('../middleware/rateLimit');
-const logger = require('../logger');
+const logger = require('../config/logger');
 
 const router = express.Router();
 

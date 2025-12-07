@@ -2,7 +2,7 @@ const express = require('express');
 const messagingService = require('../services/messagingService');
 const { verifyToken } = require('../middleware/auth');
 const { apiRateLimit } = require('../middleware/rateLimit');
-const logger = require('../logger');
+const logger = require('../config/logger');
 
 const router = express.Router();
 

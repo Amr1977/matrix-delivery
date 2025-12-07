@@ -49,7 +49,7 @@ const transports = [
 
   // Error log file
   new DailyRotateFile({
-    filename: path.join(__dirname, 'logs', 'error-%DATE%.log'),
+    filename: path.join(__dirname, '..', 'logs', 'error-%DATE%.log'),
     datePattern: 'YYYY-MM-DD',
     level: 'error',
     format: winston.format.combine(
@@ -63,7 +63,7 @@ const transports = [
 
   // Combined log file
   new DailyRotateFile({
-    filename: path.join(__dirname, 'logs', 'combined-%DATE%.log'),
+    filename: path.join(__dirname, '..', 'logs', 'combined-%DATE%.log'),
     datePattern: 'YYYY-MM-DD',
     format: winston.format.combine(
       winston.format.timestamp(),
@@ -76,7 +76,7 @@ const transports = [
 
   // Security log file
   new DailyRotateFile({
-    filename: path.join(__dirname, 'logs', 'security-%DATE%.log'),
+    filename: path.join(__dirname, '..', 'logs', 'security-%DATE%.log'),
     datePattern: 'YYYY-MM-DD',
     level: 'warn',
     format: winston.format.combine(
@@ -90,7 +90,7 @@ const transports = [
 
   // Performance log file
   new DailyRotateFile({
-    filename: path.join(__dirname, 'logs', 'performance-%DATE%.log'),
+    filename: path.join(__dirname, '..', 'logs', 'performance-%DATE%.log'),
     datePattern: 'YYYY-MM-DD',
     level: 'info',
     format: winston.format.combine(
@@ -114,7 +114,7 @@ const logger = winston.createLogger({
 
 // Create logs directory if it doesn't exist
 const fs = require('fs');
-const logsDir = path.join(__dirname, 'logs');
+const logsDir = path.join(__dirname, '..', 'logs');
 if (!fs.existsSync(logsDir)) {
   fs.mkdirSync(logsDir, { recursive: true });
 }
