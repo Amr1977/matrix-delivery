@@ -3,7 +3,9 @@ export interface User {
     name: string;
     email: string;
     role: 'customer' | 'driver' | 'admin' | 'vendor';
-    roles?: string[];
+    primary_role?: 'customer' | 'driver' | 'admin' | 'vendor'; // New backend field
+    roles?: string[]; // Legacy
+    granted_roles?: string[]; // New backend field
     profile_picture_url?: string;
     isVerified?: boolean;
     completedDeliveries?: number;

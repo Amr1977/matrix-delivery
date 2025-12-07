@@ -59,9 +59,9 @@ module.exports = {
     listen_timeout: 30000
   }, {
     name: 'matrix-delivery-frontend',
-    script: 'node_modules/react-scripts/scripts/start.js',
-    args: '',
-    cwd: '../frontend', // Relative to this file
+    script: os.platform() === 'win32' ? 'npm.cmd' : 'npm',
+    args: 'start',
+    cwd: '../frontend',
     instances: 1,
     exec_mode: 'fork',
     autorestart: true,

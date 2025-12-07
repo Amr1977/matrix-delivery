@@ -16,7 +16,7 @@ import MessagingPanel from './components/messaging/MessagingPanel';
 import PaymentMethodsManager from './components/payments/PaymentMethodsManager';
 // Email verification banner moved into profile modal
 import MainLayout from './components/layout/MainLayout';
-import ProfileOverlay from './components/ProfileOverlay';
+import ProfilePage from './pages/ProfilePage';
 import NotificationPanel from './components/notifications/NotificationPanel';
 import SettingsModal from './components/layout/SettingsModal';
 import DriverEarningsDashboard from './components/driver/DriverEarningsDashboard';
@@ -804,7 +804,7 @@ const DeliveryApp = () => {
       }
       const data = await response.json();
       setCurrentUser(data);
-      setAvailableRoles(data.roles || (data.role ? [data.role] : []));
+      setAvailableRoles(data.granted_roles || data.roles || (data.role ? [data.role] : []));
       setToken('authenticated'); // Set token flag to indicate logged in
       setError('');
 
@@ -822,7 +822,7 @@ const DeliveryApp = () => {
 
   const fetchProfileData = async () => {
     try {
-      const response = await fetch(`${API_URL}/users/me/profile`, {
+      const response = await fetch(`${API_URL}/auth/me`, {
         credentials: 'include' // Include cookies for authentication
       });
       if (!response.ok) {
@@ -2020,7 +2020,7 @@ const DeliveryApp = () => {
       onNavigate={(view) => {
         if (view === 'home') setViewType('active');
         else if (view === 'earnings') setViewType('earnings');
-        else if (view === 'profile') setShowProfile(true);
+        else if (view === 'profile') setViewType('profile');
         else if (view === 'notifications') setShowNotifications(prev => !prev);
         else if (view === 'settings') setShowSettings(true);
         else if (view === 'bidding') setViewType('bidding');
@@ -2028,7 +2028,7 @@ const DeliveryApp = () => {
         else if (view === 'my_bids') setViewType('my_bids');
         else if (view === 'history') setViewType('history');
         else if (view === 'location_settings') setViewType('location_settings');
-        else if (view === 'admin_panel') handleAdminPanelNavigation();
+        else if (view === 'admin_panel') setShowAdminPanel(true);
         else if (view === 'crypto-test') setShowCryptoTest(true);
         else if (view.startsWith('legal_')) setViewType(view);
       }}
@@ -2045,26 +2045,7 @@ const DeliveryApp = () => {
     >
 
 
-      {showProfile && profileData && (
-        <ProfileOverlay
-          profileData={profileData}
-          onClose={() => setShowProfile(false)}
-          API_URL={API_URL}
-          token={token}
-          setProfileData={setProfileData}
-          setCurrentUser={setCurrentUser}
-          currentUser={currentUser}
-          optimizeAndUploadProfilePicture={optimizeAndUploadProfilePicture}
-          setError={setError}
-          preferencesData={preferencesData}
-          setPreferencesData={setPreferencesData}
-          activityData={activityData}
-          paymentMethods={paymentMethods}
-          setPaymentMethods={setPaymentMethods}
-          favorites={favorites}
-          setFavorites={setFavorites}
-        />
-      )}
+      {/* ProfileOverlay removed - replaced by ProfilePage page view */}
 
       {/* OLD INLINE MODAL - REMOVED - Kept commented for reference */}
       {false && showProfile && profileData && (
@@ -2280,7 +2261,30 @@ const DeliveryApp = () => {
 
         {/* Email verification moved into profile modal */}
 
-        {(currentUser?.role === 'customer' || currentUser?.role === 'admin') && (
+        {viewType === 'profile' && profileData && (
+          <ProfilePage
+            profileData={profileData}
+            API_URL={API_URL}
+            token={token}
+            setProfileData={setProfileData}
+            setCurrentUser={setCurrentUser}
+            currentUser={currentUser}
+            optimizeAndUploadProfilePicture={optimizeAndUploadProfilePicture}
+            setError={setError}
+            preferencesData={preferencesData}
+            setPreferencesData={setPreferencesData}
+            activityData={activityData}
+            paymentMethods={paymentMethods}
+            setPaymentMethods={setPaymentMethods}
+            favorites={favorites}
+            setFavorites={setFavorites}
+            onNavigate={(view) => {
+              if (view === 'earnings') setViewType('earnings');
+            }}
+          />
+        )}
+
+        {viewType !== 'profile' && (currentUser?.role === 'customer' || currentUser?.role === 'admin') && (
           <div style={{ marginBottom: '1.5rem' }}>
             <button
               onClick={() => setShowOrderForm(!showOrderForm)}

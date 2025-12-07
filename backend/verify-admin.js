@@ -22,7 +22,7 @@ async function verifyAndFixAdmin() {
 
         // Check if admin exists
         const result = await pool.query(
-            'SELECT id, email, role, roles, is_verified, password FROM users WHERE email = $1',
+            'SELECT id, email, primary_role, roles, is_verified, password FROM users WHERE email = $1',
             [adminEmail]
         );
 

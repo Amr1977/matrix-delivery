@@ -165,7 +165,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
                                     )}
                                 </div>
                                 <div className="mobile-user-role" style={{ color: 'var(--matrix-green)', fontSize: '0.75rem', textTransform: 'capitalize', marginBottom: '0.5rem' }}>
-                                    {currentUser?.role}
+                                    {currentUser?.primary_role || currentUser?.role}
                                 </div>
                                 {/* User Stats */}
                                 {currentUser?.role === 'driver' && (
@@ -269,6 +269,38 @@ const SideMenu: React.FC<SideMenuProps> = ({
                         >
                             ⚙️ Settings
                         </button>
+
+                        {/* Admin Panel - Only for admins */}
+                        {(currentUser?.role === 'admin' || (currentUser?.granted_roles && currentUser.granted_roles.includes('admin')) || availableRoles.includes('admin')) && (
+                            <button
+                                onClick={() => { onNavigate('admin_panel'); onClose(); }}
+                                style={{
+                                    display: 'block',
+                                    width: '100%',
+                                    textAlign: 'left',
+                                    padding: '0.75rem',
+                                    background: 'linear-gradient(135deg, rgba(79, 70, 229, 0.2) 0%, rgba(99, 102, 241, 0.1) 100%)',
+                                    border: '1px solid rgba(99, 102, 241, 0.3)',
+                                    color: '#A5B4FC',
+                                    cursor: 'pointer',
+                                    fontSize: '1rem',
+                                    borderRadius: '0.5rem',
+                                    marginBottom: '0.5rem',
+                                    transition: 'all 0.2s',
+                                    fontWeight: '600'
+                                }}
+                                onMouseOver={(e) => {
+                                    e.currentTarget.style.background = 'linear-gradient(135deg, rgba(79, 70, 229, 0.3) 0%, rgba(99, 102, 241, 0.2) 100%)';
+                                    e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.5)';
+                                }}
+                                onMouseOut={(e) => {
+                                    e.currentTarget.style.background = 'linear-gradient(135deg, rgba(79, 70, 229, 0.2) 0%, rgba(99, 102, 241, 0.1) 100%)';
+                                    e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.3)';
+                                }}
+                            >
+                                🛡️ Admin Panel
+                            </button>
+                        )}
                     </div>
 
                     {/* Driver Actions */}
@@ -400,60 +432,9 @@ const SideMenu: React.FC<SideMenuProps> = ({
                             ☕ Support Developer
                         </button>
 
-                        {/* Admin Panel - Only for admins */}
-                        {(currentUser?.role === 'admin' || availableRoles.includes('admin')) && (
-                            <button
-                                onClick={() => { onNavigate('admin_panel'); onClose(); }}
-                                style={{
-                                    display: 'block',
-                                    width: '100%',
-                                    textAlign: 'left',
-                                    padding: '0.75rem',
-                                    background: 'linear-gradient(135deg, rgba(79, 70, 229, 0.2) 0%, rgba(99, 102, 241, 0.1) 100%)',
-                                    border: '1px solid rgba(99, 102, 241, 0.3)',
-                                    color: '#A5B4FC',
-                                    cursor: 'pointer',
-                                    fontSize: '1rem',
-                                    borderRadius: '0.5rem',
-                                    marginBottom: '1rem',
-                                    transition: 'all 0.2s',
-                                    fontWeight: '600'
-                                }}
-                                onMouseOver={(e) => {
-                                    e.currentTarget.style.background = 'linear-gradient(135deg, rgba(79, 70, 229, 0.3) 0%, rgba(99, 102, 241, 0.2) 100%)';
-                                    e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.5)';
-                                }}
-                                onMouseOut={(e) => {
-                                    e.currentTarget.style.background = 'linear-gradient(135deg, rgba(79, 70, 229, 0.2) 0%, rgba(99, 102, 241, 0.1) 100%)';
-                                    e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.3)';
-                                }}
-                            >
-                                🛡️ Admin Panel
-                            </button>
-                        )}
 
-                        {/* Role Switcher */}
-                        {availableRoles.length > 1 && onSwitchRole && (
-                            <div style={{ marginBottom: '1rem' }}>
-                                <label style={{ display: 'block', color: '#D1D5DB', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Switch Role</label>
-                                <select
-                                    value={currentUser?.role}
-                                    onChange={(e) => onSwitchRole(e.target.value)}
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.5rem',
-                                        background: '#374151',
-                                        color: 'white',
-                                        border: '1px solid #4B5563',
-                                        borderRadius: '0.375rem'
-                                    }}
-                                >
-                                    {availableRoles.map(r => (
-                                        <option key={r} value={r}>{r}</option>
-                                    ))}
-                                </select>
-                            </div>
-                        )}
+
+
 
                         <button
                             onClick={onLogout}

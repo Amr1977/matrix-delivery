@@ -62,8 +62,8 @@ const requireRole = (...roles) => {
       return res.status(401).json({ error: 'Authentication required' });
     }
 
-    const userRole = req.user.role;
-    const userRoles = Array.isArray(req.user.roles) ? req.user.roles : [];
+    const userRole = req.user.primary_role || req.user.role; // Support both for transition
+    const userRoles = Array.isArray(req.user.granted_roles) ? req.user.granted_roles : (Array.isArray(req.user.roles) ? req.user.roles : []);
     const hasRequired = roles.includes(userRole) || roles.some(r => userRoles.includes(r));
     if (!hasRequired) {
       logger.security('Insufficient permissions', {

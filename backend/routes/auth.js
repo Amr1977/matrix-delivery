@@ -63,7 +63,7 @@ router.post('/register', authRateLimit, async (req, res) => {
   });
 
   try {
-    const { name, email, password, phone, role, vehicle_type, country, city, area, recaptchaToken } = req.body;
+    const { name, email, password, phone, primary_role, vehicle_type, country, city, area, recaptchaToken } = req.body;
 
     // Verify reCAPTCHA token only in production
     if (process.env.NODE_ENV === 'production' && !(await verifyRecaptcha(recaptchaToken))) {
@@ -75,17 +75,17 @@ router.post('/register', authRateLimit, async (req, res) => {
     }
 
     // Basic validation
-    if (!name || !email || !password || !phone || !role || !country || !city || !area) {
-      return res.status(400).json({ error: 'All fields required: name, email, password, phone, role, country, city, and area' });
+    if (!name || !email || !password || !phone || !primary_role || !country || !city || !area) {
+      return res.status(400).json({ error: 'All fields required: name, email, password, phone, primary_role, country, city, and area' });
     }
 
-    if (role === 'driver' && !vehicle_type) {
+    if (primary_role === 'driver' && !vehicle_type) {
       return res.status(400).json({ error: 'Vehicle type is required for drivers' });
     }
 
     // Use auth service
     const result = await authService.registerUser({
-      name, email, password, phone, role, vehicle_type, country, city, area
+      name, email, password, phone, primary_role, vehicle_type, country, city, area
     });
 
     // Send verification email (don't block registration if email fails)
@@ -261,7 +261,7 @@ router.post('/switch-role', verifyToken, async (req, res) => {
       return res.status(400).json({ error: 'Role is required' });
     }
     const { token, roles } = await authService.switchRole(req.user.userId, role);
-    res.json({ token, role, roles });
+    res.json({ token, primary_role, roles });
   } catch (error) {
     logger.error(`Switch role error: ${error.message}`, { userId: req.user.userId, category: 'error' });
     res.status(400).json({ error: error.message || 'Failed to switch role' });

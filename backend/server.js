@@ -199,9 +199,9 @@ const initDatabase = async () => {
       )
     `);
 
-    // Ensure roles array column exists and is populated
-    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS roles TEXT[]`);
-    await pool.query(`UPDATE users SET roles = ARRAY[role] WHERE roles IS NULL`);
+    // Ensure granted_roles array column exists and is populated
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS granted_roles TEXT[]`);
+    await pool.query(`UPDATE users SET granted_roles = ARRAY[primary_role] WHERE granted_roles IS NULL`);
 
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_picture_url TEXT`);
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS license_number VARCHAR(100)`);
@@ -579,14 +579,14 @@ const initDatabase = async () => {
     await pool.query(`
       UPDATE users SET completed_deliveries = (
         SELECT COUNT(*) FROM orders WHERE assigned_driver_user_id = users.id AND status = 'delivered'
-      ) WHERE role = 'driver'
+      ) WHERE primary_role = 'driver'
     `);
 
     // For customers: count delivered orders they created
     await pool.query(`
       UPDATE users SET completed_deliveries = (
         SELECT COUNT(*) FROM orders WHERE customer_id = users.id AND status = 'delivered'
-      ) WHERE role = 'customer'
+      ) WHERE primary_role = 'customer'
     `);
 
     // Create messages table for order messaging
@@ -1009,7 +1009,7 @@ app.get('/api/footer/stats', async (req, res) => {
   try {
     // Get users by role
     const usersByRoleResult = await pool.query(
-      `SELECT role, COUNT(*) as count FROM users GROUP BY role`
+      `SELECT primary_role, COUNT(*) as count FROM users GROUP BY role`
     );
     const usersByRole = {};
     usersByRoleResult.rows.forEach(row => {
@@ -1137,7 +1137,7 @@ app.post('/api/auth/register', async (req, res) => {
     }
   }
   try {
-    const { name, email, password, phone, role, vehicle_type, country, city, area, recaptchaToken } = req.body;
+    const { name, email, password, phone, primary_role, vehicle_type, country, city, area, recaptchaToken } = req.body;
 
     // Verify reCAPTCHA token only in production (skip for development/testing)
     if (IS_PRODUCTION && !(await verifyRecaptcha(recaptchaToken))) {
@@ -1162,7 +1162,7 @@ app.post('/api/auth/register', async (req, res) => {
         hasArea: !!area,
         category: 'auth'
       });
-      return res.status(400).json({ error: 'All fields required: name, email, password, phone, role, country, city, and area' });
+      return res.status(400).json({ error: 'All fields required: name, email, password, phone, primary_role, country, city, and area' });
     }
 
     if (role === 'driver' && !vehicle_type) {
@@ -1195,8 +1195,7 @@ app.post('/api/auth/register', async (req, res) => {
     if (!['customer', 'driver'].includes(role)) {
       logger.warn(`Registration validation failed: invalid role`, {
         ip: clientIP,
-        email: email?.substring(0, 3) + '***',
-        role,
+        email: email?.substring(0, 3) + '***', primary_role,
         category: 'auth'
       });
       return res.status(400).json({ error: 'Invalid role' });
@@ -1220,10 +1219,10 @@ app.post('/api/auth/register', async (req, res) => {
     const userId = generateId();
 
     const result = await pool.query(
-      `INSERT INTO users (id, name, email, password, phone, role, vehicle_type, country, city, area, rating, completed_deliveries)
+      `INSERT INTO users (id, name, email, password, phone, primary_role, vehicle_type, country, city, area, rating, completed_deliveries)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-       RETURNING id, name, email, phone, role, vehicle_type, country, city, area`,
-      [userId, name.trim(), email.toLowerCase().trim(), hashedPassword, phone.trim(), role,
+       RETURNING id, name, email, phone, primary_role, vehicle_type, country, city, area`,
+      [userId, name.trim(), email.toLowerCase().trim(), hashedPassword, phone.trim(), primary_role,
         role === 'driver' ? vehicle_type : null, country.trim(), city.trim(), area.trim(), 5, 0]
     );
 
@@ -1458,7 +1457,7 @@ app.post('/api/auth/login', async (req, res) => {
 app.get('/api/auth/me', verifyToken, async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, name, email, role, rating, completed_deliveries, is_verified, country, city, area, created_at FROM users WHERE id = $1',
+      'SELECT id, name, email, primary_role, rating, completed_deliveries, is_verified, country, city, area, created_at FROM users WHERE id = $1',
       [req.user.userId]
     );
 
@@ -2062,7 +2061,7 @@ app.post('/api/auth/verify-user', async (req, res) => {
 app.get('/api/users/:id/reputation', verifyToken, async (req, res) => {
   try {
     const userResult = await pool.query(
-      'SELECT id, name, role, rating, completed_deliveries, is_verified, created_at FROM users WHERE id = $1',
+      'SELECT id, name, primary_role, rating, completed_deliveries, is_verified, created_at FROM users WHERE id = $1',
       [req.params.id]
     );
 
@@ -2128,7 +2127,7 @@ app.get('/api/users/:id/reputation', verifyToken, async (req, res) => {
 app.get('/api/users/:id/reviews/received', verifyToken, async (req, res) => {
   try {
     const userResult = await pool.query(
-      'SELECT id, name, role FROM users WHERE id = $1',
+      'SELECT id, name, primary_role FROM users WHERE id = $1',
       [req.params.id]
     );
 
@@ -2182,7 +2181,7 @@ app.get('/api/users/:id/reviews/received', verifyToken, async (req, res) => {
 app.get('/api/users/:id/reviews/given', verifyToken, async (req, res) => {
   try {
     const userResult = await pool.query(
-      'SELECT id, name, role FROM users WHERE id = $1',
+      'SELECT id, name, primary_role FROM users WHERE id = $1',
       [req.params.id]
     );
 
@@ -2235,7 +2234,7 @@ app.get('/api/users/:id/reviews/given', verifyToken, async (req, res) => {
 app.get('/api/users/me/profile', verifyToken, async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT id, name, email, phone, role, roles, vehicle_type, rating, completed_deliveries, is_available, is_verified,
+      `SELECT id, name, email, phone, primary_role, roles, vehicle_type, rating, completed_deliveries, is_available, is_verified,
               profile_picture_url, license_number, service_area_zone, preferences, notification_prefs,
               two_factor_methods, language, theme, document_verification_status, verified_at
        FROM users WHERE id = $1`,
@@ -2259,7 +2258,7 @@ app.get('/api/users/me/profile', verifyToken, async (req, res) => {
 app.put('/api/users/me/profile', verifyToken, async (req, res) => {
   try {
     const { name, phone, vehicle_type, license_number, service_area_zone, language, theme } = req.body || {};
-    const userRes = await pool.query('SELECT id, roles FROM users WHERE id = $1', [req.user.userId]);
+    const userRes = await pool.query('SELECT id, granted_roles FROM users WHERE id = $1', [req.user.userId]);
     if (userRes.rows.length === 0) return res.status(404).json({ error: 'User not found' });
     const roles = userRes.rows[0].roles || [];
     const isDriver = Array.isArray(roles) ? roles.includes('driver') : false;
@@ -2383,7 +2382,7 @@ app.delete('/api/users/me/payment-methods/:id', verifyToken, async (req, res) =>
 app.get('/api/users/me/favorites', verifyToken, async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT uf.favorite_user_id as userId, u.name, u.role, u.rating, u.completed_deliveries, u.is_verified
+      `SELECT uf.favorite_user_id as userId, u.name, u.primary_role, u.rating, u.completed_deliveries, u.is_verified
        FROM user_favorites uf JOIN users u ON uf.favorite_user_id = u.id
        WHERE uf.user_id = $1 ORDER BY uf.created_at DESC`,
       [req.user.userId]
@@ -2781,7 +2780,7 @@ app.put('/api/orders/:id/bid', verifyToken, async (req, res) => {
   const client = await pool.connect();
   try {
     const { bidPrice, message } = req.body;
-    if (req.user.role !== 'driver') {
+    if ((req.user.primary_role || (req.user.primary_role || req.user.role)) !== 'driver') {
       return res.status(403).json({ error: 'Only drivers can modify bids' });
     }
 
@@ -2821,7 +2820,7 @@ app.put('/api/orders/:id/bid', verifyToken, async (req, res) => {
 app.delete('/api/orders/:id/bid', verifyToken, async (req, res) => {
   const client = await pool.connect();
   try {
-    if (req.user.role !== 'driver') {
+    if ((req.user.primary_role || (req.user.primary_role || req.user.role)) !== 'driver') {
       return res.status(403).json({ error: 'Only drivers can withdraw bids' });
     }
 
@@ -3172,7 +3171,7 @@ app.get('/api/orders/:id/tracking', verifyToken, async (req, res) => {
 // Update driver location
 app.post('/api/drivers/location', verifyToken, async (req, res) => {
   try {
-    if (req.user.role !== 'driver') {
+    if ((req.user.primary_role || (req.user.primary_role || req.user.role)) !== 'driver') {
       return res.status(403).json({ error: 'Only drivers can update location' });
     }
 
@@ -3211,7 +3210,7 @@ app.post('/api/drivers/location', verifyToken, async (req, res) => {
 // Get driver current location
 app.get('/api/drivers/location', verifyToken, async (req, res) => {
   try {
-    if (req.user.role !== 'driver') {
+    if ((req.user.primary_role || (req.user.primary_role || req.user.role)) !== 'driver') {
       return res.status(403).json({ error: 'Only drivers can access location' });
     }
 
@@ -3235,6 +3234,91 @@ app.get('/api/drivers/location', verifyToken, async (req, res) => {
   } catch (error) {
     console.error('Get driver location error:', error);
     res.status(500).json({ error: 'Failed to get location' });
+  }
+});
+
+// Switch user's primary role
+app.post('/api/users/me/switch-role', verifyToken, async (req, res) => {
+  try {
+    const { newRole } = req.body;
+
+    if (!newRole) {
+      return res.status(400).json({ error: 'New role is required' });
+    }
+
+    // Get user's current roles
+    const userResult = await pool.query(
+      'SELECT id, email, name, primary_role, granted_roles FROM users WHERE id = $1',
+      [req.user.userId]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const user = userResult.rows[0];
+
+    // Verify user has this role in granted_roles
+    if (!user.granted_roles || !user.granted_roles.includes(newRole)) {
+      return res.status(403).json({
+        error: 'Role not granted',
+        grantedRoles: user.granted_roles || []
+      });
+    }
+
+    // Update primary_role
+    await pool.query(
+      'UPDATE users SET primary_role = $1 WHERE id = $2',
+      [newRole, req.user.userId]
+    );
+
+    // Issue new token with updated role
+    const newToken = jwt.sign(
+      {
+        userId: req.user.userId,
+        role: newRole,  // Keep 'role' for backward compatibility
+        primary_role: newRole,
+        granted_roles: user.granted_roles
+      },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    // Set new cookie
+    res.cookie('token', newToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
+
+    logger.auth('Role switched successfully', {
+      userId: req.user.userId,
+      oldRole: user.primary_role,
+      newRole,
+      ip: req.ip || req.connection.remoteAddress,
+      category: 'auth'
+    });
+
+    res.json({
+      success: true,
+      newRole,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        primary_role: newRole,
+        granted_roles: user.granted_roles
+      }
+    });
+  } catch (error) {
+    logger.error('Role switch error:', {
+      error: error.message,
+      userId: req.user?.userId,
+      requestedRole: req.body.newRole,
+      category: 'error'
+    });
+    res.status(500).json({ error: 'Failed to switch role' });
   }
 });
 
@@ -3405,7 +3489,7 @@ app.post('/api/orders/:id/review', verifyToken, async (req, res) => {
 
     const reviewResult = await client.query(
       `INSERT INTO reviews (order_id, reviewer_id, reviewee_id, reviewer_role, review_type, rating, comment, professionalism_rating, communication_rating, timeliness_rating, condition_rating) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
-      [req.params.id, req.user.userId, revieweeId, req.user.role, reviewType, rating, comment || null, professionalismRating || null, communicationRating || null, timelinessRating || null, conditionRating || null]
+      [req.params.id, req.user.userId, revieweeId, (req.user.primary_role || (req.user.primary_role || req.user.role)), reviewType, rating, comment || null, professionalismRating || null, communicationRating || null, timelinessRating || null, conditionRating || null]
     );
 
     if (revieweeId) {
@@ -3505,7 +3589,7 @@ app.get('/api/orders/:id/review-status', verifyToken, async (req, res) => {
 
     const status = {
       canReview: order.status === 'delivered',
-      userRole: req.user.role,
+      userRole: (req.user.primary_role || req.user.role),
       reviews: {
         toDriver: isCustomer ? submittedReviews.includes('customer_to_driver') : null,
         toCustomer: isDriver ? submittedReviews.includes('driver_to_customer') : null,
@@ -3694,7 +3778,7 @@ app.get('/api/orders/:id/payment', verifyToken, async (req, res) => {
 // Get user's earnings/payments summary (for drivers)
 app.get('/api/payments/earnings', verifyToken, async (req, res) => {
   try {
-    if (req.user.role !== 'driver') {
+    if ((req.user.primary_role || (req.user.primary_role || req.user.role)) !== 'driver') {
       return res.status(403).json({ error: 'Only drivers can access earnings' });
     }
 
@@ -4442,12 +4526,12 @@ const verifyAdmin = async (req, res, next) => {
 
     // Check if user is admin
     const userResult = await pool.query(
-      'SELECT id, email, name, role, roles FROM users WHERE id = $1',
+      'SELECT id, email, name, primary_role, granted_roles FROM users WHERE id = $1',
       [decoded.userId]
     );
 
     const row = userResult.rows[0];
-    const hasAdmin = row && (row.role === 'admin' || (Array.isArray(row.roles) && row.roles.includes('admin')));
+    const hasAdmin = row && (row.primary_role === 'admin' || (Array.isArray(row.granted_roles) && row.granted_roles.includes('admin')));
     if (userResult.rows.length === 0 || !hasAdmin) {
       return res.status(403).json({ error: 'Admin access required' });
     }
@@ -4511,7 +4595,7 @@ app.get('/api/admin/stats', verifyAdmin, async (req, res) => {
 
     // Get users by role
     const usersByRoleResult = await pool.query(
-      `SELECT role, COUNT(*) as count FROM users GROUP BY role`
+      `SELECT primary_role, COUNT(*) as count FROM users GROUP BY role`
     );
     const usersByRole = {};
     usersByRoleResult.rows.forEach(row => {
@@ -4699,8 +4783,7 @@ app.get('/api/admin/users', verifyAdmin, async (req, res) => {
 
     queryParams.push(parseInt(limit), offset);
     const usersResult = await pool.query(
-      `SELECT
-        u.id, u.name, u.email, u.phone, u.role, u.roles, u.vehicle_type,
+      `SELECT u.id, u.name, u.email, u.phone, u.primary_role, u.roles, u.vehicle_type,
         u.rating, u.completed_deliveries, u.is_verified, u.is_available,
         u.country, u.city, u.area, u.created_at,
         (SELECT COUNT(*) FROM orders WHERE customer_id = u.id OR assigned_driver_user_id = u.id) as total_orders,
@@ -4742,7 +4825,7 @@ app.get('/api/admin/users', verifyAdmin, async (req, res) => {
       }
     });
 
-    await logAdminAction(req.admin.id, 'VIEW_USERS', 'users', null, { page, limit, search, role, ip: req.ip });
+    await logAdminAction(req.admin.id, 'VIEW_USERS', 'users', null, { page, limit, search, primary_role, ip: req.ip });
   } catch (error) {
     console.error('Get users error:', error);
     res.status(500).json({ error: 'Failed to get users' });
@@ -4826,7 +4909,7 @@ app.post('/api/admin/users/:id/roles', verifyAdmin, async (req, res) => {
   try {
     const { add = [], remove = [] } = req.body || {};
     const allowed = ['customer', 'driver', 'admin', 'support'];
-    const userResult = await pool.query('SELECT id, role, roles FROM users WHERE id = $1', [req.params.id]);
+    const userResult = await pool.query('SELECT id, primary_role, roles FROM users WHERE id = $1', [req.params.id]);
     if (userResult.rows.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -5400,7 +5483,7 @@ app.get('/api/admin/analytics/performance', verifyAdmin, async (req, res) => {
         COALESCE(SUM(o.assigned_driver_bid_price), 0) as earnings
        FROM users u
        JOIN orders o ON o.assigned_driver_user_id = u.id
-       WHERE u.role = 'driver'
+       WHERE u.primary_role = 'driver'
          AND o.status = 'delivered'
          AND o.delivered_at >= $1
        GROUP BY u.id, u.name, u.email, u.rating

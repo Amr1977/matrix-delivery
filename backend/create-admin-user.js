@@ -53,7 +53,7 @@ async function createAdminUser() {
         // Create admin user
         await pool.query(
             `INSERT INTO users (
-        id, name, email, password, phone, role, roles, 
+        id, name, email, password, phone, primary_role, granted_roles, 
         is_verified, rating, completed_deliveries, created_at
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())`,
             [

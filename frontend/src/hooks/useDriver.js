@@ -48,9 +48,9 @@ const useDriver = (token, currentUser) => {
             const response = await fetch(`${API_URL}/drivers/location`, {
               method: 'POST',
               headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
               },
+              credentials: 'include',
               body: JSON.stringify({ latitude: fakeLoc.lat, longitude: fakeLoc.lng })
             });
 
@@ -100,9 +100,9 @@ const useDriver = (token, currentUser) => {
           const response = await fetch(`${API_URL}/drivers/location`, {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
+              'Content-Type': 'application/json'
             },
+            credentials: 'include',
             body: JSON.stringify({ latitude, longitude })
           });
 
@@ -169,7 +169,7 @@ const useDriver = (token, currentUser) => {
 
     try {
       const response = await fetch(`${API_URL}/drivers/location`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include'
       });
 
       // Handle 401 gracefully - user might not be authenticated yet
@@ -343,9 +343,9 @@ const useDriver = (token, currentUser) => {
       const response = await fetch(`${API_URL}/drivers/status`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({ isOnline })
       });
 

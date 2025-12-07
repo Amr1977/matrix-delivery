@@ -83,7 +83,7 @@ const useNotifications = (token, currentUser) => {
   const fetchNotifications = useCallback(async () => {
     try {
       const response = await fetch(`${API_URL}/notifications`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include'
       });
       if (!response.ok) return;
       const data = await response.json();
@@ -112,7 +112,7 @@ const useNotifications = (token, currentUser) => {
     try {
       await fetch(`${API_URL}/notifications/${notificationId}/read`, {
         method: 'PUT',
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include'
       });
       setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n));
     } catch (err) {

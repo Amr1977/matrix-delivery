@@ -30,7 +30,7 @@ const useAuth = () => {
 
     try {
       const response = await fetch(`${API_URL}/auth/me`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include'
       });
 
       if (!response.ok) {
@@ -214,9 +214,9 @@ const useAuth = () => {
       const response = await fetch(`${API_URL}/auth/send-verification`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
       });
 
       if (!response.ok) {
