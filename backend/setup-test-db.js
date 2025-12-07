@@ -95,17 +95,34 @@ async function setupTestDb() {
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
-      -- Orders table (minimal for tests)
+      -- Orders table
       CREATE TABLE IF NOT EXISTS orders (
           id VARCHAR(255) PRIMARY KEY,
-          customer_id VARCHAR(255) REFERENCES users(id),
-          driver_id VARCHAR(255) REFERENCES users(id),
+          order_number VARCHAR(50),
+          title VARCHAR(255),
+          description TEXT,
+          pickup_address TEXT,
+          delivery_address TEXT,
+          from_lat DECIMAL(10, 8),
+          from_lng DECIMAL(11, 8),
+          from_name VARCHAR(255),
+          to_lat DECIMAL(10, 8),
+          to_lng DECIMAL(11, 8),
+          to_name VARCHAR(255),
+          price DECIMAL(10, 2),
           status VARCHAR(50) NOT NULL,
+          customer_id VARCHAR(255) REFERENCES users(id),
+          customer_name VARCHAR(255),
+          assigned_driver_user_id VARCHAR(255) REFERENCES users(id),
+          assigned_driver_name VARCHAR(255),
+          assigned_driver_bid_price DECIMAL(10, 2),
+          payment_status VARCHAR(50),
           crypto_payment BOOLEAN DEFAULT FALSE,
           crypto_token VARCHAR(255),
           crypto_amount DECIMAL(20, 6),
           total_price DECIMAL(10, 2),
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP
       );
 
       -- Password reset tokens table
@@ -128,10 +145,46 @@ async function setupTestDb() {
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
+      -- Payments table
+      CREATE TABLE IF NOT EXISTS payments (
+          id VARCHAR(255) PRIMARY KEY,
+          order_id VARCHAR(255) REFERENCES orders(id),
+          payer_id VARCHAR(255) REFERENCES users(id),
+          payee_id VARCHAR(255) REFERENCES users(id),
+          amount DECIMAL(10, 2) NOT NULL,
+          currency VARCHAR(10) DEFAULT 'USD',
+          payment_method VARCHAR(50),
+          status VARCHAR(50) DEFAULT 'pending',
+          stripe_payment_intent_id VARCHAR(255),
+          stripe_charge_id VARCHAR(255),
+          paypal_order_id VARCHAR(255),
+          paypal_capture_id VARCHAR(255),
+          platform_fee DECIMAL(10, 2),
+          driver_earnings DECIMAL(10, 2),
+          updated_at TIMESTAMP,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      -- User payment methods table
+      CREATE TABLE IF NOT EXISTS user_payment_methods (
+          id VARCHAR(255) PRIMARY KEY,
+          user_id VARCHAR(255) REFERENCES users(id),
+          payment_method_type VARCHAR(50),
+          provider VARCHAR(50),
+          provider_token VARCHAR(255),
+          last_four VARCHAR(4),
+          expiry_month INTEGER,
+          expiry_year INTEGER,
+          is_default BOOLEAN DEFAULT FALSE,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
       -- Create indexes
       CREATE INDEX IF NOT EXISTS idx_crypto_tx_user ON crypto_transactions(user_id);
       CREATE INDEX IF NOT EXISTS idx_crypto_tx_order ON crypto_transactions(order_id);
       CREATE INDEX IF NOT EXISTS idx_user_wallets_address ON user_wallets(wallet_address);
+      CREATE INDEX IF NOT EXISTS idx_payments_order ON payments(order_id);
+      CREATE INDEX IF NOT EXISTS idx_payments_payer ON payments(payer_id);
     `;
 
         await dbClient.query(schema);
