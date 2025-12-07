@@ -1,4 +1,4 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const Stripe = require('stripe');
 const paypal = require('@paypal/checkout-server-sdk');
 const logger = require('../config/logger');
 const pool = require('../config/db');
@@ -25,7 +25,7 @@ class PaymentService {
       // Initialize Stripe
       const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
       if (stripeSecretKey) {
-        this.stripe = stripe(stripeSecretKey);
+        this.stripe = Stripe(stripeSecretKey);
         logger.info('Stripe initialized successfully', { category: 'payment' });
       } else {
         logger.warn('STRIPE_SECRET_KEY not configured', { category: 'payment' });
