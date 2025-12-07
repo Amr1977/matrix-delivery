@@ -3467,11 +3467,7 @@ const DeliveryApp = () => {
       </main>
 
       {showAdminPanel && (currentUser?.role === 'admin' || availableRoles.includes('admin')) && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ width: '100%', height: '100%', maxWidth: 'none', maxHeight: 'none', overflow: 'auto' }}>
-            <AdminPanel token={token} onClose={() => setShowAdminPanel(false)} />
-          </div>
-        </div>
+        <AdminPanel onClose={() => setShowAdminPanel(false)} />
       )}
 
       {showMessaging && (

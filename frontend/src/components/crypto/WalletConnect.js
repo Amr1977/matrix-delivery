@@ -14,32 +14,47 @@ const WalletConnect = ({ onConnected, onDisconnected }) => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        checkConnection();
+        // Don't block app initialization if MetaMask check fails
+        try {
+            checkConnection();
+        } catch (error) {
+            console.warn('[WalletConnect] Initialization error:', error.message);
+        }
 
-        // Listen for account changes
+        // Listen for account changes - only if MetaMask is available
         if (window.ethereum) {
-            window.ethereum.on('accountsChanged', handleAccountsChanged);
-            window.ethereum.on('chainChanged', () => window.location.reload());
+            try {
+                window.ethereum.on('accountsChanged', handleAccountsChanged);
+                window.ethereum.on('chainChanged', () => window.location.reload());
 
-            return () => {
-                // Add null checks for test cleanup
-                if (window.ethereum?.removeListener) {
-                    window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
-                }
-            };
+                return () => {
+                    // Add null checks for test cleanup
+                    if (window.ethereum?.removeListener) {
+                        window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+                    }
+                };
+            } catch (error) {
+                console.warn('[WalletConnect] Error setting up listeners:', error.message);
+            }
         }
     }, []);
 
     const checkConnection = async () => {
-        if (window.ethereum) {
-            try {
-                const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-                if (accounts.length > 0) {
-                    await handleAccountsChanged(accounts);
-                }
-            } catch (error) {
-                console.error('Error checking connection:', error);
+        // Silently check if MetaMask is available - don't block app if not
+        if (!window.ethereum) {
+            console.log('[WalletConnect] MetaMask not detected');
+            return;
+        }
+
+        try {
+            const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+            if (accounts.length > 0) {
+                await handleAccountsChanged(accounts);
             }
+        } catch (error) {
+            // Silently handle errors - don't block the app
+            console.warn('[WalletConnect] Error checking connection:', error.message);
+            // Don't set error state here - only set errors on user actions
         }
     };
 

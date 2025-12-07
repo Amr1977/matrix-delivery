@@ -4428,7 +4428,14 @@ app.get('/api/locations/countries/:country/cities/search', async (req, res) => {
 // Admin authentication middleware
 const verifyAdmin = async (req, res, next) => {
   try {
-    const token = req.headers['authorization']?.split(' ')[1];
+    // Check for token in cookies first (preferred method)
+    let token = req.cookies?.token;
+
+    // Fall back to Authorization header
+    if (!token) {
+      token = req.headers['authorization']?.split(' ')[1];
+    }
+
     if (!token) return res.status(401).json({ error: 'No token provided' });
 
     const decoded = jwt.verify(token, JWT_SECRET);
