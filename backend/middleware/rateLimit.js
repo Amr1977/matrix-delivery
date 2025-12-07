@@ -1,4 +1,4 @@
-const logger = require('../logger');
+const logger = require('../config/logger');
 
 // In-memory store for rate limiting (use Redis in production)
 const rateLimitStore = new Map();

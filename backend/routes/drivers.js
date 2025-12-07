@@ -4,7 +4,7 @@ const pool = require('../config/db');
 const { verifyToken, requireRole } = require('../middleware/auth');
 // const googleMapsService = require('../services/googleMapsService');
 const { apiRateLimit } = require('../middleware/rateLimit');
-const logger = require('../logger');
+const logger = require('../config/logger');
 const { createNotification } = require('../server'); // Import for real-time updates
 
 // Environment is already loaded by server.js or jest.setup.js

@@ -1,7 +1,7 @@
 // ============ BACKEND: Map Location Picker Implementation ============
 // Exported as a function to be used in server.js
 
-const logger = require('./logger');
+const logger = require('./config/logger');
 
 // Helper functions for ID generation (same as OrderService)
 const generateId = () => {

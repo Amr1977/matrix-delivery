@@ -1,5 +1,5 @@
 const nodemailer = require('nodemailer');
-const logger = require('../logger');
+const logger = require('../config/logger');
 
 // Load environment-specific .env file
 const envFile = process.env.ENV_FILE || '.env';

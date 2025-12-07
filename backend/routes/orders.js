@@ -2,7 +2,7 @@ const express = require('express');
 const orderService = require('../services/orderService');
 const { verifyToken, requireRole } = require('../middleware/auth');
 const { orderCreationRateLimit, apiRateLimit } = require('../middleware/rateLimit');
-const logger = require('../logger');
+const logger = require('../config/logger');
 
 const router = express.Router();
 

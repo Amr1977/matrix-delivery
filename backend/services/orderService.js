@@ -1,6 +1,6 @@
 const pool = require('../config/db');
 const { getDistance } = require('geolib');
-const logger = require('../logger');
+const logger = require('../config/logger');
 
 // Environment is already loaded by server.js or jest.setup.js
 // No need to call dotenv.config() here

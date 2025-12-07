@@ -1,5 +1,5 @@
 const { Pool } = require('pg');
-const logger = require('./logger');
+const logger = require('./config/logger');
 
 const pool = new Pool({
   host: process.env.DB_HOST || 'localhost',
@@ -13,7 +13,7 @@ const pool = new Pool({
 const orderService = require('./services/orderService');
 
 // Add cleanup method to the imported service
-orderService.cleanupTestOrders = async function() {
+orderService.cleanupTestOrders = async function () {
   const pool = require('pg').Pool;
   const dbPool = new pool({
     host: process.env.DB_HOST || 'localhost',

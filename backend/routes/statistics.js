@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
-const logger = require('../logger');
+const logger = require('../config/logger');
 
 router.get('/footer', async (req, res) => {
   try {

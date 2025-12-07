@@ -1,5 +1,5 @@
 const { Pool } = require('pg');
-const logger = require('../logger');
+const logger = require('./logger');
 
 // Environment is loaded by server.js or jest.setup.js
 // but we check anyway to be safe

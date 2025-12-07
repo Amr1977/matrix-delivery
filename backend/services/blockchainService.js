@@ -1,5 +1,5 @@
 const { ethers } = require('ethers');
-const logger = require('../logger');
+const logger = require('../config/logger');
 
 // Contract ABI - Essential functions only
 const ESCROW_ABI = [

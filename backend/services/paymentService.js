@@ -1,6 +1,6 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const paypal = require('@paypal/checkout-server-sdk');
-const logger = require('../logger');
+const logger = require('../config/logger');
 const pool = require('../config/db');
 
 // Environment is already loaded by server.js or jest.setup.js

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { exec } = require('child_process');
-const logger = require('../logger');
+const logger = require('../config/logger');
 const path = require('path');
 
 // POST /api/deploy

@@ -3,7 +3,7 @@ const path = require('path');
 const multer = require('multer');
 const sharp = require('sharp');
 const ffmpeg = require('fluent-ffmpeg');
-const logger = require('../logger');
+const logger = require('../config/logger');
 
 class FileUploadService {
     constructor() {

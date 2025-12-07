@@ -21,7 +21,7 @@ const { getDistance } = require('geolib');
 const http = require('http');
 const socketIo = require('socket.io');
 const morgan = require('morgan');
-const logger = require('./logger');
+const logger = require('./config/logger');
 const { exec } = require('child_process');
 // const Recaptcha = require('google-recaptcha-v2');
 
