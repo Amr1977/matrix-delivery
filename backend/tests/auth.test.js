@@ -1,10 +1,9 @@
-database: IS_TEST ? (process.env.DB_NAME_TEST || 'matrix_delivery_test') : (process.env.DB_NAME || 'matrix_delivery'),
-  user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || 'postgres',
-      max: 20,
-        idleTimeoutMillis: 30000,
-          connectionTimeoutMillis: 2000,
-});
+const request = require('supertest');
+const pool = require('../config/db');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
+const JWT_SECRET = process.env.JWT_SECRET || 'test_secret';
 
 let server;
 let testUser;
@@ -26,7 +25,11 @@ describe('Authentication API Tests', () => {
 
   beforeEach(async () => {
     // Clean up test data
+    await pool.query('DELETE FROM email_verification_tokens');
     await pool.query('DELETE FROM password_reset_tokens');
+    await pool.query('DELETE FROM crypto_transactions');
+    await pool.query('DELETE FROM orders');
+    await pool.query('DELETE FROM user_wallets');
     await pool.query('DELETE FROM users');
   });
 
@@ -49,7 +52,12 @@ describe('Authentication API Tests', () => {
         .expect(201);
 
       expect(response.body).toHaveProperty('user');
-      expect(response.body).toHaveProperty('token');
+      // Token is now in cookie, not body
+      const cookies = response.headers['set-cookie'];
+      expect(cookies).toBeDefined();
+      const tokenCookie = cookies.find(c => c.startsWith('token='));
+      expect(tokenCookie).toBeDefined();
+
       expect(response.body.user.email).toBe(userData.email);
       expect(response.body.user.role).toBe(userData.role);
     });
@@ -134,9 +142,15 @@ describe('Authentication API Tests', () => {
         .expect(200);
 
       expect(response.body).toHaveProperty('user');
-      expect(response.body).toHaveProperty('token');
+
+      // Token is in cookie
+      const cookies = response.headers['set-cookie'];
+      expect(cookies).toBeDefined();
+      const tokenCookie = cookies.find(c => c.startsWith('token='));
+      expect(tokenCookie).toBeDefined();
+      testToken = tokenCookie.split(';')[0].split('=')[1];
+
       expect(response.body.user.email).toBe(loginData.email);
-      testToken = response.body.token;
     });
 
     it('should return 401 for invalid credentials', async () => {
@@ -453,6 +467,7 @@ describe('Authentication API Tests', () => {
         .send(switchData)
         .expect(200);
 
+      // Token is returned in body for switch-role as it returns new token
       expect(response.body).toHaveProperty('token');
       expect(response.body).toHaveProperty('role');
       expect(response.body.role).toBe('driver');
