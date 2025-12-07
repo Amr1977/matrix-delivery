@@ -1,12 +1,8 @@
 const express = require('express');
-const blockchainService = require('../services/blockchainService');
-const { verifyToken } = require('../middleware/auth');
-const { Pool } = require('pg');
-const logger = require('../logger');
-const { v4: uuidv4 } = require('uuid');
-
 const router = express.Router();
-const pool = new Pool();
+const pool = require('../config/db');
+const { verifyToken, requireRole } = require('../middleware/auth');
+const blockchainService = require('../services/blockchainService');
 
 /**
  * GET /api/crypto/tokens

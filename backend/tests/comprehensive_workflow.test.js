@@ -1,28 +1,7 @@
-
-const request = require('supertest');
-const express = require('express');
-const { Pool } = require('pg');
-const { exec } = require('child_process');
-
-// Mocks
-jest.mock('pg', () => {
-    const mPool = {
-        connect: jest.fn(),
-        query: jest.fn(),
-        end: jest.fn(),
-    };
-    return { Pool: jest.fn(() => mPool) };
-});
-
-jest.mock('child_process', () => ({
-    exec: jest.fn(),
-}));
-
-jest.mock('../logger', () => ({
-    info: jest.fn(),
+info: jest.fn(),
     error: jest.fn(),
-    warn: jest.fn(),
-    http: jest.fn(),
+        warn: jest.fn(),
+            http: jest.fn(),
 }));
 
 // Import Routes

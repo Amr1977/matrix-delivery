@@ -1,9 +1,9 @@
+const pool = require('../../config/db');
 const request = require('supertest');
-const { Pool } = require('pg');
-const app = require('../server');
+const app = require('../../server');
+const { generateToken } = require('../../utils/auth');
 
 describe('Logging API Tests', () => {
-    let pool;
     let adminToken;
     let userToken;
     let testUserId;

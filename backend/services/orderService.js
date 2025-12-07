@@ -1,24 +1,11 @@
-const { Pool } = require('pg');
+const pool = require('../config/db');
 const { getDistance } = require('geolib');
 const logger = require('../logger');
 
-// Load environment-specific .env file
-const envFile = process.env.ENV_FILE || '.env';
-require('dotenv').config({ path: envFile });
+// Environment is already loaded by server.js or jest.setup.js
+// No need to call dotenv.config() here
 
 const IS_TEST = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing';
-
-// PostgreSQL Connection Pool
-const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 5432,
-  database: IS_TEST ? (process.env.DB_NAME_TEST || 'matrix_delivery_test') : (process.env.DB_NAME || 'matrix_delivery'),
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'postgres',
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
-});
 
 class OrderService {
   /**
