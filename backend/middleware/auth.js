@@ -1,9 +1,8 @@
 const jwt = require('jsonwebtoken');
 const logger = require('../logger');
 
-// Load environment-specific .env file
-const envFile = process.env.ENV_FILE || '.env';
-require('dotenv').config({ path: envFile });
+// Environment is already loaded by server.js or jest.setup.js
+// No need to call dotenv.config() here
 
 const JWT_SECRET = process.env.JWT_SECRET;
 

@@ -1,5 +1,5 @@
+const pool = require('../../config/db');
 const LoggingService = require('../../services/loggingService');
-const { Pool } = require('pg');
 
 describe('LoggingService', () => {
     let pool;

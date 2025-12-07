@@ -1,25 +1,9 @@
-const request = require('supertest');
-const { Pool } = require('pg');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
-
-// Load environment-specific .env file for tests
-const envFile = process.env.ENV_FILE || '.env';
-require('dotenv').config({ path: envFile });
-
-const JWT_SECRET = process.env.JWT_SECRET;
-const IS_TEST = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing';
-
-// PostgreSQL Connection Pool for tests
-const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 5432,
-  database: IS_TEST ? (process.env.DB_NAME_TEST || 'matrix_delivery_test') : (process.env.DB_NAME || 'matrix_delivery'),
+database: IS_TEST ? (process.env.DB_NAME_TEST || 'matrix_delivery_test') : (process.env.DB_NAME || 'matrix_delivery'),
   user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'postgres',
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+    password: process.env.DB_PASSWORD || 'postgres',
+      max: 20,
+        idleTimeoutMillis: 30000,
+          connectionTimeoutMillis: 2000,
 });
 
 let server;

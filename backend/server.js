@@ -5,9 +5,18 @@ const express = require('express');
 console.error('🔥 CRITICAL DEBUG: server.js is running!');
 const cors = require('cors');
 const dotenv = require('dotenv');
+
+// Load environment-specific .env file
+if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing') {
+  dotenv.config({ path: '.env.testing' });
+  console.log('✅ Loaded .env.testing for testing');
+} else {
+  dotenv.config();
+}
+
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const { Pool } = require('pg');
+const pool = require('./config/db');
 const { getDistance } = require('geolib');
 const http = require('http');
 const socketIo = require('socket.io');
@@ -47,10 +56,8 @@ const {
 } = require('./middleware/security');
 const { initAuditLogger } = require('./middleware/auditLogger');
 
-// Load environment-specific .env file
-const envFile = process.env.ENV_FILE || '.env';
-dotenv.config({ path: envFile });
-logger.info(`🔧 Loading environment from: ${envFile}`, { envFile });
+// Environment already loaded at top of file based on NODE_ENV
+logger.info(`🔧 Environment loaded for: ${process.env.NODE_ENV || 'development'}`);
 
 // Validate security configuration on startup
 try {
@@ -161,22 +168,7 @@ if (!IS_TEST) {
   }
 }
 
-// PostgreSQL Connection Pool with SSL for production
-const pool = new Pool({
-  host: process.env.DB_HOST,
-  port: parseInt(process.env.DB_PORT),
-  database: IS_TEST ? (process.env.DB_NAME_TEST || 'matrix_delivery_test') : process.env.DB_NAME,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: parseInt(process.env.DB_CONNECTION_TIMEOUT) || 2000,
-  // SSL configuration for production
-  ssl: IS_PRODUCTION && process.env.DB_SSL === 'true' ? {
-    rejectUnauthorized: true,
-    ca: process.env.DB_CA_CERT ? require('fs').readFileSync(process.env.DB_CA_CERT) : undefined
-  } : false
-});
+
 
 // Database initialization
 const initDatabase = async () => {
