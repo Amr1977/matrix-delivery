@@ -1142,6 +1142,7 @@ const DeliveryApp = () => {
       const response = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // Include cookies for httpOnly cookie auth
         body: JSON.stringify({
           ...authForm,
           recaptchaToken
