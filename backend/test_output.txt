@@ -1,0 +1,5247 @@
+
+> matrix-delivery-backend@1.0.0 test
+> jest --coverage
+
+ts-jest[ts-jest-transformer] (WARN) Define `ts-jest` config under `globals` is deprecated. Please do
+transform: {
+    <transform_regex>: ['ts-jest', { /* ts-jest config goes here in Jest */ }],
+},
+See more at https://kulshekhar.github.io/ts-jest/docs/getting-started/presets#advanced
+ts-jest[ts-jest-transformer] (WARN) Define `ts-jest` config under `globals` is deprecated. Please do
+transform: {
+    <transform_regex>: ['ts-jest', { /* ts-jest config goes here in Jest */ }],
+},
+See more at https://kulshekhar.github.io/ts-jest/docs/getting-started/presets#advanced
+ts-jest[ts-jest-transformer] (WARN) Define `ts-jest` config under `globals` is deprecated. Please do
+transform: {
+    <transform_regex>: ['ts-jest', { /* ts-jest config goes here in Jest */ }],
+},
+See more at https://kulshekhar.github.io/ts-jest/docs/getting-started/presets#advanced
+FAIL tests/payment.test.js (24.377 s)
+  ΓùÅ Console
+
+    console.log
+      [dotenv@17.2.3] injecting env (32) from .env.testing -- tip: ≡ƒöÉ encrypt with Dotenvx: https://dotenvx.com
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+    console.log
+      2025-12-08 19:15:50 [info]: ≡ƒöº Environment Configuration:
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:15:50 [info]:    NODE_ENV: testing
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:15:50 [info]:    IS_TEST: true
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:15:50 [info]:    DB_HOST: localhost
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:15:50 [info]:    DB_PORT: 5432
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:15:50 [info]:    DB_USER: postgres
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:15:50 [info]:    DB_NAME: matrix_delivery_test
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:15:50 [info]:    DB_NAME_TEST: matrix_delivery_test
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:15:50 [info]: ≡ƒöî Connecting to database: matrix_delivery_test (Test Mode: true)
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.error
+      ≡ƒöÑ CRITICAL DEBUG: server.js is running!
+
+      3 |
+      4 | const express = require('express');
+    > 5 | console.error('≡ƒöÑ CRITICAL DEBUG: server.js is running!');
+        |         ^
+      6 | const cors = require('cors');
+      7 | const dotenv = require('dotenv');
+      8 |
+
+      at Object.<anonymous> (server.js:5:9)
+      at Object.<anonymous> (tests/payment.test.js:5:13)
+
+    console.log
+      [dotenv@17.2.3] injecting env (0) from .env.testing -- tip: ΓÜÖ∩╕Å  override existing env vars with { override: true }
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+    console.log
+      Γ£à Loaded .env.testing for testing
+
+      at Object.<anonymous> (server.js:12:11)
+
+    console.log
+      2025-12-08 19:16:06 [info]: ≡ƒöº Environment loaded for: testing
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      Γ£à Security configuration validated
+
+      at log (middleware/security.ts:188:13)
+
+    console.log
+      Γ£à Admin API endpoints loaded successfully - All 3 parts complete
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      [dotenv@17.2.3] injecting env (0) from .env -- tip: ΓÜÖ∩╕Å  suppress all logs with { quiet: true }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      2025-12-08 19:16:09 [http]: REQUEST: POST /api/payments/create-intent
+      {
+        "method": "POST",
+        "url": "/api/payments/create-intent",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [info]: AUTH: Token verified successfully
+      {
+        "userId": "customer-pay-id",
+        "role": "customer",
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [info]: PAYMENT: Payment intent creation request
+      {
+        "ip": "::ffff:127.0.0.1",
+        "userId": "customer-pay-id",
+        "category": "payment"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [info]: Stripe initialized successfully
+      {
+        "category": "payment"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [warn]: PayPal credentials not configured
+      {
+        "category": "payment"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [error]: Payment intent creation failed: Order not found or access denied
+      {
+        "orderId": "order-pay-id",
+        "userId": "customer-pay-id",
+        "amount": 50,
+        "category": "payment",
+        "error": "Order not found or access denied"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [error]: Payment intent creation failed: Order not found or access denied
+      {
+        "error": "Error: Order not found or access denied\n    at PaymentService.createPaymentIntent (D:\\matrix-delivery\\backend\\services\\paymentService.js:4857:15)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at D:\\matrix-delivery\\backend\\routes\\payments.js:3203:31",
+        "ip": "::ffff:127.0.0.1",
+        "userId": "customer-pay-id",
+        "duration": "71ms",
+        "category": "error"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:09",
+        "ip": "/api/payments/create-intent",
+        "userAgent": "404",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [warn]: RESPONSE: POST /api/payments/create-intent 404
+      {
+        "method": "POST",
+        "url": "/api/payments/create-intent",
+        "statusCode": 404,
+        "duration": "154ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [http]: REQUEST: POST /api/payments/create-intent
+      {
+        "method": "POST",
+        "url": "/api/payments/create-intent",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [info]: AUTH: Token verified successfully
+      {
+        "userId": "customer-pay-id",
+        "role": "customer",
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [info]: PAYMENT: Payment intent creation request
+      {
+        "ip": "::ffff:127.0.0.1",
+        "userId": "customer-pay-id",
+        "category": "payment"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:09",
+        "ip": "/api/payments/create-intent",
+        "userAgent": "400",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [warn]: RESPONSE: POST /api/payments/create-intent 400
+      {
+        "method": "POST",
+        "url": "/api/payments/create-intent",
+        "statusCode": 400,
+        "duration": "28ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [http]: REQUEST: POST /api/payments/create-intent
+      {
+        "method": "POST",
+        "url": "/api/payments/create-intent",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [warn]: SECURITY: Access attempt without token
+      {
+        "ip": "::ffff:127.0.0.1",
+        "path": "/create-intent",
+        "method": "POST",
+        "category": "security"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:10",
+        "ip": "/api/payments/create-intent",
+        "userAgent": "401",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [warn]: RESPONSE: POST /api/payments/create-intent 401
+      {
+        "method": "POST",
+        "url": "/api/payments/create-intent",
+        "statusCode": 401,
+        "duration": "13ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [http]: REQUEST: POST /api/payments/create-intent
+      {
+        "method": "POST",
+        "url": "/api/payments/create-intent",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [info]: AUTH: Token verified successfully
+      {
+        "userId": "customer-pay-id",
+        "role": "customer",
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [info]: PAYMENT: Payment intent creation request
+      {
+        "ip": "::ffff:127.0.0.1",
+        "userId": "customer-pay-id",
+        "category": "payment"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:10",
+        "ip": "/api/payments/create-intent",
+        "userAgent": "400",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [warn]: RESPONSE: POST /api/payments/create-intent 400
+      {
+        "method": "POST",
+        "url": "/api/payments/create-intent",
+        "statusCode": 400,
+        "duration": "19ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [http]: REQUEST: GET /api/payments/methods
+      {
+        "method": "GET",
+        "url": "/api/payments/methods",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [info]: AUTH: Token verified successfully
+      {
+        "userId": "customer-pay-id",
+        "role": "customer",
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:10",
+        "ip": "/api/payments/methods",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [http]: RESPONSE: GET /api/payments/methods 200
+      {
+        "method": "GET",
+        "url": "/api/payments/methods",
+        "statusCode": 200,
+        "duration": "29ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [http]: REQUEST: GET /api/payments/methods
+      {
+        "method": "GET",
+        "url": "/api/payments/methods",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [warn]: SECURITY: Access attempt without token
+      {
+        "ip": "::ffff:127.0.0.1",
+        "path": "/methods",
+        "method": "GET",
+        "category": "security"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:10",
+        "ip": "/api/payments/methods",
+        "userAgent": "401",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [warn]: RESPONSE: GET /api/payments/methods 401
+      {
+        "method": "GET",
+        "url": "/api/payments/methods",
+        "statusCode": 401,
+        "duration": "15ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [http]: REQUEST: POST /api/payments/methods
+      {
+        "method": "POST",
+        "url": "/api/payments/methods",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [info]: AUTH: Token verified successfully
+      {
+        "userId": "customer-pay-id",
+        "role": "customer",
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [info]: PAYMENT: Add payment method request
+      {
+        "ip": "::ffff:127.0.0.1",
+        "userId": "customer-pay-id",
+        "category": "payment"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [error]: Payment method addition failed: column "stripe_customer_id" does not exist
+      {
+        "userId": "customer-pay-id",
+        "category": "payment",
+        "error": "column \"stripe_customer_id\" does not exist"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [error]: Add payment method failed: column "stripe_customer_id" does not exist
+      {
+        "error": "error: column \"stripe_customer_id\" does not exist\n    at D:\\matrix-delivery\\backend\\node_modules\\pg-pool\\index.js:45:11\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at PaymentService.addPaymentMethod (D:\\matrix-delivery\\backend\\services\\paymentService.js:5386:35)\n    at D:\\matrix-delivery\\backend\\routes\\payments.js:3528:31",
+        "ip": "::ffff:127.0.0.1",
+        "userId": "customer-pay-id",
+        "duration": "11ms",
+        "category": "error"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:10",
+        "ip": "/api/payments/methods",
+        "userAgent": "500",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [warn]: RESPONSE: POST /api/payments/methods 500
+      {
+        "method": "POST",
+        "url": "/api/payments/methods",
+        "statusCode": 500,
+        "duration": "29ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [http]: REQUEST: POST /api/payments/methods
+      {
+        "method": "POST",
+        "url": "/api/payments/methods",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [info]: AUTH: Token verified successfully
+      {
+        "userId": "customer-pay-id",
+        "role": "customer",
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [info]: PAYMENT: Add payment method request
+      {
+        "ip": "::ffff:127.0.0.1",
+        "userId": "customer-pay-id",
+        "category": "payment"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:11",
+        "ip": "/api/payments/methods",
+        "userAgent": "400",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [warn]: RESPONSE: POST /api/payments/methods 400
+      {
+        "method": "POST",
+        "url": "/api/payments/methods",
+        "statusCode": 400,
+        "duration": "21ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [http]: REQUEST: POST /api/payments/methods
+      {
+        "method": "POST",
+        "url": "/api/payments/methods",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [warn]: SECURITY: Access attempt without token
+      {
+        "ip": "::ffff:127.0.0.1",
+        "path": "/methods",
+        "method": "POST",
+        "category": "security"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:11",
+        "ip": "/api/payments/methods",
+        "userAgent": "401",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [warn]: RESPONSE: POST /api/payments/methods 401
+      {
+        "method": "POST",
+        "url": "/api/payments/methods",
+        "statusCode": 401,
+        "duration": "19ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+  ΓùÅ Payment API Tests ΓÇ║ POST /api/payments/create-intent ΓÇ║ should create payment intent successfully
+
+    expected 200 "OK", got 404 "Not Found"
+
+      126 |                 .set('Authorization', `Bearer ${customerToken}`)
+      127 |                 .send(paymentData)
+    > 128 |                 .expect(200);
+          |                  ^
+      129 |
+      130 |             expect(response.body).toHaveProperty('success', true);
+      131 |             expect(response.body).toHaveProperty('paymentIntent');
+
+      at Object.<anonymous> (tests/payment.test.js:128:18)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:252:14)
+      at node_modules/supertest/lib/test.js:308:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:285:13)
+      at Test.assert (node_modules/supertest/lib/test.js:164:23)
+      at Server.localAssert (node_modules/supertest/lib/test.js:120:14)
+      at Object.apply (node_modules/@sentry/node-core/src/integrations/http/httpServerIntegration.ts:168:23)
+
+  ΓùÅ Payment API Tests ΓÇ║ GET /api/payments/order/:orderId ΓÇ║ should get payment details for an order
+
+    error: insert or update on table "payments" violates foreign key constraint "payments_order_id_fkey"
+
+      163 |         beforeEach(async () => {
+      164 |             // Create test payment
+    > 165 |             const result = await pool.query(
+          |                            ^
+      166 |                 `INSERT INTO payments (id, order_id, amount, currency, payment_method, status, payer_id, payee_id, platform_fee, driver_earnings)
+      167 |          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      168 |          RETURNING *`,
+
+      at node_modules/pg-pool/index.js:45:11
+      at Object.<anonymous> (tests/payment.test.js:165:28)
+
+  ΓùÅ Payment API Tests ΓÇ║ GET /api/payments/order/:orderId ΓÇ║ should return 401 without token
+
+    error: insert or update on table "payments" violates foreign key constraint "payments_order_id_fkey"
+
+      163 |         beforeEach(async () => {
+      164 |             // Create test payment
+    > 165 |             const result = await pool.query(
+          |                            ^
+      166 |                 `INSERT INTO payments (id, order_id, amount, currency, payment_method, status, payer_id, payee_id, platform_fee, driver_earnings)
+      167 |          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      168 |          RETURNING *`,
+
+      at node_modules/pg-pool/index.js:45:11
+      at Object.<anonymous> (tests/payment.test.js:165:28)
+
+  ΓùÅ Payment API Tests ΓÇ║ GET /api/payments/order/:orderId ΓÇ║ should return 404 for non-existent order
+
+    error: insert or update on table "payments" violates foreign key constraint "payments_order_id_fkey"
+
+      163 |         beforeEach(async () => {
+      164 |             // Create test payment
+    > 165 |             const result = await pool.query(
+          |                            ^
+      166 |                 `INSERT INTO payments (id, order_id, amount, currency, payment_method, status, payer_id, payee_id, platform_fee, driver_earnings)
+      167 |          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      168 |          RETURNING *`,
+
+      at node_modules/pg-pool/index.js:45:11
+      at Object.<anonymous> (tests/payment.test.js:165:28)
+
+  ΓùÅ Payment API Tests ΓÇ║ POST /api/payments/refund/:paymentId ΓÇ║ should process refund successfully
+
+    error: insert or update on table "payments" violates foreign key constraint "payments_order_id_fkey"
+
+      200 |         beforeEach(async () => {
+      201 |             // Create completed payment
+    > 202 |             const result = await pool.query(
+          |                            ^
+      203 |                 `INSERT INTO payments (id, order_id, amount, currency, payment_method, status, payer_id, payee_id, platform_fee, driver_earnings, stripe_payment_intent_id)
+      204 |          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      205 |          RETURNING *`,
+
+      at node_modules/pg-pool/index.js:45:11
+      at Object.<anonymous> (tests/payment.test.js:202:28)
+
+  ΓùÅ Payment API Tests ΓÇ║ POST /api/payments/refund/:paymentId ΓÇ║ should return 401 without token
+
+    error: insert or update on table "payments" violates foreign key constraint "payments_order_id_fkey"
+
+      200 |         beforeEach(async () => {
+      201 |             // Create completed payment
+    > 202 |             const result = await pool.query(
+          |                            ^
+      203 |                 `INSERT INTO payments (id, order_id, amount, currency, payment_method, status, payer_id, payee_id, platform_fee, driver_earnings, stripe_payment_intent_id)
+      204 |          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      205 |          RETURNING *`,
+
+      at node_modules/pg-pool/index.js:45:11
+      at Object.<anonymous> (tests/payment.test.js:202:28)
+
+  ΓùÅ Payment API Tests ΓÇ║ POST /api/payments/methods ΓÇ║ should add payment method successfully
+
+    expected 200 "OK", got 500 "Internal Server Error"
+
+      262 |                 .set('Authorization', `Bearer ${customerToken}`)
+      263 |                 .send(paymentMethodData)
+    > 264 |                 .expect(200);
+          |                  ^
+      265 |
+      266 |             expect(response.body).toHaveProperty('success', true);
+      267 |             expect(response.body).toHaveProperty('paymentMethod');
+
+      at Object.<anonymous> (tests/payment.test.js:264:18)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:252:14)
+      at node_modules/supertest/lib/test.js:308:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:285:13)
+      at Test.assert (node_modules/supertest/lib/test.js:164:23)
+      at Server.localAssert (node_modules/supertest/lib/test.js:120:14)
+      at Object.apply (node_modules/@sentry/node-core/src/integrations/http/httpServerIntegration.ts:168:23)
+
+FAIL tests/auth.test.js (28.346 s)
+  ΓùÅ Console
+
+    console.log
+      [dotenv@17.2.3] injecting env (32) from .env.testing -- tip: ΓÜÖ∩╕Å  suppress all logs with { quiet: true }
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+    console.log
+      2025-12-08 19:15:50 [info]: ≡ƒöº Environment Configuration:
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:15:50 [info]:    NODE_ENV: testing
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:15:50 [info]:    IS_TEST: true
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:15:50 [info]:    DB_HOST: localhost
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:15:50 [info]:    DB_PORT: 5432
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:15:50 [info]:    DB_USER: postgres
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:15:50 [info]:    DB_NAME: matrix_delivery_test
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:15:50 [info]:    DB_NAME_TEST: matrix_delivery_test
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:15:50 [info]: ≡ƒöî Connecting to database: matrix_delivery_test (Test Mode: true)
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.error
+      ≡ƒöÑ CRITICAL DEBUG: server.js is running!
+
+      3 |
+      4 | const express = require('express');
+    > 5 | console.error('≡ƒöÑ CRITICAL DEBUG: server.js is running!');
+        |         ^
+      6 | const cors = require('cors');
+      7 | const dotenv = require('dotenv');
+      8 |
+
+      at Object.<anonymous> (server.js:5:9)
+      at Object.<anonymous> (tests/auth.test.js:15:17)
+
+    console.log
+      [dotenv@17.2.3] injecting env (0) from .env.testing -- tip: ΓÜÖ∩╕Å  suppress all logs with { quiet: true }
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+    console.log
+      Γ£à Loaded .env.testing for testing
+
+      at Object.<anonymous> (server.js:12:11)
+
+    console.log
+      2025-12-08 19:16:06 [info]: ≡ƒöº Environment loaded for: testing
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      Γ£à Security configuration validated
+
+      at log (middleware/security.ts:188:13)
+
+    console.log
+      Γ£à Admin API endpoints loaded successfully - All 3 parts complete
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      [dotenv@17.2.3] injecting env (0) from .env -- tip: ≡ƒöÉ prevent committing .env to code: https://dotenvx.com/precommit
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      2025-12-08 19:16:09 [http]: REQUEST: POST /api/auth/register
+      {
+        "method": "POST",
+        "url": "/api/auth/register",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [info]: AUTH: Registration attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:09",
+        "ip": "/api/auth/register",
+        "userAgent": "400",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [warn]: RESPONSE: POST /api/auth/register 400
+      {
+        "method": "POST",
+        "url": "/api/auth/register",
+        "statusCode": 400,
+        "duration": "69ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [http]: REQUEST: POST /api/auth/register
+      {
+        "method": "POST",
+        "url": "/api/auth/register",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [info]: AUTH: Registration attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:09",
+        "ip": "/api/auth/register",
+        "userAgent": "400",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [warn]: RESPONSE: POST /api/auth/register 400
+      {
+        "method": "POST",
+        "url": "/api/auth/register",
+        "statusCode": 400,
+        "duration": "20ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [http]: REQUEST: POST /api/auth/register
+      {
+        "method": "POST",
+        "url": "/api/auth/register",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [info]: AUTH: Registration attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:09",
+        "ip": "/api/auth/register",
+        "userAgent": "400",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [warn]: RESPONSE: POST /api/auth/register 400
+      {
+        "method": "POST",
+        "url": "/api/auth/register",
+        "statusCode": 400,
+        "duration": "18ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [http]: REQUEST: POST /api/auth/login
+      {
+        "method": "POST",
+        "url": "/api/auth/login",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [info]: AUTH: Login attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [info]: AUTH: User logged in successfully
+      {
+        "userId": "test-user-id",
+        "email": "login@example.com",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [info]: PERF: Login completed
+      {
+        "userId": "test-user-id",
+        "duration": "174ms",
+        "category": "performance"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      ≡ƒì¬ Setting cookie with options: {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'lax',
+        maxAge: 2592000000,
+        path: '/'
+      }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      ≡ƒì¬ Token length: 348
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      2025-12-08 19:16:10 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:10",
+        "ip": "/api/auth/login",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [http]: RESPONSE: POST /api/auth/login 200
+      {
+        "method": "POST",
+        "url": "/api/auth/login",
+        "statusCode": 200,
+        "duration": "192ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [http]: REQUEST: POST /api/auth/login
+      {
+        "method": "POST",
+        "url": "/api/auth/login",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [info]: AUTH: Login attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [error]: Login error: Invalid email or password
+      {
+        "stack": "Error: Invalid email or password\n    at AuthService.authenticateUser (D:\\matrix-delivery\\backend\\services\\authService.js:4586:13)\n    at AuthService.loginUser (D:\\matrix-delivery\\backend\\services\\authService.js:4721:31)\n    at D:\\matrix-delivery\\backend\\routes\\auth.js:5092:31",
+        "ip": "::ffff:127.0.0.1",
+        "duration": "170ms",
+        "category": "error"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:10",
+        "ip": "/api/auth/login",
+        "userAgent": "401",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [warn]: RESPONSE: POST /api/auth/login 401
+      {
+        "method": "POST",
+        "url": "/api/auth/login",
+        "statusCode": 401,
+        "duration": "186ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [http]: REQUEST: POST /api/auth/forgot-password
+      {
+        "method": "POST",
+        "url": "/api/auth/forgot-password",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [info]: AUTH: Password reset request
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [error]: Email service initialization failed: nodemailer.createTransporter is not a function
+      {
+        "category": "email",
+        "error": "nodemailer.createTransporter is not a function"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [info]: Password reset email would be sent
+      {
+        "category": "email",
+        "to": "forgot@example.com",
+        "resetUrl": "http://localhost:3000/reset-password?token=1765214170776weuml9nir"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [info]: PERF: Password reset email sent
+      {
+        "userId": "forgot-user-id",
+        "duration": "26ms",
+        "category": "performance"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:10",
+        "ip": "/api/auth/forgot-password",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [http]: RESPONSE: POST /api/auth/forgot-password 200
+      {
+        "method": "POST",
+        "url": "/api/auth/forgot-password",
+        "statusCode": 200,
+        "duration": "39ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [http]: REQUEST: POST /api/auth/forgot-password
+      {
+        "method": "POST",
+        "url": "/api/auth/forgot-password",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [info]: AUTH: Password reset request
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [error]: Forgot password error: User not found
+      {
+        "error": "Error: User not found\n    at AuthService.createPasswordResetToken (D:\\matrix-delivery\\backend\\services\\authService.js:5055:13)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at D:\\matrix-delivery\\backend\\routes\\auth.js:5659:32",
+        "ip": "::ffff:127.0.0.1",
+        "duration": "9ms",
+        "category": "error"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:11",
+        "ip": "/api/auth/forgot-password",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [http]: RESPONSE: POST /api/auth/forgot-password 200
+      {
+        "method": "POST",
+        "url": "/api/auth/forgot-password",
+        "statusCode": 200,
+        "duration": "23ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [http]: REQUEST: POST /api/auth/forgot-password
+      {
+        "method": "POST",
+        "url": "/api/auth/forgot-password",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [info]: AUTH: Password reset request
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:11",
+        "ip": "/api/auth/forgot-password",
+        "userAgent": "400",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [warn]: RESPONSE: POST /api/auth/forgot-password 400
+      {
+        "method": "POST",
+        "url": "/api/auth/forgot-password",
+        "statusCode": 400,
+        "duration": "14ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [http]: REQUEST: POST /api/auth/reset-password
+      {
+        "method": "POST",
+        "url": "/api/auth/reset-password",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [info]: AUTH: Password reset attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [info]: PERF: Password reset completed
+      {
+        "duration": "156ms",
+        "category": "performance"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:11",
+        "ip": "/api/auth/reset-password",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [http]: RESPONSE: POST /api/auth/reset-password 200
+      {
+        "method": "POST",
+        "url": "/api/auth/reset-password",
+        "statusCode": 200,
+        "duration": "171ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:12 [http]: REQUEST: POST /api/auth/reset-password
+      {
+        "method": "POST",
+        "url": "/api/auth/reset-password",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:12 [info]: AUTH: Password reset attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:12 [error]: Reset password error: Invalid or expired reset token
+      {
+        "error": "Error: Invalid or expired reset token\n    at AuthService.resetPassword (D:\\matrix-delivery\\backend\\services\\authService.js:5139:13)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at D:\\matrix-delivery\\backend\\routes\\auth.js:5798:5",
+        "ip": "::ffff:127.0.0.1",
+        "duration": "7ms",
+        "category": "error"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:12 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:12",
+        "ip": "/api/auth/reset-password",
+        "userAgent": "400",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:12 [warn]: RESPONSE: POST /api/auth/reset-password 400
+      {
+        "method": "POST",
+        "url": "/api/auth/reset-password",
+        "statusCode": 400,
+        "duration": "20ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:12 [http]: REQUEST: POST /api/auth/reset-password
+      {
+        "method": "POST",
+        "url": "/api/auth/reset-password",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:12 [info]: AUTH: Password reset attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:12 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:12",
+        "ip": "/api/auth/reset-password",
+        "userAgent": "400",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:12 [warn]: RESPONSE: POST /api/auth/reset-password 400
+      {
+        "method": "POST",
+        "url": "/api/auth/reset-password",
+        "statusCode": 400,
+        "duration": "14ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:12 [http]: REQUEST: POST /api/auth/reset-password
+      {
+        "method": "POST",
+        "url": "/api/auth/reset-password",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:12 [info]: AUTH: Password reset attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:12 [error]: Reset password error: Invalid or expired reset token
+      {
+        "error": "Error: Invalid or expired reset token\n    at AuthService.resetPassword (D:\\matrix-delivery\\backend\\services\\authService.js:5139:13)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at D:\\matrix-delivery\\backend\\routes\\auth.js:5798:5",
+        "ip": "::ffff:127.0.0.1",
+        "duration": "7ms",
+        "category": "error"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:12 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:12",
+        "ip": "/api/auth/reset-password",
+        "userAgent": "400",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:12 [warn]: RESPONSE: POST /api/auth/reset-password 400
+      {
+        "method": "POST",
+        "url": "/api/auth/reset-password",
+        "statusCode": 400,
+        "duration": "20ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:12 [http]: REQUEST: GET /api/auth/me
+      {
+        "method": "GET",
+        "url": "/api/auth/me",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      ≡ƒì¬ /me endpoint - Cookies received: [Object: null prototype] {}
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      ≡ƒì¬ /me endpoint - Headers: undefined
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      2025-12-08 19:16:12 [warn]: SECURITY: Invalid token provided
+      {
+        "error": "jwt audience invalid. expected: matrix-delivery-api",
+        "ip": "::ffff:127.0.0.1",
+        "path": "/me",
+        "category": "security"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:12 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:12",
+        "ip": "/api/auth/me",
+        "userAgent": "401",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:12 [warn]: RESPONSE: GET /api/auth/me 401
+      {
+        "method": "GET",
+        "url": "/api/auth/me",
+        "statusCode": 401,
+        "duration": "50ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:13 [http]: REQUEST: GET /api/auth/me
+      {
+        "method": "GET",
+        "url": "/api/auth/me",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      ≡ƒì¬ /me endpoint - Cookies received: [Object: null prototype] {}
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      ≡ƒì¬ /me endpoint - Headers: undefined
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      2025-12-08 19:16:13 [warn]: SECURITY: Access attempt without token
+      {
+        "ip": "::ffff:127.0.0.1",
+        "path": "/me",
+        "method": "GET",
+        "category": "security"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:13 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:13",
+        "ip": "/api/auth/me",
+        "userAgent": "401",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:13 [warn]: RESPONSE: GET /api/auth/me 401
+      {
+        "method": "GET",
+        "url": "/api/auth/me",
+        "statusCode": 401,
+        "duration": "37ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:13 [http]: REQUEST: GET /api/auth/me
+      {
+        "method": "GET",
+        "url": "/api/auth/me",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      ≡ƒì¬ /me endpoint - Cookies received: [Object: null prototype] {}
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      ≡ƒì¬ /me endpoint - Headers: undefined
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      2025-12-08 19:16:13 [warn]: SECURITY: Invalid token provided
+      {
+        "error": "jwt malformed",
+        "ip": "::ffff:127.0.0.1",
+        "path": "/me",
+        "category": "security"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:13 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:13",
+        "ip": "/api/auth/me",
+        "userAgent": "401",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:13 [warn]: RESPONSE: GET /api/auth/me 401
+      {
+        "method": "GET",
+        "url": "/api/auth/me",
+        "statusCode": 401,
+        "duration": "28ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:13 [http]: REQUEST: POST /api/auth/switch-role
+      {
+        "method": "POST",
+        "url": "/api/auth/switch-role",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:13 [warn]: SECURITY: Invalid token provided
+      {
+        "error": "jwt audience invalid. expected: matrix-delivery-api",
+        "ip": "::ffff:127.0.0.1",
+        "path": "/switch-role",
+        "category": "security"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:13 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:13",
+        "ip": "/api/auth/switch-role",
+        "userAgent": "401",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:13 [warn]: RESPONSE: POST /api/auth/switch-role 401
+      {
+        "method": "POST",
+        "url": "/api/auth/switch-role",
+        "statusCode": 401,
+        "duration": "14ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:13 [http]: REQUEST: POST /api/auth/switch-role
+      {
+        "method": "POST",
+        "url": "/api/auth/switch-role",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:13 [warn]: SECURITY: Invalid token provided
+      {
+        "error": "jwt audience invalid. expected: matrix-delivery-api",
+        "ip": "::ffff:127.0.0.1",
+        "path": "/switch-role",
+        "category": "security"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:13 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:13",
+        "ip": "/api/auth/switch-role",
+        "userAgent": "401",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:13 [warn]: RESPONSE: POST /api/auth/switch-role 401
+      {
+        "method": "POST",
+        "url": "/api/auth/switch-role",
+        "statusCode": 401,
+        "duration": "15ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [http]: REQUEST: POST /api/auth/send-verification
+      {
+        "method": "POST",
+        "url": "/api/auth/send-verification",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [warn]: SECURITY: Invalid token provided
+      {
+        "error": "jwt audience invalid. expected: matrix-delivery-api",
+        "ip": "::ffff:127.0.0.1",
+        "path": "/send-verification",
+        "category": "security"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:14",
+        "ip": "/api/auth/send-verification",
+        "userAgent": "401",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [warn]: RESPONSE: POST /api/auth/send-verification 401
+      {
+        "method": "POST",
+        "url": "/api/auth/send-verification",
+        "statusCode": 401,
+        "duration": "14ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [http]: REQUEST: POST /api/auth/send-verification
+      {
+        "method": "POST",
+        "url": "/api/auth/send-verification",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [warn]: SECURITY: Invalid token provided
+      {
+        "error": "jwt audience invalid. expected: matrix-delivery-api",
+        "ip": "::ffff:127.0.0.1",
+        "path": "/send-verification",
+        "category": "security"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:14",
+        "ip": "/api/auth/send-verification",
+        "userAgent": "401",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [warn]: RESPONSE: POST /api/auth/send-verification 401
+      {
+        "method": "POST",
+        "url": "/api/auth/send-verification",
+        "statusCode": 401,
+        "duration": "11ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [http]: REQUEST: POST /api/auth/send-verification
+      {
+        "method": "POST",
+        "url": "/api/auth/send-verification",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [warn]: SECURITY: Access attempt without token
+      {
+        "ip": "::ffff:127.0.0.1",
+        "path": "/send-verification",
+        "method": "POST",
+        "category": "security"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:14",
+        "ip": "/api/auth/send-verification",
+        "userAgent": "401",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [warn]: RESPONSE: POST /api/auth/send-verification 401
+      {
+        "method": "POST",
+        "url": "/api/auth/send-verification",
+        "statusCode": 401,
+        "duration": "13ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [http]: REQUEST: POST /api/auth/verify-email
+      {
+        "method": "POST",
+        "url": "/api/auth/verify-email",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [info]: AUTH: Email verification attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [info]: PERF: Email verification completed
+      {
+        "userId": "verify-user-id",
+        "duration": "10ms",
+        "category": "performance"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:14",
+        "ip": "/api/auth/verify-email",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [http]: RESPONSE: POST /api/auth/verify-email 200
+      {
+        "method": "POST",
+        "url": "/api/auth/verify-email",
+        "statusCode": 200,
+        "duration": "17ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [http]: REQUEST: POST /api/auth/verify-email
+      {
+        "method": "POST",
+        "url": "/api/auth/verify-email",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [info]: AUTH: Email verification attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [error]: Verify email error: Invalid or expired verification token
+      {
+        "error": "Error: Invalid or expired verification token\n    at AuthService.verifyEmail (D:\\matrix-delivery\\backend\\services\\authService.js:5305:13)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at D:\\matrix-delivery\\backend\\routes\\auth.js:5996:32",
+        "ip": "::ffff:127.0.0.1",
+        "duration": "6ms",
+        "category": "error"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:14",
+        "ip": "/api/auth/verify-email",
+        "userAgent": "400",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [warn]: RESPONSE: POST /api/auth/verify-email 400
+      {
+        "method": "POST",
+        "url": "/api/auth/verify-email",
+        "statusCode": 400,
+        "duration": "17ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:15 [http]: REQUEST: POST /api/auth/verify-email
+      {
+        "method": "POST",
+        "url": "/api/auth/verify-email",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:15 [info]: AUTH: Email verification attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:15 [error]: Verify email error: Invalid or expired verification token
+      {
+        "error": "Error: Invalid or expired verification token\n    at AuthService.verifyEmail (D:\\matrix-delivery\\backend\\services\\authService.js:5305:13)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at D:\\matrix-delivery\\backend\\routes\\auth.js:5996:32",
+        "ip": "::ffff:127.0.0.1",
+        "duration": "7ms",
+        "category": "error"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:15 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:15",
+        "ip": "/api/auth/verify-email",
+        "userAgent": "400",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:15 [warn]: RESPONSE: POST /api/auth/verify-email 400
+      {
+        "method": "POST",
+        "url": "/api/auth/verify-email",
+        "statusCode": 400,
+        "duration": "22ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:15 [http]: REQUEST: POST /api/auth/verify-email
+      {
+        "method": "POST",
+        "url": "/api/auth/verify-email",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:15 [info]: AUTH: Email verification attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:15 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:15",
+        "ip": "/api/auth/verify-email",
+        "userAgent": "400",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:15 [warn]: RESPONSE: POST /api/auth/verify-email 400
+      {
+        "method": "POST",
+        "url": "/api/auth/verify-email",
+        "statusCode": 400,
+        "duration": "16ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+  ΓùÅ Authentication API Tests ΓÇ║ POST /api/auth/register ΓÇ║ should register a new user successfully
+
+    expected 201 "Created", got 400 "Bad Request"
+
+      50 |         .post('/api/auth/register')
+      51 |         .send(userData)
+    > 52 |         .expect(201);
+         |          ^
+      53 |
+      54 |       expect(response.body).toHaveProperty('user');
+      55 |       // Token is now in cookie, not body
+
+      at Object.<anonymous> (tests/auth.test.js:52:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:252:14)
+      at node_modules/supertest/lib/test.js:308:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:285:13)
+      at Test.assert (node_modules/supertest/lib/test.js:164:23)
+      at localAssert (node_modules/supertest/lib/test.js:120:14)
+      at fn (node_modules/supertest/lib/test.js:125:7)
+      at Test.callback (node_modules/superagent/src/node/index.js:925:3)
+      at fn (node_modules/superagent/src/node/index.js:1166:18)
+      at IncomingMessage.<anonymous> (node_modules/superagent/src/node/parsers/json.js:19:7)
+
+  ΓùÅ Authentication API Tests ΓÇ║ POST /api/auth/register ΓÇ║ should return 409 for duplicate email
+
+    expected 201 "Created", got 400 "Bad Request"
+
+      94 |         .post('/api/auth/register')
+      95 |         .send(userData)
+    > 96 |         .expect(201);
+         |          ^
+      97 |
+      98 |       // Second registration with same email
+      99 |       const response = await request(server)
+
+      at Object.<anonymous> (tests/auth.test.js:96:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:252:14)
+      at node_modules/supertest/lib/test.js:308:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:285:13)
+      at Test.assert (node_modules/supertest/lib/test.js:164:23)
+      at localAssert (node_modules/supertest/lib/test.js:120:14)
+      at fn (node_modules/supertest/lib/test.js:125:7)
+      at Test.callback (node_modules/superagent/src/node/index.js:925:3)
+      at fn (node_modules/superagent/src/node/index.js:1166:18)
+      at IncomingMessage.<anonymous> (node_modules/superagent/src/node/parsers/json.js:19:7)
+
+  ΓùÅ Authentication API Tests ΓÇ║ GET /api/auth/me ΓÇ║ should return user profile with valid token
+
+    expected 200 "OK", got 401 "Unauthorized"
+
+      395 |         .get('/api/auth/me')
+      396 |         .set('Authorization', `Bearer ${testToken}`)
+    > 397 |         .expect(200);
+          |          ^
+      398 |
+      399 |       expect(response.body).toHaveProperty('email');
+      400 |       expect(response.body.email).toBe(testUser.email);
+
+      at Object.<anonymous> (tests/auth.test.js:397:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:252:14)
+      at node_modules/supertest/lib/test.js:308:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:285:13)
+      at Test.assert (node_modules/supertest/lib/test.js:164:23)
+      at localAssert (node_modules/supertest/lib/test.js:120:14)
+      at fn (node_modules/supertest/lib/test.js:125:7)
+      at Test.callback (node_modules/superagent/src/node/index.js:925:3)
+      at fn (node_modules/superagent/src/node/index.js:1166:18)
+      at IncomingMessage.<anonymous> (node_modules/superagent/src/node/parsers/json.js:19:7)
+
+  ΓùÅ Authentication API Tests ΓÇ║ POST /api/auth/switch-role ΓÇ║ should switch role successfully
+
+    expected 200 "OK", got 401 "Unauthorized"
+
+      466 |         .set('Authorization', `Bearer ${testToken}`)
+      467 |         .send(switchData)
+    > 468 |         .expect(200);
+          |          ^
+      469 |
+      470 |       // Token is returned in body for switch-role as it returns new token
+      471 |       expect(response.body).toHaveProperty('token');
+
+      at Object.<anonymous> (tests/auth.test.js:468:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:252:14)
+      at node_modules/supertest/lib/test.js:308:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:285:13)
+      at Test.assert (node_modules/supertest/lib/test.js:164:23)
+      at localAssert (node_modules/supertest/lib/test.js:120:14)
+      at fn (node_modules/supertest/lib/test.js:125:7)
+      at Test.callback (node_modules/superagent/src/node/index.js:925:3)
+      at fn (node_modules/superagent/src/node/index.js:1166:18)
+      at IncomingMessage.<anonymous> (node_modules/superagent/src/node/parsers/json.js:19:7)
+
+  ΓùÅ Authentication API Tests ΓÇ║ POST /api/auth/switch-role ΓÇ║ should return 400 for invalid role
+
+    expected 400 "Bad Request", got 401 "Unauthorized"
+
+      483 |         .set('Authorization', `Bearer ${testToken}`)
+      484 |         .send(switchData)
+    > 485 |         .expect(400);
+          |          ^
+      486 |
+      487 |       expect(response.body.error).toContain('Role not assigned');
+      488 |     });
+
+      at Object.<anonymous> (tests/auth.test.js:485:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:252:14)
+      at node_modules/supertest/lib/test.js:308:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:285:13)
+      at Test.assert (node_modules/supertest/lib/test.js:164:23)
+      at localAssert (node_modules/supertest/lib/test.js:120:14)
+      at fn (node_modules/supertest/lib/test.js:125:7)
+      at Test.callback (node_modules/superagent/src/node/index.js:925:3)
+      at fn (node_modules/superagent/src/node/index.js:1166:18)
+      at IncomingMessage.<anonymous> (node_modules/superagent/src/node/parsers/json.js:19:7)
+
+  ΓùÅ Authentication API Tests ΓÇ║ POST /api/auth/send-verification ΓÇ║ should send verification email for unverified user
+
+    expected 200 "OK", got 401 "Unauthorized"
+
+      524 |         .post('/api/auth/send-verification')
+      525 |         .set('Authorization', `Bearer ${testToken}`)
+    > 526 |         .expect(200);
+          |          ^
+      527 |
+      528 |       expect(response.body.success).toBe(true);
+      529 |       expect(response.body.message).toContain('Verification email sent successfully');
+
+      at Object.<anonymous> (tests/auth.test.js:526:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:252:14)
+      at node_modules/supertest/lib/test.js:308:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:285:13)
+      at Test.assert (node_modules/supertest/lib/test.js:164:23)
+      at localAssert (node_modules/supertest/lib/test.js:120:14)
+      at fn (node_modules/supertest/lib/test.js:125:7)
+      at Test.callback (node_modules/superagent/src/node/index.js:925:3)
+      at fn (node_modules/superagent/src/node/index.js:1166:18)
+      at IncomingMessage.<anonymous> (node_modules/superagent/src/node/parsers/json.js:19:7)
+
+  ΓùÅ Authentication API Tests ΓÇ║ POST /api/auth/send-verification ΓÇ║ should return 400 for already verified user
+
+    expected 400 "Bad Request", got 401 "Unauthorized"
+
+      545 |         .post('/api/auth/send-verification')
+      546 |         .set('Authorization', `Bearer ${testToken}`)
+    > 547 |         .expect(400);
+          |          ^
+      548 |
+      549 |       expect(response.body.error).toContain('Email is already verified');
+      550 |     });
+
+      at Object.<anonymous> (tests/auth.test.js:547:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:252:14)
+      at node_modules/supertest/lib/test.js:308:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:285:13)
+      at Test.assert (node_modules/supertest/lib/test.js:164:23)
+      at localAssert (node_modules/supertest/lib/test.js:120:14)
+      at fn (node_modules/supertest/lib/test.js:125:7)
+      at Test.callback (node_modules/superagent/src/node/index.js:925:3)
+      at fn (node_modules/superagent/src/node/index.js:1166:18)
+      at IncomingMessage.<anonymous> (node_modules/superagent/src/node/parsers/json.js:19:7)
+
+FAIL routes/__tests__/cryptoPayments.test.ts
+  ΓùÅ Console
+
+    console.log
+      [dotenv@17.2.3] injecting env (32) from .env.testing -- tip: ≡ƒöæ add access controls to secrets: https://dotenvx.com/ops
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+    console.error
+      ≡ƒöÑ CRITICAL DEBUG: server.js is running!
+
+      3 |
+      4 | const express = require('express');
+    > 5 | console.error('≡ƒöÑ CRITICAL DEBUG: server.js is running!');
+        |         ^
+      6 | const cors = require('cors');
+      7 | const dotenv = require('dotenv');
+      8 |
+
+      at Object.<anonymous> (server.js:5:9)
+      at Object.<anonymous> (routes/__tests__/cryptoPayments.test.ts:2:13)
+
+    console.log
+      [dotenv@17.2.3] injecting env (0) from .env.testing -- tip: ΓÜÖ∩╕Å  override existing env vars with { override: true }
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+    console.log
+      Γ£à Loaded .env.testing for testing
+
+      at Object.<anonymous> (server.js:12:11)
+
+    console.log
+      2025-12-08 19:16:13 [info]: ≡ƒöº Environment Configuration:
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:13 [info]:    NODE_ENV: testing
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:13 [info]:    IS_TEST: true
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:13 [info]:    DB_HOST: localhost
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:13 [info]:    DB_PORT: 5432
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:13 [info]:    DB_USER: postgres
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:13 [info]:    DB_NAME: matrix_delivery_test
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:13 [info]:    DB_NAME_TEST: matrix_delivery_test
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:13 [info]: ≡ƒöî Connecting to database: matrix_delivery_test (Test Mode: true)
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [info]: ≡ƒöº Environment loaded for: testing
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      Γ£à Security configuration validated
+
+      at log (middleware/security.ts:188:13)
+
+    console.log
+      Γ£à Admin API endpoints loaded successfully - All 3 parts complete
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      [dotenv@17.2.3] injecting env (0) from .env -- tip: ≡ƒôí add observability to secrets: https://dotenvx.com/ops
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      2025-12-08 19:16:14 [http]: REQUEST: POST /api/crypto/wallet/connect
+      {
+        "method": "POST",
+        "url": "/api/crypto/wallet/connect",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [warn]: SECURITY: Invalid token provided
+      {
+        "error": "jwt audience invalid. expected: matrix-delivery-api",
+        "ip": "::ffff:127.0.0.1",
+        "path": "/wallet/connect",
+        "category": "security"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:14",
+        "ip": "/api/crypto/wallet/connect",
+        "userAgent": "401",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [warn]: RESPONSE: POST /api/crypto/wallet/connect 401
+      {
+        "method": "POST",
+        "url": "/api/crypto/wallet/connect",
+        "statusCode": 401,
+        "duration": "16ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [http]: REQUEST: POST /api/crypto/wallet/connect
+      {
+        "method": "POST",
+        "url": "/api/crypto/wallet/connect",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [warn]: SECURITY: Invalid token provided
+      {
+        "error": "jwt audience invalid. expected: matrix-delivery-api",
+        "ip": "::ffff:127.0.0.1",
+        "path": "/wallet/connect",
+        "category": "security"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:14",
+        "ip": "/api/crypto/wallet/connect",
+        "userAgent": "401",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [warn]: RESPONSE: POST /api/crypto/wallet/connect 401
+      {
+        "method": "POST",
+        "url": "/api/crypto/wallet/connect",
+        "statusCode": 401,
+        "duration": "10ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [http]: REQUEST: POST /api/crypto/wallet/connect
+      {
+        "method": "POST",
+        "url": "/api/crypto/wallet/connect",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [warn]: SECURITY: Invalid token provided
+      {
+        "error": "jwt audience invalid. expected: matrix-delivery-api",
+        "ip": "::ffff:127.0.0.1",
+        "path": "/wallet/connect",
+        "category": "security"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:14",
+        "ip": "/api/crypto/wallet/connect",
+        "userAgent": "401",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [warn]: RESPONSE: POST /api/crypto/wallet/connect 401
+      {
+        "method": "POST",
+        "url": "/api/crypto/wallet/connect",
+        "statusCode": 401,
+        "duration": "9ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [http]: REQUEST: POST /api/crypto/wallet/connect
+      {
+        "method": "POST",
+        "url": "/api/crypto/wallet/connect",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [warn]: SECURITY: Access attempt without token
+      {
+        "ip": "::ffff:127.0.0.1",
+        "path": "/wallet/connect",
+        "method": "POST",
+        "category": "security"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:14",
+        "ip": "/api/crypto/wallet/connect",
+        "userAgent": "401",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:14 [warn]: RESPONSE: POST /api/crypto/wallet/connect 401
+      {
+        "method": "POST",
+        "url": "/api/crypto/wallet/connect",
+        "statusCode": 401,
+        "duration": "12ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:15 [http]: REQUEST: GET /api/crypto/tokens
+      {
+        "method": "GET",
+        "url": "/api/crypto/tokens",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:15 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:15",
+        "ip": "/api/crypto/tokens",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:15 [http]: RESPONSE: GET /api/crypto/tokens 200
+      {
+        "method": "GET",
+        "url": "/api/crypto/tokens",
+        "statusCode": 200,
+        "duration": "12ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:15 [http]: REQUEST: GET /api/crypto/balance/0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb/USDC
+      {
+        "method": "GET",
+        "url": "/api/crypto/balance/0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb/USDC",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:15 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:15",
+        "ip": "/api/crypto/balance/0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb/USDC",
+        "userAgent": "400",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:15 [warn]: RESPONSE: GET /api/crypto/balance/0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb/USDC 400
+      {
+        "method": "GET",
+        "url": "/api/crypto/balance/0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb/USDC",
+        "statusCode": 400,
+        "duration": "9ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:15 [http]: REQUEST: GET /api/crypto/balance/invalid-address/USDC
+      {
+        "method": "GET",
+        "url": "/api/crypto/balance/invalid-address/USDC",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:15 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:15",
+        "ip": "/api/crypto/balance/invalid-address/USDC",
+        "userAgent": "400",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:15 [warn]: RESPONSE: GET /api/crypto/balance/invalid-address/USDC 400
+      {
+        "method": "GET",
+        "url": "/api/crypto/balance/invalid-address/USDC",
+        "statusCode": 400,
+        "duration": "6ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:15 [http]: REQUEST: GET /api/crypto/balance/0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb/INVALID
+      {
+        "method": "GET",
+        "url": "/api/crypto/balance/0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb/INVALID",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:15 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:15",
+        "ip": "/api/crypto/balance/0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb/INVALID",
+        "userAgent": "400",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:15 [warn]: RESPONSE: GET /api/crypto/balance/0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb/INVALID 400
+      {
+        "method": "GET",
+        "url": "/api/crypto/balance/0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb/INVALID",
+        "statusCode": 400,
+        "duration": "9ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:15 [http]: REQUEST: GET /api/crypto/network/info
+      {
+        "method": "GET",
+        "url": "/api/crypto/network/info",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:15 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:15",
+        "ip": "/api/crypto/network/info",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:15 [http]: RESPONSE: GET /api/crypto/network/info 200
+      {
+        "method": "GET",
+        "url": "/api/crypto/network/info",
+        "statusCode": 200,
+        "duration": "6ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+  ΓùÅ Crypto Payments API ΓÇ║ POST /api/crypto/wallet/connect ΓÇ║ should link wallet address to user account
+
+    expected 200 "OK", got 401 "Unauthorized"
+
+      39 |         driverToken = generateToken({ userId: testDriverId, role: 'driver' });
+      40 |         adminToken = generateToken({ userId: 'admin-1', role: 'admin' });
+    > 41 |     });
+         |                  ^
+      42 |
+      43 |
+      44 |     afterAll(async () => {
+
+      at Object.<anonymous> (routes/__tests__/cryptoPayments.test.ts:41:18)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:252:14)
+      at node_modules/supertest/lib/test.js:308:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:285:13)
+      at Test.assert (node_modules/supertest/lib/test.js:164:23)
+      at Server.localAssert (node_modules/supertest/lib/test.js:120:14)
+      at Object.apply (node_modules/@sentry/node-core/src/integrations/http/httpServerIntegration.ts:168:23)
+      at Object.apply (node_modules/@sentry/node-core/src/integrations/http/httpServerIntegration.ts:168:23)
+
+  ΓùÅ Crypto Payments API ΓÇ║ POST /api/crypto/wallet/connect ΓÇ║ should validate wallet address format
+
+    expected 400 "Bad Request", got 401 "Unauthorized"
+
+      49 |
+      50 |     describe('POST /api/crypto/wallet/connect', () => {
+    > 51 |         it('should link wallet address to user account', async () => {
+         |                  ^
+      52 |             const walletAddress = '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb';
+      53 |
+      54 |             const response = await request(app)
+
+      at Object.<anonymous> (routes/__tests__/cryptoPayments.test.ts:51:18)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:252:14)
+      at node_modules/supertest/lib/test.js:308:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:285:13)
+      at Test.assert (node_modules/supertest/lib/test.js:164:23)
+      at Server.localAssert (node_modules/supertest/lib/test.js:120:14)
+      at Object.apply (node_modules/@sentry/node-core/src/integrations/http/httpServerIntegration.ts:168:23)
+      at Object.apply (node_modules/@sentry/node-core/src/integrations/http/httpServerIntegration.ts:168:23)
+
+  ΓùÅ Crypto Payments API ΓÇ║ POST /api/crypto/wallet/connect ΓÇ║ should prevent duplicate wallet connections
+
+    expected 200 "OK", got 401 "Unauthorized"
+
+      58 |                 .expect(200);
+      59 |
+    > 60 |             expect(response.body.success).toBe(true);
+         |                  ^
+      61 |             expect(response.body.walletAddress).toBe(walletAddress.toLowerCase());
+      62 |         });
+      63 |
+
+      at Object.<anonymous> (routes/__tests__/cryptoPayments.test.ts:60:18)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:252:14)
+      at node_modules/supertest/lib/test.js:308:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:285:13)
+      at Test.assert (node_modules/supertest/lib/test.js:164:23)
+      at Server.localAssert (node_modules/supertest/lib/test.js:120:14)
+      at Object.apply (node_modules/@sentry/node-core/src/integrations/http/httpServerIntegration.ts:168:23)
+      at Object.apply (node_modules/@sentry/node-core/src/integrations/http/httpServerIntegration.ts:168:23)
+
+  ΓùÅ Crypto Payments API ΓÇ║ GET /api/crypto/driver/earnings ΓÇ║ should return driver earnings summary
+
+    error: insert or update on table "user_wallets" violates foreign key constraint "user_wallets_user_id_fkey"
+
+      77 |             // First connection
+      78 |             await request(app)
+    > 79 |                 .post('/api/crypto/wallet/connect')
+         |             ^
+      80 |                 .set('Authorization', `Bearer ${driverToken}`)
+      81 |                 .send({ walletAddress })
+      82 |                 .expect(200);
+
+      at node_modules/pg-pool/index.js:45:11
+      at Object.<anonymous> (routes/__tests__/cryptoPayments.test.ts:79:13)
+
+  ΓùÅ Crypto Payments API ΓÇ║ GET /api/crypto/driver/earnings ΓÇ║ should return transaction history
+
+    error: insert or update on table "user_wallets" violates foreign key constraint "user_wallets_user_id_fkey"
+
+      77 |             // First connection
+      78 |             await request(app)
+    > 79 |                 .post('/api/crypto/wallet/connect')
+         |             ^
+      80 |                 .set('Authorization', `Bearer ${driverToken}`)
+      81 |                 .send({ walletAddress })
+      82 |                 .expect(200);
+
+      at node_modules/pg-pool/index.js:45:11
+      at Object.<anonymous> (routes/__tests__/cryptoPayments.test.ts:79:13)
+
+  ΓùÅ Crypto Payments API ΓÇ║ GET /api/crypto/driver/earnings ΓÇ║ should require driver role
+
+    error: insert or update on table "user_wallets" violates foreign key constraint "user_wallets_user_id_fkey"
+
+      77 |             // First connection
+      78 |             await request(app)
+    > 79 |                 .post('/api/crypto/wallet/connect')
+         |             ^
+      80 |                 .set('Authorization', `Bearer ${driverToken}`)
+      81 |                 .send({ walletAddress })
+      82 |                 .expect(200);
+
+      at node_modules/pg-pool/index.js:45:11
+      at Object.<anonymous> (routes/__tests__/cryptoPayments.test.ts:79:13)
+
+  ΓùÅ Crypto Payments API ΓÇ║ GET /api/crypto/driver/earnings ΓÇ║ should return 401 for unauthenticated requests
+
+    error: insert or update on table "user_wallets" violates foreign key constraint "user_wallets_user_id_fkey"
+
+      77 |             // First connection
+      78 |             await request(app)
+    > 79 |                 .post('/api/crypto/wallet/connect')
+         |             ^
+      80 |                 .set('Authorization', `Bearer ${driverToken}`)
+      81 |                 .send({ walletAddress })
+      82 |                 .expect(200);
+
+      at node_modules/pg-pool/index.js:45:11
+      at Object.<anonymous> (routes/__tests__/cryptoPayments.test.ts:79:13)
+
+  ΓùÅ Crypto Payments API ΓÇ║ GET /api/crypto/driver/earnings ΓÇ║ should return empty earnings for driver without wallet
+
+    error: insert or update on table "user_wallets" violates foreign key constraint "user_wallets_user_id_fkey"
+
+      77 |             // First connection
+      78 |             await request(app)
+    > 79 |                 .post('/api/crypto/wallet/connect')
+         |             ^
+      80 |                 .set('Authorization', `Bearer ${driverToken}`)
+      81 |                 .send({ walletAddress })
+      82 |                 .expect(200);
+
+      at node_modules/pg-pool/index.js:45:11
+      at Object.<anonymous> (routes/__tests__/cryptoPayments.test.ts:79:13)
+
+  ΓùÅ Crypto Payments API ΓÇ║ GET /api/crypto/balance/:address/:token ΓÇ║ should return wallet balance for valid address
+
+    expected 200 "OK", got 400 "Bad Request"
+
+      149 |                 .get('/api/crypto/driver/earnings')
+      150 |                 .set('Authorization', `Bearer ${authToken}`)
+    > 151 |                 .expect(403);
+          |                  ^
+      152 |
+      153 |             expect(response.body.error).toContain('driver');
+      154 |         });
+
+      at Object.<anonymous> (routes/__tests__/cryptoPayments.test.ts:151:18)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:252:14)
+      at node_modules/supertest/lib/test.js:308:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:285:13)
+      at Test.assert (node_modules/supertest/lib/test.js:164:23)
+      at Server.localAssert (node_modules/supertest/lib/test.js:120:14)
+      at Object.apply (node_modules/@sentry/node-core/src/integrations/http/httpServerIntegration.ts:168:23)
+      at Object.apply (node_modules/@sentry/node-core/src/integrations/http/httpServerIntegration.ts:168:23)
+
+  ΓùÅ Crypto Payments API ΓÇ║ POST /api/crypto/order/:orderId/complete ΓÇ║ should complete order and release funds (admin only)
+
+    error: column "driver_id" of relation "orders" does not exist
+
+      181 |
+      182 |             expect(response.body.success).toBe(true);
+    > 183 |             expect(response.body.tokens).toBeInstanceOf(Array);
+          |                                 ^
+      184 |             expect(response.body.tokens.length).toBeGreaterThan(0);
+      185 |
+      186 |             const usdc = response.body.tokens.find((t: any) => t.symbol === 'USDC');
+
+      at node_modules/pg-pool/index.js:45:11
+      at Object.<anonymous> (routes/__tests__/cryptoPayments.test.ts:183:33)
+
+  ΓùÅ Crypto Payments API ΓÇ║ POST /api/crypto/order/:orderId/complete ΓÇ║ should reject non-admin requests
+
+    error: column "driver_id" of relation "orders" does not exist
+
+      181 |
+      182 |             expect(response.body.success).toBe(true);
+    > 183 |             expect(response.body.tokens).toBeInstanceOf(Array);
+          |                                 ^
+      184 |             expect(response.body.tokens.length).toBeGreaterThan(0);
+      185 |
+      186 |             const usdc = response.body.tokens.find((t: any) => t.symbol === 'USDC');
+
+      at node_modules/pg-pool/index.js:45:11
+      at Object.<anonymous> (routes/__tests__/cryptoPayments.test.ts:183:33)
+
+FAIL tests/statistics.test.js
+  ΓùÅ Console
+
+    console.log
+      [dotenv@17.2.3] injecting env (32) from .env.testing -- tip: ≡ƒöÉ encrypt with Dotenvx: https://dotenvx.com
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+    console.log
+      2025-12-08 19:16:16 [info]: ≡ƒöº Environment Configuration:
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:16 [info]:    NODE_ENV: testing
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:16 [info]:    IS_TEST: true
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:16 [info]:    DB_HOST: localhost
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:16 [info]:    DB_PORT: 5432
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:16 [info]:    DB_USER: postgres
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:16 [info]:    DB_NAME: matrix_delivery_test
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:16 [info]:    DB_NAME_TEST: matrix_delivery_test
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:16 [info]: ≡ƒöî Connecting to database: matrix_delivery_test (Test Mode: true)
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+  ΓùÅ Statistics SQL Queries - Bug Fixes ΓÇ║ SQL Query Correctness ΓÇ║ should query users by granted_roles array without errors
+
+    error: column "granted_roles" does not exist
+
+      25 |             const query = `SELECT COUNT(*) as count FROM users WHERE 'driver' = ANY(granted_roles)`;
+      26 |
+    > 27 |             const result = await pool.query(query);
+         |                            ^
+      28 |
+      29 |             expect(result.rows).toBeDefined();
+      30 |             expect(result.rows[0]).toHaveProperty('count');
+
+      at node_modules/pg-pool/index.js:45:11
+      at Object.<anonymous> (tests/statistics.test.js:27:28)
+
+  ΓùÅ Statistics SQL Queries - Bug Fixes ΓÇ║ SQL Query Correctness ΓÇ║ should use UNNEST on granted_roles without errors
+
+    error: column "granted_roles" does not exist
+
+      44 |       `;
+      45 |
+    > 46 |             const result = await pool.query(query);
+         |                            ^
+      47 |
+      48 |             expect(result.rows).toBeDefined();
+      49 |             expect(Array.isArray(result.rows)).toBe(true);
+
+      at node_modules/pg-pool/index.js:45:11
+      at Object.<anonymous> (tests/statistics.test.js:46:28)
+
+  ΓùÅ Statistics SQL Queries - Bug Fixes ΓÇ║ Database Schema Validation ΓÇ║ should have granted_roles column in users table
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 1
+    Received: 0
+
+      59 |       `);
+      60 |
+    > 61 |             expect(result.rows.length).toBe(1);
+         |                                        ^
+      62 |             expect(result.rows[0].data_type).toBe('ARRAY');
+      63 |         });
+      64 |
+
+      at Object.<anonymous> (tests/statistics.test.js:61:40)
+
+  ΓùÅ Statistics SQL Queries - Bug Fixes ΓÇ║ Database Schema Validation ΓÇ║ should have granted_roles populated for all users
+
+    error: column "granted_roles" does not exist
+
+      85 |
+      86 |         it('should have granted_roles populated for all users', async () => {
+    > 87 |             const result = await pool.query(`
+         |                            ^
+      88 |         SELECT COUNT(*) as count 
+      89 |         FROM users 
+      90 |         WHERE granted_roles IS NULL OR array_length(granted_roles, 1) IS NULL
+
+      at node_modules/pg-pool/index.js:45:11
+      at Object.<anonymous> (tests/statistics.test.js:87:28)
+
+  ΓùÅ Statistics SQL Queries - Bug Fixes ΓÇ║ Database Schema Validation ΓÇ║ should have primary_role included in granted_roles for all users
+
+    error: column "granted_roles" does not exist
+
+       95 |
+       96 |         it('should have primary_role included in granted_roles for all users', async () => {
+    >  97 |             const result = await pool.query(`
+          |                            ^
+       98 |         SELECT COUNT(*) as count 
+       99 |         FROM users 
+      100 |         WHERE NOT (primary_role = ANY(granted_roles))
+
+      at node_modules/pg-pool/index.js:45:11
+      at Object.<anonymous> (tests/statistics.test.js:97:28)
+
+  ΓùÅ Statistics SQL Queries - Bug Fixes ΓÇ║ Statistics Queries from routes/statistics.js ΓÇ║ should count drivers by granted_roles
+
+    error: column "granted_roles" does not exist
+
+      126 |             const query = `SELECT COUNT(*) as count FROM users WHERE 'driver' = ANY(granted_roles)`;
+      127 |
+    > 128 |             const result = await pool.query(query);
+          |                            ^
+      129 |
+      130 |             expect(result.rows[0]).toHaveProperty('count');
+      131 |             expect(typeof parseInt(result.rows[0].count)).toBe('number');
+
+      at node_modules/pg-pool/index.js:45:11
+      at Object.<anonymous> (tests/statistics.test.js:128:28)
+
+  ΓùÅ Statistics SQL Queries - Bug Fixes ΓÇ║ Statistics Queries from routes/statistics.js ΓÇ║ should count customers by granted_roles
+
+    error: column "granted_roles" does not exist
+
+      135 |             const query = `SELECT COUNT(*) as count FROM users WHERE 'customer' = ANY(granted_roles)`;
+      136 |
+    > 137 |             const result = await pool.query(query);
+          |                            ^
+      138 |
+      139 |             expect(result.rows[0]).toHaveProperty('count');
+      140 |             expect(typeof parseInt(result.rows[0].count)).toBe('number');
+
+      at node_modules/pg-pool/index.js:45:11
+      at Object.<anonymous> (tests/statistics.test.js:137:28)
+
+  ΓùÅ Statistics SQL Queries - Bug Fixes ΓÇ║ Statistics Queries from routes/statistics.js ΓÇ║ should count admins by granted_roles
+
+    error: column "granted_roles" does not exist
+
+      144 |             const query = `SELECT COUNT(*) as count FROM users WHERE 'admin' = ANY(granted_roles)`;
+      145 |
+    > 146 |             const result = await pool.query(query);
+          |                            ^
+      147 |
+      148 |             expect(result.rows[0]).toHaveProperty('count');
+      149 |             expect(typeof parseInt(result.rows[0].count)).toBe('number');
+
+      at node_modules/pg-pool/index.js:45:11
+      at Object.<anonymous> (tests/statistics.test.js:146:28)
+
+FAIL tests/services/loggingService.test.js
+  ΓùÅ Console
+
+    console.log
+      [dotenv@17.2.3] injecting env (32) from .env.testing -- tip: ΓÜÖ∩╕Å  enable debug logging with { debug: true }
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+    console.log
+      2025-12-08 19:16:18 [info]: ≡ƒöº Environment Configuration:
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:18 [info]:    NODE_ENV: testing
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:18 [info]:    IS_TEST: true
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:18 [info]:    DB_HOST: localhost
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:18 [info]:    DB_PORT: 5432
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:18 [info]:    DB_USER: postgres
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:18 [info]:    DB_NAME: matrix_delivery_test
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:18 [info]:    DB_NAME_TEST: matrix_delivery_test
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:18 [info]: ≡ƒöî Connecting to database: matrix_delivery_test (Test Mode: true)
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+  ΓùÅ LoggingService ΓÇ║ createLog ΓÇ║ should create a log entry
+
+    ReferenceError: Pool is not defined
+
+       8 |
+       9 |     beforeAll(async () => {
+    > 10 |         pool = new Pool({
+         |         ^
+      11 |             host: process.env.DB_HOST,
+      12 |             port: parseInt(process.env.DB_PORT),
+      13 |             database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
+
+      at Object.<anonymous> (tests/services/loggingService.test.js:10:9)
+
+  ΓùÅ LoggingService ΓÇ║ createLog ΓÇ║ should handle missing optional fields
+
+    ReferenceError: Pool is not defined
+
+       8 |
+       9 |     beforeAll(async () => {
+    > 10 |         pool = new Pool({
+         |         ^
+      11 |             host: process.env.DB_HOST,
+      12 |             port: parseInt(process.env.DB_PORT),
+      13 |             database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
+
+      at Object.<anonymous> (tests/services/loggingService.test.js:10:9)
+
+  ΓùÅ LoggingService ΓÇ║ getLogs ΓÇ║ should retrieve all logs without filters
+
+    ReferenceError: Pool is not defined
+
+       8 |
+       9 |     beforeAll(async () => {
+    > 10 |         pool = new Pool({
+         |         ^
+      11 |             host: process.env.DB_HOST,
+      12 |             port: parseInt(process.env.DB_PORT),
+      13 |             database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
+
+      at Object.<anonymous> (tests/services/loggingService.test.js:10:9)
+
+  ΓùÅ LoggingService ΓÇ║ getLogs ΓÇ║ should retrieve all logs without filters
+
+    TypeError: Cannot read properties of undefined (reading 'createLog')
+
+      81 |
+      82 |             for (const log of logs) {
+    > 83 |                 await loggingService.createLog(log);
+         |                                      ^
+      84 |             }
+      85 |         });
+      86 |
+
+      at Object.<anonymous> (tests/services/loggingService.test.js:83:38)
+
+  ΓùÅ LoggingService ΓÇ║ getLogs ΓÇ║ should filter by level
+
+    ReferenceError: Pool is not defined
+
+       8 |
+       9 |     beforeAll(async () => {
+    > 10 |         pool = new Pool({
+         |         ^
+      11 |             host: process.env.DB_HOST,
+      12 |             port: parseInt(process.env.DB_PORT),
+      13 |             database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
+
+      at Object.<anonymous> (tests/services/loggingService.test.js:10:9)
+
+  ΓùÅ LoggingService ΓÇ║ getLogs ΓÇ║ should filter by level
+
+    TypeError: Cannot read properties of undefined (reading 'createLog')
+
+      81 |
+      82 |             for (const log of logs) {
+    > 83 |                 await loggingService.createLog(log);
+         |                                      ^
+      84 |             }
+      85 |         });
+      86 |
+
+      at Object.<anonymous> (tests/services/loggingService.test.js:83:38)
+
+  ΓùÅ LoggingService ΓÇ║ getLogs ΓÇ║ should filter by source
+
+    ReferenceError: Pool is not defined
+
+       8 |
+       9 |     beforeAll(async () => {
+    > 10 |         pool = new Pool({
+         |         ^
+      11 |             host: process.env.DB_HOST,
+      12 |             port: parseInt(process.env.DB_PORT),
+      13 |             database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
+
+      at Object.<anonymous> (tests/services/loggingService.test.js:10:9)
+
+  ΓùÅ LoggingService ΓÇ║ getLogs ΓÇ║ should filter by source
+
+    TypeError: Cannot read properties of undefined (reading 'createLog')
+
+      81 |
+      82 |             for (const log of logs) {
+    > 83 |                 await loggingService.createLog(log);
+         |                                      ^
+      84 |             }
+      85 |         });
+      86 |
+
+      at Object.<anonymous> (tests/services/loggingService.test.js:83:38)
+
+  ΓùÅ LoggingService ΓÇ║ getLogs ΓÇ║ should filter by category
+
+    ReferenceError: Pool is not defined
+
+       8 |
+       9 |     beforeAll(async () => {
+    > 10 |         pool = new Pool({
+         |         ^
+      11 |             host: process.env.DB_HOST,
+      12 |             port: parseInt(process.env.DB_PORT),
+      13 |             database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
+
+      at Object.<anonymous> (tests/services/loggingService.test.js:10:9)
+
+  ΓùÅ LoggingService ΓÇ║ getLogs ΓÇ║ should filter by category
+
+    TypeError: Cannot read properties of undefined (reading 'createLog')
+
+      81 |
+      82 |             for (const log of logs) {
+    > 83 |                 await loggingService.createLog(log);
+         |                                      ^
+      84 |             }
+      85 |         });
+      86 |
+
+      at Object.<anonymous> (tests/services/loggingService.test.js:83:38)
+
+  ΓùÅ LoggingService ΓÇ║ getLogs ΓÇ║ should filter by userId
+
+    ReferenceError: Pool is not defined
+
+       8 |
+       9 |     beforeAll(async () => {
+    > 10 |         pool = new Pool({
+         |         ^
+      11 |             host: process.env.DB_HOST,
+      12 |             port: parseInt(process.env.DB_PORT),
+      13 |             database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
+
+      at Object.<anonymous> (tests/services/loggingService.test.js:10:9)
+
+  ΓùÅ LoggingService ΓÇ║ getLogs ΓÇ║ should filter by userId
+
+    TypeError: Cannot read properties of undefined (reading 'createLog')
+
+      81 |
+      82 |             for (const log of logs) {
+    > 83 |                 await loggingService.createLog(log);
+         |                                      ^
+      84 |             }
+      85 |         });
+      86 |
+
+      at Object.<anonymous> (tests/services/loggingService.test.js:83:38)
+
+  ΓùÅ LoggingService ΓÇ║ getLogs ΓÇ║ should search in message
+
+    ReferenceError: Pool is not defined
+
+       8 |
+       9 |     beforeAll(async () => {
+    > 10 |         pool = new Pool({
+         |         ^
+      11 |             host: process.env.DB_HOST,
+      12 |             port: parseInt(process.env.DB_PORT),
+      13 |             database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
+
+      at Object.<anonymous> (tests/services/loggingService.test.js:10:9)
+
+  ΓùÅ LoggingService ΓÇ║ getLogs ΓÇ║ should search in message
+
+    TypeError: Cannot read properties of undefined (reading 'createLog')
+
+      81 |
+      82 |             for (const log of logs) {
+    > 83 |                 await loggingService.createLog(log);
+         |                                      ^
+      84 |             }
+      85 |         });
+      86 |
+
+      at Object.<anonymous> (tests/services/loggingService.test.js:83:38)
+
+  ΓùÅ LoggingService ΓÇ║ getLogs ΓÇ║ should paginate results
+
+    ReferenceError: Pool is not defined
+
+       8 |
+       9 |     beforeAll(async () => {
+    > 10 |         pool = new Pool({
+         |         ^
+      11 |             host: process.env.DB_HOST,
+      12 |             port: parseInt(process.env.DB_PORT),
+      13 |             database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
+
+      at Object.<anonymous> (tests/services/loggingService.test.js:10:9)
+
+  ΓùÅ LoggingService ΓÇ║ getLogs ΓÇ║ should paginate results
+
+    TypeError: Cannot read properties of undefined (reading 'createLog')
+
+      81 |
+      82 |             for (const log of logs) {
+    > 83 |                 await loggingService.createLog(log);
+         |                                      ^
+      84 |             }
+      85 |         });
+      86 |
+
+      at Object.<anonymous> (tests/services/loggingService.test.js:83:38)
+
+  ΓùÅ LoggingService ΓÇ║ getLogs ΓÇ║ should filter by date range
+
+    ReferenceError: Pool is not defined
+
+       8 |
+       9 |     beforeAll(async () => {
+    > 10 |         pool = new Pool({
+         |         ^
+      11 |             host: process.env.DB_HOST,
+      12 |             port: parseInt(process.env.DB_PORT),
+      13 |             database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
+
+      at Object.<anonymous> (tests/services/loggingService.test.js:10:9)
+
+  ΓùÅ LoggingService ΓÇ║ getLogs ΓÇ║ should filter by date range
+
+    TypeError: Cannot read properties of undefined (reading 'createLog')
+
+      81 |
+      82 |             for (const log of logs) {
+    > 83 |                 await loggingService.createLog(log);
+         |                                      ^
+      84 |             }
+      85 |         });
+      86 |
+
+      at Object.<anonymous> (tests/services/loggingService.test.js:83:38)
+
+  ΓùÅ LoggingService ΓÇ║ getLogById ΓÇ║ should retrieve a log by ID
+
+    ReferenceError: Pool is not defined
+
+       8 |
+       9 |     beforeAll(async () => {
+    > 10 |         pool = new Pool({
+         |         ^
+      11 |             host: process.env.DB_HOST,
+      12 |             port: parseInt(process.env.DB_PORT),
+      13 |             database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
+
+      at Object.<anonymous> (tests/services/loggingService.test.js:10:9)
+
+  ΓùÅ LoggingService ΓÇ║ getLogById ΓÇ║ should retrieve a log by ID
+
+    TypeError: Cannot read properties of undefined (reading 'createLog')
+
+      165 |
+      166 |         beforeAll(async () => {
+    > 167 |             const log = await loggingService.createLog({
+          |                                              ^
+      168 |                 level: 'error',
+      169 |                 source: 'frontend',
+      170 |                 message: 'Test log for ID retrieval',
+
+      at Object.<anonymous> (tests/services/loggingService.test.js:167:46)
+
+  ΓùÅ LoggingService ΓÇ║ getLogById ΓÇ║ should return null for non-existent ID
+
+    ReferenceError: Pool is not defined
+
+       8 |
+       9 |     beforeAll(async () => {
+    > 10 |         pool = new Pool({
+         |         ^
+      11 |             host: process.env.DB_HOST,
+      12 |             port: parseInt(process.env.DB_PORT),
+      13 |             database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
+
+      at Object.<anonymous> (tests/services/loggingService.test.js:10:9)
+
+  ΓùÅ LoggingService ΓÇ║ getLogById ΓÇ║ should return null for non-existent ID
+
+    TypeError: Cannot read properties of undefined (reading 'createLog')
+
+      165 |
+      166 |         beforeAll(async () => {
+    > 167 |             const log = await loggingService.createLog({
+          |                                              ^
+      168 |                 level: 'error',
+      169 |                 source: 'frontend',
+      170 |                 message: 'Test log for ID retrieval',
+
+      at Object.<anonymous> (tests/services/loggingService.test.js:167:46)
+
+  ΓùÅ LoggingService ΓÇ║ getLogStats ΓÇ║ should retrieve log statistics
+
+    ReferenceError: Pool is not defined
+
+       8 |
+       9 |     beforeAll(async () => {
+    > 10 |         pool = new Pool({
+         |         ^
+      11 |             host: process.env.DB_HOST,
+      12 |             port: parseInt(process.env.DB_PORT),
+      13 |             database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
+
+      at Object.<anonymous> (tests/services/loggingService.test.js:10:9)
+
+  ΓùÅ LoggingService ΓÇ║ cleanupOldLogs ΓÇ║ should delete logs older than retention period
+
+    ReferenceError: Pool is not defined
+
+       8 |
+       9 |     beforeAll(async () => {
+    > 10 |         pool = new Pool({
+         |         ^
+      11 |             host: process.env.DB_HOST,
+      12 |             port: parseInt(process.env.DB_PORT),
+      13 |             database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
+
+      at Object.<anonymous> (tests/services/loggingService.test.js:10:9)
+
+  ΓùÅ LoggingService ΓÇ║ cleanupOldLogs ΓÇ║ should delete logs older than retention period
+
+    TypeError: Cannot read properties of undefined (reading 'query')
+
+      209 |         beforeAll(async () => {
+      210 |             // Create old log (35 days ago)
+    > 211 |             await pool.query(
+          |                        ^
+      212 |                 `INSERT INTO logs (level, source, category, message, user_id, timestamp)
+      213 |          VALUES ('info', 'backend', 'test', 'Old log for cleanup', $1, NOW() - INTERVAL '35 days')`,
+      214 |                 [testUserId]
+
+      at Object.<anonymous> (tests/services/loggingService.test.js:211:24)
+
+  ΓùÅ LoggingService ΓÇ║ logBackendEvent ΓÇ║ should log a backend event
+
+    ReferenceError: Pool is not defined
+
+       8 |
+       9 |     beforeAll(async () => {
+    > 10 |         pool = new Pool({
+         |         ^
+      11 |             host: process.env.DB_HOST,
+      12 |             port: parseInt(process.env.DB_PORT),
+      13 |             database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
+
+      at Object.<anonymous> (tests/services/loggingService.test.js:10:9)
+
+  ΓùÅ LoggingService ΓÇ║ logFrontendEvent ΓÇ║ should log a frontend event
+
+    ReferenceError: Pool is not defined
+
+       8 |
+       9 |     beforeAll(async () => {
+    > 10 |         pool = new Pool({
+         |         ^
+      11 |             host: process.env.DB_HOST,
+      12 |             port: parseInt(process.env.DB_PORT),
+      13 |             database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
+
+      at Object.<anonymous> (tests/services/loggingService.test.js:10:9)
+
+
+  ΓùÅ Test suite failed to run
+
+    TypeError: Cannot read properties of undefined (reading 'query')
+
+      28 |
+      29 |     afterAll(async () => {
+    > 30 |         await pool.query('DELETE FROM logs WHERE user_id = $1', [testUserId]);
+         |                    ^
+      31 |         await pool.query('DELETE FROM users WHERE id = $1', [testUserId]);
+      32 |         await pool.end();
+      33 |     });
+
+      at Object.<anonymous> (tests/services/loggingService.test.js:30:20)
+
+FAIL tests/routes/logs.test.js
+  ΓùÅ Console
+
+    console.log
+      [dotenv@17.2.3] injecting env (32) from .env.testing -- tip: ≡ƒöÉ prevent building .env in docker: https://dotenvx.com/prebuild
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+    console.log
+      2025-12-08 19:16:16 [info]: ≡ƒöº Environment Configuration:
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:16 [info]:    NODE_ENV: testing
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:16 [info]:    IS_TEST: true
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:16 [info]:    DB_HOST: localhost
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:16 [info]:    DB_PORT: 5432
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:16 [info]:    DB_USER: postgres
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:16 [info]:    DB_NAME: matrix_delivery_test
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:16 [info]:    DB_NAME_TEST: matrix_delivery_test
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:16 [info]: ≡ƒöî Connecting to database: matrix_delivery_test (Test Mode: true)
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.error
+      ≡ƒöÑ CRITICAL DEBUG: server.js is running!
+
+      3 |
+      4 | const express = require('express');
+    > 5 | console.error('≡ƒöÑ CRITICAL DEBUG: server.js is running!');
+        |         ^
+      6 | const cors = require('cors');
+      7 | const dotenv = require('dotenv');
+      8 |
+
+      at Object.<anonymous> (server.js:5:9)
+      at Object.<anonymous> (tests/routes/logs.test.js:3:13)
+
+    console.log
+      [dotenv@17.2.3] injecting env (0) from .env.testing -- tip: ≡ƒùé∩╕Å backup and recover secrets: https://dotenvx.com/ops
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+    console.log
+      Γ£à Loaded .env.testing for testing
+
+      at Object.<anonymous> (server.js:12:11)
+
+    console.log
+      2025-12-08 19:16:18 [info]: ≡ƒöº Environment loaded for: testing
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      Γ£à Security configuration validated
+
+      at log (middleware/security.ts:188:13)
+
+    console.log
+      Γ£à Admin API endpoints loaded successfully - All 3 parts complete
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      [dotenv@17.2.3] injecting env (0) from .env -- tip: ΓÜÖ∩╕Å  enable debug logging with { debug: true }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+  ΓùÅ Logging API Tests ΓÇ║ POST /api/logs/frontend ΓÇ║ should accept a single frontend log
+
+    ReferenceError: Pool is not defined
+
+      11 |     beforeAll(async () => {
+      12 |         // Setup database connection
+    > 13 |         pool = new Pool({
+         |         ^
+      14 |             host: process.env.DB_HOST,
+      15 |             port: parseInt(process.env.DB_PORT),
+      16 |             database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
+
+      at Object.<anonymous> (tests/routes/logs.test.js:13:9)
+
+  ΓùÅ Logging API Tests ΓÇ║ POST /api/logs/frontend ΓÇ║ should accept batch frontend logs
+
+    ReferenceError: Pool is not defined
+
+      11 |     beforeAll(async () => {
+      12 |         // Setup database connection
+    > 13 |         pool = new Pool({
+         |         ^
+      14 |             host: process.env.DB_HOST,
+      15 |             port: parseInt(process.env.DB_PORT),
+      16 |             database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
+
+      at Object.<anonymous> (tests/routes/logs.test.js:13:9)
+
+  ΓùÅ Logging API Tests ΓÇ║ POST /api/logs/frontend ΓÇ║ should reject unauthenticated requests
+
+    ReferenceError: Pool is not defined
+
+      11 |     beforeAll(async () => {
+      12 |         // Setup database connection
+    > 13 |         pool = new Pool({
+         |         ^
+      14 |             host: process.env.DB_HOST,
+      15 |             port: parseInt(process.env.DB_PORT),
+      16 |             database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
+
+      at Object.<anonymous> (tests/routes/logs.test.js:13:9)
+
+  ΓùÅ Logging API Tests ΓÇ║ GET /api/logs ΓÇ║ should retrieve logs with admin token
+
+    ReferenceError: Pool is not defined
+
+      11 |     beforeAll(async () => {
+      12 |         // Setup database connection
+    > 13 |         pool = new Pool({
+         |         ^
+      14 |             host: process.env.DB_HOST,
+      15 |             port: parseInt(process.env.DB_PORT),
+      16 |             database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
+
+      at Object.<anonymous> (tests/routes/logs.test.js:13:9)
+
+  ΓùÅ Logging API Tests ΓÇ║ GET /api/logs ΓÇ║ should filter logs by level
+
+    ReferenceError: Pool is not defined
+
+      11 |     beforeAll(async () => {
+      12 |         // Setup database connection
+    > 13 |         pool = new Pool({
+         |         ^
+      14 |             host: process.env.DB_HOST,
+      15 |             port: parseInt(process.env.DB_PORT),
+      16 |             database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
+
+      at Object.<anonymous> (tests/routes/logs.test.js:13:9)
+
+  ΓùÅ Logging API Tests ΓÇ║ GET /api/logs ΓÇ║ should filter logs by source
+
+    ReferenceError: Pool is not defined
+
+      11 |     beforeAll(async () => {
+      12 |         // Setup database connection
+    > 13 |         pool = new Pool({
+         |         ^
+      14 |             host: process.env.DB_HOST,
+      15 |             port: parseInt(process.env.DB_PORT),
+      16 |             database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
+
+      at Object.<anonymous> (tests/routes/logs.test.js:13:9)
+
+  ΓùÅ Logging API Tests ΓÇ║ GET /api/logs ΓÇ║ should filter logs by category
+
+    ReferenceError: Pool is not defined
+
+      11 |     beforeAll(async () => {
+      12 |         // Setup database connection
+    > 13 |         pool = new Pool({
+         |         ^
+      14 |             host: process.env.DB_HOST,
+      15 |             port: parseInt(process.env.DB_PORT),
+      16 |             database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
+
+      at Object.<anonymous> (tests/routes/logs.test.js:13:9)
+
+  ΓùÅ Logging API Tests ΓÇ║ GET /api/logs ΓÇ║ should search logs
+
+    ReferenceError: Pool is not defined
+
+      11 |     beforeAll(async () => {
+      12 |         // Setup database connection
+    > 13 |         pool = new Pool({
+         |         ^
+      14 |             host: process.env.DB_HOST,
+      15 |             port: parseInt(process.env.DB_PORT),
+      16 |             database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
+
+      at Object.<anonymous> (tests/routes/logs.test.js:13:9)
+
+  ΓùÅ Logging API Tests ΓÇ║ GET /api/logs ΓÇ║ should paginate logs
+
+    ReferenceError: Pool is not defined
+
+      11 |     beforeAll(async () => {
+      12 |         // Setup database connection
+    > 13 |         pool = new Pool({
+         |         ^
+      14 |             host: process.env.DB_HOST,
+      15 |             port: parseInt(process.env.DB_PORT),
+      16 |             database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
+
+      at Object.<anonymous> (tests/routes/logs.test.js:13:9)
+
+  ΓùÅ Logging API Tests ΓÇ║ GET /api/logs ΓÇ║ should reject non-admin requests
+
+    ReferenceError: Pool is not defined
+
+      11 |     beforeAll(async () => {
+      12 |         // Setup database connection
+    > 13 |         pool = new Pool({
+         |         ^
+      14 |             host: process.env.DB_HOST,
+      15 |             port: parseInt(process.env.DB_PORT),
+      16 |             database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
+
+      at Object.<anonymous> (tests/routes/logs.test.js:13:9)
+
+  ΓùÅ Logging API Tests ΓÇ║ GET /api/logs/stats ΓÇ║ should retrieve log statistics
+
+    ReferenceError: Pool is not defined
+
+      11 |     beforeAll(async () => {
+      12 |         // Setup database connection
+    > 13 |         pool = new Pool({
+         |         ^
+      14 |             host: process.env.DB_HOST,
+      15 |             port: parseInt(process.env.DB_PORT),
+      16 |             database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
+
+      at Object.<anonymous> (tests/routes/logs.test.js:13:9)
+
+  ΓùÅ Logging API Tests ΓÇ║ GET /api/logs/stats ΓÇ║ should reject non-admin requests
+
+    ReferenceError: Pool is not defined
+
+      11 |     beforeAll(async () => {
+      12 |         // Setup database connection
+    > 13 |         pool = new Pool({
+         |         ^
+      14 |             host: process.env.DB_HOST,
+      15 |             port: parseInt(process.env.DB_PORT),
+      16 |             database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
+
+      at Object.<anonymous> (tests/routes/logs.test.js:13:9)
+
+  ΓùÅ Logging API Tests ΓÇ║ GET /api/logs/:id ΓÇ║ should retrieve a single log by ID
+
+    ReferenceError: Pool is not defined
+
+      11 |     beforeAll(async () => {
+      12 |         // Setup database connection
+    > 13 |         pool = new Pool({
+         |         ^
+      14 |             host: process.env.DB_HOST,
+      15 |             port: parseInt(process.env.DB_PORT),
+      16 |             database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
+
+      at Object.<anonymous> (tests/routes/logs.test.js:13:9)
+
+  ΓùÅ Logging API Tests ΓÇ║ GET /api/logs/:id ΓÇ║ should return 404 for non-existent log
+
+    ReferenceError: Pool is not defined
+
+      11 |     beforeAll(async () => {
+      12 |         // Setup database connection
+    > 13 |         pool = new Pool({
+         |         ^
+      14 |             host: process.env.DB_HOST,
+      15 |             port: parseInt(process.env.DB_PORT),
+      16 |             database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
+
+      at Object.<anonymous> (tests/routes/logs.test.js:13:9)
+
+  ΓùÅ Logging API Tests ΓÇ║ DELETE /api/logs/cleanup ΓÇ║ should cleanup old logs
+
+    ReferenceError: Pool is not defined
+
+      11 |     beforeAll(async () => {
+      12 |         // Setup database connection
+    > 13 |         pool = new Pool({
+         |         ^
+      14 |             host: process.env.DB_HOST,
+      15 |             port: parseInt(process.env.DB_PORT),
+      16 |             database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
+
+      at Object.<anonymous> (tests/routes/logs.test.js:13:9)
+
+  ΓùÅ Logging API Tests ΓÇ║ DELETE /api/logs/cleanup ΓÇ║ should reject non-admin requests
+
+    ReferenceError: Pool is not defined
+
+      11 |     beforeAll(async () => {
+      12 |         // Setup database connection
+    > 13 |         pool = new Pool({
+         |         ^
+      14 |             host: process.env.DB_HOST,
+      15 |             port: parseInt(process.env.DB_PORT),
+      16 |             database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
+
+      at Object.<anonymous> (tests/routes/logs.test.js:13:9)
+
+PASS tests/config/constants.test.js
+  ΓùÅ Console
+
+    console.log
+      [dotenv@17.2.3] injecting env (32) from .env.testing -- tip: ≡ƒæÑ sync secrets across teammates & machines: https://dotenvx.com/ops
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+PASS tests/utils/cache.test.js
+  ΓùÅ Console
+
+    console.log
+      [dotenv@17.2.3] injecting env (32) from .env.testing -- tip: ΓÜÖ∩╕Å  load multiple .env files with { path: ['.env.local', '.env'] }
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+    console.warn
+      Location cache read error (non-critical): Database error
+
+      89 |         return record.payload;
+      90 |     } catch (error) {
+    > 91 |         console.warn('Location cache read error (non-critical):', error.message);
+         |                 ^
+      92 |         return null;
+      93 |     }
+      94 | };
+
+      at warn (utils/cache.js:91:17)
+      at Object.<anonymous> (tests/utils/cache.test.js:232:28)
+
+    console.warn
+      Location cache write error (non-critical): Database error
+
+      112 |         );
+      113 |     } catch (error) {
+    > 114 |         console.warn('Location cache write error (non-critical):', error.message);
+          |                 ^
+      115 |     }
+      116 | };
+      117 |
+
+      at warn (utils/cache.js:114:17)
+      at Object.<anonymous> (tests/utils/cache.test.js:280:13)
+
+PASS tests/utils/validators.test.js
+  ΓùÅ Console
+
+    console.log
+      [dotenv@17.2.3] injecting env (32) from .env.testing -- tip: ≡ƒöÉ encrypt with Dotenvx: https://dotenvx.com
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+PASS tests/utils/sanitizers.test.js
+  ΓùÅ Console
+
+    console.log
+      [dotenv@17.2.3] injecting env (32) from .env.testing -- tip: ≡ƒöæ add access controls to secrets: https://dotenvx.com/ops
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+PASS tests/utils/generators.test.js
+  ΓùÅ Console
+
+    console.log
+      [dotenv@17.2.3] injecting env (32) from .env.testing -- tip: ≡ƒæÑ sync secrets across teammates & machines: https://dotenvx.com/ops
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+FAIL tests/integration/cookieAuth.test.ts
+  ΓùÅ Test suite failed to run
+
+    tests/integration/cookieAuth.test.ts:45:29 - error TS2352: Conversion of type 'string' to type 'string[]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+
+    45             const cookies = response.headers['set-cookie'] as string[];
+                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+FAIL routes/__tests__/drivers.earnings.test.js
+  ΓùÅ Test suite failed to run
+
+    TypeError: Router.use() requires a middleware function but got a Object
+
+      399 | // Load driver status endpoints
+      400 | const driverRoutes = require('./routes/drivers');
+    > 401 | app.use('/api/drivers', driverRoutes);
+          |     ^
+      402 |
+      403 | // Load map location picker endpoints
+      404 | const mapPickerEndpoints = require('./map-location-picker-backend.js');
+
+      at Function.use (node_modules/express/lib/router/index.js:469:13)
+      at Function.<anonymous> (node_modules/express/lib/application.js:227:21)
+          at Array.forEach (<anonymous>)
+      at Function.use (node_modules/express/lib/application.js:224:7)
+      at Object.<anonymous> (server.js:401:5)
+      at Object.<anonymous> (routes/drivers.js:4834:26)
+      at Object.<anonymous> (routes/__tests__/drivers.earnings.test.js:4:23)
+
+FAIL __tests__/crypto.integration.test.ts
+  ΓùÅ Test suite failed to run
+
+    __tests__/crypto.integration.test.ts:8:17 - error TS2307: Cannot find module '../../server' or its corresponding type declarations.
+
+    8 import app from '../../server';
+                      ~~~~~~~~~~~~~~
+    __tests__/crypto.integration.test.ts:9:31 - error TS2307: Cannot find module '../../utils/auth' or its corresponding type declarations.
+
+    9 import { generateToken } from '../../utils/auth';
+                                    ~~~~~~~~~~~~~~~~~~
+
+FAIL tests/paypal.test.js
+  ΓùÅ Test suite failed to run
+
+    Jest encountered an unexpected token
+
+    Jest failed to parse a file. This happens e.g. when your code or its dependencies use non-standard JavaScript syntax, or when Jest is not configured to support such syntax.
+
+    Out of the box Jest supports Babel, which will be used to transform your files into valid JS based on your Babel configuration.
+
+    By default "node_modules" folder is ignored by transformers.
+
+    Here's what you can do:
+     ΓÇó If you are trying to use ECMAScript Modules, see https://jestjs.io/docs/ecmascript-modules for how to enable it.
+     ΓÇó If you are trying to use TypeScript, see https://jestjs.io/docs/getting-started#using-typescript
+     ΓÇó To have some of your "node_modules" files transformed, you can specify a custom "transformIgnorePatterns" in your config.
+     ΓÇó If you need a custom transformation specify a "transform" option in your config.
+     ΓÇó If you simply want to mock your non-JS modules (e.g. binary assets) you can stub them out with the "moduleNameMapper" config option.
+
+    You'll find more details and examples of these config options in the docs:
+    https://jestjs.io/docs/configuration
+    For information about custom transformations, see:
+    https://jestjs.io/docs/code-transformation
+
+    Details:
+
+    D:\matrix-delivery\backend\tests\paypal.test.js:2
+        password: process.env.DB_PASSWORD || 'postgres',
+                ^
+
+    SyntaxError: Unexpected token ':'
+
+      at Runtime.createScriptFromCode (node_modules/jest-runtime/build/index.js:1505:14)
+
+FAIL tests/messaging.test.js
+  ΓùÅ Test suite failed to run
+
+    Jest encountered an unexpected token
+
+    Jest failed to parse a file. This happens e.g. when your code or its dependencies use non-standard JavaScript syntax, or when Jest is not configured to support such syntax.
+
+    Out of the box Jest supports Babel, which will be used to transform your files into valid JS based on your Babel configuration.
+
+    By default "node_modules" folder is ignored by transformers.
+
+    Here's what you can do:
+     ΓÇó If you are trying to use ECMAScript Modules, see https://jestjs.io/docs/ecmascript-modules for how to enable it.
+     ΓÇó If you are trying to use TypeScript, see https://jestjs.io/docs/getting-started#using-typescript
+     ΓÇó To have some of your "node_modules" files transformed, you can specify a custom "transformIgnorePatterns" in your config.
+     ΓÇó If you need a custom transformation specify a "transform" option in your config.
+     ΓÇó If you simply want to mock your non-JS modules (e.g. binary assets) you can stub them out with the "moduleNameMapper" config option.
+
+    You'll find more details and examples of these config options in the docs:
+    https://jestjs.io/docs/configuration
+    For information about custom transformations, see:
+    https://jestjs.io/docs/code-transformation
+
+    Details:
+
+    D:\matrix-delivery\backend\tests\messaging.test.js:2
+        user: process.env.DB_USER || 'postgres',
+            ^
+
+    SyntaxError: Unexpected token ':'
+
+      at Runtime.createScriptFromCode (node_modules/jest-runtime/build/index.js:1505:14)
+
+FAIL tests/comprehensive_workflow.test.js
+  ΓùÅ Test suite failed to run
+
+    Jest encountered an unexpected token
+
+    Jest failed to parse a file. This happens e.g. when your code or its dependencies use non-standard JavaScript syntax, or when Jest is not configured to support such syntax.
+
+    Out of the box Jest supports Babel, which will be used to transform your files into valid JS based on your Babel configuration.
+
+    By default "node_modules" folder is ignored by transformers.
+
+    Here's what you can do:
+     ΓÇó If you are trying to use ECMAScript Modules, see https://jestjs.io/docs/ecmascript-modules for how to enable it.
+     ΓÇó If you are trying to use TypeScript, see https://jestjs.io/docs/getting-started#using-typescript
+     ΓÇó To have some of your "node_modules" files transformed, you can specify a custom "transformIgnorePatterns" in your config.
+     ΓÇó If you need a custom transformation specify a "transform" option in your config.
+     ΓÇó If you simply want to mock your non-JS modules (e.g. binary assets) you can stub them out with the "moduleNameMapper" config option.
+
+    You'll find more details and examples of these config options in the docs:
+    https://jestjs.io/docs/configuration
+    For information about custom transformations, see:
+    https://jestjs.io/docs/code-transformation
+
+    Details:
+
+    D:\matrix-delivery\backend\tests\comprehensive_workflow.test.js:2
+        error: jest.fn(),
+             ^
+
+    SyntaxError: Unexpected token ':'
+
+      at Runtime.createScriptFromCode (node_modules/jest-runtime/build/index.js:1505:14)
+
+PASS test/contracts/MatrixDeliveryEscrow.test.js (7.148 s)
+  ΓùÅ Console
+
+    console.log
+      [dotenv@17.2.3] injecting env (32) from .env.testing -- tip: ≡ƒöÉ prevent building .env in docker: https://dotenvx.com/prebuild
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+    console.log
+      [dotenv@17.2.3] injecting env (0) from .env -- tip: ΓÜÖ∩╕Å  specify custom .env file path with { path: '/custom/path/.env' }
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+FAIL tests/fileUpload.test.js (55.177 s)
+  ΓùÅ Console
+
+    console.log
+      [dotenv@17.2.3] injecting env (32) from .env.testing -- tip: ΓÜÖ∩╕Å  suppress all logs with { quiet: true }
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+    console.error
+      ≡ƒöÑ CRITICAL DEBUG: server.js is running!
+
+      3 |
+      4 | const express = require('express');
+    > 5 | console.error('≡ƒöÑ CRITICAL DEBUG: server.js is running!');
+        |         ^
+      6 | const cors = require('cors');
+      7 | const dotenv = require('dotenv');
+      8 |
+
+      at Object.<anonymous> (server.js:5:9)
+      at Object.<anonymous> (tests/fileUpload.test.js:2:13)
+
+    console.log
+      [dotenv@17.2.3] injecting env (0) from .env.testing -- tip: ΓÜÖ∩╕Å  load multiple .env files with { path: ['.env.local', '.env'] }
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+    console.log
+      Γ£à Loaded .env.testing for testing
+
+      at Object.<anonymous> (server.js:12:11)
+
+    console.log
+      2025-12-08 19:15:55 [info]: ≡ƒöº Environment Configuration:
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:15:55 [info]:    NODE_ENV: testing
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:15:55 [info]:    IS_TEST: true
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:15:55 [info]:    DB_HOST: localhost
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:15:55 [info]:    DB_PORT: 5432
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:15:55 [info]:    DB_USER: postgres
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:15:55 [info]:    DB_NAME: matrix_delivery_test
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:15:55 [info]:    DB_NAME_TEST: matrix_delivery_test
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:15:55 [info]: ≡ƒöî Connecting to database: matrix_delivery_test (Test Mode: true)
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:06 [info]: ≡ƒöº Environment loaded for: testing
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      Γ£à Security configuration validated
+
+      at log (middleware/security.ts:188:13)
+
+    console.log
+      Γ£à Admin API endpoints loaded successfully - All 3 parts complete
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      [dotenv@17.2.3] injecting env (0) from .env -- tip: ≡ƒ¢á∩╕Å  run anywhere with `dotenvx run -- yourcommand`
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      2025-12-08 19:16:09 [http]: REQUEST: POST /api/uploads/image
+      {
+        "method": "POST",
+        "url": "/api/uploads/image",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [info]: AUTH: Token verified successfully
+      {
+        "userId": "test-user-123",
+        "role": "customer",
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [error]: Failed to generate image thumbnail
+      {
+        "error": "Input file has corrupt header: VipsJpeg: premature end of JPEG image",
+        "imagePath": "D:\\matrix-delivery\\backend\\uploads\\images\\test-order-123_1765214169139_id8i0el.jpg",
+        "category": "file-upload"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [info]: Image uploaded successfully
+      {
+        "userId": "test-user-123",
+        "orderId": "test-order-123",
+        "filename": "test-order-123_1765214169139_id8i0el.jpg",
+        "size": 24,
+        "category": "file-upload"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:09",
+        "ip": "/api/uploads/image",
+        "userAgent": "201",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [http]: RESPONSE: POST /api/uploads/image 201
+      {
+        "method": "POST",
+        "url": "/api/uploads/image",
+        "statusCode": 201,
+        "duration": "130ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [http]: REQUEST: POST /api/uploads/image
+      {
+        "method": "POST",
+        "url": "/api/uploads/image",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [info]: AUTH: Token verified successfully
+      {
+        "userId": "test-user-123",
+        "role": "customer",
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [error]: Image upload error
+      {
+        "error": "File too large",
+        "userId": "test-user-123",
+        "category": "file-upload"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:09",
+        "ip": "/api/uploads/image",
+        "userAgent": "400",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [warn]: RESPONSE: POST /api/uploads/image 400
+      {
+        "method": "POST",
+        "url": "/api/uploads/image",
+        "statusCode": 400,
+        "duration": "240ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [http]: REQUEST: POST /api/uploads/image
+      {
+        "method": "POST",
+        "url": "/api/uploads/image",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [info]: AUTH: Token verified successfully
+      {
+        "userId": "test-user-123",
+        "role": "customer",
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [error]: Image upload error
+      {
+        "error": "Invalid file type. Allowed types: image/jpeg, image/jpg, image/png, image/gif, image/webp",
+        "userId": "test-user-123",
+        "category": "file-upload"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:09",
+        "ip": "/api/uploads/image",
+        "userAgent": "400",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [warn]: RESPONSE: POST /api/uploads/image 400
+      {
+        "method": "POST",
+        "url": "/api/uploads/image",
+        "statusCode": 400,
+        "duration": "41ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [http]: REQUEST: POST /api/uploads/image
+      {
+        "method": "POST",
+        "url": "/api/uploads/image",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [warn]: SECURITY: Access attempt without token
+      {
+        "ip": "::ffff:127.0.0.1",
+        "path": "/image",
+        "method": "POST",
+        "category": "security"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:09",
+        "ip": "/api/uploads/image",
+        "userAgent": "401",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [warn]: RESPONSE: POST /api/uploads/image 401
+      {
+        "method": "POST",
+        "url": "/api/uploads/image",
+        "statusCode": 401,
+        "duration": "15ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [http]: REQUEST: POST /api/uploads/video
+      {
+        "method": "POST",
+        "url": "/api/uploads/video",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:09 [info]: AUTH: Token verified successfully
+      {
+        "userId": "test-user-123",
+        "role": "customer",
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [error]: Failed to generate video thumbnail
+      {
+        "error": "ffmpeg exited with code 3199971767: Error opening input file D:\\matrix-delivery\\backend\\uploads\\videos\\test-order-123_1765214169872_pkmaty8.mp4.\nError opening input files: Invalid data found when processing input\n",
+        "videoPath": "D:\\matrix-delivery\\backend\\uploads\\videos\\test-order-123_1765214169872_pkmaty8.mp4",
+        "category": "file-upload"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [error]: Failed to get video duration
+      {
+        "error": "ffprobe exited with code 1\nffprobe version N-121583-g4348bde2d2-20251031 Copyright (c) 2007-2025 the FFmpeg developers\r\n  built with gcc 15.2.0 (crosstool-NG 1.28.0.1_403899e)\r\n  configuration: --prefix=/ffbuild/prefix --pkg-config-flags=--static --pkg-config=pkg-config --cross-prefix=x86_64-w64-mingw32- --arch=x86_64 --target-os=mingw32 --enable-gpl --enable-version3 --disable-debug --disable-w32threads --enable-pthreads --enable-iconv --enable-zlib --enable-libxml2 --enable-libvmaf --enable-fontconfig --enable-libharfbuzz --enable-libfreetype --enable-libfribidi --enable-vulkan --enable-libshaderc --enable-libvorbis --disable-libxcb --disable-xlib --disable-libpulse --enable-opencl --enable-gmp --enable-lzma --enable-amf --enable-libaom --enable-libaribb24 --enable-avisynth --enable-chromaprint --enable-libdav1d --enable-libdavs2 --enable-libdvdread --enable-libdvdnav --disable-libfdk-aac --enable-ffnvcodec --enable-cuda-llvm --enable-frei0r --enable-libgme --enable-libkvazaar --enable-libaribcaption --enable-libass --enable-libbluray --enable-libjxl --enable-libmp3lame --enable-libopus --enable-libplacebo --enable-librist --enable-libssh --enable-libtheora --enable-libvpx --enable-libwebp --enable-libzmq --enable-lv2 --enable-libvpl --enable-openal --enable-liboapv --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopenh264 --enable-libopenjpeg --enable-libopenmpt --enable-librav1e --enable-librubberband --enable-schannel --enable-sdl2 --enable-libsnappy --enable-libsoxr --enable-libsrt --enable-libsvtav1 --enable-libtwolame --enable-libuavs3d --disable-libdrm --enable-vaapi --enable-libvidstab --enable-libvvenc --enable-whisper --enable-libx264 --enable-libx265 --enable-libxavs2 --enable-libxvid --enable-libzimg --enable-libzvbi --extra-cflags=-DLIBTWOLAME_STATIC --extra-cxxflags= --extra-libs=-lgomp --extra-ldflags=-pthread --extra-ldexeflags= --cc=x86_64-w64-mingw32-gcc --cxx=x86_64-w64-mingw32-g++ --ar=x86_64-w64-mingw32-gcc-ar --ranlib=x86_64-w64-mingw32-gcc-ranlib --nm=x86_64-w64-mingw32-gcc-nm --extra-version=20251031\r\n  libavutil      60. 16.100 / 60. 16.100\r\n  libavcodec     62. 17.100 / 62. 17.100\r\n  libavformat    62.  6.101 / 62.  6.101\r\n  libavdevice    62.  2.100 / 62.  2.100\r\n  libavfilter    11.  9.100 / 11.  9.100\r\n  libswscale      9.  3.100 /  9.  3.100\r\n  libswresample   6.  2.100 /  6.  2.100\r\n[mov,mp4,m4a,3gp,3g2,mj2 @ 00000220ed91de80] Format mov,mp4,m4a,3gp,3g2,mj2 detected only with low score of 1, misdetection possible!\r\n[mov,mp4,m4a,3gp,3g2,mj2 @ 00000220ed91de80] moov atom not found\r\nD:\\matrix-delivery\\backend\\uploads\\videos\\test-order-123_1765214169872_pkmaty8.mp4: Invalid data found when processing input\r\n",
+        "videoPath": "D:\\matrix-delivery\\backend\\uploads\\videos\\test-order-123_1765214169872_pkmaty8.mp4",
+        "category": "file-upload"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [info]: Video uploaded successfully
+      {
+        "userId": "test-user-123",
+        "orderId": "test-order-123",
+        "filename": "test-order-123_1765214169872_pkmaty8.mp4",
+        "size": 18,
+        "duration": null,
+        "category": "file-upload"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:10",
+        "ip": "/api/uploads/video",
+        "userAgent": "201",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [http]: RESPONSE: POST /api/uploads/video 201
+      {
+        "method": "POST",
+        "url": "/api/uploads/video",
+        "statusCode": 201,
+        "duration": "788ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [http]: REQUEST: POST /api/uploads/video
+      {
+        "method": "POST",
+        "url": "/api/uploads/video",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:10 [info]: AUTH: Token verified successfully
+      {
+        "userId": "test-user-123",
+        "role": "customer",
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [error]: Video upload error
+      {
+        "error": "File too large",
+        "userId": "test-user-123",
+        "category": "file-upload"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:11",
+        "ip": "/api/uploads/video",
+        "userAgent": "400",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [warn]: RESPONSE: POST /api/uploads/video 400
+      {
+        "method": "POST",
+        "url": "/api/uploads/video",
+        "statusCode": 400,
+        "duration": "827ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [http]: REQUEST: POST /api/uploads/voice
+      {
+        "method": "POST",
+        "url": "/api/uploads/voice",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [info]: AUTH: Token verified successfully
+      {
+        "userId": "test-user-123",
+        "role": "customer",
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [error]: Voice upload error
+      {
+        "error": "Invalid file type. Allowed types: audio/webm, audio/mp3, audio/mpeg, audio/wav, audio/ogg",
+        "userId": "test-user-123",
+        "category": "file-upload"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:11",
+        "ip": "/api/uploads/voice",
+        "userAgent": "400",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [warn]: RESPONSE: POST /api/uploads/voice 400
+      {
+        "method": "POST",
+        "url": "/api/uploads/voice",
+        "statusCode": 400,
+        "duration": "25ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [http]: REQUEST: POST /api/uploads/voice
+      {
+        "method": "POST",
+        "url": "/api/uploads/voice",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [info]: AUTH: Token verified successfully
+      {
+        "userId": "test-user-123",
+        "role": "customer",
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [error]: Voice upload error
+      {
+        "error": "Invalid file type. Allowed types: audio/webm, audio/mp3, audio/mpeg, audio/wav, audio/ogg",
+        "userId": "test-user-123",
+        "category": "file-upload"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:11",
+        "ip": "/api/uploads/voice",
+        "userAgent": "400",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [warn]: RESPONSE: POST /api/uploads/voice 400
+      {
+        "method": "POST",
+        "url": "/api/uploads/voice",
+        "statusCode": 400,
+        "duration": "19ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [http]: REQUEST: POST /api/messages
+      {
+        "method": "POST",
+        "url": "/api/messages",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:11 [info]: AUTH: Token verified successfully
+      {
+        "userId": "test-user-123",
+        "role": "customer",
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:21 [http]: REQUEST: POST /api/messages
+      {
+        "method": "POST",
+        "url": "/api/messages",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:21 [info]: AUTH: Token verified successfully
+      {
+        "userId": "test-user-123",
+        "role": "customer",
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:31 [http]: REQUEST: POST /api/messages
+      {
+        "method": "POST",
+        "url": "/api/messages",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:31 [info]: AUTH: Token verified successfully
+      {
+        "userId": "test-user-123",
+        "role": "customer",
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:41 [http]: REQUEST: GET /api/messages/order/test-order-123
+      {
+        "method": "GET",
+        "url": "/api/messages/order/test-order-123",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:41 [info]: AUTH: Token verified successfully
+      {
+        "userId": "test-user-123",
+        "role": "customer",
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:42 [error]: Get order messages failed: Order not found
+      {
+        "userId": "test-user-123",
+        "orderId": "test-order-123",
+        "category": "error"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:42 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[08/Dec/2025:17:16:42",
+        "ip": "/api/messages/order/test-order-123",
+        "userAgent": "404",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-08 19:16:42 [warn]: RESPONSE: GET /api/messages/order/test-order-123 404
+      {
+        "method": "GET",
+        "url": "/api/messages/order/test-order-123",
+        "statusCode": 404,
+        "duration": "247ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+  ΓùÅ File Upload API ΓÇ║ POST /api/uploads/image ΓÇ║ should reject oversized images
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected substring: "exceeds"
+    Received string:    "File too large"
+
+      71 |
+      72 |             expect(response.status).toBe(400);
+    > 73 |             expect(response.body.error).toContain('exceeds');
+         |                                         ^
+      74 |         });
+      75 |
+      76 |         it('should reject invalid file types', async () => {
+
+      at Object.<anonymous> (tests/fileUpload.test.js:73:41)
+
+  ΓùÅ File Upload API ΓÇ║ POST /api/uploads/voice ΓÇ║ should upload a voice recording successfully
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 201
+    Received: 400
+
+      132 |                 .attach('file', testAudioBuffer, 'voice.webm');
+      133 |
+    > 134 |             expect(response.status).toBe(201);
+          |                                     ^
+      135 |             expect(response.body.success).toBe(true);
+      136 |             expect(response.body.mediaType).toBe('voice');
+      137 |         });
+
+      at Object.<anonymous> (tests/fileUpload.test.js:134:37)
+
+  ΓùÅ Media Messages API ΓÇ║ POST /api/messages with media ΓÇ║ should send a media message successfully
+
+    TypeError: logger.messaging is not a function
+
+    
+
+      at routes/messages.js:1900:10
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at next (node_modules/express/lib/router/route.js:149:13)
+      at middleware/rateLimit.js:1307:14
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at next (node_modules/express/lib/router/route.js:149:13)
+      at verifyToken (middleware/auth.js:1276:5)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at next (node_modules/express/lib/router/route.js:149:13)
+      at Route.dispatch (node_modules/express/lib/router/route.js:119:3)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at node_modules/express/lib/router/index.js:284:15
+      at Function.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at Function.handle (node_modules/express/lib/router/index.js:175:3)
+      at router (node_modules/express/lib/router/index.js:47:12)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at Function.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at Object.<anonymous>.logger.requestLogger (config/logger.js:185:3)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at Function.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at logger (node_modules/morgan/index.js:144:5)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at Function.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at urlencodedParser (node_modules/body-parser/lib/types/urlencoded.js:85:7)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at Function.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at node_modules/body-parser/lib/read.js:137:5
+      at invokeCallback (node_modules/raw-body/index.js:238:16)
+      at done (node_modules/raw-body/index.js:227:7)
+      at IncomingMessage.onEnd (node_modules/raw-body/index.js:287:7)
+      at node_modules/@opentelemetry/context-async-hooks/src/AbstractAsyncHooksContextManager.ts:75:49
+      at SentryContextManager.with (node_modules/@opentelemetry/context-async-hooks/src/AsyncLocalStorageContextManager.ts:40:36)
+      at SentryContextManager.with (node_modules/@sentry/opentelemetry/src/contextManager.ts:70:24)
+      at IncomingMessage.contextWrapper (node_modules/@opentelemetry/context-async-hooks/src/AbstractAsyncHooksContextManager.ts:75:26)
+
+  ΓùÅ Media Messages API ΓÇ║ POST /api/messages with media ΓÇ║ should send a media message successfully
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      177 |
+      178 |     describe('POST /api/messages with media', () => {
+    > 179 |         it('should send a media message successfully', async () => {
+          |         ^
+      180 |             const mediaData = {
+      181 |                 mediaUrl: '/uploads/images/test_123.jpg',
+      182 |                 mediaType: 'image',
+
+      at tests/fileUpload.test.js:179:9
+      at tests/fileUpload.test.js:178:5
+      at Object.<anonymous> (tests/fileUpload.test.js:159:1)
+
+  ΓùÅ Media Messages API ΓÇ║ POST /api/messages with media ΓÇ║ should send a media message without text content
+
+    TypeError: logger.messaging is not a function
+
+    
+
+      at routes/messages.js:1900:10
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at next (node_modules/express/lib/router/route.js:149:13)
+      at middleware/rateLimit.js:1307:14
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at next (node_modules/express/lib/router/route.js:149:13)
+      at verifyToken (middleware/auth.js:1276:5)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at next (node_modules/express/lib/router/route.js:149:13)
+      at Route.dispatch (node_modules/express/lib/router/route.js:119:3)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at node_modules/express/lib/router/index.js:284:15
+      at Function.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at Function.handle (node_modules/express/lib/router/index.js:175:3)
+      at router (node_modules/express/lib/router/index.js:47:12)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at Function.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at Object.<anonymous>.logger.requestLogger (config/logger.js:185:3)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at Function.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at logger (node_modules/morgan/index.js:144:5)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at Function.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at urlencodedParser (node_modules/body-parser/lib/types/urlencoded.js:85:7)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at Function.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at node_modules/body-parser/lib/read.js:137:5
+      at invokeCallback (node_modules/raw-body/index.js:238:16)
+      at done (node_modules/raw-body/index.js:227:7)
+      at IncomingMessage.onEnd (node_modules/raw-body/index.js:287:7)
+      at node_modules/@opentelemetry/context-async-hooks/src/AbstractAsyncHooksContextManager.ts:75:49
+      at SentryContextManager.with (node_modules/@opentelemetry/context-async-hooks/src/AsyncLocalStorageContextManager.ts:40:36)
+      at SentryContextManager.with (node_modules/@sentry/opentelemetry/src/contextManager.ts:70:24)
+      at IncomingMessage.contextWrapper (node_modules/@opentelemetry/context-async-hooks/src/AbstractAsyncHooksContextManager.ts:75:26)
+
+  ΓùÅ Media Messages API ΓÇ║ POST /api/messages with media ΓÇ║ should send a media message without text content
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      201 |         });
+      202 |
+    > 203 |         it('should send a media message without text content', async () => {
+          |         ^
+      204 |             const mediaData = {
+      205 |                 mediaUrl: '/uploads/voice/voice_123.webm',
+      206 |                 mediaType: 'voice',
+
+      at tests/fileUpload.test.js:203:9
+      at tests/fileUpload.test.js:178:5
+      at Object.<anonymous> (tests/fileUpload.test.js:159:1)
+
+  ΓùÅ Media Messages API ΓÇ║ POST /api/messages with media ΓÇ║ should reject message without content or media
+
+    TypeError: logger.messaging is not a function
+
+    
+
+      at routes/messages.js:1900:10
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at next (node_modules/express/lib/router/route.js:149:13)
+      at middleware/rateLimit.js:1307:14
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at next (node_modules/express/lib/router/route.js:149:13)
+      at verifyToken (middleware/auth.js:1276:5)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at next (node_modules/express/lib/router/route.js:149:13)
+      at Route.dispatch (node_modules/express/lib/router/route.js:119:3)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at node_modules/express/lib/router/index.js:284:15
+      at Function.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at Function.handle (node_modules/express/lib/router/index.js:175:3)
+      at router (node_modules/express/lib/router/index.js:47:12)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at Function.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at Object.<anonymous>.logger.requestLogger (config/logger.js:185:3)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at Function.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at logger (node_modules/morgan/index.js:144:5)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at Function.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at urlencodedParser (node_modules/body-parser/lib/types/urlencoded.js:85:7)
+      at Layer.handle [as handle_request] (node_modules/express/lib/router/layer.js:95:5)
+      at trim_prefix (node_modules/express/lib/router/index.js:328:13)
+      at node_modules/express/lib/router/index.js:286:9
+      at Function.process_params (node_modules/express/lib/router/index.js:346:12)
+      at next (node_modules/express/lib/router/index.js:280:10)
+      at node_modules/body-parser/lib/read.js:137:5
+      at invokeCallback (node_modules/raw-body/index.js:238:16)
+      at done (node_modules/raw-body/index.js:227:7)
+      at IncomingMessage.onEnd (node_modules/raw-body/index.js:287:7)
+      at node_modules/@opentelemetry/context-async-hooks/src/AbstractAsyncHooksContextManager.ts:75:49
+      at SentryContextManager.with (node_modules/@opentelemetry/context-async-hooks/src/AsyncLocalStorageContextManager.ts:40:36)
+      at SentryContextManager.with (node_modules/@sentry/opentelemetry/src/contextManager.ts:70:24)
+      at IncomingMessage.contextWrapper (node_modules/@opentelemetry/context-async-hooks/src/AbstractAsyncHooksContextManager.ts:75:26)
+
+  ΓùÅ Media Messages API ΓÇ║ POST /api/messages with media ΓÇ║ should reject message without content or media
+
+    thrown: "Exceeded timeout of 10000 ms for a test.
+    Add a timeout value to this test to increase the timeout, if this is a long-running test. See https://jestjs.io/docs/api#testname-fn-timeout."
+
+      224 |         });
+      225 |
+    > 226 |         it('should reject message without content or media', async () => {
+          |         ^
+      227 |             const response = await request(app)
+      228 |                 .post('/api/messages')
+      229 |                 .set('Authorization', `Bearer ${token}`)
+
+      at tests/fileUpload.test.js:226:9
+      at tests/fileUpload.test.js:178:5
+      at Object.<anonymous> (tests/fileUpload.test.js:159:1)
+
+  ΓùÅ Media Messages API ΓÇ║ GET /api/messages/order/:orderId ΓÇ║ should retrieve messages with media fields
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 404
+
+      246 |                 .set('Authorization', `Bearer ${token}`);
+      247 |
+    > 248 |             expect(response.status).toBe(200);
+          |                                     ^
+      249 |             expect(response.body.success).toBe(true);
+      250 |             expect(response.body.messages).toBeDefined();
+      251 |
+
+      at Object.<anonymous> (tests/fileUpload.test.js:248:37)
+
+A worker process has failed to exit gracefully and has been force exited. This is likely caused by tests leaking due to improper teardown. Try running with --detectOpenHandles to find leaks. Active timers can also cause this, ensure that .unref() was called on them.
+---------------------------|---------|----------|---------|---------|--------------------------------------------------------------------------------------------------------------------------------
+File                       | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                                                                                                              
+---------------------------|---------|----------|---------|---------|--------------------------------------------------------------------------------------------------------------------------------
+All files                  |   25.08 |    12.16 |    27.5 |   25.09 |                                                                                                                                
+ middleware                |   25.89 |     5.73 |      12 |   23.89 |                                                                                                                                
+  auditLogger.js           |       0 |        0 |       0 |       0 | 2-145                                                                                                                          
+  auditLogger.ts           |   36.17 |        0 |       0 |   23.68 | 12-36,51-63,72-98,112,138,162,180-193,208-217                                                                                  
+  auth.js                  |   52.38 |     12.9 |   33.33 |   53.65 | 64-84,92-116                                                                                                                   
+  rateLimit.js             |   37.77 |    19.35 |   33.33 |   39.53 | 29-79,125-133                                                                                                                  
+  security.js              |       0 |        0 |       0 |       0 | 2-183                                                                                                                          
+  security.ts              |   67.85 |       20 |   55.55 |      66 | 70-73,81-91,139,144-145,167,172,176,180,185                                                                                    
+  validation.js            |       0 |        0 |       0 |       0 | 1-206                                                                                                                          
+ routes                    |   28.48 |    13.78 |   27.16 |   28.62 |                                                                                                                                
+  auth.js                  |   44.82 |    31.73 |   42.85 |   44.82 | 12-48,70-74,82-145,164-168,172,218-222,228-243,252-260,266-298,304-336,342-351,357-385,405-409,434-439,460,480,512,519-566,615 
+  cryptoPayments.js        |   27.08 |     4.76 |   44.44 |   27.08 | 32-33,50-67,76-87,96-136,145-210,219-274,283-318,335-336                                                                       
+  deploy.js                |       0 |        0 |       0 |       0 | 1-33                                                                                                                           
+  drivers.js               |    8.96 |        0 |       0 |       9 | 17-61,67-117,123-173,179-206,212-321,327-345,351-388,394-422,428-484,490-614,620-712                                           
+  logs.js                  |   22.64 |        0 |   11.11 |   23.52 | 19-57,67-96,105-120,129-151,160-179                                                                                            
+  messages.js              |   29.67 |    13.88 |   28.57 |   29.67 | 20-83,106,119,127,136-159,167-196,204-218,226-254,263-291                                                                      
+  orders.js                |   20.28 |        0 |       0 |   20.28 | 13-81,87-99,105-118,124-137,143-152,158-168,174-182                                                                            
+  payments.js              |   29.87 |    21.21 |   33.33 |   29.87 | 42-51,67,74-79,88-111,119-178,196-201,232-240,256,269-302,312-380,389-433,442-505                                              
+  statistics.js            |   13.04 |        0 |       0 |   13.63 | 7-116                                                                                                                          
+  uploads.js               |   60.86 |    41.66 |   85.71 |   60.86 | 37,58-64,91,113-119,145-174,185-227                                                                                            
+ services                  |    20.5 |    10.88 |    32.8 |   20.94 |                                                                                                                                
+  authService.js           |   42.67 |    23.68 |   46.15 |   43.22 | 56-59,78-150,162,171,181-217,256-366,412-419,450-451,475-497,540-541,553-575                                                   
+  blockchainService.js     |    7.19 |        0 |    5.55 |    7.93 | 52-437                                                                                                                         
+  driverLocationService.js |       0 |        0 |       0 |       0 | 1-113                                                                                                                          
+  emailService.js          |   41.66 |    41.17 |      60 |   42.55 | 25,47-48,106,118-241                                                                                                           
+  fileUploadService.js     |      64 |       50 |   81.81 |      64 | 45-46,66,71,76-77,120,142-148,176-181,192-197,216-217,261-318                                                                  
+  loggingService.js        |    5.97 |        0 |    12.5 |    5.97 | 19-298                                                                                                                         
+  messagingService.js      |   10.14 |     6.25 |    7.69 |   10.29 | 14-146,178-405                                                                                                                 
+  orderService.js          |    1.93 |     0.87 |       0 |    1.96 | 15-1115                                                                                                                        
+  paymentService.js        |   20.75 |    13.39 |   38.46 |   20.95 | 31,40-45,53-58,75,92-148,175-378,408,412,425-476,500-781                                                                       
+ utils                     |   29.34 |    26.22 |   41.02 |   29.67 |                                                                                                                                
+  auth.js                  |   83.33 |       25 |      50 |   83.33 | 22                                                                                                                             
+  cache.js                 |     100 |      100 |     100 |     100 |                                                                                                                                
+  encryption.js            |       0 |        0 |       0 |       0 | 2-102                                                                                                                          
+  encryption.ts            |       0 |        0 |       0 |       0 | 1-113                                                                                                                          
+  generators.js            |     100 |      100 |     100 |     100 |                                                                                                                                
+  sanitizers.js            |     100 |      100 |     100 |     100 |                                                                                                                                
+  tokenManager.js          |       0 |        0 |       0 |       0 | 2-100                                                                                                                          
+  tokenManager.ts          |       0 |        0 |       0 |       0 | 1-105                                                                                                                          
+  validators.js            |     100 |      100 |     100 |     100 |                                                                                                                                
+---------------------------|---------|----------|---------|---------|--------------------------------------------------------------------------------------------------------------------------------
+Test Suites: 13 failed, 6 passed, 19 total
+Tests:       71 failed, 169 passed, 240 total
+Snapshots:   0 total
+Time:        67.285 s
+Ran all test suites.

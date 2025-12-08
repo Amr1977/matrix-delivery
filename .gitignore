@@ -83,32 +83,4 @@ test-report*.txt
 
 # Test coverage
 backend/coverage/
-backend/uploads/images/test-order-123_1765210573390_r6kwdwc.jpg
-backend/uploads/images/test-order-123_1765211056855_nrdkpcw.jpg
-backend/uploads/images/test-order-123_1765212518288_ggzd51y.jpg
-backend/uploads/images/test-order-123_1765213011412_hx98rjk.jpg
-backend/uploads/images/test-order-123_1765213223500_7jnaxai.jpg
-backend/uploads/images/test-order-123_1765213515253_g93ce6u.jpg
-backend/uploads/images/test-order-123_1765213726023_yzuth0c.jpg
-backend/uploads/images/test-order-123_1765213920393_czkgupn.jpg
-backend/uploads/images/test-order-123_1765214169139_id8i0el.jpg
-backend/uploads/images/test-order-123_1765214564801_zeu5sep.jpg
-backend/uploads/images/test-order-123_1765215051403_wcchtep.jpg
-backend/uploads/images/test-order-123_1765215496676_cl1fsg2.jpg
-backend/uploads/images/test-order-123_1765215834428_ksbzlc8.jpg
-backend/uploads/images/test-order-123_1765216054239_jqlp35i.jpg
-backend/uploads/videos/test-order-123_1765210581577_jd7r26d.mp4
-backend/uploads/videos/test-order-123_1765211057922_hd88slk.mp4
-backend/uploads/videos/test-order-123_1765212519537_x0xm26t.mp4
-backend/uploads/videos/test-order-123_1765212521381_y9btyld.mp4
-backend/uploads/videos/test-order-123_1765213015283_pgtd48c.mp4
-backend/uploads/videos/test-order-123_1765213225044_qjwad56.mp4
-backend/uploads/videos/test-order-123_1765213521047_xbm9t72.mp4
-backend/uploads/videos/test-order-123_1765213727197_76gwruy.mp4
-backend/uploads/videos/test-order-123_1765213921566_8rzdycx.mp4
-backend/uploads/videos/test-order-123_1765214169872_pkmaty8.mp4
-backend/uploads/videos/test-order-123_1765214566334_vc5jp97.mp4
-backend/uploads/videos/test-order-123_1765215052634_4rup9ey.mp4
-backend/uploads/videos/test-order-123_1765215497606_rxpq6a2.mp4
-backend/uploads/videos/test-order-123_1765215839940_6ytcq1h.mp4
-backend/uploads/videos/test-order-123_1765216055484_pntk4za.mp4
+backend/uploads/
