@@ -16,7 +16,7 @@ describe('Cookie-Based Authentication Integration Tests', () => {
     beforeAll(async () => {
         // Create test user
         const result = await pool.query(
-            `INSERT INTO users (id, name, email, password, phone, role, is_verified)
+            `INSERT INTO users (id, name, email, password, phone, primary_role, is_verified)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
             ['test-user-auth', 'Test User', 'test@auth.com', 'hashedpassword', '1234567890', 'customer', true]
@@ -124,7 +124,7 @@ describe('Cookie-Based Authentication Integration Tests', () => {
         it('should work for /api/drivers/location with cookie (driver role)', async () => {
             // Create driver user
             await pool.query(
-                `INSERT INTO users (id, name, email, password, phone, role, is_verified)
+                `INSERT INTO users (id, name, email, password, phone, primary_role, is_verified)
          VALUES ($1, $2, $3, $4, $5, $6, $7)`,
                 ['test-driver-auth', 'Test Driver', 'driver@auth.com', 'hashedpassword', '1234567890', 'driver', true]
             );
@@ -156,7 +156,7 @@ describe('Cookie-Based Authentication Integration Tests', () => {
         beforeEach(async () => {
             // Create admin user
             await pool.query(
-                `INSERT INTO users (id, name, email, password, phone, role, is_verified)
+                `INSERT INTO users (id, name, email, password, phone, primary_role, is_verified)
          VALUES ($1, $2, $3, $4, $5, $6, $7)`,
                 ['test-admin-auth', 'Test Admin', 'admin@auth.com', 'hashedpassword', '1234567890', 'admin', true]
             );

@@ -13,7 +13,7 @@ describe('PayPal Payment Integration Tests', () => {
         const hashedPassword = await bcrypt.hash('password123', 10);
 
         const customerResult = await pool.query(
-            `INSERT INTO users (id, name, email, password, phone, role, country, city, area, rating, completed_deliveries, is_verified)
+            `INSERT INTO users (id, name, email, password, phone, primary_role, country, city, area, rating, completed_deliveries, is_verified)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
        RETURNING *`,
             [

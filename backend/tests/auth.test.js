@@ -66,7 +66,7 @@ describe('Authentication API Tests', () => {
       const incompleteData = {
         name: 'Test User',
         email: 'test@example.com'
-        // Missing password, phone, role, etc.
+        // Missing password, phone, primary_role, etc.
       };
 
       const response = await request(server)
@@ -110,7 +110,7 @@ describe('Authentication API Tests', () => {
       // Create a test user for login
       const hashedPassword = await bcrypt.hash('password123', 10);
       const result = await pool.query(
-        `INSERT INTO users (id, name, email, password, phone, role, country, city, area, rating, completed_deliveries)
+        `INSERT INTO users (id, name, email, password, phone, primary_role, country, city, area, rating, completed_deliveries)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
          RETURNING *`,
         [
@@ -173,7 +173,7 @@ describe('Authentication API Tests', () => {
       // Create a test user
       const hashedPassword = await bcrypt.hash('password123', 10);
       const result = await pool.query(
-        `INSERT INTO users (id, name, email, password, phone, role, country, city, area, rating, completed_deliveries)
+        `INSERT INTO users (id, name, email, password, phone, primary_role, country, city, area, rating, completed_deliveries)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
          RETURNING *`,
         [
@@ -253,7 +253,7 @@ describe('Authentication API Tests', () => {
       // Create a test user
       const hashedPassword = await bcrypt.hash('oldpassword', 10);
       const result = await pool.query(
-        `INSERT INTO users (id, name, email, password, phone, role, country, city, area, rating, completed_deliveries)
+        `INSERT INTO users (id, name, email, password, phone, primary_role, country, city, area, rating, completed_deliveries)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
          RETURNING *`,
         [
@@ -365,7 +365,7 @@ describe('Authentication API Tests', () => {
       // Create a test user and get token
       const hashedPassword = await bcrypt.hash('password123', 10);
       const result = await pool.query(
-        `INSERT INTO users (id, name, email, password, phone, role, country, city, area, rating, completed_deliveries)
+        `INSERT INTO users (id, name, email, password, phone, primary_role, country, city, area, rating, completed_deliveries)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
          RETURNING *`,
         [
@@ -424,7 +424,7 @@ describe('Authentication API Tests', () => {
       // Create a test user with multiple roles
       const hashedPassword = await bcrypt.hash('password123', 10);
       const result = await pool.query(
-        `INSERT INTO users (id, name, email, password, phone, role, roles, country, city, area, rating, completed_deliveries)
+        `INSERT INTO users (id, name, email, password, phone, primary_role, roles, country, city, area, rating, completed_deliveries)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
          RETURNING *`,
         [
@@ -493,7 +493,7 @@ describe('Authentication API Tests', () => {
       // Create an unverified test user
       const hashedPassword = await bcrypt.hash('password123', 10);
       const result = await pool.query(
-        `INSERT INTO users (id, name, email, password, phone, role, country, city, area, rating, completed_deliveries, is_verified)
+        `INSERT INTO users (id, name, email, password, phone, primary_role, country, city, area, rating, completed_deliveries, is_verified)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
          RETURNING *`,
         [
@@ -565,7 +565,7 @@ describe('Authentication API Tests', () => {
       // Create an unverified test user
       const hashedPassword = await bcrypt.hash('password123', 10);
       const result = await pool.query(
-        `INSERT INTO users (id, name, email, password, phone, role, country, city, area, rating, completed_deliveries, is_verified)
+        `INSERT INTO users (id, name, email, password, phone, primary_role, country, city, area, rating, completed_deliveries, is_verified)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
          RETURNING *`,
         [

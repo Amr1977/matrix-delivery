@@ -19,7 +19,7 @@ describe('LoggingService', () => {
 
         // Create test user
         const result = await pool.query(
-            `INSERT INTO users (id, name, email, password, phone, role)
+            `INSERT INTO users (id, name, email, password, phone, primary_role)
        VALUES ('test_user_logs', 'Test User', 'testlogs@example.com', 'hash', '+1234567890', 'customer')
        RETURNING id`
         );
