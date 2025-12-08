@@ -1,7 +1,7 @@
 // Matrix Delivery Service Worker
 // Handles caching for map tiles, static assets, and offline support
 
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2'; // Incremented to clear old cached UI
 const TILE_CACHE_NAME = `map-tiles-${CACHE_VERSION}`;
 const STATIC_CACHE_NAME = `static-assets-${CACHE_VERSION}`;
 const RUNTIME_CACHE_NAME = `runtime-${CACHE_VERSION}`;
