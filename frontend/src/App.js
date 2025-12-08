@@ -24,6 +24,7 @@ import PrivacyPolicy from './components/legal/PrivacyPolicy';
 import TermsOfService from './components/legal/TermsOfService';
 import RefundPolicy from './components/legal/RefundPolicy';
 import DriverAgreement from './components/legal/DriverAgreement';
+import LoadingSpinner from './components/LoadingSpinner';
 import CookiePolicy from './components/legal/CookiePolicy';
 import CryptoTest from './pages/CryptoTest';
 import useDriver from './hooks/useDriver';
@@ -73,6 +74,7 @@ const DeliveryApp = () => {
   // State variables
   const [authState, setAuthState] = useState('login');
   const [token, setToken] = useState(null); // Remove localStorage - tokens are in httpOnly cookies
+  const [authChecking, setAuthChecking] = useState(true); // Track initial auth check
   const [currentUser, setCurrentUser] = useState(null);
 
   // Use driver hook for location management
@@ -608,7 +610,11 @@ const DeliveryApp = () => {
   useEffect(() => {
     // On initial mount, attempt to restore authentication from httpOnly cookies
     // This fixes the "hard refresh logs user out" issue
-    fetchCurrentUser();
+    const checkAuth = async () => {
+      await fetchCurrentUser();
+      setAuthChecking(false); // Auth check complete
+    };
+    checkAuth();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Effects - Optimized polling with Page Visibility API
@@ -2027,6 +2033,41 @@ const DeliveryApp = () => {
 
   // ============ APP.JS PART 5A: Main UI - Header & Modals ============
   // Add this after Part 4 (continues the return statement)
+
+  // Show loading spinner while checking authentication on initial load
+  if (authChecking) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+      }}>
+        <div style={{
+          textAlign: 'center',
+          color: 'white'
+        }}>
+          <div style={{
+            width: '60px',
+            height: '60px',
+            border: '4px solid rgba(255,255,255,0.3)',
+            borderTop: '4px solid white',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            margin: '0 auto 20px'
+          }}></div>
+          <p style={{ fontSize: '18px', fontWeight: '500' }}>Loading...</p>
+          <style>{`
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          `}</style>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <MainLayout
