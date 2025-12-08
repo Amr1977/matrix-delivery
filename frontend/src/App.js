@@ -1230,7 +1230,8 @@ const DeliveryApp = () => {
     try {
       const response = await fetch(`${API_URL}/auth/switch-role`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // Use cookie-based authentication
         body: JSON.stringify({ role })
       });
       if (!response.ok) {
@@ -1421,9 +1422,9 @@ const DeliveryApp = () => {
       const response = await fetch(`${API_URL}/orders/${orderId}/bid`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include', // Use cookie-based authentication
         body: JSON.stringify(bidData)
       });
 
@@ -1449,7 +1450,8 @@ const DeliveryApp = () => {
     try {
       const response = await fetch(`${API_URL}/orders/${orderId}/bid`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // Use cookie-based authentication
         body: JSON.stringify({ bidPrice: parseFloat(bidPrice), message: bidDetails[orderId]?.message || null })
       });
       if (!response.ok) {
@@ -1470,7 +1472,7 @@ const DeliveryApp = () => {
     try {
       const response = await fetch(`${API_URL}/orders/${orderId}/bid`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include' // Use cookie-based authentication
       });
       if (!response.ok) {
         const data = await response.json();
@@ -1490,7 +1492,7 @@ const DeliveryApp = () => {
     try {
       const response = await fetch(`${API_URL}/orders/${orderId}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include' // Use cookie-based authentication
       });
       if (!response.ok) {
         const data = await response.json();
@@ -1539,9 +1541,9 @@ const DeliveryApp = () => {
       const response = await fetch(`${API_URL}/orders/${orderId}/accept-bid`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include', // Use cookie-based authentication
         body: JSON.stringify({ userId })
       });
 
@@ -1564,7 +1566,7 @@ const DeliveryApp = () => {
     try {
       const response = await fetch(`${API_URL}/orders/${orderId}/pickup`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include' // Use cookie-based authentication
       });
 
       if (!response.ok) throw new Error('Failed to mark as picked up');
@@ -1583,7 +1585,7 @@ const DeliveryApp = () => {
     try {
       const response = await fetch(`${API_URL}/orders/${orderId}/in-transit`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include' // Use cookie-based authentication
       });
 
       if (!response.ok) throw new Error('Failed to mark as in transit');
@@ -1602,7 +1604,7 @@ const DeliveryApp = () => {
     try {
       const response = await fetch(`${API_URL}/orders/${orderId}/complete`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include' // Use cookie-based authentication
       });
 
       if (!response.ok) throw new Error('Failed to complete order');
@@ -1680,9 +1682,9 @@ const DeliveryApp = () => {
                 fetch(`${API_URL}/orders/${o._id}/location`, {
                   method: 'POST',
                   headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Content-Type': 'application/json'
                   },
+                  credentials: 'include', // Use cookie-based authentication
                   body: JSON.stringify({ latitude, longitude })
                 })
               )));
