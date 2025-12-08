@@ -31,7 +31,10 @@ const verifyToken = (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, JWT_SECRET, {
+      audience: 'matrix-delivery-api',
+      issuer: 'matrix-delivery'
+    });
     req.user = decoded;
 
     logger.auth('Token verified successfully', {
