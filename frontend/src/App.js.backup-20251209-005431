@@ -33,9 +33,6 @@ import InteractiveLocationPicker from './components/InteractiveLocationPicker';
 import usePageVisibility from './hooks/usePageVisibility';
 import './components/ui/GeolocationStatus.css';
 
-// TypeScript API Services
-import { AuthApi, OrdersApi, NotificationsApi, UsersApi } from './services/api';
-
 import * as Sentry from '@sentry/react';
 
 Sentry.init({
@@ -792,7 +789,26 @@ const DeliveryApp = () => {
   // Fetch Functions
   const fetchCurrentUser = async () => {
     try {
-      const data = await AuthApi.getCurrentUser();
+      const response = await fetch(`${API_URL}/auth/me`, {
+        credentials: 'include' // Include cookies for authentication
+      });
+      if (!response.ok) {
+        // On initial load, if there's no session (401/403), just silently return
+        // Don't call logout() as that would clear state unnecessarily
+        if (response.status === 401 || response.status === 403) {
+          // Only logout if we previously had a user (session expired)
+          // Don't logout on initial page load when there's no session
+          if (currentUser) {
+            console.log('Session expired, logging out');
+            logout();
+          } else {
+            console.log('No active session on initial load');
+          }
+          return;
+        }
+        throw new Error(`Failed to fetch user: ${response.status}`);
+      }
+      const data = await response.json();
       setCurrentUser(data);
       setAvailableRoles(data.granted_roles || data.roles || (data.role ? [data.role] : []));
       setToken('authenticated'); // Set token flag to indicate logged in
@@ -800,22 +816,8 @@ const DeliveryApp = () => {
 
     } catch (err) {
       console.error('fetchCurrentUser error:', err);
-
-      // Handle 401/403 errors (no session or expired session)
-      if (err.statusCode === 401 || err.statusCode === 403) {
-        // Only logout if we previously had a user (session expired)
-        // Don't logout on initial page load when there's no session
-        if (currentUser) {
-          console.log('Session expired, logging out');
-          logout();
-        } else {
-          console.log('No active session on initial load');
-        }
-        return;
-      }
-
       // Only show error for network/server issues, don't logout automatically
-      if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError') || err.statusCode === 500) {
+      if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError') || err.message.includes('500')) {
         setError('Connection issue: Failed to get user. Please try refreshing the page.');
       } else if (currentUser) {
         // Only logout if we had a user before (session expired)
@@ -1137,13 +1139,29 @@ const DeliveryApp = () => {
     const startTime = Date.now();
 
     try {
-      const data = await AuthApi.register({
-        ...authForm,
-        primary_role: authForm.role, // Backend expects primary_role
-        recaptchaToken
+      const response = await fetch(`${API_URL}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // Include cookies for httpOnly cookie auth
+        body: JSON.stringify({
+          ...authForm,
+          primary_role: authForm.role, // Backend expects primary_role
+          recaptchaToken
+        })
       });
 
       const duration = Date.now() - startTime;
+
+      if (!response.ok) {
+        const data = await response.json();
+        logger.error('Registration failed', {
+          error: data.error || 'Registration failed',
+          duration: `${duration}ms`
+        });
+        throw new Error(data.error || 'Registration failed');
+      }
+
+      const data = await response.json();
       // Token is now set in httpOnly cookie by server, no need to store in localStorage
       setToken('authenticated'); // Just a flag to indicate user is logged in
       setCurrentUser(data.user);
@@ -1177,11 +1195,23 @@ const DeliveryApp = () => {
 
     setLoading(true);
     try {
-      const data = await AuthApi.login({
-        email: authForm.email,
-        password: authForm.password,
-        recaptchaToken
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // CRITICAL: Required to send/receive cookies
+        body: JSON.stringify({
+          email: authForm.email,
+          password: authForm.password,
+          recaptchaToken
+        })
       });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Login failed');
+      }
+
+      const data = await response.json();
       // Token is now set in httpOnly cookie by server, no need to store in localStorage
       setToken('authenticated'); // Just a flag to indicate user is logged in
       setCurrentUser(data.user);
@@ -1198,19 +1228,32 @@ const DeliveryApp = () => {
   const switchRole = async (role) => {
     if (!token || !role) return;
     try {
-      const data = await AuthApi.switchRole({ role });
+      const response = await fetch(`${API_URL}/auth/switch-role`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // Use cookie-based authentication
+        body: JSON.stringify({ role })
+      });
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || 'Failed to switch role');
+      }
+      const data = await response.json();
       // Token is now in httpOnly cookie, just update the flag
       setToken('authenticated');
       setCurrentUser((prev) => ({ ...(prev || {}), role }));
     } catch (err) {
-      setError(err.message || err.error || 'Failed to switch role');
+      setError(err.message);
     }
   };
 
   const logout = async () => {
     try {
       // Call backend logout to clear httpOnly cookie
-      await AuthApi.logout();
+      await fetch(`${API_URL}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include'
+      });
     } catch (err) {
       console.error('Logout error:', err);
     }
