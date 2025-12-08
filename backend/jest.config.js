@@ -1,11 +1,16 @@
 /** @type {import('ts-jest').JestConfigWithTsJest} */
 module.exports = {
-    preset: 'ts-jest',
     testEnvironment: 'node',
     roots: ['<rootDir>'],
-    testMatch: ['**/__tests__/**/*.ts', '**/?(*.)+(spec|test).[tj]s'],
+    testMatch: ['**/__tests__/**/*.[jt]s', '**/?(*.)+(spec|test).[jt]s'],
     transform: {
-        '^.+\\.ts$': 'ts-jest',
+        '^.+\\.ts$': ['ts-jest', {
+            tsconfig: {
+                esModuleInterop: true,
+                allowSyntheticDefaultImports: true,
+            },
+        }],
+        '^.+\\.js$': ['babel-jest', { configFile: './babel.config.js' }],
     },
     moduleFileExtensions: ['ts', 'js', 'json', 'node'],
     setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
@@ -20,12 +25,10 @@ module.exports = {
     coverageDirectory: 'coverage',
     coverageReporters: ['text', 'lcov', 'html'],
     testTimeout: 10000,
-    globals: {
-        'ts-jest': {
-            tsconfig: {
-                esModuleInterop: true,
-                allowSyntheticDefaultImports: true,
-            },
-        },
+    moduleNameMapper: {
+        '^(\\.{1,2}/.*)\\.js$': '$1',
     },
+    transformIgnorePatterns: [
+        'node_modules/(?!(supertest)/)',
+    ],
 };
