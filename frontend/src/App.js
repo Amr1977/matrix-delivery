@@ -1145,6 +1145,7 @@ const DeliveryApp = () => {
         credentials: 'include', // Include cookies for httpOnly cookie auth
         body: JSON.stringify({
           ...authForm,
+          primary_role: authForm.role, // Backend expects primary_role
           recaptchaToken
         })
       });
