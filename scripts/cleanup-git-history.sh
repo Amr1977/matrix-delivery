@@ -68,6 +68,7 @@ cat > /tmp/git-cleanup-paths.txt <<EOF
 .env.development
 .env.staging
 .env.test
+.env.testing
 backend/.env
 backend/.env.local
 backend/.env.production

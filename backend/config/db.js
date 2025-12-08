@@ -6,14 +6,23 @@ const logger = require('./logger');
 if (!process.env.DB_HOST && !process.env.DATABASE_URL) {
     const dotenv = require('dotenv');
     const IS_TEST = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing';
-    if (IS_TEST) {
-        dotenv.config({ path: '.env.testing' });
-    } else {
-        dotenv.config();
-    }
+    const envFile = IS_TEST ? '.env.testing' : '.env';
+
+    logger.info(`📄 Loading environment from: ${envFile}`);
+    dotenv.config({ path: envFile });
 }
 
 const IS_TEST = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing';
+
+// Log environment details
+logger.info(`🔧 Environment Configuration:`);
+logger.info(`   NODE_ENV: ${process.env.NODE_ENV}`);
+logger.info(`   IS_TEST: ${IS_TEST}`);
+logger.info(`   DB_HOST: ${process.env.DB_HOST || 'localhost'}`);
+logger.info(`   DB_PORT: ${process.env.DB_PORT || 5432}`);
+logger.info(`   DB_USER: ${process.env.DB_USER || 'postgres'}`);
+logger.info(`   DB_NAME: ${process.env.DB_NAME || 'matrix_delivery'}`);
+logger.info(`   DB_NAME_TEST: ${process.env.DB_NAME_TEST || 'matrix_delivery_test'}`);
 
 const dbConfig = {
     host: process.env.DB_HOST || 'localhost',
