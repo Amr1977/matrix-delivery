@@ -574,16 +574,7 @@ const DeliveryApp = () => {
 
     try {
       setHistoryLoading(true);
-      const response = await fetch(`${API_URL}/orders/history?page=${page}&limit=20`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (!response.ok) {
-        console.error('Fetch history orders failed:', response.status, response.statusText);
-        throw new Error(`Failed to fetch history orders: ${response.status}`);
-      }
-
-      const data = await response.json();
+      const data = await OrdersApi.getOrders({ page, limit: 20, status: 'history' });
 
       // If page 1, replace all history orders; otherwise append
       setHistoryOrders(prev => page === 1 ? data.orders : [...prev, ...data.orders]);
@@ -1427,14 +1418,7 @@ const DeliveryApp = () => {
   const handleWithdrawBid = async (orderId) => {
     setLoadingState('placeBid', true);
     try {
-      const response = await fetch(`${API_URL}/orders/${orderId}/bid`, {
-        method: 'DELETE',
-        credentials: 'include' // Use cookie-based authentication
-      });
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to withdraw bid');
-      }
+      await OrdersApi.withdrawBid(orderId);
       fetchOrders();
       showSuccess('Bid withdrawn');
     } catch (err) {
