@@ -173,10 +173,11 @@ export interface OrderFilters {
 // ============ Driver Types ============
 
 export interface DriverLocation {
-    userId: string;
-    latitude: number;
-    longitude: number;
-    timestamp: string;
+    userId?: string;
+    latitude: number | null;
+    longitude: number | null;
+    lastUpdated: Date | string | null;
+    timestamp?: string; // Legacy field
 }
 
 export interface DriverStatusRequest {
