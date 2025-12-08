@@ -589,10 +589,7 @@ const DeliveryApp = () => {
 
   const markNotificationRead = useCallback(async (notificationId) => {
     try {
-      await fetch(`${API_URL}/notifications/${notificationId}/read`, {
-        method: 'POST',
-        credentials: 'include'
-      });
+      await NotificationsApi.markAsRead(notificationId);
       setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n));
     } catch (err) {
       console.error('markNotificationRead error:', err);
@@ -841,11 +838,7 @@ const DeliveryApp = () => {
 
   const fetchNotifications = async () => {
     try {
-      const response = await fetch(`${API_URL}/notifications`, {
-        credentials: 'include' // Include cookies for authentication
-      });
-      if (!response.ok) return;
-      const data = await response.json();
+      const data = await NotificationsApi.getNotifications();
       setNotifications(data);
 
       // Enhanced notifications with sound and TTS
@@ -880,11 +873,7 @@ const DeliveryApp = () => {
 
   const fetchReviewStatus = async (orderId) => {
     try {
-      const response = await fetch(`${API_URL}/orders/${orderId}/review-status`, {
-        credentials: 'include' // Include cookies for authentication
-      });
-      if (!response.ok) return;
-      const data = await response.json();
+      const data = await OrdersApi.getReviewStatus(orderId);
       setReviewStatus(data);
     } catch (err) {
       console.error(err);
@@ -893,11 +882,7 @@ const DeliveryApp = () => {
 
   const fetchOrderReviews = async (orderId) => {
     try {
-      const response = await fetch(`${API_URL}/orders/${orderId}/reviews`, {
-        credentials: 'include' // Include cookies for authentication
-      });
-      if (!response.ok) return;
-      const data = await response.json();
+      const data = await OrdersApi.getReviews(orderId);
       setOrderReviews(data);
       setShowReviewsModal(true);
     } catch (err) {
