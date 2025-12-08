@@ -33,7 +33,7 @@ describe('PayPal Payment Integration Tests', () => {
         );
         customerId = customerResult.rows[0].id;
 
-        // Create test order with valid status 'posted'
+        // Create test order with valid status 'pending_bids'
         const orderResult = await pool.query(
             `INSERT INTO orders (id, order_number, title, description, pickup_address, delivery_address, 
        from_lat, from_lng, from_name, to_lat, to_lng, to_name, price, status, customer_id, customer_name)
@@ -53,7 +53,7 @@ describe('PayPal Payment Integration Tests', () => {
                 -73.9851,
                 'Delivery Location',
                 75.00,
-                'posted',
+                'pending_bids',
                 customerId,
                 'PayPal Customer'
             ]
