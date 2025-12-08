@@ -186,13 +186,17 @@ router.post('/login', authRateLimit, async (req, res) => {
     const token = result.token;
     const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
-    res.cookie('token', token, {
+    const cookieOptions = {
       httpOnly: true,
       secure: IS_PRODUCTION,
       sameSite: 'lax',
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
       path: '/'
-    });
+    };
+
+    console.log('🍪 Setting cookie with options:', cookieOptions);
+    console.log('🍪 Token length:', token.length);
+    res.cookie('token', token, cookieOptions);
 
     // Remove token from response body for security
     const response = { ...result };
@@ -240,7 +244,11 @@ router.post('/logout', (req, res) => {
 });
 
 // Get current user
-router.get('/me', verifyToken, async (req, res) => {
+router.get('/me', (req, res, next) => {
+  console.log('🍪 /me endpoint - Cookies received:', req.cookies);
+  console.log('🍪 /me endpoint - Headers:', req.headers.cookie);
+  next();
+}, verifyToken, async (req, res) => {
   try {
     const user = await authService.getUserProfile(req.user.userId);
     res.json(user);
