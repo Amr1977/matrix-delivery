@@ -110,8 +110,8 @@ app.use(additionalSecurityHeaders);
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
 
-// Cookie parser from security middleware (required for CSRF)
-app.use(cookieParserMiddleware);
+// Cookie parser from security middleware (required for CSRF) - DISABLED: causes conflict with cookie-parser
+// app.use(cookieParserMiddleware);
 
 // Request sanitization
 app.use(sanitizeRequest);
