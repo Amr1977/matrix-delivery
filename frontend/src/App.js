@@ -1229,22 +1229,36 @@ const DeliveryApp = () => {
         throw new Error(err.error || 'Failed to switch role');
       }
       const data = await response.json();
-      localStorage.setItem('token', data.token);
-      setToken(data.token);
+      // Token is now in httpOnly cookie, just update the flag
+      setToken('authenticated');
       setCurrentUser((prev) => ({ ...(prev || {}), role }));
     } catch (err) {
       setError(err.message);
     }
   };
 
-  const logout = () => {
-    // Don't remove token from localStorage - server handles cookie clearing
+  const logout = async () => {
+    try {
+      // Call backend logout to clear httpOnly cookie
+      await fetch(`${API_URL}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+
+    // Clear all client-side state
     setToken(null);
     setCurrentUser(null);
     setOrders([]);
     setNotifications([]);
     setAuthState('login');
     setError('');
+
+    // Clear any localStorage items that might persist auth
+    localStorage.removeItem('token');
+
     // Clear tracking modal state on logout
     setShowLiveTracking(false);
     setSelectedOrder(null);
