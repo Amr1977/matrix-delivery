@@ -88,13 +88,13 @@ describe('Messaging API Tests', () => {
         customerToken = jwt.sign(
             { userId: customerId, email: 'customer-msg@example.com', role: 'customer' },
             JWT_SECRET,
-            { expiresIn: '1h' }
+            { expiresIn: '1h', audience: 'matrix-delivery-api', issuer: 'matrix-delivery' }
         );
 
         driverToken = jwt.sign(
             { userId: driverId, email: 'driver-msg@example.com', role: 'driver' },
             JWT_SECRET,
-            { expiresIn: '1h' }
+            { expiresIn: '1h', audience: 'matrix-delivery-api', issuer: 'matrix-delivery' }
         );
     });
 
