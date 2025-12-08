@@ -393,14 +393,16 @@ const DeliveryApp = () => {
         return;
       }
 
-      const response = await fetch(url, {
-        credentials: 'include' // Include cookies for authentication
-      });
-      if (!response.ok) {
-        console.error('Fetch orders failed:', response.status, response.statusText);
-        throw new Error(`Failed to fetch orders: ${response.status}`);
+      // Build query parameters object for OrdersApi
+      const queryOptions = {};
+      if (currentUser?.role === 'driver' && queryString) {
+        // Parse query params for driver
+        const params = new URLSearchParams(queryString);
+        if (params.has('lat')) queryOptions.lat = params.get('lat');
+        if (params.has('lng')) queryOptions.lng = params.get('lng');
       }
-      const data = await response.json();
+
+      const data = await OrdersApi.getOrders(queryOptions);
 
       const ordersWithBids = data.filter(order => order.bids && order.bids.length > 0);
 
