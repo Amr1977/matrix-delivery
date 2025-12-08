@@ -172,25 +172,21 @@ const DeliveryApp = () => {
         quality -= 0.1;
         dataUrl = canvas.toDataURL('image/jpeg', quality);
       }
-      let res = await fetch(`${API_URL}/users/me/profile-picture`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageDataUrl: dataUrl })
-      });
-      if (!res.ok) {
+      // Try uploading as data URL first
+      try {
+        const d = await UsersApi.updateProfilePicture({ imageDataUrl: dataUrl });
+        setProfileData(prev => ({ ...prev, profile_picture_url: d.profilePictureUrl }));
+        setCurrentUser(prev => prev ? { ...prev, profile_picture_url: d.profilePictureUrl } : null);
+        return;
+      } catch (err) {
+        // If data URL fails, try FormData
         const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', quality));
         const form = new FormData();
         form.append('file', blob, (file.name || 'profile') + '.jpg');
-        res = await fetch(`${API_URL}/users/me/profile-picture`, {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${token}` },
-          body: form
-        });
+        const d = await UsersApi.updateProfilePicture(form);
+        setProfileData(prev => ({ ...prev, profile_picture_url: d.profilePictureUrl }));
+        setCurrentUser(prev => prev ? { ...prev, profile_picture_url: d.profilePictureUrl } : null);
       }
-      if (!res.ok) throw new Error('Failed to upload picture');
-      const d = await res.json();
-      setProfileData(prev => ({ ...prev, profile_picture_url: d.profilePictureUrl }));
-      setCurrentUser(prev => prev ? { ...prev, profile_picture_url: d.profilePictureUrl } : null);
     } catch (err) {
       setError(err.message || 'Failed to upload picture');
     }
