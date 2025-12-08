@@ -87,7 +87,7 @@ const useDriver = (token: string | null, currentUser: User | null) => {
 
                     // Check if location has actually changed significantly
                     const currentLocation = driverLocation;
-                    const hasSignificantChange = !currentLocation?.latitude ||
+                    const hasSignificantChange = !currentLocation?.latitude || !currentLocation?.longitude ||
                         Math.abs(currentLocation.latitude - latitude) > 0.0001 ||
                         Math.abs(currentLocation.longitude - longitude) > 0.0001;
 
