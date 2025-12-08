@@ -146,12 +146,16 @@ const useDriver = (token: string | null, currentUser: User | null) => {
         }
 
         try {
-            const location = await DriversApi.getLocation(currentUser.userId || currentUser.id);
-            setDriverLocation({
-                latitude: location.latitude,
-                longitude: location.longitude,
-                lastUpdated: new Date(location.timestamp)
-            });
+            const response = await DriversApi.getLocation();
+            const location = response.location;
+
+            if (location.latitude && location.longitude) {
+                setDriverLocation({
+                    latitude: location.latitude,
+                    longitude: location.longitude,
+                    lastUpdated: location.timestamp ? new Date(location.timestamp) : null
+                });
+            }
             return location;
         } catch (err: any) {
             // Don't log errors for authentication issues
