@@ -748,6 +748,8 @@ const DeliveryApp = () => {
   useEffect(() => {
     const fetchFooterStats = async () => {
       try {
+        // Note: Footer stats endpoint doesn't exist in our API services yet
+        // Using direct fetch for now - TODO: Add to StatsApi
         const response = await fetch(`${API_URL}/footer/stats`);
         if (response.ok) {
           const data = await response.json();
@@ -983,27 +985,15 @@ const DeliveryApp = () => {
 
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/orders/${reviewOrderId}/review`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          reviewType: reviewType,
-          rating: reviewForm.rating,
-          comment: reviewForm.comment,
-          professionalismRating: reviewForm.professionalismRating || null,
-          communicationRating: reviewForm.communicationRating || null,
-          timelinessRating: reviewForm.timelinessRating || null,
-          conditionRating: reviewForm.conditionRating || null
-        })
+      await OrdersApi.submitReview(reviewOrderId, {
+        reviewType: reviewType,
+        rating: reviewForm.rating,
+        comment: reviewForm.comment,
+        professionalismRating: reviewForm.professionalismRating || null,
+        communicationRating: reviewForm.communicationRating || null,
+        timelinessRating: reviewForm.timelinessRating || null,
+        conditionRating: reviewForm.conditionRating || null
       });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to submit review');
-      }
 
       setShowReviewModal(false);
       setError('');
