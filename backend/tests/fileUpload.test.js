@@ -28,7 +28,7 @@ describe('File Upload API', () => {
         token = jwt.sign(
             { userId, role: 'customer' },
             process.env.JWT_SECRET || 'test-secret',
-            { expiresIn: '1h' }
+            { expiresIn: '1h', audience: 'matrix-delivery-api', issuer: 'matrix-delivery' }
         );
     });
 
@@ -171,7 +171,7 @@ describe('Media Messages API', () => {
         token = jwt.sign(
             { userId, role: 'customer' },
             process.env.JWT_SECRET || 'test-secret',
-            { expiresIn: '1h' }
+            { expiresIn: '1h', audience: 'matrix-delivery-api', issuer: 'matrix-delivery' }
         );
     });
 
