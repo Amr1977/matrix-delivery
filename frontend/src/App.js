@@ -940,11 +940,8 @@ const DeliveryApp = () => {
       }
 
       if (endpoint) {
-        const response = await fetch(`${API_URL}${endpoint}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (!response.ok) return;
-        const data = await response.json();
+        // Use UsersApi to fetch user reviews
+        const data = await UsersApi.getUserReviews(userId, endpoint.includes('received') ? 'received' : 'given');
         setUserReviews(data.reviews);
         setUserReviewsType(type);
       }
