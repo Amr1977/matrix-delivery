@@ -1009,11 +1009,11 @@ app.get('/api/footer/stats', async (req, res) => {
   try {
     // Get users by role
     const usersByRoleResult = await pool.query(
-      `SELECT primary_role, COUNT(*) as count FROM users GROUP BY role`
+      `SELECT primary_role, COUNT(*) as count FROM users GROUP BY primary_role`
     );
     const usersByRole = {};
     usersByRoleResult.rows.forEach(row => {
-      usersByRole[row.role] = parseInt(row.count);
+      usersByRole[row.primary_role] = parseInt(row.count);
     });
 
     // Get active orders (accepted, picked_up, in_transit)

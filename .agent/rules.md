@@ -283,6 +283,102 @@ frontend/src/
 
 ---
 
+## 🤖 Agent Autonomous Operation Rules
+
+### Command Execution Principles
+**ALWAYS operate autonomously unless at a decision crossroad:**
+
+1. **Auto-Run Safe Commands**
+   - **ALWAYS** set `SafeToAutoRun: true` for non-destructive commands
+   - **NEVER** wait for approval on read-only operations (logs, file viewing, tests)
+   - **ONLY** set `SafeToAutoRun: false` for destructive operations:
+     - Deleting files/databases
+     - Dropping tables
+     - Modifying production data
+     - Installing system packages
+
+2. **Prefer Reusable Tools Over Shell Commands**
+   - **USE** existing Node.js scripts instead of shell commands
+   - **CREATE** reusable scripts for repetitive tasks
+   - **AVOID** one-off PowerShell/bash commands
+
+### Available Reusable Tools
+
+#### Log Analysis
+```bash
+node scripts/analyze-logs.js
+```
+**Use instead of**: `Get-Content`, `Select-String`, `grep`
+**Purpose**: Analyze backend logs for errors and patterns
+
+#### Test Execution
+```bash
+node scripts/run-statistics-tests.js
+```
+**Use instead of**: Manual `jest` commands
+**Purpose**: Run test suites with proper configuration
+
+#### Server Management
+```bash
+node scripts/start-dev.js   # Start development servers
+node scripts/stop-dev.js    # Stop development servers
+```
+**Use instead of**: Manual `npm start` commands
+
+### Tool Creation Guidelines
+
+**Create a new Node.js script when:**
+1. A task will be repeated 2+ times
+2. Shell commands become multi-step or complex
+3. The operation needs error handling/formatting
+4. Environment-specific logic is required
+
+**Script Requirements:**
+- Place in `scripts/` directory
+- Use descriptive names (e.g., `analyze-logs.js`, not `script1.js`)
+- Add shebang: `#!/usr/bin/env node`
+- Document in this rules file
+- Include error handling
+- Provide clear output/feedback
+
+### Decision Making
+
+**Act autonomously on:**
+- Bug fixes with clear solutions
+- Test creation for fixed bugs
+- Log analysis and reporting
+- Running tests after changes
+- Creating helper scripts
+- Documentation updates
+
+**Ask user only when:**
+- Multiple valid approaches exist (crossroads)
+- Business logic decisions needed
+- Destructive operations required
+- Requirements are ambiguous
+- User preference matters (UI/UX choices)
+
+### Workflow Example
+
+```javascript
+// ❌ BAD: Shell command requiring approval
+run_command("Get-Content logs/error.log | Select-String 'error'", SafeToAutoRun: false)
+
+// ✅ GOOD: Reusable tool, auto-run
+run_command("node scripts/analyze-logs.js", SafeToAutoRun: true)
+```
+
+### Best Practices
+
+1. **Check for existing tools first** before creating new ones
+2. **Set SafeToAutoRun: true** for all safe operations
+3. **Build reusable scripts** instead of one-off commands
+4. **Document new tools** in this file immediately
+5. **Keep scripts focused** on single responsibility
+6. **Use existing tools** consistently (don't reinvent)
+
+---
+
 ## ✅ Code Review Checklist
 
 Before committing ANY code:
@@ -298,3 +394,4 @@ Before committing ANY code:
 - [ ] Clear variable/function names
 - [ ] Comments for complex logic
 - [ ] No console.logs in production code
+

@@ -253,6 +253,82 @@ router.get('/me', verifyToken, async (req, res) => {
   }
 });
 
+// Update user profile
+router.put('/profile', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const updates = req.body;
+
+    // Filter out fields that shouldn't be updated via this endpoint
+    const allowedFields = ['name', 'phone', 'language', 'theme', 'vehicle_type', 'license_number', 'service_area_zone'];
+    const filteredUpdates = {};
+
+    for (const field of allowedFields) {
+      if (updates[field] !== undefined) {
+        filteredUpdates[field] = updates[field];
+      }
+    }
+
+    if (Object.keys(filteredUpdates).length === 0) {
+      return res.status(400).json({ error: 'No valid fields to update' });
+    }
+
+    const user = await authService.updateUserProfile(userId, filteredUpdates);
+
+    logger.info(`User profile updated`, {
+      userId,
+      fields: Object.keys(filteredUpdates),
+      category: 'auth'
+    });
+
+    res.json({ success: true, user });
+  } catch (error) {
+    logger.error(`Update profile error: ${error.message}`, {
+      userId: req.user.userId,
+      category: 'error'
+    });
+    res.status(500).json({ error: error.message || 'Failed to update profile' });
+  }
+});
+
+// Update user profile
+router.put('/profile', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const updates = req.body;
+
+    // Filter out fields that shouldn't be updated via this endpoint
+    const allowedFields = ['name', 'phone', 'language', 'theme', 'vehicle_type', 'license_number', 'service_area_zone'];
+    const filteredUpdates = {};
+
+    for (const field of allowedFields) {
+      if (updates[field] !== undefined) {
+        filteredUpdates[field] = updates[field];
+      }
+    }
+
+    if (Object.keys(filteredUpdates).length === 0) {
+      return res.status(400).json({ error: 'No valid fields to update' });
+    }
+
+    const user = await authService.updateUserProfile(userId, filteredUpdates);
+
+    logger.info(`User profile updated`, {
+      userId,
+      fields: Object.keys(filteredUpdates),
+      category: 'auth'
+    });
+
+    res.json({ success: true, user });
+  } catch (error) {
+    logger.error(`Update profile error: ${error.message}`, {
+      userId: req.user.userId,
+      category: 'error'
+    });
+    res.status(500).json({ error: error.message || 'Failed to update profile' });
+  }
+});
+
 // Switch active role and issue new token
 router.post('/switch-role', verifyToken, async (req, res) => {
   try {

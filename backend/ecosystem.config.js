@@ -4,11 +4,11 @@ module.exports = {
   apps: [{
     name: 'matrix-delivery-backend',
     script: './server.js',
-    // cwd: '/root/matrix-delivery/backend', // Removed to support cross-platform (defaults to current dir)
+    cwd: __dirname,
     instances: os.platform() === 'win32' ? 1 : 2, // 1 instance on Windows (fork), 2 on Linux (cluster)
     exec_mode: os.platform() === 'win32' ? 'fork' : 'cluster',
     env: {
-      NODE_ENV: 'production',
+      NODE_ENV: 'development',
       PORT: 5000,
       ENV_FILE: '.env'
     },
@@ -59,8 +59,7 @@ module.exports = {
     listen_timeout: 30000
   }, {
     name: 'matrix-delivery-frontend',
-    script: os.platform() === 'win32' ? 'npm.cmd' : 'npm',
-    args: 'start',
+    script: 'pm2-start.js',
     cwd: '../frontend',
     instances: 1,
     exec_mode: 'fork',

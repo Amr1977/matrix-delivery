@@ -22,13 +22,49 @@ const ProfilePage = ({
     // Local state for role switcher
     const [switching, setSwitching] = useState(false);
 
+    // Edit Mode State
+    const [isEditing, setIsEditing] = useState(false);
+    const [editFormData, setEditFormData] = useState({});
+
+    // Debug Log for Role Switcher
+    useEffect(() => {
+        console.log('ProfilePage: profileData:', profileData);
+        console.log('ProfilePage: granted_roles:', profileData?.granted_roles);
+        console.log('ProfilePage: roles:', profileData?.roles);
+    }, [profileData]);
+
+    // Initialize edit form data when entering edit mode
+    useEffect(() => {
+        if (isEditing) {
+            setEditFormData({ ...profileData });
+        }
+    }, [isEditing, profileData]);
+
+    const handleSave = async () => {
+        await updateProfile(editFormData);
+        setIsEditing(false);
+    };
+
+    const handleCancel = () => {
+        setIsEditing(false);
+        setEditFormData({});
+    };
+
+    const handleChange = (field, value) => {
+        setEditFormData(prev => ({ ...prev, [field]: value }));
+    };
+
     const updateProfile = async (patch) => {
         if (!token) return;
         try {
-            const res = await fetch(`${API_URL}/users/me/profile`, {
+            // Remove read-only or derived fields if present to avoid backend errors
+            const { id, email, created_at, updated_at, role, primary_role, granted_roles, ...updatableFields } = patch;
+
+            const res = await fetch(`${API_URL}/auth/profile`, {
                 method: 'PUT',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify(patch)
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatableFields) // Send only updatable fields
             });
             if (!res.ok) throw new Error('Failed to update profile');
             const d = await res.json();
@@ -132,6 +168,66 @@ const ProfilePage = ({
                             />
                         </div>
                     )}
+
+                    {/* ACTION BUTTONS */}
+                    <div style={{ marginTop: '10px' }}>
+                        {!isEditing ? (
+                            <button
+                                onClick={() => setIsEditing(true)}
+                                style={{
+                                    padding: '8px 20px',
+                                    background: '#3B82F6',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    fontWeight: 'bold',
+                                    fontSize: '14px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '5px'
+                                }}
+                            >
+                                ✏️ Edit Profile
+                            </button>
+                        ) : (
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                <button
+                                    onClick={handleCancel}
+                                    style={{
+                                        padding: '8px 16px',
+                                        background: 'rgba(255,255,255,0.1)',
+                                        color: 'white',
+                                        border: '1px solid rgba(255,255,255,0.2)',
+                                        borderRadius: '8px',
+                                        cursor: 'pointer',
+                                        fontWeight: 'bold',
+                                        fontSize: '14px'
+                                    }}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleSave}
+                                    style={{
+                                        padding: '8px 20px',
+                                        background: '#10B981',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        cursor: 'pointer',
+                                        fontWeight: 'bold',
+                                        fontSize: '14px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '5px'
+                                    }}
+                                >
+                                    💾 Save Changes
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -165,49 +261,63 @@ const ProfilePage = ({
                     <div style={{ display: 'grid', gap: '15px', marginTop: '15px' }}>
                         <div>
                             <label style={{ display: 'block', color: '#9CA3AF', marginBottom: '5px', fontSize: '14px' }}>Full Name</label>
-                            <input
-                                value={profileData.name || ''}
-                                onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
-                                onBlur={() => updateProfile({ name: profileData.name })}
-                                style={{ width: '100%', padding: '10px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white' }}
-                            />
+                            {isEditing ? (
+                                <input
+                                    value={editFormData.name || ''}
+                                    onChange={(e) => handleChange('name', e.target.value)}
+                                    style={{ width: '100%', padding: '10px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white' }}
+                                />
+                            ) : (
+                                <div style={{ padding: '10px', fontSize: '16px' }}>{profileData.name}</div>
+                            )}
                         </div>
                         <div>
                             <label style={{ display: 'block', color: '#9CA3AF', marginBottom: '5px', fontSize: '14px' }}>Phone Number</label>
-                            <input
-                                value={profileData.phone || ''}
-                                onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
-                                onBlur={() => updateProfile({ phone: profileData.phone })}
-                                style={{ width: '100%', padding: '10px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white' }}
-                            />
+                            {isEditing ? (
+                                <input
+                                    value={editFormData.phone || ''}
+                                    onChange={(e) => handleChange('phone', e.target.value)}
+                                    style={{ width: '100%', padding: '10px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white' }}
+                                />
+                            ) : (
+                                <div style={{ padding: '10px', fontSize: '16px' }}>{profileData.phone || '—'}</div>
+                            )}
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                             <div>
                                 <label style={{ display: 'block', color: '#9CA3AF', marginBottom: '5px', fontSize: '14px' }}>Language</label>
-                                <select
-                                    value={profileData.language || ''}
-                                    onChange={(e) => updateProfile({ language: e.target.value })}
-                                    style={{ width: '100%', padding: '10px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white' }}
-                                >
-                                    <option value="">Default</option>
-                                    <option value="en">English</option>
-                                    <option value="ar">Arabic</option>
-                                    <option value="tr">Turkish</option>
-                                </select>
+                                {isEditing ? (
+                                    <select
+                                        value={editFormData.language || ''}
+                                        onChange={(e) => handleChange('language', e.target.value)}
+                                        style={{ width: '100%', padding: '10px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white' }}
+                                    >
+                                        <option value="">Default</option>
+                                        <option value="en">English</option>
+                                        <option value="ar">Arabic</option>
+                                        <option value="tr">Turkish</option>
+                                    </select>
+                                ) : (
+                                    <div style={{ padding: '10px', fontSize: '16px', textTransform: 'capitalize' }}>{profileData.language === 'en' ? 'English' : profileData.language === 'ar' ? 'Arabic' : profileData.language === 'tr' ? 'Turkish' : 'Default'}</div>
+                                )}
                             </div>
                             <div>
                                 <label style={{ display: 'block', color: '#9CA3AF', marginBottom: '5px', fontSize: '14px' }}>Theme</label>
-                                <select
-                                    value={profileData.theme || ''}
-                                    onChange={(e) => updateProfile({ theme: e.target.value })}
-                                    style={{ width: '100%', padding: '10px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white' }}
-                                >
-                                    <option value="">System</option>
-                                    <option value="dark">Dark</option>
-                                    <option value="light">Light</option>
-                                    <option value="matrix">Matrix</option>
-                                </select>
+                                {isEditing ? (
+                                    <select
+                                        value={editFormData.theme || ''}
+                                        onChange={(e) => handleChange('theme', e.target.value)}
+                                        style={{ width: '100%', padding: '10px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white' }}
+                                    >
+                                        <option value="">System</option>
+                                        <option value="dark">Dark</option>
+                                        <option value="light">Light</option>
+                                        <option value="matrix">Matrix</option>
+                                    </select>
+                                ) : (
+                                    <div style={{ padding: '10px', fontSize: '16px', textTransform: 'capitalize' }}>{profileData.theme || 'System'}</div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -222,26 +332,33 @@ const ProfilePage = ({
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                                 <div>
                                     <label style={{ display: 'block', color: '#9CA3AF', marginBottom: '5px', fontSize: '14px' }}>Vehicle Type</label>
-                                    <select
-                                        value={profileData.vehicle_type || ''}
-                                        onChange={(e) => updateProfile({ vehicle_type: e.target.value })}
-                                        style={{ width: '100%', padding: '10px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white' }}
-                                    >
-                                        <option value="">Select</option>
-                                        <option value="bike">Bike</option>
-                                        <option value="car">Car</option>
-                                        <option value="van">Van</option>
-                                        <option value="truck">Truck</option>
-                                    </select>
+                                    {isEditing ? (
+                                        <select
+                                            value={editFormData.vehicle_type || ''}
+                                            onChange={(e) => handleChange('vehicle_type', e.target.value)}
+                                            style={{ width: '100%', padding: '10px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white' }}
+                                        >
+                                            <option value="">Select</option>
+                                            <option value="bike">Bike</option>
+                                            <option value="car">Car</option>
+                                            <option value="van">Van</option>
+                                            <option value="truck">Truck</option>
+                                        </select>
+                                    ) : (
+                                        <div style={{ padding: '10px', fontSize: '16px', textTransform: 'capitalize' }}>{profileData.vehicle_type || '—'}</div>
+                                    )}
                                 </div>
                                 <div>
                                     <label style={{ display: 'block', color: '#9CA3AF', marginBottom: '5px', fontSize: '14px' }}>License</label>
-                                    <input
-                                        value={profileData.license_number || ''}
-                                        onChange={(e) => setProfileData({ ...profileData, license_number: e.target.value })}
-                                        onBlur={() => updateProfile({ license_number: profileData.license_number })}
-                                        style={{ width: '100%', padding: '10px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white' }}
-                                    />
+                                    {isEditing ? (
+                                        <input
+                                            value={editFormData.license_number || ''}
+                                            onChange={(e) => handleChange('license_number', e.target.value)}
+                                            style={{ width: '100%', padding: '10px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white' }}
+                                        />
+                                    ) : (
+                                        <div style={{ padding: '10px', fontSize: '16px' }}>{profileData.license_number || '—'}</div>
+                                    )}
                                 </div>
                             </div>
 

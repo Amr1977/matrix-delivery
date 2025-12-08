@@ -18,19 +18,33 @@ router.get('/footer', async (req, res) => {
     `);
     const onlineDrivers = parseInt(onlineDriversResult.rows[0].count);
 
-    // Total Drivers
-    const totalDriversResult = await pool.query("SELECT COUNT(*) as count FROM users WHERE primary_role = 'driver'");
+    // Total counts by granted_roles (count users who have each role in their granted_roles array)
+    const totalDriversResult = await pool.query("SELECT COUNT(*) as count FROM users WHERE 'driver' = ANY(granted_roles)");
     const totalDrivers = parseInt(totalDriversResult.rows[0].count);
+
+    const totalCustomersResult = await pool.query("SELECT COUNT(*) as count FROM users WHERE 'customer' = ANY(granted_roles)");
+    const totalCustomers = parseInt(totalCustomersResult.rows[0].count);
+
+    const totalAdminsResult = await pool.query("SELECT COUNT(*) as count FROM users WHERE 'admin' = ANY(granted_roles)");
+    const totalAdmins = parseInt(totalAdminsResult.rows[0].count);
+
+    const totalSupportResult = await pool.query("SELECT COUNT(*) as count FROM users WHERE 'support' = ANY(granted_roles)");
+    const totalSupport = parseInt(totalSupportResult.rows[0].count);
 
     // For other roles, usage checks via logs table might be heavy if table is huge. 
     // Optimization: query distinct user_ids from logs where timestamp > now - 10m
+    // Check online status by checking if user has the role in granted_roles
+    // Note: Users with multiple roles will be counted for each role they have
     const onlineUsersResult = await pool.query(`
-      SELECT u.primary_role, COUNT(DISTINCT l.user_id) as count
+      SELECT 
+        role,
+        COUNT(DISTINCT l.user_id) as count
       FROM logs l
       JOIN users u ON l.user_id = u.id
+      CROSS JOIN UNNEST(u.granted_roles) as role
       WHERE l.timestamp > NOW() - INTERVAL '10 minutes'
-      AND u.primary_role IN ('customer', 'admin', 'support')
-      GROUP BY u.primary_role
+      AND role IN ('customer', 'admin', 'support')
+      GROUP BY role
     `);
 
     const onlineCounts = {
@@ -39,28 +53,15 @@ router.get('/footer', async (req, res) => {
       support: 0
     };
     onlineUsersResult.rows.forEach(row => {
-      onlineCounts[row.role] = parseInt(row.count);
-    });
-
-    // Total counts for other roles
-    const totalRolesResult = await pool.query(`
-      SELECT primary_role, COUNT(*) as count FROM users 
-      WHERE primary_role IN ('customer', 'admin', 'support') 
-      GROUP BY role
-    `);
-    const totalCounts = {
-      customer: 0,
-      admin: 0,
-      support: 0
-    };
-    totalRolesResult.rows.forEach(row => {
-      totalCounts[row.role] = parseInt(row.count);
+      if (row.role) {
+        onlineCounts[row.role] = parseInt(row.count);
+      }
     });
 
     stats.drivers = { online: onlineDrivers, total: totalDrivers };
-    stats.customers = { online: onlineCounts.customer, total: totalCounts.customer };
-    stats.admins = { online: onlineCounts.admin, total: totalCounts.admin };
-    stats.support = { online: onlineCounts.support || 0, total: totalCounts.support || 0 };
+    stats.customers = { online: onlineCounts.customer, total: totalCustomers };
+    stats.admins = { online: onlineCounts.admin, total: totalAdmins };
+    stats.support = { online: onlineCounts.support || 0, total: totalSupport || 0 };
 
     // 2. Orders
     // Completed Today
