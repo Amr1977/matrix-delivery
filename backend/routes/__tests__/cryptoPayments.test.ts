@@ -21,14 +21,14 @@ describe('Crypto Payments API', () => {
 
         // Create test users
         const userResult = await pool.query(
-            `INSERT INTO users (id, email, password, role) 
+            `INSERT INTO users (id, email, password, primary_role) 
        VALUES ($1, $2, $3, $4) RETURNING id`,
             ['test-user-1', 'customer@test.com', 'hash', 'customer']
         );
         testUserId = userResult.rows[0].id;
 
         const driverResult = await pool.query(
-            `INSERT INTO users (id, email, password, role) 
+            `INSERT INTO users (id, email, password, primary_role) 
        VALUES ($1, $2, $3, $4) RETURNING id`,
             ['test-driver-1', 'driver@test.com', 'hash', 'driver']
         );

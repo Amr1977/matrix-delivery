@@ -32,7 +32,7 @@ const createTestApp = () => {
 };
 
 // Helper to create JWT token
-const createToken = (userId, role) => {
+const createToken = (userId, primary_role) => {
     return jwt.sign({ userId, role }, process.env.JWT_SECRET || 'test-secret');
 };
 
