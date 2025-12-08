@@ -24,7 +24,7 @@ describe('Crypto Payments Integration', () => {
 
         // Create test driver
         const driverResult = await pool.query(
-            `INSERT INTO users (id, email, password_hash, primary_role) 
+            `INSERT INTO users (id, email, password, primary_role) 
        VALUES ($1, $2, $3, $4) RETURNING id`,
             ['test-driver-integration', 'driver-int@test.com', 'hash', 'driver']
         );
@@ -32,7 +32,7 @@ describe('Crypto Payments Integration', () => {
 
         // Create test customer
         const customerResult = await pool.query(
-            `INSERT INTO users (id, email, password_hash, primary_role) 
+            `INSERT INTO users (id, email, password, primary_role) 
        VALUES ($1, $2, $3, $4) RETURNING id`,
             ['test-customer-integration', 'customer-int@test.com', 'hash', 'customer']
         );
@@ -264,7 +264,7 @@ describe('Crypto Payments Integration', () => {
         it('should handle missing wallet gracefully', async () => {
             // Create new driver without wallet
             const newDriverResult = await pool.query(
-                `INSERT INTO users (id, email, password_hash, primary_role) 
+                `INSERT INTO users (id, email, password, primary_role) 
          VALUES ($1, $2, $3, $4) RETURNING id`,
                 ['test-driver-no-wallet', 'driver-no-wallet@test.com', 'hash', 'driver']
             );
