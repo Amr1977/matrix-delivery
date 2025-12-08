@@ -2,19 +2,10 @@ const pool = require('../../config/db');
 const LoggingService = require('../../services/loggingService');
 
 describe('LoggingService', () => {
-    let pool;
     let loggingService;
     let testUserId;
 
     beforeAll(async () => {
-        pool = new Pool({
-            host: process.env.DB_HOST,
-            port: parseInt(process.env.DB_PORT),
-            database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
-            user: process.env.DB_USER,
-            password: process.env.DB_PASSWORD,
-        });
-
         loggingService = new LoggingService(pool);
 
         // Create test user
@@ -29,7 +20,6 @@ describe('LoggingService', () => {
     afterAll(async () => {
         await pool.query('DELETE FROM logs WHERE user_id = $1', [testUserId]);
         await pool.query('DELETE FROM users WHERE id = $1', [testUserId]);
-        await pool.end();
     });
 
     describe('createLog', () => {
