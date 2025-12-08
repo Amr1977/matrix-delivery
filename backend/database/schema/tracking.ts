@@ -74,14 +74,14 @@ export const driverLocationsSchema: TableSchema = {
       driver_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       latitude DECIMAL(10,8) NOT NULL,
       longitude DECIMAL(11,8) NOT NULL,
-      last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       UNIQUE(driver_id)
     )
   `,
 
   indexes: [
     'CREATE INDEX IF NOT EXISTS idx_driver_locations_driver_id ON driver_locations(driver_id)',
-    'CREATE INDEX IF NOT EXISTS idx_driver_locations_last_updated ON driver_locations(last_updated DESC)'
+    'CREATE INDEX IF NOT EXISTS idx_driver_locations_timestamp ON driver_locations(timestamp DESC)'
   ],
 
   alterStatements: [
