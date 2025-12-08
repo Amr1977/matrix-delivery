@@ -45,7 +45,11 @@ class AuthService {
         granted_roles: grantedRoles
       },
       JWT_SECRET,
-      { expiresIn: '30d' }
+      {
+        expiresIn: '30d',
+        audience: 'matrix-delivery-api',
+        issuer: 'matrix-delivery'
+      }
     );
   }
 
