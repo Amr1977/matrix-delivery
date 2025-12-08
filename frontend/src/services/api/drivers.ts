@@ -31,10 +31,10 @@ export class DriversApi {
     }
 
     /**
-     * Get driver location
+     * Get driver location (current user's location)
      */
-    static async getLocation(driverId: string): Promise<DriverLocation> {
-        return ApiClient.get<DriverLocation>(`/drivers/location/${driverId}`);
+    static async getLocation(): Promise<{ location: DriverLocation; message: string }> {
+        return ApiClient.get<{ location: DriverLocation; message: string }>('/drivers/location');
     }
 
     /**
