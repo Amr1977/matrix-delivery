@@ -1288,23 +1288,7 @@ const DeliveryApp = () => {
         ...(orderData.routeInfo && { routeInfo: orderData.routeInfo })
       };
 
-      const response = await fetch(`${API_URL}/orders`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include', // Include cookies for authentication
-        body: JSON.stringify(newOrder)
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          logout();
-          throw new Error('Session expired. Please log in again.');
-        }
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to publish order');
-      }
+      await OrdersApi.createOrder(newOrder);
 
       setShowOrderForm(false);
       // Add a small delay to ensure database consistency
@@ -1369,16 +1353,10 @@ const DeliveryApp = () => {
     const bidPrice = bidInput[orderId];
     setLoadingState('placeBid', true);
     try {
-      const response = await fetch(`${API_URL}/orders/${orderId}/bid`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', // Use cookie-based authentication
-        body: JSON.stringify({ bidPrice: parseFloat(bidPrice), message: bidDetails[orderId]?.message || null })
+      await OrdersApi.modifyBid(orderId, {
+        bidPrice: parseFloat(bidPrice),
+        message: bidDetails[orderId]?.message || null
       });
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to modify bid');
-      }
       fetchOrders();
       showSuccess('Bid modified successfully!');
     } catch (err) {
@@ -1404,14 +1382,7 @@ const DeliveryApp = () => {
   const handleDeleteOrder = async (orderId) => {
     setLoadingState('deleteOrder', true);
     try {
-      const response = await fetch(`${API_URL}/orders/${orderId}`, {
-        method: 'DELETE',
-        credentials: 'include' // Use cookie-based authentication
-      });
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to delete order');
-      }
+      await OrdersApi.deleteOrder(orderId);
       fetchOrders();
       showSuccess('Order deleted successfully');
     } catch (err) {
@@ -1452,19 +1423,7 @@ const DeliveryApp = () => {
     setLoadingState('acceptBid', true);
     setError('');
     try {
-      const response = await fetch(`${API_URL}/orders/${orderId}/accept-bid`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include', // Use cookie-based authentication
-        body: JSON.stringify({ userId })
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to accept bid');
-      }
+      await OrdersApi.acceptBid(orderId, userId);
 
       fetchOrders();
       showSuccess('Bid accepted successfully! Driver notified.');
@@ -1478,12 +1437,7 @@ const DeliveryApp = () => {
   const handlePickupOrder = async (orderId) => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/orders/${orderId}/pickup`, {
-        method: 'POST',
-        credentials: 'include' // Use cookie-based authentication
-      });
-
-      if (!response.ok) throw new Error('Failed to mark as picked up');
+      await OrdersApi.updateStatus(orderId, 'picked_up');
 
       fetchOrders();
       setError('');
@@ -1497,12 +1451,7 @@ const DeliveryApp = () => {
   const handleInTransit = async (orderId) => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/orders/${orderId}/in-transit`, {
-        method: 'POST',
-        credentials: 'include' // Use cookie-based authentication
-      });
-
-      if (!response.ok) throw new Error('Failed to mark as in transit');
+      await OrdersApi.updateStatus(orderId, 'in_transit');
 
       fetchOrders();
       setError('');
@@ -1516,12 +1465,7 @@ const DeliveryApp = () => {
   const handleCompleteOrder = async (orderId) => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/orders/${orderId}/complete`, {
-        method: 'POST',
-        credentials: 'include' // Use cookie-based authentication
-      });
-
-      if (!response.ok) throw new Error('Failed to complete order');
+      await OrdersApi.updateStatus(orderId, 'delivered');
 
       fetchOrders();
       setSelectedOrder(null);
