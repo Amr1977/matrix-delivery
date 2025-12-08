@@ -25,7 +25,7 @@ module.exports = {
     env_test: {
       NODE_ENV: 'test',
       PORT: 5000,
-      ENV_FILE: '.env.test'
+      ENV_FILE: '.env.testing'
     },
     env_production: {
       NODE_ENV: 'production',
