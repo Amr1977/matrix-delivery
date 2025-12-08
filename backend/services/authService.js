@@ -249,6 +249,73 @@ class AuthService {
   }
 
   /**
+   * Update user profile
+   */
+  async updateUserProfile(userId, updates) {
+    // Build dynamic UPDATE query based on provided fields
+    const allowedFields = ['name', 'phone', 'language', 'theme', 'vehicle_type', 'license_number', 'service_area_zone'];
+    const updateFields = [];
+    const values = [];
+    let paramIndex = 1;
+
+    for (const [key, value] of Object.entries(updates)) {
+      if (allowedFields.includes(key)) {
+        updateFields.push(`${key} = $${paramIndex}`);
+        values.push(value);
+        paramIndex++;
+      }
+    }
+
+    if (updateFields.length === 0) {
+      throw new Error('No valid fields to update');
+    }
+
+    // Add userId as the last parameter
+    values.push(userId);
+
+    const query = `
+      UPDATE users 
+      SET ${updateFields.join(', ')}
+      WHERE id = $${paramIndex}
+      RETURNING id, name, email, phone, primary_role, granted_roles, language, theme, vehicle_type, license_number, service_area_zone, profile_picture_url, rating, completed_deliveries, is_verified, country, city, area, created_at
+    `;
+
+    const result = await pool.query(query, values);
+
+    if (result.rows.length === 0) {
+      throw new Error('User not found');
+    }
+
+    const user = result.rows[0];
+
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      role: user.primary_role || user.role,
+      primary_role: user.primary_role || user.role,
+      roles: user.granted_roles || user.roles || (user.primary_role ? [user.primary_role] : []),
+      granted_roles: user.granted_roles || user.roles || (user.primary_role ? [user.primary_role] : []),
+      language: user.language,
+      theme: user.theme,
+      vehicle_type: user.vehicle_type,
+      license_number: user.license_number,
+      service_area_zone: user.service_area_zone,
+      profile_picture_url: user.profile_picture_url,
+      rating: parseFloat(user.rating),
+      completed_deliveries: user.completed_deliveries,
+      completedDeliveries: user.completed_deliveries,
+      is_verified: user.is_verified,
+      isVerified: user.is_verified,
+      country: user.country,
+      city: user.city,
+      area: user.area,
+      created_at: user.created_at
+    };
+  }
+
+  /**
    * Get user profile
    */
   async getUserProfile(userId) {
@@ -271,6 +338,7 @@ class AuthService {
       country: user.country,
       city: user.city,
       area: user.area,
+      profile_picture_url: user.profile_picture_url,
       joinedAt: user.created_at
     };
   }
