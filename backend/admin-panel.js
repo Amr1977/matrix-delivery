@@ -318,7 +318,7 @@ module.exports = (app, pool, jwt, createNotification, generateId, JWT_SECRET) =>
         }
       });
 
-      await logAdminAction(req.admin.id, 'VIEW_USERS', 'users', null, { page, limit, search, primary_role, ip: req.ip });
+      await logAdminAction(req.admin.id, 'VIEW_USERS', 'users', null, { page, limit, search, role, ip: req.ip });
     } catch (error) {
       console.error('Get users error:', error);
       res.status(500).json({ error: 'Failed to get users' });
