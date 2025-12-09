@@ -2,7 +2,7 @@ const Sentry = require('@sentry/node');
 const { nodeProfilingIntegration } = require('@sentry/profiling-node');
 
 const express = require('express');
-console.error('🔥 CRITICAL DEBUG: server.js is running!');
+logger.error('🔥 CRITICAL DEBUG: server.js is running!');
 const cors = require('cors');
 const dotenv = require('dotenv');
 
@@ -63,7 +63,7 @@ logger.info(`🔧 Environment loaded for: ${process.env.NODE_ENV || 'development
 try {
   validateSecurityConfig();
 } catch (error) {
-  console.error('❌ Security configuration validation failed:', error.message);
+  logger.error('❌ Security configuration validation failed:', error.message);
   process.exit(1);
 }
 
@@ -158,12 +158,12 @@ if (!IS_TEST) {
   const missingVars = requiredDbVars.filter(varName => !process.env[varName]);
 
   if (missingVars.length > 0) {
-    console.error(`❌ Missing required database environment variables: ${missingVars.join(', ')}`);
+    logger.error(`❌ Missing required database environment variables: ${missingVars.join(', ')}`);
     process.exit(1);
   }
 
   if (IS_PRODUCTION && process.env.DB_PASSWORD.length < 12) {
-    console.error('❌ DB_PASSWORD must be at least 12 characters in production');
+    logger.error('❌ DB_PASSWORD must be at least 12 characters in production');
     process.exit(1);
   }
 }
@@ -223,7 +223,7 @@ const initDatabase = async () => {
 
     logger.info('✅ PostgreSQL Database initialized and user statistics recalculated', { category: 'database' });
   } catch (error) {
-    console.error('❌ Database initialization error:', error);
+    logger.error('❌ Database initialization error:', error);
     throw error;
   }
 };
@@ -231,7 +231,7 @@ const initDatabase = async () => {
 // Initialize database on startup (skip in test mode)
 if (!IS_TEST) {
   initDatabase().catch(err => {
-    console.error('Failed to initialize database:', err);
+    logger.error('Failed to initialize database:', err);
     process.exit(1);
   });
 }
@@ -268,7 +268,7 @@ const createNotification = async (userId, orderId, type, title, message) => {
 
     return notification;
   } catch (error) {
-    console.error('Error creating notification:', error);
+    logger.error('Error creating notification:', error);
   }
 };
 
@@ -309,12 +309,12 @@ require('./admin-panel.js')(app, pool, jwt, createNotification, generateId, JWT_
 
 // Validate JWT secrets
 if (!JWT_SECRET || JWT_SECRET.length < 64) {
-  console.error('❌ JWT_SECRET must be at least 64 characters');
+  logger.error('❌ JWT_SECRET must be at least 64 characters');
   process.exit(1);
 }
 
 if (!JWT_REFRESH_SECRET || JWT_REFRESH_SECRET.length < 64) {
-  console.error('❌ JWT_REFRESH_SECRET must be at least 64 characters');
+  logger.error('❌ JWT_REFRESH_SECRET must be at least 64 characters');
   process.exit(1);
 }
 
@@ -468,7 +468,7 @@ const verifyRecaptcha = async (token) => {
     }
 
     if (!process.env.RECAPTCHA_SECRET_KEY) {
-      console.error('RECAPTCHA_SECRET_KEY not configured - please set RECAPTCHA_SECRET_KEY in .env file');
+      logger.error('RECAPTCHA_SECRET_KEY not configured - please set RECAPTCHA_SECRET_KEY in .env file');
       return false;
     }
 
@@ -515,16 +515,16 @@ const verifyRecaptcha = async (token) => {
     }
 
   } catch (error) {
-    console.error('reCAPTCHA v2 verification error:', error.message);
+    logger.error('reCAPTCHA v2 verification error:', error.message);
 
     // More detailed error logging
     if (error.response) {
-      console.error('Google API responded with status:', error.response.status);
-      console.error('Response data:', error.response.data);
+      logger.error('Google API responded with status:', error.response.status);
+      logger.error('Response data:', error.response.data);
     } else if (error.code === 'ENOTFOUND') {
-      console.error('Cannot reach Google reCAPTCHA API - check internet connection');
+      logger.error('Cannot reach Google reCAPTCHA API - check internet connection');
     } else if (error.code === 'ETIMEDOUT') {
-      console.error('Google reCAPTCHA API request timed out');
+      logger.error('Google reCAPTCHA API request timed out');
     }
 
     return false;
@@ -562,7 +562,7 @@ app.get('/api/health', async (req, res) => {
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    console.error('Health check error:', error);
+    logger.error('Health check error:', error);
     res.status(500).json({ status: 'unhealthy', error: error.message });
   }
 });
@@ -645,7 +645,7 @@ app.get('/api/footer/stats', async (req, res) => {
       lastUpdated: new Date().toISOString()
     });
   } catch (error) {
-    console.error('Footer stats error:', error);
+    logger.error('Footer stats error:', error);
     res.status(500).json({ error: 'Failed to get footer statistics' });
   }
 });
@@ -948,7 +948,7 @@ app.post('/api/auth/login', async (req, res) => {
     // Set httpOnly cookie for security
     // Set httpOnly cookie for security
     // Set httpOnly cookie for security
-    console.error('🔥 DEBUG: ABOUT TO SET COOKIE');
+    logger.error('🔥 DEBUG: ABOUT TO SET COOKIE');
     logger.warn('🍪 DEBUG: Setting cookie', {
       category: 'debug',
       isProduction: IS_PRODUCTION,
@@ -969,7 +969,7 @@ app.post('/api/auth/login', async (req, res) => {
       path: '/'
     });
 
-    console.error('🔥 DEBUG: COOKIE SET CALLED');
+    logger.error('🔥 DEBUG: COOKIE SET CALLED');
     logger.warn('✅ DEBUG: Cookie set command executed', { category: 'debug' });
 
     const duration = Date.now() - startTime;
@@ -1029,8 +1029,8 @@ app.get('/api/auth/me', verifyToken, async (req, res) => {
     }
 
     const user = result.rows[0];
-    console.log('👤 /api/auth/me - User ID:', user.id);
-    console.log('👤 Profile picture URL length:', user.profile_picture_url?.length || 0);
+    logger.info('👤 /api/auth/me - User ID:', user.id);
+    logger.info('👤 Profile picture URL length:', user.profile_picture_url?.length || 0);
 
     res.json({
       id: user.id,
@@ -1051,7 +1051,7 @@ app.get('/api/auth/me', verifyToken, async (req, res) => {
       joinedAt: user.created_at
     });
   } catch (error) {
-    console.error('Get user error:', error);
+    logger.error('Get user error:', error);
     res.status(500).json({ error: 'Failed to get user' });
   }
 });
@@ -1306,7 +1306,7 @@ app.post('/api/vendors', verifyTokenOrTestBypass, isAdmin, async (req, res) => {
     );
     res.status(201).json(result.rows[0]);
   } catch (error) {
-    console.error('Create vendor error:', error);
+    logger.error('Create vendor error:', error);
     res.status(500).json({ error: 'Failed to create vendor', details: error.message });
   }
 });
@@ -1582,7 +1582,7 @@ app.post('/api/logs/frontend', async (req, res) => {
 
     res.json({ success: true, message: 'Log received and saved' });
   } catch (error) {
-    console.error('Frontend log endpoint error:', error);
+    logger.error('Frontend log endpoint error:', error);
     res.status(500).json({ error: 'Failed to save frontend log' });
   }
 });
@@ -1623,7 +1623,7 @@ app.post('/api/auth/verify-user', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Verify user error:', error);
+    logger.error('Verify user error:', error);
     res.status(500).json({ error: 'Failed to verify user' });
   }
 });
@@ -1689,7 +1689,7 @@ app.get('/api/users/:id/reputation', verifyToken, async (req, res) => {
       }))
     });
   } catch (error) {
-    console.error('Get user reputation error:', error);
+    logger.error('Get user reputation error:', error);
     res.status(500).json({ error: 'Failed to get user reputation' });
   }
 });
@@ -1743,7 +1743,7 @@ app.get('/api/users/:id/reviews/received', verifyToken, async (req, res) => {
       }))
     });
   } catch (error) {
-    console.error('Get user received reviews error:', error);
+    logger.error('Get user received reviews error:', error);
     res.status(500).json({ error: 'Failed to get user reviews' });
   }
 });
@@ -1797,7 +1797,7 @@ app.get('/api/users/:id/reviews/given', verifyToken, async (req, res) => {
       }))
     });
   } catch (error) {
-    console.error('Get user given reviews error:', error);
+    logger.error('Get user given reviews error:', error);
     res.status(500).json({ error: 'Failed to get user reviews' });
   }
 });
@@ -1821,7 +1821,7 @@ app.get('/api/users/me/profile', verifyToken, async (req, res) => {
       favoritesCount: favCountRes.rows[0].cnt
     });
   } catch (error) {
-    console.error('Get profile error:', error);
+    logger.error('Get profile error:', error);
     res.status(500).json({ error: 'Failed to get profile' });
   }
 });
@@ -1853,7 +1853,7 @@ app.put('/api/users/me/profile', verifyToken, async (req, res) => {
     logger.info('User updated profile', { userId: req.user.userId, category: 'user' });
     res.json({ user: result.rows[0] });
   } catch (error) {
-    console.error('Update profile error:', error);
+    logger.error('Update profile error:', error);
     res.status(500).json({ error: 'Failed to update profile' });
   }
 });
@@ -1861,21 +1861,21 @@ app.put('/api/users/me/profile', verifyToken, async (req, res) => {
 app.post('/api/users/me/profile-picture', verifyToken, async (req, res) => {
   try {
     const { imageDataUrl } = req.body || {};
-    console.log('📸 Profile picture upload - User ID:', req.user.userId);
-    console.log('📸 Image data length:', imageDataUrl?.length);
+    logger.info('📸 Profile picture upload - User ID:', req.user.userId);
+    logger.info('📸 Image data length:', imageDataUrl?.length);
 
     if (!imageDataUrl || typeof imageDataUrl !== 'string' || !imageDataUrl.startsWith('data:image/')) {
-      console.log('❌ Invalid image data');
+      logger.error('❌ Invalid image data');
       return res.status(400).json({ error: 'Invalid image data' });
     }
 
     const result = await pool.query('UPDATE users SET profile_picture_url = $1 WHERE id = $2 RETURNING profile_picture_url', [imageDataUrl, req.user.userId]);
-    console.log('✅ Profile picture saved to DB:', result.rows[0]?.profile_picture_url?.substring(0, 50) + '...');
+    logger.info('✅ Profile picture saved to DB:', result.rows[0]?.profile_picture_url?.substring(0, 50) + '...');
 
     logger.info('User updated profile picture', { userId: req.user.userId, category: 'user' });
     res.json({ profilePictureUrl: result.rows[0].profile_picture_url });
   } catch (error) {
-    console.error('❌ Profile picture update error:', error);
+    logger.error('❌ Profile picture update error:', error);
     res.status(500).json({ error: 'Failed to update profile picture' });
   }
 });
@@ -1886,7 +1886,7 @@ app.get('/api/users/me/preferences', verifyToken, async (req, res) => {
     if (result.rows.length === 0) return res.status(404).json({ error: 'User not found' });
     res.json(result.rows[0]);
   } catch (error) {
-    console.error('Get preferences error:', error);
+    logger.error('Get preferences error:', error);
     res.status(500).json({ error: 'Failed to get preferences' });
   }
 });
@@ -1901,7 +1901,7 @@ app.put('/api/users/me/preferences', verifyToken, async (req, res) => {
     logger.info('User updated preferences', { userId: req.user.userId, category: 'user' });
     res.json(result.rows[0]);
   } catch (error) {
-    console.error('Update preferences error:', error);
+    logger.error('Update preferences error:', error);
     res.status(500).json({ error: 'Failed to update preferences' });
   }
 });
@@ -1913,7 +1913,7 @@ app.post('/api/users/me/availability', verifyToken, async (req, res) => {
     logger.info('User toggled availability', { userId: req.user.userId, isAvailable: !!is_available, category: 'user' });
     res.json({ isAvailable: result.rows[0].is_available });
   } catch (error) {
-    console.error('Toggle availability error:', error);
+    logger.error('Toggle availability error:', error);
     res.status(500).json({ error: 'Failed to toggle availability' });
   }
 });
@@ -1923,7 +1923,7 @@ app.get('/api/users/me/payment-methods', verifyToken, async (req, res) => {
     const result = await pool.query('SELECT id, payment_method_type, masked_details, is_default, created_at FROM user_payment_methods WHERE user_id = $1 ORDER BY created_at DESC', [req.user.userId]);
     res.json(result.rows);
   } catch (error) {
-    console.error('Get payment methods error:', error);
+    logger.error('Get payment methods error:', error);
     res.status(500).json({ error: 'Failed to get payment methods' });
   }
 });
@@ -1941,7 +1941,7 @@ app.post('/api/users/me/payment-methods', verifyToken, async (req, res) => {
     logger.info('User added payment method', { userId: req.user.userId, category: 'user' });
     res.json(result.rows[0]);
   } catch (error) {
-    console.error('Add payment method error:', error);
+    logger.error('Add payment method error:', error);
     res.status(500).json({ error: 'Failed to add payment method' });
   }
 });
@@ -1952,7 +1952,7 @@ app.delete('/api/users/me/payment-methods/:id', verifyToken, async (req, res) =>
     logger.info('User removed payment method', { userId: req.user.userId, category: 'user' });
     res.json({ ok: true });
   } catch (error) {
-    console.error('Remove payment method error:', error);
+    logger.error('Remove payment method error:', error);
     res.status(500).json({ error: 'Failed to remove payment method' });
   }
 });
@@ -1967,7 +1967,7 @@ app.get('/api/users/me/favorites', verifyToken, async (req, res) => {
     );
     res.json(result.rows);
   } catch (error) {
-    console.error('Get favorites error:', error);
+    logger.error('Get favorites error:', error);
     res.status(500).json({ error: 'Failed to get favorites' });
   }
 });
@@ -1980,7 +1980,7 @@ app.post('/api/users/me/favorites', verifyToken, async (req, res) => {
     logger.info('User added favorite', { userId: req.user.userId, favoriteUserId: favorite_user_id, category: 'user' });
     res.json({ ok: true });
   } catch (error) {
-    console.error('Add favorite error:', error);
+    logger.error('Add favorite error:', error);
     res.status(500).json({ error: 'Failed to add favorite' });
   }
 });
@@ -1991,7 +1991,7 @@ app.delete('/api/users/me/favorites/:favoriteUserId', verifyToken, async (req, r
     logger.info('User removed favorite', { userId: req.user.userId, favoriteUserId: req.params.favoriteUserId, category: 'user' });
     res.json({ ok: true });
   } catch (error) {
-    console.error('Remove favorite error:', error);
+    logger.error('Remove favorite error:', error);
     res.status(500).json({ error: 'Failed to remove favorite' });
   }
 });
@@ -2006,7 +2006,7 @@ app.get('/api/users/me/activity', verifyToken, async (req, res) => {
     );
     res.json({ recentOrders: ordersRes.rows });
   } catch (error) {
-    console.error('Get activity error:', error);
+    logger.error('Get activity error:', error);
     res.status(500).json({ error: 'Failed to get activity' });
   }
 });
@@ -2262,7 +2262,7 @@ app.get('/api/orders/:id', verifyToken, async (req, res) => {
       createdAt: order.created_at, acceptedAt: order.accepted_at, pickedUpAt: order.picked_up_at, deliveredAt: order.delivered_at
     });
   } catch (error) {
-    console.error('Get order error:', error);
+    logger.error('Get order error:', error);
     res.status(500).json({ error: 'Failed to get order' });
   }
 });
@@ -2346,7 +2346,7 @@ app.post('/api/orders/:id/bid', verifyToken, async (req, res) => {
     });
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error('Place bid error:', error);
+    logger.error('Place bid error:', error);
     res.status(500).json({ error: 'Failed to place bid' });
   } finally {
     client.release();
@@ -2387,7 +2387,7 @@ app.put('/api/orders/:id/bid', verifyToken, async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error('Modify bid error:', error);
+    logger.error('Modify bid error:', error);
     res.status(500).json({ error: 'Failed to modify bid' });
   } finally {
     client.release();
@@ -2427,7 +2427,7 @@ app.delete('/api/orders/:id/bid', verifyToken, async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error('Withdraw bid error:', error);
+    logger.error('Withdraw bid error:', error);
     res.status(500).json({ error: 'Failed to withdraw bid' });
   } finally {
     client.release();
@@ -2500,7 +2500,7 @@ app.post('/api/orders/:id/accept-bid', verifyToken, async (req, res) => {
     });
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error('Accept bid error:', error);
+    logger.error('Accept bid error:', error);
     res.status(500).json({ error: 'Failed to accept bid' });
   } finally {
     client.release();
@@ -2523,7 +2523,7 @@ app.delete('/api/orders/:id', verifyToken, async (req, res) => {
     console.log(`✅ Order deleted: "${order.title}" by ${req.user.name}`);
     res.json({ message: 'Order deleted successfully' });
   } catch (error) {
-    console.error('Delete order error:', error);
+    logger.error('Delete order error:', error);
     res.status(500).json({ error: 'Failed to delete order' });
   }
 });
@@ -2570,7 +2570,7 @@ app.post('/api/orders/:id/pickup', verifyToken, async (req, res) => {
     res.json({ _id: order.id, orderNumber: order.order_number, status: 'picked_up', pickedUpAt: new Date().toISOString() });
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error('Pickup order error:', error);
+    logger.error('Pickup order error:', error);
     res.status(500).json({ error: 'Failed to mark order as picked up' });
   } finally {
     client.release();
@@ -2613,7 +2613,7 @@ app.post('/api/orders/:id/in-transit', verifyToken, async (req, res) => {
     res.json({ _id: order.id, orderNumber: order.order_number, status: 'in_transit' });
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error('In transit error:', error);
+    logger.error('In transit error:', error);
     res.status(500).json({ error: 'Failed to mark order as in transit' });
   } finally {
     client.release();
@@ -2657,7 +2657,7 @@ app.post('/api/orders/:id/complete', verifyToken, async (req, res) => {
     res.json({ _id: order.id, orderNumber: order.order_number, status: 'delivered', deliveredAt: new Date().toISOString() });
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error('Complete order error:', error);
+    logger.error('Complete order error:', error);
     res.status(500).json({ error: 'Failed to complete order' });
   } finally {
     client.release();
@@ -2683,7 +2683,7 @@ app.post('/api/orders/:id/location', verifyToken, async (req, res) => {
 
     res.json({ message: 'Location updated successfully', location: { latitude: parseFloat(latitude), longitude: parseFloat(longitude) } });
   } catch (error) {
-    console.error('Update location error:', error);
+    logger.error('Update location error:', error);
     res.status(500).json({ error: 'Failed to update location' });
   }
 });
@@ -2738,7 +2738,7 @@ app.get('/api/orders/:id/tracking', verifyToken, async (req, res) => {
       }))
     });
   } catch (error) {
-    console.error('Get tracking error:', error);
+    logger.error('Get tracking error:', error);
     res.status(500).json({ error: 'Failed to get tracking information' });
   }
 });
@@ -2780,7 +2780,7 @@ app.post('/api/drivers/location', verifyToken, async (req, res) => {
     });
     res.json({ message: 'Location updated successfully', location: { latitude: lat, longitude: lng } });
   } catch (error) {
-    console.error('Update driver location error:', error);
+    logger.error('Update driver location error:', error);
     res.status(500).json({ error: 'Failed to update location' });
   }
 });
@@ -2810,7 +2810,7 @@ app.get('/api/drivers/location', verifyToken, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get driver location error:', error);
+    logger.error('Get driver location error:', error);
     res.status(500).json({ error: 'Failed to get location' });
   }
 });
@@ -2918,7 +2918,7 @@ app.get('/api/notifications', verifyToken, async (req, res) => {
       message: notif.message, isRead: notif.is_read, createdAt: notif.created_at
     })));
   } catch (error) {
-    console.error('Get notifications error:', error);
+    logger.error('Get notifications error:', error);
     res.status(500).json({ error: 'Failed to get notifications' });
   }
 });
@@ -2933,7 +2933,7 @@ app.put('/api/notifications/:id/read', verifyToken, async (req, res) => {
     if (result.rows.length === 0) return res.status(404).json({ error: 'Notification not found' });
     res.json({ message: 'Notification marked as read' });
   } catch (error) {
-    console.error('Mark notification read error:', error);
+    logger.error('Mark notification read error:', error);
     res.status(500).json({ error: 'Failed to mark notification as read' });
   }
 });
@@ -3143,7 +3143,7 @@ app.get('/api/orders/:id/reviews', verifyToken, async (req, res) => {
       timelinessRating: review.timeliness_rating, conditionRating: review.condition_rating, createdAt: review.created_at
     })));
   } catch (error) {
-    console.error('Get reviews error:', error);
+    logger.error('Get reviews error:', error);
     res.status(500).json({ error: 'Failed to get reviews' });
   }
 });
@@ -3177,7 +3177,7 @@ app.get('/api/orders/:id/review-status', verifyToken, async (req, res) => {
 
     res.json(status);
   } catch (error) {
-    console.error('Check review status error:', error);
+    logger.error('Check review status error:', error);
     res.status(500).json({ error: 'Failed to check review status' });
   }
 });
@@ -3348,7 +3348,7 @@ app.get('/api/orders/:id/payment', verifyToken, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get payment error:', error);
+    logger.error('Get payment error:', error);
     res.status(500).json({ error: 'Failed to get payment information' });
   }
 });
@@ -3406,7 +3406,7 @@ app.get('/api/payments/earnings', verifyToken, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get earnings error:', error);
+    logger.error('Get earnings error:', error);
     res.status(500).json({ error: 'Failed to get earnings information' });
   }
 });
@@ -3436,7 +3436,7 @@ app.get('/api/payments/history', verifyToken, async (req, res) => {
     })));
 
   } catch (error) {
-    console.error('Get payment history error:', error);
+    logger.error('Get payment history error:', error);
     res.status(500).json({ error: 'Failed to get payment history' });
   }
 });
@@ -3497,7 +3497,7 @@ app.post('/api/location/current', verifyToken, async (req, res) => {
     res.json(result);
 
   } catch (error) {
-    console.error('Reverse geocoding error:', error);
+    logger.error('Reverse geocoding error:', error);
     res.status(500).json({ error: 'Failed to get location details' });
   }
 });
@@ -3578,7 +3578,7 @@ app.get('/api/locations/countries', async (req, res) => {
     await persistCache(LOCATION_CACHE_KEYS.COUNTRIES, COMMON_COUNTRIES, LOCATION_CACHE_TTLS.COUNTRIES);
     respond(COMMON_COUNTRIES, 'fallback');
   } catch (error) {
-    console.error('❌ Get countries error:', error);
+    logger.error('❌ Get countries error:', error);
     res.status(500).json({ error: 'Failed to get countries' });
   }
 });
@@ -3600,7 +3600,7 @@ app.post('/api/locations/cache/clear', async (req, res) => {
     console.log('✅ Location caches cleared successfully');
     res.json({ message: 'Caches cleared successfully' });
   } catch (error) {
-    console.error('❌ Error clearing caches:', error);
+    logger.error('❌ Error clearing caches:', error);
     res.status(500).json({ error: 'Failed to clear caches' });
   }
 });
@@ -3694,7 +3694,7 @@ app.get('/api/locations/countries/:country/cities', async (req, res) => {
     setListInMemory(locationMemoryCache.cities, cacheKey, cities, LOCATION_CACHE_TTLS.CITIES);
     respond(cities);
   } catch (error) {
-    console.error('Get cities error:', error);
+    logger.error('Get cities error:', error);
     res.status(500).json({ error: 'Failed to get cities' });
   }
 });
@@ -3787,7 +3787,7 @@ app.get('/api/locations/countries/:country/cities/:city/areas', async (req, res)
     setListInMemory(locationMemoryCache.areas, cacheKey, areas, LOCATION_CACHE_TTLS.AREAS);
     respond(areas);
   } catch (error) {
-    console.error('Get areas error:', error);
+    logger.error('Get areas error:', error);
     res.status(500).json({ error: 'Failed to get areas' });
   }
 });
@@ -3881,7 +3881,7 @@ app.get('/api/locations/countries/:country/cities/:city/areas/:area/streets', as
     setListInMemory(locationMemoryCache.streets, cacheKey, streets, LOCATION_CACHE_TTLS.STREETS);
     respond(streets);
   } catch (error) {
-    console.error('Get streets error:', error);
+    logger.error('Get streets error:', error);
     res.status(500).json({ error: 'Failed to get streets' });
   }
 });
@@ -3901,7 +3901,7 @@ app.get('/api/locations/coordinates', async (req, res) => {
     });
     res.json(mappings);
   } catch (error) {
-    console.error('Get coordinate mappings error:', error);
+    logger.error('Get coordinate mappings error:', error);
     res.status(500).json({ error: 'Failed to get coordinate mappings' });
   }
 });
@@ -3984,7 +3984,7 @@ app.get('/api/locations/search', async (req, res) => {
     res.json(results);
 
   } catch (error) {
-    console.error('Location search error:', error);
+    logger.error('Location search error:', error);
     res.status(500).json({ error: 'Failed to search locations' });
   }
 });
@@ -4035,7 +4035,7 @@ app.get('/api/locations/reverse', async (req, res) => {
     res.json(result);
 
   } catch (error) {
-    console.error('Reverse geocoding error:', error);
+    logger.error('Reverse geocoding error:', error);
     res.status(500).json({ error: 'Failed to reverse geocode location' });
   }
 });
@@ -4079,7 +4079,7 @@ app.get('/api/locations/countries/:country/cities/search', async (req, res) => {
     res.json(cities);
 
   } catch (error) {
-    console.error('Get cities search error:', error);
+    logger.error('Get cities search error:', error);
     res.status(500).json({ error: 'Failed to search cities' });
   }
 });
@@ -4137,7 +4137,7 @@ const verifyAdmin = async (req, res, next) => {
     console.log('✅ verifyAdmin - Access granted');
     next();
   } catch (error) {
-    console.error('❌ Admin verification error:', error.message);
+    logger.error('❌ Admin verification error:', error.message);
     res.status(401).json({ error: 'Invalid or expired token' });
   }
 };
@@ -4151,7 +4151,7 @@ const logAdminAction = async (adminId, action, targetType, targetId, details = {
       [adminId, action, targetType, targetId, JSON.stringify(details), details.ip || 'unknown']
     );
   } catch (error) {
-    console.error('Log admin action error:', error);
+    logger.error('Log admin action error:', error);
   }
 };
 
@@ -4334,7 +4334,7 @@ app.get('/api/admin/stats', verifyAdmin, async (req, res) => {
 
     await logAdminAction(req.admin.id, 'VIEW_STATS', 'dashboard', null, { range, ip: req.ip });
   } catch (error) {
-    console.error('Get admin stats error:', error);
+    logger.error('Get admin stats error:', error);
     res.status(500).json({ error: 'Failed to get statistics' });
   }
 });
@@ -4425,7 +4425,7 @@ app.get('/api/admin/users', verifyAdmin, async (req, res) => {
 
     await logAdminAction(req.admin.id, 'VIEW_USERS', 'users', null, { page, limit, search, primary_role, ip: req.ip });
   } catch (error) {
-    console.error('Get users error:', error);
+    logger.error('Get users error:', error);
     res.status(500).json({ error: 'Failed to get users' });
   }
 });
@@ -4497,7 +4497,7 @@ app.get('/api/admin/users/:id', verifyAdmin, async (req, res) => {
 
     await logAdminAction(req.admin.id, 'VIEW_USER_DETAILS', 'user', req.params.id, { ip: req.ip });
   } catch (error) {
-    console.error('Get user details error:', error);
+    logger.error('Get user details error:', error);
     res.status(500).json({ error: 'Failed to get user details' });
   }
 });
@@ -4523,7 +4523,7 @@ app.post('/api/admin/users/:id/roles', verifyAdmin, async (req, res) => {
     await logAdminAction(req.admin.id, 'UPDATE_ROLES', 'user', req.params.id, { add: addClean, remove: removeClean, ip: req.ip });
     res.json({ id: req.params.id, roles });
   } catch (error) {
-    console.error('Update roles error:', error);
+    logger.error('Update roles error:', error);
     res.status(500).json({ error: 'Failed to update roles' });
   }
 });
@@ -4573,7 +4573,7 @@ app.post('/api/admin/users/:id/verify', verifyAdmin, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Verify user error:', error);
+    logger.error('Verify user error:', error);
     res.status(500).json({ error: 'Failed to verify user' });
   }
 });
@@ -4627,7 +4627,7 @@ app.post('/api/admin/users/:id/suspend', verifyAdmin, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Suspend user error:', error);
+    logger.error('Suspend user error:', error);
     res.status(500).json({ error: 'Failed to suspend user' });
   }
 });
@@ -4677,7 +4677,7 @@ app.post('/api/admin/users/:id/unsuspend', verifyAdmin, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Unsuspend user error:', error);
+    logger.error('Unsuspend user error:', error);
     res.status(500).json({ error: 'Failed to unsuspend user' });
   }
 });
@@ -4733,7 +4733,7 @@ app.delete('/api/admin/users/:id', verifyAdmin, async (req, res) => {
     res.json({ message: 'User deleted successfully' });
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error('Delete user error:', error);
+    logger.error('Delete user error:', error);
     res.status(500).json({ error: 'Failed to delete user' });
   } finally {
     client.release();
@@ -4832,7 +4832,7 @@ app.get('/api/admin/orders', verifyAdmin, async (req, res) => {
 
     await logAdminAction(req.admin.id, 'VIEW_ORDERS', 'orders', null, { page, limit, status, search, ip: req.ip });
   } catch (error) {
-    console.error('Get orders error:', error);
+    logger.error('Get orders error:', error);
     res.status(500).json({ error: 'Failed to get orders' });
   }
 });
@@ -4936,7 +4936,7 @@ app.get('/api/admin/orders/:id', verifyAdmin, async (req, res) => {
 
     await logAdminAction(req.admin.id, 'VIEW_ORDER_DETAILS', 'order', req.params.id, { ip: req.ip });
   } catch (error) {
-    console.error('Get order details error:', error);
+    logger.error('Get order details error:', error);
     res.status(500).json({ error: 'Failed to get order details' });
   }
 });
@@ -5008,7 +5008,7 @@ app.post('/api/admin/orders/:id/cancel', verifyAdmin, async (req, res) => {
     res.json({ message: 'Order cancelled successfully' });
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error('Cancel order error:', error);
+    logger.error('Cancel order error:', error);
     res.status(500).json({ error: 'Failed to cancel order' });
   } finally {
     client.release();
@@ -5124,7 +5124,7 @@ app.get('/api/admin/analytics/performance', verifyAdmin, async (req, res) => {
 
     await logAdminAction(req.admin.id, 'VIEW_ANALYTICS', 'analytics', null, { range, ip: req.ip });
   } catch (error) {
-    console.error('Get analytics error:', error);
+    logger.error('Get analytics error:', error);
     res.status(500).json({ error: 'Failed to get analytics' });
   }
 });
@@ -5202,7 +5202,7 @@ app.get('/api/admin/logs', verifyAdmin, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get logs error:', error);
+    logger.error('Get logs error:', error);
     res.status(500).json({ error: 'Failed to get logs' });
   }
 });
@@ -5231,7 +5231,7 @@ app.post('/api/admin/deploy', verifyAdmin, async (req, res) => {
       res.status(500).json({ error: 'Deploy process error', details: err.message });
     });
   } catch (error) {
-    console.error('Admin deploy error:', error);
+    logger.error('Admin deploy error:', error);
     res.status(500).json({ error: 'Failed to trigger deploy' });
   }
 });
@@ -5272,7 +5272,7 @@ app.delete('/api/admin/logs/clear', verifyAdmin, async (req, res) => {
       deletedCount: result.rowCount
     });
   } catch (error) {
-    console.error('Clear logs error:', error);
+    logger.error('Clear logs error:', error);
     res.status(500).json({ error: 'Failed to clear logs' });
   }
 });
@@ -5298,7 +5298,7 @@ app.get('/api/admin/settings', verifyAdmin, async (req, res) => {
 
     await logAdminAction(req.admin.id, 'VIEW_SETTINGS', 'system', null, { ip: req.ip });
   } catch (error) {
-    console.error('Get settings error:', error);
+    logger.error('Get settings error:', error);
     res.status(500).json({ error: 'Failed to get settings' });
   }
 });
@@ -5335,7 +5335,7 @@ app.put('/api/admin/settings/:key', verifyAdmin, async (req, res) => {
       setting: result.rows[0]
     });
   } catch (error) {
-    console.error('Update setting error:', error);
+    logger.error('Update setting error:', error);
     res.status(500).json({ error: 'Failed to update setting' });
   }
 });
@@ -5391,7 +5391,7 @@ app.post('/api/admin/users/bulk/verify', verifyAdmin, async (req, res) => {
     });
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error('Bulk verify error:', error);
+    logger.error('Bulk verify error:', error);
     res.status(500).json({ error: 'Failed to verify users' });
   } finally {
     client.release();
@@ -5438,7 +5438,7 @@ app.post('/api/admin/backup/create', verifyAdmin, async (req, res) => {
       tableCounts
     });
   } catch (error) {
-    console.error('Create backup error:', error);
+    logger.error('Create backup error:', error);
     res.status(500).json({ error: 'Failed to create backup' });
   }
 });
@@ -5524,7 +5524,7 @@ app.get('/api/admin/reports/revenue', verifyAdmin, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Generate revenue report error:', error);
+    logger.error('Generate revenue report error:', error);
     res.status(500).json({ error: 'Failed to generate report' });
   }
 });
@@ -5592,7 +5592,7 @@ const createAdminTables = async () => {
 
     logger.info('Admin tables created successfully', { category: 'database' });
   } catch (error) {
-    console.error('❌ Admin tables creation error:', error);
+    logger.error('❌ Admin tables creation error:', error);
     throw error;
   }
 };
@@ -5707,7 +5707,7 @@ io.on('connection', (socket) => {
       }
 
     } catch (error) {
-      console.error('Join order error:', error);
+      logger.error('Join order error:', error);
       socket.emit('error', { message: 'Failed to join order tracking' });
     }
   });
@@ -5746,7 +5746,7 @@ io.on('connection', (socket) => {
       });
 
     } catch (error) {
-      console.error('Update location error:', error);
+      logger.error('Update location error:', error);
     }
   });
 
