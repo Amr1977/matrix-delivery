@@ -1028,8 +1028,8 @@ app.get('/api/auth/me', verifyToken, async (req, res) => {
     }
 
     const user = result.rows[0];
-    logger.info('👤 /api/auth/me - User ID:', user.id);
-    logger.info('👤 Profile picture URL length:', user.profile_picture_url?.length || 0);
+    logger.info(`👤 /api/auth/me - User ID: ${user.id}`);
+    logger.info(`👤 Profile picture URL length: ${user.profile_picture_url?.length || 0}`);
 
     res.json({
       id: user.id,
