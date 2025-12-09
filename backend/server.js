@@ -2,7 +2,6 @@ const Sentry = require('@sentry/node');
 const { nodeProfilingIntegration } = require('@sentry/profiling-node');
 
 const express = require('express');
-logger.error('🔥 CRITICAL DEBUG: server.js is running!');
 const cors = require('cors');
 const dotenv = require('dotenv');
 
