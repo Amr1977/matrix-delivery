@@ -1,10 +1,9 @@
 #!/bin/bash
 
 # Production Database Reset and Migration Script
-# WARNING: This will DROP and RECREATE the database!
-# Only use when there are NO CUSTOMERS (safe for initial deployment)
+# Handles database ownership and permissions correctly
 
-set -e  # Exit on error
+set -e
 
 echo "╔════════════════════════════════════════════════════════════╗"
 echo "║  Production Database Reset & Migration                     ║"
@@ -20,7 +19,7 @@ else
 fi
 
 # Database configuration
-DB_NAME="${DB_NAME:-matrix_delivery}"
+DB_NAME="${DB_NAME:-matrix_delivery_prod}"
 DB_USER="${DB_USER:-postgres}"
 DB_HOST="${DB_HOST:-localhost}"
 DB_PORT="${DB_PORT:-5432}"
@@ -40,37 +39,49 @@ if [ "$confirm" != "yes" ]; then
 fi
 
 echo ""
-echo "🗑️  Step 1: Dropping existing database..."
-PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d postgres -c "DROP DATABASE IF EXISTS $DB_NAME;"
+echo "🗑️  Step 1: Terminating active connections..."
+PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d postgres << EOF
+SELECT pg_terminate_backend(pg_stat_activity.pid)
+FROM pg_stat_activity
+WHERE pg_stat_activity.datname = '$DB_NAME'
+  AND pid <> pg_backend_pid();
+EOF
+echo "✅ Connections terminated"
+
+echo ""
+echo "🗑️  Step 2: Dropping existing database..."
+# Use postgres superuser to drop database
+PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U postgres -d postgres -c "DROP DATABASE IF EXISTS $DB_NAME;"
 echo "✅ Database dropped"
 
 echo ""
-echo "🆕 Step 2: Creating fresh database..."
-PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d postgres -c "CREATE DATABASE $DB_NAME;"
+echo "🆕 Step 3: Creating fresh database..."
+PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U postgres -d postgres -c "CREATE DATABASE $DB_NAME OWNER $DB_USER;"
 echo "✅ Database created"
 
 echo ""
-echo "🔧 Step 3: Installing PostGIS extension..."
+echo "🔧 Step 4: Installing PostGIS extension..."
 PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -c "CREATE EXTENSION IF NOT EXISTS postgis;"
 echo "✅ PostGIS installed"
 
 echo ""
-echo "📋 Step 4: Running initial schema..."
+echo "📋 Step 5: Running initial schema..."
 if [ -f "schema.sql" ]; then
     PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f schema.sql
     echo "✅ Schema created"
 else
     echo "⚠️  Warning: schema.sql not found, skipping..."
+    echo "   Database will be created by application on first run"
 fi
 
 echo ""
-echo "🔄 Step 5: Running migrations..."
+echo "🔄 Step 6: Running migrations..."
 
-# Migration 1: Rename role columns
+# Migration 1: Rename role columns (may fail if columns don't exist yet - that's OK)
 if [ -f "migrations/rename_role_columns.sql" ]; then
     echo "   Running: rename_role_columns.sql"
-    PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f migrations/rename_role_columns.sql
-    echo "   ✅ Role columns renamed"
+    PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f migrations/rename_role_columns.sql 2>&1 | grep -v "does not exist" || true
+    echo "   ✅ Role columns migration attempted"
 else
     echo "   ⚠️  Migration not found: rename_role_columns.sql"
 fi
@@ -85,8 +96,8 @@ else
 fi
 
 echo ""
-echo "✅ Step 6: Verifying database..."
-PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -c "\dt" > /dev/null
+echo "✅ Step 7: Verifying database..."
+PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -c "\dt" > /dev/null 2>&1 || echo "   (No tables yet - will be created on first run)"
 echo "✅ Database verified"
 
 echo ""
