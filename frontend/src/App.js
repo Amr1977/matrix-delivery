@@ -786,6 +786,13 @@ const DeliveryApp = () => {
       setToken('authenticated'); // Set token flag to indicate logged in
       setError('');
 
+      // Also update profileData with the user data including profile_picture_url
+      setProfileData(prev => ({
+        ...prev,
+        ...data,
+        profile_picture_url: data.profile_picture_url || data.profilePictureUrl
+      }));
+
     } catch (err) {
       console.error('fetchCurrentUser error:', err);
 
