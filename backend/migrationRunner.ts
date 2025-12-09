@@ -1,7 +1,6 @@
-```typescript
 import fs from 'fs';
 import path from 'path';
-import { Pool, PoolClient } from 'pg';
+import { Pool } from 'pg';
 import crypto from 'crypto';
 import logger from './config/logger';
 
@@ -44,23 +43,23 @@ export class MigrationRunner {
      */
     async initializeMigrationsTable(): Promise<void> {
         const query = `
-      CREATE TABLE IF NOT EXISTS ${ this.migrationsTable } (
-    id SERIAL PRIMARY KEY,
+      CREATE TABLE IF NOT EXISTS ${this.migrationsTable} (
+        id SERIAL PRIMARY KEY,
         migration_name VARCHAR(255) UNIQUE NOT NULL,
-            applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                checksum VARCHAR(64),
-                    execution_time_ms INTEGER
+        applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        checksum VARCHAR(64),
+        execution_time_ms INTEGER
       );
       
-      CREATE INDEX IF NOT EXISTS idx_migration_name ON ${ this.migrationsTable } (migration_name);
-`;
+      CREATE INDEX IF NOT EXISTS idx_migration_name ON ${this.migrationsTable}(migration_name);
+    `;
 
         try {
             await this.pool.query(query);
             logger.info('Migrations table initialized');
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            logger.error(`Failed to initialize migrations table: ${ errorMessage } `);
+            logger.error(`Failed to initialize migrations table: ${errorMessage}`);
             throw error;
         }
     }
@@ -71,12 +70,12 @@ export class MigrationRunner {
     async getAppliedMigrations(): Promise<string[]> {
         try {
             const result = await this.pool.query<{ migration_name: string }>(
-                `SELECT migration_name FROM ${ this.migrationsTable } ORDER BY id ASC`
+                `SELECT migration_name FROM ${this.migrationsTable} ORDER BY id ASC`
             );
             return result.rows.map(row => row.migration_name);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            this.logger.error(`Failed to get applied migrations: ${ errorMessage } `);
+            logger.error(`Failed to get applied migrations: ${errorMessage}`);
             return [];
         }
     }
@@ -87,7 +86,7 @@ export class MigrationRunner {
     getMigrationFiles(): string[] {
         try {
             if (!fs.existsSync(this.migrationsDir)) {
-                this.logger.warn(`Migrations directory not found: ${ this.migrationsDir } `);
+                logger.warn(`Migrations directory not found: ${this.migrationsDir}`);
                 return [];
             }
 
@@ -98,7 +97,7 @@ export class MigrationRunner {
             return files;
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            this.logger.error(`Failed to read migration files: ${ errorMessage } `);
+            logger.error(`Failed to read migration files: ${errorMessage}`);
             return [];
         }
     }
@@ -122,7 +121,7 @@ export class MigrationRunner {
             const migrationSQL = fs.readFileSync(migrationPath, 'utf8');
             const checksum = this.calculateChecksum(migrationSQL);
 
-            this.logger.info(`Applying migration: ${ migrationFile } `);
+            logger.info(`Applying migration: ${migrationFile}`);
 
             // Begin transaction
             await this.pool.query('BEGIN');
@@ -134,15 +133,15 @@ export class MigrationRunner {
                 // Record migration in tracking table
                 const executionTime = Date.now() - startTime;
                 await this.pool.query(
-                    `INSERT INTO ${ this.migrationsTable } (migration_name, checksum, execution_time_ms)
-VALUES($1, $2, $3)`,
+                    `INSERT INTO ${this.migrationsTable} (migration_name, checksum, execution_time_ms) 
+           VALUES ($1, $2, $3)`,
                     [migrationFile, checksum, executionTime]
                 );
 
                 // Commit transaction
                 await this.pool.query('COMMIT');
 
-                this.logger.info(`✅ Migration applied successfully: ${ migrationFile } (${ executionTime }ms)`);
+                logger.info(`✅ Migration applied successfully: ${migrationFile} (${executionTime}ms)`);
                 return { success: true, executionTime };
             } catch (error) {
                 // Rollback on error
@@ -151,7 +150,7 @@ VALUES($1, $2, $3)`,
             }
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            this.logger.error(`❌ Migration failed: ${ migrationFile } - ${ errorMessage } `);
+            logger.error(`❌ Migration failed: ${migrationFile} - ${errorMessage}`);
             throw error;
         }
     }
@@ -161,7 +160,7 @@ VALUES($1, $2, $3)`,
      */
     async runPendingMigrations(): Promise<MigrationRunResult> {
         try {
-            this.logger.info('🔄 Checking for pending migrations...');
+            logger.info('🔄 Checking for pending migrations...');
 
             // Initialize migrations table
             await this.initializeMigrationsTable();
@@ -176,11 +175,11 @@ VALUES($1, $2, $3)`,
             );
 
             if (pendingMigrations.length === 0) {
-                this.logger.info('✅ No pending migrations - database is up to date');
+                logger.info('✅ No pending migrations - database is up to date');
                 return { applied: 0, skipped: appliedMigrations.length };
             }
 
-            this.logger.info(`📋 Found ${ pendingMigrations.length } pending migration(s)`);
+            logger.info(`📋 Found ${pendingMigrations.length} pending migration(s)`);
 
             // Apply each pending migration
             let successCount = 0;
@@ -189,16 +188,16 @@ VALUES($1, $2, $3)`,
                     await this.applyMigration(migration);
                     successCount++;
                 } catch (error) {
-                    this.logger.error(`Migration failed, stopping migration process: ${ migration } `);
+                    logger.error(`Migration failed, stopping migration process: ${migration}`);
                     throw error;
                 }
             }
 
-            this.logger.info(`✅ Successfully applied ${ successCount } migration(s)`);
+            logger.info(`✅ Successfully applied ${successCount} migration(s)`);
             return { applied: successCount, skipped: appliedMigrations.length };
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            this.logger.error(`Migration process failed: ${ errorMessage } `);
+            logger.error(`Migration process failed: ${errorMessage}`);
             throw error;
         }
     }
@@ -223,7 +222,7 @@ VALUES($1, $2, $3)`,
             };
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            this.logger.error(`Failed to get migration status: ${ errorMessage } `);
+            logger.error(`Failed to get migration status: ${errorMessage}`);
             throw error;
         }
     }
@@ -232,11 +231,8 @@ VALUES($1, $2, $3)`,
 /**
  * Run migrations on server startup
  */
-export async function runMigrationsOnStartup(
-    pool: Pool,
-    logger: Logger
-): Promise<MigrationRunResult> {
-    const runner = new MigrationRunner(pool, logger);
+export async function runMigrationsOnStartup(pool: Pool): Promise<MigrationRunResult> {
+    const runner = new MigrationRunner(pool);
 
     try {
         const result = await runner.runPendingMigrations();
@@ -255,10 +251,7 @@ export async function runMigrationsOnStartup(
 /**
  * Get migration status endpoint handler
  */
-export async function getMigrationStatusHandler(
-    pool: Pool,
-    logger: Logger
-): Promise<MigrationStatus> {
-    const runner = new MigrationRunner(pool, logger);
+export async function getMigrationStatusHandler(pool: Pool): Promise<MigrationStatus> {
+    const runner = new MigrationRunner(pool);
     return await runner.getMigrationStatus();
 }
