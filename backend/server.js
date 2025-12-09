@@ -4099,6 +4099,8 @@ const verifyAdmin = async (req, res, next) => {
       return res.status(403).json({ error: 'Admin access required' });
     }
 
+    // Set both req.user and req.admin for consistency
+    req.user = decoded;
     req.admin = { id: row.id, email: row.email, name: row.name };
     next();
   } catch (error) {
