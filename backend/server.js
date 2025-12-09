@@ -1020,7 +1020,7 @@ app.post('/api/auth/login', async (req, res) => {
 app.get('/api/auth/me', verifyToken, async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, name, email, primary_role, rating, completed_deliveries, is_verified, country, city, area, created_at FROM users WHERE id = $1',
+      'SELECT id, name, email, primary_role, granted_roles, profile_picture_url, rating, completed_deliveries, is_verified, country, city, area, created_at FROM users WHERE id = $1',
       [req.user.userId]
     );
 
@@ -1033,7 +1033,12 @@ app.get('/api/auth/me', verifyToken, async (req, res) => {
       id: user.id,
       name: user.name,
       email: user.email,
-      role: user.role,
+      role: user.primary_role || user.role,
+      primary_role: user.primary_role || user.role,
+      roles: user.granted_roles || user.roles || (user.primary_role ? [user.primary_role] : []),
+      granted_roles: user.granted_roles || user.roles || (user.primary_role ? [user.primary_role] : []),
+      profile_picture_url: user.profile_picture_url,
+      profilePictureUrl: user.profile_picture_url, // camelCase for frontend
       rating: parseFloat(user.rating),
       completedDeliveries: user.completed_deliveries,
       isVerified: user.is_verified,
