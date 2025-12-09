@@ -204,6 +204,23 @@ const initDatabase = async () => {
     // Initialize audit logging
     initAuditLogger(pool);
 
+    // Run database migrations automatically
+    try {
+      const { runMigrationsOnStartup } = require('./migrationRunner.ts');
+      const migrationResult = await runMigrationsOnStartup(pool, logger);
+      logger.info(`✅ Migrations complete: ${migrationResult.applied} applied, ${migrationResult.skipped} already applied`, {
+        category: 'database'
+      });
+    } catch (migrationError) {
+      logger.error(`⚠️ Migration error: ${migrationError.message}`, {
+        category: 'database'
+      });
+      // Don't crash server on migration failure in development
+      if (IS_PRODUCTION) {
+        throw migrationError;
+      }
+    }
+
     logger.info('✅ PostgreSQL Database initialized and user statistics recalculated', { category: 'database' });
   } catch (error) {
     console.error('❌ Database initialization error:', error);
