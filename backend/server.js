@@ -1029,6 +1029,9 @@ app.get('/api/auth/me', verifyToken, async (req, res) => {
     }
 
     const user = result.rows[0];
+    console.log('👤 /api/auth/me - User ID:', user.id);
+    console.log('👤 Profile picture URL length:', user.profile_picture_url?.length || 0);
+
     res.json({
       id: user.id,
       name: user.name,
@@ -1858,14 +1861,21 @@ app.put('/api/users/me/profile', verifyToken, async (req, res) => {
 app.post('/api/users/me/profile-picture', verifyToken, async (req, res) => {
   try {
     const { imageDataUrl } = req.body || {};
+    console.log('📸 Profile picture upload - User ID:', req.user.userId);
+    console.log('📸 Image data length:', imageDataUrl?.length);
+
     if (!imageDataUrl || typeof imageDataUrl !== 'string' || !imageDataUrl.startsWith('data:image/')) {
+      console.log('❌ Invalid image data');
       return res.status(400).json({ error: 'Invalid image data' });
     }
+
     const result = await pool.query('UPDATE users SET profile_picture_url = $1 WHERE id = $2 RETURNING profile_picture_url', [imageDataUrl, req.user.userId]);
+    console.log('✅ Profile picture saved to DB:', result.rows[0]?.profile_picture_url?.substring(0, 50) + '...');
+
     logger.info('User updated profile picture', { userId: req.user.userId, category: 'user' });
     res.json({ profilePictureUrl: result.rows[0].profile_picture_url });
   } catch (error) {
-    console.error('Profile picture update error:', error);
+    console.error('❌ Profile picture update error:', error);
     res.status(500).json({ error: 'Failed to update profile picture' });
   }
 });
