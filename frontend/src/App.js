@@ -1605,8 +1605,60 @@ const DeliveryApp = () => {
     }
   };
 
+  // Profile and preferences handlers using TypeScript API services
+  const handleUpdateProfile = async (field, value) => {
+    try {
+      const data = await UsersApi.updateProfile({ [field]: value });
+      setProfileData(prev => ({ ...prev, ...data.user }));
+    } catch (err) {
+      setError(err.message || 'Failed to update profile');
+    }
+  };
 
+  const handleUpdateAvailability = async (isAvailable) => {
+    try {
+      const data = await UsersApi.updateAvailability({ is_available: isAvailable });
+      setProfileData(prev => ({ ...prev, is_available: data.isAvailable }));
+    } catch (err) {
+      setError(err.message || 'Failed to update availability');
+    }
+  };
 
+  const handleUpdatePreferences = async (preferences) => {
+    try {
+      const data = await UsersApi.updatePreferences(preferences);
+      setPreferencesData(data);
+    } catch (err) {
+      setError(err.message || 'Failed to update preferences');
+    }
+  };
+
+  const handleAddPaymentMethod = async (paymentMethod) => {
+    try {
+      const pm = await UsersApi.addPaymentMethod(paymentMethod);
+      setPaymentMethods(prev => [pm, ...prev]);
+    } catch (err) {
+      setError(err.message || 'Failed to add payment method');
+    }
+  };
+
+  const handleDeletePaymentMethod = async (paymentMethodId) => {
+    try {
+      await UsersApi.deletePaymentMethod(paymentMethodId);
+      setPaymentMethods(prev => prev.filter(pm => pm.id !== paymentMethodId));
+    } catch (err) {
+      setError(err.message || 'Failed to delete payment method');
+    }
+  };
+
+  const handleDeleteFavorite = async (userId) => {
+    try {
+      await UsersApi.deleteFavorite(userId);
+      setFavorites(prev => prev.filter(f => f.userId !== userId));
+    } catch (err) {
+      setError(err.message || 'Failed to remove favorite');
+    }
+  };
 
 
   const getStatusLabel = (status) => {
