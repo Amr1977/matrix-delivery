@@ -207,7 +207,7 @@ const initDatabase = async () => {
     // Run database migrations automatically
     try {
       const { runMigrationsOnStartup } = require('./migrationRunner.ts');
-      const migrationResult = await runMigrationsOnStartup(pool, logger);
+      const migrationResult = await runMigrationsOnStartup(pool);
       logger.info(`✅ Migrations complete: ${migrationResult.applied} applied, ${migrationResult.skipped} already applied`, {
         category: 'database'
       });
