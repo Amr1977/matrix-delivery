@@ -120,7 +120,7 @@ router.post('/register', authRateLimit, async (req, res) => {
     res.cookie('token', token, {
       httpOnly: true,
       secure: IS_PRODUCTION,
-      sameSite: 'lax',
+      sameSite: IS_PRODUCTION ? 'none' : 'lax', // 'none' for cross-site in production
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
       path: '/'
     });
@@ -189,7 +189,7 @@ router.post('/login', authRateLimit, async (req, res) => {
     const cookieOptions = {
       httpOnly: true,
       secure: IS_PRODUCTION,
-      sameSite: 'lax',
+      sameSite: IS_PRODUCTION ? 'none' : 'lax', // 'none' for cross-site in production
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
       path: '/'
     };
@@ -233,10 +233,11 @@ router.post('/logout', (req, res) => {
     category: 'auth'
   });
 
+  const IS_PRODUCTION = process.env.NODE_ENV === 'production';
   res.clearCookie('token', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: IS_PRODUCTION,
+    sameSite: IS_PRODUCTION ? 'none' : 'lax', // Match cookie settings
     path: '/'
   });
 
