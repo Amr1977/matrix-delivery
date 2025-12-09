@@ -95,7 +95,10 @@ const requireOwnershipOrAdmin = (resourceUserIdField = 'userId') => {
     }
 
     // Admins can access any resource
-    if (req.user.role === 'admin') {
+    const userRole = req.user.primary_role || req.user.role;
+    const userRoles = req.user.granted_roles || req.user.roles || [];
+    const isAdmin = userRole === 'admin' || (Array.isArray(userRoles) && userRoles.includes('admin'));
+    if (isAdmin) {
       return next();
     }
 
