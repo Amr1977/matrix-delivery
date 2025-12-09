@@ -4083,9 +4083,17 @@ const verifyAdmin = async (req, res, next) => {
       token = req.headers['authorization']?.split(' ')[1];
     }
 
-    if (!token) return res.status(401).json({ error: 'No token provided' });
+    console.log('🔐 verifyAdmin - Token present:', !!token);
+    console.log('🔐 verifyAdmin - Cookies:', Object.keys(req.cookies || {}));
+    console.log('🔐 verifyAdmin - Auth header:', req.headers['authorization']?.substring(0, 20));
+
+    if (!token) {
+      console.log('❌ verifyAdmin - No token provided');
+      return res.status(401).json({ error: 'No token provided' });
+    }
 
     const decoded = jwt.verify(token, JWT_SECRET);
+    console.log('🔐 verifyAdmin - Token decoded:', { userId: decoded.userId, role: decoded.role, primary_role: decoded.primary_role });
 
     // Check if user is admin
     const userResult = await pool.query(
@@ -4094,17 +4102,27 @@ const verifyAdmin = async (req, res, next) => {
     );
 
     const row = userResult.rows[0];
+    console.log('🔐 verifyAdmin - User from DB:', {
+      id: row?.id,
+      primary_role: row?.primary_role,
+      granted_roles: row?.granted_roles
+    });
+
     const hasAdmin = row && (row.primary_role === 'admin' || (Array.isArray(row.granted_roles) && row.granted_roles.includes('admin')));
+    console.log('🔐 verifyAdmin - Has admin?', hasAdmin);
+
     if (userResult.rows.length === 0 || !hasAdmin) {
+      console.log('❌ verifyAdmin - Admin access denied');
       return res.status(403).json({ error: 'Admin access required' });
     }
 
     // Set both req.user and req.admin for consistency
     req.user = decoded;
     req.admin = { id: row.id, email: row.email, name: row.name };
+    console.log('✅ verifyAdmin - Access granted');
     next();
   } catch (error) {
-    console.error('Admin verification error:', error);
+    console.error('❌ Admin verification error:', error.message);
     res.status(401).json({ error: 'Invalid or expired token' });
   }
 };
