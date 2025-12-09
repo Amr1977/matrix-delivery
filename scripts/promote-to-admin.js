@@ -27,7 +27,7 @@ async function promoteToAdmin(email) {
 
     // Check if user exists
     const userResult = await pool.query(
-      'SELECT id, name, email, role FROM users WHERE LOWER(email) = LOWER($1)',
+      'SELECT id, name, email, primary_role, granted_roles FROM users WHERE LOWER(email) = LOWER($1)',
       [email]
     );
 
@@ -38,24 +38,35 @@ async function promoteToAdmin(email) {
 
     const user = userResult.rows[0];
 
-    if (user.role === 'admin') {
-      console.log('ℹ️  User is already an admin');
+    console.log('\n📋 Current user data:');
+    console.log(`   Name: ${user.name}`);
+    console.log(`   Email: ${user.email}`);
+    console.log(`   Primary Role: ${user.primary_role}`);
+    console.log(`   Granted Roles: ${JSON.stringify(user.granted_roles || [])}`);
+
+    if (user.primary_role === 'admin') {
+      console.log('\nℹ️  User is already an admin');
       process.exit(0);
     }
 
-    // Promote user to admin
+    // Update user to admin - add admin to granted_roles if not present
+    const currentRoles = user.granted_roles || [];
+    const newRoles = Array.from(new Set([...currentRoles, 'admin'])); // Add admin if not already present
+
     await pool.query(
-      'UPDATE users SET role = $1 WHERE id = $2',
-      ['admin', user.id]
+      'UPDATE users SET primary_role = $1, granted_roles = $2 WHERE id = $3',
+      ['admin', newRoles, user.id]
     );
 
-    console.log('✅ User promoted to admin successfully!');
+    console.log('\n✅ User promoted to admin successfully!');
     console.log(`   Name: ${user.name}`);
     console.log(`   Email: ${user.email}`);
-    console.log(`   Role: admin`);
+    console.log(`   New Primary Role: admin`);
+    console.log(`   New Granted Roles: ${JSON.stringify(newRoles)}`);
 
   } catch (error) {
     console.error('❌ Error promoting user:', error.message);
+    console.error(error);
     process.exit(1);
   } finally {
     await pool.end();
