@@ -2068,10 +2068,10 @@ const DeliveryApp = () => {
                       </div>
                       <div>
                         <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600 }}>Service area</label>
-                        <input value={profileData.service_area_zone || ''} onChange={(e) => setProfileData({ ...profileData, service_area_zone: e.target.value })} onBlur={async () => { try { const res = await fetch(`${API_URL}/users/me/profile`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ service_area_zone: profileData.service_area_zone }) }); if (!res.ok) throw new Error('Failed'); const d = await res.json(); setProfileData(prev => ({ ...prev, ...d.user })); } catch (err) { setError(err.message); } }} style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
+                        <input value={profileData.service_area_zone || ''} onChange={(e) => setProfileData({ ...profileData, service_area_zone: e.target.value })} onBlur={() => handleUpdateProfile('service_area_zone', profileData.service_area_zone)} style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
-                        <input id="availability" type="checkbox" checked={!!profileData.is_available} onChange={async (e) => { try { const res = await fetch(`${API_URL}/users/me/availability`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ is_available: !!e.target.checked }) }); if (res.ok) { const d = await res.json(); setProfileData(prev => ({ ...prev, is_available: d.isAvailable })); } } catch (err) { setError(err.message); } }} />
+                        <input id="availability" type="checkbox" checked={!!profileData.is_available} onChange={(e) => handleUpdateAvailability(!!e.target.checked)} />
                         <label htmlFor="availability" style={{ fontSize: '0.875rem' }}>Available</label>
                       </div>
                       <div style={{ marginTop: '0.5rem', fontSize: '0.875rem' }}>Rating: {profileData.rating || 0} • Deliveries: {profileData.completed_deliveries || 0} • Verified: {profileData.is_verified ? 'Yes' : 'No'}</div>
@@ -2085,11 +2085,11 @@ const DeliveryApp = () => {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.5rem' }}>
                       <div>
                         <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600 }}>Delivery preferences</label>
-                        <textarea value={JSON.stringify(preferencesData?.preferences || {})} onChange={(e) => setPreferencesData({ ...(preferencesData || {}), preferences: JSON.parse(e.target.value || '{}') })} onBlur={async () => { try { const res = await fetch(`${API_URL}/users/me/preferences`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ preferences: preferencesData?.preferences }) }); if (!res.ok) throw new Error('Failed'); const d = await res.json(); setPreferencesData(d); } catch (err) { setError(err.message); } }} style={{ width: '100%', minHeight: '80px', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
+                        <textarea value={JSON.stringify(preferencesData?.preferences || {})} onChange={(e) => setPreferencesData({ ...(preferencesData || {}), preferences: JSON.parse(e.target.value || '{}') })} onBlur={() => handleUpdatePreferences({ preferences: preferencesData?.preferences })} style={{ width: '100%', minHeight: '80px', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
                       </div>
                       <div>
                         <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600 }}>Notification preferences</label>
-                        <textarea value={JSON.stringify(preferencesData?.notification_prefs || {})} onChange={(e) => setPreferencesData({ ...(preferencesData || {}), notification_prefs: JSON.parse(e.target.value || '{}') })} onBlur={async () => { try { const res = await fetch(`${API_URL}/users/me/preferences`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ notification_prefs: preferencesData?.notification_prefs }) }); if (!res.ok) throw new Error('Failed'); const d = await res.json(); setPreferencesData(d); } catch (err) { setError(err.message); } }} style={{ width: '100%', minHeight: '80px', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
+                        <textarea value={JSON.stringify(preferencesData?.notification_prefs || {})} onChange={(e) => setPreferencesData({ ...(preferencesData || {}), notification_prefs: JSON.parse(e.target.value || '{}') })} onBlur={() => handleUpdatePreferences({ notification_prefs: preferencesData?.notification_prefs })} style={{ width: '100%', minHeight: '80px', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
                       </div>
                     </div>
                   </div>
@@ -2106,13 +2106,13 @@ const DeliveryApp = () => {
                     </select>
                     <input id="pmMask" placeholder="**** **** **** 1234" style={{ flex: 1, padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
                     <label style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><input id="pmDefault" type="checkbox" /> Default</label>
-                    <button onClick={async () => { const res = await fetch(`${API_URL}/users/me/payment-methods`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ payment_method_type: document.getElementById('pmType').value, masked_details: document.getElementById('pmMask').value, is_default: document.getElementById('pmDefault').checked }) }); if (res.ok) { const pm = await res.json(); setPaymentMethods(prev => [pm, ...prev]); } }} style={{ padding: '0.5rem 1rem', background: '#4F46E5', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer' }}>Add</button>
+                    <button onClick={() => handleAddPaymentMethod({ payment_method_type: document.getElementById('pmType').value, masked_details: document.getElementById('pmMask').value, is_default: document.getElementById('pmDefault').checked })} style={{ padding: '0.5rem 1rem', background: '#4F46E5', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer' }}>Add</button>
                   </div>
                   <div>
                     {paymentMethods.map(pm => (
                       <div key={pm.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem', border: '1px solid #E5E7EB', borderRadius: '0.375rem', marginBottom: '0.5rem', background: 'white' }}>
                         <div style={{ fontSize: '0.875rem' }}>{pm.payment_method_type} • {pm.masked_details} {pm.is_default ? '• Default' : ''}</div>
-                        <button onClick={async () => { const res = await fetch(`${API_URL}/users/me/payment-methods/${pm.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }); if (res.ok) { setPaymentMethods(prev => prev.filter(pp => pp.id !== pm.id)); } }} style={{ padding: '0.25rem 0.5rem', background: '#DC2626', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer' }}>Remove</button>
+                        <button onClick={() => handleDeletePaymentMethod(pm.id)} style={{ padding: '0.25rem 0.5rem', background: '#DC2626', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer' }}>Remove</button>
                       </div>
                     ))}
                   </div>
@@ -2124,7 +2124,7 @@ const DeliveryApp = () => {
                     {favorites.map(f => (
                       <div key={f.userId} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem', border: '1px solid #E5E7EB', borderRadius: '0.375rem', marginBottom: '0.5rem', background: 'white' }}>
                         <div style={{ fontSize: '0.875rem' }}>{f.name} • {f.role} • ⭐ {f.rating || 0} • {f.completed_deliveries || 0} • {f.is_verified ? 'Verified' : 'Unverified'}</div>
-                        <button onClick={async () => { const res = await fetch(`${API_URL}/users/me/favorites/${f.userId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }); if (res.ok) { setFavorites(prev => prev.filter(ff => ff.userId !== f.userId)); } }} style={{ padding: '0.25rem 0.5rem', background: '#DC2626', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer' }}>Remove</button>
+                        <button onClick={() => handleDeleteFavorite(f.userId)} style={{ padding: '0.25rem 0.5rem', background: '#DC2626', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer' }}>Remove</button>
                       </div>
                     ))}
                   </div>
@@ -2135,7 +2135,7 @@ const DeliveryApp = () => {
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.5rem' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600 }}>Two-factor</label>
-                      <select value={Array.isArray(preferencesData?.two_factor_methods) ? preferencesData.two_factor_methods[0] || '' : ''} onChange={async (e) => { const res = await fetch(`${API_URL}/users/me/preferences`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ two_factor_methods: e.target.value ? [e.target.value] : [] }) }); if (res.ok) { const d = await res.json(); setPreferencesData(d); } }} style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}>
+                      <select value={Array.isArray(preferencesData?.two_factor_methods) ? preferencesData.two_factor_methods[0] || '' : ''} onChange={(e) => handleUpdatePreferences({ two_factor_methods: e.target.value ? [e.target.value] : [] })} style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}>
                         <option value="">Off</option>
                         <option value="sms">SMS</option>
                         <option value="email">Email</option>
@@ -2144,7 +2144,7 @@ const DeliveryApp = () => {
                     </div>
                     <div>
                       <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600 }}>Privacy</label>
-                      <select value={(preferencesData?.preferences || {}).privacy || ''} onChange={async (e) => { const res = await fetch(`${API_URL}/users/me/preferences`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ preferences: { ...(preferencesData?.preferences || {}), privacy: e.target.value } }) }); if (res.ok) { const d = await res.json(); setPreferencesData(d); } }} style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}>
+                      <select value={(preferencesData?.preferences || {}).privacy || ''} onChange={(e) => handleUpdatePreferences({ preferences: { ...(preferencesData?.preferences || {}), privacy: e.target.value } })} style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}>
                         <option value="public">Public</option>
                         <option value="friends">Friends</option>
                         <option value="private">Private</option>
