@@ -80,7 +80,7 @@ class AuthService {
    */
   async findUserById(id) {
     const result = await pool.query(
-      'SELECT id, name, email, primary_role, roles, rating, completed_deliveries, is_verified, country, city, area, created_at FROM users WHERE id = $1',
+      'SELECT id, name, email, primary_role, granted_roles, rating, completed_deliveries, is_verified, country, city, area, created_at FROM users WHERE id = $1',
       [id]
     );
     return result.rows[0] || null;
@@ -348,7 +348,7 @@ class AuthService {
   }
 
   async switchRole(userId, role) {
-    const result = await pool.query('SELECT id, name, email, primary_role, roles FROM users WHERE id = $1', [userId]);
+    const result = await pool.query('SELECT id, name, email, primary_role, granted_roles FROM users WHERE id = $1', [userId]);
     if (result.rows.length === 0) throw new Error('User not found');
     const user = result.rows[0];
     const roles = user.granted_roles || user.roles || (user.primary_role ? [user.primary_role] : []);
