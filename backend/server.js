@@ -1860,8 +1860,8 @@ app.put('/api/users/me/profile', verifyToken, async (req, res) => {
 app.post('/api/users/me/profile-picture', verifyToken, async (req, res) => {
   try {
     const { imageDataUrl } = req.body || {};
-    logger.info('📸 Profile picture upload - User ID:', req.user.userId);
-    logger.info('📸 Image data length:', imageDataUrl?.length);
+    logger.info(`📸 Profile picture upload - User ID: ${req.user.userId}`);
+    logger.info(`📸 Image data length: ${imageDataUrl?.length || 0}`);
 
     if (!imageDataUrl || typeof imageDataUrl !== 'string' || !imageDataUrl.startsWith('data:image/')) {
       logger.error('❌ Invalid image data');
@@ -1869,7 +1869,7 @@ app.post('/api/users/me/profile-picture', verifyToken, async (req, res) => {
     }
 
     const result = await pool.query('UPDATE users SET profile_picture_url = $1 WHERE id = $2 RETURNING profile_picture_url', [imageDataUrl, req.user.userId]);
-    logger.info('✅ Profile picture saved to DB:', result.rows[0]?.profile_picture_url?.substring(0, 50) + '...');
+    logger.info(`✅ Profile picture saved to DB: ${result.rows[0]?.profile_picture_url?.substring(0, 50)}...`);
 
     logger.info('User updated profile picture', { userId: req.user.userId, category: 'user' });
     res.json({ profilePictureUrl: result.rows[0].profile_picture_url });
