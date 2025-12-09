@@ -6,23 +6,31 @@ module.exports = (app, pool, jwt, createNotification, generateId, JWT_SECRET) =>
   // Admin authentication middleware
   const verifyAdmin = async (req, res, next) => {
     try {
-      const token = req.headers['authorization']?.split(' ')[1];
+      // Check for token in cookies first (preferred method)
+      let token = req.cookies?.token;
+
+      // Fall back to Authorization header
+      if (!token) {
+        token = req.headers['authorization']?.split(' ')[1];
+      }
+
       if (!token) return res.status(401).json({ error: 'No token provided' });
 
       const decoded = jwt.verify(token, JWT_SECRET);
 
       // Check if user is admin
       const userResult = await pool.query(
-        'SELECT id, email, name, primary_role, roles FROM users WHERE id = $1',
+        'SELECT id, email, name, primary_role, granted_roles FROM users WHERE id = $1',
         [decoded.userId]
       );
 
       const row = userResult.rows[0];
-      const hasAdmin = row && (row.primary_role === 'admin' || (Array.isArray(row.roles) && row.roles.includes('admin')));
+      const hasAdmin = row && (row.primary_role === 'admin' || (Array.isArray(row.granted_roles) && row.granted_roles.includes('admin')));
       if (userResult.rows.length === 0 || !hasAdmin) {
         return res.status(403).json({ error: 'Admin access required' });
       }
 
+      req.user = decoded;
       req.admin = { id: row.id, email: row.email, name: row.name };
       next();
     } catch (error) {
