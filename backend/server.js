@@ -376,15 +376,6 @@ const authorizeVendorManage = async (req, res, next) => {
   }
 };
 
-// Health check endpoint (no auth required) - used by frontend to detect backend availability
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime()
-  });
-});
-
 // Load auth endpoints
 app.use('/api/auth', require('./routes/auth'));
 
