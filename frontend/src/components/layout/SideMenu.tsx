@@ -423,6 +423,38 @@ const SideMenu: React.FC<SideMenuProps> = ({
                             📞 Contact Us
                         </button>
 
+                        {/* Crypto Test - Only in development/staging */}
+                        {process.env.REACT_APP_ENV !== 'production' && (
+                            <button
+                                onClick={() => { onNavigate('crypto-test'); onClose(); }}
+                                style={{
+                                    display: 'block',
+                                    width: '100%',
+                                    textAlign: 'left',
+                                    padding: '0.75rem',
+                                    background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.1) 100%)',
+                                    border: '1px solid rgba(102, 126, 234, 0.3)',
+                                    color: '#A78BFA',
+                                    cursor: 'pointer',
+                                    fontSize: '1rem',
+                                    borderRadius: '0.5rem',
+                                    marginBottom: '0.5rem',
+                                    transition: 'all 0.2s',
+                                    fontWeight: '600'
+                                }}
+                                onMouseOver={(e) => {
+                                    e.currentTarget.style.background = 'linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.2) 100%)';
+                                    e.currentTarget.style.borderColor = 'rgba(102, 126, 234, 0.5)';
+                                }}
+                                onMouseOut={(e) => {
+                                    e.currentTarget.style.background = 'linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.1) 100%)';
+                                    e.currentTarget.style.borderColor = 'rgba(102, 126, 234, 0.3)';
+                                }}
+                            >
+                                🧪 Crypto Test
+                            </button>
+                        )}
+
                         <button
                             onClick={() => { if (onSupportClick) onSupportClick(); onClose(); }}
                             style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem', background: 'transparent', border: 'none', color: '#10B981', cursor: 'pointer', fontSize: '1rem', borderRadius: '0.5rem', marginBottom: '0.5rem', transition: 'background 0.2s', fontWeight: 'bold' }}
