@@ -1,0 +1,36 @@
+# Matrix Delivery - Robots.txt
+# Controls web crawler and bot access
+
+# Allow all bots to access public pages
+User-agent: *
+Allow: /
+
+# Block access to API endpoints
+Disallow: /api/
+Disallow: /admin/
+Disallow: /socket.io/
+
+# Block access to sensitive paths
+Disallow: /config/
+Disallow: /.env
+Disallow: /logs/
+
+# Common bot-specific rules
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+# Crawl delay for aggressive bots
+User-agent: *
+Crawl-delay: 10
+
+# Sitemap location (update when you create one)
+# Sitemap: https://matrix-delivery-1.web.app/sitemap.xml
