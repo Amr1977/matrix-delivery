@@ -829,7 +829,7 @@ const DeliveryApp = () => {
         return;
       }
       const data = await response.json();
-      setProfileData(data);
+      setProfileData(prev => ({ ...prev, ...data }));
       // Update currentUser with profile picture URL if available
       if (data.profile_picture_url) {
         setCurrentUser(prev => prev ? { ...prev, profile_picture_url: data.profile_picture_url } : null);
