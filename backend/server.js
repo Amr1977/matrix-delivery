@@ -169,11 +169,10 @@ if (!IS_TEST) {
 
 
 
-// Register ts-node to load TypeScript modules
-require('ts-node/register');
 
-// Import TypeScript database initialization
-const { initializeDatabase } = require('./database/init.ts');
+
+// Import database initialization
+const { initializeDatabase } = require('./database/init');
 
 // Database initialization
 const initDatabase = async () => {
