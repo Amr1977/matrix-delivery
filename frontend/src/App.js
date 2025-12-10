@@ -609,8 +609,7 @@ const DeliveryApp = () => {
   // Effects - Optimized polling with Page Visibility API
   useEffect(() => {
     if (token) {
-      fetchCurrentUser();
-      fetchProfileData();
+      fetchCurrentUser(); // This already fetches profile data from /auth/me
       fetchUpdates(); // Initial fetch
 
       // Adaptive polling interval based on page visibility
@@ -816,26 +815,6 @@ const DeliveryApp = () => {
         // Only logout if we had a user before (session expired)
         logout();
       }
-    }
-  };
-
-  const fetchProfileData = async () => {
-    try {
-      const response = await fetch(`${API_URL}/auth/me`, {
-        credentials: 'include' // Include cookies for authentication
-      });
-      if (!response.ok) {
-        console.error('Failed to fetch profile data:', response.status);
-        return;
-      }
-      const data = await response.json();
-      setProfileData(prev => ({ ...prev, ...data }));
-      // Update currentUser with profile picture URL if available
-      if (data.profile_picture_url) {
-        setCurrentUser(prev => prev ? { ...prev, profile_picture_url: data.profile_picture_url } : null);
-      }
-    } catch (err) {
-      console.error('fetchProfileData error:', err);
     }
   };
 
