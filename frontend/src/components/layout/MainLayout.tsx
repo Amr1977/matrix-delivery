@@ -83,37 +83,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                     {/* Right Side Actions */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
 
-                        {/* Crypto Test Button */}
-                        <button
-                            onClick={() => onNavigate('crypto-test')}
-                            style={{
-                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                border: 'none',
-                                color: 'white',
-                                padding: '0.5rem 1rem',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                fontSize: '0.875rem',
-                                fontWeight: '600',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.5rem',
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                                transition: 'transform 0.2s, box-shadow 0.2s'
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.transform = 'translateY(-2px)';
-                                e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.3)';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.transform = 'translateY(0)';
-                                e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
-                            }}
-                            aria-label="Test Crypto Payments"
-                        >
-                            🧪 Crypto
-                        </button>
-
                         {/* Notification Bell (Desktop Shortcut) */}
                         <button
                             onClick={() => onNavigate('notifications')}
