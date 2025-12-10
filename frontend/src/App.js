@@ -31,6 +31,8 @@ import useDriver from './hooks/useDriver';
 import GeolocationStatus from './components/ui/GeolocationStatus';
 import InteractiveLocationPicker from './components/InteractiveLocationPicker';
 import usePageVisibility from './hooks/usePageVisibility';
+import { useBackendHealth } from './hooks/useBackendHealth';
+import MaintenancePage from './components/MaintenancePage';
 import './components/ui/GeolocationStatus.css';
 
 // TypeScript API Services
@@ -72,6 +74,9 @@ const DeliveryApp = () => {
 
   // Performance optimization: Page visibility detection
   const isPageVisible = usePageVisibility();
+
+  // Backend health monitoring
+  const { isHealthy, isChecking, lastCheck, checkHealth } = useBackendHealth(API_URL);
 
   // Fixed: LiveTrackingMap component moved outside DeliveryApp function for proper scoping
   // State variables
@@ -3525,10 +3530,26 @@ const DeliveryApp = () => {
   );
 };
 
-const AppWithErrorBoundary = () => (
-  <ErrorBoundary>
-    <DeliveryApp />
-  </ErrorBoundary>
-);
+const AppWithErrorBoundary = () => {
+  // Show maintenance page if backend is down
+  const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
+  const { isHealthy, isChecking, lastCheck, checkHealth } = useBackendHealth(API_URL);
+
+  if (!isHealthy) {
+    return (
+      <MaintenancePage
+        onRetry={checkHealth}
+        isChecking={isChecking}
+        lastCheck={lastCheck}
+      />
+    );
+  }
+
+  return (
+    <ErrorBoundary>
+      <DeliveryApp />
+    </ErrorBoundary>
+  );
+};
 
 export default AppWithErrorBoundary;
