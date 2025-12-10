@@ -235,41 +235,6 @@ if (!IS_TEST) {
   });
 }
 
-// Helper function to create notification with real-time WebSocket emission
-const createNotification = async (userId, orderId, type, title, message) => {
-  try {
-    const result = await pool.query(
-      `INSERT INTO notifications (user_id, order_id, type, title, message)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING id, user_id, order_id, type, title, message, created_at`,
-      [userId, orderId, type, title, message]
-    );
-
-    const notification = result.rows[0];
-
-    // Emit real-time notification via WebSocket
-    if (io) {
-      io.to(`user_${userId}`).emit('notification', {
-        id: notification.id,
-        orderId: notification.order_id,
-        type: notification.type,
-        title: notification.title,
-        message: notification.message,
-        isRead: false,
-        createdAt: notification.created_at
-      });
-      logger.info(`Real-time notification sent`, {
-        userId,
-        title,
-        category: 'notification'
-      });
-    }
-
-    return notification;
-  } catch (error) {
-    logger.error('Error creating notification:', error);
-  }
-};
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
@@ -304,7 +269,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 
 // Load admin panel endpoints
-require('./admin-panel.js')(app, pool, jwt, createNotification, generateId, JWT_SECRET);
+require('./admin-panel.js')(app, pool, jwt, generateId, JWT_SECRET);
 
 // Validate JWT secrets
 if (!JWT_SECRET || JWT_SECRET.length < 64) {
@@ -5663,6 +5628,10 @@ const io = socketIo(httpServer, {
 // Configure Socket.IO options
 io.engine.opts.pingTimeout = 60000;
 io.engine.opts.pingInterval = 25000;
+
+// Initialize notification service with Socket.IO
+const { initializeNotificationService, createNotification } = require('./services/notificationService.ts');
+initializeNotificationService(pool, io, logger);
 
 io.on('connection', (socket) => {
   console.log('Connected client:', socket.id);
