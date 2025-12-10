@@ -932,9 +932,35 @@ const AdminPanel = ({ onClose }) => {
                           fontSize: '0.875rem'
                         }}
                       >
-                        <option>USD ($)</option>
-                        <option>EUR (€)</option>
-                        <option>GBP (£)</option>
+                        <option>USD ($) - US Dollar</option>
+                        <option>EUR (€) - Euro</option>
+                        <option>GBP (£) - British Pound</option>
+                        <option>EGP (LE) - Egyptian Pound</option>
+                        <option>SAR (﷼) - Saudi Riyal</option>
+                        <option>AED (د.إ) - UAE Dirham</option>
+                        <option>KWD (د.ك) - Kuwaiti Dinar</option>
+                        <option>QAR (﷼) - Qatari Riyal</option>
+                        <option>BHD (د.ب) - Bahraini Dinar</option>
+                        <option>OMR (﷼) - Omani Rial</option>
+                        <option>JOD (د.ا) - Jordanian Dinar</option>
+                        <option>LBP (ل.ل) - Lebanese Pound</option>
+                        <option>IQD (ع.د) - Iraqi Dinar</option>
+                        <option>TRY (₺) - Turkish Lira</option>
+                        <option>INR (₹) - Indian Rupee</option>
+                        <option>PKR (₨) - Pakistani Rupee</option>
+                        <option>BDT (৳) - Bangladeshi Taka</option>
+                        <option>CNY (¥) - Chinese Yuan</option>
+                        <option>JPY (¥) - Japanese Yen</option>
+                        <option>KRW (₩) - South Korean Won</option>
+                        <option>MYR (RM) - Malaysian Ringgit</option>
+                        <option>SGD (S$) - Singapore Dollar</option>
+                        <option>THB (฿) - Thai Baht</option>
+                        <option>CAD (C$) - Canadian Dollar</option>
+                        <option>AUD (A$) - Australian Dollar</option>
+                        <option>NZD (NZ$) - New Zealand Dollar</option>
+                        <option>ZAR (R) - South African Rand</option>
+                        <option>NGN (₦) - Nigerian Naira</option>
+                        <option>KES (KSh) - Kenyan Shilling</option>
                       </select>
                     </div>
                   </div>

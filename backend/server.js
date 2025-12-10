@@ -205,6 +205,11 @@ const initDatabase = async () => {
     // Initialize audit logging
     initAuditLogger(pool);
 
+    // Initialize activity tracker for online status
+    const { activityTracker } = require('./services/activityTracker.ts');
+    activityTracker.initialize(pool);
+    activityTracker.startPeriodicCommit();
+
     // Run database migrations automatically
     try {
       const { runMigrationsOnStartup } = require('./migrationRunner.ts');
@@ -394,6 +399,11 @@ app.use('/api/logs', logsRouter);
 // Load statistics endpoints
 const statisticsRouter = require('./routes/statistics');
 app.use('/api/stats', statisticsRouter);
+
+// Load heartbeat endpoint (requires authentication)
+const heartbeatRouter = require('./routes/heartbeat.ts').default;
+const { verifyToken: heartbeatAuth } = require('./middleware/auth');
+app.use('/api/heartbeat', heartbeatAuth, heartbeatRouter);
 
 // Rate limiting store (simple in-memory for demo)
 const rateLimitStore = new Map();
