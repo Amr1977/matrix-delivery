@@ -5,7 +5,6 @@ import DriverBiddingMap from '../maps/DriverBiddingMap';
 import RoutePreviewMap from '../RoutePreviewMap';
 import LiveTrackingMap from '../maps/LiveTrackingMap';
 import useAuth from '../../hooks/useAuth';
-import useDriverLocation from '../../hooks/useDriverLocation';
 import BidWithLiveLocation from './BidWithLiveLocation';
 
 const OrderCard = ({
@@ -22,21 +21,19 @@ const OrderCard = ({
   bidDetails,
   setBidDetails,
   loadingStates,
-  onDeleteOrder
+  onDeleteOrder,
+  driverLocation: appDriverLocation // Accept driver location from App.js
 }) => {
   const { t } = useI18n();
   const [showRouteMapFullscreen, setShowRouteMapFullscreen] = React.useState(false);
 
-  // Live location tracking for drivers (own location)
-  const isDriver = currentUser?.role === 'driver';
-  const shouldTrackOwnLocation = isDriver && order.status === 'pending_bids';
-  const { location: myLiveLocation } = useDriverLocation(null, shouldTrackOwnLocation, true);
-
-  // Convert live location format for compatibility
-  const driverLocation = myLiveLocation ? {
-    lat: myLiveLocation.latitude,
-    lng: myLiveLocation.longitude
+  // Convert app-level driver location format for compatibility with maps
+  // appDriverLocation comes from useDriver hook in App.js and has { latitude, longitude } format
+  const driverLocation = appDriverLocation ? {
+    lat: appDriverLocation.latitude,
+    lng: appDriverLocation.longitude
   } : null;
+
 
   // Always log order data to debug
   window.console.log('🎯 OrderCard Rendered:', {

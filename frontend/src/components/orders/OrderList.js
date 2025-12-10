@@ -17,7 +17,8 @@ const OrderList = ({
   bidDetails,
   setBidDetails,
   loadingStates,
-  onDeleteOrder
+  onDeleteOrder,
+  driverLocation // Accept driver location from parent
 }) => {
   const { t } = useI18n();
 
@@ -74,6 +75,7 @@ const OrderList = ({
           setBidDetails={setBidDetails}
           loadingStates={loadingStates}
           onDeleteOrder={onDeleteOrder}
+          driverLocation={driverLocation} // Pass driver location to OrderCard
         />
       ))}
     </div>
