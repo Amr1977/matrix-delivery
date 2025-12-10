@@ -150,7 +150,83 @@ pm2 logs matrix-delivery-backend --lines 50
 - PM2 will automatically restart if memory exceeds 500MB
 - Check for memory leaks in your code
 
-## Deployment Workflow
+## Pre-Deployment Testing
+
+Before deploying to production, always test your build locally to catch errors early.
+
+### Automated Build Testing
+
+```bash
+# From project root - runs full pre-deployment checks
+npm run pre-deploy
+
+# Or test build only (from frontend directory)
+cd frontend
+npm run test:build
+```
+
+**What it tests:**
+- ✅ Production build completes without errors
+- ✅ No console errors when app loads
+- ✅ All JavaScript/CSS bundles load successfully
+- ✅ Application renders correctly
+- ✅ No 404 errors for assets
+- ✅ Valid HTML structure
+
+### Quick Manual Testing
+
+```bash
+# Build and serve locally (no automated tests)
+cd frontend
+npm run test:build:quick
+
+# Then open http://localhost:3001 in your browser
+# Check DevTools console for errors
+# Press Ctrl+C to stop when done
+```
+
+### What to Check Manually
+
+1. **Console Errors**: Open DevTools (F12) → Console tab
+   - Should have no red errors
+   - Warnings are usually okay
+
+2. **Network Tab**: Check for failed requests
+   - All JS/CSS files should load (200 status)
+   - API URL should point to production backend
+
+3. **Basic Functionality**:
+   - Pages load and render correctly
+   - Navigation works
+   - No white screens or crashes
+
+### Common Build Issues
+
+**Build fails with ESLint errors**
+```bash
+# Fix linting issues first
+npm run lint:fix
+
+# Or build without ESLint (emergency only)
+# Edit package.json build:prod script to include DISABLE_ESLINT_PLUGIN=true
+```
+
+**White screen after deployment**
+- Check browser console for errors
+- Verify environment variables in `.env.production`
+- Check that `REACT_APP_API_URL` is correct
+
+**Assets not loading (404 errors)**
+- Verify build directory contains all files
+- Check Firebase hosting configuration
+- Ensure `public` path is correct in build
+
+**Environment variables not working**
+- Must start with `REACT_APP_`
+- Must be set before build (not runtime)
+- Rebuild after changing env vars
+
+
 
 ### Manual Deployment
 ```bash
