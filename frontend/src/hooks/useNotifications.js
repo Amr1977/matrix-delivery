@@ -110,10 +110,16 @@ const useNotifications = (token, currentUser) => {
 
   const markNotificationRead = useCallback(async (notificationId) => {
     try {
-      await fetch(`${API_URL}/notifications/${notificationId}/read`, {
-        method: 'PUT',
+      const response = await fetch(`${API_URL}/notifications/${notificationId}/read`, {
+        method: 'POST',
         credentials: 'include'
       });
+
+      if (!response.ok) {
+        console.error(`Failed to mark notification as read: ${response.status} ${response.statusText}`);
+        return;
+      }
+
       setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n));
     } catch (err) {
       console.error('markNotificationRead error:', err);

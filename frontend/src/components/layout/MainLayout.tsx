@@ -87,21 +87,24 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                         <button
                             onClick={() => onNavigate('notifications')}
                             className={`notification-bell ${unreadCount > 0 ? 'bell-notification' : ''}`}
-                            style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', position: 'relative' }}
+                            style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', position: 'relative', overflow: 'visible' }}
                             aria-label="Notifications"
                         >
                             🔔
                             {unreadCount > 0 && (
                                 <span className="notification-badge" style={{
                                     position: 'absolute',
-                                    top: '-5px',
-                                    right: '-5px',
+                                    top: '-8px',
+                                    right: '-8px',
                                     background: '#EF4444',
                                     color: 'white',
                                     fontSize: '0.7rem',
-                                    padding: '2px 6px',
+                                    padding: '3px 7px',
                                     borderRadius: '10px',
-                                    fontWeight: 'bold'
+                                    fontWeight: 'bold',
+                                    minWidth: '20px',
+                                    textAlign: 'center',
+                                    boxShadow: '0 0 10px rgba(239, 68, 68, 0.6)'
                                 }}>
                                     {unreadCount}
                                 </span>

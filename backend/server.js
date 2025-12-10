@@ -2889,8 +2889,8 @@ app.get('/api/notifications', verifyToken, async (req, res) => {
   }
 });
 
-// Mark notification as read
-app.put('/api/notifications/:id/read', verifyToken, async (req, res) => {
+// Mark notification as read - shared handler
+const markNotificationAsRead = async (req, res) => {
   try {
     const result = await pool.query(
       `UPDATE notifications SET is_read = true WHERE id = $1 AND user_id = $2 RETURNING *`,
@@ -2902,7 +2902,11 @@ app.put('/api/notifications/:id/read', verifyToken, async (req, res) => {
     logger.error('Mark notification read error:', error);
     res.status(500).json({ error: 'Failed to mark notification as read' });
   }
-});
+};
+
+// Support both PUT and POST methods for marking notifications as read
+app.put('/api/notifications/:id/read', verifyToken, markNotificationAsRead);
+app.post('/api/notifications/:id/read', verifyToken, markNotificationAsRead);
 
 // Submit review
 app.post('/api/orders/:id/review', verifyToken, async (req, res) => {
