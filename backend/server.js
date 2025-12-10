@@ -171,8 +171,11 @@ if (!IS_TEST) {
 
 
 
-// Import database initialization
-const { initializeDatabase } = require('./database/init');
+// Register ts-node to load TypeScript modules
+require('ts-node/register');
+
+// Import TypeScript database initialization
+const { initializeDatabase } = require('./database/init.ts');
 
 // Database initialization
 const initDatabase = async () => {
@@ -5629,7 +5632,7 @@ io.engine.opts.pingTimeout = 60000;
 io.engine.opts.pingInterval = 25000;
 
 // Initialize notification service with Socket.IO
-const { initializeNotificationService, createNotification } = require('./services/notificationService');
+const { initializeNotificationService, createNotification } = require('./services/notificationService.ts');
 initializeNotificationService(pool, io, logger);
 
 io.on('connection', (socket) => {
