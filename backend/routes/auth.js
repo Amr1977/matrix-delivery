@@ -4,6 +4,7 @@ const emailService = require('../services/emailService');
 const { verifyToken, requireRole } = require('../middleware/auth');
 const { authRateLimit } = require('../middleware/rateLimit');
 const logger = require('../config/logger');
+const pool = require('../config/db');
 
 const router = express.Router();
 
@@ -46,6 +47,57 @@ const verifyRecaptcha = async (token) => {
   } catch (error) {
     console.error('reCAPTCHA verification error:', error.message);
     return false;
+  }
+};
+
+// Helper function to notify all admins about new user registration
+const notifyAdminsOfNewUser = async (userId, userName, userRole) => {
+  try {
+    // Query all admin users
+    const adminResult = await pool.query(
+      "SELECT id FROM users WHERE 'admin' = ANY(granted_roles)"
+    );
+
+    if (adminResult.rows.length === 0) {
+      logger.warn('No admin users found to notify about new registration', {
+        category: 'notification'
+      });
+      return;
+    }
+
+    // Create notification for each admin
+    const notificationPromises = adminResult.rows.map(admin => {
+      return pool.query(
+        `INSERT INTO notifications (user_id, order_id, type, title, message)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING id`,
+        [
+          admin.id,
+          null, // No order associated with user registration
+          'new_user_registration',
+          'New User Registered',
+          `${userName} has registered as a ${userRole}. View profile: /profile/${userId}`
+        ]
+      );
+    });
+
+    await Promise.all(notificationPromises);
+
+    logger.info(`Notified ${adminResult.rows.length} admin(s) about new user registration`, {
+      userId,
+      userName,
+      userRole,
+      adminCount: adminResult.rows.length,
+      category: 'notification'
+    });
+  } catch (error) {
+    logger.error(`Failed to notify admins about new user registration: ${error.message}`, {
+      userId,
+      userName,
+      error: error.stack,
+      category: 'notification'
+    });
+    // Don't throw - notification failure shouldn't block registration
   }
 };
 
@@ -105,6 +157,15 @@ router.post('/register', authRateLimit, async (req, res) => {
       });
       // Don't fail registration if email sending fails
     }
+
+    // Notify admins about new user registration (async, non-blocking)
+    notifyAdminsOfNewUser(result.user.id, result.user.name, result.user.primary_role)
+      .catch(err => {
+        logger.error(`Admin notification failed: ${err.message}`, {
+          userId: result.user.id,
+          category: 'notification'
+        });
+      });
 
     const duration = Date.now() - startTime;
     logger.performance(`Registration completed`, {
