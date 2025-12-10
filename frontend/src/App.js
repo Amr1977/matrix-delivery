@@ -485,6 +485,19 @@ const DeliveryApp = () => {
     }
   }, [t]);
 
+  // Mark notification as read
+  const markNotificationRead = useCallback(async (notificationId) => {
+    try {
+      await fetch(`${API_URL}/notifications/${notificationId}/read`, {
+        method: 'PUT',
+        credentials: 'include'
+      });
+      setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n));
+    } catch (err) {
+      console.error('markNotificationRead error:', err);
+    }
+  }, [API_URL]);
+
   // Combined fetch for performance
   const fetchUpdates = useCallback(async () => {
     try {
