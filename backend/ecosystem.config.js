@@ -38,8 +38,9 @@ module.exports = {
     merge_logs: true,
     max_memory_restart: '500M',
     autorestart: true,
-    // Watch mode: enabled for development, disabled for production
-    watch: process.env.NODE_ENV === 'development',
+    // Watch mode: enabled for development only (use --env development or --env develop)
+    // Disabled in production for stability
+    watch: false, // Set to true when starting with: pm2 start ecosystem.config.js --env development --watch
     watch_delay: 1000, // Wait 1 second before restarting after file change
     ignore_watch: [
       'node_modules',
@@ -49,7 +50,8 @@ module.exports = {
       'tests',
       '__tests__',
       '*.test.js',
-      'coverage'
+      'coverage',
+      'uploads'
     ],
     max_restarts: 10,
     min_uptime: '30s',
@@ -57,18 +59,8 @@ module.exports = {
     kill_timeout: 30000,
     wait_ready: true,
     listen_timeout: 30000
-  }, {
-    name: 'matrix-delivery-frontend',
-    script: 'pm2-start.js',
-    cwd: '../frontend',
-    instances: 1,
-    exec_mode: 'fork',
-    autorestart: true,
-    watch: false,
-    max_memory_restart: '1G',
-    env: {
-      NODE_ENV: 'development',
-      PORT: 3000
-    }
   }]
+  // Frontend is NOT managed by PM2 in production
+  // For development: run `npm start` in the frontend directory
+  // For production: frontend is deployed to Firebase Hosting
 };
