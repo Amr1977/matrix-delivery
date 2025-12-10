@@ -5630,7 +5630,7 @@ io.engine.opts.pingTimeout = 60000;
 io.engine.opts.pingInterval = 25000;
 
 // Initialize notification service with Socket.IO
-const { initializeNotificationService, createNotification } = require('./services/notificationService.ts');
+const { initializeNotificationService, createNotification } = require('./services/notificationService');
 initializeNotificationService(pool, io, logger);
 
 io.on('connection', (socket) => {
