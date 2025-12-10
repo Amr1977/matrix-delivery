@@ -1,7 +1,9 @@
 // ============ ADMIN BACKEND API ENDPOINTS - PART 1 ============
-// Module for admin panel endpoints
+const logger = require('./services/loggingService');
+const { createNotification } = require('./services/notificationService.ts');
 
-module.exports = (app, pool, jwt, createNotification, generateId, JWT_SECRET) => {
+// Admin panel endpoints
+module.exports = (app, pool, jwt, generateId, JWT_SECRET) => {
 
   // Admin authentication middleware
   const verifyAdmin = async (req, res, next) => {

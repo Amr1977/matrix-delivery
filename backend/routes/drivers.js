@@ -5,7 +5,7 @@ const { verifyToken, requireRole } = require('../middleware/auth');
 // const googleMapsService = require('../services/googleMapsService');
 const { apiRateLimit } = require('../middleware/rateLimit');
 const logger = require('../config/logger');
-const { createNotification } = require('../server'); // Import for real-time updates
+const { createNotification } = require('../services/notificationService.ts'); // Import from notification service
 
 // Environment is already loaded by server.js or jest.setup.js
 // No need to call dotenv.config() here
