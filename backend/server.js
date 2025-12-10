@@ -2357,7 +2357,7 @@ app.put('/api/orders/:id/bid', verifyToken, async (req, res) => {
     }
     const bidId = bidResult.rows[0].id;
 
-    await client.query('UPDATE bids SET bid_price = $1, message = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3', [bidPrice, message || null, bidId]);
+    await client.query('UPDATE bids SET bid_price = $1, message = $2 WHERE id = $3', [bidPrice, message || null, bidId]);
     await createNotification(order.customer_id, order.id, 'bid_modified', 'Bid Modified', `${req.user.name} updated bid to $${parseFloat(bidPrice).toFixed(2)}`);
     await client.query('COMMIT');
     res.json({ success: true });
