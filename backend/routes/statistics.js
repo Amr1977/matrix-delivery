@@ -8,7 +8,7 @@ router.get('/footer', async (req, res) => {
     const stats = {};
 
     // 1. Online Users (Drivers, Customers, Admins, Support)
-    // We assume "online" means activity recorded in logs within the last 10 minutes OR driver location update in last 10 minutes
+    // Users are considered online if last_active is within the last 10 minutes
 
     // Drivers: Check driver_locations table for recent updates (most accurate for drivers)
     const onlineDriversResult = await pool.query(`
@@ -31,20 +31,23 @@ router.get('/footer', async (req, res) => {
     const totalSupportResult = await pool.query("SELECT COUNT(*) as count FROM users WHERE 'support' = ANY(granted_roles)");
     const totalSupport = parseInt(totalSupportResult.rows[0].count);
 
-    // For other roles, usage checks via logs table might be heavy if table is huge. 
-    // Optimization: query distinct user_ids from logs where timestamp > now - 10m
-    // Check online status by checking if user has the role in granted_roles
-    // Note: Users with multiple roles will be counted for each role they have
+    // Online users: Check last_active field (updated by heartbeat and activity tracking)
+    // Users with multiple roles will be counted for each role they have
+    // NULL last_active means user has never sent a heartbeat (offline)
     const onlineUsersResult = await pool.query(`
       SELECT 
-        role,
-        COUNT(DISTINCT l.user_id) as count
-      FROM logs l
-      JOIN users u ON l.user_id = u.id
-      CROSS JOIN UNNEST(u.granted_roles) as role
-      WHERE l.timestamp > NOW() - INTERVAL '10 minutes'
-      AND role IN ('customer', 'admin', 'support')
-      GROUP BY role
+        user_role as role,
+        COUNT(DISTINCT user_id) as count
+      FROM (
+        SELECT 
+          u.id as user_id,
+          unnest(u.granted_roles) as user_role
+        FROM users u
+        WHERE u.last_active IS NOT NULL
+        AND u.last_active > NOW() - INTERVAL '10 minutes'
+      ) active_users
+      WHERE user_role IN ('customer', 'admin', 'support')
+      GROUP BY user_role
     `);
 
     const onlineCounts = {

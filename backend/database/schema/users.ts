@@ -50,6 +50,8 @@ export const usersSchema: TableSchema = {
     'ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_methods JSONB',
     'ALTER TABLE users ADD COLUMN IF NOT EXISTS language VARCHAR(20)',
     'ALTER TABLE users ADD COLUMN IF NOT EXISTS theme VARCHAR(20)',
-    'ALTER TABLE users ADD COLUMN IF NOT EXISTS document_verification_status VARCHAR(50)'
+    'ALTER TABLE users ADD COLUMN IF NOT EXISTS document_verification_status VARCHAR(50)',
+    'ALTER TABLE users ADD COLUMN IF NOT EXISTS last_active TIMESTAMP',
+    'CREATE INDEX IF NOT EXISTS idx_users_last_active ON users(last_active DESC)'
   ]
 };

@@ -32,6 +32,7 @@ import GeolocationStatus from './components/ui/GeolocationStatus';
 import InteractiveLocationPicker from './components/InteractiveLocationPicker';
 import usePageVisibility from './hooks/usePageVisibility';
 import { useBackendHealth } from './hooks/useBackendHealth';
+import { useHeartbeat } from './hooks/useHeartbeat';
 import MaintenancePage from './components/MaintenancePage';
 import './components/ui/GeolocationStatus.css';
 
@@ -84,6 +85,9 @@ const DeliveryApp = () => {
   const [token, setToken] = useState(null); // Remove localStorage - tokens are in httpOnly cookies
   const [authChecking, setAuthChecking] = useState(true); // Track initial auth check
   const [currentUser, setCurrentUser] = useState(null);
+
+  // Heartbeat for online status tracking (must be after token state declaration)
+  useHeartbeat(token, API_URL);
 
   // Use driver hook for location management
   const driverHook = useDriver(token, currentUser);
@@ -2987,9 +2991,35 @@ const DeliveryApp = () => {
                             <input type="number" step="0.01" value={driverPricing.costPerKm} onChange={(e) => saveDriverPricing({ costPerKm: parseFloat(e.target.value) || 0 })} placeholder="Cost per km" style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
                             <input type="number" step="0.01" value={driverPricing.waitingPerHour} onChange={(e) => saveDriverPricing({ waitingPerHour: parseFloat(e.target.value) || 0 })} placeholder="Waiting per hour" style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
                             <select value={driverPricing.currency} onChange={(e) => saveDriverPricing({ currency: e.target.value })} style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}>
-                              <option value="USD">USD ($)</option>
-                              <option value="EUR">EUR (€)</option>
-                              <option value="GBP">GBP (£)</option>
+                              <option value="USD">USD ($) - US Dollar</option>
+                              <option value="EUR">EUR (€) - Euro</option>
+                              <option value="GBP">GBP (£) - British Pound</option>
+                              <option value="EGP">EGP (LE) - Egyptian Pound</option>
+                              <option value="SAR">SAR (﷼) - Saudi Riyal</option>
+                              <option value="AED">AED (د.إ) - UAE Dirham</option>
+                              <option value="KWD">KWD (د.ك) - Kuwaiti Dinar</option>
+                              <option value="QAR">QAR (﷼) - Qatari Riyal</option>
+                              <option value="BHD">BHD (د.ب) - Bahraini Dinar</option>
+                              <option value="OMR">OMR (﷼) - Omani Rial</option>
+                              <option value="JOD">JOD (د.ا) - Jordanian Dinar</option>
+                              <option value="LBP">LBP (ل.ل) - Lebanese Pound</option>
+                              <option value="IQD">IQD (ع.د) - Iraqi Dinar</option>
+                              <option value="TRY">TRY (₺) - Turkish Lira</option>
+                              <option value="INR">INR (₹) - Indian Rupee</option>
+                              <option value="PKR">PKR (₨) - Pakistani Rupee</option>
+                              <option value="BDT">BDT (৳) - Bangladeshi Taka</option>
+                              <option value="CNY">CNY (¥) - Chinese Yuan</option>
+                              <option value="JPY">JPY (¥) - Japanese Yen</option>
+                              <option value="KRW">KRW (₩) - South Korean Won</option>
+                              <option value="MYR">MYR (RM) - Malaysian Ringgit</option>
+                              <option value="SGD">SGD (S$) - Singapore Dollar</option>
+                              <option value="THB">THB (฿) - Thai Baht</option>
+                              <option value="CAD">CAD (C$) - Canadian Dollar</option>
+                              <option value="AUD">AUD (A$) - Australian Dollar</option>
+                              <option value="NZD">NZD (NZ$) - New Zealand Dollar</option>
+                              <option value="ZAR">ZAR (R) - South African Rand</option>
+                              <option value="NGN">NGN (₦) - Nigerian Naira</option>
+                              <option value="KES">KES (KSh) - Kenyan Shilling</option>
                             </select>
                             <button onClick={() => {
                               const s = computeBidSuggestions(order);
