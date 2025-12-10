@@ -35,7 +35,7 @@ export const useBackendHealth = (apiUrl) => {
             if (response.ok) {
                 const data = await response.json();
 
-                if (data.status === 'ok') {
+                if (data.status === 'healthy' || data.status === 'ok') {
                     if (!isHealthy) {
                         console.log('✅ Backend is back online!');
                     }
@@ -43,7 +43,7 @@ export const useBackendHealth = (apiUrl) => {
                     setConsecutiveFailures(0);
                     setLastCheck(new Date());
                 } else {
-                    throw new Error('Backend returned non-ok status');
+                    throw new Error('Backend returned non-healthy status');
                 }
             } else {
                 throw new Error(`Backend returned ${response.status}`);
