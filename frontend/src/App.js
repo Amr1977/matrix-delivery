@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useI18n } from './i18n/i18nContext';
 import LanguageSwitcher from './LanguageSwitcher';
 import AdminPanel from './AdminPanel';
@@ -13,6 +14,7 @@ import logger from './logger';
 import './Mobile.css';
 import './MatrixTheme.css';
 import MessagingPanel from './components/messaging/MessagingPanel';
+import ChatPage from './components/messaging/ChatPage';
 import PaymentMethodsManager from './components/payments/PaymentMethodsManager';
 // Email verification banner moved into profile modal
 import MainLayout from './components/layout/MainLayout';
@@ -40,6 +42,7 @@ import './components/ui/GeolocationStatus.css';
 import { AuthApi, OrdersApi, NotificationsApi, UsersApi } from './services/api';
 
 import * as Sentry from '@sentry/react';
+import { RouterProvider, createBrowserRouter, Navigate } from 'react-router-dom';
 
 Sentry.init({
   dsn: process.env.REACT_APP_SENTRY_DSN,
@@ -69,7 +72,8 @@ Sentry.init({
 
 
 // Location data state and API functions
-const DeliveryApp = () => {
+export const MainApp = () => {
+  const navigate = useNavigate();
   const { t, locale, changeLocale } = useI18n();
   const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
 
@@ -3560,6 +3564,22 @@ const DeliveryApp = () => {
   );
 };
 
+// Router configuration - must be after MainApp definition to avoid circular dependency
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <MainApp />,
+  },
+  {
+    path: '/chat/:orderId',
+    element: <ChatPage />,
+  },
+  {
+    path: '*',
+    element: <Navigate to="/" replace />,
+  },
+]);
+
 const AppWithErrorBoundary = () => {
   // Show maintenance page if backend is down
   const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
@@ -3577,7 +3597,7 @@ const AppWithErrorBoundary = () => {
 
   return (
     <ErrorBoundary>
-      <DeliveryApp />
+      <RouterProvider router={router} />
     </ErrorBoundary>
   );
 };
