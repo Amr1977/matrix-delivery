@@ -88,11 +88,17 @@ const ChatPage = () => {
                     navigate('/');
                 }
 
-                if (!user || !user.userId) {
+                if (!user || (!user.userId && !user.id)) {
                     console.error('No user found - user may not be logged in');
                     navigate('/');
                     return;
                 }
+
+                // Normalize user object - backend returns 'id', but we use 'userId'
+                if (user.id && !user.userId) {
+                    user.userId = user.id;
+                }
+
 
                 setCurrentUser(user);
 
