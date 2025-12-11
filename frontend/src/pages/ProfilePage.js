@@ -102,7 +102,14 @@ const ProfilePage = ({
                             {profileData.profile_picture_url ? (
                                 <img src={profileData.profile_picture_url} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             ) : (
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: '40px' }}>👤</div>
+                                <img
+                                    src={profileData.gender === 'female'
+                                        ? '/assets/avatars/female_avatar_matrix.png'
+                                        : '/assets/avatars/male_avatar_matrix.png'
+                                    }
+                                    alt="Default Avatar"
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                />
                             )}
                         </div>
                         <label
