@@ -125,12 +125,9 @@ const OrderStatusSection = ({
                                             </div>
 
                                             {/* Rating Stars Below Avatar */}
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                                 <span className="text-matrix" style={{ fontSize: '1rem', fontWeight: '700' }}>
                                                     {renderStars(bid.driverRating || 0)}
-                                                </span>
-                                                <span className="text-matrix" style={{ fontSize: '0.875rem', fontWeight: '700' }}>
-                                                    {(bid.driverRating || 0).toFixed(1)}
                                                 </span>
                                             </div>
                                         </div>
@@ -148,9 +145,16 @@ const OrderStatusSection = ({
                                             <p style={{
                                                 fontSize: '0.75rem',
                                                 color: 'var(--matrix-green)',
-                                                marginBottom: '0.5rem'
+                                                marginBottom: '0.25rem'
                                             }}>
                                                 Member since {memberSince}
+                                            </p>
+                                            <p style={{
+                                                fontSize: '0.75rem',
+                                                color: 'var(--matrix-green)',
+                                                marginBottom: '0.5rem'
+                                            }}>
+                                                Overall Rating: <span className="text-matrix" style={{ fontWeight: '700' }}>{(bid.driverRating || 0).toFixed(1)}</span>
                                             </p>
 
                                             {/* Stats Grid - Reviews and Deliveries Only */}
