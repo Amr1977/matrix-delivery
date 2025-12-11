@@ -85,12 +85,7 @@ const ChatPage = () => {
                     // User is not authenticated - redirect to main page
                     console.warn('User not authenticated, redirecting to main page');
                     navigate('/');
-                    return;
                 }
-
-                // API returns user object directly (not wrapped)
-                const user = userResponse;
-                console.log('Current user:', user);
 
                 if (!user || !user.userId) {
                     console.error('No user found - user may not be logged in');
