@@ -12,10 +12,14 @@ export class ApiClient {
         endpoint: string,
         options: RequestInit = {}
     ): Promise<T> {
+        // Get token from localStorage for backward compatibility
+        const token = localStorage.getItem('token');
+
         const config: RequestInit = {
             credentials: 'include', // Always include cookies for authentication
             headers: {
                 'Content-Type': 'application/json',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
                 ...options.headers,
             },
             ...options,
