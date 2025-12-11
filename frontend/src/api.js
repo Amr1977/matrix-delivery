@@ -22,6 +22,7 @@ class ApiClient {
     try {
       const config = {
         method,
+        credentials: 'include', // Include cookies for session-based auth
         headers: {
           'Content-Type': 'application/json',
           ...options.headers
