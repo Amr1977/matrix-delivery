@@ -64,6 +64,9 @@ class OrderService {
               'driverCompletedDeliveries', u.completed_deliveries,
               'driverReviewCount', COALESCE(dr.review_count, 0),
               'driverIsVerified', u.is_verified,
+              'driverProfilePicture', u.profile_picture_url,
+              'driverGender', COALESCE(u.gender, 'male'),
+              'driverMemberSince', u.created_at,
               'driverLocation', json_build_object('lat', b.driver_location_lat, 'lng', b.driver_location_lng)
             )
           ) FILTER (WHERE b.id IS NOT NULL) as bids,
@@ -79,7 +82,10 @@ class OrderService {
                 'driverRating', au.rating,
                 'driverCompletedDeliveries', au.completed_deliveries,
                 'driverReviewCount', COALESCE(adr.review_count, 0),
-                'driverIsVerified', au.is_verified
+                'driverIsVerified', au.is_verified,
+                'driverProfilePicture', au.profile_picture_url,
+                'driverGender', COALESCE(au.gender, 'male'),
+                'driverMemberSince', au.created_at
               )
               FROM bids ab
               LEFT JOIN users au ON ab.user_id = au.id
