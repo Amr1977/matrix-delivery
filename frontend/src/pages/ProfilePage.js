@@ -319,6 +319,22 @@ const ProfilePage = ({
                                     <div style={{ padding: '10px', fontSize: '16px', textTransform: 'capitalize' }}>{profileData.theme || 'System'}</div>
                                 )}
                             </div>
+                            <div>
+                                <label style={{ display: 'block', color: '#9CA3AF', marginBottom: '5px', fontSize: '14px' }}>Gender</label>
+                                {isEditing ? (
+                                    <select
+                                        value={editFormData.gender || 'male'}
+                                        onChange={(e) => handleChange('gender', e.target.value)}
+                                        style={{ width: '100%', padding: '10px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white' }}
+                                    >
+                                        <option value="male">Male</option>
+                                        <option value="female">Female</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                ) : (
+                                    <div style={{ padding: '10px', fontSize: '16px', textTransform: 'capitalize' }}>{profileData.gender || 'Male'}</div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
