@@ -142,7 +142,14 @@ const SideMenu: React.FC<SideMenuProps> = ({
                                 {currentUser?.profile_picture_url ? (
                                     <img src={currentUser.profile_picture_url} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                 ) : (
-                                    <span style={{ fontSize: '1.75rem' }}>👤</span>
+                                    <img
+                                        src={currentUser?.gender === 'female'
+                                            ? '/assets/avatars/female_avatar_matrix.png'
+                                            : '/assets/avatars/male_avatar_matrix.png'
+                                        }
+                                        alt="Default Avatar"
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                    />
                                 )}
                             </div>
                             <div style={{ flex: 1, minWidth: 0 }}>
