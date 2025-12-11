@@ -92,7 +92,6 @@ const ChatPage = () => {
 
                 if (!recipientUserId) {
                     console.warn('No recipient found for chat - order may not have an assigned driver yet');
-                    setError('Cannot start chat: No driver assigned to this order yet');
                     return;
                 }
 
@@ -103,7 +102,6 @@ const ChatPage = () => {
                 await markMessagesRead(orderId);
             } catch (error) {
                 console.error('Failed to fetch data:', error);
-                setError(error.message || 'Failed to load chat');
             }
         };
 
