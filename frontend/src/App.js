@@ -2045,6 +2045,23 @@ export const MainApp = () => {
                         <option value="matrix">Matrix</option>
                       </select>
                     </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600 }}>Gender</label>
+                      <select value={profileData.gender || 'male'} onChange={async (e) => {
+                        const newGender = e.target.value;
+                        setProfileData(prev => ({ ...prev, gender: newGender }));
+                        try {
+                          const res = await fetch(`${API_URL}/users/me/profile`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ gender: newGender }) });
+                          if (!res.ok) throw new Error('Failed');
+                          const d = await res.json();
+                          setProfileData(prev => ({ ...prev, ...d.user }));
+                        } catch (err) { setError(err.message); }
+                      }} style={{ width: '100%', padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
 
