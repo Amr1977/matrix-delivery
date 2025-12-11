@@ -7,7 +7,7 @@ import useMessaging from '../../hooks/useMessaging';
 import useVoiceRecorder from '../../hooks/useVoiceRecorder';
 import useMediaUpload from '../../hooks/useMediaUpload';
 import useTypingIndicator from '../../hooks/useTypingIndicator';
-import api from '../../api';
+import { AuthApi } from '../../services/api/auth';
 import { useI18n } from '../../i18n/i18nContext';
 
 const ChatPage = () => {
@@ -71,18 +71,16 @@ const ChatPage = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Get current user
-                console.log('Fetching current user...');
-                let userResponse;
+                // Get current user using AuthApi
+                console.log('Fetching current user with AuthApi...');
+                let user;
                 try {
-                    userResponse = await api.get('/auth/me');
-                    console.log('User response SUCCESS:', userResponse);
+                    user = await AuthApi.getCurrentUser();
+                    console.log('User fetched successfully:', user);
                 } catch (authError) {
                     console.error('Auth API call failed:', {
                         error: authError,
-                        message: authError.message,
-                        status: authError.status,
-                        response: authError.response
+                        message: authError.error || authError.message
                     });
                     // User is not authenticated - redirect to main page
                     console.warn('User not authenticated, redirecting to main page');
