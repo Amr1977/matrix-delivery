@@ -149,13 +149,14 @@ const OrderStatusSection = ({
                                                 marginBottom: 'var(--spacing-sm)'
                                             }}>
                                                 <div style={{ textAlign: 'center' }}>
-                                                    <div className="text-matrix" style={{ fontSize: '1.25rem', fontWeight: '700' }}>
-                                                        {renderStars(bid.driverRating || 0)}
+                                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                                                        <span className="text-matrix" style={{ fontSize: '0.875rem', fontWeight: '700' }}>
+                                                            {(bid.driverRating || 0).toFixed(1)}
+                                                        </span>
+                                                        <span className="text-matrix" style={{ fontSize: '1rem', fontWeight: '700' }}>
+                                                            {renderStars(bid.driverRating || 0)}
+                                                        </span>
                                                     </div>
-                                                    <div className="text-matrix" style={{ fontSize: '0.875rem', fontWeight: '600', marginTop: '2px' }}>
-                                                        {(bid.driverRating || 0).toFixed(1)}
-                                                    </div>
-                                                    <div style={{ fontSize: '0.625rem', color: 'var(--matrix-green)' }}>Rating</div>
                                                 </div>
                                                 <div style={{ textAlign: 'center' }}>
                                                     <div className="text-matrix" style={{ fontSize: '1.25rem', fontWeight: '700' }}>
