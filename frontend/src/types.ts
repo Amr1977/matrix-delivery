@@ -2,14 +2,29 @@ export interface User {
     id: string;
     name: string;
     email: string;
+    phone?: string;
     role: 'customer' | 'driver' | 'admin' | 'vendor';
-    primary_role?: 'customer' | 'driver' | 'admin' | 'vendor'; // New backend field
-    roles?: string[]; // Legacy
-    granted_roles?: string[]; // New backend field
+    primary_role?: 'customer' | 'driver' | 'admin' | 'vendor';
+    roles?: string[];
+    granted_roles?: string[];
     profile_picture_url?: string;
     isVerified?: boolean;
+    is_verified?: boolean;
     completedDeliveries?: number;
+    completed_deliveries?: number;
     rating?: number;
+    gender?: 'male' | 'female' | 'other';
+    language?: string;
+    theme?: string;
+    vehicle_type?: string;
+    license_number?: string;
+    service_area_zone?: string;
+    is_available?: boolean;
+    preferences?: any;
+    notification_prefs?: any;
+    two_factor_methods?: string[];
+    document_verification_status?: string;
+    verified_at?: string;
 }
 
 export interface Notification {
