@@ -1783,7 +1783,7 @@ app.get('/api/users/me/profile', verifyToken, async (req, res) => {
     const result = await pool.query(
       `SELECT id, name, email, phone, primary_role, roles, vehicle_type, rating, completed_deliveries, is_available, is_verified,
               profile_picture_url, license_number, service_area_zone, preferences, notification_prefs,
-              two_factor_methods, language, theme, document_verification_status, verified_at
+              two_factor_methods, language, theme, gender, document_verification_status, verified_at
        FROM users WHERE id = $1`,
       [req.user.userId]
     );
@@ -1804,7 +1804,7 @@ app.get('/api/users/me/profile', verifyToken, async (req, res) => {
 
 app.put('/api/users/me/profile', verifyToken, async (req, res) => {
   try {
-    const { name, phone, vehicle_type, license_number, service_area_zone, language, theme } = req.body || {};
+    const { name, phone, vehicle_type, license_number, service_area_zone, language, theme, gender } = req.body || {};
     const userRes = await pool.query('SELECT id, granted_roles FROM users WHERE id = $1', [req.user.userId]);
     if (userRes.rows.length === 0) return res.status(404).json({ error: 'User not found' });
     const roles = userRes.rows[0].roles || [];
@@ -1817,6 +1817,10 @@ app.put('/api/users/me/profile', verifyToken, async (req, res) => {
     if (phone) { updates.push(`phone = $${i++}`); params.push(phone); }
     if (language) { updates.push(`language = $${i++}`); params.push(language); }
     if (theme) { updates.push(`theme = $${i++}`); params.push(theme); }
+    if (gender && ['male', 'female', 'other'].includes(gender.toLowerCase())) {
+      updates.push(`gender = $${i++}`);
+      params.push(gender.toLowerCase());
+    }
     if (isDriver) {
       if (vehicle_type) { updates.push(`vehicle_type = $${i++}`); params.push(vehicle_type); }
       if (license_number) { updates.push(`license_number = $${i++}`); params.push(license_number); }
