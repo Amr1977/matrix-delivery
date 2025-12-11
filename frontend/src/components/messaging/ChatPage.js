@@ -8,6 +8,7 @@ import useVoiceRecorder from '../../hooks/useVoiceRecorder';
 import useMediaUpload from '../../hooks/useMediaUpload';
 import useTypingIndicator from '../../hooks/useTypingIndicator';
 import { AuthApi } from '../../services/api/auth';
+import api from '../../api'; // For orders and messages (not yet migrated to TypeScript)
 import { useI18n } from '../../i18n/i18nContext';
 
 const ChatPage = () => {
