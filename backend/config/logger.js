@@ -152,6 +152,10 @@ logger.performance = (message, meta = {}) => {
   logger.info(`PERF: ${message}`, { ...meta, category: 'performance' });
 };
 
+logger.messaging = (message, meta = {}) => {
+  logger.info(`MESSAGING: ${message}`, { ...meta, category: 'messaging' });
+};
+
 // Request logging middleware
 logger.requestLogger = (req, res, next) => {
   const start = Date.now();
