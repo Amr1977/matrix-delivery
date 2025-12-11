@@ -73,15 +73,30 @@ const ChatPage = () => {
             try {
                 // Get current user
                 console.log('Fetching current user...');
-                const userResponse = await api.get('/auth/me');
-                console.log('User response:', userResponse);
+                let userResponse;
+                try {
+                    userResponse = await api.get('/auth/me');
+                    console.log('User response SUCCESS:', userResponse);
+                } catch (authError) {
+                    console.error('Auth API call failed:', {
+                        error: authError,
+                        message: authError.message,
+                        status: authError.status,
+                        response: authError.response
+                    });
+                    // User is not authenticated - redirect to main page
+                    console.warn('User not authenticated, redirecting to main page');
+                    navigate('/');
+                    return;
+                }
 
-                // API might return { user: {...} } or just the user object directly
-                const user = userResponse.user || userResponse;
+                // API returns user object directly (not wrapped)
+                const user = userResponse;
                 console.log('Current user:', user);
 
                 if (!user || !user.userId) {
                     console.error('No user found - user may not be logged in');
+                    navigate('/');
                     return;
                 }
 
