@@ -83,12 +83,31 @@ const ChatPage = () => {
                 const order = orderResponse.order;
                 const isCustomer = userResponse.user.userId === order.customerId;
 
+                // Debug: Log order structure to identify correct field names
+                console.log('Order structure for chat:', {
+                    orderId: order._id,
+                    customerId: order.customerId,
+                    assignedDriver: order.assignedDriver,
+                    assignedDriverUserId: order.assignedDriverUserId,
+                    driverId: order.driverId,
+                    assigned_driver_user_id: order.assigned_driver_user_id,
+                    status: order.status
+                });
+
                 // Try different field names for assigned driver
                 const driverUserId = order.assignedDriverUserId ||
                     order.assignedDriver?.userId ||
+                    order.assigned_driver_user_id ||
                     order.driverId;
 
                 const recipientUserId = isCustomer ? driverUserId : order.customerId;
+
+                console.log('Recipient determination:', {
+                    isCustomer,
+                    driverUserId,
+                    recipientUserId,
+                    currentUserId: userResponse.user.userId
+                });
 
                 if (!recipientUserId) {
                     console.warn('No recipient found for chat - order may not have an assigned driver yet');
