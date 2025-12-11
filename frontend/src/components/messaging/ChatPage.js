@@ -79,16 +79,31 @@ const ChatPage = () => {
                 const orderResponse = await api.get(`/orders/${orderId}`);
                 setOrderDetails(orderResponse.order);
 
-                // Determine recipient
+                // Determine recipient - handle both field name variations
                 const order = orderResponse.order;
                 const isCustomer = userResponse.user.userId === order.customerId;
-                setRecipientId(isCustomer ? order.assignedDriverUserId : order.customerId);
+
+                // Try different field names for assigned driver
+                const driverUserId = order.assignedDriverUserId ||
+                    order.assignedDriver?.userId ||
+                    order.driverId;
+
+                const recipientUserId = isCustomer ? driverUserId : order.customerId;
+
+                if (!recipientUserId) {
+                    console.warn('No recipient found for chat - order may not have an assigned driver yet');
+                    setError('Cannot start chat: No driver assigned to this order yet');
+                    return;
+                }
+
+                setRecipientId(recipientUserId);
 
                 // Fetch messages
                 await fetchOrderMessages(orderId);
                 await markMessagesRead(orderId);
             } catch (error) {
                 console.error('Failed to fetch data:', error);
+                setError(error.message || 'Failed to load chat');
             }
         };
 
@@ -105,6 +120,12 @@ const ChatPage = () => {
     const handleSendMessage = async (e) => {
         e?.preventDefault();
         if ((!newMessage.trim() && !audioBlob && !selectedMedia) || sending) return;
+
+        // Validate recipient exists
+        if (!recipientId) {
+            console.error('Cannot send message: No recipient ID');
+            return;
+        }
 
         setSending(true);
         try {
