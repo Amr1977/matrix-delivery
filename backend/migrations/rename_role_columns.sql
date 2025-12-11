@@ -12,9 +12,25 @@ BEGIN;
 CREATE TABLE IF NOT EXISTS users_backup_role_migration AS 
 SELECT * FROM users;
 
--- Step 2: Rename columns
-ALTER TABLE users RENAME COLUMN role TO primary_role;
-ALTER TABLE users RENAME COLUMN roles TO granted_roles;
+-- Step 2: Rename columns (only if they haven't been renamed yet)
+DO $$ 
+BEGIN
+    -- Rename role to primary_role if role column exists
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'users' AND column_name = 'role'
+    ) THEN
+        ALTER TABLE users RENAME COLUMN role TO primary_role;
+    END IF;
+    
+    -- Rename roles to granted_roles if roles column exists
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'users' AND column_name = 'roles'
+    ) THEN
+        ALTER TABLE users RENAME COLUMN roles TO granted_roles;
+    END IF;
+END $$;
 
 -- Step 3: Ensure granted_roles includes primary_role
 -- This ensures every user has their primary role in their granted roles
