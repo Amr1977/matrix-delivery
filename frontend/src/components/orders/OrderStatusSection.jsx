@@ -27,91 +27,239 @@ const OrderStatusSection = ({
         <>
             {/* Customer View: Display Bids (pending_bids) */}
             {order.status === 'pending_bids' && currentUser?.role === 'customer' && order.bids && order.bids.length > 0 && (
-                <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
-                    <h4 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.75rem' }}>
+                <div style={{ borderTop: '2px solid var(--matrix-border)', paddingTop: 'var(--spacing-lg)', marginTop: 'var(--spacing-md)' }}>
+                    <h4 className="text-matrix" style={{ fontSize: '1rem', fontWeight: '600', marginBottom: 'var(--spacing-md)', textShadow: 'var(--shadow-glow)' }}>
                         {t('driver.driverBids')} ({order.bids.length})
                     </h4>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                        {order.bids.map((bid, index) => (
-                            <div key={index} style={{ background: '#F0F9FF', padding: '1rem', borderRadius: '0.375rem', border: '1px solid #DBEAFE' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.75rem' }}>
-                                    <div>
-                                        <p style={{ fontWeight: '600', color: '#1E40AF', marginBottom: '0.25rem' }}>{bid.driverName}</p>
-                                        <p style={{ fontSize: '0.875rem', color: '#6B7280' }}>
-                                            Bid: <span style={{ fontWeight: '600', color: '#1E40AF' }}>${parseFloat(bid.bidPrice).toFixed(2)}</span>
-                                        </p>
-                                        {bid.estimatedPickupTime && (
-                                            <p style={{ fontSize: '0.75rem', color: '#6B7280', marginTop: '0.25rem' }}>
-                                                Pickup: {new Date(bid.estimatedPickupTime).toLocaleString()}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
+                        {order.bids.map((bid, index) => {
+                            // Helper function to get avatar
+                            const getDriverAvatar = () => {
+                                if (bid.driverProfilePicture) {
+                                    return bid.driverProfilePicture;
+                                }
+                                return bid.driverGender === 'female'
+                                    ? '/assets/avatars/female_avatar_matrix.png'
+                                    : '/assets/avatars/male_avatar_matrix.png';
+                            };
+
+                            // Format member since date
+                            const memberSince = bid.driverMemberSince
+                                ? new Date(bid.driverMemberSince).toLocaleDateString('en-US', { year: 'numeric', month: 'short' })
+                                : 'N/A';
+
+                            return (
+                                <div
+                                    key={index}
+                                    className="card"
+                                    style={{
+                                        padding: 'var(--spacing-lg)',
+                                        marginBottom: 0,
+                                        position: 'relative'
+                                    }}
+                                >
+                                    {/* Profile Section */}
+                                    <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)', alignItems: 'start' }}>
+                                        {/* Avatar with Verification Frame */}
+                                        <div style={{ position: 'relative', flexShrink: 0 }}>
+                                            <div style={{
+                                                width: '80px',
+                                                height: '80px',
+                                                borderRadius: '50%',
+                                                border: bid.driverIsVerified
+                                                    ? '3px solid var(--status-delivered)'
+                                                    : '3px solid var(--status-cancelled)',
+                                                boxShadow: bid.driverIsVerified
+                                                    ? '0 0 20px var(--status-delivered)'
+                                                    : '0 0 20px var(--status-cancelled)',
+                                                padding: '3px',
+                                                background: 'var(--matrix-black)',
+                                                overflow: 'hidden'
+                                            }}>
+                                                <img
+                                                    src={getDriverAvatar()}
+                                                    alt={bid.driverName}
+                                                    style={{
+                                                        width: '100%',
+                                                        height: '100%',
+                                                        borderRadius: '50%',
+                                                        objectFit: 'cover'
+                                                    }}
+                                                />
+                                            </div>
+                                            {/* Verification Badge */}
+                                            {bid.driverIsVerified ? (
+                                                <div style={{
+                                                    position: 'absolute',
+                                                    bottom: '-5px',
+                                                    right: '-5px',
+                                                    background: 'var(--status-delivered)',
+                                                    color: 'var(--matrix-black)',
+                                                    padding: '2px 6px',
+                                                    borderRadius: '10px',
+                                                    fontSize: '0.625rem',
+                                                    fontWeight: '700',
+                                                    boxShadow: '0 0 10px var(--status-delivered)',
+                                                    border: '1px solid var(--matrix-black)'
+                                                }}>
+                                                    ✓ Verified
+                                                </div>
+                                            ) : (
+                                                <div style={{
+                                                    position: 'absolute',
+                                                    bottom: '-5px',
+                                                    right: '-5px',
+                                                    background: 'var(--status-cancelled)',
+                                                    color: 'white',
+                                                    padding: '2px 6px',
+                                                    borderRadius: '10px',
+                                                    fontSize: '0.625rem',
+                                                    fontWeight: '700',
+                                                    boxShadow: '0 0 10px var(--status-cancelled)',
+                                                    border: '1px solid var(--matrix-black)'
+                                                }}>
+                                                    Unverified
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Driver Info */}
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <h5 className="text-matrix" style={{
+                                                fontSize: '1.125rem',
+                                                fontWeight: '700',
+                                                marginBottom: '0.25rem',
+                                                textShadow: 'var(--shadow-glow)'
+                                            }}>
+                                                {bid.driverName}
+                                            </h5>
+                                            <p style={{
+                                                fontSize: '0.75rem',
+                                                color: 'var(--matrix-green)',
+                                                marginBottom: '0.5rem'
+                                            }}>
+                                                Member since {memberSince}
                                             </p>
-                                        )}
-                                        {bid.estimatedDeliveryTime && (
-                                            <p style={{ fontSize: '0.75rem', color: '#6B7280' }}>
-                                                Delivery: {new Date(bid.estimatedDeliveryTime).toLocaleString()}
-                                            </p>
-                                        )}
+
+                                            {/* Stats Grid */}
+                                            <div style={{
+                                                display: 'grid',
+                                                gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))',
+                                                gap: 'var(--spacing-sm)',
+                                                marginBottom: 'var(--spacing-sm)'
+                                            }}>
+                                                <div style={{ textAlign: 'center' }}>
+                                                    <div className="text-matrix" style={{ fontSize: '1.25rem', fontWeight: '700' }}>
+                                                        {renderStars(bid.driverRating || 0)}
+                                                    </div>
+                                                    <div style={{ fontSize: '0.625rem', color: 'var(--matrix-green)' }}>Rating</div>
+                                                </div>
+                                                <div style={{ textAlign: 'center' }}>
+                                                    <div className="text-matrix" style={{ fontSize: '1.25rem', fontWeight: '700' }}>
+                                                        {bid.driverReviewCount || 0}
+                                                    </div>
+                                                    <div style={{ fontSize: '0.625rem', color: 'var(--matrix-green)' }}>Reviews</div>
+                                                </div>
+                                                <div style={{ textAlign: 'center' }}>
+                                                    <div className="text-matrix" style={{ fontSize: '1.25rem', fontWeight: '700' }}>
+                                                        {bid.driverCompletedDeliveries || 0}
+                                                    </div>
+                                                    <div style={{ fontSize: '0.625rem', color: 'var(--matrix-green)' }}>Deliveries</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Bid Price */}
+                                        <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                                            <div className="text-matrix" style={{
+                                                fontSize: '1.5rem',
+                                                fontWeight: '700',
+                                                textShadow: '0 0 15px var(--status-pending)'
+                                            }}>
+                                                ${parseFloat(bid.bidPrice).toFixed(2)}
+                                            </div>
+                                            <div style={{ fontSize: '0.625rem', color: 'var(--matrix-green)' }}>Bid Price</div>
+                                        </div>
                                     </div>
-                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+
+                                    {/* Estimated Times */}
+                                    {(bid.estimatedPickupTime || bid.estimatedDeliveryTime) && (
+                                        <div style={{
+                                            display: 'grid',
+                                            gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+                                            gap: 'var(--spacing-sm)',
+                                            marginBottom: 'var(--spacing-md)',
+                                            padding: 'var(--spacing-sm)',
+                                            background: 'rgba(0, 255, 0, 0.05)',
+                                            borderRadius: 'var(--radius-sm)',
+                                            border: '1px solid var(--matrix-border)'
+                                        }}>
+                                            {bid.estimatedPickupTime && (
+                                                <div>
+                                                    <div style={{ fontSize: '0.625rem', color: 'var(--matrix-green)', marginBottom: '0.25rem' }}>
+                                                        Pickup
+                                                    </div>
+                                                    <div className="text-matrix" style={{ fontSize: '0.75rem' }}>
+                                                        {new Date(bid.estimatedPickupTime).toLocaleString()}
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {bid.estimatedDeliveryTime && (
+                                                <div>
+                                                    <div style={{ fontSize: '0.625rem', color: 'var(--matrix-green)', marginBottom: '0.25rem' }}>
+                                                        Delivery
+                                                    </div>
+                                                    <div className="text-matrix" style={{ fontSize: '0.75rem' }}>
+                                                        {new Date(bid.estimatedDeliveryTime).toLocaleString()}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Driver Message */}
+                                    {bid.message && (
+                                        <div style={{
+                                            background: 'rgba(0, 255, 0, 0.05)',
+                                            padding: 'var(--spacing-md)',
+                                            borderRadius: 'var(--radius-sm)',
+                                            border: '1px solid var(--matrix-border)',
+                                            marginBottom: 'var(--spacing-md)'
+                                        }}>
+                                            <p className="text-matrix" style={{ fontSize: '0.875rem', fontStyle: 'italic' }}>
+                                                "{bid.message}"
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {/* Action Buttons */}
+                                    <div className="btn-group" style={{ display: 'flex', gap: 'var(--spacing-sm)', flexWrap: 'wrap' }}>
                                         <button
                                             onClick={() => handleAcceptBid(order._id, bid.userId)}
                                             disabled={loadingStates.acceptBid}
-                                            style={{
-                                                padding: '0.5rem 1rem',
-                                                background: '#10B981',
-                                                color: 'white',
-                                                borderRadius: '0.375rem',
-                                                border: 'none',
-                                                cursor: loadingStates.acceptBid ? 'not-allowed' : 'pointer',
-                                                fontSize: '0.875rem',
-                                                fontWeight: '600',
-                                                opacity: loadingStates.acceptBid ? 0.5 : 1
-                                            }}
+                                            className="btn-success"
+                                            style={{ flex: '1 1 auto', minWidth: '120px' }}
                                         >
                                             {loadingStates.acceptBid ? t('orders.acceptingBid') : t('orders.acceptBid')}
                                         </button>
+                                        <button
+                                            onClick={() => openReviewModal(order._id, 'view_driver_reviews', bid)}
+                                            className="btn"
+                                            style={{ flex: '0 1 auto' }}
+                                        >
+                                            📝 Customer Reviews ({bid.driverReviewCount || 0})
+                                        </button>
+                                        <button
+                                            onClick={() => openReviewModal(order._id, 'view_driver_given_reviews', bid)}
+                                            className="btn"
+                                            style={{ flex: '0 1 auto' }}
+                                        >
+                                            ⭐ Driver Reviews ({bid.driverGivenReviewCount || 0})
+                                        </button>
                                     </div>
                                 </div>
-
-                                {/* Driver Reputation */}
-                                <div style={{ background: '#E0F2FE', padding: '0.75rem', borderRadius: '0.375rem', marginBottom: '0.75rem', border: '1px solid #BAE6FD' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                                        <h5 style={{ fontSize: '0.75rem', fontWeight: '600', color: '#0C4A6E' }}>
-                                            👨‍🚗 Driver Reputation
-                                        </h5>
-                                        {bid.driverIsVerified && (
-                                            <span style={{ background: '#10B981', color: 'white', padding: '0.125rem 0.375rem', borderRadius: '9999px', fontSize: '0.625rem', fontWeight: '600' }}>
-                                                ✓ Verified
-                                            </span>
-                                        )}
-                                        <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#1E293B' }}>
-                                            {bid.driverReviewCount || 0}
-                                        </p>
-                                    </div>
-                                </div>
-                                <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
-                                    <button
-                                        onClick={() => openReviewModal(order._id, 'view_driver_reviews', bid)}
-                                        style={{ padding: '0.25rem 0.5rem', background: '#3B82F6', color: 'white', borderRadius: '0.25rem', border: 'none', cursor: 'pointer', fontSize: '0.625rem', fontWeight: '500' }}
-                                    >
-                                        📝 Reviews ({bid.driverReviewCount || 0})
-                                    </button>
-                                    <button
-                                        onClick={() => openReviewModal(order._id, 'view_driver_given_reviews', bid)}
-                                        style={{ padding: '0.25rem 0.5rem', background: '#6366F1', color: 'white', borderRadius: '0.25rem', border: 'none', cursor: 'pointer', fontSize: '0.625rem', fontWeight: '500' }}
-                                    >
-                                        ⭐ Given ({bid.driverGivenReviewCount || 0})
-                                    </button>
-                                </div>
-
-                                {bid.message && (
-                                    <div style={{ background: 'white', padding: '0.75rem', borderRadius: '0.25rem', marginTop: '0.5rem' }}>
-                                        <p style={{ fontSize: '0.875rem', fontStyle: 'italic', color: '#374151' }}>
-                                            "{bid.message}"
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
             )}
