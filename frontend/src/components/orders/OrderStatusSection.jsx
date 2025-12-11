@@ -60,67 +60,79 @@ const OrderStatusSection = ({
                                 >
                                     {/* Profile Section */}
                                     <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)', alignItems: 'start' }}>
-                                        {/* Avatar with Verification Frame */}
-                                        <div style={{ position: 'relative', flexShrink: 0 }}>
-                                            <div style={{
-                                                width: '80px',
-                                                height: '80px',
-                                                borderRadius: '50%',
-                                                border: bid.driverIsVerified
-                                                    ? '3px solid var(--status-delivered)'
-                                                    : '3px solid var(--status-cancelled)',
-                                                boxShadow: bid.driverIsVerified
-                                                    ? '0 0 20px var(--status-delivered)'
-                                                    : '0 0 20px var(--status-cancelled)',
-                                                padding: '3px',
-                                                background: 'var(--matrix-black)',
-                                                overflow: 'hidden'
-                                            }}>
-                                                <img
-                                                    src={getDriverAvatar()}
-                                                    alt={bid.driverName}
-                                                    style={{
-                                                        width: '100%',
-                                                        height: '100%',
-                                                        borderRadius: '50%',
-                                                        objectFit: 'cover'
-                                                    }}
-                                                />
+                                        {/* Avatar with Verification Frame and Rating */}
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+                                            <div style={{ position: 'relative' }}>
+                                                <div style={{
+                                                    width: '80px',
+                                                    height: '80px',
+                                                    borderRadius: '50%',
+                                                    border: bid.driverIsVerified
+                                                        ? '3px solid var(--status-delivered)'
+                                                        : '3px solid var(--status-cancelled)',
+                                                    boxShadow: bid.driverIsVerified
+                                                        ? '0 0 20px var(--status-delivered)'
+                                                        : '0 0 20px var(--status-cancelled)',
+                                                    padding: '3px',
+                                                    background: 'var(--matrix-black)',
+                                                    overflow: 'hidden'
+                                                }}>
+                                                    <img
+                                                        src={getDriverAvatar()}
+                                                        alt={bid.driverName}
+                                                        style={{
+                                                            width: '100%',
+                                                            height: '100%',
+                                                            borderRadius: '50%',
+                                                            objectFit: 'cover'
+                                                        }}
+                                                    />
+                                                </div>
+                                                {/* Verification Badge */}
+                                                {bid.driverIsVerified ? (
+                                                    <div style={{
+                                                        position: 'absolute',
+                                                        bottom: '-5px',
+                                                        right: '-5px',
+                                                        background: 'var(--status-delivered)',
+                                                        color: 'var(--matrix-black)',
+                                                        padding: '2px 6px',
+                                                        borderRadius: '10px',
+                                                        fontSize: '0.625rem',
+                                                        fontWeight: '700',
+                                                        boxShadow: '0 0 10px var(--status-delivered)',
+                                                        border: '1px solid var(--matrix-black)'
+                                                    }}>
+                                                        ✓ Verified
+                                                    </div>
+                                                ) : (
+                                                    <div style={{
+                                                        position: 'absolute',
+                                                        bottom: '-5px',
+                                                        right: '-5px',
+                                                        background: 'var(--status-cancelled)',
+                                                        color: 'white',
+                                                        padding: '2px 6px',
+                                                        borderRadius: '10px',
+                                                        fontSize: '0.625rem',
+                                                        fontWeight: '700',
+                                                        boxShadow: '0 0 10px var(--status-cancelled)',
+                                                        border: '1px solid var(--matrix-black)'
+                                                    }}>
+                                                        Unverified
+                                                    </div>
+                                                )}
                                             </div>
-                                            {/* Verification Badge */}
-                                            {bid.driverIsVerified ? (
-                                                <div style={{
-                                                    position: 'absolute',
-                                                    bottom: '-5px',
-                                                    right: '-5px',
-                                                    background: 'var(--status-delivered)',
-                                                    color: 'var(--matrix-black)',
-                                                    padding: '2px 6px',
-                                                    borderRadius: '10px',
-                                                    fontSize: '0.625rem',
-                                                    fontWeight: '700',
-                                                    boxShadow: '0 0 10px var(--status-delivered)',
-                                                    border: '1px solid var(--matrix-black)'
-                                                }}>
-                                                    ✓ Verified
-                                                </div>
-                                            ) : (
-                                                <div style={{
-                                                    position: 'absolute',
-                                                    bottom: '-5px',
-                                                    right: '-5px',
-                                                    background: 'var(--status-cancelled)',
-                                                    color: 'white',
-                                                    padding: '2px 6px',
-                                                    borderRadius: '10px',
-                                                    fontSize: '0.625rem',
-                                                    fontWeight: '700',
-                                                    boxShadow: '0 0 10px var(--status-cancelled)',
-                                                    border: '1px solid var(--matrix-black)'
-                                                }}>
-                                                    Unverified
-                                                </div>
-                                            )}
+
+                                            {/* Rating Stars Below Avatar */}
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                <span className="text-matrix" style={{ fontSize: '1rem', fontWeight: '700' }}>
+                                                    {renderStars(bid.driverRating || 0)}
+                                                </span>
+                                                <span className="text-matrix" style={{ fontSize: '0.875rem', fontWeight: '700' }}>
+                                                    {(bid.driverRating || 0).toFixed(1)}
+                                                </span>
+                                            </div>
                                         </div>
 
                                         {/* Driver Info */}
@@ -141,23 +153,13 @@ const OrderStatusSection = ({
                                                 Member since {memberSince}
                                             </p>
 
-                                            {/* Stats Grid */}
+                                            {/* Stats Grid - Reviews and Deliveries Only */}
                                             <div style={{
                                                 display: 'grid',
-                                                gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))',
+                                                gridTemplateColumns: 'repeat(2, 1fr)',
                                                 gap: 'var(--spacing-sm)',
                                                 marginBottom: 'var(--spacing-sm)'
                                             }}>
-                                                <div style={{ textAlign: 'center' }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
-                                                        <span className="text-matrix" style={{ fontSize: '0.875rem', fontWeight: '700' }}>
-                                                            {(bid.driverRating || 0).toFixed(1)}
-                                                        </span>
-                                                        <span className="text-matrix" style={{ fontSize: '1rem', fontWeight: '700' }}>
-                                                            {renderStars(bid.driverRating || 0)}
-                                                        </span>
-                                                    </div>
-                                                </div>
                                                 <div style={{ textAlign: 'center' }}>
                                                     <div className="text-matrix" style={{ fontSize: '1.25rem', fontWeight: '700' }}>
                                                         {bid.driverReviewCount || 0}
