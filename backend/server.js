@@ -1686,7 +1686,7 @@ app.get('/api/users/:id/reviews/received', verifyToken, async (req, res) => {
 
     // Get all reviews received by this user
     const reviewsResult = await pool.query(
-      `SELECT r.*, reviewer.name as reviewer_name, reviewer.role as reviewer_role,
+      `SELECT r.*, reviewer.name as reviewer_name, reviewer.primary_role as reviewer_role,
               o.title as order_title, o.order_number
        FROM reviews r
        JOIN users reviewer ON r.reviewer_id = reviewer.id
@@ -1700,7 +1700,7 @@ app.get('/api/users/:id/reviews/received', verifyToken, async (req, res) => {
       user: {
         id: user.id,
         name: user.name,
-        role: user.role
+        role: user.primary_role
       },
       reviews: reviewsResult.rows.map(review => ({
         id: review.id,
@@ -1740,7 +1740,7 @@ app.get('/api/users/:id/reviews/given', verifyToken, async (req, res) => {
 
     // Get all reviews given by this user
     const reviewsResult = await pool.query(
-      `SELECT r.*, reviewee.name as reviewee_name, reviewee.role as reviewee_role,
+      `SELECT r.*, reviewee.name as reviewee_name, reviewee.primary_role as reviewee_role,
               o.title as order_title, o.order_number
        FROM reviews r
        LEFT JOIN users reviewee ON r.reviewee_id = reviewee.id
@@ -1754,7 +1754,7 @@ app.get('/api/users/:id/reviews/given', verifyToken, async (req, res) => {
       user: {
         id: user.id,
         name: user.name,
-        role: user.role
+        role: user.primary_role
       },
       reviews: reviewsResult.rows.map(review => ({
         id: review.id,
