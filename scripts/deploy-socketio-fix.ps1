@@ -45,19 +45,34 @@ Write-Host ""
 Write-Host "[DEPLOY] Starting deployment..." -ForegroundColor Cyan
 Write-Host ""
 
-# Step 1: Upload configuration
-Write-Host "[STEP 1/5] Uploading configuration to server..." -ForegroundColor Yellow
+# Step 1: Backup existing configuration
+Write-Host "[STEP 1/6] Backing up existing Apache configuration..." -ForegroundColor Yellow
+$timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+$backupPath = "/etc/apache2/sites-available/matrix-api.oldantique50.com.conf.backup_${timestamp}"
+ssh "${REMOTE_USER}@${REMOTE_HOST}" "cp ${REMOTE_CONFIG_PATH} ${backupPath}"
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "[WARNING] Failed to create backup, but continuing..." -ForegroundColor Yellow
+}
+else {
+    Write-Host "[OK] Backup created: ${backupPath}" -ForegroundColor Green
+}
+Write-Host ""
+
+# Step 2: Upload configuration
+Write-Host "[STEP 2/6] Uploading configuration to server..." -ForegroundColor Yellow
 scp $LOCAL_CONFIG "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_CONFIG_PATH}"
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "[ERROR] Failed to upload configuration" -ForegroundColor Red
+    Write-Host "[INFO] You can restore from backup: ${backupPath}" -ForegroundColor Yellow
     exit 1
 }
 Write-Host "[OK] Configuration uploaded successfully" -ForegroundColor Green
 Write-Host ""
 
-# Step 2: Verify Apache modules
-Write-Host "[STEP 2/5] Verifying required Apache modules..." -ForegroundColor Yellow
+# Step 3: Verify Apache modules
+Write-Host "[STEP 3/6] Verifying required Apache modules..." -ForegroundColor Yellow
 $modules = @("proxy", "proxy_http", "proxy_wstunnel", "rewrite", "headers")
 
 foreach ($module in $modules) {
@@ -74,26 +89,27 @@ foreach ($module in $modules) {
 }
 Write-Host ""
 
-# Step 3: Test configuration
-Write-Host "[STEP 3/5] Testing Apache configuration..." -ForegroundColor Yellow
+# Step 4: Test configuration
+Write-Host "[STEP 4/6] Testing Apache configuration..." -ForegroundColor Yellow
 ssh "${REMOTE_USER}@${REMOTE_HOST}" "apache2ctl configtest"
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "[ERROR] Apache configuration test failed!" -ForegroundColor Red
     Write-Host "[WARNING] Please check the configuration manually" -ForegroundColor Yellow
+    Write-Host "[INFO] You can restore from backup: ${backupPath}" -ForegroundColor Yellow
     exit 1
 }
 Write-Host "[OK] Apache configuration test passed" -ForegroundColor Green
 Write-Host ""
 
-# Step 4: Enable site
-Write-Host "[STEP 4/5] Ensuring site is enabled..." -ForegroundColor Yellow
+# Step 5: Enable site
+Write-Host "[STEP 5/6] Ensuring site is enabled..." -ForegroundColor Yellow
 ssh "${REMOTE_USER}@${REMOTE_HOST}" "a2ensite matrix-api.oldantique50.com.conf"
 Write-Host "[OK] Site enabled" -ForegroundColor Green
 Write-Host ""
 
-# Step 5: Reload Apache
-Write-Host "[STEP 5/5] Reloading Apache..." -ForegroundColor Yellow
+# Step 6: Reload Apache
+Write-Host "[STEP 6/6] Reloading Apache..." -ForegroundColor Yellow
 ssh "${REMOTE_USER}@${REMOTE_HOST}" "systemctl reload apache2"
 
 if ($LASTEXITCODE -ne 0) {
@@ -103,6 +119,7 @@ if ($LASTEXITCODE -ne 0) {
     
     if ($LASTEXITCODE -ne 0) {
         Write-Host "[ERROR] Failed to restart Apache" -ForegroundColor Red
+        Write-Host "[INFO] You can restore from backup: ${backupPath}" -ForegroundColor Yellow
         exit 1
     }
 }
