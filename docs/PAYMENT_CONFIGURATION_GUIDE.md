@@ -176,17 +176,12 @@ export const PAYMENT_CONFIG = {
 
 ### Option 2: Environment Variable (Future Enhancement)
 
-```bash
-# .env
-PLATFORM_COMMISSION_RATE=0.12
-```
+> [!NOTE]
+> Currently not implemented. Commission rate is managed in `paymentConfig.ts`.
 
-```typescript
-// paymentConfig.ts
-export const PAYMENT_CONFIG = {
-  COMMISSION_RATE: parseFloat(process.env.PLATFORM_COMMISSION_RATE || '0.15'),
-  // ...
-};
+```bash
+# Future: Could read from environment
+# COMMISSION_RATE=0.12
 ```
 
 ---

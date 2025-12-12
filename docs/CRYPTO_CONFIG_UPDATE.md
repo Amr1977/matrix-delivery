@@ -56,15 +56,8 @@ export const PAYMENT_CONFIG = {
 ```
 
 **Option 2: Environment Variable (Future)**
-```bash
-# .env
-PLATFORM_COMMISSION_RATE=0.12
-```
-
-Then update config to read from env:
-```typescript
-COMMISSION_RATE: parseFloat(process.env.PLATFORM_COMMISSION_RATE || '0.15'),
-```
+> [!NOTE]
+> Not currently implemented. Use Option 1 (config file) instead.
 
 ## ⚠️ Important Notes:
 
