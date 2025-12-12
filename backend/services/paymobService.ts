@@ -430,9 +430,8 @@ class PaymobService {
 
             // Update order status if payment successful
             if (success) {
-                // Calculate commission (15%)
-                const platformCommission = amountEGP * 0.15;
-                const driverPayout = amountEGP - platformCommission;
+                // Calculate commission using centralized config
+                const { commission: platformCommission, payout: driverPayout } = calculateCommission(amountEGP);
 
                 await client.query(`
           UPDATE orders 
@@ -452,9 +451,9 @@ class PaymobService {
                 // Record platform revenue
                 await client.query(`
           INSERT INTO platform_revenue (order_id, commission_amount, commission_rate, payment_method)
-          VALUES ($1, $2, 0.15, $3)
+          VALUES ($1, $2, $3, $4)
           ON CONFLICT (order_id) DO NOTHING
-        `, [orderId, platformCommission, `${paymentMethodType}_${paymentMethodSubType}`]);
+        `, [orderId, platformCommission, PAYMENT_CONFIG.COMMISSION_RATE, `${paymentMethodType}_${paymentMethodSubType}`]);
 
                 this.logger.info('Payment completed successfully', {
                     orderId,
