@@ -7,6 +7,9 @@ export const PAYMENT_CONFIG = {
     // Platform commission rate (as decimal)
     COMMISSION_RATE: 0.15, // 15%
 
+    // Calculated values (derived from COMMISSION_RATE)
+    get COMMISSION_RATE_PERCENT() { return this.COMMISSION_RATE * 100; },  // 15
+    get COMMISSION_RATE_BASIS_POINTS() { return this.COMMISSION_RATE * 10000; },  // 1500
     // Minimum order amount for digital payments (EGP)
     MIN_DIGITAL_PAYMENT_AMOUNT: 5,
 
