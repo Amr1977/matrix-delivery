@@ -14,6 +14,7 @@
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 // Configuration
 const CONFIG_FILE = 'matrix-api.oldantique50.com-le-ssl.conf';
@@ -86,9 +87,33 @@ async function main() {
                 log(`  ✅ Backed up existing config to ${backupPath}`, 'green');
             }
 
+            // Calculate MD5 hash of source file
+            const sourceContent = fs.readFileSync(CONFIG_SOURCE);
+            const sourceMD5 = crypto.createHash('md5').update(sourceContent).digest('hex');
+            log(`  📝 Source file MD5: ${sourceMD5}`, 'cyan');
+
             // Copy new config
             fs.copyFileSync(CONFIG_SOURCE, CONFIG_DEST);
             log(`  ✅ Config copied to ${CONFIG_DEST}`, 'green');
+
+            // Verify copy succeeded by comparing MD5 hashes
+            log('\n▶ Verifying file copy integrity...', 'yellow');
+            const destContent = fs.readFileSync(CONFIG_DEST);
+            const destMD5 = crypto.createHash('md5').update(destContent).digest('hex');
+            log(`  📝 Destination file MD5: ${destMD5}`, 'cyan');
+
+            if (sourceMD5 !== destMD5) {
+                throw new Error(`File copy verification failed! MD5 mismatch.\nSource: ${sourceMD5}\nDest: ${destMD5}`);
+            }
+
+            // Additional verification: compare file sizes
+            const sourceSize = sourceContent.length;
+            const destSize = destContent.length;
+            if (sourceSize !== destSize) {
+                throw new Error(`File size mismatch! Source: ${sourceSize} bytes, Dest: ${destSize} bytes`);
+            }
+
+            log(`  ✅ File copy verified (MD5 match, ${sourceSize} bytes)`, 'green');
         } else {
             log(`  ⚠️  Config file not found at ${CONFIG_SOURCE}`, 'yellow');
             log('     Skipping config copy - using existing config', 'yellow');
@@ -96,25 +121,39 @@ async function main() {
 
         // Step 5: Test Apache configuration
         log('\n▶ Testing Apache configuration...', 'yellow');
+        let configTestPassed = false;
         try {
             const testOutput = execSync('apache2ctl configtest', {
                 encoding: 'utf8',
                 stdio: 'pipe'
             });
 
-            if (testOutput.includes('Syntax OK')) {
+            // Check for both "Syntax OK" and no errors
+            if (testOutput.includes('Syntax OK') && !testOutput.toLowerCase().includes('error')) {
                 log('  ✅ Apache configuration is valid', 'green');
+                configTestPassed = true;
             } else {
-                log('  ⚠️  Apache configuration test output:', 'yellow');
+                log('  ❌ Apache configuration test failed:', 'red');
                 console.log(testOutput);
+                configTestPassed = false;
             }
         } catch (error) {
-            // apache2ctl configtest returns exit code 0 even with warnings
-            if (error.stdout && error.stdout.includes('Syntax OK')) {
+            // apache2ctl configtest can return non-zero exit code
+            const output = error.stdout || error.stderr || error.message;
+
+            if (output && output.includes('Syntax OK') && !output.toLowerCase().includes('error')) {
                 log('  ✅ Apache configuration is valid', 'green');
+                configTestPassed = true;
             } else {
-                throw error;
+                log('  ❌ Apache configuration test failed:', 'red');
+                console.log(output);
+                configTestPassed = false;
             }
+        }
+
+        // Halt deployment if config test failed
+        if (!configTestPassed) {
+            throw new Error('Apache configuration test failed - deployment aborted');
         }
 
         // Step 6: Reload Apache

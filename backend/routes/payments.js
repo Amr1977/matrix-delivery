@@ -1,5 +1,6 @@
 const express = require('express');
 const paymentService = require('../services/paymentService');
+const paymobService = require('../services/paymobService.ts');
 const { verifyToken } = require('../middleware/auth');
 const { apiRateLimit } = require('../middleware/rateLimit');
 const logger = require('../config/logger');
@@ -509,4 +510,226 @@ router.post('/paypal/refund/:paymentId', verifyToken, apiRateLimit, async (req, 
   }
 });
 
+// ========================================
+// Paymob Routes (Cards + Mobile Wallets)
+// ========================================
+
+// Create Paymob payment (cards or wallets)
+router.post('/paymob/create', verifyToken, apiRateLimit, async (req, res) => {
+  const startTime = Date.now();
+  const clientIP = req.ip || req.connection.remoteAddress;
+
+  logger.payment(`Paymob payment creation request`, {
+    ip: clientIP,
+    userId: req.user.userId,
+    category: 'payment'
+  });
+
+  try {
+    const { orderId, amount, paymentMethod = 'card' } = req.body;
+
+    if (!orderId || !amount) {
+      return res.status(400).json({
+        error: 'Order ID and amount are required'
+      });
+    }
+
+    if (amount <= 0) {
+      return res.status(400).json({
+        error: 'Amount must be greater than 0'
+      });
+    }
+
+    if (!['card', 'wallet'].includes(paymentMethod)) {
+      return res.status(400).json({
+        error: 'Payment method must be either "card" or "wallet"'
+      });
+    }
+
+    // Initialize Paymob service
+    paymobService.initialize();
+
+    // Get order and user details
+    const pool = require('../config/db');
+    const orderResult = await pool.query(
+      'SELECT * FROM orders WHERE id = $1 AND customer_id = $2',
+      [orderId, req.user.userId]
+    );
+
+    if (orderResult.rows.length === 0) {
+      return res.status(404).json({
+        error: 'Order not found or access denied'
+      });
+    }
+
+    const userResult = await pool.query(
+      'SELECT * FROM users WHERE id = $1',
+      [req.user.userId]
+    );
+
+    const user = userResult.rows[0];
+
+    // Create Paymob order
+    const paymobOrder = await paymobService.createOrder(orderId, amount, 'EGP');
+
+    // Prepare billing data
+    const billingData = {
+      email: user.email,
+      firstName: user.full_name?.split(' ')[0] || 'Customer',
+      lastName: user.full_name?.split(' ').slice(1).join(' ') || 'User',
+      phone: user.phone_number || '01000000000',
+      city: 'Cairo',
+      apartment: 'NA',
+      floor: 'NA',
+      street: 'NA',
+      building: 'NA',
+      postalCode: 'NA',
+      state: 'NA'
+    };
+
+    // Create payment key
+    const paymentToken = await paymobService.createPaymentKey(
+      paymobOrder.id,
+      amount,
+      billingData,
+      paymentMethod
+    );
+
+    const iframeId = process.env.PAYMOB_IFRAME_ID;
+    const iframeUrl = `https://accept.paymob.com/api/acceptance/iframes/${iframeId}?payment_token=${paymentToken}`;
+
+    const duration = Date.now() - startTime;
+    logger.performance(`Paymob payment created`, {
+      userId: req.user.userId,
+      orderId,
+      amount,
+      paymentMethod,
+      duration: `${duration}ms`,
+      category: 'performance'
+    });
+
+    res.json({
+      success: true,
+      paymentToken,
+      iframeUrl,
+      paymobOrderId: paymobOrder.id
+    });
+
+  } catch (error) {
+    const duration = Date.now() - startTime;
+    logger.error(`Paymob payment creation failed: ${error.message}`, {
+      error: error.stack,
+      ip: clientIP,
+      userId: req.user.userId,
+      duration: `${duration}ms`,
+      category: 'error'
+    });
+
+    if (error.message.includes('not configured')) {
+      res.status(503).json({
+        error: 'Paymob payment service is currently unavailable'
+      });
+    } else if (error.message.includes('Order not found')) {
+      res.status(404).json({
+        error: 'Order not found or access denied'
+      });
+    } else {
+      res.status(500).json({
+        error: 'Failed to create Paymob payment'
+      });
+    }
+  }
+});
+
+// Paymob webhook callback (transaction processed)
+router.post('/paymob/callback', async (req, res) => {
+  const startTime = Date.now();
+
+  logger.payment(`Paymob callback received`, {
+    category: 'payment'
+  });
+
+  try {
+    const result = await paymobService.processCallback(req.body);
+
+    const duration = Date.now() - startTime;
+    logger.performance(`Paymob callback processed`, {
+      orderId: result.orderId,
+      success: result.success,
+      duration: `${duration}ms`,
+      category: 'performance'
+    });
+
+    // Always return 200 to Paymob
+    res.json({ success: true });
+
+  } catch (error) {
+    const duration = Date.now() - startTime;
+    logger.error(`Paymob callback processing failed: ${error.message}`, {
+      error: error.stack,
+      duration: `${duration}ms`,
+      category: 'error'
+    });
+
+    // Still return 200 to prevent Paymob retries
+    res.json({ success: false });
+  }
+});
+
+// Paymob response page (user redirect after payment)
+router.get('/paymob/response', async (req, res) => {
+  try {
+    const { success, order_id, id } = req.query;
+
+    logger.info('Paymob response page accessed', {
+      success,
+      orderId: order_id,
+      transactionId: id,
+      category: 'payment'
+    });
+
+    const frontendUrl = process.env.FRONTEND_URL || 'https://matrix-delivery.web.app';
+
+    if (success === 'true') {
+      res.redirect(`${frontendUrl}/orders/${order_id}?payment=success&method=paymob`);
+    } else {
+      res.redirect(`${frontendUrl}/orders/${order_id}?payment=failed&method=paymob`);
+    }
+
+  } catch (error) {
+    logger.error(`Paymob response redirect failed: ${error.message}`, {
+      error: error.stack,
+      category: 'error'
+    });
+
+    const frontendUrl = process.env.FRONTEND_URL || 'https://matrix-delivery.web.app';
+    res.redirect(`${frontendUrl}?payment=error`);
+  }
+});
+
+// Get Paymob transaction status
+router.get('/paymob/transaction/:transactionId', verifyToken, async (req, res) => {
+  try {
+    const { transactionId } = req.params;
+
+    const transaction = await paymobService.getTransactionStatus(transactionId);
+
+    res.json({
+      success: true,
+      transaction
+    });
+
+  } catch (error) {
+    logger.error(`Get Paymob transaction failed: ${error.message}`, {
+      transactionId: req.params.transactionId,
+      category: 'error'
+    });
+
+    res.status(500).json({
+      error: 'Failed to get transaction status'
+    });
+  }
+});
+
 module.exports = router;
+
