@@ -8,13 +8,16 @@ async function main() {
     console.log("Deploying with account:", deployer.address);
     console.log("Account balance:", hre.ethers.formatEther(await hre.ethers.provider.getBalance(deployer.address)), "MATIC\n");
 
+    // Import payment configuration
+    const { PAYMENT_CONFIG } = require('../config/paymentConfig.ts');
+
     // Configuration
     const platformWallet = process.env.PLATFORM_WALLET_ADDRESS || deployer.address;
-    const commissionRate = 1500; // 15% in basis points
+    const commissionRate = PAYMENT_CONFIG.COMMISSION_RATE * 10000; // Convert 0.15 to 1500 basis points
 
     console.log("Configuration:");
     console.log("- Platform Wallet:", platformWallet);
-    console.log("- Commission Rate:", commissionRate / 100, "%\n");
+    console.log("- Commission Rate:", PAYMENT_CONFIG.COMMISSION_RATE_PERCENT + "%", `(${commissionRate} basis points)\n`);
 
     // Deploy contract
     const MatrixDeliveryEscrow = await hre.ethers.getContractFactory("MatrixDeliveryEscrow");
