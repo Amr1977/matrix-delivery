@@ -5636,32 +5636,125 @@ app.use((err, req, res, next) => {
 });
 
 // ============ WEBSOCKET INTEGRATION FOR LIVE TRACKING ============
-// Socket.IO CORS - Allow all for development, Apache2 handles in production
 const httpServer = http.createServer(app);
+
+// Socket.IO CORS - Align with Express CORS configuration
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
+  : [
+    'http://localhost:3000',
+    'http://192.168.1.200:3000',
+    'https://matrix.oldantique50.com',
+    'https://matrix-delivery.web.app'
+  ];
+
 const io = socketIo(httpServer, {
   cors: {
-    origin: "*",  // Allow all origins
+    origin: function (origin, callback) {
+      // Allow requests with no origin (mobile apps, Postman, etc.)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        logger.warn(`Socket.IO CORS blocked origin: ${origin}`, { category: 'websocket' });
+        callback(null, true); // Allow anyway for now, but log it
+      }
+    },
     methods: ["GET", "POST"],
     credentials: true
   },
-  transports: ['polling', 'websocket']
+  transports: ['polling', 'websocket'],
+  allowEIO3: true, // Support older Socket.IO clients
+  path: '/socket.io/'
 });
-// Configure Socket.IO options
+
+// Configure Socket.IO engine options
 io.engine.opts.pingTimeout = 60000;
 io.engine.opts.pingInterval = 25000;
+io.engine.opts.maxHttpBufferSize = 1e6; // 1MB
+
+// Socket.IO Authentication Middleware
+io.use(async (socket, next) => {
+  try {
+    // Get token from handshake auth or query
+    const token = socket.handshake.auth?.token || socket.handshake.query?.token;
+
+    if (!token) {
+      logger.warn('Socket.IO connection attempt without token', {
+        socketId: socket.id,
+        origin: socket.handshake.headers.origin,
+        category: 'websocket'
+      });
+      return next(new Error('Authentication required'));
+    }
+
+    // Verify JWT token
+    const decoded = jwt.verify(token, JWT_SECRET, {
+      algorithms: ['HS256'],
+      issuer: 'matrix-delivery',
+      audience: 'matrix-delivery-api'
+    });
+
+    // Attach user info to socket
+    socket.userId = decoded.userId;
+    socket.userEmail = decoded.email;
+    socket.userName = decoded.name;
+    socket.userRole = decoded.role;
+
+    logger.info('Socket.IO client authenticated', {
+      socketId: socket.id,
+      userId: decoded.userId,
+      email: decoded.email,
+      category: 'websocket'
+    });
+
+    next();
+  } catch (error) {
+    logger.error('Socket.IO authentication failed', {
+      socketId: socket.id,
+      error: error.message,
+      category: 'websocket'
+    });
+
+    if (error.name === 'TokenExpiredError') {
+      return next(new Error('Token expired'));
+    } else if (error.name === 'JsonWebTokenError') {
+      return next(new Error('Invalid token'));
+    }
+    return next(new Error('Authentication failed'));
+  }
+});
 
 // Initialize notification service with Socket.IO
 const { initializeNotificationService, createNotification } = require('./services/notificationService.ts');
 initializeNotificationService(pool, io, logger);
 
 io.on('connection', (socket) => {
-  console.log('Connected client:', socket.id);
+  logger.info('Socket.IO client connected', {
+    socketId: socket.id,
+    userId: socket.userId,
+    userName: socket.userName,
+    transport: socket.conn.transport.name,
+    category: 'websocket'
+  });
+
+  // Handle transport upgrade
+  socket.conn.on('upgrade', (transport) => {
+    logger.info('Socket.IO transport upgraded', {
+      socketId: socket.id,
+      userId: socket.userId,
+      from: socket.conn.transport.name,
+      to: transport.name,
+      category: 'websocket'
+    });
+  });
 
   socket.on('join_order', async (data) => {
-    const { orderId, token } = data;
+    const { orderId } = data;
 
     try {
-      const decoded = jwt.verify(token, JWT_SECRET);
+      // User is already authenticated via middleware
       const orderResult = await pool.query(
         'SELECT customer_id, assigned_driver_user_id FROM orders WHERE id = $1',
         [orderId]
@@ -5673,13 +5766,18 @@ io.on('connection', (socket) => {
       }
 
       const order = orderResult.rows[0];
-      if (order.customer_id !== decoded.userId && order.assigned_driver_user_id !== decoded.userId) {
+      if (order.customer_id !== socket.userId && order.assigned_driver_user_id !== socket.userId) {
         socket.emit('error', { message: 'Unauthorized' });
         return;
       }
 
       socket.join(`order_${orderId}`);
-      console.log(`User ${decoded.name} joined tracking for order ${orderId}`);
+      logger.info('User joined order tracking', {
+        userId: socket.userId,
+        userName: socket.userName,
+        orderId,
+        category: 'websocket'
+      });
 
       const locationResult = await pool.query(
         'SELECT current_location_lat, current_location_lng FROM orders WHERE id = $1',
@@ -5702,16 +5800,16 @@ io.on('connection', (socket) => {
   });
 
   socket.on('update_location', async (data) => {
-    const { orderId, latitude, longitude, token } = data;
+    const { orderId, latitude, longitude } = data;
 
     try {
-      const decoded = jwt.verify(token, JWT_SECRET);
+      // User is already authenticated via middleware
       const orderResult = await pool.query(
         'SELECT assigned_driver_user_id, status FROM orders WHERE id = $1',
         [orderId]
       );
 
-      if (orderResult.rows.length === 0 || orderResult.rows[0].assigned_driver_user_id !== decoded.userId) {
+      if (orderResult.rows.length === 0 || orderResult.rows[0].assigned_driver_user_id !== socket.userId) {
         socket.emit('error', { message: 'Unauthorized' });
         return;
       }
@@ -5721,10 +5819,9 @@ io.on('connection', (socket) => {
         [parseFloat(latitude), parseFloat(longitude), orderId]
       );
 
-
       await pool.query(
         'INSERT INTO location_updates (order_id, driver_id, latitude, longitude, status) VALUES ($1, $2, $3, $4, $5)',
-        [orderId, decoded.userId, parseFloat(latitude), parseFloat(longitude), orderResult.rows[0].status]
+        [orderId, socket.userId, parseFloat(latitude), parseFloat(longitude), orderResult.rows[0].status]
       );
 
       io.to(`order_${orderId}`).emit('location_update', {
@@ -5736,6 +5833,7 @@ io.on('connection', (socket) => {
 
     } catch (error) {
       logger.error('Update location error:', error);
+      socket.emit('error', { message: 'Failed to update location' });
     }
   });
 
@@ -5766,8 +5864,14 @@ io.on('connection', (socket) => {
     socket.leave(`order_${orderId}`);
   });
 
-  socket.on('disconnect', () => {
-    console.log('Disconnected client:', socket.id);
+  socket.on('disconnect', (reason) => {
+    logger.info('Socket.IO client disconnected', {
+      socketId: socket.id,
+      userId: socket.userId,
+      userName: socket.userName,
+      reason,
+      category: 'websocket'
+    });
   });
 });
 
