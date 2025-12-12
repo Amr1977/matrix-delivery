@@ -7,7 +7,7 @@ interface PaymentMethod {
     icon: string;
     fee: string;
     description: string;
-    type: 'card' | 'wallet' | 'cod';
+    type: 'card' | 'wallet' | 'crypto' | 'cod';
 }
 
 interface PaymentMethodSelectorProps {
@@ -57,6 +57,14 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
             type: 'wallet'
         },
         {
+            id: 'crypto',
+            name: 'Cryptocurrency',
+            icon: '₿',
+            fee: 'Gas only',
+            description: 'USDC, USDT (Polygon)',
+            type: 'crypto'
+        },
+        {
             id: 'cod',
             name: 'Cash on Delivery',
             icon: '💵',
@@ -72,14 +80,14 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
     };
 
     const calculateTotal = (method: PaymentMethod): number => {
-        if (method.type === 'cod') {
+        if (method.type === 'cod' || method.type === 'crypto') {
             return amount;
         }
         return amount * 1.025; // 2.5% fee
     };
 
     const calculateFee = (method: PaymentMethod): number => {
-        if (method.type === 'cod') {
+        if (method.type === 'cod' || method.type === 'crypto') {
             return 0;
         }
         return amount * 0.025;
@@ -116,7 +124,7 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
                         <span>Order Amount:</span>
                         <span>{amount.toFixed(2)} {currency}</span>
                     </div>
-                    {selectedMethod.type !== 'cod' && (
+                    {selectedMethod.type !== 'cod' && selectedMethod.type !== 'crypto' && (
                         <div className="summary-row fee-row">
                             <span>Processing Fee ({selectedMethod.fee}):</span>
                             <span>{calculateFee(selectedMethod).toFixed(2)} {currency}</span>

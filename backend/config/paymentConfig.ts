@@ -17,6 +17,7 @@ export const PAYMENT_CONFIG = {
     FEES: {
         CARD: 0.025,      // 2.5%
         WALLET: 0.025,    // 2.5%
+        CRYPTO: 0,        // No processing fee (only gas)
         COD: 0,           // Free
     },
 
@@ -37,6 +38,13 @@ export const PAYMENT_CONFIG = {
             name: 'Mobile Wallet',
             fee: 0.025,
             minAmount: 5,
+        },
+        CRYPTO: {
+            enabled: true,
+            name: 'Cryptocurrency',
+            fee: 0,
+            minAmount: 5,
+            supportedTokens: ['USDC', 'USDT'],
         },
         COD: {
             enabled: true,
@@ -76,7 +84,7 @@ export function calculateCommission(amount: number, rate: number = PAYMENT_CONFI
  * @param paymentMethod - Payment method type
  * @returns Fee amount
  */
-export function calculatePaymentFee(amount: number, paymentMethod: 'card' | 'wallet' | 'cod'): number {
+export function calculatePaymentFee(amount: number, paymentMethod: 'card' | 'wallet' | 'crypto' | 'cod'): number {
     const feeRate = PAYMENT_CONFIG.FEES[paymentMethod.toUpperCase() as keyof typeof PAYMENT_CONFIG.FEES] || 0;
     return parseFloat((amount * feeRate).toFixed(2));
 }
@@ -87,7 +95,7 @@ export function calculatePaymentFee(amount: number, paymentMethod: 'card' | 'wal
  * @param paymentMethod - Payment method type
  * @returns Total amount with fees
  */
-export function calculateTotalWithFees(amount: number, paymentMethod: 'card' | 'wallet' | 'cod'): number {
+export function calculateTotalWithFees(amount: number, paymentMethod: 'card' | 'wallet' | 'crypto' | 'cod'): number {
     const fee = calculatePaymentFee(amount, paymentMethod);
     return parseFloat((amount + fee).toFixed(2));
 }
@@ -98,7 +106,7 @@ export function calculateTotalWithFees(amount: number, paymentMethod: 'card' | '
  * @param paymentMethod - Payment method type
  * @returns Validation result
  */
-export function validatePaymentAmount(amount: number, paymentMethod: 'card' | 'wallet' | 'cod'): {
+export function validatePaymentAmount(amount: number, paymentMethod: 'card' | 'wallet' | 'crypto' | 'cod'): {
     valid: boolean;
     error?: string;
 } {
