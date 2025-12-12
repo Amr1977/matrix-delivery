@@ -8,7 +8,7 @@ Write-Host "╚═════════════════════�
 Write-Host ""
 
 # Configuration
-$LOCAL_CONFIG = "d:\matrix-delivery\scripts\apache-config-fixed.conf"
+$LOCAL_CONFIG = "d:/matrix-delivery/scripts/apache-config-fixed.conf"
 $REMOTE_USER = "root"
 $REMOTE_HOST = "oldantique50.com"
 $REMOTE_CONFIG_PATH = "/etc/apache2/sites-available/matrix-api.oldantique50.com.conf"
