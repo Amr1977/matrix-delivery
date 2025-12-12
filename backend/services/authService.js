@@ -244,6 +244,7 @@ class AuthService {
         roles: Array.isArray(user.roles) && user.roles.length ? user.roles : [user.role].filter(Boolean),
         rating: parseFloat(user.rating),
         completedDeliveries: user.completed_deliveries,
+        is_verified: user.is_verified,
         country: user.country,
         city: user.city,
         area: user.area
@@ -311,7 +312,6 @@ class AuthService {
       completed_deliveries: user.completed_deliveries,
       completedDeliveries: user.completed_deliveries,
       is_verified: user.is_verified,
-      isVerified: user.is_verified,
       country: user.country,
       city: user.city,
       area: user.area,
@@ -332,18 +332,20 @@ class AuthService {
       id: user.id,
       name: user.name,
       email: user.email,
-      role: user.primary_role || user.role,
-      primary_role: user.primary_role || user.role,
-      roles: user.granted_roles || user.roles || (user.primary_role ? [user.primary_role] : []),
-      granted_roles: user.granted_roles || user.roles || (user.primary_role ? [user.primary_role] : []),
-      rating: parseFloat(user.rating),
-      completedDeliveries: user.completed_deliveries,
-      isVerified: user.is_verified,
+      phone: user.phone,
+      role: user.primary_role,
+      primary_role: user.primary_role,
+      roles: user.granted_roles,
+      granted_roles: user.granted_roles,
       country: user.country,
       city: user.city,
       area: user.area,
+      vehicle_type: user.vehicle_type,
+      rating: parseFloat(user.rating || 0),
+      completed_deliveries: parseInt(user.completed_deliveries || 0),
+      is_verified: user.is_verified,
       profile_picture_url: user.profile_picture_url,
-      joinedAt: user.created_at
+      createdAt: user.created_at
     };
   }
 

@@ -157,7 +157,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
                                     <div className="mobile-user-name" style={{ fontWeight: 'bold', color: 'white', fontSize: '1.1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                         {currentUser?.name}
                                     </div>
-                                    {currentUser?.isVerified && (
+                                    {currentUser?.is_verified && (
                                         <span style={{
                                             background: '#10B981',
                                             color: 'white',
@@ -200,7 +200,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
                         </div>
 
                         {/* Email verification warning (matrix-styled) */}
-                        {currentUser && !currentUser.isVerified && !dismissed && (
+                        {currentUser && !currentUser.is_verified && !dismissed && (
                             <div style={{
                                 marginTop: '1rem',
                                 padding: '0.75rem',

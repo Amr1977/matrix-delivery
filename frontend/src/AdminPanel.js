@@ -592,10 +592,10 @@ const AdminPanel = ({ onClose }) => {
                             borderRadius: '9999px',
                             fontSize: '0.75rem',
                             fontWeight: '600',
-                            background: user.isVerified ? '#D1FAE5' : '#FEE2E2',
-                            color: user.isVerified ? '#065F46' : '#991B1B'
+                            background: user.is_verified ? '#D1FAE5' : '#FEE2E2',
+                            color: user.is_verified ? '#065F46' : '#991B1B'
                           }}>
-                            {user.isVerified ? '✓ Verified' : '⏳ Pending'}
+                            {user.is_verified ? '✓ Verified' : '⏳ Pending'}
                           </span>
                         </td>
                         <td style={{ padding: '1rem' }}>
@@ -624,11 +624,11 @@ const AdminPanel = ({ onClose }) => {
                               View
                             </button>
                             <button
-                              onClick={() => handleUserAction(user.isVerified ? 'suspend' : 'verify', user.id)}
+                              onClick={() => handleUserAction(user.is_verified ? 'suspend' : 'verify', user.id)}
                               disabled={loading}
-                              className={loading ? 'btn btn-danger' : (user.isVerified ? 'btn btn-danger' : 'btn btn-success')}
+                              className={loading ? 'btn btn-danger' : (user.is_verified ? 'btn btn-danger' : 'btn btn-success')}
                             >
-                              {user.isVerified ? 'Suspend' : 'Verify'}
+                              {user.is_verified ? 'Suspend' : 'Verify'}
                             </button>
                             <button
                               onClick={() => {

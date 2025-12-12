@@ -677,6 +677,7 @@ app.post('/api/auth/register', async (req, res) => {
   }
   try {
     const { name, email, password, phone, primary_role, vehicle_type, country, city, area, recaptchaToken } = req.body;
+    const role = primary_role;
 
     // Verify reCAPTCHA token only in production (skip for development/testing)
     if (IS_PRODUCTION && !(await verifyRecaptcha(recaptchaToken))) {

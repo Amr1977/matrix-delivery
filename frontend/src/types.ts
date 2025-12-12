@@ -8,7 +8,7 @@ export interface User {
     roles?: string[];
     granted_roles?: string[];
     profile_picture_url?: string;
-    isVerified?: boolean;
+    // isVerified removed in favor of is_verified
     is_verified?: boolean;
     completedDeliveries?: number;
     completed_deliveries?: number;

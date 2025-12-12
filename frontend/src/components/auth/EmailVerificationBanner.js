@@ -8,7 +8,7 @@ const EmailVerificationBanner = ({ currentUser }) => {
   const [resent, setResent] = useState(false);
 
   // Don't show if user is verified or not logged in
-  if (!currentUser || currentUser.isVerified) {
+  if (!currentUser || currentUser.is_verified) {
     return null;
   }
 
