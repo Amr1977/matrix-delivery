@@ -1,6 +1,7 @@
 import axios, { AxiosError } from 'axios';
 import crypto from 'crypto';
 import { Pool } from 'pg';
+import { PAYMENT_CONFIG, calculateCommission } from '../config/paymentConfig';
 
 // Types
 interface PaymobConfig {
