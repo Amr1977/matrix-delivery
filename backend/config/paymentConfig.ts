@@ -7,9 +7,6 @@ export const PAYMENT_CONFIG = {
     // Platform commission rate (as decimal)
     COMMISSION_RATE: 0.15, // 15%
 
-    // Commission rate in basis points (for display)
-    COMMISSION_RATE_PERCENT: 15,
-
     // Minimum order amount for digital payments (EGP)
     MIN_DIGITAL_PAYMENT_AMOUNT: 5,
 
@@ -60,6 +57,22 @@ export const PAYMENT_CONFIG = {
         AUTH_TOKEN_EXPIRY: 3600000,      // 1 hour
     },
 } as const;
+
+/**
+ * Get commission rate as percentage (for display)
+ * @returns Commission rate as percentage (e.g., 15)
+ */
+export function getCommissionRatePercent(): number {
+    return PAYMENT_CONFIG.COMMISSION_RATE * 100;
+}
+
+/**
+ * Get commission rate in basis points (for smart contracts)
+ * @returns Commission rate in basis points (e.g., 1500)
+ */
+export function getCommissionRateBasisPoints(): number {
+    return PAYMENT_CONFIG.COMMISSION_RATE * 10000;
+}
 
 /**
  * Calculate platform commission
