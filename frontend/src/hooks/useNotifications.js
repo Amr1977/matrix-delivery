@@ -133,9 +133,9 @@ const useNotifications = (token, currentUser) => {
 
       console.log('🔌 Initializing Socket.IO connection to:', apiUrl);
 
+      // Use httpOnly cookie for authentication instead of sending token
       const socket = io(apiUrl, {
-        auth: { token },
-        query: { token }, // Also pass as query for better compatibility
+        withCredentials: true, // CRITICAL: Send cookies with Socket.IO requests
         transports: ['polling', 'websocket'], // Try polling first, then upgrade
         reconnection: true,
         reconnectionAttempts: 5,

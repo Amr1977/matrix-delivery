@@ -698,8 +698,13 @@ export const MainApp = () => {
 
     const apiUrl = API_URL.replace('/api', '');
 
+    // Don't send token in auth - use httpOnly cookie instead
     const socket = io(apiUrl, {
-      auth: { token }
+      withCredentials: true, // CRITICAL: Send cookies with Socket.IO requests
+      transports: ['polling', 'websocket'],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
     });
 
     socket.on('connect', () => {
