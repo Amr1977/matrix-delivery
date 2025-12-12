@@ -130,12 +130,77 @@ const useNotifications = (token, currentUser) => {
   useEffect(() => {
     if (token && currentUser) {
       const apiUrl = API_URL.replace('/api', '');
+
+      console.log('🔌 Initializing Socket.IO connection to:', apiUrl);
+
       const socket = io(apiUrl, {
-        auth: { token }
+        auth: { token },
+        query: { token }, // Also pass as query for better compatibility
+        transports: ['polling', 'websocket'], // Try polling first, then upgrade
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 5000,
+        timeout: 20000,
+        path: '/socket.io/'
       });
 
       socket.on('connect', () => {
-        console.log('📡 Connected to real-time notifications');
+        console.log('✅ Socket.IO connected successfully', {
+          socketId: socket.id,
+          transport: socket.io.engine.transport.name
+        });
+      });
+
+      socket.on('connect_error', (error) => {
+        console.error('❌ Socket.IO connection error:', {
+          message: error.message,
+          description: error.description,
+          context: error.context,
+          type: error.type
+        });
+
+        // Handle authentication errors
+        if (error.message === 'Authentication required' ||
+          error.message === 'Token expired' ||
+          error.message === 'Invalid token') {
+          console.warn('⚠️ Socket.IO authentication failed - token may be invalid or expired');
+        }
+      });
+
+      socket.on('error', (error) => {
+        console.error('❌ Socket.IO error event:', error);
+      });
+
+      socket.on('disconnect', (reason) => {
+        console.log('📡 Socket.IO disconnected:', reason);
+
+        if (reason === 'io server disconnect') {
+          // Server disconnected the socket, try to reconnect manually
+          console.log('🔄 Server disconnected socket, attempting reconnection...');
+          socket.connect();
+        }
+      });
+
+      socket.on('reconnect', (attemptNumber) => {
+        console.log(`🔄 Socket.IO reconnected after ${attemptNumber} attempts`);
+      });
+
+      socket.on('reconnect_attempt', (attemptNumber) => {
+        console.log(`🔄 Socket.IO reconnection attempt ${attemptNumber}...`);
+      });
+
+      socket.on('reconnect_error', (error) => {
+        console.error('❌ Socket.IO reconnection error:', error.message);
+      });
+
+      socket.on('reconnect_failed', () => {
+        console.error('❌ Socket.IO reconnection failed after all attempts');
+      });
+
+      // Handle transport upgrade
+      socket.io.engine.on('upgrade', (transport) => {
+        console.log('⬆️ Socket.IO transport upgraded to:', transport.name);
       });
 
       socket.on('notification', (notification) => {
@@ -153,17 +218,14 @@ const useNotifications = (token, currentUser) => {
         }
       });
 
-      socket.on('disconnect', () => {
-        console.log('📡 Disconnected from real-time notifications');
-      });
-
       socketRef.current = socket;
 
       return () => {
+        console.log('🔌 Cleaning up Socket.IO connection');
         socket.disconnect();
       };
     }
-  }, [token, currentUser, playNotificationSound, speakNotification]);
+  }, [token, currentUser, API_URL, playNotificationSound, speakNotification]);
 
   // Setup periodic polling
   useEffect(() => {
