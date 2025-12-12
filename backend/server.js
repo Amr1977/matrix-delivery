@@ -5677,11 +5677,34 @@ io.engine.opts.maxHttpBufferSize = 1e6; // 1MB
 // Socket.IO Authentication Middleware
 io.use(async (socket, next) => {
   try {
-    // Get token from handshake auth or query
-    const token = socket.handshake.auth?.token || socket.handshake.query?.token;
+    // 1. Try to get token from handshake auth or query (standard method)
+    let token = socket.handshake.auth?.token || socket.handshake.query?.token;
 
-    if (!token) {
-      logger.warn('Socket.IO connection attempt without token', {
+    // 2. If token is missing or is the placeholder "authenticated", try to get from cookies
+    if (!token || token === 'authenticated') {
+      const cookieHeader = socket.request.headers.cookie;
+      if (cookieHeader) {
+        // Parse cookies manually to avoid external dependencies in this scope if possible, 
+        // or re-use cookie-parser logic if available. Simple split is often enough for top-level.
+        const cookies = {};
+        cookieHeader.split(';').forEach(cookie => {
+          const parts = cookie.split('=');
+          if (parts.length >= 2) {
+            const name = parts.shift().trim();
+            const value = parts.join('='); // Rejoin in case value has =
+            cookies[name] = decodeURIComponent(value);
+          }
+        });
+
+        if (cookies.token) {
+          token = cookies.token;
+          // logger.debug('Found token in cookies for Socket.IO', { category: 'websocket' });
+        }
+      }
+    }
+
+    if (!token || token === 'authenticated') {
+      logger.warn('Socket.IO connection attempt without valid token', {
         socketId: socket.id,
         origin: socket.handshake.headers.origin,
         category: 'websocket'
