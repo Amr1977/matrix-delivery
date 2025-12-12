@@ -211,8 +211,8 @@ class PaymentService {
       // Update payment status
       await client.query(
         `UPDATE payments
-         SET status = $1, stripe_charge_id = $2, updated_at = CURRENT_TIMESTAMP
-         WHERE id = $3`,
+       SET status = $1, stripe_charge_id = $2, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $3`,
         [
           newStatus,
           paymentIntent.latest_charge || null,
@@ -220,11 +220,31 @@ class PaymentService {
         ]
       );
 
-      // If payment succeeded, mark order as paid
+      // If payment succeeded, calculate commission and update order
       if (newStatus === 'completed') {
+        // Import payment config for commission calculation
+        const { PAYMENT_CONFIG } = require('../config/paymentConfig.ts');
+        const { calculateCommission } = require('../config/paymentConfig.ts');
+
+        // Calculate commission (15%)
+        const { commission: platformCommission, payout: driverPayout } = calculateCommission(payment.amount);
+
         await client.query(
-          'UPDATE orders SET payment_status = $1 WHERE id = $2',
-          ['paid', payment.order_id]
+          `UPDATE orders 
+         SET payment_status = $1,
+             payment_method = $2,
+             platform_commission = $3,
+             driver_payout = $4
+         WHERE id = $5`,
+          ['paid', 'stripe', platformCommission, driverPayout, payment.order_id]
+        );
+
+        // Record platform revenue
+        await client.query(
+          `INSERT INTO platform_revenue (order_id, commission_amount, commission_rate, payment_method)
+         VALUES ($1, $2, $3, $4)
+         ON CONFLICT (order_id) DO NOTHING`,
+          [payment.order_id, platformCommission, PAYMENT_CONFIG.COMMISSION_RATE, 'stripe']
         );
       }
 
@@ -655,11 +675,31 @@ class PaymentService {
         ]
       );
 
-      // If payment succeeded, mark order as paid
+      // If payment succeeded, calculate commission and update order
       if (newStatus === 'completed') {
+        // Import payment config for commission calculation
+        const { PAYMENT_CONFIG } = require('../config/paymentConfig.ts');
+        const { calculateCommission } = require('../config/paymentConfig.ts');
+
+        // Calculate commission (15%)
+        const { commission: platformCommission, payout: driverPayout } = calculateCommission(payment.amount);
+
         await client.query(
-          'UPDATE orders SET payment_status = $1 WHERE id = $2',
-          ['paid', payment.order_id]
+          `UPDATE orders 
+           SET payment_status = $1, 
+               payment_method = $2,
+               platform_commission = $3,
+               driver_payout = $4
+           WHERE id = $5`,
+          ['paid', 'paypal', platformCommission, driverPayout, payment.order_id]
+        );
+
+        // Record platform revenue
+        await client.query(
+          `INSERT INTO platform_revenue (order_id, commission_amount, commission_rate, payment_method)
+           VALUES ($1, $2, $3, $4)
+           ON CONFLICT (order_id) DO NOTHING`,
+          [payment.order_id, platformCommission, PAYMENT_CONFIG.COMMISSION_RATE, 'paypal']
         );
       }
 
