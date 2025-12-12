@@ -1,6 +1,6 @@
 const { expect } = require("chai");
 const hre = require("hardhat");
-const { PAYMENT_CONFIG } = require('../../config/paymentConfig.ts');
+const { getCommissionRateBasisPoints } = require('../../config/paymentConfig.ts');
 
 describe("MatrixDeliveryEscrow", function () {
     let escrow;
@@ -12,7 +12,7 @@ describe("MatrixDeliveryEscrow", function () {
     let addrs;
     let ORDER_AMOUNT;
 
-    const COMMISSION_RATE = PAYMENT_CONFIG.COMMISSION_RATE * 10000; // Convert to basis points (1500)
+    const COMMISSION_RATE = getCommissionRateBasisPoints(); // Get basis points (1500)
 
     beforeEach(async function () {
         [owner, platformWallet, customer, driver, ...addrs] = await hre.ethers.getSigners();
