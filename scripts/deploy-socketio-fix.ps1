@@ -52,11 +52,11 @@ $backupPath = "/etc/apache2/sites-available/matrix-api.oldantique50.com.conf.bac
 ssh "${REMOTE_USER}@${REMOTE_HOST}" "cp ${REMOTE_CONFIG_PATH} ${backupPath}"
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "[WARNING] Failed to create backup, but continuing..." -ForegroundColor Yellow
+    Write-Host "[ERROR] Failed to create backup - aborting deployment for safety" -ForegroundColor Red
+    Write-Host "[INFO] No changes were made to the server" -ForegroundColor Yellow
+    exit 1
 }
-else {
-    Write-Host "[OK] Backup created: ${backupPath}" -ForegroundColor Green
-}
+Write-Host "[OK] Backup created: ${backupPath}" -ForegroundColor Green
 Write-Host ""
 
 # Step 2: Upload configuration
