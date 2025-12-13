@@ -55,6 +55,21 @@ Given('the minimum digital payment amount is {int} EGP', function (this: ErrorWo
 Given('a customer attempts to pay {float} EGP using a card', function (this: ErrorWorld, amount: number) {
     this.paymentAmount = amount;
     this.paymentMethod = 'card';
+
+    // Automatically validate the payment
+    this.validationResult = {
+        valid: true,
+        error: null
+    };
+
+    // Check minimum amount if set
+    if (this.minAmount !== undefined && amount < this.minAmount) {
+        this.validationResult.valid = false;
+        this.validationResult.error = 'Amount below minimum';
+    } else if (amount <= 0) {
+        this.validationResult.valid = false;
+        this.validationResult.error = 'Amount must be greater than 0';
+    }
 });
 
 Given('a customer initiates a payment', function (this: ErrorWorld) {
@@ -84,9 +99,15 @@ When('the payment is validated', function (this: ErrorWorld) {
         error: null
     };
 
-    if (amount === null || amount === undefined) {
+    // Check minimum amount if set
+    if (this.minAmount !== undefined && typeof amount === 'number' && amount < this.minAmount) {
+        this.validationResult.valid = false;
+        this.validationResult.error = 'Amount below minimum';
+    } else if (amount === null || amount === undefined) {
+        this.validationResult.valid = false;
         this.validationResult.error = 'Invalid amount';
     } else if (typeof amount === 'number' && amount <= 0) {
+        this.validationResult.valid = false;
         this.validationResult.error = 'Amount must be greater than 0';
     }
 });
