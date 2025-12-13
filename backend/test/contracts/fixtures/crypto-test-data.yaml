@@ -1,0 +1,100 @@
+# Crypto Smart Contract Test Data
+# Test data for MatrixDeliveryEscrow contract tests
+
+# Test accounts configuration
+test_accounts:
+  - role: "owner"
+    description: "Contract deployer"
+  - role: "platform_wallet"
+    description: "Receives platform commission"
+  - role: "customer"
+    description: "Order placer"
+  - role: "driver"
+    description: "Order fulfiller"
+
+# Order test scenarios
+order_scenarios:
+  - description: "standard 100 USDC order"
+    amount: "100"
+    token_decimals: 6
+    expected_commission_percent: 15
+  - description: "large 1000 USDC order"
+    amount: "1000"
+    token_decimals: 6
+    expected_commission_percent: 15
+  - description: "small 10 USDC order"
+    amount: "10"
+    token_decimals: 6
+    expected_commission_percent: 15
+
+# Token configurations
+supported_tokens:
+  - name: "Mock USDC"
+    symbol: "USDC"
+    decimals: 6
+    initial_mint: "1000"
+  - name: "Mock USDT"
+    symbol: "USDT"
+    decimals: 6
+    initial_mint: "1000"
+
+# Escrow state transitions
+escrow_states:
+  - state: "Created"
+    value: 0
+  - state: "Funded"
+    value: 1
+  - state: "InProgress"
+    value: 2
+  - state: "Completed"
+    value: 3
+  - state: "Disputed"
+    value: 4
+  - state: "Cancelled"
+    value: 5
+
+# Commission calculation test cases
+commission_calculations:
+  - order_amount: "100"
+    expected_commission: "15"
+    expected_driver_payout: "85"
+  - order_amount: "250"
+    expected_commission: "37.5"
+    expected_driver_payout: "212.5"
+  - order_amount: "500"
+    expected_commission: "75"
+    expected_driver_payout: "425"
+  - order_amount: "1000"
+    expected_commission: "150"
+    expected_driver_payout: "850"
+
+# Error scenarios
+error_scenarios:
+  - description: "zero amount order"
+    amount: "0"
+    expected_error: "Amount must be greater than 0"
+  - description: "unsupported token"
+    use_unsupported_token: true
+    expected_error: "Token not supported"
+  - description: "insufficient balance"
+    amount: "10000"
+    customer_balance: "100"
+    expected_error: "Insufficient balance"
+
+# Integration test scenarios
+integration_scenarios:
+  - name: "complete_order_flow"
+    steps:
+      - action: "create_order"
+        amount: "100"
+      - action: "fund_escrow"
+      - action: "start_delivery"
+      - action: "complete_delivery"
+      - action: "release_payment"
+  - name: "cancelled_order_flow"
+    steps:
+      - action: "create_order"
+        amount: "100"
+      - action: "fund_escrow"
+      - action: "cancel_order"
+      - action: "refund_customer"

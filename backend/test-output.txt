@@ -1,0 +1,1635 @@
+
+> matrix-delivery-backend@1.0.0 test:bdd
+> cucumber-js
+
+Cannot use 'progress-bar' formatter for output to 'stdout' as not a TTY. Switching to 'progress' formatter.
+UUUUUUUUUUUUUU-UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU-UUUUUUUU-UUUUUUUU.................................................UU-UUUU-U-UUU..UUUUUUUUUUUUUUUUUUUUUUUA--UA--U...U...U..F-...........................................................A----..........U---....AUU--....AUU--.....UU-.....U--...UAU---....UU--UU--UUUUU-U-UU--UUUU--UU-UUUUU-UUUUU-UUUUUUUUUUUUUUUUUUU--UUUUUUU...........................................................
+
+Failures:
+
+1) Scenario: Pay with USDC # features\crypto-payments.feature:11
+   ? Given the escrow smart contract is deployed
+       Undefined. Implement with the following snippet:
+
+         Given('the escrow smart contract is deployed', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? And USDC and USDT tokens are supported
+       Undefined. Implement with the following snippet:
+
+         Given('USDC and USDT tokens are supported', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? And the commission rate is set to 1500 basis points (15%)
+       Undefined. Implement with the following snippet:
+
+         Given('the commission rate is set to {int} basis points \\({int}%)', async function (int, int2) {
+         // Given('the commission rate is set to {int} basis points \\({float}%)', async function (int, float) {
+         // Given('the commission rate is set to {float} basis points \\({int}%)', async function (float, int) {
+         // Given('the commission rate is set to {float} basis points \\({float}%)', async function (float, float2) {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? Given a customer has placed an order for 100 USDC
+       Undefined. Implement with the following snippet:
+
+         Given('a customer has placed an order for {int} USDC', async function (int) {
+         // Given('a customer has placed an order for {float} USDC', async function (float) {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? And the customer has sufficient USDC balance
+       Undefined. Implement with the following snippet:
+
+         Given('the customer has sufficient USDC balance', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? When the customer initiates crypto payment
+       Undefined. Implement with the following snippet:
+
+         When('the customer initiates crypto payment', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? Then the smart contract should create an escrow
+       Undefined. Implement with the following snippet:
+
+         Then('the smart contract should create an escrow', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? And 100 USDC should be locked in escrow
+       Undefined. Implement with the following snippet:
+
+         Then('{int} USDC should be locked in escrow', async function (int) {
+         // Then('{float} USDC should be locked in escrow', async function (float) {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? And the commission should be calculated as 15 USDC
+       Undefined. Implement with the following snippet:
+
+         Then('the commission should be calculated as {int} USDC', async function (int) {
+         // Then('the commission should be calculated as {float} USDC', async function (float) {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? And the driver payout should be 85 USDC
+       Undefined. Implement with the following snippet:
+
+         Then('the driver payout should be {int} USDC', async function (int) {
+         // Then('the driver payout should be {float} USDC', async function (float) {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+
+2) Scenario: Pay with USDT # features\crypto-payments.feature:20
+   ? Given the escrow smart contract is deployed
+       Undefined. Implement with the following snippet:
+
+         Given('the escrow smart contract is deployed', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? And USDC and USDT tokens are supported
+       Undefined. Implement with the following snippet:
+
+         Given('USDC and USDT tokens are supported', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? And the commission rate is set to 1500 basis points (15%)
+       Undefined. Implement with the following snippet:
+
+         Given('the commission rate is set to {int} basis points \\({int}%)', async function (int, int2) {
+         // Given('the commission rate is set to {int} basis points \\({float}%)', async function (int, float) {
+         // Given('the commission rate is set to {float} basis points \\({int}%)', async function (float, int) {
+         // Given('the commission rate is set to {float} basis points \\({float}%)', async function (float, float2) {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? Given a customer has placed an order for 250 USDT
+       Undefined. Implement with the following snippet:
+
+         Given('a customer has placed an order for {int} USDT', async function (int) {
+         // Given('a customer has placed an order for {float} USDT', async function (float) {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   - When the customer pays using USDT # features\step_definitions\payment_method_steps.ts:77
+   ? Then the payment should be processed through the escrow contract
+       Undefined. Implement with the following snippet:
+
+         Then('the payment should be processed through the escrow contract', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? And the commission should be 37.50 USDT
+       Undefined. Implement with the following snippet:
+
+         Then('the commission should be {float} USDT', async function (float) {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? And the driver should receive 212.50 USDT upon completion
+       Undefined. Implement with the following snippet:
+
+         Then('the driver should receive {float} USDT upon completion', async function (float) {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+
+3) Scenario: Complete delivery and release payment # features\crypto-payments.feature:27
+   ? Given the escrow smart contract is deployed
+       Undefined. Implement with the following snippet:
+
+         Given('the escrow smart contract is deployed', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? And USDC and USDT tokens are supported
+       Undefined. Implement with the following snippet:
+
+         Given('USDC and USDT tokens are supported', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? And the commission rate is set to 1500 basis points (15%)
+       Undefined. Implement with the following snippet:
+
+         Given('the commission rate is set to {int} basis points \\({int}%)', async function (int, int2) {
+         // Given('the commission rate is set to {int} basis points \\({float}%)', async function (int, float) {
+         // Given('the commission rate is set to {float} basis points \\({int}%)', async function (float, int) {
+         // Given('the commission rate is set to {float} basis points \\({float}%)', async function (float, float2) {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? Given a crypto payment of 500 USDC is in escrow
+       Undefined. Implement with the following snippet:
+
+         Given('a crypto payment of {int} USDC is in escrow', async function (int) {
+         // Given('a crypto payment of {float} USDC is in escrow', async function (float) {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? And the driver has completed the delivery
+       Undefined. Implement with the following snippet:
+
+         Given('the driver has completed the delivery', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? When the delivery is confirmed
+       Undefined. Implement with the following snippet:
+
+         When('the delivery is confirmed', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? Then 75 USDC should be released to the platform wallet
+       Undefined. Implement with the following snippet:
+
+         Then('{int} USDC should be released to the platform wallet', async function (int) {
+         // Then('{float} USDC should be released to the platform wallet', async function (float) {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? And 425 USDC should be released to the driver wallet
+       Undefined. Implement with the following snippet:
+
+         Then('{int} USDC should be released to the driver wallet', async function (int) {
+         // Then('{float} USDC should be released to the driver wallet', async function (float) {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? And the escrow should be marked as completed
+       Undefined. Implement with the following snippet:
+
+         Then('the escrow should be marked as completed', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+
+4) Scenario: Cancel order and refund customer # features\crypto-payments.feature:35
+   ? Given the escrow smart contract is deployed
+       Undefined. Implement with the following snippet:
+
+         Given('the escrow smart contract is deployed', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? And USDC and USDT tokens are supported
+       Undefined. Implement with the following snippet:
+
+         Given('USDC and USDT tokens are supported', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? And the commission rate is set to 1500 basis points (15%)
+       Undefined. Implement with the following snippet:
+
+         Given('the commission rate is set to {int} basis points \\({int}%)', async function (int, int2) {
+         // Given('the commission rate is set to {int} basis points \\({float}%)', async function (int, float) {
+         // Given('the commission rate is set to {float} basis points \\({int}%)', async function (float, int) {
+         // Given('the commission rate is set to {float} basis points \\({float}%)', async function (float, float2) {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? Given a crypto payment of 300 USDC is in escrow
+       Undefined. Implement with the following snippet:
+
+         Given('a crypto payment of {int} USDC is in escrow', async function (int) {
+         // Given('a crypto payment of {float} USDC is in escrow', async function (float) {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? When the order is cancelled before delivery
+       Undefined. Implement with the following snippet:
+
+         When('the order is cancelled before delivery', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? Then the full 300 USDC should be refunded to the customer
+       Undefined. Implement with the following snippet:
+
+         Then('the full {int} USDC should be refunded to the customer', async function (int) {
+         // Then('the full {float} USDC should be refunded to the customer', async function (float) {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? And no commission should be charged
+       Undefined. Implement with the following snippet:
+
+         Then('no commission should be charged', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? And the escrow should be marked as cancelled
+       Undefined. Implement with the following snippet:
+
+         Then('the escrow should be marked as cancelled', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+
+5) Scenario: Handle disputed delivery # features\crypto-payments.feature:42
+   ? Given the escrow smart contract is deployed
+       Undefined. Implement with the following snippet:
+
+         Given('the escrow smart contract is deployed', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? And USDC and USDT tokens are supported
+       Undefined. Implement with the following snippet:
+
+         Given('USDC and USDT tokens are supported', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? And the commission rate is set to 1500 basis points (15%)
+       Undefined. Implement with the following snippet:
+
+         Given('the commission rate is set to {int} basis points \\({int}%)', async function (int, int2) {
+         // Given('the commission rate is set to {int} basis points \\({float}%)', async function (int, float) {
+         // Given('the commission rate is set to {float} basis points \\({int}%)', async function (float, int) {
+         // Given('the commission rate is set to {float} basis points \\({float}%)', async function (float, float2) {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? Given a crypto payment is in escrow
+       Undefined. Implement with the following snippet:
+
+         Given('a crypto payment is in escrow', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? When a dispute is raised
+       Undefined. Implement with the following snippet:
+
+         When('a dispute is raised', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? Then the escrow should be marked as disputed
+       Undefined. Implement with the following snippet:
+
+         Then('the escrow should be marked as disputed', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? And the funds should remain locked
+       Undefined. Implement with the following snippet:
+
+         Then('the funds should remain locked', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? And an admin should be able to resolve the dispute
+       Undefined. Implement with the following snippet:
+
+         Then('an admin should be able to resolve the dispute', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+
+6) Scenario: Verify commission rate in smart contract # features\crypto-payments.feature:49
+   ? Given the escrow smart contract is deployed
+       Undefined. Implement with the following snippet:
+
+         Given('the escrow smart contract is deployed', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? And USDC and USDT tokens are supported
+       Undefined. Implement with the following snippet:
+
+         Given('USDC and USDT tokens are supported', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? And the commission rate is set to 1500 basis points (15%)
+       Undefined. Implement with the following snippet:
+
+         Given('the commission rate is set to {int} basis points \\({int}%)', async function (int, int2) {
+         // Given('the commission rate is set to {int} basis points \\({float}%)', async function (int, float) {
+         // Given('the commission rate is set to {float} basis points \\({int}%)', async function (float, int) {
+         // Given('the commission rate is set to {float} basis points \\({float}%)', async function (float, float2) {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? Given the smart contract is deployed
+       Undefined. Implement with the following snippet:
+
+         Given('the smart contract is deployed', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? When the commission rate is queried
+       Undefined. Implement with the following snippet:
+
+         When('the commission rate is queried', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? Then it should return 1500 basis points
+       Undefined. Implement with the following snippet:
+
+         Then('it should return {int} basis points', async function (int) {
+         // Then('it should return {float} basis points', async function (float) {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? And this should equal 15% in decimal form
+       Undefined. Implement with the following snippet:
+
+         Then('this should equal {int}% in decimal form', async function (int) {
+         // Then('this should equal {float}% in decimal form', async function (float) {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+
+7) Scenario: Handle insufficient crypto balance # features\crypto-payments.feature:55
+   ? Given the escrow smart contract is deployed
+       Undefined. Implement with the following snippet:
+
+         Given('the escrow smart contract is deployed', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? And USDC and USDT tokens are supported
+       Undefined. Implement with the following snippet:
+
+         Given('USDC and USDT tokens are supported', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? And the commission rate is set to 1500 basis points (15%)
+       Undefined. Implement with the following snippet:
+
+         Given('the commission rate is set to {int} basis points \\({int}%)', async function (int, int2) {
+         // Given('the commission rate is set to {int} basis points \\({float}%)', async function (int, float) {
+         // Given('the commission rate is set to {float} basis points \\({int}%)', async function (float, int) {
+         // Given('the commission rate is set to {float} basis points \\({float}%)', async function (float, float2) {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? Given a customer has only 50 USDC
+       Undefined. Implement with the following snippet:
+
+         Given('a customer has only {int} USDC', async function (int) {
+         // Given('a customer has only {float} USDC', async function (float) {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? When the customer attempts to pay 100 USDC
+       Undefined. Implement with the following snippet:
+
+         When('the customer attempts to pay {int} USDC', async function (int) {
+         // When('the customer attempts to pay {float} USDC', async function (float) {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? Then the transaction should fail
+       Undefined. Implement with the following snippet:
+
+         Then('the transaction should fail', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   - And the error should indicate "Insufficient balance" # features\step_definitions\error_steps.ts:130
+   ? And no escrow should be created
+       Undefined. Implement with the following snippet:
+
+         Then('no escrow should be created', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+
+8) Scenario: Handle unsupported token # features\crypto-payments.feature:62
+   ? Given the escrow smart contract is deployed
+       Undefined. Implement with the following snippet:
+
+         Given('the escrow smart contract is deployed', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? And USDC and USDT tokens are supported
+       Undefined. Implement with the following snippet:
+
+         Given('USDC and USDT tokens are supported', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? And the commission rate is set to 1500 basis points (15%)
+       Undefined. Implement with the following snippet:
+
+         Given('the commission rate is set to {int} basis points \\({int}%)', async function (int, int2) {
+         // Given('the commission rate is set to {int} basis points \\({float}%)', async function (int, float) {
+         // Given('the commission rate is set to {float} basis points \\({int}%)', async function (float, int) {
+         // Given('the commission rate is set to {float} basis points \\({float}%)', async function (float, float2) {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? Given a customer attempts to pay with DAI token
+       Undefined. Implement with the following snippet:
+
+         Given('a customer attempts to pay with DAI token', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? And DAI is not a supported token
+       Undefined. Implement with the following snippet:
+
+         Given('DAI is not a supported token', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? When the payment is initiated
+       Undefined. Implement with the following snippet:
+
+         When('the payment is initiated', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? Then the transaction should be rejected
+       Undefined. Implement with the following snippet:
+
+         Then('the transaction should be rejected', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   - And the error should indicate "Token not supported" # features\step_definitions\error_steps.ts:130
+
+9) Scenario: Gas fee handling # features\crypto-payments.feature:69
+   ? Given the escrow smart contract is deployed
+       Undefined. Implement with the following snippet:
+
+         Given('the escrow smart contract is deployed', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? And USDC and USDT tokens are supported
+       Undefined. Implement with the following snippet:
+
+         Given('USDC and USDT tokens are supported', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? And the commission rate is set to 1500 basis points (15%)
+       Undefined. Implement with the following snippet:
+
+         Given('the commission rate is set to {int} basis points \\({int}%)', async function (int, int2) {
+         // Given('the commission rate is set to {int} basis points \\({float}%)', async function (int, float) {
+         // Given('the commission rate is set to {float} basis points \\({int}%)', async function (float, int) {
+         // Given('the commission rate is set to {float} basis points \\({float}%)', async function (float, float2) {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? Given a crypto payment is initiated
+       Undefined. Implement with the following snippet:
+
+         Given('a crypto payment is initiated', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? When the transaction is submitted
+       Undefined. Implement with the following snippet:
+
+         When('the transaction is submitted', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? Then the customer should pay the gas fees
+       Undefined. Implement with the following snippet:
+
+         Then('the customer should pay the gas fees', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? And the gas fees should not affect the commission calculation
+       Undefined. Implement with the following snippet:
+
+         Then('the gas fees should not affect the commission calculation', async function () {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+   ? And the platform should receive exactly 15% commission
+       Undefined. Implement with the following snippet:
+
+         Then('the platform should receive exactly {int}% commission', async function (int) {
+         // Then('the platform should receive exactly {float}% commission', async function (float) {
+           // Write code here that turns the phrase above into concrete actions
+           return 'pending';
+         });
+
+
+10) Scenario: Handle very small payment amount # features\payment-edge-cases.feature:6
+    ΓêÜ Given an order with amount 0.01 EGP # features\step_definitions\commission_steps.ts:31
+    ΓêÜ When the commission is calculated # features\step_definitions\commission_steps.ts:39
+    ? Then the calculation should complete without error
+        Undefined. Implement with the following snippet:
+
+          Then('the calculation should complete without error', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And the commission should be a valid number
+        Undefined. Implement with the following snippet:
+
+          Then('the commission should be a valid number', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    - And the commission plus payout should equal 0.01 EGP # features\step_definitions\commission_steps.ts:67
+
+11) Scenario: Handle minimum digital payment amount # features\payment-edge-cases.feature:13
+    ? Given the minimum digital payment is 5 EGP
+        Undefined. Implement with the following snippet:
+
+          Given('the minimum digital payment is {int} EGP', async function (int) {
+          // Given('the minimum digital payment is {float} EGP', async function (float) {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? When an order of exactly 5 EGP is placed
+        Undefined. Implement with the following snippet:
+
+          When('an order of exactly {int} EGP is placed', async function (int) {
+          // When('an order of exactly {float} EGP is placed', async function (float) {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? Then the payment should be accepted
+        Undefined. Implement with the following snippet:
+
+          Then('the payment should be accepted', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And the commission should be 0.75 EGP
+        Undefined. Implement with the following snippet:
+
+          Then('the commission should be {float} EGP', async function (float) {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    - And the driver payout should be 4.25 EGP # features\step_definitions\commission_steps.ts:63
+
+12) Scenario: Handle very large payment amount # features\payment-edge-cases.feature:20
+    ? Given an order with amount 1,000,000 EGP
+        Undefined. Implement with the following snippet:
+
+          Given('an order with amount {int},{int},{int} EGP', async function (int, int2, int3) {
+          // Given('an order with amount {int},{int},{float} EGP', async function (int, int2, float) {
+          // Given('an order with amount {int},{float},{int} EGP', async function (int, float, int2) {
+          // Given('an order with amount {int},{float},{float} EGP', async function (int, float, float2) {
+          // Given('an order with amount {float},{int},{int} EGP', async function (float, int, int2) {
+          // Given('an order with amount {float},{int},{float} EGP', async function (float, int, float2) {
+          // Given('an order with amount {float},{float},{int} EGP', async function (float, float2, int) {
+          // Given('an order with amount {float},{float},{float} EGP', async function (float, float2, float3) {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    - When the commission is calculated # features\step_definitions\commission_steps.ts:39
+    ? Then the commission should be 150,000.00 EGP
+        Undefined. Implement with the following snippet:
+
+          Then('the commission should be {int},{float} EGP', async function (int, float) {
+          // Then('the commission should be {float},{float} EGP', async function (float, float2) {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And the driver payout should be 850,000.00 EGP
+        Undefined. Implement with the following snippet:
+
+          Then('the driver payout should be {int},{float} EGP', async function (int, float) {
+          // Then('the driver payout should be {float},{float} EGP', async function (float, float2) {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And no overflow error should occur
+        Undefined. Implement with the following snippet:
+
+          Then('no overflow error should occur', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+
+13) Scenario: Handle decimal rounding correctly # features\payment-edge-cases.feature:27
+    ΓêÜ Given an order with amount 33.33 EGP # features\step_definitions\commission_steps.ts:31
+    ΓêÜ When the commission is calculated # features\step_definitions\commission_steps.ts:39
+    ? Then the commission should be approximately 5.00 EGP
+        Undefined. Implement with the following snippet:
+
+          Then('the commission should be approximately {float} EGP', async function (float) {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And the driver payout should be approximately 28.33 EGP
+        Undefined. Implement with the following snippet:
+
+          Then('the driver payout should be approximately {float} EGP', async function (float) {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And the total should equal 33.33 EGP within 0.01 precision
+        Undefined. Implement with the following snippet:
+
+          Then('the total should equal {float} EGP within {float} precision', async function (float, float2) {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+
+14) Scenario: Handle concurrent payment processing # features\payment-edge-cases.feature:34
+    ? Given 3 orders are placed simultaneously
+        Undefined. Implement with the following snippet:
+
+          Given('{int} orders are placed simultaneously', async function (int) {
+          // Given('{float} orders are placed simultaneously', async function (float) {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? When all 3 payments are processed concurrently
+        Undefined. Implement with the following snippet:
+
+          When('all {int} payments are processed concurrently', async function (int) {
+          // When('all {float} payments are processed concurrently', async function (float) {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? Then all payments should complete successfully
+        Undefined. Implement with the following snippet:
+
+          Then('all payments should complete successfully', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And each commission should be calculated correctly
+        Undefined. Implement with the following snippet:
+
+          Then('each commission should be calculated correctly', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And no race conditions should occur
+        Undefined. Implement with the following snippet:
+
+          Then('no race conditions should occur', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And all revenue records should be created
+        Undefined. Implement with the following snippet:
+
+          Then('all revenue records should be created', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+
+15) Scenario: Handle payment in different currencies # features\payment-edge-cases.feature:42
+    ? Given the platform supports multiple currencies
+        Undefined. Implement with the following snippet:
+
+          Given('the platform supports multiple currencies', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? When a payment is made in USD
+        Undefined. Implement with the following snippet:
+
+          When('a payment is made in USD', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? Then the commission should be calculated in USD
+        Undefined. Implement with the following snippet:
+
+          Then('the commission should be calculated in USD', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And the currency should be recorded correctly
+        Undefined. Implement with the following snippet:
+
+          Then('the currency should be recorded correctly', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+
+16) Scenario: Handle payment method switching # features\payment-edge-cases.feature:48
+    ? Given a customer starts payment with Stripe
+        Undefined. Implement with the following snippet:
+
+          Given('a customer starts payment with Stripe', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? When the customer switches to PayPal mid-transaction
+        Undefined. Implement with the following snippet:
+
+          When('the customer switches to PayPal mid-transaction', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? Then the previous payment attempt should be cancelled
+        Undefined. Implement with the following snippet:
+
+          Then('the previous payment attempt should be cancelled', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And the new payment should proceed
+        Undefined. Implement with the following snippet:
+
+          Then('the new payment should proceed', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And only one payment should be recorded
+        Undefined. Implement with the following snippet:
+
+          Then('only one payment should be recorded', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+
+17) Scenario: Handle partial refunds # features\payment-edge-cases.feature:55
+    ? Given an order of 100 EGP has been paid
+        Undefined. Implement with the following snippet:
+
+          Given('an order of {int} EGP has been paid', async function (int) {
+          // Given('an order of {float} EGP has been paid', async function (float) {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? When a partial refund of 30 EGP is issued
+        Undefined. Implement with the following snippet:
+
+          When('a partial refund of {int} EGP is issued', async function (int) {
+          // When('a partial refund of {float} EGP is issued', async function (float) {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? Then the commission should be recalculated
+        Undefined. Implement with the following snippet:
+
+          Then('the commission should be recalculated', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And the platform should refund 4.50 EGP commission
+        Undefined. Implement with the following snippet:
+
+          Then('the platform should refund {float} EGP commission', async function (float) {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And the driver should refund 25.50 EGP
+        Undefined. Implement with the following snippet:
+
+          Then('the driver should refund {float} EGP', async function (float) {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+
+18) Scenario: Reject invalid payment amounts # features\payment-errors.feature:14
+    ├ù Given a payment request with amount -10
+        Multiple step definitions match:
+          a payment request with amount {int}  - features\step_definitions\error_steps.ts:39
+          a payment request with amount {word} - features\step_definitions\error_steps.ts:43
+    - When the payment is validated # features\step_definitions\error_steps.ts:80
+    - Then the payment should be rejected # features\step_definitions\error_steps.ts:121
+    ? And the error message should indicate negative amount
+        Undefined. Implement with the following snippet:
+
+          Then('the error message should indicate negative amount', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+
+19) Scenario: Reject invalid payment amounts # features\payment-errors.feature:15
+    ├ù Given a payment request with amount 0
+        Multiple step definitions match:
+          a payment request with amount {int}  - features\step_definitions\error_steps.ts:39
+          a payment request with amount {word} - features\step_definitions\error_steps.ts:43
+    - When the payment is validated # features\step_definitions\error_steps.ts:80
+    - Then the payment should be rejected # features\step_definitions\error_steps.ts:121
+    ? And the error message should indicate zero amount
+        Undefined. Implement with the following snippet:
+
+          Then('the error message should indicate zero amount', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+
+20) Scenario: Reject invalid payment amounts # features\payment-errors.feature:16
+    ΓêÜ Given a payment request with amount null # features\step_definitions\error_steps.ts:43
+    ΓêÜ When the payment is validated # features\step_definitions\error_steps.ts:80
+    ΓêÜ Then the payment should be rejected # features\step_definitions\error_steps.ts:121
+    ? And the error message should indicate missing amount
+        Undefined. Implement with the following snippet:
+
+          Then('the error message should indicate missing amount', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+
+21) Scenario: Reject invalid payment amounts # features\payment-errors.feature:17
+    ΓêÜ Given a payment request with amount undefined # features\step_definitions\error_steps.ts:43
+    ΓêÜ When the payment is validated # features\step_definitions\error_steps.ts:80
+    ΓêÜ Then the payment should be rejected # features\step_definitions\error_steps.ts:121
+    ? And the error message should indicate missing amount
+        Undefined. Implement with the following snippet:
+
+          Then('the error message should indicate missing amount', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+
+22) Scenario: Reject payment below minimum amount # features\payment-errors.feature:19
+    ΓêÜ Given the minimum digital payment amount is 5 EGP # features\step_definitions\error_steps.ts:51
+    ΓêÜ When a customer attempts to pay 3 EGP using a card # features\step_definitions\error_steps.ts:55
+    ├ù Then the payment should be rejected # features\step_definitions\error_steps.ts:121
+        AssertionError: expected undefined to be false
+            at World.<anonymous> (D:\matrix-delivery\backend\features\step_definitions\error_steps.ts:122:47)
+    - And the error should indicate "Amount below minimum" # features\step_definitions\error_steps.ts:130
+
+23) Scenario: Process payment with different methods # features\payment-methods.feature:24
+    ΓêÜ Given the platform is configured with multiple payment methods # features\step_definitions\payment_method_steps.ts:39
+    ΓêÜ And all payment methods use 15% commission rate # features\step_definitions\payment_method_steps.ts:43
+    ΓêÜ Given a customer has placed an order for 1000 EGP # features\step_definitions\payment_method_steps.ts:48
+    ├ù When the customer pays using crypto
+        Multiple step definitions match:
+          the customer pays using {word} - features\step_definitions\payment_method_steps.ts:77 
+          the customer pays using crypto - features\step_definitions\payment_method_steps.ts:127
+    - Then the payment should be processed successfully # features\step_definitions\payment_method_steps.ts:160
+    - And the platform commission should be 150.00 EGP # features\step_definitions\commission_steps.ts:59
+    - And the driver should receive 850.00 EGP # features\step_definitions\payment_method_steps.ts:166
+    - And the payment method should be recorded as crypto # features\step_definitions\payment_method_steps.ts:170
+
+24) Scenario: All payment methods use consistent commission rate # features\payment-methods.feature:27
+    ΓêÜ Given the platform is configured with multiple payment methods # features\step_definitions\payment_method_steps.ts:39
+    ΓêÜ And all payment methods use 15% commission rate # features\step_definitions\payment_method_steps.ts:43
+    ? Given multiple orders are placed
+        Undefined. Implement with the following snippet:
+
+          Given('multiple orders are placed', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    - When orders are paid using different payment methods # features\step_definitions\payment_method_steps.ts:147
+    - Then all payment methods should apply 15% commission # features\step_definitions\payment_method_steps.ts:174
+    - And no payment method should have a different rate # features\step_definitions\payment_method_steps.ts:183
+
+25) Scenario: Stripe card payment # features\payment-methods.feature:33
+    ΓêÜ Given the platform is configured with multiple payment methods # features\step_definitions\payment_method_steps.ts:39
+    ΓêÜ And all payment methods use 15% commission rate # features\step_definitions\payment_method_steps.ts:43
+    ΓêÜ Given a customer has placed an order for 100 EGP # features\step_definitions\payment_method_steps.ts:48
+    ΓêÜ And the customer has a valid credit card # features\step_definitions\payment_method_steps.ts:57
+    ├ù When the customer pays using Stripe
+        Multiple step definitions match:
+          the customer pays using {word} - features\step_definitions\payment_method_steps.ts:77
+          the customer pays using Stripe - features\step_definitions\payment_method_steps.ts:87
+    ? Then the Stripe payment intent should be created
+        Undefined. Implement with the following snippet:
+
+          Then('the Stripe payment intent should be created', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And the payment should be confirmed
+        Undefined. Implement with the following snippet:
+
+          Then('the payment should be confirmed', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    - And the platform commission should be 15.00 EGP # features\step_definitions\commission_steps.ts:59
+    - And the order status should be updated to "paid" # features\step_definitions\payment_method_steps.ts:191
+
+26) Scenario: PayPal payment # features\payment-methods.feature:42
+    ΓêÜ Given the platform is configured with multiple payment methods # features\step_definitions\payment_method_steps.ts:39
+    ΓêÜ And all payment methods use 15% commission rate # features\step_definitions\payment_method_steps.ts:43
+    ΓêÜ Given a customer has placed an order for 250 EGP # features\step_definitions\payment_method_steps.ts:48
+    ΓêÜ And the customer has a PayPal account # features\step_definitions\payment_method_steps.ts:62
+    ├ù When the customer pays using PayPal
+        Multiple step definitions match:
+          the customer pays using {word} - features\step_definitions\payment_method_steps.ts:77
+          the customer pays using PayPal - features\step_definitions\payment_method_steps.ts:97
+    ? Then the PayPal order should be created
+        Undefined. Implement with the following snippet:
+
+          Then('the PayPal order should be created', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And the payment should be captured
+        Undefined. Implement with the following snippet:
+
+          Then('the payment should be captured', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    - And the platform commission should be 37.50 EGP # features\step_definitions\commission_steps.ts:59
+    - And the revenue should be recorded in platform_revenue table # features\step_definitions\payment_method_steps.ts:198
+
+27) Scenario: Paymob card payment # features\payment-methods.feature:51
+    ΓêÜ Given the platform is configured with multiple payment methods # features\step_definitions\payment_method_steps.ts:39
+    ΓêÜ And all payment methods use 15% commission rate # features\step_definitions\payment_method_steps.ts:43
+    ΓêÜ Given a customer has placed an order for 500 EGP # features\step_definitions\payment_method_steps.ts:48
+    ΓêÜ And the customer has a valid debit card # features\step_definitions\payment_method_steps.ts:67
+    ΓêÜ When the customer pays using Paymob card integration # features\step_definitions\payment_method_steps.ts:107
+    ? Then the Paymob payment should be initiated
+        Undefined. Implement with the following snippet:
+
+          Then('the Paymob payment should be initiated', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And the payment should be processed through MIGS
+        Undefined. Implement with the following snippet:
+
+          Then('the payment should be processed through MIGS', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    - And the platform commission should be 75.00 EGP # features\step_definitions\commission_steps.ts:59
+
+28) Scenario: Paymob mobile wallet payment # features\payment-methods.feature:59
+    ΓêÜ Given the platform is configured with multiple payment methods # features\step_definitions\payment_method_steps.ts:39
+    ΓêÜ And all payment methods use 15% commission rate # features\step_definitions\payment_method_steps.ts:43
+    ΓêÜ Given a customer has placed an order for 300 EGP # features\step_definitions\payment_method_steps.ts:48
+    ΓêÜ And the customer has Vodafone Cash wallet # features\step_definitions\payment_method_steps.ts:72
+    ΓêÜ When the customer pays using Paymob wallet integration # features\step_definitions\payment_method_steps.ts:117
+    ? Then the wallet payment should be initiated
+        Undefined. Implement with the following snippet:
+
+          Then('the wallet payment should be initiated', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    - And the payment should be processed successfully # features\step_definitions\payment_method_steps.ts:160
+    - And the platform commission should be 45.00 EGP # features\step_definitions\commission_steps.ts:59
+
+29) Scenario: Crypto payment (USDC/USDT) # features\payment-methods.feature:67
+    ΓêÜ Given the platform is configured with multiple payment methods # features\step_definitions\payment_method_steps.ts:39
+    ΓêÜ And all payment methods use 15% commission rate # features\step_definitions\payment_method_steps.ts:43
+    ΓêÜ Given a customer has placed an order for 1000 EGP # features\step_definitions\payment_method_steps.ts:48
+    ? And the customer has a crypto wallet with USDC
+        Undefined. Implement with the following snippet:
+
+          Given('the customer has a crypto wallet with USDC', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ├ù When the customer pays using crypto
+        Multiple step definitions match:
+          the customer pays using {word} - features\step_definitions\payment_method_steps.ts:77 
+          the customer pays using crypto - features\step_definitions\payment_method_steps.ts:127
+    ? Then the smart contract should escrow the payment
+        Undefined. Implement with the following snippet:
+
+          Then('the smart contract should escrow the payment', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    - And the commission should be calculated in basis points (1500) # features\step_definitions\payment_method_steps.ts:203
+    - And the platform commission should be 150.00 EGP # features\step_definitions\commission_steps.ts:59
+    - And the driver payout should be 850.00 EGP # features\step_definitions\commission_steps.ts:63
+
+30) Scenario: Cash on Delivery (COD) # features\payment-methods.feature:76
+    ΓêÜ Given the platform is configured with multiple payment methods # features\step_definitions\payment_method_steps.ts:39
+    ΓêÜ And all payment methods use 15% commission rate # features\step_definitions\payment_method_steps.ts:43
+    ΓêÜ Given a customer has placed an order for 150 EGP # features\step_definitions\payment_method_steps.ts:48
+    ΓêÜ When the customer selects cash on delivery # features\step_definitions\payment_method_steps.ts:137
+    ? Then the order should be created without upfront payment
+        Undefined. Implement with the following snippet:
+
+          Then('the order should be created without upfront payment', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And the commission should still be calculated as 22.50 EGP
+        Undefined. Implement with the following snippet:
+
+          Then('the commission should still be calculated as {float} EGP', async function (float) {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    - And the driver should collect 150 EGP from customer # features\step_definitions\payment_method_steps.ts:208
+    - And the driver should remit 22.50 EGP to platform # features\step_definitions\payment_method_steps.ts:213
+
+31) Scenario: Pay with credit/debit card via Paymob # features\paymob-integration.feature:10
+    ? Given Paymob is configured with valid credentials
+        Undefined. Implement with the following snippet:
+
+          Given('Paymob is configured with valid credentials', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And the platform has card and wallet integrations
+        Undefined. Implement with the following snippet:
+
+          Given('the platform has card and wallet integrations', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    - Given a customer has placed an order for 500 EGP # features\step_definitions\payment_method_steps.ts:48
+    - And the customer has a valid credit card # features\step_definitions\payment_method_steps.ts:57
+    ? When the customer selects "Pay with Card"
+        Undefined. Implement with the following snippet:
+
+          When('the customer selects {string}', async function (string) {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? Then a Paymob payment session should be created
+        Undefined. Implement with the following snippet:
+
+          Then('a Paymob payment session should be created', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And the customer should be redirected to Paymob iframe
+        Undefined. Implement with the following snippet:
+
+          Then('the customer should be redirected to Paymob iframe', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And the payment should be processed through MIGS integration
+        Undefined. Implement with the following snippet:
+
+          Then('the payment should be processed through MIGS integration', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? When the payment is successful
+        Undefined. Implement with the following snippet:
+
+          When('the payment is successful', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    - Then the platform commission should be 75.00 EGP # features\step_definitions\commission_steps.ts:59
+    ? And the order should be marked as paid
+        Undefined. Implement with the following snippet:
+
+          Then('the order should be marked as paid', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    - And a revenue record should be created # features\step_definitions\revenue_steps.ts:161
+
+32) Scenario: Pay with Vodafone Cash via Paymob # features\paymob-integration.feature:22
+    ? Given Paymob is configured with valid credentials
+        Undefined. Implement with the following snippet:
+
+          Given('Paymob is configured with valid credentials', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And the platform has card and wallet integrations
+        Undefined. Implement with the following snippet:
+
+          Given('the platform has card and wallet integrations', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    - Given a customer has placed an order for 300 EGP # features\step_definitions\payment_method_steps.ts:48
+    - And the customer has Vodafone Cash wallet # features\step_definitions\payment_method_steps.ts:72
+    ? When the customer selects "Vodafone Cash"
+        Undefined. Implement with the following snippet:
+
+          When('the customer selects {string}', async function (string) {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? Then a Paymob wallet payment should be initiated
+        Undefined. Implement with the following snippet:
+
+          Then('a Paymob wallet payment should be initiated', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And the customer should receive a payment prompt on their phone
+        Undefined. Implement with the following snippet:
+
+          Then('the customer should receive a payment prompt on their phone', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? When the customer confirms the payment
+        Undefined. Implement with the following snippet:
+
+          When('the customer confirms the payment', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    - Then the platform commission should be 45.00 EGP # features\step_definitions\commission_steps.ts:59
+    - And the payment method should be recorded as "paymob_wallet" # features\step_definitions\payment_method_steps.ts:170
+
+33) Scenario: Pay with Orange Cash via Paymob # features\paymob-integration.feature:32
+    ? Given Paymob is configured with valid credentials
+        Undefined. Implement with the following snippet:
+
+          Given('Paymob is configured with valid credentials', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And the platform has card and wallet integrations
+        Undefined. Implement with the following snippet:
+
+          Given('the platform has card and wallet integrations', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    - Given a customer has placed an order for 200 EGP # features\step_definitions\payment_method_steps.ts:48
+    ? When the customer pays using Orange Cash
+        Undefined. Implement with the following snippet:
+
+          When('the customer pays using Orange Cash', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? Then the payment should be processed through Paymob wallet integration
+        Undefined. Implement with the following snippet:
+
+          Then('the payment should be processed through Paymob wallet integration', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And the commission should be 30.00 EGP
+        Undefined. Implement with the following snippet:
+
+          Then('the commission should be {float} EGP', async function (float) {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+
+34) Scenario: Pay with Etisalat Cash via Paymob # features\paymob-integration.feature:38
+    ? Given Paymob is configured with valid credentials
+        Undefined. Implement with the following snippet:
+
+          Given('Paymob is configured with valid credentials', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And the platform has card and wallet integrations
+        Undefined. Implement with the following snippet:
+
+          Given('the platform has card and wallet integrations', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    - Given a customer has placed an order for 150 EGP # features\step_definitions\payment_method_steps.ts:48
+    ? When the customer pays using Etisalat Cash
+        Undefined. Implement with the following snippet:
+
+          When('the customer pays using Etisalat Cash', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? Then the payment should be processed through Paymob wallet integration
+        Undefined. Implement with the following snippet:
+
+          Then('the payment should be processed through Paymob wallet integration', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And the commission should be 22.50 EGP
+        Undefined. Implement with the following snippet:
+
+          Then('the commission should be {float} EGP', async function (float) {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+
+35) Scenario: Pay at kiosk via Paymob # features\paymob-integration.feature:44
+    ? Given Paymob is configured with valid credentials
+        Undefined. Implement with the following snippet:
+
+          Given('Paymob is configured with valid credentials', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And the platform has card and wallet integrations
+        Undefined. Implement with the following snippet:
+
+          Given('the platform has card and wallet integrations', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    - Given a customer has placed an order for 400 EGP # features\step_definitions\payment_method_steps.ts:48
+    ? When the customer selects "Pay at Kiosk"
+        Undefined. Implement with the following snippet:
+
+          When('the customer selects {string}', async function (string) {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? Then a reference number should be generated
+        Undefined. Implement with the following snippet:
+
+          Then('a reference number should be generated', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And the customer should be instructed to visit Aman/Fawry/Masary
+        Undefined. Implement with the following snippet:
+
+          Then('the customer should be instructed to visit Aman\\/Fawry\\/Masary', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? When the customer pays cash at the kiosk
+        Undefined. Implement with the following snippet:
+
+          When('the customer pays cash at the kiosk', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? Then the payment should be confirmed within 30 minutes
+        Undefined. Implement with the following snippet:
+
+          Then('the payment should be confirmed within {int} minutes', async function (int) {
+          // Then('the payment should be confirmed within {float} minutes', async function (float) {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And the commission should be 60.00 EGP
+        Undefined. Implement with the following snippet:
+
+          Then('the commission should be {float} EGP', async function (float) {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+
+36) Scenario: Paymob webhook verification # features\paymob-integration.feature:53
+    ? Given Paymob is configured with valid credentials
+        Undefined. Implement with the following snippet:
+
+          Given('Paymob is configured with valid credentials', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And the platform has card and wallet integrations
+        Undefined. Implement with the following snippet:
+
+          Given('the platform has card and wallet integrations', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? Given a Paymob payment is completed
+        Undefined. Implement with the following snippet:
+
+          Given('a Paymob payment is completed', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? When Paymob sends a webhook notification
+        Undefined. Implement with the following snippet:
+
+          When('Paymob sends a webhook notification', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? Then the HMAC signature should be verified
+        Undefined. Implement with the following snippet:
+
+          Then('the HMAC signature should be verified', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And only valid webhooks should be processed
+        Undefined. Implement with the following snippet:
+
+          Then('only valid webhooks should be processed', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And invalid signatures should be rejected
+        Undefined. Implement with the following snippet:
+
+          Then('invalid signatures should be rejected', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+
+37) Scenario: Paymob payment failure # features\paymob-integration.feature:60
+    ? Given Paymob is configured with valid credentials
+        Undefined. Implement with the following snippet:
+
+          Given('Paymob is configured with valid credentials', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And the platform has card and wallet integrations
+        Undefined. Implement with the following snippet:
+
+          Given('the platform has card and wallet integrations', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? Given a customer attempts to pay via Paymob
+        Undefined. Implement with the following snippet:
+
+          Given('a customer attempts to pay via Paymob', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? When the payment fails due to insufficient funds
+        Undefined. Implement with the following snippet:
+
+          When('the payment fails due to insufficient funds', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? Then the customer should be redirected back to the app
+        Undefined. Implement with the following snippet:
+
+          Then('the customer should be redirected back to the app', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And the error message should be displayed
+        Undefined. Implement with the following snippet:
+
+          Then('the error message should be displayed', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    - And the order should remain unpaid # features\step_definitions\error_steps.ts:156
+    - And the customer should be able to retry # features\step_definitions\error_steps.ts:169
+
+38) Scenario: Paymob sandbox testing # features\paymob-integration.feature:68
+    ? Given Paymob is configured with valid credentials
+        Undefined. Implement with the following snippet:
+
+          Given('Paymob is configured with valid credentials', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And the platform has card and wallet integrations
+        Undefined. Implement with the following snippet:
+
+          Given('the platform has card and wallet integrations', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? Given Paymob is in sandbox mode
+        Undefined. Implement with the following snippet:
+
+          Given('Paymob is in sandbox mode', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? When a test payment is made with card 4987654321098769
+        Undefined. Implement with the following snippet:
+
+          When('a test payment is made with card {int}', async function (int) {
+          // When('a test payment is made with card {float}', async function (float) {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? Then the payment should succeed in test mode
+        Undefined. Implement with the following snippet:
+
+          Then('the payment should succeed in test mode', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And the commission should be calculated correctly
+        Undefined. Implement with the following snippet:
+
+          Then('the commission should be calculated correctly', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+    ? And no real money should be charged
+        Undefined. Implement with the following snippet:
+
+          Then('no real money should be charged', async function () {
+            // Write code here that turns the phrase above into concrete actions
+            return 'pending';
+          });
+
+
+65 scenarios (1 failed, 6 ambiguous, 31 undefined, 27 passed)
+434 steps (1 failed, 6 ambiguous, 172 undefined, 43 skipped, 212 passed)
+0m00.617s (executing steps: 0m00.080s)
