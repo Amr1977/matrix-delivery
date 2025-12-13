@@ -19,7 +19,7 @@ Feature: Crypto Payment Integration
 
   Scenario: Pay with USDT
     Given a customer has placed an order for 250 USDT
-    When the customer pays using USDT
+    When the customer initiates USDT crypto payment
     Then the payment should be processed through the escrow contract
     And the commission should be 37.50 USDT
     And the driver should receive 212.50 USDT upon completion
