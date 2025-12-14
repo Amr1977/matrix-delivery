@@ -405,6 +405,10 @@ const heartbeatRouter = require('./routes/heartbeat.ts').default;
 const { verifyToken: heartbeatAuth } = require('./middleware/auth');
 app.use('/api/heartbeat', heartbeatAuth, heartbeatRouter);
 
+// Load wallet payment routes (Vodafone Cash, InstaPay, etc.)
+const walletPaymentRoutes = require('./routes/walletPayments');
+app.use('/api/wallet-payments', walletPaymentRoutes);
+
 // Rate limiting store (simple in-memory for demo)
 const rateLimitStore = new Map();
 let HAS_POSTGIS = false;
