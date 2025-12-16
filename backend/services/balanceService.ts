@@ -109,7 +109,23 @@ export class BalanceService implements IBalanceService {
                 throw new Error(`Balance not found for user ${userId}`);
             }
 
-            return result.rows[0];
+            // Convert decimal strings to numbers
+            const row = result.rows[0];
+            return {
+                ...row,
+                availableBalance: parseFloat(row.availableBalance) || 0,
+                pendingBalance: parseFloat(row.pendingBalance) || 0,
+                heldBalance: parseFloat(row.heldBalance) || 0,
+                totalBalance: parseFloat(row.totalBalance) || 0,
+                dailyWithdrawalLimit: parseFloat(row.dailyWithdrawalLimit) || 0,
+                monthlyWithdrawalLimit: parseFloat(row.monthlyWithdrawalLimit) || 0,
+                minimumBalance: parseFloat(row.minimumBalance) || 0,
+                autoReloadThreshold: row.autoReloadThreshold ? parseFloat(row.autoReloadThreshold) : null,
+                autoReloadAmount: row.autoReloadAmount ? parseFloat(row.autoReloadAmount) : null,
+                lifetimeDeposits: parseFloat(row.lifetimeDeposits) || 0,
+                lifetimeWithdrawals: parseFloat(row.lifetimeWithdrawals) || 0,
+                lifetimeEarnings: parseFloat(row.lifetimeEarnings) || 0,
+            };
         } catch (error) {
             logger.error('Error getting balance', { userId, error: error.message });
             throw error;
@@ -156,8 +172,22 @@ export class BalanceService implements IBalanceService {
                 return this.getBalance(userId);
             }
 
+            // Parse decimal strings to numbers
+            const row = result.rows[0];
             logger.info('Balance created', { userId, currency });
-            return result.rows[0];
+            return {
+                ...row,
+                availableBalance: parseFloat(row.availableBalance) || 0,
+                pendingBalance: parseFloat(row.pendingBalance) || 0,
+                heldBalance: parseFloat(row.heldBalance) || 0,
+                totalBalance: parseFloat(row.totalBalance) || 0,
+                dailyWithdrawalLimit: parseFloat(row.dailyWithdrawalLimit) || 0,
+                monthlyWithdrawalLimit: parseFloat(row.monthlyWithdrawalLimit) || 0,
+                minimumBalance: parseFloat(row.minimumBalance) || 0,
+                lifetimeDeposits: parseFloat(row.lifetimeDeposits) || 0,
+                lifetimeWithdrawals: parseFloat(row.lifetimeWithdrawals) || 0,
+                lifetimeEarnings: parseFloat(row.lifetimeEarnings) || 0,
+            };
         } catch (error) {
             logger.error('Error creating balance', { userId, currency, error: error.message });
             throw error;
@@ -1011,7 +1041,14 @@ export class BalanceService implements IBalanceService {
             }
 
             const result = await this.pool.query(query, params);
-            return result.rows;
+
+            // Parse decimal strings to numbers
+            return result.rows.map(row => ({
+                ...row,
+                amount: parseFloat(row.amount) || 0,
+                balanceBefore: parseFloat(row.balanceBefore) || 0,
+                balanceAfter: parseFloat(row.balanceAfter) || 0,
+            }));
         } catch (error) {
             logger.error('Error getting transaction history', { filters, error: error.message });
             throw error;
@@ -1420,7 +1457,18 @@ export class BalanceService implements IBalanceService {
             throw new Error(`Balance not found for user ${userId}`);
         }
 
-        return result.rows[0];
+        // Convert decimal strings to numbers
+        const row = result.rows[0];
+        return {
+            ...row,
+            availableBalance: parseFloat(row.availableBalance) || 0,
+            pendingBalance: parseFloat(row.pendingBalance) || 0,
+            heldBalance: parseFloat(row.heldBalance) || 0,
+            totalBalance: parseFloat(row.totalBalance) || 0,
+            dailyWithdrawalLimit: parseFloat(row.dailyWithdrawalLimit) || 0,
+            monthlyWithdrawalLimit: parseFloat(row.monthlyWithdrawalLimit) || 0,
+            minimumBalance: parseFloat(row.minimumBalance) || 0,
+        };
     }
 
     /**
@@ -1496,7 +1544,14 @@ export class BalanceService implements IBalanceService {
             ]
         );
 
-        return result.rows[0];
+        // Convert decimal strings to numbers
+        const row = result.rows[0];
+        return {
+            ...row,
+            amount: parseFloat(row.amount) || 0,
+            balanceBefore: parseFloat(row.balanceBefore) || 0,
+            balanceAfter: parseFloat(row.balanceAfter) || 0,
+        };
     }
 
     /**

@@ -22,6 +22,7 @@ describe('BalanceService', () => {
     let balanceService: BalanceService;
     let testUserId: number;
     let testDriverId: number;
+    let testAdminId: number;
 
     // ==========================================================================
     // SETUP AND TEARDOWN
@@ -39,20 +40,34 @@ describe('BalanceService', () => {
 
         balanceService = new BalanceService(pool);
 
+        // Use unique emails to avoid conflicts
+        const timestamp = Date.now();
+
         // Create test users
         const customerResult = await pool.query(
             `INSERT INTO users (name, email, password, phone, primary_role, country, city, area)
-       VALUES ('Test Customer', 'test.customer@test.com', 'hashed', '01234567890', 'customer', 'Egypt', 'Cairo', 'Nasr City')
-       RETURNING id`
+       VALUES ('Test Customer', $1, 'hashed', '01234567890', 'customer', 'Egypt', 'Cairo', 'Nasr City')
+       RETURNING id`,
+            [`test.customer.${timestamp}@test.com`]
         );
         testUserId = customerResult.rows[0].id;
 
         const driverResult = await pool.query(
             `INSERT INTO users (name, email, password, phone, primary_role, country, city, area, vehicle_type)
-       VALUES ('Test Driver', 'test.driver@test.com', 'hashed', '01234567891', 'driver', 'Egypt', 'Cairo', 'Nasr City', 'car')
-       RETURNING id`
+       VALUES ('Test Driver', $1, 'hashed', '01234567891', 'driver', 'Egypt', 'Cairo', 'Nasr City', 'car')
+       RETURNING id`,
+            [`test.driver.${timestamp}@test.com`]
         );
         testDriverId = driverResult.rows[0].id;
+
+        // Create admin user for freeze/unfreeze operations
+        const adminResult = await pool.query(
+            `INSERT INTO users (name, email, password, phone, primary_role, country, city, area)
+       VALUES ('Test Admin', $1, 'hashed', '01234567892', 'admin', 'Egypt', 'Cairo', 'Nasr City')
+       RETURNING id`,
+            [`test.admin.${timestamp}@test.com`]
+        );
+        testAdminId = adminResult.rows[0].id;
 
         // Create balances
         await balanceService.createBalance(testUserId);
@@ -60,26 +75,47 @@ describe('BalanceService', () => {
     });
 
     afterAll(async () => {
-        // Cleanup test data
-        await pool.query('DELETE FROM balance_transactions WHERE user_id IN ($1, $2)', [
-            testUserId,
-            testDriverId,
-        ]);
-        await pool.query('DELETE FROM balance_holds WHERE user_id IN ($1, $2)', [
-            testUserId,
-            testDriverId,
-        ]);
-        await pool.query('DELETE FROM user_balances WHERE user_id IN ($1, $2)', [
-            testUserId,
-            testDriverId,
-        ]);
-        await pool.query('DELETE FROM users WHERE id IN ($1, $2)', [testUserId, testDriverId]);
+        // Cleanup test data (order matters due to foreign keys)
+        try {
+            // Delete holds first (they reference transactions)
+            await pool.query('DELETE FROM balance_holds WHERE user_id IN ($1, $2)', [
+                testUserId,
+                testDriverId,
+            ]);
+            // Then delete transactions
+            await pool.query('DELETE FROM balance_transactions WHERE user_id IN ($1, $2)', [
+                testUserId,
+                testDriverId,
+            ]);
+            // Then delete balances
+            await pool.query('DELETE FROM user_balances WHERE user_id IN ($1, $2)', [
+                testUserId,
+                testDriverId,
+            ]);
+            // Delete orders
+            await pool.query('DELETE FROM orders WHERE customer_id = $1 OR driver_id = $2', [testUserId, testDriverId]);
+            // Finally delete users
+            await pool.query(`DELETE FROM users WHERE email LIKE '%@test.com'`);
+        } catch (error) {
+            console.error('Cleanup error:', error.message);
+        }
 
         await pool.end();
     });
 
     beforeEach(async () => {
-        // Reset balances before each test
+        // Aggressive cleanup: delete ALL test data by email pattern (except admin)
+        // This ensures no leftover holds/transactions from previous tests
+
+        // 1. Delete all test holds first (they reference transactions) - exclude admin
+        await pool.query(`DELETE FROM balance_holds 
+            WHERE user_id IN (SELECT id FROM users WHERE email LIKE '%@test.com' AND email NOT LIKE 'test.admin%')`);
+
+        // 2. Delete all test transactions (they reference orders, so keep orders) - exclude admin
+        await pool.query(`DELETE FROM balance_transactions 
+            WHERE user_id IN (SELECT id FROM users WHERE email LIKE '%@test.com' AND email NOT LIKE 'test.admin%')`);
+
+        // 3. Reset balances for test users
         await pool.query(
             `UPDATE user_balances 
        SET available_balance = 0,
@@ -88,22 +124,14 @@ describe('BalanceService', () => {
            lifetime_deposits = 0,
            lifetime_withdrawals = 0,
            lifetime_earnings = 0,
-           total_transactions = 0
+           total_transactions = 0,
+           is_frozen = FALSE,
+           freeze_reason = NULL,
+           frozen_at = NULL,
+           frozen_by = NULL
        WHERE user_id IN ($1, $2)`,
             [testUserId, testDriverId]
         );
-
-        // Clear transactions
-        await pool.query('DELETE FROM balance_transactions WHERE user_id IN ($1, $2)', [
-            testUserId,
-            testDriverId,
-        ]);
-
-        // Clear holds
-        await pool.query('DELETE FROM balance_holds WHERE user_id IN ($1, $2)', [
-            testUserId,
-            testDriverId,
-        ]);
     });
 
     // ==========================================================================
@@ -208,7 +236,7 @@ describe('BalanceService', () => {
 
         it('should reject deposit to frozen balance', async () => {
             // Freeze balance
-            await balanceService.freezeBalance(testUserId, 'Test freeze', 1);
+            await balanceService.freezeBalance(testUserId, 'Test freeze', testAdminId);
 
             await expect(
                 balanceService.deposit({
@@ -219,7 +247,7 @@ describe('BalanceService', () => {
             ).rejects.toThrow('Balance is frozen');
 
             // Unfreeze
-            await balanceService.unfreezeBalance(testUserId, 1);
+            await balanceService.unfreezeBalance(testUserId, testAdminId);
         });
 
         it('should handle multiple concurrent deposits correctly', async () => {
@@ -292,6 +320,13 @@ describe('BalanceService', () => {
         });
 
         it('should enforce daily withdrawal limit', async () => {
+            // Deposit enough to test daily limit
+            await balanceService.deposit({
+                userId: testUserId,
+                amount: 10000,
+                description: 'Setup for limit test',
+            });
+
             // First withdrawal (within limit)
             await balanceService.withdraw({
                 userId: testUserId,
@@ -346,9 +381,6 @@ describe('BalanceService', () => {
             expect(result.transaction.amount).toBe(-100);
             expect(result.transaction.orderId).toBe(orderId);
             expect(result.balance.availableBalance).toBe(900);
-
-            // Cleanup
-            await pool.query('DELETE FROM orders WHERE id = $1', [orderId]);
         });
 
         it('should reject order payment with insufficient balance', async () => {
@@ -393,8 +425,6 @@ describe('BalanceService', () => {
             expect(result.transaction.type).toBe(TransactionType.ORDER_REFUND);
             expect(result.transaction.amount).toBe(100);
             expect(result.balance.availableBalance).toBe(100);
-
-            await pool.query('DELETE FROM orders WHERE id = $1', [orderId]);
         });
     });
 
@@ -423,8 +453,6 @@ describe('BalanceService', () => {
             expect(result.transaction.amount).toBe(85);
             expect(result.balance.availableBalance).toBe(85);
             expect(result.balance.lifetimeEarnings).toBe(85);
-
-            await pool.query('DELETE FROM orders WHERE id = $1', [orderId]);
         });
     });
 
@@ -451,8 +479,6 @@ describe('BalanceService', () => {
             expect(result.transaction.type).toBe(TransactionType.COMMISSION_DEDUCTION);
             expect(result.transaction.amount).toBe(-15);
             expect(result.balance.availableBalance).toBe(85);
-
-            await pool.query('DELETE FROM orders WHERE id = $1', [orderId]);
         });
     });
 
@@ -657,6 +683,8 @@ describe('BalanceService', () => {
             expect(statement.userId).toBe(testUserId);
             expect(statement.totalDeposits).toBe(1000);
             expect(statement.totalWithdrawals).toBe(200);
+            expect(statement.openingBalance).toBe(0);
+            expect(statement.closingBalance).toBe(800);
             expect(statement.transactions.length).toBe(2);
         });
     });
@@ -715,7 +743,7 @@ describe('BalanceService', () => {
 
     describe('freezeBalance', () => {
         it('should freeze user balance', async () => {
-            const result = await balanceService.freezeBalance(testUserId, 'Suspicious activity', 1);
+            const result = await balanceService.freezeBalance(testUserId, 'Suspicious activity', testAdminId);
 
             expect(result.isFrozen).toBe(true);
             expect(result.freezeReason).toBe('Suspicious activity');
@@ -724,11 +752,11 @@ describe('BalanceService', () => {
 
     describe('unfreezeBalance', () => {
         beforeEach(async () => {
-            await balanceService.freezeBalance(testUserId, 'Test freeze', 1);
+            await balanceService.freezeBalance(testUserId, 'Test freeze', testAdminId);
         });
 
         it('should unfreeze user balance', async () => {
-            const result = await balanceService.unfreezeBalance(testUserId, 1);
+            const result = await balanceService.unfreezeBalance(testUserId, testAdminId);
 
             expect(result.isFrozen).toBe(false);
             expect(result.freezeReason).toBeNull();
@@ -737,7 +765,7 @@ describe('BalanceService', () => {
 
     describe('adjustBalance', () => {
         it('should adjust balance positively', async () => {
-            const result = await balanceService.adjustBalance(testUserId, 500, 'Compensation', 1);
+            const result = await balanceService.adjustBalance(testUserId, 500, 'Compensation', testAdminId);
 
             expect(result.transaction.type).toBe(TransactionType.ADJUSTMENT);
             expect(result.transaction.amount).toBe(500);
@@ -751,7 +779,7 @@ describe('BalanceService', () => {
                 description: 'Initial balance',
             });
 
-            const result = await balanceService.adjustBalance(testUserId, -200, 'Correction', 1);
+            const result = await balanceService.adjustBalance(testUserId, -200, 'Correction', testAdminId);
 
             expect(result.transaction.amount).toBe(-200);
             expect(result.balance.availableBalance).toBe(800);
