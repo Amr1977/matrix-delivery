@@ -120,8 +120,73 @@ const requireOwnershipOrAdmin = (resourceUserIdField = 'userId') => {
   };
 };
 
+/**
+ * Middleware to verify user owns the balance they're accessing
+ * Used for balance API endpoints
+ */
+const verifyBalanceOwnership = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+
+  // Admins can access any balance
+  const userRole = req.user.primary_role || req.user.role;
+  const userRoles = req.user.granted_roles || req.user.roles || [];
+  const isAdmin = userRole === 'admin' || (Array.isArray(userRoles) && userRoles.includes('admin'));
+
+  if (isAdmin) {
+    return next();
+  }
+
+  // Get userId from params or body
+  const requestedUserId = parseInt(req.params.userId) || parseInt(req.body.userId);
+  const authenticatedUserId = req.user.userId || req.user.id;
+
+  if (requestedUserId !== authenticatedUserId) {
+    logger.security('Balance access denied', {
+      userId: authenticatedUserId,
+      requestedUserId,
+      path: req.path,
+      ip: req.ip || req.connection.remoteAddress,
+      category: 'security'
+    });
+    return res.status(403).json({ error: 'Access denied: You can only access your own balance' });
+  }
+
+  next();
+};
+
+/**
+ * Middleware to require admin role
+ * Simplified version for admin-only endpoints
+ */
+const requireAdmin = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+
+  const userRole = req.user.primary_role || req.user.role;
+  const userRoles = req.user.granted_roles || req.user.roles || [];
+  const isAdmin = userRole === 'admin' || (Array.isArray(userRoles) && userRoles.includes('admin'));
+
+  if (!isAdmin) {
+    logger.security('Admin access denied', {
+      userId: req.user.userId,
+      userRole,
+      path: req.path,
+      ip: req.ip || req.connection.remoteAddress,
+      category: 'security'
+    });
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+
+  next();
+};
+
 module.exports = {
   verifyToken,
   requireRole,
-  requireOwnershipOrAdmin
+  requireOwnershipOrAdmin,
+  verifyBalanceOwnership,
+  requireAdmin
 };
