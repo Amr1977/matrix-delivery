@@ -384,6 +384,12 @@ const authorizeVendorManage = async (req, res, next) => {
 // Load auth endpoints
 app.use('/api/auth', require('./routes/auth'));
 
+// ============================================================================
+// API v1 ROUTES (Versioned API)
+// ============================================================================
+const v1Routes = require('./routes/v1');
+app.use('/api/v1', v1Routes);
+
 // Load driver status endpoints
 const driverRoutes = require('./routes/drivers');
 app.use('/api/drivers', driverRoutes);
