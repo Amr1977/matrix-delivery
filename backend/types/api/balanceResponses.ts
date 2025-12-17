@@ -22,10 +22,15 @@ export interface BalanceResponse {
     dailyWithdrawalLimit: number;
     monthlyWithdrawalLimit: number;
     minimumBalance: number;
+    lifetimeDeposits: number;
+    lifetimeWithdrawals: number;
+    lifetimeEarnings: number;
+    totalTransactions: number;
     isActive: boolean;
     isFrozen: boolean;
     freezeReason?: string;
     frozenAt?: string;
+    frozenBy?: number;
     createdAt: string;
     updatedAt: string;
 }

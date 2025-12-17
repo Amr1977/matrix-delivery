@@ -209,4 +209,5 @@ router.post(
     controller.adjustBalance
 );
 
-export default router;
+// Use CommonJS export for compatibility
+module.exports = router;

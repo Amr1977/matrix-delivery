@@ -1,15 +1,20 @@
-database: IS_TEST ? (process.env.DB_NAME_TEST || 'matrix_delivery_test') : (process.env.DB_NAME || 'matrix_delivery'),
-    user: process.env.DB_USER || 'postgres',
-        password: process.env.DB_PASSWORD || 'postgres',
-            max: 20,
-                idleTimeoutMillis: 30000,
-                    connectionTimeoutMillis: 2000,
-});
+const request = require('supertest');
+const pool = require('../config/db');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
+const JWT_SECRET = process.env.JWT_SECRET || 'test_secret';
+const IS_TEST = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing';
+
+let app;
 
 describe('Messaging API Tests', () => {
     let customerToken, driverToken, customerId, driverId, orderId;
 
     beforeAll(async () => {
+        // Initialize app
+        app = require('../server');
+
         // Create test users
         const hashedPassword = await bcrypt.hash('password123', 10);
 

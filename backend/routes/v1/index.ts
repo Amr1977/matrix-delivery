@@ -5,7 +5,8 @@
  */
 
 import express from 'express';
-import balanceRoutes from './balance';
+// Use require for balance routes (CommonJS)
+const balanceRoutes = require('./balance');
 
 const router = express.Router();
 
@@ -38,4 +39,5 @@ router.get('/version', (req, res) => {
     });
 });
 
-export default router;
+// Use CommonJS export for compatibility with server.js
+module.exports = router;
