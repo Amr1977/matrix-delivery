@@ -14,11 +14,10 @@ describe('Payment API Tests', () => {
         const hashedPassword = await bcrypt.hash('password123', 10);
 
         const customerResult = await pool.query(
-            `INSERT INTO users (id, name, email, password, phone, primary_role, country, city, area, rating, completed_deliveries, is_verified)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+            `INSERT INTO users (name, email, password, phone, primary_role, country, city, area)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING *`,
             [
-                'customer-pay-id',
                 'Customer User',
                 'customer-pay@example.com',
                 hashedPassword,
@@ -26,20 +25,16 @@ describe('Payment API Tests', () => {
                 'customer',
                 'Test Country',
                 'Test City',
-                'Test Area',
-                5.0,
-                0,
-                true
+                'Test Area'
             ]
         );
         customerId = customerResult.rows[0].id;
 
         const driverResult = await pool.query(
-            `INSERT INTO users (id, name, email, password, phone, primary_role, country, city, area, rating, completed_deliveries, is_verified)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+            `INSERT INTO users (name, email, password, phone, primary_role, country, city, area)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING *`,
             [
-                'driver-pay-id',
                 'Driver User',
                 'driver-pay@example.com',
                 hashedPassword,
@@ -47,41 +42,21 @@ describe('Payment API Tests', () => {
                 'driver',
                 'Test Country',
                 'Test City',
-                'Test Area',
-                5.0,
-                10,
-                true
+                'Test Area'
             ]
         );
         driverId = driverResult.rows[0].id;
 
         // Create test order
         const orderResult = await pool.query(
-            `INSERT INTO orders (id, order_number, title, description, pickup_address, delivery_address, 
-       from_lat, from_lng, from_name, to_lat, to_lng, to_name, price, status, customer_id, customer_name, 
-       assigned_driver_user_id, assigned_driver_name, assigned_driver_bid_price)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+            `INSERT INTO orders (customer_id, driver_id, total_amount, status)
+       VALUES ($1, $2, $3, $4)
        RETURNING *`,
             [
-                'order-pay-id',
-                'ORD-PAY-001',
-                'Test Order',
-                'Test Description',
-                '123 Pickup St',
-                '456 Delivery Ave',
-                40.7128,
-                -74.0060,
-                'Pickup Location',
-                40.7589,
-                -73.9851,
-                'Delivery Location',
-                50.00,
-                'delivered',
                 customerId,
-                'Customer User',
                 driverId,
-                'Driver User',
-                45.00
+                50.00,
+                'delivered'
             ]
         );
         orderId = orderResult.rows[0].id;
