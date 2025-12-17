@@ -6,7 +6,8 @@
 
 import request from 'supertest';
 import { Pool } from 'pg';
-import app from '../../server';
+
+const app = require('../../../server');
 
 describe('Balance API v1', () => {
     let pool: Pool;
@@ -15,66 +16,71 @@ describe('Balance API v1', () => {
     let testUserId: number;
     let testDriverId: number;
     let testAdminId: number;
+    let driverToken: string;
 
     beforeAll(async () => {
         // Initialize database connection
-        pool = new Pool({
-            host: process.env.DB_HOST,
-            port: parseInt(process.env.DB_PORT || '5432'),
-            database: process.env.DB_NAME,
-            user: process.env.DB_USER,
-            password: process.env.DB_PASSWORD
-        });
-
-        // Create test users
-        const timestamp = Date.now();
+        if (!pool || pool.ended) {
+            pool = new Pool({
+                host: process.env.DB_HOST || 'localhost',
+                port: parseInt(process.env.DB_PORT || '5432'),
+                user: process.env.DB_USER || 'postgres',
+                password: process.env.DB_PASSWORD || 'postgres',
+                database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
+            });
+        }
 
         // Create regular user
         const userResult = await pool.query(
             `INSERT INTO users (name, email, password, phone, primary_role, country, city, area)
              VALUES ('Test User', $1, 'hashed', '01234567890', 'customer', 'Egypt', 'Cairo', 'Nasr City')
              RETURNING id`,
-            [`test.user.${timestamp}@test.com`]
+            [`test-${Date.now()}@example.com`]
         );
         testUserId = userResult.rows[0].id;
 
         // Create driver user
         const driverResult = await pool.query(
             `INSERT INTO users (name, email, password, phone, primary_role, country, city, area)
-             VALUES ('Test Driver', $1, 'hashed', '01234567891', 'driver', 'Egypt', 'Cairo', 'Maadi')
+             VALUES ('Test Driver', $1, 'hashed', '01234567891', 'driver', 'Egypt', 'Cairo', 'Nasr City')
              RETURNING id`,
-            [`test.driver.${timestamp}@test.com`]
+            [`driver-${Date.now()}@example.com`]
         );
         testDriverId = driverResult.rows[0].id;
 
         // Create admin user
         const adminResult = await pool.query(
             `INSERT INTO users (name, email, password, phone, primary_role, country, city, area)
-             VALUES ('Test Admin', $1, 'hashed', '01234567892', 'admin', 'Egypt', 'Cairo', 'Downtown')
+             VALUES ('Test Admin', $1, 'hashed', '01234567892', 'admin', 'Egypt', 'Cairo', 'Nasr City')
              RETURNING id`,
-            [`test.admin.${timestamp}@test.com`]
+            [`admin-${Date.now()}@example.com`]
         );
         testAdminId = adminResult.rows[0].id;
 
-        // Create balances
+        // Create balances for test users
         await pool.query(
-            `INSERT INTO user_balances (user_id, currency) VALUES ($1, 'EGP'), ($2, 'EGP')`,
+            `INSERT INTO user_balances (user_id, available_balance, currency)
+             VALUES ($1, 0, 'EGP'), ($2, 0, 'EGP')`,
             [testUserId, testDriverId]
         );
 
-        // Generate auth tokens (mock JWT for testing)
+        // Generate test tokens
         authToken = generateTestToken(testUserId, 'customer');
+        driverToken = generateTestToken(testDriverId, 'driver');
         adminToken = generateTestToken(testAdminId, 'admin');
     });
 
     afterAll(async () => {
-        // Cleanup
-        await pool.query(`DELETE FROM balance_holds WHERE user_id IN ($1, $2)`, [testUserId, testDriverId]);
-        await pool.query(`DELETE FROM balance_transactions WHERE user_id IN ($1, $2)`, [testUserId, testDriverId]);
-        await pool.query(`DELETE FROM user_balances WHERE user_id IN ($1, $2)`, [testUserId, testDriverId]);
-        await pool.query(`DELETE FROM users WHERE id IN ($1, $2, $3)`, [testUserId, testDriverId, testAdminId]);
-        await pool.end();
-    });
+        try {
+            // Cleanup test data only - don't close pool
+            await pool.query(`DELETE FROM balance_holds WHERE user_id IN ($1, $2)`, [testUserId, testDriverId]);
+            await pool.query(`DELETE FROM balance_transactions WHERE user_id IN ($1, $2)`, [testUserId, testDriverId]);
+            await pool.query(`DELETE FROM user_balances WHERE user_id IN ($1, $2)`, [testUserId, testDriverId]);
+            await pool.query(`DELETE FROM users WHERE id IN ($1, $2, $3)`, [testUserId, testDriverId, testAdminId]);
+        } catch (error) {
+            console.error('Cleanup error (non-fatal):', error.message);
+        }
+    }, 30000); // 30 second timeout for cleanup
 
     beforeEach(async () => {
         // Reset balances before each test
@@ -328,16 +334,20 @@ describe('Balance API v1', () => {
 
     describe('GET /api/v1/balance/:userId/transactions', () => {
         beforeEach(async () => {
-            // Create some transactions
-            await request(app)
+            // Create some transactions with logging
+            console.log('[TEST] Creating deposit 1...');
+            const deposit1 = await request(app)
                 .post('/api/v1/balance/deposit')
                 .set('Authorization', `Bearer ${authToken}`)
                 .send({ userId: testUserId, amount: 1000, description: 'Deposit 1' });
+            console.log('[TEST] Deposit 1 response:', deposit1.status, deposit1.body);
 
-            await request(app)
+            console.log('[TEST] Creating deposit 2...');
+            const deposit2 = await request(app)
                 .post('/api/v1/balance/deposit')
                 .set('Authorization', `Bearer ${authToken}`)
                 .send({ userId: testUserId, amount: 500, description: 'Deposit 2' });
+            console.log('[TEST] Deposit 2 response:', deposit2.status, deposit2.body);
         });
 
         it('should get transaction history', async () => {
@@ -419,10 +429,12 @@ describe('Balance API v1', () => {
 
     describe('POST /api/v1/balance/hold', () => {
         beforeEach(async () => {
-            await request(app)
+            console.log('[TEST] Creating hold setup deposit...');
+            const deposit = await request(app)
                 .post('/api/v1/balance/deposit')
                 .set('Authorization', `Bearer ${authToken}`)
                 .send({ userId: testUserId, amount: 2000, description: 'Setup' });
+            console.log('[TEST] Hold setup deposit response:', deposit.status, deposit.body);
         });
 
         it('should create balance hold', async () => {
