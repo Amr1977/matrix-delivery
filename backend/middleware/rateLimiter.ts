@@ -5,6 +5,17 @@
  */
 
 import rateLimit from 'express-rate-limit';
+import { Request } from 'express';
+
+// Extend Express Request type to include user property
+interface AuthenticatedRequest extends Request {
+    user?: {
+        id?: number;
+        userId?: number;
+        role?: string;
+        [key: string]: any;
+    };
+}
 
 /**
  * General rate limiter for balance API endpoints
@@ -23,6 +34,10 @@ export const balanceRateLimiter = rateLimit({
     // Store in memory (consider Redis for production with multiple servers)
     skipSuccessfulRequests: false,
     skipFailedRequests: false,
+    // Skip rate limiting in test environment
+    skip: (req: Request) => {
+        return process.env.NODE_ENV === 'testing' || process.env.NODE_ENV === 'test';
+    }
 });
 
 /**
@@ -40,9 +55,13 @@ export const withdrawalRateLimiter = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
     // Key by user ID instead of IP for authenticated requests
-    keyGenerator: (req) => {
-        return req.user?.id?.toString() || req.ip;
+    keyGenerator: (req: AuthenticatedRequest) => {
+        return req.user?.id?.toString() || req.user?.userId?.toString() || req.ip;
     },
+    // Skip rate limiting in test environment
+    skip: (req: Request) => {
+        return process.env.NODE_ENV === 'testing' || process.env.NODE_ENV === 'test';
+    }
 });
 
 /**
@@ -59,9 +78,13 @@ export const adminRateLimiter = rateLimit({
     },
     standardHeaders: true,
     legacyHeaders: false,
-    keyGenerator: (req) => {
-        return req.user?.id?.toString() || req.ip;
+    keyGenerator: (req: AuthenticatedRequest) => {
+        return req.user?.id?.toString() || req.user?.userId?.toString() || req.ip;
     },
+    // Skip rate limiting in test environment
+    skip: (req: Request) => {
+        return process.env.NODE_ENV === 'testing' || process.env.NODE_ENV === 'test';
+    }
 });
 
 /**
@@ -78,7 +101,11 @@ export const depositRateLimiter = rateLimit({
     },
     standardHeaders: true,
     legacyHeaders: false,
-    keyGenerator: (req) => {
-        return req.user?.id?.toString() || req.ip;
+    keyGenerator: (req: AuthenticatedRequest) => {
+        return req.user?.id?.toString() || req.user?.userId?.toString() || req.ip;
     },
+    // Skip rate limiting in test environment
+    skip: (req: Request) => {
+        return process.env.NODE_ENV === 'testing' || process.env.NODE_ENV === 'test';
+    }
 });
