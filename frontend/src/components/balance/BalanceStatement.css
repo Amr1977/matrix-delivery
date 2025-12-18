@@ -1,0 +1,383 @@
+/* Balance Statement Styles */
+
+.balance-statement {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.statement-header {
+    margin-bottom: 2rem;
+}
+
+.statement-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0;
+}
+
+/* Statement Generator */
+.statement-generator {
+    background: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.statement-generator h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 1.5rem;
+}
+
+.period-selector {
+    margin-bottom: 1.5rem;
+}
+
+.period-selector label {
+    display: block;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 1rem;
+}
+
+.period-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+.period-btn {
+    background: white;
+    border: 2px solid #e5e7eb;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.period-btn:hover {
+    border-color: #8b5cf6;
+    background: #f9fafb;
+}
+
+.period-btn.active {
+    border-color: #8b5cf6;
+    background: #f3e8ff;
+    color: #7c3aed;
+}
+
+.date-range-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.date-input-group label {
+    display: block;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+
+.date-input-group input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+.date-input-group input:focus {
+    outline: none;
+    border-color: #8b5cf6;
+}
+
+.validation-error,
+.error-message {
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.error-icon {
+    font-size: 1.25rem;
+}
+
+.generate-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 0.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.generate-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.generate-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Statement Preview */
+.statement-preview {
+    background: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.preview-header h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0;
+}
+
+.download-buttons {
+    display: flex;
+    gap: 1rem;
+}
+
+.download-btn {
+    background: #f3f4f6;
+    border: 2px solid #e5e7eb;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    color: #374151;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+}
+
+.download-btn:hover {
+    background: #e5e7eb;
+}
+
+.download-btn.pdf {
+    border-color: #ef4444;
+    color: #dc2626;
+}
+
+.download-btn.pdf:hover {
+    background: #fee2e2;
+}
+
+.download-btn.csv {
+    border-color: #10b981;
+    color: #059669;
+}
+
+.download-btn.csv:hover {
+    background: #d1fae5;
+}
+
+/* Statement Content */
+.statement-info {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.statement-info h3 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.statement-info .period {
+    color: #6b7280;
+    font-size: 1rem;
+}
+
+.statement-summary {
+    background: #f9fafb;
+    padding: 2rem;
+    border-radius: 0.75rem;
+    margin-bottom: 2rem;
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.summary-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.summary-item .label {
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.summary-item .value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.summary-item.positive .value {
+    color: #10b981;
+}
+
+.summary-item.negative .value {
+    color: #ef4444;
+}
+
+.summary-item.total {
+    grid-column: 1 / -1;
+    padding-top: 1rem;
+    border-top: 2px solid #e5e7eb;
+}
+
+.summary-item.total .value {
+    font-size: 2rem;
+    color: #8b5cf6;
+}
+
+/* Statement Transactions */
+.statement-transactions h4 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 1rem;
+}
+
+.transactions-list {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+}
+
+.transaction-row {
+    display: grid;
+    grid-template-columns: 120px 150px 1fr 150px;
+    gap: 1rem;
+    padding: 1rem;
+    border-bottom: 1px solid #f3f4f6;
+    align-items: center;
+}
+
+.transaction-row:last-child {
+    border-bottom: none;
+}
+
+.transaction-row:hover {
+    background: #f9fafb;
+}
+
+.transaction-date {
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.transaction-type {
+    font-weight: 600;
+    color: #374151;
+    text-transform: capitalize;
+    font-size: 0.875rem;
+}
+
+.transaction-description {
+    color: #1f2937;
+}
+
+.transaction-amount {
+    font-weight: 700;
+    text-align: right;
+}
+
+.transaction-amount.positive {
+    color: #10b981;
+}
+
+.transaction-amount.negative {
+    color: #ef4444;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .balance-statement {
+        padding: 1rem;
+    }
+
+    .period-options {
+        grid-template-columns: 1fr;
+    }
+
+    .date-range-selector {
+        grid-template-columns: 1fr;
+    }
+
+    .preview-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .download-buttons {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .download-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .summary-item.total {
+        grid-column: 1;
+    }
+
+    .transaction-row {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+
+    .transaction-amount {
+        text-align: left;
+    }
+}
