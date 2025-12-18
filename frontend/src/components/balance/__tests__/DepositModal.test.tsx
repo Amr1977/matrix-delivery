@@ -8,6 +8,7 @@ import '@testing-library/jest-dom';
 import DepositModal from '../DepositModal';
 import * as useBalanceHook from '../../../hooks/useBalance';
 
+jest.mock('../../../services/api/balance');
 jest.mock('../../../hooks/useBalance');
 jest.mock('../../payments/PaymentMethodSelector', () => {
     return function MockPaymentMethodSelector({ onSelect }: any) {

@@ -8,6 +8,7 @@ import '@testing-library/jest-dom';
 import TransactionHistory from '../TransactionHistory';
 import * as useBalanceHook from '../../../hooks/useBalance';
 
+jest.mock('../../../services/api/balance');
 jest.mock('../../../hooks/useBalance');
 
 const mockUseBalance = useBalanceHook.useBalance as jest.MockedFunction<typeof useBalanceHook.useBalance>;
