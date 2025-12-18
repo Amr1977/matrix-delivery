@@ -72,8 +72,8 @@ describe('BalanceStatement', () => {
         test('renders statement generator', () => {
             render(<BalanceStatement userId={1} userRole="customer" />);
 
-            expect(screen.getByText('Balance Statement')).toBeInTheDocument();
-            expect(screen.getByText('Generate Statement')).toBeInTheDocument();
+            expect(screen.getByText(/Balance Statement/i)).toBeInTheDocument();
+            expect(screen.getByRole('button', { name: /generate statement/i })).toBeInTheDocument();
         });
 
         test('renders period selection buttons', () => {

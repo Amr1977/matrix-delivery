@@ -88,10 +88,11 @@ describe('BalanceDashboard', () => {
             render(<BalanceDashboard userId={1} userRole="customer" />);
 
             expect(screen.getByText(/My Balance/i)).toBeInTheDocument();
-            expect(screen.getByText('5000.00 EGP')).toBeInTheDocument();
-            expect(screen.getByText('500.00 EGP')).toBeInTheDocument();
-            expect(screen.getByText('200.00 EGP')).toBeInTheDocument();
-            expect(screen.getByText('5700.00 EGP')).toBeInTheDocument();
+            // Use getAllByText for amounts that may appear multiple times
+            expect(screen.getAllByText('5000.00 EGP')[0]).toBeInTheDocument();
+            expect(screen.getAllByText('500.00 EGP')[0]).toBeInTheDocument();
+            expect(screen.getAllByText('200.00 EGP')[0]).toBeInTheDocument();
+            expect(screen.getAllByText('5700.00 EGP')[0]).toBeInTheDocument();
         });
 
         test('renders recent transactions', () => {

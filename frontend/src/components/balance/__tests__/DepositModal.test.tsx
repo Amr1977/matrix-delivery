@@ -61,7 +61,7 @@ describe('DepositModal', () => {
             expect(screen.getByText('Deposit Funds')).toBeInTheDocument();
             expect(screen.getByLabelText('Deposit Amount')).toBeInTheDocument();
             expect(screen.getByText('Current Balance:')).toBeInTheDocument();
-            expect(screen.getByText('5000.00 EGP')).toBeInTheDocument();
+            expect(screen.getAllByText('5000.00 EGP')[0]).toBeInTheDocument();
         });
 
         test('shows quick amount buttons', () => {
