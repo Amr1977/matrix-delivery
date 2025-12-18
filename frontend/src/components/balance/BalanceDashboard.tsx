@@ -73,19 +73,19 @@ const BalanceDashboard: React.FC<BalanceDashboardProps> = ({ userId, userRole })
 
     if (loading && !balance) {
         return (
-            <div className="balance-dashboard loading">
-                <div className="loading-spinner">Loading balance...</div>
+            <div className="balance-dashboard loading" data-testid="balance-loading">
+                <div className="loading-spinner" data-testid="loading-spinner">Loading balance...</div>
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="balance-dashboard error">
-                <div className="error-message">
+            <div className="balance-dashboard error" data-testid="balance-error">
+                <div className="error-message" data-testid="error-message">
                     <span className="error-icon">⚠️</span>
-                    <p>{error}</p>
-                    <button onClick={() => fetchBalance(userId)}>Retry</button>
+                    <p data-testid="error-text">{error}</p>
+                    <button onClick={() => fetchBalance(userId)} data-testid="retry-button">Retry</button>
                 </div>
             </div>
         );
@@ -94,69 +94,70 @@ const BalanceDashboard: React.FC<BalanceDashboardProps> = ({ userId, userRole })
     const isFrozen = balance?.isFrozen || false;
 
     return (
-        <div className="balance-dashboard">
-            <div className="dashboard-header">
-                <h1>💰 My Balance</h1>
-                {userRole === 'driver' && <span className="role-badge">Driver Account</span>}
+        <div className="balance-dashboard" data-testid="balance-dashboard">
+            <div className="dashboard-header" data-testid="dashboard-header">
+                <h1 data-testid="dashboard-title">💰 My Balance</h1>
+                {userRole === 'driver' && <span className="role-badge" data-testid="driver-badge">Driver Account</span>}
             </div>
 
             {isFrozen && (
-                <div className="freeze-warning">
+                <div className="freeze-warning" data-testid="freeze-warning">
                     <span className="warning-icon">⚠️</span>
                     <div className="warning-content">
                         <strong>Account Frozen</strong>
-                        <p>{balance?.freezeReason || 'Your balance is currently frozen. Please contact support.'}</p>
+                        <p data-testid="freeze-reason">{balance?.freezeReason || 'Your balance is currently frozen. Please contact support.'}</p>
                     </div>
                 </div>
             )}
 
-            <div className="balance-cards">
-                <div className="balance-card main-balance">
+            <div className="balance-cards" data-testid="balance-cards">
+                <div className="balance-card main-balance" data-testid="available-balance-card">
                     <div className="card-header">
                         <span className="card-icon">💵</span>
                         <span className="card-title">Available Balance</span>
                     </div>
-                    <div className="card-amount">
+                    <div className="card-amount" data-testid="available-balance-amount">
                         {formatCurrency(balance?.availableBalance || 0, balance?.currency)}
                     </div>
                 </div>
 
-                <div className="balance-card">
+                <div className="balance-card" data-testid="pending-balance-card">
                     <div className="card-header">
                         <span className="card-icon">⏳</span>
                         <span className="card-title">Pending</span>
                     </div>
-                    <div className="card-amount secondary">
+                    <div className="card-amount secondary" data-testid="pending-balance-amount">
                         {formatCurrency(balance?.pendingBalance || 0, balance?.currency)}
                     </div>
                 </div>
 
-                <div className="balance-card">
+                <div className="balance-card" data-testid="held-balance-card">
                     <div className="card-header">
                         <span className="card-icon">🔒</span>
                         <span className="card-title">Held</span>
                     </div>
-                    <div className="card-amount secondary">
+                    <div className="card-amount secondary" data-testid="held-balance-amount">
                         {formatCurrency(balance?.heldBalance || 0, balance?.currency)}
                     </div>
                 </div>
 
-                <div className="balance-card total">
+                <div className="balance-card total" data-testid="total-balance-card">
                     <div className="card-header">
                         <span className="card-icon">📊</span>
                         <span className="card-title">Total Balance</span>
                     </div>
-                    <div className="card-amount">
+                    <div className="card-amount" data-testid="total-balance-amount">
                         {formatCurrency(balance?.totalBalance || 0, balance?.currency)}
                     </div>
                 </div>
             </div>
 
-            <div className="quick-actions">
+            <div className="quick-actions" data-testid="quick-actions">
                 <button
                     className="action-btn deposit-btn"
                     onClick={() => setShowDepositModal(true)}
                     disabled={isFrozen}
+                    data-testid="deposit-button"
                 >
                     <span className="btn-icon">💵</span>
                     Deposit
@@ -165,38 +166,40 @@ const BalanceDashboard: React.FC<BalanceDashboardProps> = ({ userId, userRole })
                     className="action-btn withdraw-btn"
                     onClick={() => setShowWithdrawalModal(true)}
                     disabled={isFrozen}
+                    data-testid="withdraw-button"
                 >
                     <span className="btn-icon">💸</span>
                     Withdraw
                 </button>
             </div>
 
-            <div className="recent-transactions">
+            <div className="recent-transactions" data-testid="recent-transactions">
                 <div className="section-header">
-                    <h2>Recent Transactions</h2>
-                    <a href="/balance/transactions" className="view-all-link">
+                    <h2 data-testid="transactions-title">Recent Transactions</h2>
+                    <a href="/balance/transactions" className="view-all-link" data-testid="view-all-link">
                         View All →
                     </a>
                 </div>
 
                 {transactions.length === 0 ? (
-                    <div className="empty-state">
+                    <div className="empty-state" data-testid="empty-transactions">
                         <span className="empty-icon">📭</span>
-                        <p>No transactions yet</p>
+                        <p data-testid="empty-message">No transactions yet</p>
                         <button
                             className="cta-btn"
                             onClick={() => setShowDepositModal(true)}
                             disabled={isFrozen}
+                            data-testid="first-deposit-button"
                         >
                             Make Your First Deposit
                         </button>
                     </div>
                 ) : (
-                    <div className="transactions-list">
+                    <div className="transactions-list" data-testid="transactions-list">
                         {transactions.map((transaction) => {
                             const statusBadge = getStatusBadge(transaction.status);
                             return (
-                                <div key={transaction.id} className="transaction-item">
+                                <div key={transaction.id} className="transaction-item" data-testid="transaction-item">
                                     <div className="transaction-icon">
                                         {getTransactionIcon(transaction.type)}
                                     </div>
@@ -221,8 +224,8 @@ const BalanceDashboard: React.FC<BalanceDashboardProps> = ({ userId, userRole })
             </div>
 
             {userRole === 'driver' && balance && (
-                <div className="driver-stats">
-                    <h3>Earnings Summary</h3>
+                <div className="driver-stats" data-testid="driver-stats">
+                    <h3 data-testid="earnings-title">Earnings Summary</h3>
                     <div className="stats-grid">
                         <div className="stat-item">
                             <span className="stat-label">Lifetime Earnings</span>
