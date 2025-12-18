@@ -62,7 +62,7 @@ export const TransactionHistoryPage = () => {
         return <Navigate to="/" replace />;
     }
 
-    return <TransactionHistory userId={currentUser.id} />;
+    return <TransactionHistory userId={(currentUser as any).id} />;
 };
 
 // Wrapper for Balance Statement
