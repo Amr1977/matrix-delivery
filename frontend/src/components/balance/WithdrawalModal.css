@@ -1,0 +1,168 @@
+/* Withdrawal Modal Styles */
+
+.withdrawal-modal {
+    background: white;
+    border-radius: 1rem;
+    max-width: 650px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Balance Info */
+.balance-info {
+    background: #f9fafb;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    color: #6b7280;
+}
+
+.info-row .label {
+    font-weight: 500;
+}
+
+.info-row .value {
+    font-weight: 700;
+    color: #1f2937;
+}
+
+/* Destination Step */
+.destination-step h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 1rem;
+}
+
+.destination-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.destination-option {
+    background: white;
+    border: 2px solid #e5e7eb;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    position: relative;
+}
+
+.destination-option:hover {
+    border-color: #8b5cf6;
+    background: #f9fafb;
+}
+
+.destination-option.selected {
+    border-color: #8b5cf6;
+    background: #f3e8ff;
+}
+
+.option-icon {
+    font-size: 2rem;
+}
+
+.option-name {
+    font-weight: 600;
+    color: #374151;
+    text-align: center;
+}
+
+.check-icon {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: #8b5cf6;
+    color: white;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+}
+
+.destination-details {
+    background: #f9fafb;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+}
+
+/* Confirm Step */
+.confirm-step h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 1rem;
+}
+
+.confirmation-summary {
+    background: #f9fafb;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.summary-divider {
+    height: 1px;
+    background: #e5e7eb;
+    margin: 1rem 0;
+}
+
+.warning-notice {
+    background: #dbeafe;
+    border: 1px solid #93c5fd;
+    color: #1e40af;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.warning-icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.warning-notice p {
+    margin: 0;
+    font-size: 0.875rem;
+}
+
+/* Success Step */
+.success-note {
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin-top: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .withdrawal-modal {
+        max-width: 100%;
+        margin: 0;
+        border-radius: 0;
+        max-height: 100vh;
+    }
+
+    .destination-options {
+        grid-template-columns: 1fr;
+    }
+}
