@@ -127,7 +127,7 @@ describe('WithdrawalModal', () => {
             fireEvent.click(screen.getByText('Continue'));
             fireEvent.click(screen.getByText('Vodafone Cash'));
 
-            expect(screen.getByLabelText('Wallet Number')).toBeInTheDocument();
+            expect(screen.getByPlaceholderText('01234567890')).toBeInTheDocument();
         });
     });
 
@@ -140,7 +140,7 @@ describe('WithdrawalModal', () => {
             fireEvent.click(screen.getByText('Continue'));
             fireEvent.click(screen.getByText('Vodafone Cash'));
 
-            const walletInput = screen.getByLabelText('Wallet Number');
+            const walletInput = screen.getByPlaceholderText('01234567890');
             fireEvent.change(walletInput, { target: { value: '01234567890' } });
             fireEvent.click(screen.getAllByText('Continue')[1]);
 
@@ -157,7 +157,7 @@ describe('WithdrawalModal', () => {
             fireEvent.click(screen.getByText('Continue'));
             fireEvent.click(screen.getByText('Vodafone Cash'));
 
-            const walletInput = screen.getByLabelText('Wallet Number');
+            const walletInput = screen.getByPlaceholderText('01234567890');
             fireEvent.change(walletInput, { target: { value: '01234567890' } });
             fireEvent.click(screen.getAllByText('Continue')[1]);
 
@@ -190,7 +190,7 @@ describe('WithdrawalModal', () => {
             fireEvent.click(screen.getByText('Continue'));
             fireEvent.click(screen.getByText('Vodafone Cash'));
 
-            const walletInput = screen.getByLabelText('Wallet Number');
+            const walletInput = screen.getByPlaceholderText('01234567890');
             fireEvent.change(walletInput, { target: { value: '01234567890' } });
             fireEvent.click(screen.getAllByText('Continue')[1]);
             fireEvent.click(screen.getByText('Confirm Withdrawal'));
@@ -213,7 +213,7 @@ describe('WithdrawalModal', () => {
             fireEvent.click(screen.getByText('Continue'));
             fireEvent.click(screen.getByText('Vodafone Cash'));
 
-            const walletInput = screen.getByLabelText('Wallet Number');
+            const walletInput = screen.getByPlaceholderText('01234567890');
             fireEvent.change(walletInput, { target: { value: '01234567890' } });
             fireEvent.click(screen.getAllByText('Continue')[1]);
             fireEvent.click(screen.getByText('Confirm Withdrawal'));
