@@ -39,10 +39,8 @@ import { useHeartbeat } from './hooks/useHeartbeat';
 import MaintenancePage from './components/MaintenancePage';
 import './components/ui/GeolocationStatus.css';
 
-// Balance Components
-import BalanceDashboard from './components/balance/BalanceDashboard';
-import TransactionHistory from './components/balance/TransactionHistory';
-import BalanceStatement from './components/balance/BalanceStatement';
+// Balance Pages (with auth context)
+import { BalanceDashboardPage, TransactionHistoryPage, BalanceStatementPage } from './pages/BalancePages';
 
 // TypeScript API Services
 import { AuthApi, OrdersApi, NotificationsApi, UsersApi } from './services/api';
@@ -2881,15 +2879,15 @@ const router = createBrowserRouter([
   },
   {
     path: '/balance',
-    element: <BalanceDashboard userId={null} userRole="customer" />,
+    element: <BalanceDashboardPage />,
   },
   {
     path: '/balance/transactions',
-    element: <TransactionHistory userId={null} />,
+    element: <TransactionHistoryPage />,
   },
   {
     path: '/balance/statement',
-    element: <BalanceStatement userId={null} userRole="customer" />,
+    element: <BalanceStatementPage />,
   },
   {
     path: '*',
