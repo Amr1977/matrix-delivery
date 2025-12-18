@@ -1,0 +1,3011 @@
+  console.log
+    [dotenv@17.2.3] injecting env (32) from .env.testing -- tip: ΓÜÖ∩╕Å  specify custom .env file path with { path: '/custom/path/.env' }
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+  console.log
+    [dotenv@17.2.3] injecting env (0) from .env.testing -- tip: ≡ƒ¢á∩╕Å  run anywhere with `dotenvx run -- yourcommand`
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+  console.log
+    Γ£à Loaded .env.testing for testing
+
+      at Object.log (server.js:11:11)
+
+2025-12-17 21:04:35 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m≡ƒöº Environment Configuration:[1m[32m[22m[39m
+2025-12-17 21:04:35 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   NODE_ENV: testing[1m[32m[22m[39m
+2025-12-17 21:04:35 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   IS_TEST: true[1m[32m[22m[39m
+2025-12-17 21:04:35 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   DB_HOST: localhost[1m[32m[22m[39m
+2025-12-17 21:04:35 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   DB_PORT: 5432[1m[32m[22m[39m
+2025-12-17 21:04:35 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   DB_USER: postgres[1m[32m[22m[39m
+2025-12-17 21:04:35 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   DB_NAME: matrix_delivery_test[1m[32m[22m[39m
+2025-12-17 21:04:35 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   DB_NAME_TEST: matrix_delivery_test[1m[32m[22m[39m
+2025-12-17 21:04:35 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m≡ƒöî Connecting to database: matrix_delivery_test (Test Mode: true)[1m[32m[22m[39m
+2025-12-17 21:04:37 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m≡ƒöº Environment loaded for: testing[1m[32m[22m[39m
+  console.log
+    Γ£à Security configuration validated
+
+      at validateSecurityConfig (middleware/security.ts:188:13)
+
+  console.log
+    Γ£à Admin API endpoints loaded successfully - All 3 parts complete
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+  console.log
+    [dotenv@17.2.3] injecting env (8) from .env -- tip: ≡ƒöä add secrets lifecycle management: https://dotenvx.com/ops
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+2025-12-17 21:04:45 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: GET /api/v1/health[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/v1/health",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:45 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:45",
+  "ip": "/api/v1/health",
+  "userAgent": "200",
+  "category": "http"
+}
+2025-12-17 21:04:45 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: GET /api/v1/health 200[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/v1/health",
+  "statusCode": 200,
+  "duration": "24ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:45 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: GET /api/v1/version[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/v1/version",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:45 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:45",
+  "ip": "/api/v1/version",
+  "userAgent": "200",
+  "category": "http"
+}
+2025-12-17 21:04:45 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: GET /api/v1/version 200[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/v1/version",
+  "statusCode": 200,
+  "duration": "5ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:45 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: GET /api/v1/balance/115[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/v1/balance/115",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:45 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:46",
+  "ip": "/api/v1/balance/115",
+  "userAgent": "200",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: GET /api/v1/balance/115 200[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/v1/balance/115",
+  "statusCode": 200,
+  "duration": "292ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: GET /api/v1/balance/115[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/v1/balance/115",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mSECURITY: Access attempt without token[1m[33m[22m[39m
+{
+  "ip": "::ffff:127.0.0.1",
+  "path": "/115",
+  "method": "GET",
+  "category": "security"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:46",
+  "ip": "/api/v1/balance/115",
+  "userAgent": "401",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: GET /api/v1/balance/115 401[1m[33m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/v1/balance/115",
+  "statusCode": 401,
+  "duration": "6ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: GET /api/v1/balance/116[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/v1/balance/116",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:46 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mSECURITY: Balance access denied[1m[33m[22m[39m
+{
+  "userId": 115,
+  "requestedUserId": 116,
+  "path": "/116",
+  "ip": "::ffff:127.0.0.1",
+  "category": "security"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:46",
+  "ip": "/api/v1/balance/116",
+  "userAgent": "403",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: GET /api/v1/balance/116 403[1m[33m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/v1/balance/116",
+  "statusCode": 403,
+  "duration": "12ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: GET /api/v1/balance/115[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/v1/balance/115",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 117,
+  "role": "admin",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:46",
+  "ip": "/api/v1/balance/115",
+  "userAgent": "200",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: GET /api/v1/balance/115 200[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/v1/balance/115",
+  "statusCode": 200,
+  "duration": "10ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: GET /api/v1/balance/999999[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/v1/balance/999999",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 117,
+  "role": "admin",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+  console.error
+    [ERROR] Error getting balance { userId: 999999, error: 'Balance not found for user 999999' }
+
+    [0m [90m 13 |[39m     error[33m:[39m ([33m...[39margs) [33m=>[39m {
+     [90m 14 |[39m         [36mif[39m (process[33m.[39menv[33m.[39m[33mNODE_ENV[39m [33m!==[39m [32m'test'[39m) {
+    [31m[1m>[22m[39m[90m 15 |[39m             console[33m.[39merror([32m'[ERROR]'[39m[33m,[39m [33m...[39margs)[33m;[39m
+     [90m    |[39m                     [31m[1m^[22m[39m
+     [90m 16 |[39m         }
+     [90m 17 |[39m     }[33m,[39m
+     [90m 18 |[39m[0m
+
+      at console.error (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+      at Object.error (utils/logger.js:15:21)
+      at BalanceService.getBalance (services/balanceService.ts:130:20)
+      at BalanceController.getBalance (controllers/v1/balanceController.ts:80:29)
+
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:46",
+  "ip": "/api/v1/balance/999999",
+  "userAgent": "404",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: GET /api/v1/balance/999999 404[1m[33m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/v1/balance/999999",
+  "statusCode": 404,
+  "duration": "30ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+  console.log
+    [INFO] Deposit completed {
+      userId: 115,
+      amount: 1000,
+      transactionId: 'TXN-9d8314d6-2541-4829-be6e-65d78a082a3d'
+    }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:46",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "201",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/v1/balance/deposit 201[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 201,
+  "duration": "125ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:46",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "422",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/deposit 422[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 422,
+  "duration": "12ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:46",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "422",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/deposit 422[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 422,
+  "duration": "10ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:46",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "422",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/deposit 422[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 422,
+  "duration": "6ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:46",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "429",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/deposit 429[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 429,
+  "duration": "5ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:46",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "429",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/deposit 429[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 429,
+  "duration": "5ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:46",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "429",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/deposit 429[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 429,
+  "duration": "6ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:46",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "429",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/deposit 429[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 429,
+  "duration": "4ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:46",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "429",
+  "category": "http"
+}
+2025-12-17 21:04:46 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/deposit 429[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 429,
+  "duration": "5ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+  console.log
+    [INFO] Deposit completed {
+      userId: 115,
+      amount: 10,
+      transactionId: 'TXN-f7cf5587-b956-46c0-8201-103c930f32c8'
+    }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+2025-12-17 21:04:47 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:47",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "201",
+  "category": "http"
+}
+2025-12-17 21:04:47 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/v1/balance/deposit 201[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 201,
+  "duration": "1190ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+  console.log
+    [INFO] Deposit completed {
+      userId: 115,
+      amount: 10,
+      transactionId: 'TXN-abae1c2d-6a1a-4ee6-a9b1-e30a1c94b4a3'
+    }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+2025-12-17 21:04:47 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:47",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "201",
+  "category": "http"
+}
+2025-12-17 21:04:47 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/v1/balance/deposit 201[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 201,
+  "duration": "1164ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+  console.log
+    [INFO] Deposit completed {
+      userId: 115,
+      amount: 10,
+      transactionId: 'TXN-f5d9d216-debe-41ed-8941-edf393f79229'
+    }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+2025-12-17 21:04:47 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:47",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "201",
+  "category": "http"
+}
+2025-12-17 21:04:47 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/v1/balance/deposit 201[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 201,
+  "duration": "1099ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+  console.log
+    [INFO] Deposit completed {
+      userId: 115,
+      amount: 10,
+      transactionId: 'TXN-93004c4f-63e0-4b05-8c5a-ff0f39c46464'
+    }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+2025-12-17 21:04:47 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:47",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "201",
+  "category": "http"
+}
+2025-12-17 21:04:47 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/v1/balance/deposit 201[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 201,
+  "duration": "1118ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+  console.log
+    [INFO] Deposit completed {
+      userId: 115,
+      amount: 10,
+      transactionId: 'TXN-45882d92-7e34-4d6b-a15f-da603d4af978'
+    }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+2025-12-17 21:04:47 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:47",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "201",
+  "category": "http"
+}
+2025-12-17 21:04:47 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/v1/balance/deposit 201[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 201,
+  "duration": "1223ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+  console.log
+    [INFO] Deposit completed {
+      userId: 115,
+      amount: 10,
+      transactionId: 'TXN-f8cd09e9-c81e-4a77-9b0c-1a086f870929'
+    }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+2025-12-17 21:04:48 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:48",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "201",
+  "category": "http"
+}
+2025-12-17 21:04:48 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/v1/balance/deposit 201[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 201,
+  "duration": "1131ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+  console.log
+    [INFO] Deposit completed {
+      userId: 115,
+      amount: 10,
+      transactionId: 'TXN-07d1bba8-600d-41b7-bb94-f0240fcf3b0e'
+    }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+2025-12-17 21:04:48 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:48",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "201",
+  "category": "http"
+}
+2025-12-17 21:04:48 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/v1/balance/deposit 201[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 201,
+  "duration": "1170ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+  console.log
+    [INFO] Deposit completed {
+      userId: 115,
+      amount: 10,
+      transactionId: 'TXN-18ea335d-ee7b-46df-ad55-ae4729717c75'
+    }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+2025-12-17 21:04:48 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:48",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "201",
+  "category": "http"
+}
+2025-12-17 21:04:48 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/v1/balance/deposit 201[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 201,
+  "duration": "1206ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+  console.log
+    [INFO] Deposit completed {
+      userId: 115,
+      amount: 10,
+      transactionId: 'TXN-d648eea9-33ce-41bb-96e8-e97e812397f3'
+    }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+2025-12-17 21:04:48 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:48",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "201",
+  "category": "http"
+}
+2025-12-17 21:04:48 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/v1/balance/deposit 201[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 201,
+  "duration": "1456ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+  console.log
+    [INFO] Deposit completed {
+      userId: 115,
+      amount: 10,
+      transactionId: 'TXN-1a0e3c16-dcfc-48ce-99d8-15eb83909d67'
+    }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+2025-12-17 21:04:48 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:48",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "201",
+  "category": "http"
+}
+2025-12-17 21:04:48 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/v1/balance/deposit 201[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 201,
+  "duration": "1413ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+  console.log
+    [INFO] Deposit completed {
+      userId: 115,
+      amount: 10,
+      transactionId: 'TXN-421e23b4-4d87-413f-8ffd-e99df16ff84f'
+    }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+2025-12-17 21:04:48 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:48",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "201",
+  "category": "http"
+}
+2025-12-17 21:04:48 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/v1/balance/deposit 201[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 201,
+  "duration": "1527ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+  console.log
+    [INFO] Deposit completed {
+      userId: 115,
+      amount: 10,
+      transactionId: 'TXN-767ec92c-acd5-4030-85e1-8df30f857b77'
+    }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+2025-12-17 21:04:48 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:48",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "201",
+  "category": "http"
+}
+2025-12-17 21:04:48 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/v1/balance/deposit 201[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 201,
+  "duration": "1636ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+  console.log
+    [INFO] Deposit completed {
+      userId: 115,
+      amount: 10,
+      transactionId: 'TXN-dbea6903-8dd2-42cd-8808-272b3895622f'
+    }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+2025-12-17 21:04:48 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:48",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "201",
+  "category": "http"
+}
+2025-12-17 21:04:48 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/v1/balance/deposit 201[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 201,
+  "duration": "1737ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+  console.log
+    [INFO] Deposit completed {
+      userId: 115,
+      amount: 10,
+      transactionId: 'TXN-6ee90201-bbba-4566-bc9b-4b73b6ce9eff'
+    }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+2025-12-17 21:04:48 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:48",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "201",
+  "category": "http"
+}
+2025-12-17 21:04:48 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/v1/balance/deposit 201[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 201,
+  "duration": "1784ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+  console.log
+    [INFO] Deposit completed {
+      userId: 115,
+      amount: 10,
+      transactionId: 'TXN-ed37d6c0-1958-4f28-a69b-07e09a932ead'
+    }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+2025-12-17 21:04:48 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:48",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "201",
+  "category": "http"
+}
+2025-12-17 21:04:48 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/v1/balance/deposit 201[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 201,
+  "duration": "1770ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+  console.log
+    [INFO] Deposit completed {
+      userId: 115,
+      amount: 10,
+      transactionId: 'TXN-e3c7b4cc-ee30-4f78-a505-45e26ccf9882'
+    }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+2025-12-17 21:04:48 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:48",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "201",
+  "category": "http"
+}
+2025-12-17 21:04:48 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/v1/balance/deposit 201[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 201,
+  "duration": "1826ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:48 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:48 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:48 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:48",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "429",
+  "category": "http"
+}
+2025-12-17 21:04:48 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/deposit 429[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 429,
+  "duration": "8ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:48 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/withdraw[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/withdraw",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:48 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+  console.error
+    [ERROR] Withdrawal failed {
+      dto: {
+        userId: 115,
+        amount: 1000,
+        destination: 'bank_account',
+        description: 'Test withdrawal',
+        metadata: undefined
+      },
+      error: 'Insufficient balance. Available: 0, Required: 1000'
+    }
+
+    [0m [90m 13 |[39m     error[33m:[39m ([33m...[39margs) [33m=>[39m {
+     [90m 14 |[39m         [36mif[39m (process[33m.[39menv[33m.[39m[33mNODE_ENV[39m [33m!==[39m [32m'test'[39m) {
+    [31m[1m>[22m[39m[90m 15 |[39m             console[33m.[39merror([32m'[ERROR]'[39m[33m,[39m [33m...[39margs)[33m;[39m
+     [90m    |[39m                     [31m[1m^[22m[39m
+     [90m 16 |[39m         }
+     [90m 17 |[39m     }[33m,[39m
+     [90m 18 |[39m[0m
+
+      at console.error (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+      at Object.error (utils/logger.js:15:21)
+      at BalanceService.withdraw (services/balanceService.ts:386:20)
+      at BalanceController.withdraw (controllers/v1/balanceController.ts:162:28)
+
+2025-12-17 21:04:48 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:48",
+  "ip": "/api/v1/balance/withdraw",
+  "userAgent": "400",
+  "category": "http"
+}
+2025-12-17 21:04:48 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/withdraw 400[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/withdraw",
+  "statusCode": 400,
+  "duration": "20ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:48 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:48 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:48 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:48",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "429",
+  "category": "http"
+}
+2025-12-17 21:04:48 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/deposit 429[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 429,
+  "duration": "6ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:48 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/withdraw[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/withdraw",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:48 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+  console.error
+    [ERROR] Withdrawal failed {
+      dto: {
+        userId: 115,
+        amount: 10000,
+        destination: 'bank_account',
+        description: 'Too much',
+        metadata: undefined
+      },
+      error: 'Insufficient balance. Available: 0, Required: 10000'
+    }
+
+    [0m [90m 13 |[39m     error[33m:[39m ([33m...[39margs) [33m=>[39m {
+     [90m 14 |[39m         [36mif[39m (process[33m.[39menv[33m.[39m[33mNODE_ENV[39m [33m!==[39m [32m'test'[39m) {
+    [31m[1m>[22m[39m[90m 15 |[39m             console[33m.[39merror([32m'[ERROR]'[39m[33m,[39m [33m...[39margs)[33m;[39m
+     [90m    |[39m                     [31m[1m^[22m[39m
+     [90m 16 |[39m         }
+     [90m 17 |[39m     }[33m,[39m
+     [90m 18 |[39m[0m
+
+      at console.error (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+      at Object.error (utils/logger.js:15:21)
+      at BalanceService.withdraw (services/balanceService.ts:386:20)
+      at BalanceController.withdraw (controllers/v1/balanceController.ts:162:28)
+
+2025-12-17 21:04:48 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:48",
+  "ip": "/api/v1/balance/withdraw",
+  "userAgent": "400",
+  "category": "http"
+}
+2025-12-17 21:04:48 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/withdraw 400[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/withdraw",
+  "statusCode": 400,
+  "duration": "19ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:48 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:48 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:48 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:48",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "429",
+  "category": "http"
+}
+2025-12-17 21:04:48 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/deposit 429[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 429,
+  "duration": "8ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:48 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/withdraw[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/withdraw",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:48 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:48 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:48",
+  "ip": "/api/v1/balance/withdraw",
+  "userAgent": "422",
+  "category": "http"
+}
+2025-12-17 21:04:48 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/withdraw 422[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/withdraw",
+  "statusCode": 422,
+  "duration": "9ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:49 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:49",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "429",
+  "category": "http"
+}
+2025-12-17 21:04:49 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/deposit 429[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 429,
+  "duration": "7ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/withdraw[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/withdraw",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:49 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/withdraw[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/withdraw",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:49 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/withdraw[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/withdraw",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:49 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/withdraw[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/withdraw",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:49 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/withdraw[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/withdraw",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:49 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/withdraw[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/withdraw",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:49 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/withdraw[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/withdraw",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:49 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/withdraw[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/withdraw",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:49 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:49",
+  "ip": "/api/v1/balance/withdraw",
+  "userAgent": "429",
+  "category": "http"
+}
+2025-12-17 21:04:49 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/withdraw 429[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/withdraw",
+  "statusCode": 429,
+  "duration": "8ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/withdraw[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/withdraw",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:49 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:49",
+  "ip": "/api/v1/balance/withdraw",
+  "userAgent": "429",
+  "category": "http"
+}
+2025-12-17 21:04:49 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/withdraw 429[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/withdraw",
+  "statusCode": 429,
+  "duration": "7ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/withdraw[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/withdraw",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:49 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:49",
+  "ip": "/api/v1/balance/withdraw",
+  "userAgent": "429",
+  "category": "http"
+}
+2025-12-17 21:04:49 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/withdraw 429[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/withdraw",
+  "statusCode": 429,
+  "duration": "6ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/withdraw[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/withdraw",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:49 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:49",
+  "ip": "/api/v1/balance/withdraw",
+  "userAgent": "429",
+  "category": "http"
+}
+2025-12-17 21:04:49 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/withdraw 429[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/withdraw",
+  "statusCode": 429,
+  "duration": "6ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+  console.error
+    [ERROR] Withdrawal failed {
+      dto: {
+        userId: 115,
+        amount: 100,
+        destination: 'bank_account',
+        description: 'Withdrawal 0',
+        metadata: undefined
+      },
+      error: 'Insufficient balance. Available: 0, Required: 100'
+    }
+
+    [0m [90m 13 |[39m     error[33m:[39m ([33m...[39margs) [33m=>[39m {
+     [90m 14 |[39m         [36mif[39m (process[33m.[39menv[33m.[39m[33mNODE_ENV[39m [33m!==[39m [32m'test'[39m) {
+    [31m[1m>[22m[39m[90m 15 |[39m             console[33m.[39merror([32m'[ERROR]'[39m[33m,[39m [33m...[39margs)[33m;[39m
+     [90m    |[39m                     [31m[1m^[22m[39m
+     [90m 16 |[39m         }
+     [90m 17 |[39m     }[33m,[39m
+     [90m 18 |[39m[0m
+
+      at console.error (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+      at Object.error (utils/logger.js:15:21)
+      at BalanceService.withdraw (services/balanceService.ts:386:20)
+      at BalanceController.withdraw (controllers/v1/balanceController.ts:162:28)
+
+2025-12-17 21:04:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:49",
+  "ip": "/api/v1/balance/withdraw",
+  "userAgent": "400",
+  "category": "http"
+}
+2025-12-17 21:04:49 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/withdraw 400[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/withdraw",
+  "statusCode": 400,
+  "duration": "227ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+  console.error
+    [ERROR] Withdrawal failed {
+      dto: {
+        userId: 115,
+        amount: 100,
+        destination: 'bank_account',
+        description: 'Withdrawal 2',
+        metadata: undefined
+      },
+      error: 'Insufficient balance. Available: 0, Required: 100'
+    }
+
+    [0m [90m 13 |[39m     error[33m:[39m ([33m...[39margs) [33m=>[39m {
+     [90m 14 |[39m         [36mif[39m (process[33m.[39menv[33m.[39m[33mNODE_ENV[39m [33m!==[39m [32m'test'[39m) {
+    [31m[1m>[22m[39m[90m 15 |[39m             console[33m.[39merror([32m'[ERROR]'[39m[33m,[39m [33m...[39margs)[33m;[39m
+     [90m    |[39m                     [31m[1m^[22m[39m
+     [90m 16 |[39m         }
+     [90m 17 |[39m     }[33m,[39m
+     [90m 18 |[39m[0m
+
+      at console.error (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+      at Object.error (utils/logger.js:15:21)
+      at BalanceService.withdraw (services/balanceService.ts:386:20)
+      at BalanceController.withdraw (controllers/v1/balanceController.ts:162:28)
+
+2025-12-17 21:04:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:49",
+  "ip": "/api/v1/balance/withdraw",
+  "userAgent": "400",
+  "category": "http"
+}
+2025-12-17 21:04:49 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/withdraw 400[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/withdraw",
+  "statusCode": 400,
+  "duration": "247ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+  console.error
+    [ERROR] Withdrawal failed {
+      dto: {
+        userId: 115,
+        amount: 100,
+        destination: 'bank_account',
+        description: 'Withdrawal 4',
+        metadata: undefined
+      },
+      error: 'Insufficient balance. Available: 0, Required: 100'
+    }
+
+    [0m [90m 13 |[39m     error[33m:[39m ([33m...[39margs) [33m=>[39m {
+     [90m 14 |[39m         [36mif[39m (process[33m.[39menv[33m.[39m[33mNODE_ENV[39m [33m!==[39m [32m'test'[39m) {
+    [31m[1m>[22m[39m[90m 15 |[39m             console[33m.[39merror([32m'[ERROR]'[39m[33m,[39m [33m...[39margs)[33m;[39m
+     [90m    |[39m                     [31m[1m^[22m[39m
+     [90m 16 |[39m         }
+     [90m 17 |[39m     }[33m,[39m
+     [90m 18 |[39m[0m
+
+      at console.error (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+      at Object.error (utils/logger.js:15:21)
+      at BalanceService.withdraw (services/balanceService.ts:386:20)
+      at BalanceController.withdraw (controllers/v1/balanceController.ts:162:28)
+
+2025-12-17 21:04:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:49",
+  "ip": "/api/v1/balance/withdraw",
+  "userAgent": "400",
+  "category": "http"
+}
+2025-12-17 21:04:49 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/withdraw 400[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/withdraw",
+  "statusCode": 400,
+  "duration": "260ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+  console.error
+    [ERROR] Withdrawal failed {
+      dto: {
+        userId: 115,
+        amount: 100,
+        destination: 'bank_account',
+        description: 'Withdrawal 8',
+        metadata: undefined
+      },
+      error: 'Insufficient balance. Available: 0, Required: 100'
+    }
+
+    [0m [90m 13 |[39m     error[33m:[39m ([33m...[39margs) [33m=>[39m {
+     [90m 14 |[39m         [36mif[39m (process[33m.[39menv[33m.[39m[33mNODE_ENV[39m [33m!==[39m [32m'test'[39m) {
+    [31m[1m>[22m[39m[90m 15 |[39m             console[33m.[39merror([32m'[ERROR]'[39m[33m,[39m [33m...[39margs)[33m;[39m
+     [90m    |[39m                     [31m[1m^[22m[39m
+     [90m 16 |[39m         }
+     [90m 17 |[39m     }[33m,[39m
+     [90m 18 |[39m[0m
+
+      at console.error (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+      at Object.error (utils/logger.js:15:21)
+      at BalanceService.withdraw (services/balanceService.ts:386:20)
+      at BalanceController.withdraw (controllers/v1/balanceController.ts:162:28)
+
+2025-12-17 21:04:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:49",
+  "ip": "/api/v1/balance/withdraw",
+  "userAgent": "400",
+  "category": "http"
+}
+2025-12-17 21:04:49 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/withdraw 400[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/withdraw",
+  "statusCode": 400,
+  "duration": "280ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+  console.error
+    [ERROR] Withdrawal failed {
+      dto: {
+        userId: 115,
+        amount: 100,
+        destination: 'bank_account',
+        description: 'Withdrawal 10',
+        metadata: undefined
+      },
+      error: 'Insufficient balance. Available: 0, Required: 100'
+    }
+
+    [0m [90m 13 |[39m     error[33m:[39m ([33m...[39margs) [33m=>[39m {
+     [90m 14 |[39m         [36mif[39m (process[33m.[39menv[33m.[39m[33mNODE_ENV[39m [33m!==[39m [32m'test'[39m) {
+    [31m[1m>[22m[39m[90m 15 |[39m             console[33m.[39merror([32m'[ERROR]'[39m[33m,[39m [33m...[39margs)[33m;[39m
+     [90m    |[39m                     [31m[1m^[22m[39m
+     [90m 16 |[39m         }
+     [90m 17 |[39m     }[33m,[39m
+     [90m 18 |[39m[0m
+
+      at console.error (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+      at Object.error (utils/logger.js:15:21)
+      at BalanceService.withdraw (services/balanceService.ts:386:20)
+      at BalanceController.withdraw (controllers/v1/balanceController.ts:162:28)
+
+2025-12-17 21:04:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:49",
+  "ip": "/api/v1/balance/withdraw",
+  "userAgent": "400",
+  "category": "http"
+}
+2025-12-17 21:04:49 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/withdraw 400[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/withdraw",
+  "statusCode": 400,
+  "duration": "295ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+  console.error
+    [ERROR] Withdrawal failed {
+      dto: {
+        userId: 115,
+        amount: 100,
+        destination: 'bank_account',
+        description: 'Withdrawal 1',
+        metadata: undefined
+      },
+      error: 'Insufficient balance. Available: 0, Required: 100'
+    }
+
+    [0m [90m 13 |[39m     error[33m:[39m ([33m...[39margs) [33m=>[39m {
+     [90m 14 |[39m         [36mif[39m (process[33m.[39menv[33m.[39m[33mNODE_ENV[39m [33m!==[39m [32m'test'[39m) {
+    [31m[1m>[22m[39m[90m 15 |[39m             console[33m.[39merror([32m'[ERROR]'[39m[33m,[39m [33m...[39margs)[33m;[39m
+     [90m    |[39m                     [31m[1m^[22m[39m
+     [90m 16 |[39m         }
+     [90m 17 |[39m     }[33m,[39m
+     [90m 18 |[39m[0m
+
+      at console.error (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+      at Object.error (utils/logger.js:15:21)
+      at BalanceService.withdraw (services/balanceService.ts:386:20)
+      at BalanceController.withdraw (controllers/v1/balanceController.ts:162:28)
+
+2025-12-17 21:04:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:49",
+  "ip": "/api/v1/balance/withdraw",
+  "userAgent": "400",
+  "category": "http"
+}
+2025-12-17 21:04:49 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/withdraw 400[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/withdraw",
+  "statusCode": 400,
+  "duration": "322ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+  console.error
+    [ERROR] Withdrawal failed {
+      dto: {
+        userId: 115,
+        amount: 100,
+        destination: 'bank_account',
+        description: 'Withdrawal 3',
+        metadata: undefined
+      },
+      error: 'Insufficient balance. Available: 0, Required: 100'
+    }
+
+    [0m [90m 13 |[39m     error[33m:[39m ([33m...[39margs) [33m=>[39m {
+     [90m 14 |[39m         [36mif[39m (process[33m.[39menv[33m.[39m[33mNODE_ENV[39m [33m!==[39m [32m'test'[39m) {
+    [31m[1m>[22m[39m[90m 15 |[39m             console[33m.[39merror([32m'[ERROR]'[39m[33m,[39m [33m...[39margs)[33m;[39m
+     [90m    |[39m                     [31m[1m^[22m[39m
+     [90m 16 |[39m         }
+     [90m 17 |[39m     }[33m,[39m
+     [90m 18 |[39m[0m
+
+      at console.error (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+      at Object.error (utils/logger.js:15:21)
+      at BalanceService.withdraw (services/balanceService.ts:386:20)
+      at BalanceController.withdraw (controllers/v1/balanceController.ts:162:28)
+
+2025-12-17 21:04:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:49",
+  "ip": "/api/v1/balance/withdraw",
+  "userAgent": "400",
+  "category": "http"
+}
+2025-12-17 21:04:49 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/withdraw 400[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/withdraw",
+  "statusCode": 400,
+  "duration": "342ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:50",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "429",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/deposit 429[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 429,
+  "duration": "7ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:50",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "429",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/deposit 429[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 429,
+  "duration": "8ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: GET /api/v1/balance/115/transactions[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/v1/balance/115/transactions",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:50",
+  "ip": "/api/v1/balance/115/transactions",
+  "userAgent": "200",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: GET /api/v1/balance/115/transactions 200[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/v1/balance/115/transactions",
+  "statusCode": 200,
+  "duration": "26ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:50",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "429",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/deposit 429[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 429,
+  "duration": "6ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:50",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "429",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/deposit 429[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 429,
+  "duration": "7ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: GET /api/v1/balance/115/transactions?type=deposit[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/v1/balance/115/transactions?type=deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:50",
+  "ip": "/api/v1/balance/115/transactions?type=deposit",
+  "userAgent": "200",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: GET /api/v1/balance/115/transactions?type=deposit 200[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/v1/balance/115/transactions?type=deposit",
+  "statusCode": 200,
+  "duration": "20ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:50",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "429",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/deposit 429[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 429,
+  "duration": "8ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:50",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "429",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/deposit 429[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 429,
+  "duration": "7ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: GET /api/v1/balance/115/transactions?limit=1&offset=0[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/v1/balance/115/transactions?limit=1&offset=0",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:50",
+  "ip": "/api/v1/balance/115/transactions?limit=1&offset=0",
+  "userAgent": "200",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: GET /api/v1/balance/115/transactions?limit=1&offset=0 200[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/v1/balance/115/transactions?limit=1&offset=0",
+  "statusCode": 200,
+  "duration": "12ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:50",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "429",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/deposit 429[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 429,
+  "duration": "7ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: GET /api/v1/balance/115/statement?startDate=2025-12-16T22%3A00%3A00.000Z&endDate=2025-12-17T21%3A59%3A59.999Z[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/v1/balance/115/statement?startDate=2025-12-16T22%3A00%3A00.000Z&endDate=2025-12-17T21%3A59%3A59.999Z",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:50",
+  "ip": "/api/v1/balance/115/statement?startDate=2025-12-16T22%3A00%3A00.000Z&endDate=2025-12-17T21%3A59%3A59.999Z",
+  "userAgent": "200",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: GET /api/v1/balance/115/statement?startDate=2025-12-16T22%3A00%3A00.000Z&endDate=2025-12-17T21%3A59%3A59.999Z 200[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/v1/balance/115/statement?startDate=2025-12-16T22%3A00%3A00.000Z&endDate=2025-12-17T21%3A59%3A59.999Z",
+  "statusCode": 200,
+  "duration": "30ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:50",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "429",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/deposit 429[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 429,
+  "duration": "6ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: GET /api/v1/balance/115/statement[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/v1/balance/115/statement",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:50",
+  "ip": "/api/v1/balance/115/statement",
+  "userAgent": "422",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: GET /api/v1/balance/115/statement 422[1m[33m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/v1/balance/115/statement",
+  "statusCode": 422,
+  "duration": "8ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:50",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "429",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/deposit 429[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 429,
+  "duration": "6ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/hold[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/hold",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+  console.error
+    [ERROR] Create hold failed {
+      dto: {
+        userId: 115,
+        amount: 500,
+        reason: 'Order escrow',
+        metadata: undefined
+      },
+      error: 'Insufficient balance for hold'
+    }
+
+    [0m [90m 13 |[39m     error[33m:[39m ([33m...[39margs) [33m=>[39m {
+     [90m 14 |[39m         [36mif[39m (process[33m.[39menv[33m.[39m[33mNODE_ENV[39m [33m!==[39m [32m'test'[39m) {
+    [31m[1m>[22m[39m[90m 15 |[39m             console[33m.[39merror([32m'[ERROR]'[39m[33m,[39m [33m...[39margs)[33m;[39m
+     [90m    |[39m                     [31m[1m^[22m[39m
+     [90m 16 |[39m         }
+     [90m 17 |[39m     }[33m,[39m
+     [90m 18 |[39m[0m
+
+      at console.error (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+      at Object.error (utils/logger.js:15:21)
+      at BalanceService.createHold (services/balanceService.ts:765:20)
+      at BalanceController.createHold (controllers/v1/balanceController.ts:341:28)
+
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:50",
+  "ip": "/api/v1/balance/hold",
+  "userAgent": "400",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/hold 400[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/hold",
+  "statusCode": 400,
+  "duration": "24ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/deposit[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:50",
+  "ip": "/api/v1/balance/deposit",
+  "userAgent": "429",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/deposit 429[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/deposit",
+  "statusCode": 429,
+  "duration": "6ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/hold[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/hold",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+  console.error
+    [ERROR] Create hold failed {
+      dto: {
+        userId: 115,
+        amount: 5000,
+        reason: 'Too much',
+        metadata: undefined
+      },
+      error: 'Insufficient balance for hold'
+    }
+
+    [0m [90m 13 |[39m     error[33m:[39m ([33m...[39margs) [33m=>[39m {
+     [90m 14 |[39m         [36mif[39m (process[33m.[39menv[33m.[39m[33mNODE_ENV[39m [33m!==[39m [32m'test'[39m) {
+    [31m[1m>[22m[39m[90m 15 |[39m             console[33m.[39merror([32m'[ERROR]'[39m[33m,[39m [33m...[39margs)[33m;[39m
+     [90m    |[39m                     [31m[1m^[22m[39m
+     [90m 16 |[39m         }
+     [90m 17 |[39m     }[33m,[39m
+     [90m 18 |[39m[0m
+
+      at console.error (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+      at Object.error (utils/logger.js:15:21)
+      at BalanceService.createHold (services/balanceService.ts:765:20)
+      at BalanceController.createHold (controllers/v1/balanceController.ts:341:28)
+
+2025-12-17 21:04:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:50",
+  "ip": "/api/v1/balance/hold",
+  "userAgent": "400",
+  "category": "http"
+}
+2025-12-17 21:04:50 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/hold 400[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/hold",
+  "statusCode": 400,
+  "duration": "23ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:51 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/admin/freeze[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/admin/freeze",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:51 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 117,
+  "role": "admin",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+  console.warn
+    [WARN] Balance frozen { userId: 115, reason: 'Suspicious activity', adminId: undefined }
+
+    [0m [90m 19 |[39m     warn[33m:[39m ([33m...[39margs) [33m=>[39m {
+     [90m 20 |[39m         [36mif[39m (process[33m.[39menv[33m.[39m[33mNODE_ENV[39m [33m!==[39m [32m'test'[39m) {
+    [31m[1m>[22m[39m[90m 21 |[39m             console[33m.[39mwarn([32m'[WARN]'[39m[33m,[39m [33m...[39margs)[33m;[39m
+     [90m    |[39m                     [31m[1m^[22m[39m
+     [90m 22 |[39m         }
+     [90m 23 |[39m     }[33m,[39m
+     [90m 24 |[39m[0m
+
+      at console.warn (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+      at Object.warn (utils/logger.js:21:21)
+      at BalanceService.freezeBalance (services/balanceService.ts:1316:20)
+      at BalanceController.freezeBalance (controllers/v1/balanceController.ts:475:28)
+
+2025-12-17 21:04:51 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:51",
+  "ip": "/api/v1/balance/admin/freeze",
+  "userAgent": "200",
+  "category": "http"
+}
+2025-12-17 21:04:51 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/v1/balance/admin/freeze 200[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/admin/freeze",
+  "statusCode": 200,
+  "duration": "20ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:51 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/admin/freeze[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/admin/freeze",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:51 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:51 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mSECURITY: Admin access denied[1m[33m[22m[39m
+{
+  "userId": 115,
+  "userRole": "customer",
+  "path": "/admin/freeze",
+  "ip": "::ffff:127.0.0.1",
+  "category": "security"
+}
+2025-12-17 21:04:51 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:51",
+  "ip": "/api/v1/balance/admin/freeze",
+  "userAgent": "403",
+  "category": "http"
+}
+2025-12-17 21:04:51 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/admin/freeze 403[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/admin/freeze",
+  "statusCode": 403,
+  "duration": "10ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:51 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/admin/adjust[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/admin/adjust",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:51 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 117,
+  "role": "admin",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+  console.warn
+    [WARN] Balance adjusted {
+      userId: 115,
+      amount: 500,
+      reason: 'Compensation',
+      adminId: undefined
+    }
+
+    [0m [90m 19 |[39m     warn[33m:[39m ([33m...[39margs) [33m=>[39m {
+     [90m 20 |[39m         [36mif[39m (process[33m.[39menv[33m.[39m[33mNODE_ENV[39m [33m!==[39m [32m'test'[39m) {
+    [31m[1m>[22m[39m[90m 21 |[39m             console[33m.[39mwarn([32m'[WARN]'[39m[33m,[39m [33m...[39margs)[33m;[39m
+     [90m    |[39m                     [31m[1m^[22m[39m
+     [90m 22 |[39m         }
+     [90m 23 |[39m     }[33m,[39m
+     [90m 24 |[39m[0m
+
+      at console.warn (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+      at Object.warn (utils/logger.js:21:21)
+      at BalanceService.adjustBalance (services/balanceService.ts:1404:20)
+      at BalanceController.adjustBalance (controllers/v1/balanceController.ts:530:28)
+
+2025-12-17 21:04:51 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:51",
+  "ip": "/api/v1/balance/admin/adjust",
+  "userAgent": "200",
+  "category": "http"
+}
+2025-12-17 21:04:51 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/v1/balance/admin/adjust 200[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/admin/adjust",
+  "statusCode": 200,
+  "duration": "29ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:51 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/v1/balance/admin/adjust[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/admin/adjust",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-17 21:04:51 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": 115,
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-17 21:04:51 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mSECURITY: Admin access denied[1m[33m[22m[39m
+{
+  "userId": 115,
+  "userRole": "customer",
+  "path": "/admin/adjust",
+  "ip": "::ffff:127.0.0.1",
+  "category": "security"
+}
+2025-12-17 21:04:51 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[17/Dec/2025:19:04:51",
+  "ip": "/api/v1/balance/admin/adjust",
+  "userAgent": "403",
+  "category": "http"
+}
+2025-12-17 21:04:51 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/v1/balance/admin/adjust 403[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/v1/balance/admin/adjust",
+  "statusCode": 403,
+  "duration": "9ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+FAIL tests/api/v1/balance.test.ts (30.208 s)
+  Balance API v1
+    GET /api/v1/health
+      ΓêÜ should return health status (533 ms)
+    GET /api/v1/version
+      ΓêÜ should return version info (45 ms)
+    GET /api/v1/balance/:userId
+      ΓêÜ should get user balance with valid token (325 ms)
+      ΓêÜ should return 401 without auth token (40 ms)
+      ΓêÜ should return 403 when accessing another user balance (61 ms)
+      ΓêÜ should allow admin to access any balance (42 ms)
+      ΓêÜ should return 404 for non-existent user (74 ms)
+    POST /api/v1/balance/deposit
+      ΓêÜ should deposit funds successfully (200 ms)
+      ΓêÜ should validate minimum deposit amount (57 ms)
+      ΓêÜ should validate maximum deposit amount (42 ms)
+      ΓêÜ should reject negative amounts (33 ms)
+      ΓêÜ should enforce rate limiting (2003 ms)
+    POST /api/v1/balance/withdraw
+      ├ù should withdraw funds successfully (131 ms)
+      ΓêÜ should reject withdrawal with insufficient balance (84 ms)
+      ΓêÜ should validate minimum withdrawal amount (110 ms)
+      ΓêÜ should enforce withdrawal rate limiting (895 ms)
+    GET /api/v1/balance/:userId/transactions
+      ├ù should get transaction history (449 ms)
+      ΓêÜ should filter by transaction type (131 ms)
+      ├ù should support pagination (133 ms)
+    GET /api/v1/balance/:userId/statement
+      ├ù should generate balance statement (102 ms)
+      ΓêÜ should require start and end dates (78 ms)
+    POST /api/v1/balance/hold
+      ├ù should create balance hold (111 ms)
+      ΓêÜ should reject hold with insufficient balance (101 ms)
+    POST /api/v1/balance/admin/freeze
+      ΓêÜ should freeze balance as admin (57 ms)
+      ΓêÜ should reject freeze from non-admin (55 ms)
+    POST /api/v1/balance/admin/adjust
+      ΓêÜ should adjust balance as admin (63 ms)
+      ΓêÜ should reject adjustment from non-admin (47 ms)
+
+  ΓùÅ Balance API v1 ΓÇ║ POST /api/v1/balance/withdraw ΓÇ║ should withdraw funds successfully
+
+    expected 201 "Created", got 400 "Bad Request"
+
+      229 |                 .expect(422);
+      230 |         });
+    > 231 |
+          | ^
+      232 |         it('should enforce rate limiting', async () => {
+      233 |             // Make 21 deposits (limit is 20/hour)
+      234 |             const promises = Array(21).fill(null).map((_, i) =>
+
+      at Object.<anonymous> (tests/api/v1/balance.test.ts:231:18)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:249:14)
+      at node_modules/supertest/lib/test.js:302:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:280:13)
+      at Test.assert (node_modules/supertest/lib/test.js:165:23)
+      at Server.localAssert (node_modules/supertest/lib/test.js:126:14)
+      at Object.apply (node_modules/@sentry/node-core/src/integrations/http/httpServerIntegration.ts:168:23)
+
+  ΓùÅ Balance API v1 ΓÇ║ GET /api/v1/balance/:userId/transactions ΓÇ║ should get transaction history
+
+    expect(received).toBeGreaterThan(expected)
+
+    Expected: > 0
+    Received:   0
+
+      296 |         });
+      297 |
+    > 298 |         it('should validate minimum withdrawal amount', async () => {
+          |                                                            ^
+      299 |             await request(app)
+      300 |                 .post('/api/v1/balance/withdraw')
+      301 |                 .set('Authorization', `Bearer ${authToken}`)
+
+      at Object.<anonymous> (tests/api/v1/balance.test.ts:298:60)
+
+  ΓùÅ Balance API v1 ΓÇ║ GET /api/v1/balance/:userId/transactions ΓÇ║ should support pagination
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 1
+    Received: 0
+
+      311 |         it('should enforce withdrawal rate limiting', async () => {
+      312 |             // Make 11 withdrawals (limit is 10/hour)
+    > 313 |             const promises = Array(11).fill(null).map((_, i) =>
+          |                                                            ^
+      314 |                 request(app)
+      315 |                     .post('/api/v1/balance/withdraw')
+      316 |                     .set('Authorization', `Bearer ${authToken}`)
+
+      at Object.<anonymous> (tests/api/v1/balance.test.ts:313:60)
+
+  ΓùÅ Balance API v1 ΓÇ║ GET /api/v1/balance/:userId/statement ΓÇ║ should generate balance statement
+
+    expect(received).toBeGreaterThan(expected)
+
+    Expected: > 0
+    Received:   0
+
+      341 |                 .send({ userId: testUserId, amount: 1000, description: 'Deposit 1' });
+      342 |
+    > 343 |             await request(app)
+          |                                         ^
+      344 |                 .post('/api/v1/balance/deposit')
+      345 |                 .set('Authorization', `Bearer ${authToken}`)
+      346 |                 .send({ userId: testUserId, amount: 500, description: 'Deposit 2' });
+
+      at Object.<anonymous> (tests/api/v1/balance.test.ts:343:54)
+
+  ΓùÅ Balance API v1 ΓÇ║ POST /api/v1/balance/hold ΓÇ║ should create balance hold
+
+    expected 201 "Created", got 400 "Bad Request"
+
+      369 |
+      370 |         it('should support pagination', async () => {
+    > 371 |             const response = await request(app)
+          |                  ^
+      372 |                 .get(`/api/v1/balance/${testUserId}/transactions?limit=1&offset=0`)
+      373 |                 .set('Authorization', `Bearer ${authToken}`)
+      374 |                 .expect(200);
+
+      at Object.<anonymous> (tests/api/v1/balance.test.ts:371:18)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:249:14)
+      at node_modules/supertest/lib/test.js:302:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:280:13)
+      at Test.assert (node_modules/supertest/lib/test.js:165:23)
+      at Server.localAssert (node_modules/supertest/lib/test.js:126:14)
+      at Object.apply (node_modules/@sentry/node-core/src/integrations/http/httpServerIntegration.ts:168:23)
+
+Test Suites: 1 failed, 1 total
+Tests:       5 failed, 22 passed, 27 total
+Snapshots:   0 total
+Time:        31.192 s
+Ran all test suites matching /tests\\api\\v1\\balance.test.ts/i.
+Force exiting Jest: Have you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?

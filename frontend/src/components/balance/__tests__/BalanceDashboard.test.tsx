@@ -8,6 +8,8 @@ import '@testing-library/jest-dom';
 import BalanceDashboard from '../BalanceDashboard';
 import * as useBalanceHook from '../../../hooks/useBalance';
 
+// Mock the balance API service to avoid axios import issues
+jest.mock('../../../services/api/balance');
 // Mock the useBalance hook
 jest.mock('../../../hooks/useBalance');
 
