@@ -102,21 +102,21 @@ const DepositModal: React.FC<DepositModalProps> = ({
     };
 
     return (
-        <div className="modal-overlay" onClick={handleClose}>
-            <div className="deposit-modal" onClick={(e) => e.stopPropagation()}>
-                <div className="modal-header">
-                    <h2>💵 Deposit Funds</h2>
-                    <button className="close-btn" onClick={handleClose} disabled={step === 'processing'}>
+        <div className="modal-overlay" onClick={handleClose} data-testid="deposit-modal-overlay">
+            <div className="deposit-modal" onClick={(e) => e.stopPropagation()} data-testid="deposit-modal">
+                <div className="modal-header" data-testid="modal-header">
+                    <h2 data-testid="modal-title">💵 Deposit Funds</h2>
+                    <button className="close-btn" onClick={handleClose} disabled={step === 'processing'} data-testid="close-button">
                         ×
                     </button>
                 </div>
 
-                <div className="modal-body">
+                <div className="modal-body" data-testid="modal-body">
                     {step === 'amount' && (
-                        <div className="amount-step">
-                            <div className="current-balance">
+                        <div className="amount-step" data-testid="amount-step">
+                            <div className="current-balance" data-testid="current-balance">
                                 <span className="label">Current Balance:</span>
-                                <span className="value">{currentBalance.toFixed(2)} {currency}</span>
+                                <span className="value" data-testid="current-balance-value">{currentBalance.toFixed(2)} {currency}</span>
                             </div>
 
                             <div className="form-group">
@@ -132,11 +132,12 @@ const DepositModal: React.FC<DepositModalProps> = ({
                                         max={MAX_DEPOSIT}
                                         step="0.01"
                                         autoFocus
+                                        data-testid="deposit-amount-input"
                                     />
                                     <span className="currency-label">{currency}</span>
                                 </div>
                                 {validationError && (
-                                    <div className="validation-error">{validationError}</div>
+                                    <div className="validation-error" data-testid="validation-error">{validationError}</div>
                                 )}
                                 <div className="input-hint">
                                     Min: {MIN_DEPOSIT} {currency} | Max: {MAX_DEPOSIT.toLocaleString()} {currency}
@@ -152,10 +153,11 @@ const DepositModal: React.FC<DepositModalProps> = ({
                                     onChange={(e) => setDescription(e.target.value)}
                                     placeholder="e.g., Monthly top-up"
                                     maxLength={200}
+                                    data-testid="deposit-description-input"
                                 />
                             </div>
 
-                            <div className="quick-amounts">
+                            <div className="quick-amounts" data-testid="quick-amounts">
                                 <span className="quick-label">Quick amounts:</span>
                                 {[100, 500, 1000, 5000].map((quickAmount) => (
                                     <button
@@ -165,6 +167,7 @@ const DepositModal: React.FC<DepositModalProps> = ({
                                             setAmount(quickAmount.toString());
                                             validateAmount(quickAmount.toString());
                                         }}
+                                        data-testid={`quick-amount-${quickAmount}`}
                                     >
                                         {quickAmount} {currency}
                                     </button>
@@ -174,15 +177,15 @@ const DepositModal: React.FC<DepositModalProps> = ({
                     )}
 
                     {step === 'payment' && (
-                        <div className="payment-step">
-                            <div className="deposit-summary">
+                        <div className="payment-step" data-testid="payment-step">
+                            <div className="deposit-summary" data-testid="deposit-summary">
                                 <div className="summary-row">
                                     <span>Deposit Amount:</span>
-                                    <span className="amount">{parseFloat(amount).toFixed(2)} {currency}</span>
+                                    <span className="amount" data-testid="summary-amount">{parseFloat(amount).toFixed(2)} {currency}</span>
                                 </div>
                                 <div className="summary-row total">
                                     <span>New Balance:</span>
-                                    <span className="amount">{(currentBalance + parseFloat(amount)).toFixed(2)} {currency}</span>
+                                    <span className="amount" data-testid="summary-new-balance">{(currentBalance + parseFloat(amount)).toFixed(2)} {currency}</span>
                                 </div>
                             </div>
 
@@ -193,7 +196,7 @@ const DepositModal: React.FC<DepositModalProps> = ({
                             />
 
                             {error && (
-                                <div className="error-message">
+                                <div className="error-message" data-testid="error-message">
                                     <span className="error-icon">⚠️</span>
                                     {error}
                                 </div>
@@ -202,35 +205,36 @@ const DepositModal: React.FC<DepositModalProps> = ({
                     )}
 
                     {step === 'processing' && (
-                        <div className="processing-step">
-                            <div className="spinner"></div>
-                            <h3>Processing Deposit...</h3>
+                        <div className="processing-step" data-testid="processing-step">
+                            <div className="spinner" data-testid="processing-spinner"></div>
+                            <h3 data-testid="processing-title">Processing Deposit...</h3>
                             <p>Please wait while we process your deposit.</p>
                         </div>
                     )}
 
                     {step === 'success' && (
-                        <div className="success-step">
+                        <div className="success-step" data-testid="success-step">
                             <div className="success-icon">✅</div>
-                            <h3>Deposit Successful!</h3>
-                            <p>Your balance has been updated.</p>
-                            <div className="success-amount">
+                            <h3 data-testid="success-title">Deposit Successful!</h3>
+                            <p data-testid="success-message">Your balance has been updated.</p>
+                            <div className="success-amount" data-testid="success-amount">
                                 +{parseFloat(amount).toFixed(2)} {currency}
                             </div>
                         </div>
                     )}
                 </div>
 
-                <div className="modal-footer">
+                <div className="modal-footer" data-testid="modal-footer">
                     {step === 'amount' && (
                         <>
-                            <button className="btn btn-secondary" onClick={handleClose}>
+                            <button className="btn btn-secondary" onClick={handleClose} data-testid="cancel-button">
                                 Cancel
                             </button>
                             <button
                                 className="btn btn-primary"
                                 onClick={handleContinue}
                                 disabled={!amount || !!validationError}
+                                data-testid="continue-button"
                             >
                                 Continue
                             </button>
@@ -239,13 +243,14 @@ const DepositModal: React.FC<DepositModalProps> = ({
 
                     {step === 'payment' && (
                         <>
-                            <button className="btn btn-secondary" onClick={() => setStep('amount')}>
+                            <button className="btn btn-secondary" onClick={() => setStep('amount')} data-testid="back-button">
                                 Back
                             </button>
                             <button
                                 className="btn btn-primary"
                                 onClick={handleDeposit}
                                 disabled={!selectedPaymentMethod || loading}
+                                data-testid="confirm-deposit-button"
                             >
                                 {loading ? 'Processing...' : 'Confirm Deposit'}
                             </button>
@@ -253,7 +258,7 @@ const DepositModal: React.FC<DepositModalProps> = ({
                     )}
 
                     {step === 'success' && (
-                        <button className="btn btn-primary" onClick={onSuccess}>
+                        <button className="btn btn-primary" onClick={onSuccess} data-testid="done-button">
                             Done
                         </button>
                     )}
