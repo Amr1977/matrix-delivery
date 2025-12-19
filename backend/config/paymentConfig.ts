@@ -13,8 +13,8 @@ export const PAYMENT_CONFIG = {
 
     // Debt Management Configuration
     DEBT_MANAGEMENT: {
-        MAX_DEBT_THRESHOLD: -500,      // Maximum debt allowed (EGP) - drivers blocked beyond this
-        WARNING_THRESHOLD: -300,        // Warning threshold (EGP) - drivers warned at this level
+        MAX_DEBT_THRESHOLD: -200,      // Maximum debt allowed (EGP) - drivers blocked beyond this
+        WARNING_THRESHOLD: -150,        // Warning threshold (EGP) - drivers warned at this level
         BLOCK_NEW_ORDERS: true,         // Block drivers from accepting orders when debt exceeded
         ALLOW_NEGATIVE_BALANCE: true,   // Allow balance to go negative (creates debt)
     },
