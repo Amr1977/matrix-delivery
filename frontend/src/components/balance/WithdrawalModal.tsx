@@ -148,30 +148,30 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
     ];
 
     return (
-        <div className="modal-overlay" onClick={handleClose}>
-            <div className="withdrawal-modal" onClick={(e) => e.stopPropagation()}>
-                <div className="modal-header">
-                    <h2>💸 Withdraw Funds</h2>
-                    <button className="close-btn" onClick={handleClose} disabled={step === 'processing'}>
+        <div className="modal-overlay" onClick={handleClose} data-testid="withdrawal-modal-overlay">
+            <div className="withdrawal-modal" onClick={(e) => e.stopPropagation()} data-testid="withdrawal-modal">
+                <div className="modal-header" data-testid="modal-header">
+                    <h2 data-testid="modal-title">💸 Withdraw Funds</h2>
+                    <button className="close-btn" onClick={handleClose} disabled={step === 'processing'} data-testid="close-button">
                         ×
                     </button>
                 </div>
 
-                <div className="modal-body">
+                <div className="modal-body" data-testid="modal-body">
                     {step === 'amount' && (
-                        <div className="amount-step">
-                            <div className="balance-info">
+                        <div className="amount-step" data-testid="amount-step">
+                            <div className="balance-info" data-testid="balance-info">
                                 <div className="info-row">
                                     <span className="label">Available Balance:</span>
-                                    <span className="value">{availableBalance.toFixed(2)} {currency}</span>
+                                    <span className="value" data-testid="available-balance">{availableBalance.toFixed(2)} {currency}</span>
                                 </div>
                                 <div className="info-row">
                                     <span className="label">Daily Limit:</span>
-                                    <span className="value">{dailyLimit.toLocaleString()} {currency}</span>
+                                    <span className="value" data-testid="daily-limit">{dailyLimit.toLocaleString()} {currency}</span>
                                 </div>
                                 <div className="info-row">
                                     <span className="label">Monthly Limit:</span>
-                                    <span className="value">{monthlyLimit.toLocaleString()} {currency}</span>
+                                    <span className="value" data-testid="monthly-limit">{monthlyLimit.toLocaleString()} {currency}</span>
                                 </div>
                             </div>
 
@@ -188,11 +188,12 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
                                         max={Math.min(availableBalance, dailyLimit, MAX_WITHDRAWAL)}
                                         step="0.01"
                                         autoFocus
+                                        data-testid="withdrawal-amount-input"
                                     />
                                     <span className="currency-label">{currency}</span>
                                 </div>
                                 {validationError && (
-                                    <div className="validation-error">{validationError}</div>
+                                    <div className="validation-error" data-testid="validation-error">{validationError}</div>
                                 )}
                                 <div className="input-hint">
                                     Min: {MIN_WITHDRAWAL} {currency} | Max: {Math.min(availableBalance, dailyLimit).toLocaleString()} {currency}
@@ -208,20 +209,22 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
                                     onChange={(e) => setDescription(e.target.value)}
                                     placeholder="e.g., Monthly withdrawal"
                                     maxLength={200}
+                                    data-testid="withdrawal-description-input"
                                 />
                             </div>
                         </div>
                     )}
 
                     {step === 'destination' && (
-                        <div className="destination-step">
+                        <div className="destination-step" data-testid="destination-step">
                             <h3>Select Destination</h3>
-                            <div className="destination-options">
+                            <div className="destination-options" data-testid="destination-options">
                                 {destinationOptions.map((option) => (
                                     <button
                                         key={option.id}
                                         className={`destination-option ${destinationType === option.id ? 'selected' : ''}`}
                                         onClick={() => setDestinationType(option.id as DestinationType)}
+                                        data-testid={`destination-${option.id}`}
                                     >
                                         <span className="option-icon">{option.icon}</span>
                                         <span className="option-name">{option.name}</span>
@@ -275,15 +278,15 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
                             )}
 
                             {validationError && (
-                                <div className="validation-error">{validationError}</div>
+                                <div className="validation-error" data-testid="validation-error">{validationError}</div>
                             )}
                         </div>
                     )}
 
                     {step === 'confirm' && (
-                        <div className="confirm-step">
+                        <div className="confirm-step" data-testid="confirm-step">
                             <h3>Confirm Withdrawal</h3>
-                            <div className="confirmation-summary">
+                            <div className="confirmation-summary" data-testid="confirmation-summary">
                                 <div className="summary-row">
                                     <span>Amount:</span>
                                     <span className="amount">{parseFloat(amount).toFixed(2)} {currency}</span>
@@ -325,13 +328,13 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
                             </div>
 
                             {error && (
-                                <div className="error-message">
+                                <div className="error-message" data-testid="error-message">
                                     <span className="error-icon">⚠️</span>
                                     {error}
                                 </div>
                             )}
 
-                            <div className="warning-notice">
+                            <div className="warning-notice" data-testid="warning-notice">
                                 <span className="warning-icon">ℹ️</span>
                                 <p>Withdrawal requests are usually processed within 24-48 hours.</p>
                             </div>
@@ -339,19 +342,19 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
                     )}
 
                     {step === 'processing' && (
-                        <div className="processing-step">
-                            <div className="spinner"></div>
-                            <h3>Processing Withdrawal...</h3>
+                        <div className="processing-step" data-testid="processing-step">
+                            <div className="spinner" data-testid="processing-spinner"></div>
+                            <h3 data-testid="processing-title">Processing Withdrawal...</h3>
                             <p>Please wait while we process your withdrawal request.</p>
                         </div>
                     )}
 
                     {step === 'success' && (
-                        <div className="success-step">
+                        <div className="success-step" data-testid="success-step">
                             <div className="success-icon">✅</div>
-                            <h3>Withdrawal Request Submitted!</h3>
-                            <p>Your withdrawal request has been submitted successfully.</p>
-                            <div className="success-amount">
+                            <h3 data-testid="success-title">Withdrawal Request Submitted!</h3>
+                            <p data-testid="success-message">Your withdrawal request has been submitted successfully.</p>
+                            <div className="success-amount" data-testid="success-amount">
                                 -{parseFloat(amount).toFixed(2)} {currency}
                             </div>
                             <p className="success-note">You will be notified once the withdrawal is processed.</p>
@@ -359,16 +362,17 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
                     )}
                 </div>
 
-                <div className="modal-footer">
+                <div className="modal-footer" data-testid="modal-footer">
                     {step === 'amount' && (
                         <>
-                            <button className="btn btn-secondary" onClick={handleClose}>
+                            <button className="btn btn-secondary" onClick={handleClose} data-testid="cancel-button">
                                 Cancel
                             </button>
                             <button
                                 className="btn btn-primary"
                                 onClick={handleContinue}
                                 disabled={!amount || !!validationError}
+                                data-testid="continue-button"
                             >
                                 Continue
                             </button>
@@ -377,12 +381,13 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
 
                     {step === 'destination' && (
                         <>
-                            <button className="btn btn-secondary" onClick={() => setStep('amount')}>
+                            <button className="btn btn-secondary" onClick={() => setStep('amount')} data-testid="back-button">
                                 Back
                             </button>
                             <button
                                 className="btn btn-primary"
                                 onClick={handleConfirm}
+                                data-testid="continue-button"
                             >
                                 Continue
                             </button>
@@ -391,13 +396,14 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
 
                     {step === 'confirm' && (
                         <>
-                            <button className="btn btn-secondary" onClick={() => setStep('destination')}>
+                            <button className="btn btn-secondary" onClick={() => setStep('destination')} data-testid="back-button">
                                 Back
                             </button>
                             <button
                                 className="btn btn-primary"
                                 onClick={handleWithdraw}
                                 disabled={loading}
+                                data-testid="confirm-withdrawal-button"
                             >
                                 {loading ? 'Processing...' : 'Confirm Withdrawal'}
                             </button>
@@ -405,7 +411,7 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
                     )}
 
                     {step === 'success' && (
-                        <button className="btn btn-primary" onClick={onSuccess}>
+                        <button className="btn btn-primary" onClick={onSuccess} data-testid="done-button">
                             Done
                         </button>
                     )}
