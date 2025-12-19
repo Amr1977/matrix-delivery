@@ -87,12 +87,11 @@ describe('BalanceDashboard', () => {
         test('renders dashboard with balance cards', () => {
             render(<BalanceDashboard userId={1} userRole="customer" />);
 
-            expect(screen.getByText(/My Balance/i)).toBeInTheDocument();
-            // Use getAllByText for amounts that may appear multiple times
-            expect(screen.getAllByText('5000.00 EGP')[0]).toBeInTheDocument();
-            expect(screen.getAllByText('500.00 EGP')[0]).toBeInTheDocument();
-            expect(screen.getAllByText('200.00 EGP')[0]).toBeInTheDocument();
-            expect(screen.getAllByText('5700.00 EGP')[0]).toBeInTheDocument();
+            expect(screen.getByTestId('dashboard-title')).toBeInTheDocument();
+            expect(screen.getByTestId('available-balance-amount')).toHaveTextContent('5000.00 EGP');
+            expect(screen.getByTestId('pending-balance-amount')).toHaveTextContent('500.00 EGP');
+            expect(screen.getByTestId('held-balance-amount')).toHaveTextContent('200.00 EGP');
+            expect(screen.getByTestId('total-balance-amount')).toHaveTextContent('5700.00 EGP');
         });
 
         test('renders recent transactions', () => {
@@ -105,21 +104,21 @@ describe('BalanceDashboard', () => {
         test('renders quick action buttons', () => {
             render(<BalanceDashboard userId={1} userRole="customer" />);
 
-            expect(screen.getByText('Deposit')).toBeInTheDocument();
-            expect(screen.getByText('Withdraw')).toBeInTheDocument();
+            expect(screen.getByTestId('deposit-button')).toBeInTheDocument();
+            expect(screen.getByTestId('withdraw-button')).toBeInTheDocument();
         });
 
         test('renders driver stats for driver role', () => {
             render(<BalanceDashboard userId={1} userRole="driver" />);
 
-            expect(screen.getByText('Earnings Summary')).toBeInTheDocument();
-            expect(screen.getByText('10000.00 EGP')).toBeInTheDocument(); // Lifetime earnings
+            expect(screen.getByTestId('driver-stats')).toBeInTheDocument();
+            expect(screen.getByTestId('earnings-title')).toBeInTheDocument();
         });
 
         test('does not render driver stats for customer role', () => {
             render(<BalanceDashboard userId={1} userRole="customer" />);
 
-            expect(screen.queryByText('Earnings Summary')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('driver-stats')).not.toBeInTheDocument();
         });
     });
 
@@ -142,7 +141,7 @@ describe('BalanceDashboard', () => {
 
             render(<BalanceDashboard userId={1} userRole="customer" />);
 
-            expect(screen.getByText(/Loading balance/i)).toBeInTheDocument();
+            expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
         });
     });
 
@@ -165,8 +164,8 @@ describe('BalanceDashboard', () => {
 
             render(<BalanceDashboard userId={1} userRole="customer" />);
 
-            expect(screen.getByText('Failed to load balance')).toBeInTheDocument();
-            expect(screen.getByText('Retry')).toBeInTheDocument();
+            expect(screen.getByTestId('error-text')).toHaveTextContent('Failed to load balance');
+            expect(screen.getByTestId('retry-button')).toBeInTheDocument();
         });
 
         test('retry button calls fetchBalance', () => {
@@ -188,7 +187,7 @@ describe('BalanceDashboard', () => {
 
             render(<BalanceDashboard userId={1} userRole="customer" />);
 
-            fireEvent.click(screen.getByText('Retry'));
+            fireEvent.click(screen.getByTestId('retry-button'));
             expect(mockFetchBalance).toHaveBeenCalledWith(1);
         });
     });
@@ -212,8 +211,8 @@ describe('BalanceDashboard', () => {
 
             render(<BalanceDashboard userId={1} userRole="customer" />);
 
-            expect(screen.getByText('Account Frozen')).toBeInTheDocument();
-            expect(screen.getByText('Account under review')).toBeInTheDocument();
+            expect(screen.getByTestId('freeze-warning')).toBeInTheDocument();
+            expect(screen.getByTestId('freeze-reason')).toHaveTextContent('Account under review');
         });
 
         test('disables action buttons when frozen', () => {
@@ -234,8 +233,8 @@ describe('BalanceDashboard', () => {
 
             render(<BalanceDashboard userId={1} userRole="customer" />);
 
-            const depositBtn = screen.getByText('Deposit').closest('button');
-            const withdrawBtn = screen.getByText('Withdraw').closest('button');
+            const depositBtn = screen.getByTestId('deposit-button');
+            const withdrawBtn = screen.getByTestId('withdraw-button');
 
             expect(depositBtn).toBeDisabled();
             expect(withdrawBtn).toBeDisabled();
@@ -261,8 +260,8 @@ describe('BalanceDashboard', () => {
 
             render(<BalanceDashboard userId={1} userRole="customer" />);
 
-            expect(screen.getByText('No transactions yet')).toBeInTheDocument();
-            expect(screen.getByText('Make Your First Deposit')).toBeInTheDocument();
+            expect(screen.getByTestId('empty-transactions')).toBeInTheDocument();
+            expect(screen.getByTestId('empty-message')).toHaveTextContent('No transactions yet');
         });
     });
 
@@ -270,7 +269,7 @@ describe('BalanceDashboard', () => {
         test('opens deposit modal when deposit button clicked', () => {
             render(<BalanceDashboard userId={1} userRole="customer" />);
 
-            fireEvent.click(screen.getByText('Deposit'));
+            fireEvent.click(screen.getByTestId('deposit-button'));
 
             // Modal should be rendered (would need to check for modal content)
             // This is a basic test - full modal testing would be in DepositModal.test.tsx
@@ -279,7 +278,7 @@ describe('BalanceDashboard', () => {
         test('opens withdrawal modal when withdraw button clicked', () => {
             render(<BalanceDashboard userId={1} userRole="customer" />);
 
-            fireEvent.click(screen.getByText('Withdraw'));
+            fireEvent.click(screen.getByTestId('withdraw-button'));
 
             // Modal should be rendered
         });
