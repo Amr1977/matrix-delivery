@@ -286,16 +286,16 @@ const BalanceDashboard: React.FC<BalanceDashboardProps> = ({ userId, userRole })
                         </div>
 
                         {/* Warning if debt is high */}
-                        {balance && balance.availableBalance < -300 && (
+                        {balance && balance.availableBalance < -150 && (
                             <div className="warning-box" data-testid="debt-warning">
                                 ⚠️ Your balance is low. Please deposit funds to continue accepting orders.
                             </div>
                         )}
 
                         {/* Critical warning if blocked */}
-                        {balance && balance.availableBalance <= -500 && (
+                        {balance && balance.availableBalance <= -200 && (
                             <div className="error-box" data-testid="blocked-warning">
-                                🚫 You cannot accept new orders until your balance is above -500 EGP.
+                                🚫 You cannot accept new orders until your balance is above -200 EGP.
                                 <button onClick={() => setShowDepositModal(true)} className="btn-deposit">
                                     Deposit Now
                                 </button>
