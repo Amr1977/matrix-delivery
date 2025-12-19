@@ -102,9 +102,8 @@ describe('COD Commission Integration Tests', () => {
                     customer_id, 
                     driver_id, 
                     total_amount,
-                    status,
-                    payment_method
-                ) VALUES ($1, $2, 100, 'delivered', 'cod')
+                    status
+                ) VALUES ($1, $2, 100, 'delivered')
                 RETURNING id`,
                 [testCustomerId, testDriverId]
             );
@@ -176,9 +175,8 @@ describe('COD Commission Integration Tests', () => {
                     customer_id, 
                     driver_id, 
                     total_amount,
-                    status,
-                    payment_method
-                ) VALUES ($1, $2, 100, 'delivered', 'cod')
+                    status
+                ) VALUES ($1, $2, 100, 'delivered')
                 RETURNING id`,
                 [testCustomerId, testDriverId]
             );
