@@ -1,0 +1,451 @@
+# Matrix Delivery Platform - AI Agent Guide
+
+> **Purpose**: This document provides context and guidelines for AI coding assistants working on the Matrix Delivery project.
+
+---
+
+## 📋 Project Overview
+
+**Matrix Delivery** (also known as Matrix Heroes) is an open-source delivery and ride-hailing platform that empowers drivers and customers through fair, transparent, and decentralized mobility services.
+
+### Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Frontend | React (JavaScript/TypeScript) |
+| Backend | Node.js (Express) |
+| Database | PostgreSQL |
+| Testing | Jest + React Testing Library |
+| Hosting | Firebase (Frontend), VPS (Backend) |
+
+### Architecture
+- **Pattern**: Model-View-Controller (MVC)
+- **Frontend**: Component-based React architecture
+- **Backend**: RESTful API with Express routes/controllers/models
+- **Real-time**: Socket.IO for live updates
+
+---
+
+## 🗂️ Project Structure
+
+```
+matrix-delivery/
+├── backend/
+│   ├── server.js                 # Main server entry point
+│   ├── routes/                   # API route definitions
+│   ├── controllers/              # Business logic
+│   ├── models/                   # Database models
+│   └── middleware/               # Auth, validation, etc.
+├── frontend/
+│   ├── src/
+│   │   ├── App.js               # Main app component
+│   │   ├── components/          # Reusable components
+│   │   │   ├── balance/         # Balance management module
+│   │   │   ├── payments/        # Payment components
+│   │   │   └── ...
+│   │   ├── hooks/               # Custom React hooks
+│   │   ├── services/            # API clients
+│   │   └── pages/               # Page components
+│   └── public/
+└── docs/
+```
+
+---
+
+## 🎯 Key Modules
+
+### 1. Balance Management (`frontend/src/components/balance/`)
+**Purpose**: Handle driver/customer balance, deposits, withdrawals, transactions, and statements.
+
+**Components**:
+- `BalanceDashboard.tsx` - Main balance overview
+- `DepositModal.tsx` - Deposit flow (multi-step)
+- `WithdrawalModal.tsx` - Withdrawal flow (multi-step)
+- `TransactionHistory.tsx` - Transaction list with filters
+- `BalanceStatement.tsx` - Generate/download statements
+
+**Key Features**:
+- Multi-step modals with validation
+- Real-time balance updates
+- Transaction filtering and search
+- PDF/CSV statement generation
+- Driver vs customer role differences
+
+### 2. Authentication
+- JWT-based authentication
+- Secure httpOnly cookies (migrated from localStorage)
+- Role-based access control (customer, driver, admin)
+
+### 3. Order Management
+- Bidding system between drivers and customers
+- Real-time order tracking
+- 25+ vehicle types support
+
+---
+
+## 💻 Development Guidelines
+
+### Code Conventions
+
+#### TypeScript/JavaScript
+```typescript
+// ✅ Use TypeScript for new components
+interface BalanceProps {
+  userId: number;
+  userRole: 'customer' | 'driver';
+}
+
+// ✅ Use functional components with hooks
+const BalanceDashboard: React.FC<BalanceProps> = ({ userId, userRole }) => {
+  const { balance, loading } = useBalance(userId);
+  // ...
+};
+
+// ✅ Destructure props
+const MyComponent = ({ title, onClose }) => { ... }
+
+// ❌ Avoid class components for new code
+```
+
+#### File Naming
+- Components: `PascalCase.tsx` (e.g., `BalanceDashboard.tsx`)
+- Hooks: `camelCase.ts` with `use` prefix (e.g., `useBalance.ts`)
+- Tests: `ComponentName.test.tsx`
+- Utilities: `camelCase.ts`
+
+#### Component Structure
+```tsx
+// 1. Imports
+import React, { useState, useEffect } from 'react';
+import { useBalance } from '../../hooks/useBalance';
+
+// 2. Types/Interfaces
+interface Props { ... }
+
+// 3. Component
+const MyComponent: React.FC<Props> = ({ ... }) => {
+  // 4. Hooks
+  const [state, setState] = useState();
+  const { data } = useCustomHook();
+  
+  // 5. Effects
+  useEffect(() => { ... }, []);
+  
+  // 6. Handlers
+  const handleClick = () => { ... };
+  
+  // 7. Render
+  return ( ... );
+};
+
+// 8. Export
+export default MyComponent;
+```
+
+---
+
+## 🧪 Testing Requirements
+
+### Critical: Test ID Convention
+
+**All testable elements MUST use `data-testid` attributes for i18n-ready testing.**
+
+#### Naming Patterns
+
+| Pattern | Example | Usage |
+|---------|---------|-------|
+| `{component}-{element}` | `deposit-modal`, `balance-dashboard` | Component containers |
+| `{action}-button` | `continue-button`, `confirm-deposit-button` | Action buttons |
+| `{data}-{type}` | `available-balance-amount`, `current-balance-value` | Data displays |
+| `{state}-{element}` | `loading-spinner`, `error-message` | State indicators |
+| `{collection}-{item}` | `transactions-list`, `transaction-row` | Lists and items |
+
+#### Test Writing Guidelines
+
+```tsx
+// ✅ GOOD - Use test IDs
+expect(screen.getByTestId('deposit-button')).toBeInTheDocument();
+expect(screen.getByTestId('available-balance-amount')).toHaveTextContent('5000.00 EGP');
+fireEvent.click(screen.getByTestId('continue-button'));
+
+// ❌ BAD - Avoid text-based selectors (breaks with localization)
+expect(screen.getByText('Deposit')).toBeInTheDocument();
+fireEvent.click(screen.getByText('Continue'));
+
+// ⚠️ EXCEPTION - Use getByLabelText only for dynamic form fields without test IDs
+expect(screen.getByLabelText('Account Holder Name')).toBeInTheDocument();
+```
+
+#### Test Structure
+```tsx
+describe('ComponentName', () => {
+  // Setup
+  beforeEach(() => { /* mock setup */ });
+  afterEach(() => { jest.clearAllMocks(); });
+  
+  describe('Rendering', () => {
+    test('renders main elements', () => { ... });
+  });
+  
+  describe('Interactions', () => {
+    test('handles button click', () => { ... });
+  });
+  
+  describe('States', () => {
+    test('shows loading state', () => { ... });
+    test('shows error state', () => { ... });
+  });
+});
+```
+
+### Running Tests
+```bash
+# Run all tests
+npm test
+
+# Run specific module
+npm test -- --testPathPattern=balance
+
+# Run with coverage
+npm test -- --coverage
+
+# Watch mode
+npm test -- --watch
+```
+
+---
+
+## 🎨 UI/UX Patterns
+
+### Modal Pattern
+All modals follow a consistent multi-step pattern:
+1. **Amount/Input Step** - User enters data with validation
+2. **Confirmation Step** - Review and confirm
+3. **Processing Step** - Loading state
+4. **Success/Error Step** - Final result
+
+**Key Elements**:
+- Close button (X) - `close-button`
+- Back button - `back-button`
+- Continue button - `continue-button`
+- Cancel button - `cancel-button`
+- Confirm button - `confirm-{action}-button`
+
+### State Management
+- Use `useState` for local component state
+- Use custom hooks (`useBalance`, `useAuth`) for shared state
+- Use `useEffect` for side effects and data fetching
+
+### Error Handling
+```tsx
+// Always provide user-friendly error messages
+{error && (
+  <div data-testid="error-message" className="error">
+    {error}
+    <button data-testid="retry-button" onClick={handleRetry}>
+      Retry
+    </button>
+  </div>
+)}
+```
+
+---
+
+## 🔐 Security Practices
+
+1. **Authentication**
+   - Use httpOnly cookies for tokens (NOT localStorage)
+   - Validate JWT on every protected route
+   - Implement role-based access control
+
+2. **Input Validation**
+   - Validate all user inputs on both frontend and backend
+   - Sanitize data before database operations
+   - Use parameterized queries to prevent SQL injection
+
+3. **API Security**
+   - CORS configuration for allowed origins
+   - Rate limiting on sensitive endpoints
+   - Proper error messages (don't leak sensitive info)
+
+---
+
+## 🌍 Internationalization (i18n)
+
+### Current Status
+- **Balance Module**: ✅ Fully i18n-ready with test IDs
+- **Other Modules**: ⏳ In progress
+
+### When Adding New Components
+1. Add `data-testid` to all interactive elements
+2. Avoid hardcoded text in test assertions
+3. Use test IDs instead of text-based selectors
+4. Follow naming conventions from Testing section
+
+---
+
+## 🚀 Common Tasks
+
+### Adding a New Balance Component
+1. Create component in `frontend/src/components/balance/`
+2. Add comprehensive `data-testid` attributes
+3. Create corresponding test file
+4. Update `useBalance` hook if needed
+5. Add to `BalancePages.tsx` if it's a page
+
+### Updating API Endpoints
+1. Update route in `backend/routes/`
+2. Update controller in `backend/controllers/`
+3. Update model if schema changes
+4. Update frontend API client in `frontend/src/services/api/`
+5. Update tests
+
+### Adding New Tests
+1. Follow test ID conventions
+2. Mock `useBalance` hook for balance components
+3. Test all states: loading, error, success, empty
+4. Test user interactions with `fireEvent`
+5. Use `waitFor` for async operations
+
+---
+
+## ⚠️ Common Pitfalls
+
+### 1. Text-Based Test Selectors
+```tsx
+// ❌ DON'T - Breaks with localization
+fireEvent.click(screen.getByText('Submit'));
+
+// ✅ DO - Use test IDs
+fireEvent.click(screen.getByTestId('submit-button'));
+```
+
+### 2. Missing Test IDs
+```tsx
+// ❌ DON'T
+<button onClick={handleClick}>Submit</button>
+
+// ✅ DO
+<button data-testid="submit-button" onClick={handleClick}>
+  Submit
+</button>
+```
+
+### 3. Inconsistent Naming
+```tsx
+// ❌ DON'T - Inconsistent
+<button data-testid="btn-submit">Submit</button>
+<button data-testid="cancelButton">Cancel</button>
+
+// ✅ DO - Follow convention
+<button data-testid="submit-button">Submit</button>
+<button data-testid="cancel-button">Cancel</button>
+```
+
+### 4. Not Mocking Hooks
+```tsx
+// ❌ DON'T - Tests will fail
+import { useBalance } from '../../../hooks/useBalance';
+
+// ✅ DO - Mock the hook
+jest.mock('../../../hooks/useBalance');
+const mockUseBalance = useBalance as jest.MockedFunction<typeof useBalance>;
+mockUseBalance.mockReturnValue({ balance: mockData, ... });
+```
+
+---
+
+## 📚 Key Files Reference
+
+### Frontend
+- `frontend/src/App.js` - Main application entry
+- `frontend/src/hooks/useBalance.ts` - Balance state management
+- `frontend/src/services/api/balance.ts` - Balance API client
+- `frontend/src/components/balance/` - Balance module components
+
+### Backend
+- `backend/server.js` - Server entry point
+- `backend/routes/balance.js` - Balance API routes
+- `backend/controllers/balanceController.js` - Balance business logic
+- `backend/models/Balance.js` - Balance database model
+
+### Configuration
+- `frontend/package.json` - Frontend dependencies
+- `backend/package.json` - Backend dependencies
+- `.env` - Environment variables (not in git)
+
+---
+
+## 🔄 Git Workflow
+
+### Commit Message Format
+```
+type: brief description
+
+Detailed explanation if needed
+
+Examples:
+- feat: add withdrawal modal with multi-step flow
+- fix: resolve validation error in deposit form
+- refactor: update BalanceDashboard tests to use test IDs
+- docs: add test ID conventions to README
+- test: add missing test cases for TransactionHistory
+```
+
+### Types
+- `feat` - New feature
+- `fix` - Bug fix
+- `refactor` - Code refactoring
+- `docs` - Documentation
+- `test` - Test updates
+- `chore` - Maintenance tasks
+
+---
+
+## 🎯 Current Priorities
+
+1. **I18n Readiness** - Ensure all components use test IDs
+2. **Test Coverage** - Maintain >95% coverage for critical modules
+3. **Security** - httpOnly cookies, input validation
+4. **Performance** - Optimize balance calculations and queries
+5. **Documentation** - Keep README and AGENTS.md updated
+
+---
+
+## 💡 Best Practices Summary
+
+✅ **DO**:
+- Use TypeScript for new components
+- Add `data-testid` to all testable elements
+- Follow naming conventions
+- Write comprehensive tests
+- Mock external dependencies
+- Handle loading/error states
+- Validate user inputs
+- Use semantic HTML
+- Keep components focused and reusable
+
+❌ **DON'T**:
+- Use text-based test selectors
+- Hardcode text in tests
+- Skip error handling
+- Store tokens in localStorage
+- Commit sensitive data
+- Create overly complex components
+- Ignore TypeScript errors
+- Skip test coverage
+
+---
+
+## 📞 Getting Help
+
+- **README.md** - Project overview and setup
+- **Testing Guide** - Detailed testing documentation
+- **Test ID Migration Guide** - Complete test ID reference
+- **GitHub Issues** - Report bugs or request features
+
+---
+
+**Last Updated**: December 19, 2025  
+**Version**: 1.0  
+**Maintained by**: Matrix Delivery Team
