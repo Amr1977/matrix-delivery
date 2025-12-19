@@ -148,22 +148,23 @@ const BalanceStatement: React.FC<BalanceStatementProps> = ({ userId, userRole })
     };
 
     return (
-        <div className="balance-statement">
-            <div className="statement-header">
-                <h1>📄 Balance Statement</h1>
+        <div className="balance-statement" data-testid="balance-statement">
+            <div className="statement-header" data-testid="statement-header">
+                <h1 data-testid="statement-title">📄 Balance Statement</h1>
             </div>
 
-            <div className="statement-generator">
+            <div className="statement-generator" data-testid="statement-generator">
                 <h2>Generate Statement</h2>
 
-                <div className="period-selector">
+                <div className="period-selector" data-testid="period-selector">
                     <label>Select Period:</label>
-                    <div className="period-options">
+                    <div className="period-options" data-testid="period-options">
                         {presetPeriods.map((period) => (
                             <button
                                 key={period.id}
                                 className={`period-btn ${selectedPeriod === period.id ? 'active' : ''}`}
                                 onClick={() => handlePeriodSelect(period.id)}
+                                data-testid={`period-${period.id}`}
                             >
                                 {period.label}
                             </button>
@@ -172,7 +173,7 @@ const BalanceStatement: React.FC<BalanceStatementProps> = ({ userId, userRole })
                 </div>
 
                 {(selectedPeriod === 'custom' || selectedPeriod) && (
-                    <div className="date-range-selector">
+                    <div className="date-range-selector" data-testid="date-range-selector">
                         <div className="date-input-group">
                             <label htmlFor="start-date">Start Date</label>
                             <input
@@ -181,6 +182,7 @@ const BalanceStatement: React.FC<BalanceStatementProps> = ({ userId, userRole })
                                 value={startDate}
                                 onChange={(e) => setStartDate(e.target.value)}
                                 max={new Date().toISOString().split('T')[0]}
+                                data-testid="start-date-input"
                             />
                         </div>
 
@@ -192,20 +194,21 @@ const BalanceStatement: React.FC<BalanceStatementProps> = ({ userId, userRole })
                                 value={endDate}
                                 onChange={(e) => setEndDate(e.target.value)}
                                 max={new Date().toISOString().split('T')[0]}
+                                data-testid="end-date-input"
                             />
                         </div>
                     </div>
                 )}
 
                 {validationError && (
-                    <div className="validation-error">
+                    <div className="validation-error" data-testid="validation-error">
                         <span className="error-icon">⚠️</span>
                         {validationError}
                     </div>
                 )}
 
                 {error && (
-                    <div className="error-message">
+                    <div className="error-message" data-testid="error-message">
                         <span className="error-icon">⚠️</span>
                         {error}
                     </div>
@@ -215,52 +218,53 @@ const BalanceStatement: React.FC<BalanceStatementProps> = ({ userId, userRole })
                     className="generate-btn"
                     onClick={handleGenerateStatement}
                     disabled={!startDate || !endDate || loading}
+                    data-testid="generate-statement-button"
                 >
                     {loading ? 'Generating...' : 'Generate Statement'}
                 </button>
             </div>
 
             {statement && (
-                <div className="statement-preview">
-                    <div className="preview-header">
+                <div className="statement-preview" data-testid="statement-preview">
+                    <div className="preview-header" data-testid="preview-header">
                         <h2>Statement Preview</h2>
-                        <div className="download-buttons">
-                            <button className="download-btn pdf" onClick={handleDownloadPDF}>
+                        <div className="download-buttons" data-testid="download-buttons">
+                            <button className="download-btn pdf" onClick={handleDownloadPDF} data-testid="download-pdf-button">
                                 <span className="btn-icon">📄</span>
                                 Download PDF
                             </button>
-                            <button className="download-btn csv" onClick={handleDownloadCSV}>
+                            <button className="download-btn csv" onClick={handleDownloadCSV} data-testid="download-csv-button">
                                 <span className="btn-icon">📊</span>
                                 Download CSV
                             </button>
                         </div>
                     </div>
 
-                    <div className="statement-content">
-                        <div className="statement-info">
+                    <div className="statement-content" data-testid="statement-content">
+                        <div className="statement-info" data-testid="statement-info">
                             <h3>Balance Statement</h3>
-                            <p className="period">
+                            <p className="period" data-testid="statement-period">
                                 {formatDate(statement.period.startDate)} - {formatDate(statement.period.endDate)}
                             </p>
                         </div>
 
-                        <div className="statement-summary">
+                        <div className="statement-summary" data-testid="statement-summary">
                             <div className="summary-grid">
-                                <div className="summary-item">
+                                <div className="summary-item" data-testid="opening-balance">
                                     <span className="label">Opening Balance</span>
                                     <span className="value">
                                         {formatCurrency(statement.openingBalance, statement.currency)}
                                     </span>
                                 </div>
 
-                                <div className="summary-item positive">
+                                <div className="summary-item positive" data-testid="total-deposits">
                                     <span className="label">Total Deposits</span>
                                     <span className="value">
                                         +{formatCurrency(statement.totalDeposits, statement.currency)}
                                     </span>
                                 </div>
 
-                                <div className="summary-item negative">
+                                <div className="summary-item negative" data-testid="total-withdrawals">
                                     <span className="label">Total Withdrawals</span>
                                     <span className="value">
                                         -{formatCurrency(statement.totalWithdrawals, statement.currency)}
@@ -269,14 +273,14 @@ const BalanceStatement: React.FC<BalanceStatementProps> = ({ userId, userRole })
 
                                 {userRole === 'driver' && (
                                     <>
-                                        <div className="summary-item positive">
+                                        <div className="summary-item positive" data-testid="total-earnings">
                                             <span className="label">Total Earnings</span>
                                             <span className="value">
                                                 +{formatCurrency(statement.totalEarnings, statement.currency)}
                                             </span>
                                         </div>
 
-                                        <div className="summary-item negative">
+                                        <div className="summary-item negative" data-testid="total-deductions">
                                             <span className="label">Total Deductions</span>
                                             <span className="value">
                                                 -{formatCurrency(statement.totalDeductions, statement.currency)}
@@ -285,7 +289,7 @@ const BalanceStatement: React.FC<BalanceStatementProps> = ({ userId, userRole })
                                     </>
                                 )}
 
-                                <div className="summary-item total">
+                                <div className="summary-item total" data-testid="closing-balance">
                                     <span className="label">Closing Balance</span>
                                     <span className="value">
                                         {formatCurrency(statement.closingBalance, statement.currency)}
@@ -294,11 +298,11 @@ const BalanceStatement: React.FC<BalanceStatementProps> = ({ userId, userRole })
                             </div>
                         </div>
 
-                        <div className="statement-transactions">
-                            <h4>Transaction Details ({statement.transactions.length} transactions)</h4>
-                            <div className="transactions-list">
+                        <div className="statement-transactions" data-testid="statement-transactions">
+                            <h4 data-testid="transactions-count">Transaction Details ({statement.transactions.length} transactions)</h4>
+                            <div className="transactions-list" data-testid="transactions-list">
                                 {statement.transactions.map((transaction, index) => (
-                                    <div key={index} className="transaction-row">
+                                    <div key={index} className="transaction-row" data-testid="statement-transaction-row">
                                         <div className="transaction-date">
                                             {new Date(transaction.createdAt).toLocaleDateString()}
                                         </div>
