@@ -2,6 +2,10 @@ const { Given, When, Then, After } = require('@cucumber/cucumber');
 const { expect } = require('chai');
 const { Pool } = require('pg');
 const path = require('path');
+const dotenv = require('dotenv');
+
+// Load test environment variables
+dotenv.config({ path: path.join(__dirname, '../../backend/.env.testing') });
 
 // Import from backend - adjust path based on tests directory
 const { BalanceService } = require(path.join(__dirname, '../../backend/services/balanceService'));
