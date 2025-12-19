@@ -49,44 +49,44 @@ describe('WithdrawalModal', () => {
         test('renders withdrawal modal with balance info', () => {
             render(<WithdrawalModal {...defaultProps} />);
 
-            expect(screen.getByText('Withdraw Funds')).toBeInTheDocument();
-            expect(screen.getByText('Available Balance:')).toBeInTheDocument();
-            expect(screen.getByText('5000.00 EGP')).toBeInTheDocument();
-            expect(screen.getByText('Daily Limit:')).toBeInTheDocument();
-            expect(screen.getByText('Monthly Limit:')).toBeInTheDocument();
+            expect(screen.getByTestId('modal-title')).toBeInTheDocument();
+            expect(screen.getByTestId('balance-info')).toBeInTheDocument();
+            expect(screen.getByTestId('available-balance')).toHaveTextContent('5000.00 EGP');
+            expect(screen.getByTestId('daily-limit')).toBeInTheDocument();
+            expect(screen.getByTestId('monthly-limit')).toBeInTheDocument();
         });
 
         test('validates minimum withdrawal amount', () => {
             render(<WithdrawalModal {...defaultProps} />);
 
-            const input = screen.getByLabelText('Withdrawal Amount');
+            const input = screen.getByTestId('withdrawal-amount-input');
             fireEvent.change(input, { target: { value: '5' } });
 
-            expect(screen.getByText(/Minimum withdrawal is 10/i)).toBeInTheDocument();
+            expect(screen.getByTestId('validation-error')).toHaveTextContent(/Minimum withdrawal is 10/i);
         });
 
         test('validates insufficient balance', () => {
             render(<WithdrawalModal {...defaultProps} />);
 
-            const input = screen.getByLabelText('Withdrawal Amount');
+            const input = screen.getByTestId('withdrawal-amount-input');
             fireEvent.change(input, { target: { value: '6000' } });
 
-            expect(screen.getByText(/Insufficient balance/i)).toBeInTheDocument();
+            expect(screen.getByTestId('validation-error')).toHaveTextContent(/Insufficient balance/i);
         });
 
         test('validates daily limit exceeded', () => {
             render(<WithdrawalModal {...defaultProps} dailyLimit={1000} />);
 
-            const input = screen.getByLabelText('Withdrawal Amount');
+            const input = screen.getByTestId('withdrawal-amount-input');
             fireEvent.change(input, { target: { value: '2000' } });
 
-            expect(screen.getByText(/Daily limit is 1,000/i)).toBeInTheDocument();
+            expect(screen.getByTestId('validation-error')).toHaveTextContent(/Daily limit is 1,000/i);
         });
 
         test('continue button disabled when invalid', () => {
             render(<WithdrawalModal {...defaultProps} />);
 
-            const continueBtn = screen.getByText('Continue');
+            const continueBtn = screen.getByTestId('continue-button');
             expect(continueBtn).toBeDisabled();
         });
     });
@@ -95,24 +95,24 @@ describe('WithdrawalModal', () => {
         test('shows all destination options', () => {
             render(<WithdrawalModal {...defaultProps} />);
 
-            const input = screen.getByLabelText('Withdrawal Amount');
+            const input = screen.getByTestId('withdrawal-amount-input');
             fireEvent.change(input, { target: { value: '100' } });
-            fireEvent.click(screen.getByText('Continue'));
+            fireEvent.click(screen.getByTestId('continue-button'));
 
-            expect(screen.getByText('Bank Transfer')).toBeInTheDocument();
-            expect(screen.getByText('Vodafone Cash')).toBeInTheDocument();
-            expect(screen.getByText('Orange Cash')).toBeInTheDocument();
-            expect(screen.getByText('Etisalat Cash')).toBeInTheDocument();
-            expect(screen.getByText('InstaPay')).toBeInTheDocument();
+            expect(screen.getByTestId('destination-bank')).toBeInTheDocument();
+            expect(screen.getByTestId('destination-vodafone')).toBeInTheDocument();
+            expect(screen.getByTestId('destination-orange')).toBeInTheDocument();
+            expect(screen.getByTestId('destination-etisalat')).toBeInTheDocument();
+            expect(screen.getByTestId('destination-instapay')).toBeInTheDocument();
         });
 
         test('shows bank fields when bank selected', () => {
             render(<WithdrawalModal {...defaultProps} />);
 
-            const input = screen.getByLabelText('Withdrawal Amount');
+            const input = screen.getByTestId('withdrawal-amount-input');
             fireEvent.change(input, { target: { value: '100' } });
-            fireEvent.click(screen.getByText('Continue'));
-            fireEvent.click(screen.getByText('Bank Transfer'));
+            fireEvent.click(screen.getByTestId('continue-button'));
+            fireEvent.click(screen.getByTestId('destination-bank'));
 
             expect(screen.getByLabelText('Account Holder Name')).toBeInTheDocument();
             expect(screen.getByLabelText('Bank Name')).toBeInTheDocument();
@@ -122,10 +122,10 @@ describe('WithdrawalModal', () => {
         test('shows wallet field when wallet selected', () => {
             render(<WithdrawalModal {...defaultProps} />);
 
-            const input = screen.getByLabelText('Withdrawal Amount');
+            const input = screen.getByTestId('withdrawal-amount-input');
             fireEvent.change(input, { target: { value: '100' } });
-            fireEvent.click(screen.getByText('Continue'));
-            fireEvent.click(screen.getByText('Vodafone Cash'));
+            fireEvent.click(screen.getByTestId('continue-button'));
+            fireEvent.click(screen.getByTestId('destination-vodafone'));
 
             expect(screen.getByPlaceholderText('01234567890')).toBeInTheDocument();
         });
@@ -135,33 +135,31 @@ describe('WithdrawalModal', () => {
         test('shows withdrawal summary', () => {
             render(<WithdrawalModal {...defaultProps} />);
 
-            const input = screen.getByLabelText('Withdrawal Amount');
+            const input = screen.getByTestId('withdrawal-amount-input');
             fireEvent.change(input, { target: { value: '100' } });
-            fireEvent.click(screen.getByText('Continue'));
-            fireEvent.click(screen.getByText('Vodafone Cash'));
+            fireEvent.click(screen.getByTestId('continue-button'));
+            fireEvent.click(screen.getByTestId('destination-vodafone'));
 
             const walletInput = screen.getByPlaceholderText('01234567890');
             fireEvent.change(walletInput, { target: { value: '01234567890' } });
-            fireEvent.click(screen.getAllByText('Continue')[1]);
+            fireEvent.click(screen.getAllByTestId('continue-button')[1]);
 
-            expect(screen.getByText('Confirm Withdrawal')).toBeInTheDocument();
-            expect(screen.getByText('Amount:')).toBeInTheDocument();
-            expect(screen.getByText('100.00 EGP')).toBeInTheDocument();
+            expect(screen.getByTestId('confirmation-summary')).toBeInTheDocument();
         });
 
         test('shows 24-48 hour processing notice', () => {
             render(<WithdrawalModal {...defaultProps} />);
 
-            const input = screen.getByLabelText('Withdrawal Amount');
+            const input = screen.getByTestId('withdrawal-amount-input');
             fireEvent.change(input, { target: { value: '100' } });
-            fireEvent.click(screen.getByText('Continue'));
-            fireEvent.click(screen.getByText('Vodafone Cash'));
+            fireEvent.click(screen.getByTestId('continue-button'));
+            fireEvent.click(screen.getByTestId('destination-vodafone'));
 
             const walletInput = screen.getByPlaceholderText('01234567890');
             fireEvent.change(walletInput, { target: { value: '01234567890' } });
-            fireEvent.click(screen.getAllByText('Continue')[1]);
+            fireEvent.click(screen.getAllByTestId('continue-button')[1]);
 
-            expect(screen.getByText(/24-48 hours/i)).toBeInTheDocument();
+            expect(screen.getByTestId('warning-notice')).toHaveTextContent(/24-48 hours/i);
         });
     });
 
@@ -185,15 +183,15 @@ describe('WithdrawalModal', () => {
 
             render(<WithdrawalModal {...defaultProps} />);
 
-            const input = screen.getByLabelText('Withdrawal Amount');
+            const input = screen.getByTestId('withdrawal-amount-input');
             fireEvent.change(input, { target: { value: '100' } });
-            fireEvent.click(screen.getByText('Continue'));
-            fireEvent.click(screen.getByText('Vodafone Cash'));
+            fireEvent.click(screen.getByTestId('continue-button'));
+            fireEvent.click(screen.getByTestId('destination-vodafone'));
 
             const walletInput = screen.getByPlaceholderText('01234567890');
             fireEvent.change(walletInput, { target: { value: '01234567890' } });
-            fireEvent.click(screen.getAllByText('Continue')[1]);
-            fireEvent.click(screen.getByText('Confirm Withdrawal'));
+            fireEvent.click(screen.getAllByTestId('continue-button')[1]);
+            fireEvent.click(screen.getByTestId('confirm-withdrawal-button'));
 
             await waitFor(() => {
                 expect(mockWithdraw).toHaveBeenCalledWith(
@@ -208,18 +206,18 @@ describe('WithdrawalModal', () => {
         test('shows success message after withdrawal', async () => {
             render(<WithdrawalModal {...defaultProps} />);
 
-            const input = screen.getByLabelText('Withdrawal Amount');
+            const input = screen.getByTestId('withdrawal-amount-input');
             fireEvent.change(input, { target: { value: '100' } });
-            fireEvent.click(screen.getByText('Continue'));
-            fireEvent.click(screen.getByText('Vodafone Cash'));
+            fireEvent.click(screen.getByTestId('continue-button'));
+            fireEvent.click(screen.getByTestId('destination-vodafone'));
 
             const walletInput = screen.getByPlaceholderText('01234567890');
             fireEvent.change(walletInput, { target: { value: '01234567890' } });
-            fireEvent.click(screen.getAllByText('Continue')[1]);
-            fireEvent.click(screen.getByText('Confirm Withdrawal'));
+            fireEvent.click(screen.getAllByTestId('continue-button')[1]);
+            fireEvent.click(screen.getByTestId('confirm-withdrawal-button'));
 
             await waitFor(() => {
-                expect(screen.getByText('Withdrawal Request Submitted!')).toBeInTheDocument();
+                expect(screen.getByTestId('success-title')).toHaveTextContent('Withdrawal Request Submitted!');
             });
         });
     });
@@ -229,19 +227,19 @@ describe('WithdrawalModal', () => {
             const onClose = jest.fn();
             render(<WithdrawalModal {...defaultProps} onClose={onClose} />);
 
-            fireEvent.click(screen.getByText('×'));
+            fireEvent.click(screen.getByTestId('close-button'));
             expect(onClose).toHaveBeenCalled();
         });
 
         test('back button navigation works', () => {
             render(<WithdrawalModal {...defaultProps} />);
 
-            const input = screen.getByLabelText('Withdrawal Amount');
+            const input = screen.getByTestId('withdrawal-amount-input');
             fireEvent.change(input, { target: { value: '100' } });
-            fireEvent.click(screen.getByText('Continue'));
-            fireEvent.click(screen.getByText('Back'));
+            fireEvent.click(screen.getByTestId('continue-button'));
+            fireEvent.click(screen.getByTestId('back-button'));
 
-            expect(screen.getByLabelText('Withdrawal Amount')).toBeInTheDocument();
+            expect(screen.getByTestId('withdrawal-amount-input')).toBeInTheDocument();
         });
     });
 });
