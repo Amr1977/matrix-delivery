@@ -69,7 +69,7 @@ CREATE TABLE user_balances (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     last_transaction_at TIMESTAMP,
-    CONSTRAINT positive_available_balance CHECK (available_balance >= 0),
+    -- REMOVED: positive_available_balance constraint to allow debt
     CONSTRAINT positive_pending_balance CHECK (pending_balance >= 0),
     CONSTRAINT positive_held_balance CHECK (held_balance >= 0),
     CONSTRAINT valid_currency CHECK (currency IN ('EGP', 'USD', 'EUR', 'SAR', 'AED')),
