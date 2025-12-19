@@ -14,8 +14,9 @@ const { PAYMENT_CONFIG } = require(path.join(__dirname, '../../backend/config/pa
 // Initialize database connection
 let pool;
 let balanceService;
+let testCustomerId; // Global test customer for all scenarios
 
-// Helper to initialize DB connection
+// Helper to initialize DB connection and create test customer
 function initializeDB() {
     if (!pool) {
         pool = new Pool({
@@ -28,6 +29,22 @@ function initializeDB() {
         balanceService = new BalanceService(pool);
     }
     return { pool, balanceService };
+}
+
+// Create test customer once
+async function ensureTestCustomer() {
+    if (!testCustomerId) {
+        const { pool } = initializeDB();
+        const timestamp = Date.now();
+        const customerResult = await pool.query(
+            `INSERT INTO users (name, email, password, phone, primary_role, country, city, area)
+             VALUES ('BDD Customer', $1, 'hashed', '01111111111', 'customer', 'Egypt', 'Cairo', 'Nasr City')
+             RETURNING id`,
+            [`bdd.customer.${timestamp}@test.com`]
+        );
+        testCustomerId = customerResult.rows[0].id;
+    }
+    return testCustomerId;
 }
 
 // ==========================================================================
@@ -194,12 +211,13 @@ Given('the total commission deducted is {float} EGP', function (commission) {
 
 When('the driver completes a {float} EGP COD order', async function (amount) {
     const { pool, balanceService } = initializeDB();
+    await ensureTestCustomer();
 
     // Create order
     const orderResult = await pool.query(
         `INSERT INTO orders (customer_id, driver_id, total_amount, status)
-         VALUES (1, $1, $2, 'delivered') RETURNING id`,
-        [this.driverId, amount]
+         VALUES ($1, $2, $3, 'delivered') RETURNING id`,
+        [testCustomerId, this.driverId, amount]
     );
     this.lastOrderId = orderResult.rows[0].id;
 
@@ -215,7 +233,22 @@ When('the driver completes a {float} EGP COD order', async function (amount) {
 
 When('the driver completes {int} COD orders of {float} EGP each', async function (orderCount, amount) {
     for (let i = 0; i < orderCount; i++) {
-        await this.When(`the driver completes a ${amount} EGP COD order`);
+        const { pool, balanceService } = initializeDB();
+        await ensureTestCustomer();
+
+        const orderResult = await pool.query(
+            `INSERT INTO orders (customer_id, driver_id, total_amount, status)
+             VALUES ($1, $2, $3, 'delivered') RETURNING id`,
+            [testCustomerId, this.driverId, amount]
+        );
+
+        const commission = amount * this.commissionRate;
+        await balanceService.deductCommission(this.driverId, orderResult.rows[0].id, commission);
+
+        this.lastCommission = commission;
+        this.lastOrderAmount = amount;
+        this.totalCommission = (this.totalCommission || 0) + commission;
+        this.totalCashCollected = (this.totalCashCollected || 0) + amount;
     }
 });
 
