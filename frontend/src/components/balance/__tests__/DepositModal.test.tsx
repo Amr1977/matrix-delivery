@@ -58,62 +58,62 @@ describe('DepositModal', () => {
         test('renders amount input step', () => {
             render(<DepositModal {...defaultProps} />);
 
-            expect(screen.getByText('Deposit Funds')).toBeInTheDocument();
-            expect(screen.getByLabelText('Deposit Amount')).toBeInTheDocument();
-            expect(screen.getByText('Current Balance:')).toBeInTheDocument();
-            expect(screen.getAllByText('5000.00 EGP')[0]).toBeInTheDocument();
+            expect(screen.getByTestId('modal-title')).toBeInTheDocument();
+            expect(screen.getByTestId('deposit-amount-input')).toBeInTheDocument();
+            expect(screen.getByTestId('current-balance')).toBeInTheDocument();
+            expect(screen.getByTestId('current-balance-value')).toHaveTextContent('5000.00 EGP');
         });
 
         test('shows quick amount buttons', () => {
             render(<DepositModal {...defaultProps} />);
 
-            expect(screen.getByText('100 EGP')).toBeInTheDocument();
-            expect(screen.getByText('500 EGP')).toBeInTheDocument();
-            expect(screen.getByText('1000 EGP')).toBeInTheDocument();
-            expect(screen.getByText('5000 EGP')).toBeInTheDocument();
+            expect(screen.getByTestId('quick-amount-100')).toBeInTheDocument();
+            expect(screen.getByTestId('quick-amount-500')).toBeInTheDocument();
+            expect(screen.getByTestId('quick-amount-1000')).toBeInTheDocument();
+            expect(screen.getByTestId('quick-amount-5000')).toBeInTheDocument();
         });
 
         test('validates minimum amount', () => {
             render(<DepositModal {...defaultProps} />);
 
-            const input = screen.getByLabelText('Deposit Amount');
+            const input = screen.getByTestId('deposit-amount-input');
             fireEvent.change(input, { target: { value: '0.5' } });
 
-            expect(screen.getByText(/Minimum deposit is 1/i)).toBeInTheDocument();
+            expect(screen.getByTestId('validation-error')).toHaveTextContent(/Minimum deposit is 1/i);
         });
 
         test('validates maximum amount', () => {
             render(<DepositModal {...defaultProps} />);
 
-            const input = screen.getByLabelText('Deposit Amount');
+            const input = screen.getByTestId('deposit-amount-input');
             fireEvent.change(input, { target: { value: '150000' } });
 
-            expect(screen.getByText(/Maximum deposit is 100,000/i)).toBeInTheDocument();
+            expect(screen.getByTestId('validation-error')).toHaveTextContent(/Maximum deposit is 100,000/i);
         });
 
         test('quick amount button sets value', () => {
             render(<DepositModal {...defaultProps} />);
 
-            fireEvent.click(screen.getByText('1000 EGP'));
+            fireEvent.click(screen.getByTestId('quick-amount-1000'));
 
-            const input = screen.getByLabelText('Deposit Amount') as HTMLInputElement;
+            const input = screen.getByTestId('deposit-amount-input') as HTMLInputElement;
             expect(input.value).toBe('1000');
         });
 
         test('continue button disabled when invalid', () => {
             render(<DepositModal {...defaultProps} />);
 
-            const continueBtn = screen.getByText('Continue');
+            const continueBtn = screen.getByTestId('continue-button');
             expect(continueBtn).toBeDisabled();
         });
 
         test('continue button enabled when valid amount', () => {
             render(<DepositModal {...defaultProps} />);
 
-            const input = screen.getByLabelText('Deposit Amount');
+            const input = screen.getByTestId('deposit-amount-input');
             fireEvent.change(input, { target: { value: '100' } });
 
-            const continueBtn = screen.getByText('Continue');
+            const continueBtn = screen.getByTestId('continue-button');
             expect(continueBtn).not.toBeDisabled();
         });
     });
@@ -122,9 +122,9 @@ describe('DepositModal', () => {
         test('shows payment method selector after continue', () => {
             render(<DepositModal {...defaultProps} />);
 
-            const input = screen.getByLabelText('Deposit Amount');
+            const input = screen.getByTestId('deposit-amount-input');
             fireEvent.change(input, { target: { value: '100' } });
-            fireEvent.click(screen.getByText('Continue'));
+            fireEvent.click(screen.getByTestId('continue-button'));
 
             expect(screen.getByTestId('payment-selector')).toBeInTheDocument();
         });
@@ -132,25 +132,24 @@ describe('DepositModal', () => {
         test('shows deposit summary', () => {
             render(<DepositModal {...defaultProps} />);
 
-            const input = screen.getByLabelText('Deposit Amount');
+            const input = screen.getByTestId('deposit-amount-input');
             fireEvent.change(input, { target: { value: '100' } });
-            fireEvent.click(screen.getByText('Continue'));
+            fireEvent.click(screen.getByTestId('continue-button'));
 
-            expect(screen.getByText('Deposit Amount:')).toBeInTheDocument();
-            expect(screen.getByText('100.00 EGP')).toBeInTheDocument();
-            expect(screen.getByText('New Balance:')).toBeInTheDocument();
-            expect(screen.getByText('5100.00 EGP')).toBeInTheDocument();
+            expect(screen.getByTestId('deposit-summary')).toBeInTheDocument();
+            expect(screen.getByTestId('summary-amount')).toHaveTextContent('100.00 EGP');
+            expect(screen.getByTestId('summary-new-balance')).toHaveTextContent('5100.00 EGP');
         });
 
         test('back button returns to amount step', () => {
             render(<DepositModal {...defaultProps} />);
 
-            const input = screen.getByLabelText('Deposit Amount');
+            const input = screen.getByTestId('deposit-amount-input');
             fireEvent.change(input, { target: { value: '100' } });
-            fireEvent.click(screen.getByText('Continue'));
-            fireEvent.click(screen.getByText('Back'));
+            fireEvent.click(screen.getByTestId('continue-button'));
+            fireEvent.click(screen.getByTestId('back-button'));
 
-            expect(screen.getByLabelText('Deposit Amount')).toBeInTheDocument();
+            expect(screen.getByTestId('deposit-amount-input')).toBeInTheDocument();
         });
     });
 
@@ -175,13 +174,13 @@ describe('DepositModal', () => {
             render(<DepositModal {...defaultProps} />);
 
             // Step 1: Enter amount
-            const input = screen.getByLabelText('Deposit Amount');
+            const input = screen.getByTestId('deposit-amount-input');
             fireEvent.change(input, { target: { value: '100' } });
-            fireEvent.click(screen.getByText('Continue'));
+            fireEvent.click(screen.getByTestId('continue-button'));
 
             // Step 2: Select payment
             fireEvent.click(screen.getByText('Select Payment'));
-            fireEvent.click(screen.getByText('Confirm Deposit'));
+            fireEvent.click(screen.getByTestId('confirm-deposit-button'));
 
             await waitFor(() => {
                 expect(mockDeposit).toHaveBeenCalledWith(1, 100, 'Balance deposit');
@@ -191,14 +190,14 @@ describe('DepositModal', () => {
         test('shows success message after deposit', async () => {
             render(<DepositModal {...defaultProps} />);
 
-            const input = screen.getByLabelText('Deposit Amount');
+            const input = screen.getByTestId('deposit-amount-input');
             fireEvent.change(input, { target: { value: '100' } });
-            fireEvent.click(screen.getByText('Continue'));
+            fireEvent.click(screen.getByTestId('continue-button'));
             fireEvent.click(screen.getByText('Select Payment'));
-            fireEvent.click(screen.getByText('Confirm Deposit'));
+            fireEvent.click(screen.getByTestId('confirm-deposit-button'));
 
             await waitFor(() => {
-                expect(screen.getByText('Deposit Successful!')).toBeInTheDocument();
+                expect(screen.getByTestId('success-title')).toHaveTextContent('Deposit Successful!');
             });
         });
 
@@ -206,11 +205,11 @@ describe('DepositModal', () => {
             const onSuccess = jest.fn();
             render(<DepositModal {...defaultProps} onSuccess={onSuccess} />);
 
-            const input = screen.getByLabelText('Deposit Amount');
+            const input = screen.getByTestId('deposit-amount-input');
             fireEvent.change(input, { target: { value: '100' } });
-            fireEvent.click(screen.getByText('Continue'));
+            fireEvent.click(screen.getByTestId('continue-button'));
             fireEvent.click(screen.getByText('Select Payment'));
-            fireEvent.click(screen.getByText('Confirm Deposit'));
+            fireEvent.click(screen.getByTestId('confirm-deposit-button'));
 
             await waitFor(() => {
                 expect(onSuccess).toHaveBeenCalled();
@@ -223,7 +222,7 @@ describe('DepositModal', () => {
             const onClose = jest.fn();
             render(<DepositModal {...defaultProps} onClose={onClose} />);
 
-            fireEvent.click(screen.getByText('×'));
+            fireEvent.click(screen.getByTestId('close-button'));
             expect(onClose).toHaveBeenCalled();
         });
 
@@ -231,7 +230,7 @@ describe('DepositModal', () => {
             const onClose = jest.fn();
             render(<DepositModal {...defaultProps} onClose={onClose} />);
 
-            fireEvent.click(screen.getByText('Cancel'));
+            fireEvent.click(screen.getByTestId('cancel-button'));
             expect(onClose).toHaveBeenCalled();
         });
     });
