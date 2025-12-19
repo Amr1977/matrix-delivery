@@ -114,6 +114,7 @@ describe('WithdrawalModal', () => {
             fireEvent.click(screen.getByTestId('continue-button'));
             fireEvent.click(screen.getByTestId('destination-bank'));
 
+            // Bank fields are dynamic, keep label-based selectors
             expect(screen.getByLabelText('Account Holder Name')).toBeInTheDocument();
             expect(screen.getByLabelText('Bank Name')).toBeInTheDocument();
             expect(screen.getByLabelText('Account Number')).toBeInTheDocument();
@@ -142,7 +143,7 @@ describe('WithdrawalModal', () => {
 
             const walletInput = screen.getByPlaceholderText('01234567890');
             fireEvent.change(walletInput, { target: { value: '01234567890' } });
-            fireEvent.click(screen.getAllByTestId('continue-button')[1]);
+            fireEvent.click(screen.getByTestId('continue-button'));
 
             expect(screen.getByTestId('confirmation-summary')).toBeInTheDocument();
         });
@@ -157,7 +158,7 @@ describe('WithdrawalModal', () => {
 
             const walletInput = screen.getByPlaceholderText('01234567890');
             fireEvent.change(walletInput, { target: { value: '01234567890' } });
-            fireEvent.click(screen.getAllByTestId('continue-button')[1]);
+            fireEvent.click(screen.getByTestId('continue-button'));
 
             expect(screen.getByTestId('warning-notice')).toHaveTextContent(/24-48 hours/i);
         });
@@ -190,7 +191,7 @@ describe('WithdrawalModal', () => {
 
             const walletInput = screen.getByPlaceholderText('01234567890');
             fireEvent.change(walletInput, { target: { value: '01234567890' } });
-            fireEvent.click(screen.getAllByTestId('continue-button')[1]);
+            fireEvent.click(screen.getByTestId('continue-button'));
             fireEvent.click(screen.getByTestId('confirm-withdrawal-button'));
 
             await waitFor(() => {
@@ -213,7 +214,7 @@ describe('WithdrawalModal', () => {
 
             const walletInput = screen.getByPlaceholderText('01234567890');
             fireEvent.change(walletInput, { target: { value: '01234567890' } });
-            fireEvent.click(screen.getAllByTestId('continue-button')[1]);
+            fireEvent.click(screen.getByTestId('continue-button'));
             fireEvent.click(screen.getByTestId('confirm-withdrawal-button'));
 
             await waitFor(() => {
