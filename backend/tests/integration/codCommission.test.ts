@@ -553,10 +553,10 @@ describe('COD Commission Integration Tests', () => {
                 await balanceService.deductCommission(testDriverId, orderResult.rows[0].id, commission);
             }
 
-            // Total commission: (80+120+95+150+75+110+85+130+90+100) * 0.15 = 163.5
-            // Final balance: 50 - 163.5 = -113.5
+            // Total commission: (80+120+95+150+75+110+85+130+90+100) * 0.15 = 155.25
+            // Final balance: 50 - 155.25 = -105.25
             const balance = await balanceService.getBalance(testDriverId);
-            expect(balance.availableBalance).toBeCloseTo(-113.5, 1);
+            expect(balance.availableBalance).toBeCloseTo(-105.25, 1);
 
             // Should still be able to accept orders (above -200 threshold)
             const canAccept = await balanceService.canAcceptOrders(testDriverId);

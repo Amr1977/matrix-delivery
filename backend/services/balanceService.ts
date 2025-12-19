@@ -709,7 +709,7 @@ export class BalanceService implements IBalanceService {
             const balance = await this.getBalance(driverId);
             const threshold = PAYMENT_CONFIG.DEBT_MANAGEMENT.MAX_DEBT_THRESHOLD;
 
-            if (balance.availableBalance < threshold) {
+            if (balance.availableBalance <= threshold) {
                 return {
                     canAccept: false,
                     reason: `Balance (${balance.availableBalance} EGP) below minimum threshold (${threshold} EGP). Please deposit funds to continue accepting orders.`,
