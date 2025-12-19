@@ -19,7 +19,7 @@ function initializeDB() {
             port: parseInt(process.env.DB_PORT || '5432'),
             database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
             user: process.env.DB_USER || 'postgres',
-            password: process.env.DB_PASSWORD,
+            password: process.env.DB_PASSWORD || '',
         });
         balanceService = new BalanceService(pool);
     }
@@ -81,7 +81,33 @@ Given('a driver with balance of {float} EGP', async function (balance) {
 });
 
 Given('a driver starts the day with balance of {float} EGP', async function (balance) {
-    await this.Given(`a driver with balance of ${balance} EGP`);
+    const { pool, balanceService } = initializeDB();
+
+    // Create test driver
+    const timestamp = Date.now();
+    const driverResult = await pool.query(
+        `INSERT INTO users (name, email, password, phone, primary_role, country, city, area, vehicle_type)
+         VALUES ('BDD Driver', $1, 'hashed', '01222222222', 'driver', 'Egypt', 'Cairo', 'Nasr City', 'car')
+         RETURNING id`,
+        [`bdd.driver.${timestamp}@test.com`]
+    );
+    this.driverId = driverResult.rows[0].id;
+
+    // Create balance
+    await balanceService.createBalance(this.driverId);
+
+    // Set initial balance
+    if (balance !== 0) {
+        await balanceService.deposit({
+            userId: this.driverId,
+            amount: balance,
+            description: 'Initial balance for BDD test'
+        });
+    }
+
+    this.initialBalance = balance;
+    this.totalCommission = 0;
+    this.totalCashCollected = 0;
 });
 
 Given('a driver has completed {int} COD orders totaling {float} EGP', async function (orderCount, totalAmount) {
@@ -110,7 +136,18 @@ Given('a driver completes {int} COD orders of {float} EGP each', async function 
     const { pool, balanceService } = initializeDB();
 
     if (!this.driverId) {
-        await this.Given('a driver with balance of 0 EGP');
+        // Create test driver first
+        const timestamp = Date.now();
+        const driverResult = await pool.query(
+            `INSERT INTO users (name, email, password, phone, primary_role, country, city, area, vehicle_type)
+             VALUES ('BDD Driver', $1, 'hashed', '01222222222', 'driver', 'Egypt', 'Cairo', 'Nasr City', 'car')
+             RETURNING id`,
+            [`bdd.driver.${timestamp}@test.com`]
+        );
+        this.driverId = driverResult.rows[0].id;
+        await balanceService.createBalance(this.driverId);
+        this.totalCommission = 0;
+        this.totalCashCollected = 0;
     }
 
     for (let i = 0; i < orderCount; i++) {
