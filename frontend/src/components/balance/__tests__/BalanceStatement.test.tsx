@@ -59,8 +59,12 @@ describe('BalanceStatement', () => {
 
             fireEvent.click(screen.getByTestId('period-last7days'));
 
-            expect(screen.getByTestId('start-date-input')).toHaveValue(expect.any(String));
-            expect(screen.getByTestId('end-date-input')).toHaveValue(expect.any(String));
+            // Dates should be set automatically
+            const startDate = screen.getByTestId('start-date-input') as HTMLInputElement;
+            const endDate = screen.getByTestId('end-date-input') as HTMLInputElement;
+
+            expect(startDate.value).toBeTruthy();
+            expect(endDate.value).toBeTruthy();
         });
 
         test('custom period shows date inputs', () => {
