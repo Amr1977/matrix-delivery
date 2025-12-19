@@ -1,0 +1,22 @@
+../backend/services/balanceService.ts(131,68): error TS18046: 'error' is of type 'unknown'.
+../backend/services/balanceService.ts(193,79): error TS18046: 'error' is of type 'unknown'.
+../backend/services/balanceService.ts(285,58): error TS18046: 'error' is of type 'unknown'.
+../backend/services/balanceService.ts(387,61): error TS18046: 'error' is of type 'unknown'.
+../backend/services/balanceService.ts(465,64): error TS18046: 'error' is of type 'unknown'.
+../backend/services/balanceService.ts(529,63): error TS18046: 'error' is of type 'unknown'.
+../backend/services/balanceService.ts(598,66): error TS18046: 'error' is of type 'unknown'.
+../backend/services/balanceService.ts(686,97): error TS18046: 'error' is of type 'unknown'.
+../backend/services/balanceService.ts(727,91): error TS18046: 'error' is of type 'unknown'.
+../backend/services/balanceService.ts(824,62): error TS18046: 'error' is of type 'unknown'.
+../backend/services/balanceService.ts(913,66): error TS18046: 'error' is of type 'unknown'.
+../backend/services/balanceService.ts(1000,66): error TS18046: 'error' is of type 'unknown'.
+../backend/services/balanceService.ts(1112,81): error TS18046: 'error' is of type 'unknown'.
+../backend/services/balanceService.ts(1192,79): error TS18046: 'error' is of type 'unknown'.
+../backend/services/balanceService.ts(1244,80): error TS18046: 'error' is of type 'unknown'.
+../backend/services/balanceService.ts(1265,79): error TS18046: 'error' is of type 'unknown'.
+../backend/services/balanceService.ts(1342,89): error TS18046: 'error' is of type 'unknown'.
+../backend/services/balanceService.ts(1345,49): error TS18046: 'error' is of type 'unknown'.
+../backend/services/balanceService.ts(1379,77): error TS18046: 'error' is of type 'unknown'.
+../backend/services/balanceService.ts(1407,71): error TS18046: 'error' is of type 'unknown'.
+../backend/services/balanceService.ts(1476,88): error TS18046: 'error' is of type 'unknown'.
+
