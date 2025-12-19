@@ -59,7 +59,7 @@ describe('COD Commission Integration Tests', () => {
             await pool.query('DELETE FROM balance_holds WHERE user_id IN ($1, $2)', [testCustomerId, testDriverId]);
             await pool.query('DELETE FROM balance_transactions WHERE user_id IN ($1, $2)', [testCustomerId, testDriverId]);
             await pool.query('DELETE FROM payments WHERE payer_id = $1 OR payee_id = $2', [testCustomerId, testDriverId]);
-            await pool.query('DELETE FROM orders WHERE customer_id = $1 OR assigned_driver_user_id = $2', [testCustomerId, testDriverId]);
+            await pool.query('DELETE FROM orders WHERE customer_id = $1 OR driver_id = $2', [testCustomerId, testDriverId]);
             await pool.query('DELETE FROM user_balances WHERE user_id IN ($1, $2)', [testCustomerId, testDriverId]);
             await pool.query(`DELETE FROM users WHERE email LIKE 'cod.%@test.com'`);
         } catch (error) {
@@ -74,7 +74,7 @@ describe('COD Commission Integration Tests', () => {
         await pool.query('DELETE FROM balance_holds WHERE user_id IN ($1, $2)', [testCustomerId, testDriverId]);
         await pool.query('DELETE FROM balance_transactions WHERE user_id IN ($1, $2)', [testCustomerId, testDriverId]);
         await pool.query('DELETE FROM payments WHERE payer_id = $1 OR payee_id = $2', [testCustomerId, testDriverId]);
-        await pool.query('DELETE FROM orders WHERE customer_id = $1 OR assigned_driver_user_id = $2', [testCustomerId, testDriverId]);
+        await pool.query('DELETE FROM orders WHERE customer_id = $1 OR driver_id = $2', [testCustomerId, testDriverId]);
 
         await pool.query(
             `UPDATE user_balances 
