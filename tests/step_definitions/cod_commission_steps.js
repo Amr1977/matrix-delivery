@@ -1,8 +1,11 @@
-const { Given, When, Then } = require('@cucumber/cucumber');
+const { Given, When, Then, After } = require('@cucumber/cucumber');
 const { expect } = require('chai');
 const { Pool } = require('pg');
-const { BalanceService } = require('../../backend/services/balanceService');
-const { PAYMENT_CONFIG } = require('../../backend/config/paymentConfig');
+const path = require('path');
+
+// Import from backend - adjust path based on tests directory
+const { BalanceService } = require(path.join(__dirname, '../../backend/services/balanceService'));
+const { PAYMENT_CONFIG } = require(path.join(__dirname, '../../backend/config/paymentConfig'));
 
 // Initialize database connection
 let pool;
