@@ -705,6 +705,24 @@ class OrderService {
       throw new Error('Bid not found');
     }
 
+    // ✅ NEW: Check if driver can accept orders (debt check)
+    const { BalanceService } = require('./balanceService');
+    const balanceService = new BalanceService(pool);
+    const driverStatus = await balanceService.canAcceptOrders(driverId);
+
+    if (!driverStatus.canAccept) {
+      logger.warn('Driver cannot accept bid due to debt', {
+        orderId,
+        driverId,
+        currentBalance: driverStatus.currentBalance,
+        debtThreshold: driverStatus.debtThreshold,
+        category: 'order'
+      });
+      throw new Error(
+        `Cannot accept order: ${driverStatus.reason}`
+      );
+    }
+
     // Update order with accepted bid
     await pool.query(
       'UPDATE orders SET status = $1, assigned_driver_user_id = $2, assigned_driver_name = (SELECT driver_name FROM bids WHERE order_id = $3 AND user_id = $4), assigned_driver_bid_price = (SELECT bid_price FROM bids WHERE order_id = $3 AND user_id = $5), price = (SELECT bid_price FROM bids WHERE order_id = $3 AND user_id = $6), accepted_at = NOW() WHERE id = $3',
@@ -715,6 +733,7 @@ class OrderService {
       orderId,
       customerId,
       driverId,
+      driverBalance: driverStatus.currentBalance,
       category: 'order'
     });
 
