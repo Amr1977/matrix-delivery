@@ -123,21 +123,21 @@ Given('a driver completes {int} COD orders of {float} EGP each', async function 
     }
 });
 
-Given('the driver\\'s current balance is { float } EGP', async function(balance) {
+Given('the driver\'s current balance is {float} EGP', async function (balance) {
     const { balanceService } = initializeDB();
-const currentBalance = await balanceService.getBalance(this.driverId);
+    const currentBalance = await balanceService.getBalance(this.driverId);
 
-// Adjust balance to match expected
-const difference = balance - currentBalance.availableBalance;
-if (difference > 0) {
-    await balanceService.deposit({
-        userId: this.driverId,
-        amount: difference,
-        description: 'Balance adjustment'
-    });
-} else if (difference < 0) {
-    await balanceService.deductCommission(this.driverId, 1, Math.abs(difference));
-}
+    // Adjust balance to match expected
+    const difference = balance - currentBalance.availableBalance;
+    if (difference > 0) {
+        await balanceService.deposit({
+            userId: this.driverId,
+            amount: difference,
+            description: 'Balance adjustment'
+        });
+    } else if (difference < 0) {
+        await balanceService.deductCommission(this.driverId, 1, Math.abs(difference));
+    }
 });
 
 Given('the total commission deducted is {float} EGP', function (commission) {
