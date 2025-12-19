@@ -60,6 +60,91 @@ matrix-heroes/
 └── docs/
 ```
 
+```
+
+---
+
+## 🧪 Testing
+
+### Test ID Conventions
+
+All components use `data-testid` attributes for i18n-ready testing. This ensures tests remain stable across language changes.
+
+#### Naming Patterns
+
+| Pattern | Example | Usage |
+|---------|---------|-------|
+| `{component}-{element}` | `deposit-modal`, `balance-dashboard` | Component containers |
+| `{action}-button` | `continue-button`, `confirm-deposit-button` | Action buttons |
+| `{data}-{type}` | `available-balance-amount`, `current-balance-value` | Data displays |
+| `{state}-{element}` | `loading-spinner`, `error-message` | State indicators |
+| `{collection}-{item}` | `transactions-list`, `transaction-row` | Lists and items |
+
+#### Example Usage
+
+```tsx
+// ✅ Good - Language-independent
+expect(screen.getByTestId('deposit-button')).toBeInTheDocument();
+expect(screen.getByTestId('available-balance-amount')).toHaveTextContent('5000.00 EGP');
+fireEvent.click(screen.getByTestId('continue-button'));
+
+// ❌ Avoid - Breaks with localization
+expect(screen.getByText('Deposit')).toBeInTheDocument();
+fireEvent.click(screen.getByText('Continue'));
+```
+
+#### Balance Module Test IDs
+
+**BalanceDashboard:**
+- `balance-dashboard`, `dashboard-title`, `driver-badge`
+- `available-balance-card`, `pending-balance-card`, `held-balance-card`, `total-balance-card`
+- `deposit-button`, `withdraw-button`
+- `transactions-list`, `transaction-item`
+- `loading-spinner`, `error-message`, `retry-button`
+
+**DepositModal:**
+- `deposit-modal`, `modal-header`, `modal-title`, `close-button`
+- `amount-step`, `payment-step`, `processing-step`, `success-step`
+- `deposit-amount-input`, `deposit-description-input`
+- `quick-amount-100`, `quick-amount-500`, `quick-amount-1000`, `quick-amount-5000`
+- `continue-button`, `confirm-deposit-button`, `done-button`
+
+**WithdrawalModal:**
+- `withdrawal-modal`, `modal-header`, `modal-title`
+- `amount-step`, `destination-step`, `confirm-step`, `processing-step`, `success-step`
+- `withdrawal-amount-input`, `balance-info`, `available-balance`, `daily-limit`, `monthly-limit`
+- `destination-bank`, `destination-vodafone`, `destination-orange`, `destination-etisalat`
+- `confirm-withdrawal-button`
+
+**TransactionHistory:**
+- `transaction-history`, `history-title`, `export-csv-button`
+- `search-input`, `type-filter`, `status-filter`, `start-date-filter`, `end-date-filter`
+- `transactions-table`, `transaction-row`
+- `pagination`, `previous-page-button`, `next-page-button`
+
+**BalanceStatement:**
+- `balance-statement`, `statement-title`
+- `period-selector`, `period-last7days`, `period-last30days`, `period-custom`
+- `start-date-input`, `end-date-input`, `generate-statement-button`
+- `statement-preview`, `download-pdf-button`, `download-csv-button`
+- `opening-balance`, `total-deposits`, `total-withdrawals`, `closing-balance`
+
+### Running Tests
+
+```bash
+# Run all tests
+npm test
+
+# Run specific test file
+npm test -- --testPathPattern=BalanceDashboard
+
+# Run balance module tests
+npm test -- --testPathPattern=balance
+
+# Run with coverage
+npm test -- --coverage
+```
+
 ---
 
 ## 🧑‍💻 Contributing
