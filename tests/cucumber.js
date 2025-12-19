@@ -29,5 +29,20 @@ module.exports = {
       'tests/features/map_location_picker.feature'
     ],
     tags: '@smoke'
+  },
+  'cod-commission': {
+    requireModule: ['ts-node/register'],
+    require: [
+      'step_definitions/cod_commission_steps.js'
+    ],
+    format: [
+      'progress-bar',
+      'html:reports/cod-commission-report.html',
+      'json:reports/cod-commission-report.json'
+    ],
+    parallel: 1,
+    paths: [
+      'features/cod-commission.feature'
+    ]
   }
 };
