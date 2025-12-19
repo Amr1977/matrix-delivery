@@ -129,9 +129,9 @@ describe('COD Commission Integration Tests', () => {
             // 4. Record payment
             await pool.query(
                 `INSERT INTO payments (
-                    id, order_id, amount, currency, status,
-                    payer_id, payee_id, platform_fee, driver_earnings, processed_at
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP)`,
+                    id, order_id, amount, currency, payment_method, status,
+                    payer_id, payee_id, platform_fee, driver_earnings
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
                 [
                     `PAY-${Date.now()}`,
                     orderId,
