@@ -26,11 +26,32 @@ const BalanceDashboard: React.FC<BalanceDashboardProps> = ({ userId, userRole })
 
     const [showDepositModal, setShowDepositModal] = useState(false);
     const [showWithdrawalModal, setShowWithdrawalModal] = useState(false);
+    const [paymentEarnings, setPaymentEarnings] = useState<any>(null);
+    const [earningsLoading, setEarningsLoading] = useState(false);
 
     useEffect(() => {
         fetchBalance(userId);
         fetchTransactions(userId, { limit: 5 });
-    }, [userId, fetchBalance, fetchTransactions]);
+
+        // Fetch payment earnings for drivers
+        if (userRole === 'driver') {
+            setEarningsLoading(true);
+            fetch('/api/payments/earnings', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            })
+                .then(res => res.json())
+                .then(data => {
+                    setPaymentEarnings(data.summary);
+                    setEarningsLoading(false);
+                })
+                .catch(err => {
+                    console.error('Failed to fetch earnings:', err);
+                    setEarningsLoading(false);
+                });
+        }
+    }, [userId, userRole, fetchBalance, fetchTransactions]);
 
     const formatCurrency = (amount: number, currency: string = 'EGP') => {
         return `${amount.toFixed(2)} ${currency}`;
@@ -222,6 +243,79 @@ const BalanceDashboard: React.FC<BalanceDashboardProps> = ({ userId, userRole })
                     </div>
                 )}
             </div>
+
+            {/* COD Earnings Section for Drivers */}
+            {userRole === 'driver' && paymentEarnings && !earningsLoading && (
+                <div className="earnings-section" data-testid="earnings-section">
+                    <h3 data-testid="cod-earnings-title">💵 COD Earnings Summary</h3>
+
+                    <div className="earnings-breakdown">
+                        {/* Cash Collected (Gross) */}
+                        <div className="stat-item" data-testid="cash-collected">
+                            <span className="stat-label">💵 Cash Collected</span>
+                            <span className="stat-value positive">
+                                {formatCurrency(paymentEarnings.totalEarnings, balance?.currency)}
+                            </span>
+                        </div>
+
+                        {/* Platform Commission */}
+                        <div className="stat-item" data-testid="platform-commission">
+                            <span className="stat-label">🏢 Platform Commission (15%)</span>
+                            <span className="stat-value negative">
+                                -{formatCurrency(paymentEarnings.platformFee, balance?.currency)}
+                            </span>
+                        </div>
+
+                        {/* Net Earnings */}
+                        <div className="stat-item highlight" data-testid="net-earnings">
+                            <span className="stat-label">✅ Net Earnings</span>
+                            <span className="stat-value success">
+                                {formatCurrency(paymentEarnings.driverEarnings, balance?.currency)}
+                            </span>
+                        </div>
+
+                        <hr />
+
+                        {/* Current Balance */}
+                        <div className="stat-item" data-testid="current-balance-status">
+                            <span className="stat-label">💰 Current Balance</span>
+                            <span className={`stat-value ${balance && balance.availableBalance < 0 ? 'negative' : 'positive'}`}>
+                                {balance && formatCurrency(balance.availableBalance, balance.currency)}
+                                {balance && balance.availableBalance < 0 && ' (Debt)'}
+                            </span>
+                        </div>
+
+                        {/* Warning if debt is high */}
+                        {balance && balance.availableBalance < -300 && (
+                            <div className="warning-box" data-testid="debt-warning">
+                                ⚠️ Your balance is low. Please deposit funds to continue accepting orders.
+                            </div>
+                        )}
+
+                        {/* Critical warning if blocked */}
+                        {balance && balance.availableBalance <= -500 && (
+                            <div className="error-box" data-testid="blocked-warning">
+                                🚫 You cannot accept new orders until your balance is above -500 EGP.
+                                <button onClick={() => setShowDepositModal(true)} className="btn-deposit">
+                                    Deposit Now
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Orders Summary */}
+                    <div className="orders-summary">
+                        <div className="summary-stat">
+                            <span>Total Deliveries</span>
+                            <span>{paymentEarnings.totalDeliveries}</span>
+                        </div>
+                        <div className="summary-stat">
+                            <span>Completed Payments</span>
+                            <span>{paymentEarnings.completedPayments}</span>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {userRole === 'driver' && balance && (
                 <div className="driver-stats" data-testid="driver-stats">
