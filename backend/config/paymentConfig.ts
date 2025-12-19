@@ -10,6 +10,15 @@ export const PAYMENT_CONFIG = {
     // Calculated values (derived from COMMISSION_RATE)
     get COMMISSION_RATE_PERCENT() { return this.COMMISSION_RATE * 100; },  // 15
     get COMMISSION_RATE_BASIS_POINTS() { return this.COMMISSION_RATE * 10000; },  // 1500
+
+    // Debt Management Configuration
+    DEBT_MANAGEMENT: {
+        MAX_DEBT_THRESHOLD: -500,      // Maximum debt allowed (EGP) - drivers blocked beyond this
+        WARNING_THRESHOLD: -300,        // Warning threshold (EGP) - drivers warned at this level
+        BLOCK_NEW_ORDERS: true,         // Block drivers from accepting orders when debt exceeded
+        ALLOW_NEGATIVE_BALANCE: true,   // Allow balance to go negative (creates debt)
+    },
+
     // Minimum order amount for digital payments (EGP)
     MIN_DIGITAL_PAYMENT_AMOUNT: 5,
 

@@ -3245,29 +3245,56 @@ app.post('/api/orders/:id/payment/cod', verifyToken, async (req, res) => {
       return res.status(400).json({ error: 'Payment already recorded' });
     }
 
-    // Calculate platform fee (0% for current stage) and driver earnings
+    // ✅ NEW: Calculate commission (15%)
     const totalAmount = parseFloat(order.assigned_driver_bid_price);
-    const platformFee = 0; // 0% platform fee for current stage
-    const driverEarnings = totalAmount;
+    const { calculateCommission } = require('./config/paymentConfig');
+    const { commission, payout } = calculateCommission(totalAmount);
 
+    // ✅ NEW: Deduct commission from driver balance (can create debt)
+    const { BalanceService } = require('./services/balanceService');
+    const balanceService = new BalanceService(pool);
+
+    await balanceService.deductCommission(
+      order.assigned_driver_user_id,
+      req.params.id,
+      commission
+    );
+
+    // Record payment with correct commission
     const paymentId = generateId();
     await client.query(
       `INSERT INTO payments (id, order_id, amount, currency, payment_method, status, payer_id, payee_id, platform_fee, driver_earnings, processed_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP)`,
-      [paymentId, req.params.id, totalAmount, 'USD', 'cash', 'completed', order.customer_id, order.assigned_driver_user_id, platformFee, driverEarnings]
+      [paymentId, req.params.id, totalAmount, 'EGP', 'cash', 'completed', order.customer_id, order.assigned_driver_user_id, commission, payout]
     );
 
-    await createNotification(order.customer_id, order.id, 'payment_completed', 'Payment Confirmed', `Payment of $${totalAmount.toFixed(2)} has been confirmed for order ${order.order_number}`);
+    // ✅ NEW: Check if driver can still accept orders
+    const driverStatus = await balanceService.canAcceptOrders(order.assigned_driver_user_id);
+
+    await createNotification(order.customer_id, order.id, 'payment_completed', 'Payment Confirmed', `Payment of ${totalAmount.toFixed(2)} EGP has been confirmed for order ${order.order_number}`);
+
+    // ⚠️ NEW: Warn driver if debt is high
+    if (!driverStatus.canAccept) {
+      await createNotification(
+        order.assigned_driver_user_id,
+        order.id,
+        'balance_warning',
+        'Balance Alert',
+        `Your balance is ${driverStatus.currentBalance.toFixed(2)} EGP. Please deposit funds to continue accepting orders.`
+      );
+    }
 
     await client.query('COMMIT');
 
     const duration = Date.now() - startTime;
-    logger.payment(`COD payment confirmed successfully`, {
+    logger.payment(`COD payment confirmed successfully with commission`, {
       paymentId,
       orderId: req.params.id,
       orderNumber: order.order_number,
       amount: totalAmount,
-      driverEarnings,
-      platformFee,
+      commission,
+      driverEarnings: payout,
+      driverBalance: driverStatus.currentBalance,
+      canAcceptOrders: driverStatus.canAccept,
       userId: req.user.userId,
       userName: req.user.name,
       duration: `${duration}ms`,
@@ -3287,9 +3314,14 @@ app.post('/api/orders/:id/payment/cod', verifyToken, async (req, res) => {
       payment: {
         id: paymentId,
         amount: totalAmount,
-        platformFee: platformFee,
-        driverEarnings: driverEarnings,
+        platformFee: commission,
+        driverEarnings: payout,
         status: 'completed'
+      },
+      driverStatus: {
+        currentBalance: driverStatus.currentBalance,
+        canAcceptOrders: driverStatus.canAccept,
+        warning: driverStatus.reason
       }
     });
 
