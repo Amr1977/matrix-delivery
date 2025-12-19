@@ -2432,6 +2432,7 @@ app.post('/api/orders/:id/accept-bid', verifyToken, async (req, res) => {
   try {
     await client.query('BEGIN');
     const { userId } = req.body;
+    const driverId = parseInt(userId, 10);
 
     const orderResult = await client.query('SELECT * FROM orders WHERE id = $1', [req.params.id]);
     if (orderResult.rows.length === 0) {
@@ -2449,7 +2450,7 @@ app.post('/api/orders/:id/accept-bid', verifyToken, async (req, res) => {
       return res.status(400).json({ error: 'Order is no longer open' });
     }
 
-    const bidResult = await client.query('SELECT * FROM bids WHERE order_id = $1 AND user_id = $2', [req.params.id, userId]);
+    const bidResult = await client.query('SELECT * FROM bids WHERE order_id = $1 AND user_id = $2', [req.params.id, driverId]);
     if (bidResult.rows.length === 0) {
       await client.query('ROLLBACK');
       return res.status(404).json({ error: 'Bid not found' });
@@ -2460,8 +2461,8 @@ app.post('/api/orders/:id/accept-bid', verifyToken, async (req, res) => {
       `UPDATE orders SET status = 'accepted', assigned_driver_user_id = $1, assigned_driver_name = $2, assigned_driver_bid_price = $3, accepted_at = CURRENT_TIMESTAMP WHERE id = $4`,
       [acceptedBid.user_id, acceptedBid.driver_name, acceptedBid.bid_price, req.params.id]
     );
-    await client.query("UPDATE bids SET status = 'accepted' WHERE order_id = $1 AND user_id = $2", [req.params.id, userId]);
-    await client.query("UPDATE bids SET status = 'rejected' WHERE order_id = $1 AND user_id != $2", [req.params.id, userId]);
+    await client.query("UPDATE bids SET status = 'accepted' WHERE order_id = $1 AND user_id = $2", [req.params.id, driverId]);
+    await client.query("UPDATE bids SET status = 'rejected' WHERE order_id = $1 AND user_id != $2", [req.params.id, driverId]);
     await createNotification(acceptedBid.user_id, order.id, 'bid_accepted', 'Bid Accepted!', `Your bid of $${acceptedBid.bid_price} has been accepted for order ${order.order_number}`);
 
     const updatedOrderResult = await client.query(
