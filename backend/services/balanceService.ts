@@ -42,6 +42,7 @@ import {
     TRANSACTION_LIMITS,
     DEFAULT_LIMITS,
 } from '../types/balance';
+import { PAYMENT_CONFIG } from '../config/paymentConfig';
 
 const logger = require('../utils/logger');
 
@@ -605,6 +606,7 @@ export class BalanceService implements IBalanceService {
      * Deduct platform commission from driver
      * 
      * Deducts commission from driver's balance.
+     * ALLOWS NEGATIVE BALANCE (creates debt) for COD orders.
      * 
      * @param driverId - Driver user ID
      * @param orderId - Order ID
@@ -626,6 +628,20 @@ export class BalanceService implements IBalanceService {
             const balanceBefore = balance.availableBalance;
             const balanceAfter = balanceBefore - commission;
 
+            // ✅ ALLOW NEGATIVE BALANCE (creates debt)
+            // Log warning if creating or increasing debt
+            if (balanceAfter < 0) {
+                logger.warn('Commission creates/increases debt', {
+                    driverId,
+                    orderId,
+                    balanceBefore,
+                    balanceAfter,
+                    commission,
+                    debtAmount: Math.abs(balanceAfter),
+                    category: 'balance'
+                });
+            }
+
             const transaction = await this.createTransaction(client, {
                 userId: driverId,
                 type: TransactionType.COMMISSION_DEDUCTION,
@@ -638,6 +654,7 @@ export class BalanceService implements IBalanceService {
                 orderId,
             });
 
+            // Update balance (can go negative)
             await client.query(
                 `UPDATE user_balances
          SET available_balance = available_balance - $1,
@@ -655,6 +672,9 @@ export class BalanceService implements IBalanceService {
                 driverId,
                 orderId,
                 commission,
+                newBalance: updatedBalance.availableBalance,
+                isDebt: updatedBalance.availableBalance < 0,
+                category: 'balance'
             });
 
             return {
@@ -667,6 +687,45 @@ export class BalanceService implements IBalanceService {
             throw error;
         } finally {
             client.release();
+        }
+    }
+
+    /**
+     * Check if driver can accept new orders based on debt
+     * 
+     * Drivers are blocked from accepting orders if their balance
+     * falls below the maximum debt threshold.
+     * 
+     * @param driverId - Driver user ID
+     * @returns Object with canAccept status, reason, and balance info
+     */
+    async canAcceptOrders(driverId: number): Promise<{
+        canAccept: boolean;
+        reason?: string;
+        currentBalance: number;
+        debtThreshold: number;
+    }> {
+        try {
+            const balance = await this.getBalance(driverId);
+            const threshold = PAYMENT_CONFIG.DEBT_MANAGEMENT.MAX_DEBT_THRESHOLD;
+
+            if (balance.availableBalance < threshold) {
+                return {
+                    canAccept: false,
+                    reason: `Balance (${balance.availableBalance} EGP) below minimum threshold (${threshold} EGP). Please deposit funds to continue accepting orders.`,
+                    currentBalance: balance.availableBalance,
+                    debtThreshold: threshold,
+                };
+            }
+
+            return {
+                canAccept: true,
+                currentBalance: balance.availableBalance,
+                debtThreshold: threshold,
+            };
+        } catch (error) {
+            logger.error('Error checking if driver can accept orders', { driverId, error: error.message });
+            throw error;
         }
     }
 
