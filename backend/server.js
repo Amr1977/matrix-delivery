@@ -179,6 +179,9 @@ const { initializeDatabase } = require('./database/init.ts');
 const { initDatabase } = require('./database/startup');
 
 
+// Import rate limiting middleware
+const { apiRateLimit } = require('./middleware/rateLimit');
+
 // Initialize database on startup (skip in test mode)
 if (!IS_TEST) {
   initDatabase(pool).catch(err => {
@@ -187,6 +190,9 @@ if (!IS_TEST) {
   });
 }
 
+
+// Apply centralized API rate limiting to all /api routes
+app.use('/api', apiRateLimit);
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
