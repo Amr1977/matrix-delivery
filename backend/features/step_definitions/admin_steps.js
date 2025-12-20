@@ -38,8 +38,27 @@ class AdminWorld {
     }
 }
 
-Before(function () {
+const BDDAuthHelper = require('../support/bdd_auth_helper');
+let authHelper = null;
+
+Before(async function () {
     this.world = new AdminWorld();
+
+    // Setup real admin authentication for BDD tests
+    if (!authHelper) {
+        authHelper = new BDDAuthHelper();
+        try {
+            const { token, user } = await authHelper.setupAdminUser();
+            this.world.adminToken = token;
+            this.world.adminUser = user;
+        } catch (error) {
+            console.warn('Failed to setup admin auth, using test token:', error.message);
+            // Fall back to test token if setup fails
+        }
+    } else {
+        this.world.adminToken = authHelper.getToken();
+        this.world.adminUser = authHelper.getUser();
+    }
 });
 
 After(function () {
@@ -89,7 +108,7 @@ When('I request dashboard statistics', async function () {
     const req = request(app).get('/api/admin/stats');
 
     if (this.world.adminToken) {
-        req.set('Cookie', [`token=${this.world.adminToken}`]);
+        req.set('Cookie', `token=${this.world.adminToken}`);
     }
 
     this.world.response = await req;
@@ -928,3 +947,4 @@ Then('the report should include average delivery time', function () {
 });
 
 module.exports = { AdminWorld };
+
