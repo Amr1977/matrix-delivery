@@ -67,11 +67,11 @@ CREATE TABLE IF NOT EXISTS platform_wallets (
 
 -- Insert default platform wallets (update with actual numbers)
 INSERT INTO platform_wallets (wallet_type, phone_number, wallet_name, is_active) VALUES
-('vodafone_cash', '01XXXXXXXXX', 'Matrix Delivery', TRUE),
-('instapay', 'matrix.delivery@instapay', 'Matrix Delivery', TRUE),
-('orange_cash', '01XXXXXXXXX', 'Matrix Delivery', FALSE),
-('etisalat_cash', '01XXXXXXXXX', 'Matrix Delivery', FALSE),
-('we_pay', '01XXXXXXXXX', 'Matrix Delivery', FALSE)
+('vodafone_cash', '01000000000', 'Matrix Delivery', TRUE),
+('instapay', 'matrix.delivery', 'Matrix Delivery', TRUE),
+('orange_cash', '01000000000', 'Matrix Delivery', FALSE),
+('etisalat_cash', '01000000000', 'Matrix Delivery', FALSE),
+('we_pay', '01000000000', 'Matrix Delivery', FALSE)
 ON CONFLICT (wallet_type) DO NOTHING;
 
 -- Trigger to update updated_at timestamp
