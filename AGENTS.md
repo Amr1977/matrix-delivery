@@ -24,6 +24,14 @@
 - **Backend**: RESTful API with Express routes/controllers/models
 - **Real-time**: Socket.IO for live updates
 
+> [!IMPORTANT]
+> **Refactoring in Progress**: The project is undergoing a comprehensive architectural refactoring to address monolithic code issues. See [docs/REFACTORING_PLAN.md](docs/REFACTORING_PLAN.md) for details.
+
+**Current Architectural Issues**:
+- `backend/server.js`: 6,009 lines (being refactored)
+- `frontend/src/App.js`: 2,921 lines (being refactored)
+- See [docs/ARCHITECTURE_ANALYSIS.md](docs/ARCHITECTURE_ANALYSIS.md) for full analysis
+
 ---
 
 ## 🗂️ Project Structure
@@ -374,6 +382,11 @@ mockUseBalance.mockReturnValue({ balance: mockData, ... });
 - `backend/package.json` - Backend dependencies
 - `.env` - Environment variables (not in git)
 
+### Documentation
+- `docs/REFACTORING_PLAN.md` - Test-first refactoring strategy (12-week plan)
+- `docs/ARCHITECTURE_ANALYSIS.md` - Comprehensive architectural review
+- `docs/README.md` - Documentation index
+
 ---
 
 ## 🔄 Git Workflow
@@ -404,11 +417,12 @@ Examples:
 
 ## 🎯 Current Priorities
 
-1. **I18n Readiness** - Ensure all components use test IDs
-2. **Test Coverage** - Maintain >95% coverage for critical modules
-3. **Security** - httpOnly cookies, input validation
-4. **Performance** - Optimize balance calculations and queries
-5. **Documentation** - Keep README and AGENTS.md updated
+1. **Refactoring** - Establish comprehensive test coverage before refactoring monolithic files
+2. **I18n Readiness** - Ensure all components use test IDs
+3. **Test Coverage** - Achieve 85% backend, 80% frontend coverage
+4. **Security** - httpOnly cookies, input validation
+5. **Performance** - Optimize balance calculations and queries
+6. **Documentation** - Keep README and AGENTS.md updated
 
 ---
 
@@ -446,6 +460,6 @@ Examples:
 
 ---
 
-**Last Updated**: December 19, 2025  
-**Version**: 1.0  
+**Last Updated**: December 20, 2025  
+**Version**: 1.1  
 **Maintained by**: Matrix Delivery Team
