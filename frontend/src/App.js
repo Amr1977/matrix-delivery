@@ -1428,7 +1428,7 @@ export const MainApp = () => {
     setLoadingState('acceptBid', true);
     setError('');
     try {
-      await OrdersApi.acceptBid(orderId, userId);
+      await OrdersApi.acceptBid(orderId, { userId });
 
       fetchOrders();
       showSuccess('Bid accepted successfully! Driver notified.');
