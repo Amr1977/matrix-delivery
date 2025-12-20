@@ -181,7 +181,7 @@ const { initDatabase } = require('./database/startup');
 
 // Initialize database on startup (skip in test mode)
 if (!IS_TEST) {
-  initDatabase().catch(err => {
+  initDatabase(pool).catch(err => {
     logger.error('Failed to initialize database:', err);
     process.exit(1);
   });
@@ -842,7 +842,7 @@ app.get('/api/browse/items', async (req, res) => {
   }
 });
 
-app.get('/api/browse/vendors-near', rateLimit(200, 60 * 1000), async (req, res) => {
+app.get('/api/browse/vendors-near', async (req, res) => {
   try {
     if (!HAS_POSTGIS) return res.status(501).json({ error: 'Geospatial near queries require PostGIS' });
     const lat = parseFloat(req.query.lat);
