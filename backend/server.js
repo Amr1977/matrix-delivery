@@ -226,8 +226,9 @@ app.use(logger.requestLogger);
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 
-// Load admin panel endpoints
-require('./admin-panel.js')(app, pool, jwt, generateId, JWT_SECRET);
+
+// Admin routes now loaded via routes/admin.js (see line 289)
+
 
 // Validate JWT secrets
 if (!JWT_SECRET || JWT_SECRET.length < 64) {
