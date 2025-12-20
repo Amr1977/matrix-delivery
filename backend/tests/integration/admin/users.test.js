@@ -7,7 +7,9 @@ jest.mock('../../../config/db');
 jest.mock('../../../services/adminService');
 jest.mock('../../../services/notificationService.ts');
 jest.mock('../../../middleware/rateLimit', () => ({
-    apiRateLimit: (req, res, next) => next()
+    apiRateLimit: (req, res, next) => next(),
+    orderCreationRateLimit: (req, res, next) => next(),
+    authRateLimit: (req, res, next) => next()
 }));
 
 const app = require('../../../server');

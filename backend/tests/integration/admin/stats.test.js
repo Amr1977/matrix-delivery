@@ -1,14 +1,19 @@
 const request = require('supertest');
-const app = require('../../../server');
-const pool = require('../../../config/db');
 const { logAdminAction } = require('../../../services/adminService');
 
-// Mock dependencies
+// Mock dependencies before importing app
 jest.mock('../../../config/db');
 jest.mock('../../../services/adminService');
+jest.mock('../../../services/notificationService.ts');
 jest.mock('../../../middleware/rateLimit', () => ({
-    apiRateLimit: (req, res, next) => next()
+    apiRateLimit: (req, res, next) => next(),
+    orderCreationRateLimit: (req, res, next) => next(),
+    authRateLimit: (req, res, next) => next()
 }));
+
+// Import app after mocks are set up
+const app = require('../../../server');
+const pool = require('../../../config/db');
 
 describe('Admin Routes - Dashboard Stats', () => {
     let mockQuery;
@@ -53,7 +58,7 @@ describe('Admin Routes - Dashboard Stats', () => {
         it('should return dashboard stats for admin user', async () => {
             const response = await request(app)
                 .get('/api/admin/stats')
-                .set('Cookie', [`token=${adminToken}`])
+                .set('Cookie', [`token = ${adminToken} `])
                 .expect(200);
 
             expect(response.body).toHaveProperty('totalUsers', 100);
@@ -68,7 +73,7 @@ describe('Admin Routes - Dashboard Stats', () => {
         it('should accept custom date range', async () => {
             const response = await request(app)
                 .get('/api/admin/stats?range=30d')
-                .set('Cookie', [`token=${adminToken}`])
+                .set('Cookie', [`token = ${adminToken} `])
                 .expect(200);
 
             expect(response.body).toHaveProperty('totalUsers');
@@ -102,7 +107,7 @@ describe('Admin Routes - Dashboard Stats', () => {
 
             const response = await request(app)
                 .get('/api/admin/stats')
-                .set('Cookie', [`token=${adminToken}`])
+                .set('Cookie', [`token = ${adminToken} `])
                 .expect(403);
 
             expect(response.body).toHaveProperty('error', 'Admin access required');
@@ -116,7 +121,7 @@ describe('Admin Routes - Dashboard Stats', () => {
 
             const response = await request(app)
                 .get('/api/admin/stats')
-                .set('Cookie', [`token=${adminToken}`])
+                .set('Cookie', [`token = ${adminToken} `])
                 .expect(500);
 
             expect(response.body).toHaveProperty('error', 'Failed to get statistics');
@@ -125,7 +130,7 @@ describe('Admin Routes - Dashboard Stats', () => {
         it('should log admin action', async () => {
             await request(app)
                 .get('/api/admin/stats?range=7d')
-                .set('Cookie', [`token=${adminToken}`])
+                .set('Cookie', [`token = ${adminToken} `])
                 .expect(200);
 
             expect(logAdminAction).toHaveBeenCalledWith(
@@ -151,8 +156,8 @@ describe('Admin Routes - Dashboard Stats', () => {
                     .mockResolvedValue({ rows: [] });
 
                 const response = await request(app)
-                    .get(`/api/admin/stats?range=${range}`)
-                    .set('Cookie', [`token=${adminToken}`])
+                    .get(`/ api / admin / stats ? range = ${range} `)
+                    .set('Cookie', [`token = ${adminToken} `])
                     .expect(200);
 
                 expect(response.body).toHaveProperty('totalUsers');
@@ -162,7 +167,7 @@ describe('Admin Routes - Dashboard Stats', () => {
         it('should return usersByRole as object', async () => {
             const response = await request(app)
                 .get('/api/admin/stats')
-                .set('Cookie', [`token=${adminToken}`])
+                .set('Cookie', [`token = ${adminToken} `])
                 .expect(200);
 
             expect(response.body.usersByRole).toEqual({
