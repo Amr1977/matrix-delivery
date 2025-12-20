@@ -2,6 +2,10 @@ const pool = require('../config/db');
 const { getDistance } = require('geolib');
 const logger = require('../config/logger');
 
+// Import BalanceService (TypeScript) - ts-node/register is loaded in server.js
+const { BalanceService } = require('./balanceService.ts');
+const balanceService = new BalanceService(pool);
+
 // Environment is already loaded by server.js or jest.setup.js
 // No need to call dotenv.config() here
 
@@ -44,76 +48,76 @@ class OrderService {
     if (userRole === 'customer') {
       // Customers see their own orders
       query = `
-        SELECT
-          o.*,
-          json_build_object(
-            'userId', d.id,
-            'name', d.name,
-            'rating', d.rating,
-            'completedDeliveries', d.completed_deliveries
-          ) as assignedDriver,
-          json_agg(
-            json_build_object(
-              'userId', b.user_id,
-              'driverName', u.name,
-              'bidPrice', b.bid_price,
-              'estimatedPickupTime', b.estimated_pickup_time,
-              'estimatedDeliveryTime', b.estimated_delivery_time,
-              'message', b.message,
-              'driverRating', u.rating,
-              'driverCompletedDeliveries', u.completed_deliveries,
-              'driverReviewCount', COALESCE(dr.review_count, 0),
-              'driverIsVerified', u.is_verified,
-              'driverProfilePicture', u.profile_picture_url,
-              'driverGender', COALESCE(u.gender, 'male'),
-              'driverMemberSince', u.created_at,
-              'driverLocation', json_build_object('lat', b.driver_location_lat, 'lng', b.driver_location_lng)
-            )
-          ) FILTER (WHERE b.id IS NOT NULL) as bids,
-          CASE
+SELECT
+o.*,
+  json_build_object(
+    'userId', d.id,
+    'name', d.name,
+    'rating', d.rating,
+    'completedDeliveries', d.completed_deliveries
+  ) as assignedDriver,
+  json_agg(
+    json_build_object(
+      'userId', b.user_id,
+      'driverName', u.name,
+      'bidPrice', b.bid_price,
+      'estimatedPickupTime', b.estimated_pickup_time,
+      'estimatedDeliveryTime', b.estimated_delivery_time,
+      'message', b.message,
+      'driverRating', u.rating,
+      'driverCompletedDeliveries', u.completed_deliveries,
+      'driverReviewCount', COALESCE(dr.review_count, 0),
+      'driverIsVerified', u.is_verified,
+      'driverProfilePicture', u.profile_picture_url,
+      'driverGender', COALESCE(u.gender, 'male'),
+      'driverMemberSince', u.created_at,
+      'driverLocation', json_build_object('lat', b.driver_location_lat, 'lng', b.driver_location_lng)
+    )
+  ) FILTER(WHERE b.id IS NOT NULL) as bids,
+    CASE
             WHEN o.assigned_driver_user_id IS NOT NULL THEN
-              (SELECT json_build_object(
-                'userId', ab.user_id,
-                'driverName', au.name,
-                'bidPrice', ab.bid_price,
-                'estimatedPickupTime', ab.estimated_pickup_time,
-                'estimatedDeliveryTime', ab.estimated_delivery_time,
-                'message', ab.message,
-                'driverRating', au.rating,
-                'driverCompletedDeliveries', au.completed_deliveries,
-                'driverReviewCount', COALESCE(adr.review_count, 0),
-                'driverIsVerified', au.is_verified,
-                'driverProfilePicture', au.profile_picture_url,
-                'driverGender', COALESCE(au.gender, 'male'),
-                'driverMemberSince', au.created_at
-              )
+  (SELECT json_build_object(
+    'userId', ab.user_id,
+    'driverName', au.name,
+    'bidPrice', ab.bid_price,
+    'estimatedPickupTime', ab.estimated_pickup_time,
+    'estimatedDeliveryTime', ab.estimated_delivery_time,
+    'message', ab.message,
+    'driverRating', au.rating,
+    'driverCompletedDeliveries', au.completed_deliveries,
+    'driverReviewCount', COALESCE(adr.review_count, 0),
+    'driverIsVerified', au.is_verified,
+    'driverProfilePicture', au.profile_picture_url,
+    'driverGender', COALESCE(au.gender, 'male'),
+    'driverMemberSince', au.created_at
+  )
               FROM bids ab
               LEFT JOIN users au ON ab.user_id = au.id
-              LEFT JOIN (
-                SELECT reviewee_id, COUNT(*) as review_count
+              LEFT JOIN(
+    SELECT reviewee_id, COUNT(*) as review_count
                 FROM reviews
                 GROUP BY reviewee_id
-              ) adr ON adr.reviewee_id = au.id
+  ) adr ON adr.reviewee_id = au.id
               WHERE ab.order_id = o.id AND ab.user_id = o.assigned_driver_user_id)
             ELSE NULL
-          END as acceptedBid,
-          json_build_object(
-            'reviews', json_build_object(
-              'toDriver', CASE WHEN r.id IS NOT NULL THEN true ELSE false END,
-              'toCustomer', false,
-              'toPlatform', false
-            )
-          ) as reviewStatus
+END as acceptedBid,
+  json_build_object(
+    'reviews', json_build_object(
+      'toDriver', CASE WHEN r.id IS NOT NULL THEN true ELSE false END,
+      'toCustomer', false,
+      'toPlatform', false
+    )
+  ) as reviewStatus
         FROM orders o
         LEFT JOIN users d ON o.assigned_driver_user_id = d.id
         LEFT JOIN bids b ON o.id = b.order_id
         LEFT JOIN users u ON b.user_id = u.id
         LEFT JOIN reviews r ON o.id = r.order_id AND r.reviewer_id = $1 AND r.reviewee_id = d.id
-        LEFT JOIN (
-          SELECT reviewee_id, COUNT(*) as review_count
+        LEFT JOIN(
+    SELECT reviewee_id, COUNT(*) as review_count
           FROM reviews
           GROUP BY reviewee_id
-        ) dr ON dr.reviewee_id = u.id
+  ) dr ON dr.reviewee_id = u.id
         WHERE o.customer_id = $1
         GROUP BY o.id, d.id, d.name, d.rating, d.completed_deliveries, r.id
         ORDER BY o.created_at DESC
@@ -133,12 +137,12 @@ class OrderService {
           await pool.query('SELECT PostGIS_version()');
 
           locationConditions += ` AND ST_Distance(
-            ST_Point(
-              (o.pickup_coordinates->>'lng')::float,
-              (o.pickup_coordinates->>'lat')::float
-            )::geography,
-            ST_Point($2, $3)::geography
-          ) <= 7000`;
+    ST_Point(
+      (o.pickup_coordinates ->> 'lng'):: float,
+      (o.pickup_coordinates ->> 'lat'):: float
+    ):: geography,
+    ST_Point($2, $3):: geography
+  ) <= 7000`;
           filterParams.push(filters.driverLng, filters.driverLat);
           usePostGIS = true;
 
@@ -179,18 +183,18 @@ class OrderService {
         let paramIndex = filterParams.length + 1;
 
         if (filters.country) {
-          conditions.push(`o.pickup_address ILIKE $${paramIndex}`);
-          filterParams.push(`%${filters.country}%`);
+          conditions.push(`o.pickup_address ILIKE $${paramIndex} `);
+          filterParams.push(`% ${filters.country}% `);
           paramIndex += 1;
         }
         if (filters.city) {
-          conditions.push(`o.pickup_address ILIKE $${paramIndex}`);
-          filterParams.push(`%${filters.city}%`);
+          conditions.push(`o.pickup_address ILIKE $${paramIndex} `);
+          filterParams.push(`% ${filters.city}% `);
           paramIndex += 1;
         }
         if (filters.area) {
-          conditions.push(`o.pickup_address ILIKE $${paramIndex}`);
-          filterParams.push(`%${filters.area}%`);
+          conditions.push(`o.pickup_address ILIKE $${paramIndex} `);
+          filterParams.push(`% ${filters.area}% `);
           paramIndex += 1;
         }
 
@@ -201,141 +205,141 @@ class OrderService {
 
       // Drivers see available orders (filtered if specified) and their assigned orders
       query = `
-        SELECT
-          o.*,
-          json_build_object(
-            'userId', d.id,
-            'name', d.name,
-            'rating', d.rating,
-            'completedDeliveries', d.completed_deliveries
-          ) as assignedDriver,
-          json_agg(
-            json_build_object(
-              'userId', b.user_id,
-              'driverName', u.name,
-              'bidPrice', b.bid_price,
-              'estimatedPickupTime', b.estimated_pickup_time,
-              'estimatedDeliveryTime', b.estimated_delivery_time,
-              'message', b.message,
-              'driverRating', u.rating,
-              'driverCompletedDeliveries', u.completed_deliveries,
-              'driverReviewCount', COALESCE(dr.review_count, 0),
-              'driverIsVerified', u.is_verified,
-              'driverLocation', json_build_object('lat', b.driver_location_lat, 'lng', b.driver_location_lng)
-            )
-          ) FILTER (WHERE b.id IS NOT NULL) as bids,
-          CASE
+SELECT
+o.*,
+  json_build_object(
+    'userId', d.id,
+    'name', d.name,
+    'rating', d.rating,
+    'completedDeliveries', d.completed_deliveries
+  ) as assignedDriver,
+  json_agg(
+    json_build_object(
+      'userId', b.user_id,
+      'driverName', u.name,
+      'bidPrice', b.bid_price,
+      'estimatedPickupTime', b.estimated_pickup_time,
+      'estimatedDeliveryTime', b.estimated_delivery_time,
+      'message', b.message,
+      'driverRating', u.rating,
+      'driverCompletedDeliveries', u.completed_deliveries,
+      'driverReviewCount', COALESCE(dr.review_count, 0),
+      'driverIsVerified', u.is_verified,
+      'driverLocation', json_build_object('lat', b.driver_location_lat, 'lng', b.driver_location_lng)
+    )
+  ) FILTER(WHERE b.id IS NOT NULL) as bids,
+    CASE
             WHEN o.assigned_driver_user_id IS NOT NULL THEN
-              (SELECT json_build_object(
-                'userId', ab.user_id,
-                'driverName', au.name,
-                'bidPrice', ab.bid_price,
-                'estimatedPickupTime', ab.estimated_pickup_time,
-                'estimatedDeliveryTime', ab.estimated_delivery_time,
-                'message', ab.message,
-                'driverRating', au.rating,
-                'driverCompletedDeliveries', au.completed_deliveries,
-                'driverReviewCount', COALESCE(adr.review_count, 0),
-                'driverIsVerified', au.is_verified
-              )
+  (SELECT json_build_object(
+    'userId', ab.user_id,
+    'driverName', au.name,
+    'bidPrice', ab.bid_price,
+    'estimatedPickupTime', ab.estimated_pickup_time,
+    'estimatedDeliveryTime', ab.estimated_delivery_time,
+    'message', ab.message,
+    'driverRating', au.rating,
+    'driverCompletedDeliveries', au.completed_deliveries,
+    'driverReviewCount', COALESCE(adr.review_count, 0),
+    'driverIsVerified', au.is_verified
+  )
               FROM bids ab
               LEFT JOIN users au ON ab.user_id = au.id
-              LEFT JOIN (
-                SELECT reviewee_id, COUNT(*) as review_count
+              LEFT JOIN(
+    SELECT reviewee_id, COUNT(*) as review_count
                 FROM reviews
                 GROUP BY reviewee_id
-              ) adr ON adr.reviewee_id = au.id
+  ) adr ON adr.reviewee_id = au.id
               WHERE ab.order_id = o.id AND ab.user_id = o.assigned_driver_user_id)
             ELSE NULL
-          END as acceptedBid,
-          json_build_object(
-            'reviews', json_build_object(
-              'toDriver', false,
-              'toCustomer', CASE WHEN r.id IS NOT NULL THEN true ELSE false END,
-              'toPlatform', false
-            )
-          ) as reviewStatus,
-          CASE
+END as acceptedBid,
+  json_build_object(
+    'reviews', json_build_object(
+      'toDriver', false,
+      'toCustomer', CASE WHEN r.id IS NOT NULL THEN true ELSE false END,
+      'toPlatform', false
+    )
+  ) as reviewStatus,
+  CASE
             WHEN o.assigned_driver_user_id = $1 THEN 0
             WHEN o.status = 'pending_bids' THEN 1
             ELSE 2
-          END as sort_priority
+END as sort_priority
         FROM orders o
         LEFT JOIN users d ON o.assigned_driver_user_id = d.id
         LEFT JOIN bids b ON o.id = b.order_id
         LEFT JOIN users u ON b.user_id = u.id
         LEFT JOIN reviews r ON o.id = r.order_id AND r.reviewer_id = $1 AND r.reviewee_id = o.customer_id
-        LEFT JOIN (
-          SELECT reviewee_id, COUNT(*) as review_count
+        LEFT JOIN(
+  SELECT reviewee_id, COUNT(*) as review_count
           FROM reviews
           GROUP BY reviewee_id
-        ) dr ON dr.reviewee_id = u.id
-        WHERE (o.status = 'pending_bids' AND o.assigned_driver_user_id IS NULL${locationConditions})
+) dr ON dr.reviewee_id = u.id
+WHERE(o.status = 'pending_bids' AND o.assigned_driver_user_id IS NULL${locationConditions})
            OR o.assigned_driver_user_id = $1
         GROUP BY o.id, d.id, d.name, d.rating, d.completed_deliveries, r.id
         ORDER BY sort_priority, o.created_at DESC
-      `;
+  `;
       params = [userId, ...filterParams];
       // Note: userId is used in WHERE clause as $1, and filterParams contains the location coordinates
     } else {
       // Admin sees all orders
       query = `
-        SELECT
-          o.*,
-          json_build_object(
-            'userId', d.id,
-            'name', d.name,
-            'rating', d.rating,
-            'completedDeliveries', d.completed_deliveries
-          ) as assignedDriver,
-          json_agg(
-            json_build_object(
-              'userId', b.user_id,
-              'driverName', u.name,
-              'bidPrice', b.bid_price,
-              'estimatedPickupTime', b.estimated_pickup_time,
-              'estimatedDeliveryTime', b.estimated_delivery_time,
-              'message', b.message,
-              'driverRating', u.rating,
-              'driverCompletedDeliveries', u.completed_deliveries,
-              'driverReviewCount', COALESCE(dr.review_count, 0),
-              'driverIsVerified', u.is_verified,
-              'driverLocation', json_build_object('lat', b.driver_location_lat, 'lng', b.driver_location_lng)
-            )
-          ) FILTER (WHERE b.id IS NOT NULL) as bids,
-          CASE
+SELECT
+o.*,
+  json_build_object(
+    'userId', d.id,
+    'name', d.name,
+    'rating', d.rating,
+    'completedDeliveries', d.completed_deliveries
+  ) as assignedDriver,
+  json_agg(
+    json_build_object(
+      'userId', b.user_id,
+      'driverName', u.name,
+      'bidPrice', b.bid_price,
+      'estimatedPickupTime', b.estimated_pickup_time,
+      'estimatedDeliveryTime', b.estimated_delivery_time,
+      'message', b.message,
+      'driverRating', u.rating,
+      'driverCompletedDeliveries', u.completed_deliveries,
+      'driverReviewCount', COALESCE(dr.review_count, 0),
+      'driverIsVerified', u.is_verified,
+      'driverLocation', json_build_object('lat', b.driver_location_lat, 'lng', b.driver_location_lng)
+    )
+  ) FILTER(WHERE b.id IS NOT NULL) as bids,
+    CASE
             WHEN o.assigned_driver_user_id IS NOT NULL THEN
-              (SELECT json_build_object(
-                'userId', ab.user_id,
-                'driverName', au.name,
-                'bidPrice', ab.bid_price,
-                'estimatedPickupTime', ab.estimated_pickup_time,
-                'estimatedDeliveryTime', ab.estimated_delivery_time,
-                'message', ab.message,
-                'driverRating', au.rating,
-                'driverCompletedDeliveries', au.completed_deliveries,
-                'driverReviewCount', COALESCE(adr.review_count, 0),
-                'driverIsVerified', au.is_verified
-              )
+  (SELECT json_build_object(
+    'userId', ab.user_id,
+    'driverName', au.name,
+    'bidPrice', ab.bid_price,
+    'estimatedPickupTime', ab.estimated_pickup_time,
+    'estimatedDeliveryTime', ab.estimated_delivery_time,
+    'message', ab.message,
+    'driverRating', au.rating,
+    'driverCompletedDeliveries', au.completed_deliveries,
+    'driverReviewCount', COALESCE(adr.review_count, 0),
+    'driverIsVerified', au.is_verified
+  )
               FROM bids ab
               LEFT JOIN users au ON ab.user_id = au.id
-              LEFT JOIN (
-                SELECT reviewee_id, COUNT(*) as review_count
+              LEFT JOIN(
+    SELECT reviewee_id, COUNT(*) as review_count
                 FROM reviews
                 GROUP BY reviewee_id
-              ) adr ON adr.reviewee_id = au.id
+  ) adr ON adr.reviewee_id = au.id
               WHERE ab.order_id = o.id AND ab.user_id = o.assigned_driver_user_id)
             ELSE NULL
-          END as acceptedBid
+END as acceptedBid
         FROM orders o
         LEFT JOIN users d ON o.assigned_driver_user_id = d.id
         LEFT JOIN bids b ON o.id = b.order_id
         LEFT JOIN users u ON b.user_id = u.id
-        LEFT JOIN (
-          SELECT reviewee_id, COUNT(*) as review_count
+        LEFT JOIN(
+  SELECT reviewee_id, COUNT(*) as review_count
           FROM reviews
           GROUP BY reviewee_id
-        ) dr ON dr.reviewee_id = u.id
+) dr ON dr.reviewee_id = u.id
         GROUP BY o.id, d.id, d.name, d.rating, d.completed_deliveries
         ORDER BY o.created_at DESC
       `;
@@ -485,7 +489,7 @@ class OrderService {
     console.log('🛠️ ORDER SERVICE - VALIDATION PASSED');
 
     const orderId = this.generateId();
-    const orderNumber = `ORD-${Date.now()}`;
+    const orderNumber = `ORD - ${Date.now()} `;
 
     let description, pickupLocation, dropoffLocation, package_description, package_weight, estimated_value, special_instructions;
     let pickupAddress, deliveryAddress, fromCoordinates, toCoordinates;
@@ -521,31 +525,31 @@ class OrderService {
 
     if (pa && da) {
       // Build addresses from manual entry if provided
-      pickupAddress = `${pa.personName || 'Contact'} ${pa.personPhone ? `(${pa.personPhone})` : ''}, ${pa.street || ''} ${pa.building || ''}, ${pa.floor ? `Floor ${pa.floor}` : ''}, ${pa.apartment ? `Apt ${pa.apartment}` : ''}, ${pa.area || ''}, ${pa.city || ''}, ${pa.country || ''}`.replace(/, ,/g, ',').replace(/^,|,$/g, '').replace(/,+/g, ', ');
-      deliveryAddress = `${da.personName || 'Contact'} ${da.personPhone ? `(${da.personPhone})` : ''}, ${da.street || ''} ${da.building || ''}, ${da.floor ? `Floor ${da.floor}` : ''}, ${da.apartment ? `Apt ${da.apartment}` : ''}, ${da.area || ''}, ${da.city || ''}, ${da.country || ''}`.replace(/, ,/g, ',').replace(/^,|,$/g, '').replace(/,+/g, ', ');
+      pickupAddress = `${pa.personName || 'Contact'} ${pa.personPhone ? `(${pa.personPhone})` : ''}, ${pa.street || ''} ${pa.building || ''}, ${pa.floor ? `Floor ${pa.floor}` : ''}, ${pa.apartment ? `Apt ${pa.apartment}` : ''}, ${pa.area || ''}, ${pa.city || ''}, ${pa.country || ''} `.replace(/, ,/g, ',').replace(/^,|,$/g, '').replace(/,+/g, ', ');
+      deliveryAddress = `${da.personName || 'Contact'} ${da.personPhone ? `(${da.personPhone})` : ''}, ${da.street || ''} ${da.building || ''}, ${da.floor ? `Floor ${da.floor}` : ''}, ${da.apartment ? `Apt ${da.apartment}` : ''}, ${da.area || ''}, ${da.city || ''}, ${da.country || ''} `.replace(/, ,/g, ',').replace(/^,|,$/g, '').replace(/,+/g, ', ');
     } else {
       // Use coordinates-only addresses (from map click)
       const pickupCoords = orderData.pickupLocation.coordinates;
       const dropoffCoords = orderData.dropoffLocation.coordinates;
-      pickupAddress = `${pickupCoords.lat.toFixed(6)}, ${pickupCoords.lng.toFixed(6)}`;
-      deliveryAddress = `${dropoffCoords.lat.toFixed(6)}, ${dropoffCoords.lng.toFixed(6)}`;
+      pickupAddress = `${pickupCoords.lat.toFixed(6)}, ${pickupCoords.lng.toFixed(6)} `;
+      deliveryAddress = `${dropoffCoords.lat.toFixed(6)}, ${dropoffCoords.lng.toFixed(6)} `;
     }
 
     console.log('🛠️ ORDER SERVICE - BUILT ADDRESSES:', { pickupAddress, deliveryAddress });
 
     // Set coordinates from map location (guaranteed to exist from validation above)
-    fromCoordinates = `${orderData.pickupLocation.coordinates.lat},${orderData.pickupLocation.coordinates.lng}`;
-    toCoordinates = `${orderData.dropoffLocation.coordinates.lat},${orderData.dropoffLocation.coordinates.lng}`;
+    fromCoordinates = `${orderData.pickupLocation.coordinates.lat},${orderData.pickupLocation.coordinates.lng} `;
+    toCoordinates = `${orderData.dropoffLocation.coordinates.lat},${orderData.dropoffLocation.coordinates.lng} `;
 
     const result = await pool.query(
-      `INSERT INTO orders (
-        id, customer_id, title, description, pickup_address, delivery_address,
-        from_lat, from_lng, to_lat, to_lng, from_coordinates, to_coordinates,
-        pickup_coordinates, delivery_coordinates, package_description, package_weight,
-        estimated_value, special_instructions, price, status, order_number,
-        created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, NOW())
-      RETURNING *`,
+      `INSERT INTO orders(
+  id, customer_id, title, description, pickup_address, delivery_address,
+  from_lat, from_lng, to_lat, to_lng, from_coordinates, to_coordinates,
+  pickup_coordinates, delivery_coordinates, package_description, package_weight,
+  estimated_value, special_instructions, price, status, order_number,
+  created_at
+) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, NOW())
+RETURNING * `,
       [
         orderId,
         customerId,
@@ -642,10 +646,10 @@ class OrderService {
     const driverName = driverResult.rows[0].name;
 
     const result = await pool.query(
-      `INSERT INTO bids (
-        order_id, user_id, driver_name, bid_price, estimated_pickup_time,
-        estimated_delivery_time, message, driver_location_lat, driver_location_lng, created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW()) RETURNING id`,
+      `INSERT INTO bids(
+  order_id, user_id, driver_name, bid_price, estimated_pickup_time,
+  estimated_delivery_time, message, driver_location_lat, driver_location_lng, created_at
+) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW()) RETURNING id`,
       [
         orderId,
         driverId,
@@ -705,9 +709,7 @@ class OrderService {
       throw new Error('Bid not found');
     }
 
-    // ✅ NEW: Check if driver can accept orders (debt check)
-    const { BalanceService } = require('./balanceService');
-    const balanceService = new BalanceService(pool);
+    // ✅ Check if driver can accept orders (debt check)
     const driverStatus = await balanceService.canAcceptOrders(driverId);
 
     if (!driverStatus.canAccept) {
@@ -719,7 +721,7 @@ class OrderService {
         category: 'order'
       });
       throw new Error(
-        `Cannot accept order: ${driverStatus.reason}`
+        `Cannot accept order: ${driverStatus.reason} `
       );
     }
 
@@ -818,13 +820,13 @@ class OrderService {
   async getOrderTracking(orderId, userId) {
     const orderResult = await pool.query(
       `SELECT
-        o.*,
-        json_build_object(
-          'userId', d.id,
-          'name', d.name,
-          'vehicleType', d.vehicle_type,
-          'rating', d.rating
-        ) as assignedDriver
+o.*,
+  json_build_object(
+    'userId', d.id,
+    'name', d.name,
+    'vehicleType', d.vehicle_type,
+    'rating', d.rating
+  ) as assignedDriver
       FROM orders o
       LEFT JOIN users d ON o.assigned_driver_user_id = d.id
       WHERE o.id = $1`,
@@ -1069,11 +1071,11 @@ class OrderService {
 
     const reviewId = this.generateId();
     await pool.query(
-      `INSERT INTO reviews (
-        id, order_id, reviewer_id, reviewee_id, reviewer_role,
-        review_type, rating, comment, professionalism_rating, communication_rating,
-        timeliness_rating, condition_rating, created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())`,
+      `INSERT INTO reviews(
+    id, order_id, reviewer_id, reviewee_id, reviewer_role,
+    review_type, rating, comment, professionalism_rating, communication_rating,
+    timeliness_rating, condition_rating, created_at
+  ) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())`,
       [
         reviewId,
         orderId,
@@ -1124,11 +1126,11 @@ class OrderService {
   async getOrderReviews(orderId) {
     const reviews = await pool.query(
       `SELECT
-        r.*,
-        ru.name as reviewer_name,
-        ru.role as reviewer_role,
-        re.name as reviewee_name,
-        re.role as reviewee_role
+r.*,
+  ru.name as reviewer_name,
+  ru.role as reviewer_role,
+  re.name as reviewee_name,
+  re.role as reviewee_role
       FROM reviews r
       LEFT JOIN users ru ON r.reviewer_id = ru.id
       LEFT JOIN users re ON r.reviewee_id = re.id
