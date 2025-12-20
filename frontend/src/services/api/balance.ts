@@ -14,7 +14,7 @@ import type {
     ApiResponse,
     TransactionHistoryResponse,
     BalanceTransaction
-} from '../types/balance';
+} from '../../types/balance';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
 
