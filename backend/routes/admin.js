@@ -10,55 +10,6 @@ const { logAdminAction } = require('../services/adminService');
 const logger = require('../services/loggingService');
 const { createNotification } = require('../services/notificationService.ts');
 
-// Admin authentication middleware
-const verifyAdmin = async (req, res, next) => {
-  try {
-    // Check for token in cookies first (preferred method)
-    let token = req.cookies?.token;
-
-    // Fall back to Authorization header
-    if (!token) {
-      token = req.headers['authorization']?.split(' ')[1];
-    }
-
-    if (!token) return res.status(401).json({ error: 'No token provided' });
-
-    const decoded = jwt.verify(token, JWT_SECRET);
-
-    // Check if user is admin
-    const userResult = await pool.query(
-      'SELECT id, email, name, primary_role, granted_roles FROM users WHERE id = $1',
-      [decoded.userId]
-    );
-
-    const row = userResult.rows[0];
-    const hasAdmin = row && (row.primary_role === 'admin' || (Array.isArray(row.granted_roles) && row.granted_roles.includes('admin')));
-    if (userResult.rows.length === 0 || !hasAdmin) {
-      return res.status(403).json({ error: 'Admin access required' });
-    }
-
-    req.user = decoded;
-    req.admin = { id: row.id, email: row.email, name: row.name };
-    next();
-  } catch (error) {
-    console.error('Admin verification error:', error);
-    res.status(401).json({ error: 'Invalid or expired token' });
-  }
-};
-
-// Log admin actions
-const logAdminAction = async (adminId, action, targetType, targetId, details = {}) => {
-  try {
-    await pool.query(
-      `INSERT INTO admin_logs (admin_id, action, target_type, target_id, details, ip_address, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)`,
-      [adminId, action, targetType, targetId, JSON.stringify(details), details.ip || 'unknown']
-    );
-  } catch (error) {
-    console.error('Log admin action error:', error);
-  }
-};
-
 // ============ ADMIN DASHBOARD STATISTICS ============
 router.get('/stats', verifyAdmin, async (req, res) => {
   try {
@@ -1330,12 +1281,6 @@ router.get('/reports/revenue', verifyAdmin, async (req, res) => {
     res.status(500).json({ error: 'Failed to generate report' });
   }
 });
-
-// ============ DATABASE SCHEMA - Admin Tables ============
-
-// Note: createAdminTables is now imported from database/startup.js in server.js
-// It's called during database initialization, not needed here
-
 
 
 module.exports = router;
