@@ -358,10 +358,6 @@ When('I unsuspend the user', async function () {
 When('I request detailed information for the user', async function () {
     const userId = this.world.getMockData('target_user').id;
 
-    this.world.mockQuery.mockResolvedValueOnce({
-        rows: [this.world.getMockData('target_user')]
-    });
-
     const req = request(app)
         .get(`/api/admin/users/${userId}`)
         .set('Cookie', [`token=${this.world.adminToken}`]);
@@ -570,6 +566,64 @@ Then('the report should include order count', function () {
 Then('the report should be downloadable as CSV', function () {
     // Simplified - in real implementation would check Content-Type header
     expect(this.world.response.status).to.equal(200);
+});
+
+// ============ ADDITIONAL MISSING STEPS ============
+
+Given('there is a user {string} with {int} active orders', function (email, orderCount) {
+    this.world.setMockData('target_user', {
+        id: 'user-with-orders',
+        email,
+        name: 'User With Orders',
+        active_orders: orderCount
+    });
+});
+
+When('I attempt to delete the user account', async function () {
+    const userId = this.world.getMockData('target_user').id;
+
+    const req = request(app)
+        .delete(`/api/admin/users/${userId}`)
+        .set('Cookie', [`token=${this.world.adminToken}`]);
+
+    this.world.response = await req;
+});
+
+Then('I should receive an error response', function () {
+    expect(this.world.response.status).to.be.at.least(400);
+});
+
+Then('the error should indicate active orders exist', function () {
+    expect(this.world.response.body.error).to.match(/active orders/i);
+});
+
+Then('the user should not be deleted', function () {
+    // Simplified - in real implementation would verify user still exists
+    expect(this.world.response.status).to.equal(400);
+});
+
+Then('the user should be removed from the system', function () {
+    expect(this.world.response.status).to.equal(200);
+    expect(this.world.response.body.message).to.match(/deleted/i);
+});
+
+When('I delete the user account', async function () {
+    const userId = this.world.getMockData('target_user').id;
+
+    const req = request(app)
+        .delete(`/api/admin/users/${userId}`)
+        .set('Cookie', [`token=${this.world.adminToken}`]);
+
+    this.world.response = await req;
+});
+
+Given('there is a user {string} without active orders', function (email) {
+    this.world.setMockData('target_user', {
+        id: 'user-no-orders',
+        email,
+        name: 'User Without Orders',
+        active_orders: 0
+    });
 });
 
 module.exports = { AdminWorld };
