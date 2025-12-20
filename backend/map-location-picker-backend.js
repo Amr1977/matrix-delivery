@@ -2,6 +2,7 @@
 // Exported as a function to be used in server.js
 
 const logger = require('./config/logger');
+const { verifyToken } = require('./middleware/auth');
 
 // Helper functions for ID generation (same as OrderService)
 const generateId = () => {
@@ -84,7 +85,7 @@ const parseGoogleMapsUrl = (url) => {
 };
 
 // Main export function - called from server.js
-module.exports = (app, pool, jwt, verifyToken) => {
+module.exports = (app, pool, jwt) => {
   // ============ API ENDPOINTS ============
 
   // Reverse geocode coordinates to address (Enhanced)

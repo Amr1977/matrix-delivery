@@ -1,13 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const logger = require('../config/logger');
+const { verifyToken, requireAdmin } = require('../middleware/auth');
 
 /**
  * Logs API Routes
  * Handles log retrieval and frontend log submission
  */
 
-module.exports = (pool, verifyToken, isAdmin) => {
+module.exports = (pool) => {
     const LoggingService = require('../services/loggingService');
     const loggingService = new LoggingService(pool);
 
@@ -63,7 +64,7 @@ module.exports = (pool, verifyToken, isAdmin) => {
      * Retrieve logs with filtering (admin only)
      * Query params: level, source, category, startDate, endDate, userId, search, page, limit
      */
-    router.get('/', verifyToken, isAdmin, async (req, res) => {
+    router.get('/', verifyToken, requireAdmin, async (req, res) => {
         try {
             const filters = {
                 level: req.query.level,
@@ -101,7 +102,7 @@ module.exports = (pool, verifyToken, isAdmin) => {
      * GET /api/logs/stats
      * Get log statistics (admin only)
      */
-    router.get('/stats', verifyToken, isAdmin, async (req, res) => {
+    router.get('/stats', verifyToken, requireAdmin, async (req, res) => {
         try {
             const stats = await loggingService.getLogStats();
 
@@ -125,7 +126,7 @@ module.exports = (pool, verifyToken, isAdmin) => {
      * GET /api/logs/:id
      * Get single log entry by ID (admin only)
      */
-    router.get('/:id', verifyToken, isAdmin, async (req, res) => {
+    router.get('/:id', verifyToken, requireAdmin, async (req, res) => {
         try {
             const logId = parseInt(req.params.id);
             const log = await loggingService.getLogById(logId);
@@ -156,7 +157,7 @@ module.exports = (pool, verifyToken, isAdmin) => {
      * DELETE /api/logs/cleanup
      * Manual cleanup of old logs (admin only)
      */
-    router.delete('/cleanup', verifyToken, isAdmin, async (req, res) => {
+    router.delete('/cleanup', verifyToken, requireAdmin, async (req, res) => {
         try {
             const deletedCount = await loggingService.cleanupOldLogs();
 
