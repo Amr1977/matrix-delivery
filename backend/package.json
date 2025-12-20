@@ -17,8 +17,8 @@
     "test:all": "npm run test:unit && npm run test:integration:fast && npm run test:integration:db",
     "test:watch": "jest --watch --testPathPattern='tests/(unit|integration/(auth|health))'",
     "test:coverage": "jest --coverage --testPathPattern='tests/(unit|integration)'",
-    "test:bdd": "cucumber-js",
-    "test:bdd:report": "cucumber-js --format html:reports/cucumber-report.html",
+    "test:bdd": "cross-env NODE_ENV=testing cucumber-js",
+    "test:bdd:report": "cross-env NODE_ENV=testing cucumber-js --format html:reports/cucumber-report.html",
     "lint": "eslint ."
   },
   "dependencies": {
