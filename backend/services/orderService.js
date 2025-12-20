@@ -2,7 +2,10 @@ const pool = require('../config/db');
 const { getDistance } = require('geolib');
 const logger = require('../config/logger');
 
-// Import BalanceService (TypeScript) - ts-node/register is loaded in server.js
+// Register ts-node to enable TypeScript module loading
+require('ts-node/register');
+
+// Import BalanceService (TypeScript)
 const { BalanceService } = require('./balanceService.ts');
 const balanceService = new BalanceService(pool);
 
