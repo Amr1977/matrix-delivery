@@ -183,10 +183,78 @@ const requireAdmin = (req, res, next) => {
   next();
 };
 
+/**
+ * Middleware to verify admin access (alternative implementation)
+ * Checks if user has admin role (primary_role or granted_roles)
+ */
+const verifyAdmin = async (req, res, next) => {
+  const pool = require('../config/db');
+
+  try {
+    // Check for token in cookies first (preferred method)
+    let token = req.cookies?.token;
+
+    // Fall back to Authorization header
+    if (!token) {
+      token = req.headers['authorization']?.split(' ')[1];
+    }
+
+    if (!token) {
+      logger.security('Admin access attempt without token', {
+        ip: req.ip || req.connection.remoteAddress,
+        path: req.path,
+        category: 'security'
+      });
+      return res.status(401).json({ error: 'No token provided' });
+    }
+
+    const decoded = jwt.verify(token, JWT_SECRET);
+
+    // Check if user is admin
+    const userResult = await pool.query(
+      'SELECT id, email, name, primary_role, granted_roles FROM users WHERE id = $1',
+      [decoded.userId]
+    );
+
+    const row = userResult.rows[0];
+    const hasAdmin = row && (row.primary_role === 'admin' || (Array.isArray(row.granted_roles) && row.granted_roles.includes('admin')));
+
+    if (userResult.rows.length === 0 || !hasAdmin) {
+      logger.security('Non-admin user attempted admin access', {
+        userId: decoded.userId,
+        ip: req.ip || req.connection.remoteAddress,
+        path: req.path,
+        category: 'security'
+      });
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    req.user = decoded;
+    req.admin = { id: row.id, email: row.email, name: row.name };
+
+    logger.auth('Admin access granted', {
+      adminId: row.id,
+      email: row.email,
+      path: req.path,
+      category: 'auth'
+    });
+
+    next();
+  } catch (error) {
+    logger.security('Admin verification error', {
+      error: error.message,
+      ip: req.ip || req.connection.remoteAddress,
+      category: 'security'
+    });
+    res.status(401).json({ error: 'Invalid or expired token' });
+  }
+};
+
 module.exports = {
   verifyToken,
   requireRole,
   requireOwnershipOrAdmin,
   verifyBalanceOwnership,
-  requireAdmin
+  requireAdmin,
+  verifyAdmin
 };
