@@ -4,7 +4,7 @@
 
 CREATE TABLE IF NOT EXISTS wallet_payments (
     id SERIAL PRIMARY KEY,
-    order_id INTEGER NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    order_id VARCHAR(50) NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
     
     -- Payment Details
     wallet_type VARCHAR(50) NOT NULL, -- 'vodafone_cash', 'instapay', 'orange_cash', 'etisalat_cash'
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS wallet_payments (
     
     -- Confirmation Details
     status VARCHAR(20) DEFAULT 'pending', -- 'pending', 'confirmed', 'rejected', 'disputed'
-    confirmed_by INTEGER REFERENCES users(id), -- Admin who confirmed
+    confirmed_by VARCHAR(50) REFERENCES users(id), -- Admin who confirmed
     confirmed_at TIMESTAMP,
     rejection_reason TEXT,
     
