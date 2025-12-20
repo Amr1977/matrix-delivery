@@ -873,7 +873,7 @@ app.get('/api/browse/vendors-near', async (req, res) => {
   }
 });
 
-app.get('/api/browse/items-near', rateLimit(200, 60 * 1000), async (req, res) => {
+app.get('/api/browse/items-near', async (req, res) => {
   try {
     if (!HAS_POSTGIS) return res.status(501).json({ error: 'Geospatial near queries require PostGIS' });
     const lat = parseFloat(req.query.lat);
