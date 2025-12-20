@@ -293,55 +293,18 @@ if (!JWT_REFRESH_SECRET || JWT_REFRESH_SECRET.length < 64) {
 // AUTHENTICATION MIDDLEWARE
 // ============================================================================
 
-// Enhanced token verification middleware
-const verifyToken = (req, res, next) => {
-  // Check for token in cookies first (preferred method)
-  let token = req.cookies?.token;
+// Import authentication middleware from dedicated module
+const {
+  verifyToken,
+  requireAdmin,
+  requireRole
+} = require('./middleware/auth');
 
-  // Fall back to Authorization header for backward compatibility
-  if (!token) {
-    const authHeader = req.headers['authorization'];
-    token = authHeader?.split(' ')[1];
-  }
+// Legacy middleware aliases for backward compatibility
+const isAdmin = requireAdmin;
+const isVendor = requireRole('vendor', 'admin');
 
-  if (!token) {
-    return res.status(401).json({ error: 'No token provided' });
-  }
-
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET, {
-      algorithms: ['HS256'],
-      issuer: 'matrix-delivery',
-      audience: 'matrix-delivery-api'
-    });
-
-    req.user = decoded;
-    next();
-  } catch (error) {
-    if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({
-        error: 'Token expired',
-        code: 'TOKEN_EXPIRED'
-      });
-    } else if (error.name === 'JsonWebTokenError') {
-      return res.status(401).json({
-        error: 'Invalid token',
-        code: 'INVALID_TOKEN'
-      });
-    }
-    return res.status(401).json({ error: 'Authentication failed' });
-  }
-};
-
-const isAdmin = (req, res, next) => {
-  const role = req.user?.role;
-  const roles = req.user?.roles || [];
-  if (role === 'admin' || (Array.isArray(roles) && roles.includes('admin'))) {
-    return next();
-  }
-  return res.status(403).json({ error: 'Forbidden' });
-};
-
+// Test bypass middleware for development/testing
 const verifyTokenOrTestBypass = (req, res, next) => {
   if (IS_TEST && req.headers['x-test-admin'] === '1') {
     req.user = { role: 'admin', userId: req.headers['x-test-user-id'] };
@@ -350,20 +313,7 @@ const verifyTokenOrTestBypass = (req, res, next) => {
   return verifyToken(req, res, next);
 };
 
-const isVendor = (req, res, next) => {
-  const role = req.user?.role;
-  const roles = req.user?.roles || [];
-  if (
-    role === 'vendor' ||
-    (Array.isArray(roles) && roles.includes('vendor')) ||
-    role === 'admin' ||
-    (Array.isArray(roles) && roles.includes('admin'))
-  ) {
-    return next();
-  }
-  return res.status(403).json({ error: 'Forbidden' });
-};
-
+// Vendor ownership authorization middleware
 const authorizeVendorManage = async (req, res, next) => {
   try {
     const role = req.user?.role;
@@ -396,10 +346,10 @@ app.use('/api/drivers', driverRoutes);
 
 // Load map location picker endpoints
 const mapPickerEndpoints = require('./map-location-picker-backend.js');
-mapPickerEndpoints(app, pool, jwt, verifyToken);
+mapPickerEndpoints(app, pool, jwt);
 
 // Load logs endpoints
-const logsRouter = require('./routes/logs')(pool, verifyToken, isAdmin);
+const logsRouter = require('./routes/logs')(pool);
 app.use('/api/logs', logsRouter);
 
 // Load statistics endpoints
