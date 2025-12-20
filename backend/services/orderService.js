@@ -712,7 +712,10 @@ RETURNING * `,
       throw new Error('Bid not found');
     }
 
+
     // ✅ Check if driver can accept orders (debt check)
+    // TODO: Re-enable after fixing user_balances table schema (users.id is VARCHAR not INTEGER)
+    /*
     const driverStatus = await balanceService.canAcceptOrders(driverId);
 
     if (!driverStatus.canAccept) {
@@ -727,6 +730,8 @@ RETURNING * `,
         `Cannot accept order: ${driverStatus.reason} `
       );
     }
+    */
+
 
     // Update order with accepted bid
     await pool.query(
