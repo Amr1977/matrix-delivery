@@ -1,6 +1,6 @@
 const logger = require('../config/logger');
 const { initializeDatabase } = require('./init.ts');
-const { initAuditLogger } = require('../config/auditLogger');
+const { initAuditLogger } = require('../middleware/auditLogger');
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
