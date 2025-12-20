@@ -126,7 +126,12 @@ router.post('/:orderId/accept-bid', verifyToken, async (req, res) => {
       return res.status(403).json({ error: 'Only customers can accept bids' });
     }
 
-    const result = await orderService.acceptBid(req.params.orderId, req.user.userId, req.body.userId);
+    const driverId = parseInt(req.body.userId, 10);
+    if (isNaN(driverId)) {
+      return res.status(400).json({ error: 'Invalid driver ID' });
+    }
+
+    const result = await orderService.acceptBid(req.params.orderId, req.user.userId, driverId);
     res.json(result);
   } catch (error) {
     logger.error(`Bid acceptance error: ${error.message}`, {
