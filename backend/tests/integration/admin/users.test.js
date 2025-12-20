@@ -6,10 +6,41 @@ const { createNotification } = require('../../../services/notificationService.ts
 jest.mock('../../../config/db');
 jest.mock('../../../services/adminService');
 jest.mock('../../../services/notificationService.ts');
+jest.mock('../../../middleware/auth', () => ({
+    verifyToken: (req, res, next) => {
+        req.user = { userId: 'test-user', role: 'customer' };
+        next();
+    },
+    verifyAdmin: (req, res, next) => {
+        req.user = { userId: 'admin-123', role: 'admin' };
+        req.admin = { id: 'admin-123', email: 'admin@test.com', name: 'Admin User' };
+        next();
+    },
+    requireRole: () => (req, res, next) => next(),
+    requireAdmin: (req, res, next) => next()
+}));
 jest.mock('../../../middleware/rateLimit', () => ({
     apiRateLimit: (req, res, next) => next(),
     orderCreationRateLimit: (req, res, next) => next(),
     authRateLimit: (req, res, next) => next()
+}));
+jest.mock('../../../middleware/rateLimiter', () => ({
+    balanceRateLimiter: (req, res, next) => next(),
+    depositRateLimiter: (req, res, next) => next(),
+    withdrawalRateLimiter: (req, res, next) => next(),
+    adminRateLimiter: (req, res, next) => next()
+}));
+jest.mock('../../../middleware/validation/balanceValidation', () => ({
+    validateDeposit: (req, res, next) => next(),
+    validateWithdrawal: (req, res, next) => next(),
+    validateCreateHold: (req, res, next) => next(),
+    validateHoldId: (req, res, next) => next(),
+    validateUserId: (req, res, next) => next(),
+    validateTransactionHistory: (req, res, next) => next(),
+    validateBalanceStatement: (req, res, next) => next(),
+    validateFreezeBalance: (req, res, next) => next(),
+    validateUnfreezeBalance: (req, res, next) => next(),
+    validateAdjustBalance: (req, res, next) => next()
 }));
 
 const app = require('../../../server');
