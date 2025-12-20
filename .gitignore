@@ -89,3 +89,4 @@ test-report*.txt
 # Test coverage
 backend/coverage/
 backend/uploads/
+frontend/src/git-info.json
