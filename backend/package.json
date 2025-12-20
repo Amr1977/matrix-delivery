@@ -9,10 +9,16 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "prod": "cross-env NODE_ENV=production node server.js",
-    "test": "jest --coverage",
+    "test": "jest --coverage --testPathPattern='tests/(unit|integration/(auth|health))' --maxWorkers=50%",
+    "test:unit": "jest --testPathPattern=tests/unit --maxWorkers=50%",
+    "test:integration": "jest --testPathPattern=tests/integration --runInBand --maxWorkers=1",
+    "test:integration:fast": "jest --testPathPattern='tests/integration/(auth|health)' --maxWorkers=50%",
+    "test:integration:db": "jest --testPathPattern=tests/integration/database --runInBand --maxWorkers=1",
+    "test:all": "npm run test:unit && npm run test:integration:fast && npm run test:integration:db",
+    "test:watch": "jest --watch --testPathPattern='tests/(unit|integration/(auth|health))'",
+    "test:coverage": "jest --coverage --testPathPattern='tests/(unit|integration)'",
     "test:bdd": "cucumber-js",
     "test:bdd:report": "cucumber-js --format html:reports/cucumber-report.html",
-    "test:all": "npm test && npm run test:bdd",
     "lint": "eslint ."
   },
   "dependencies": {
