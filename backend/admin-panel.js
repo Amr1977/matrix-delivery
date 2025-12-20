@@ -1327,75 +1327,9 @@ module.exports = (app, pool, jwt, generateId, JWT_SECRET) => {
   });
 
   // ============ DATABASE SCHEMA - Admin Tables ============
-  const createAdminTables = async () => {
-    try {
-      // Admin logs table
-      await pool.query(`
-      CREATE TABLE IF NOT EXISTS admin_logs (
-        id SERIAL PRIMARY KEY,
-        admin_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        action VARCHAR(100) NOT NULL,
-        target_type VARCHAR(50),
-        target_id VARCHAR(255),
-        details JSONB,
-        ip_address VARCHAR(45),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
 
-      // System settings table
-      await pool.query(`
-      CREATE TABLE IF NOT EXISTS system_settings (
-        key VARCHAR(100) PRIMARY KEY,
-        value TEXT NOT NULL,
-        type VARCHAR(50) DEFAULT 'string',
-        description TEXT,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_by VARCHAR(255) REFERENCES users(id)
-      )
-    `);
-
-      // Backups table
-      await pool.query(`
-      CREATE TABLE IF NOT EXISTS backups (
-        id VARCHAR(255) PRIMARY KEY,
-        created_by VARCHAR(255) NOT NULL REFERENCES users(id),
-        table_counts JSONB,
-        file_path TEXT,
-        file_size BIGINT,
-        status VARCHAR(50) DEFAULT 'pending',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-
-      // Create indexes
-      await pool.query(`CREATE INDEX IF NOT EXISTS idx_admin_logs_admin ON admin_logs(admin_id)`);
-      await pool.query(`CREATE INDEX IF NOT EXISTS idx_admin_logs_created ON admin_logs(created_at)`);
-      await pool.query(`CREATE INDEX IF NOT EXISTS idx_admin_logs_action ON admin_logs(action)`);
-
-      // Insert default system settings
-      await pool.query(`
-      INSERT INTO system_settings (key, value, type, description)
-      VALUES 
-        ('platform_name', 'Matrix Delivery', 'string', 'Platform display name'),
-        ('platform_commission', '15', 'number', 'Platform commission percentage'),
-        ('default_currency', 'USD', 'string', 'Default currency code'),
-        ('enable_2fa', 'true', 'boolean', 'Enable two-factor authentication'),
-        ('require_email_verification', 'true', 'boolean', 'Require email verification'),
-        ('enable_ip_whitelist', 'false', 'boolean', 'Enable IP whitelisting'),
-        ('log_admin_actions', 'true', 'boolean', 'Log all admin actions')
-      ON CONFLICT (key) DO NOTHING
-    `);
-
-      console.log('✅ Admin tables created successfully');
-    } catch (error) {
-      console.error('❌ Admin tables creation error:', error);
-      throw error;
-    }
-  };
-
-  // Add this line to your initDatabase() function:
-  // await createAdminTables();
+  // Note: createAdminTables is now imported from database/startup.js in server.js
+  // It's called during database initialization, not needed here
 
   console.log('✅ Admin API endpoints loaded successfully - All 3 parts complete');
 
