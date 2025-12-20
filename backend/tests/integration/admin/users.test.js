@@ -67,9 +67,9 @@ describe('Admin Routes - User Management', () => {
     };
 
     describe('GET /api/admin/users', () => {
-        beforeEach(() => {
+        it('should return paginated users for admin', async () => {
+            // Mock the two queries the route makes
             mockQuery
-                .mockResolvedValueOnce({ rows: [mockAdminUser] }) // verifyAdmin
                 .mockResolvedValueOnce({ rows: [{ count: '50' }] }) // total count
                 .mockResolvedValueOnce({ // users list
                     rows: Array(20).fill(null).map((_, i) => ({
@@ -87,9 +87,7 @@ describe('Admin Routes - User Management', () => {
                         created_at: new Date()
                     }))
                 });
-        });
 
-        it('should return paginated users for admin', async () => {
             const response = await request(app)
                 .get('/api/admin/users?page=1&limit=20')
                 .set('Cookie', [`token=${adminToken}`])
@@ -107,9 +105,7 @@ describe('Admin Routes - User Management', () => {
         });
 
         it('should filter users by search term', async () => {
-            mockQuery.mockReset();
             mockQuery
-                .mockResolvedValueOnce({ rows: [mockAdminUser] })
                 .mockResolvedValueOnce({ rows: [{ count: '1' }] })
                 .mockResolvedValueOnce({
                     rows: [{
@@ -119,7 +115,11 @@ describe('Admin Routes - User Management', () => {
                         primary_role: 'customer',
                         is_verified: true,
                         total_orders: '0',
-                        total_reviews: '0'
+                        total_reviews: '0',
+                        rating: null,
+                        completed_deliveries: null,
+                        is_available: true,
+                        created_at: new Date()
                     }]
                 });
 
@@ -133,9 +133,7 @@ describe('Admin Routes - User Management', () => {
         });
 
         it('should filter users by role', async () => {
-            mockQuery.mockReset();
             mockQuery
-                .mockResolvedValueOnce({ rows: [mockAdminUser] })
                 .mockResolvedValueOnce({ rows: [{ count: '20' }] })
                 .mockResolvedValueOnce({
                     rows: Array(20).fill(null).map((_, i) => ({
@@ -143,7 +141,11 @@ describe('Admin Routes - User Management', () => {
                         name: `Driver ${i}`,
                         primary_role: 'driver',
                         total_orders: '0',
-                        total_reviews: '0'
+                        total_reviews: '0',
+                        rating: null,
+                        is_verified: true,
+                        is_available: true,
+                        created_at: new Date()
                     }))
                 });
 
@@ -165,9 +167,7 @@ describe('Admin Routes - User Management', () => {
                 is_verified: true
             };
 
-            mockQuery
-                .mockResolvedValueOnce({ rows: [mockAdminUser] }) // verifyAdmin
-                .mockResolvedValueOnce({ rows: [mockUser] }); // update query
+            mockQuery.mockResolvedValueOnce({ rows: [mockUser] }); // update query
 
             const response = await request(app)
                 .post('/api/admin/users/user-123/verify')
@@ -202,9 +202,7 @@ describe('Admin Routes - User Management', () => {
                 is_available: false
             };
 
-            mockQuery
-                .mockResolvedValueOnce({ rows: [mockAdminUser] })
-                .mockResolvedValueOnce({ rows: [mockUser] });
+            mockQuery.mockResolvedValueOnce({ rows: [mockUser] });
 
             const response = await request(app)
                 .post('/api/admin/users/user-456/suspend')
@@ -244,7 +242,6 @@ describe('Admin Routes - User Management', () => {
             };
 
             pool.connect = jest.fn().mockResolvedValue(mockClient);
-            mockQuery.mockResolvedValueOnce({ rows: [mockAdminUser] }); // verifyAdmin
 
             const response = await request(app)
                 .delete('/api/admin/users/user-789')
@@ -266,7 +263,6 @@ describe('Admin Routes - User Management', () => {
             };
 
             pool.connect = jest.fn().mockResolvedValue(mockClient);
-            mockQuery.mockResolvedValueOnce({ rows: [mockAdminUser] });
 
             const response = await request(app)
                 .delete('/api/admin/users/user-999')
