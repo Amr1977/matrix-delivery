@@ -285,6 +285,9 @@ const authorizeVendorManage = async (req, res, next) => {
 // Load auth endpoints
 app.use('/api/auth', require('./routes/auth'));
 
+// Load admin endpoints
+app.use('/api/admin', require('./routes/admin'));
+
 // ============================================================================
 // API v1 ROUTES (Versioned API)
 // ============================================================================
