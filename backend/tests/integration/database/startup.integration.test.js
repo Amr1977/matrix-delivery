@@ -56,7 +56,7 @@ describe('Database Startup - Real Database Integration', () => {
         // Clean up after all tests
         await cleanupAdminTables();
         // Close pool connection
-        // Don't close pool - it's shared across tests and Jest will handle cleanup
+        await pool.end();
     });
 
     describe('createAdminTables - Real Database', () => {

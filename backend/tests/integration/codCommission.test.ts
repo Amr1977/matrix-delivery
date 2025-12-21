@@ -66,7 +66,7 @@ describe('COD Commission Integration Tests', () => {
             console.error('Cleanup error:', error.message);
         }
 
-        // Don't close pool - it's shared across tests and Jest will handle cleanup
+        await pool.end();
     });
 
     beforeEach(async () => {
