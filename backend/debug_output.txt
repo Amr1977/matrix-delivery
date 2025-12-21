@@ -1,0 +1,1135 @@
+  console.log
+    [dotenv@17.2.3] injecting env (32) from .env.testing -- tip: Γ£à audit secrets and track compliance: https://dotenvx.com/ops
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+  console.log
+    [dotenv@17.2.3] injecting env (0) from .env.testing -- tip: ≡ƒæÑ sync secrets across teammates & machines: https://dotenvx.com/ops
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+  console.log
+    Γ£à Loaded .env.testing for testing
+
+      at Object.log (server.js:11:11)
+
+2025-12-22 01:01:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m≡ƒöº Environment Configuration:[1m[32m[22m[39m
+2025-12-22 01:01:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   NODE_ENV: testing[1m[32m[22m[39m
+2025-12-22 01:01:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   IS_TEST: true[1m[32m[22m[39m
+2025-12-22 01:01:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   DB_HOST: localhost[1m[32m[22m[39m
+2025-12-22 01:01:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   DB_PORT: 5432[1m[32m[22m[39m
+2025-12-22 01:01:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   DB_USER: postgres[1m[32m[22m[39m
+2025-12-22 01:01:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   DB_NAME: matrix_delivery_test[1m[32m[22m[39m
+2025-12-22 01:01:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   DB_NAME_TEST: matrix_delivery_test[1m[32m[22m[39m
+2025-12-22 01:01:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m≡ƒöî Connecting to database: matrix_delivery_test (Test Mode: true)[1m[32m[22m[39m
+2025-12-22 01:01:47 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m≡ƒöº Environment loaded for: testing[1m[32m[22m[39m
+  console.log
+    Γ£à Security configuration validated
+
+      at validateSecurityConfig (middleware/security.ts:188:13)
+
+  console.log
+    [dotenv@17.2.3] injecting env (8) from .env -- tip: ΓÜÖ∩╕Å  suppress all logs with { quiet: true }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+2025-12-22 01:01:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/auth/login[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-22 01:01:49 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Login attempt[1m[32m[22m[39m
+{
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-22 01:01:49 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: User logged in successfully[1m[32m[22m[39m
+{
+  "userId": "test-user-auth",
+  "email": "test@auth.com",
+  "category": "authentication"
+}
+2025-12-22 01:01:49 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mPERF: Login completed[1m[32m[22m[39m
+{
+  "userId": "test-user-auth",
+  "duration": "135ms",
+  "category": "performance"
+}
+  console.log
+    ≡ƒì¬ Setting cookie with options: {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      maxAge: 2592000000,
+      path: '/'
+    }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+  console.log
+    ≡ƒì¬ Token length: 388
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+2025-12-22 01:01:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[21/Dec/2025:23:01:49",
+  "ip": "/api/auth/login",
+  "userAgent": "200",
+  "category": "http"
+}
+2025-12-22 01:01:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/auth/login 200[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "statusCode": 200,
+  "duration": "151ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-22 01:01:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/auth/login[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-22 01:01:49 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Login attempt[1m[32m[22m[39m
+{
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-22 01:01:49 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: User logged in successfully[1m[32m[22m[39m
+{
+  "userId": "test-user-auth",
+  "email": "test@auth.com",
+  "category": "authentication"
+}
+2025-12-22 01:01:49 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mPERF: Login completed[1m[32m[22m[39m
+{
+  "userId": "test-user-auth",
+  "duration": "133ms",
+  "category": "performance"
+}
+  console.log
+    ≡ƒì¬ Setting cookie with options: {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      maxAge: 2592000000,
+      path: '/'
+    }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+  console.log
+    ≡ƒì¬ Token length: 388
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+2025-12-22 01:01:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[21/Dec/2025:23:01:49",
+  "ip": "/api/auth/login",
+  "userAgent": "200",
+  "category": "http"
+}
+2025-12-22 01:01:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/auth/login 200[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "statusCode": 200,
+  "duration": "145ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-22 01:01:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/auth/login[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-22 01:01:49 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Login attempt[1m[32m[22m[39m
+{
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-22 01:01:49 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: User logged in successfully[1m[32m[22m[39m
+{
+  "userId": "test-user-auth",
+  "email": "test@auth.com",
+  "category": "authentication"
+}
+2025-12-22 01:01:49 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mPERF: Login completed[1m[32m[22m[39m
+{
+  "userId": "test-user-auth",
+  "duration": "126ms",
+  "category": "performance"
+}
+  console.log
+    ≡ƒì¬ Setting cookie with options: {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      maxAge: 2592000000,
+      path: '/'
+    }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+  console.log
+    ≡ƒì¬ Token length: 388
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+2025-12-22 01:01:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[21/Dec/2025:23:01:49",
+  "ip": "/api/auth/login",
+  "userAgent": "200",
+  "category": "http"
+}
+2025-12-22 01:01:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/auth/login 200[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "statusCode": 200,
+  "duration": "133ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-22 01:01:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: GET /api/auth/me[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/auth/me",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+  console.log
+    ≡ƒì¬ /me endpoint - Cookies received: {
+      token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ0ZXN0LXVzZXItYXV0aCIsImVtYWlsIjoidGVzdEBhdXRoLmNvbSIsIm5hbWUiOiJUZXN0IFVzZXIiLCJyb2xlIjoiY3VzdG9tZXIiLCJwcmltYXJ5X3JvbGUiOiJjdXN0b21lciIsInJvbGVzIjpbXSwiZ3JhbnRlZF9yb2xlcyI6W10sImlhdCI6MTc2NjM1ODEwOSwiZXhwIjoxNzY4OTUwMTA5LCJhdWQiOiJtYXRyaXgtZGVsaXZlcnktYXBpIiwiaXNzIjoibWF0cml4LWRlbGl2ZXJ5In0.vDjmEFjc30P-JRjUO4SbZhn7opjNPtfTq2OHxzYBRnM'
+    }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+  console.log
+    ≡ƒì¬ /me endpoint - Headers: token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ0ZXN0LXVzZXItYXV0aCIsImVtYWlsIjoidGVzdEBhdXRoLmNvbSIsIm5hbWUiOiJUZXN0IFVzZXIiLCJyb2xlIjoiY3VzdG9tZXIiLCJwcmltYXJ5X3JvbGUiOiJjdXN0b21lciIsInJvbGVzIjpbXSwiZ3JhbnRlZF9yb2xlcyI6W10sImlhdCI6MTc2NjM1ODEwOSwiZXhwIjoxNzY4OTUwMTA5LCJhdWQiOiJtYXRyaXgtZGVsaXZlcnktYXBpIiwiaXNzIjoibWF0cml4LWRlbGl2ZXJ5In0.vDjmEFjc30P-JRjUO4SbZhn7opjNPtfTq2OHxzYBRnM
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+2025-12-22 01:01:49 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": "test-user-auth",
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-22 01:01:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[21/Dec/2025:23:01:50",
+  "ip": "/api/auth/me",
+  "userAgent": "200",
+  "category": "http"
+}
+2025-12-22 01:01:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: GET /api/auth/me 200[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/auth/me",
+  "statusCode": 200,
+  "duration": "37ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-22 01:01:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/auth/login[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-22 01:01:50 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Login attempt[1m[32m[22m[39m
+{
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-22 01:01:50 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: User logged in successfully[1m[32m[22m[39m
+{
+  "userId": "test-user-auth",
+  "email": "test@auth.com",
+  "category": "authentication"
+}
+2025-12-22 01:01:50 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mPERF: Login completed[1m[32m[22m[39m
+{
+  "userId": "test-user-auth",
+  "duration": "128ms",
+  "category": "performance"
+}
+  console.log
+    ≡ƒì¬ Setting cookie with options: {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      maxAge: 2592000000,
+      path: '/'
+    }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+  console.log
+    ≡ƒì¬ Token length: 388
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+2025-12-22 01:01:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[21/Dec/2025:23:01:50",
+  "ip": "/api/auth/login",
+  "userAgent": "200",
+  "category": "http"
+}
+2025-12-22 01:01:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/auth/login 200[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "statusCode": 200,
+  "duration": "135ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-22 01:01:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: GET /api/auth/me[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/auth/me",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+  console.log
+    ≡ƒì¬ /me endpoint - Cookies received: [Object: null prototype] {}
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+  console.log
+    ≡ƒì¬ /me endpoint - Headers: undefined
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+2025-12-22 01:01:50 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mSECURITY: Access attempt without token[1m[33m[22m[39m
+{
+  "ip": "::ffff:127.0.0.1",
+  "path": "/me",
+  "method": "GET",
+  "category": "security"
+}
+2025-12-22 01:01:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[21/Dec/2025:23:01:50",
+  "ip": "/api/auth/me",
+  "userAgent": "401",
+  "category": "http"
+}
+2025-12-22 01:01:50 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: GET /api/auth/me 401[1m[33m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/auth/me",
+  "statusCode": 401,
+  "duration": "17ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-22 01:01:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/auth/login[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-22 01:01:50 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Login attempt[1m[32m[22m[39m
+{
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-22 01:01:50 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: User logged in successfully[1m[32m[22m[39m
+{
+  "userId": "test-user-auth",
+  "email": "test@auth.com",
+  "category": "authentication"
+}
+2025-12-22 01:01:50 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mPERF: Login completed[1m[32m[22m[39m
+{
+  "userId": "test-user-auth",
+  "duration": "122ms",
+  "category": "performance"
+}
+  console.log
+    ≡ƒì¬ Setting cookie with options: {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      maxAge: 2592000000,
+      path: '/'
+    }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+  console.log
+    ≡ƒì¬ Token length: 388
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+2025-12-22 01:01:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[21/Dec/2025:23:01:50",
+  "ip": "/api/auth/login",
+  "userAgent": "200",
+  "category": "http"
+}
+2025-12-22 01:01:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/auth/login 200[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "statusCode": 200,
+  "duration": "130ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-22 01:01:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: GET /api/auth/me[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/auth/me",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+  console.log
+    ≡ƒì¬ /me endpoint - Cookies received: [Object: null prototype] {}
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+  console.log
+    ≡ƒì¬ /me endpoint - Headers: undefined
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+2025-12-22 01:01:50 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mSECURITY: Invalid token provided[1m[33m[22m[39m
+{
+  "error": "jwt malformed",
+  "ip": "::ffff:127.0.0.1",
+  "path": "/me",
+  "category": "security"
+}
+2025-12-22 01:01:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[21/Dec/2025:23:01:50",
+  "ip": "/api/auth/me",
+  "userAgent": "401",
+  "category": "http"
+}
+2025-12-22 01:01:50 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: GET /api/auth/me 401[1m[33m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/auth/me",
+  "statusCode": 401,
+  "duration": "18ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-22 01:01:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/auth/login[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-22 01:01:50 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Login attempt[1m[32m[22m[39m
+{
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-22 01:01:50 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: User logged in successfully[1m[32m[22m[39m
+{
+  "userId": "test-user-auth",
+  "email": "test@auth.com",
+  "category": "authentication"
+}
+2025-12-22 01:01:50 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mPERF: Login completed[1m[32m[22m[39m
+{
+  "userId": "test-user-auth",
+  "duration": "126ms",
+  "category": "performance"
+}
+  console.log
+    ≡ƒì¬ Setting cookie with options: {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      maxAge: 2592000000,
+      path: '/'
+    }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+  console.log
+    ≡ƒì¬ Token length: 388
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+2025-12-22 01:01:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[21/Dec/2025:23:01:50",
+  "ip": "/api/auth/login",
+  "userAgent": "200",
+  "category": "http"
+}
+2025-12-22 01:01:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/auth/login 200[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "statusCode": 200,
+  "duration": "136ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-22 01:01:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: GET /api/orders[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/orders",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-22 01:01:50 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": "test-user-auth",
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-22 01:01:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[21/Dec/2025:23:01:50",
+  "ip": "/api/orders",
+  "userAgent": "200",
+  "category": "http"
+}
+2025-12-22 01:01:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: GET /api/orders 200[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/orders",
+  "statusCode": 200,
+  "duration": "24ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-22 01:01:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/auth/login[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-22 01:01:50 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Login attempt[1m[32m[22m[39m
+{
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-22 01:01:50 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: User logged in successfully[1m[32m[22m[39m
+{
+  "userId": "test-user-auth",
+  "email": "test@auth.com",
+  "category": "authentication"
+}
+2025-12-22 01:01:50 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mPERF: Login completed[1m[32m[22m[39m
+{
+  "userId": "test-user-auth",
+  "duration": "126ms",
+  "category": "performance"
+}
+  console.log
+    ≡ƒì¬ Setting cookie with options: {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      maxAge: 2592000000,
+      path: '/'
+    }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+  console.log
+    ≡ƒì¬ Token length: 388
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+2025-12-22 01:01:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[21/Dec/2025:23:01:50",
+  "ip": "/api/auth/login",
+  "userAgent": "200",
+  "category": "http"
+}
+2025-12-22 01:01:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/auth/login 200[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "statusCode": 200,
+  "duration": "132ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-22 01:01:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: GET /api/notifications[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/notifications",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-22 01:01:50 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": "test-user-auth",
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-22 01:01:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[21/Dec/2025:23:01:50",
+  "ip": "/api/notifications",
+  "userAgent": "200",
+  "category": "http"
+}
+2025-12-22 01:01:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: GET /api/notifications 200[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/notifications",
+  "statusCode": 200,
+  "duration": "9ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-22 01:01:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/auth/login[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-22 01:01:50 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Login attempt[1m[32m[22m[39m
+{
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-22 01:01:50 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: User logged in successfully[1m[32m[22m[39m
+{
+  "userId": "test-user-auth",
+  "email": "test@auth.com",
+  "category": "authentication"
+}
+2025-12-22 01:01:50 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mPERF: Login completed[1m[32m[22m[39m
+{
+  "userId": "test-user-auth",
+  "duration": "121ms",
+  "category": "performance"
+}
+  console.log
+    ≡ƒì¬ Setting cookie with options: {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      maxAge: 2592000000,
+      path: '/'
+    }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+  console.log
+    ≡ƒì¬ Token length: 388
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+2025-12-22 01:01:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[21/Dec/2025:23:01:50",
+  "ip": "/api/auth/login",
+  "userAgent": "200",
+  "category": "http"
+}
+2025-12-22 01:01:50 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/auth/login 200[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "statusCode": 200,
+  "duration": "127ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-22 01:01:51 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/auth/login[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-22 01:01:51 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Login attempt[1m[32m[22m[39m
+{
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-22 01:01:51 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: User logged in successfully[1m[32m[22m[39m
+{
+  "userId": "test-admin-auth",
+  "email": "admin@auth.com",
+  "category": "authentication"
+}
+2025-12-22 01:01:51 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mPERF: Login completed[1m[32m[22m[39m
+{
+  "userId": "test-admin-auth",
+  "duration": "123ms",
+  "category": "performance"
+}
+  console.log
+    ≡ƒì¬ Setting cookie with options: {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      maxAge: 2592000000,
+      path: '/'
+    }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+  console.log
+    ≡ƒì¬ Token length: 384
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+2025-12-22 01:01:51 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[21/Dec/2025:23:01:51",
+  "ip": "/api/auth/login",
+  "userAgent": "200",
+  "category": "http"
+}
+2025-12-22 01:01:51 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/auth/login 200[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "statusCode": 200,
+  "duration": "129ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-22 01:01:51 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: GET /api/admin/users[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/admin/users",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-22 01:01:51 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Admin access granted[1m[32m[22m[39m
+{
+  "adminId": "test-admin-auth",
+  "email": "admin@auth.com",
+  "path": "/users",
+  "category": "authentication"
+}
+2025-12-22 01:01:51 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[21/Dec/2025:23:01:51",
+  "ip": "/api/admin/users",
+  "userAgent": "200",
+  "category": "http"
+}
+2025-12-22 01:01:51 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: GET /api/admin/users 200[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/admin/users",
+  "statusCode": 200,
+  "duration": "14ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+  console.error
+    Log admin action error: error: relation "admin_logs" does not exist
+        at D:\matrix-delivery\backend\node_modules\pg-pool\index.js:45:11
+        at processTicksAndRejections (node:internal/process/task_queues:105:5)
+        at async logAdminAction (D:\matrix-delivery\backend\services\adminService.js:16:5)
+        at async D:\matrix-delivery\backend\routes\admin.js:254:5 {
+      length: 109,
+      severity: 'ERROR',
+      code: '42P01',
+      detail: undefined,
+      hint: undefined,
+      position: '13',
+      internalPosition: undefined,
+      internalQuery: undefined,
+      where: undefined,
+      schema: undefined,
+      table: undefined,
+      column: undefined,
+      dataType: undefined,
+      constraint: undefined,
+      file: 'parse_relation.c',
+      line: '1395',
+      routine: 'parserOpenTable'
+    }
+
+    [0m [90m 18 |[39m         )[33m;[39m
+     [90m 19 |[39m     } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 20 |[39m         console[33m.[39merror([32m'Log admin action error:'[39m[33m,[39m error)[33m;[39m
+     [90m    |[39m                 [31m[1m^[22m[39m
+     [90m 21 |[39m     }
+     [90m 22 |[39m }[33m;[39m
+     [90m 23 |[39m[0m
+
+      at console.error (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+      at error (services/adminService.js:20:17)
+      at routes/admin.js:279:5
+
+2025-12-22 01:01:51 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/auth/login[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-22 01:01:51 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Login attempt[1m[32m[22m[39m
+{
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-22 01:01:51 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: User logged in successfully[1m[32m[22m[39m
+{
+  "userId": "test-admin-auth",
+  "email": "admin@auth.com",
+  "category": "authentication"
+}
+2025-12-22 01:01:51 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mPERF: Login completed[1m[32m[22m[39m
+{
+  "userId": "test-admin-auth",
+  "duration": "124ms",
+  "category": "performance"
+}
+  console.log
+    ≡ƒì¬ Setting cookie with options: {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      maxAge: 2592000000,
+      path: '/'
+    }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+  console.log
+    ≡ƒì¬ Token length: 384
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+2025-12-22 01:01:51 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[21/Dec/2025:23:01:51",
+  "ip": "/api/auth/login",
+  "userAgent": "200",
+  "category": "http"
+}
+2025-12-22 01:01:51 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/auth/login 200[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "statusCode": 200,
+  "duration": "129ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-22 01:01:51 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: GET /api/admin/dashboard[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/admin/dashboard",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-22 01:01:51 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1m404 Not Found: GET /api/admin/dashboard[1m[33m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/admin/dashboard",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-22 01:01:51 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[21/Dec/2025:23:01:51",
+  "ip": "/api/admin/dashboard",
+  "userAgent": "404",
+  "category": "http"
+}
+2025-12-22 01:01:51 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: GET /api/admin/dashboard 404[1m[33m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/admin/dashboard",
+  "statusCode": 404,
+  "duration": "8ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-22 01:01:51 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/auth/login[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-22 01:01:51 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Login attempt[1m[32m[22m[39m
+{
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-22 01:01:51 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: User logged in successfully[1m[32m[22m[39m
+{
+  "userId": "test-user-auth",
+  "email": "test@auth.com",
+  "category": "authentication"
+}
+2025-12-22 01:01:51 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mPERF: Login completed[1m[32m[22m[39m
+{
+  "userId": "test-user-auth",
+  "duration": "124ms",
+  "category": "performance"
+}
+  console.log
+    ≡ƒì¬ Setting cookie with options: {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      maxAge: 2592000000,
+      path: '/'
+    }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+  console.log
+    ≡ƒì¬ Token length: 388
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+2025-12-22 01:01:51 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[21/Dec/2025:23:01:51",
+  "ip": "/api/auth/login",
+  "userAgent": "200",
+  "category": "http"
+}
+2025-12-22 01:01:51 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/auth/login 200[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "statusCode": 200,
+  "duration": "131ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-22 01:01:51 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/auth/logout[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/logout",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-22 01:01:51 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: User logged out[1m[32m[22m[39m
+{
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-22 01:01:51 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[21/Dec/2025:23:01:51",
+  "ip": "/api/auth/logout",
+  "userAgent": "200",
+  "category": "http"
+}
+2025-12-22 01:01:51 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/auth/logout 200[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/logout",
+  "statusCode": 200,
+  "duration": "4ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-22 01:01:51 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: GET /api/auth/me[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/auth/me",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+  console.log
+    ≡ƒì¬ /me endpoint - Cookies received: [Object: null prototype] {}
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+  console.log
+    ≡ƒì¬ /me endpoint - Headers: undefined
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+2025-12-22 01:01:51 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mSECURITY: Invalid token provided[1m[33m[22m[39m
+{
+  "error": "jwt malformed",
+  "ip": "::ffff:127.0.0.1",
+  "path": "/me",
+  "category": "security"
+}
+2025-12-22 01:01:51 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[21/Dec/2025:23:01:51",
+  "ip": "/api/auth/me",
+  "userAgent": "401",
+  "category": "http"
+}
+2025-12-22 01:01:51 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: GET /api/auth/me 401[1m[33m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/auth/me",
+  "statusCode": 401,
+  "duration": "16ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-22 01:01:51 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: GET /api/drivers/location[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/drivers/location",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-22 01:01:51 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mSECURITY: Invalid token provided[1m[33m[22m[39m
+{
+  "error": "jwt malformed",
+  "ip": "::ffff:127.0.0.1",
+  "path": "/location",
+  "category": "security"
+}
+2025-12-22 01:01:51 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[21/Dec/2025:23:01:51",
+  "ip": "/api/drivers/location",
+  "userAgent": "401",
+  "category": "http"
+}
+2025-12-22 01:01:51 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: GET /api/drivers/location 401[1m[33m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/drivers/location",
+  "statusCode": 401,
+  "duration": "6ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+FAIL tests/integration/cookieAuth.test.ts (14.442 s)
+  Cookie-Based Authentication Integration Tests
+    Authentication Flow
+      ΓêÜ should set httpOnly cookie on login (251 ms)
+      ΓêÜ should NOT include token in response body (288 ms)
+    Protected Endpoints - Cookie Authentication
+      ΓêÜ should accept requests with cookie (no Authorization header) (220 ms)
+      ΓêÜ should reject requests without cookie (204 ms)
+      ΓêÜ should reject requests with Authorization header but no cookie (190 ms)
+      ΓêÜ should work for /api/orders with cookie (224 ms)
+      ΓêÜ should work for /api/notifications with cookie (193 ms)
+      ├ù should work for /api/drivers/location with cookie (driver role) (155 ms)
+    Admin Endpoints - Cookie Authentication
+      ΓêÜ should work for /api/admin/users with cookie (414 ms)
+      ΓêÜ should work for /api/admin/dashboard with cookie (218 ms)
+    Logout Flow
+      ΓêÜ should clear cookie on logout (177 ms)
+    Regression Prevention
+      ΓêÜ should NOT accept malformed JWT in Authorization header (36 ms)
+      ΓêÜ should NOT accept string "authenticated" as token (23 ms)
+
+  ΓùÅ Cookie-Based Authentication Integration Tests ΓÇ║ Protected Endpoints - Cookie Authentication ΓÇ║ should work for /api/drivers/location with cookie (driver role)
+
+    error: duplicate key value violates unique constraint "users_pkey"
+
+      111 |                 console.log('HEADERS:', response.headers);
+      112 |             }
+    > 113 |             expect(response.status).toBe(401);
+          |             ^
+      114 |         });
+      115 |
+      116 |         it('should work for /api/orders with cookie', async () => {
+
+      at node_modules/pg-pool/index.js:45:11
+      at async Object.<anonymous> (tests/integration/cookieAuth.test.ts:113:13)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 12 passed, 13 total
+Snapshots:   0 total
+Time:        14.998 s, estimated 18 s
+Ran all test suites matching /tests\\integration\\cookieAuth.test.ts/i.
+Jest did not exit one second after the test run has completed.
+
+'This usually means that there are asynchronous operations that weren't stopped in your tests. Consider running Jest with `--detectOpenHandles` to troubleshoot this issue.
