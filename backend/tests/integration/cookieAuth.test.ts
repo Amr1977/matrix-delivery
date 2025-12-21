@@ -27,7 +27,7 @@ describe('Cookie-Based Authentication Integration Tests', () => {
     afterAll(async () => {
         // Cleanup
         await pool.query('DELETE FROM users WHERE id = $1', ['test-user-auth']);
-        await pool.end();
+        // Don't close pool - it's shared across tests
     });
 
     describe('Authentication Flow', () => {

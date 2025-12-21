@@ -66,7 +66,7 @@ describe('COD Commission Integration Tests', () => {
             console.error('Cleanup error:', error.message);
         }
 
-        await pool.end();
+        // Don't close pool - it's shared across tests
     });
 
     beforeEach(async () => {
