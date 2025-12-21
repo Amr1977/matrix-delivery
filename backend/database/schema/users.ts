@@ -12,7 +12,7 @@ export const usersSchema: TableSchema = {
       id VARCHAR(255) PRIMARY KEY,
       name VARCHAR(255) NOT NULL,
       email VARCHAR(255) UNIQUE NOT NULL,
-      password VARCHAR(255) NOT NULL,
+      password_hash VARCHAR(255) NOT NULL,
       phone VARCHAR(50) NOT NULL,
       primary_role VARCHAR(50) NOT NULL CHECK (primary_role IN ('customer', 'driver', 'admin', 'vendor')),
       granted_roles TEXT[],
