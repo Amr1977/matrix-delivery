@@ -28,9 +28,9 @@ async function resetTestDatabase() {
     } catch (error) {
         console.error('❌ Failed to reset test database:', error.message);
         throw error;
-    } finally {
-        await pool.end();
     }
+    // Don't close pool - it's shared across all tests
+    // Jest will handle cleanup automatically
 }
 
 // Run if called directly
