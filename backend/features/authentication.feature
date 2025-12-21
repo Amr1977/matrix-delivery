@@ -20,7 +20,7 @@ Feature: User Authentication
   Scenario: Registration with existing email
     Given there is a user with email "existing@example.com"
     When I try to register with email "existing@example.com"
-    Then I should receive an error response
+    Then I should receive an authentication error response
     And the error should indicate email already exists
 
   Scenario: Registration with invalid email
@@ -82,5 +82,5 @@ Feature: User Authentication
   Scenario: Password reset with expired token
     Given I have an expired password reset token
     When I try to reset my password
-    Then I should receive an error response
+    Then I should receive an authentication error response
     And the error should indicate token expired

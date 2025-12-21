@@ -304,7 +304,7 @@ Then('a verification email should be sent', function () {
     expect(this.world.response.status).to.equal(201);
 });
 
-Then('I should receive an error response', function () {
+Then('I should receive an authentication error response', function () {
     expect(this.world.response.status).to.be.at.least(400);
 });
 
