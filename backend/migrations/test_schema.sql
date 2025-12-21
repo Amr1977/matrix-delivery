@@ -1,5 +1,5 @@
--- Complete Standalone Test Schema for Balance System
--- Includes all dependencies
+-- Complete Test Schema for BDD Tests
+-- Matches production database schema
 
 -- Drop existing tables
 DROP TABLE IF EXISTS balance_holds CASCADE;
@@ -9,19 +9,30 @@ DROP TABLE IF EXISTS wallet_payments CASCADE;
 DROP TABLE IF EXISTS orders CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 
--- Create users table
+-- Create users table with ALL production columns
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
+    password_hash VARCHAR(255),
     phone VARCHAR(20),
     primary_role VARCHAR(20) NOT NULL,
+    granted_roles VARCHAR(20)[] DEFAULT ARRAY[]::VARCHAR[],
+    is_verified BOOLEAN DEFAULT FALSE,
+    is_available BOOLEAN DEFAULT TRUE,
     country VARCHAR(100),
     city VARCHAR(100),
     area VARCHAR(100),
     vehicle_type VARCHAR(50),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    gender VARCHAR(10) DEFAULT 'male',
+    rating DECIMAL(3, 2) DEFAULT 0.00,
+    total_ratings INTEGER DEFAULT 0,
+    language VARCHAR(10) DEFAULT 'en',
+    theme VARCHAR(20) DEFAULT 'light',
+    license_number VARCHAR(50),
+    service_area_zone VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Create orders table
@@ -31,10 +42,11 @@ CREATE TABLE orders (
     driver_id INTEGER REFERENCES users(id),
     total_amount DECIMAL(10, 2),
     status VARCHAR(50),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create wallet_payments table (minimal for FK constraint)
+-- Create wallet_payments table
 CREATE TABLE wallet_payments (
     id SERIAL PRIMARY KEY,
     order_id INTEGER REFERENCES orders(id),
@@ -69,7 +81,6 @@ CREATE TABLE user_balances (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     last_transaction_at TIMESTAMP,
-    -- REMOVED: positive_available_balance constraint to allow debt
     CONSTRAINT positive_pending_balance CHECK (pending_balance >= 0),
     CONSTRAINT positive_held_balance CHECK (held_balance >= 0),
     CONSTRAINT valid_currency CHECK (currency IN ('EGP', 'USD', 'EUR', 'SAR', 'AED')),
@@ -143,11 +154,13 @@ CREATE TABLE balance_holds (
 );
 
 -- Create indexes
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_primary_role ON users(primary_role);
+CREATE INDEX idx_users_granted_roles ON users USING GIN(granted_roles);
 CREATE INDEX idx_user_balances_active ON user_balances(is_active) WHERE is_active = TRUE;
 CREATE INDEX idx_user_balances_frozen ON user_balances(is_frozen) WHERE is_frozen = TRUE;
 CREATE INDEX idx_user_balances_currency ON user_balances(currency);
 CREATE INDEX idx_user_balances_last_transaction ON user_balances(last_transaction_at DESC);
-
 CREATE INDEX idx_balance_transactions_user_id ON balance_transactions(user_id);
 CREATE INDEX idx_balance_transactions_type ON balance_transactions(type);
 CREATE INDEX idx_balance_transactions_status ON balance_transactions(status);
@@ -157,7 +170,6 @@ CREATE INDEX idx_balance_transactions_transaction_id ON balance_transactions(tra
 CREATE INDEX idx_balance_transactions_user_type_status ON balance_transactions(user_id, type, status);
 CREATE INDEX idx_balance_transactions_user_created ON balance_transactions(user_id, created_at DESC);
 CREATE INDEX idx_balance_transactions_user_type_created ON balance_transactions(user_id, type, created_at DESC);
-
 CREATE INDEX idx_balance_holds_user_id ON balance_holds(user_id);
 CREATE INDEX idx_balance_holds_status ON balance_holds(status);
 CREATE INDEX idx_balance_holds_order_id ON balance_holds(order_id) WHERE order_id IS NOT NULL;
@@ -165,7 +177,7 @@ CREATE INDEX idx_balance_holds_expires_at ON balance_holds(expires_at) WHERE sta
 CREATE INDEX idx_balance_holds_hold_id ON balance_holds(hold_id);
 
 -- Create triggers
-CREATE OR REPLACE FUNCTION update_balance_timestamp()
+CREATE OR REPLACE FUNCTION update_timestamp()
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = CURRENT_TIMESTAMP;
@@ -173,17 +185,22 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE TRIGGER users_updated_at
+    BEFORE UPDATE ON users
+    FOR EACH ROW
+    EXECUTE FUNCTION update_timestamp();
+
 CREATE TRIGGER user_balances_updated_at
     BEFORE UPDATE ON user_balances
     FOR EACH ROW
-    EXECUTE FUNCTION update_balance_timestamp();
+    EXECUTE FUNCTION update_timestamp();
 
 CREATE TRIGGER balance_transactions_updated_at
     BEFORE UPDATE ON balance_transactions
     FOR EACH ROW
-    EXECUTE FUNCTION update_balance_timestamp();
+    EXECUTE FUNCTION update_timestamp();
 
 CREATE TRIGGER balance_holds_updated_at
     BEFORE UPDATE ON balance_holds
     FOR EACH ROW
-    EXECUTE FUNCTION update_balance_timestamp();
+    EXECUTE FUNCTION update_timestamp();

@@ -84,25 +84,7 @@ When('the customer pays using {word}', function (this: PaymentMethodWorld, payme
     this.paymentProcessed = true;
 });
 
-When('the customer pays using Stripe', function (this: PaymentMethodWorld) {
-    if (!this.orderAmount) throw new Error('Order amount not set');
 
-    this.selectedPaymentMethod = 'stripe';
-    const result = calculateCommission(this.orderAmount);
-    this.commission = result.commission;
-    this.payout = result.payout;
-    this.paymentProcessed = true;
-});
-
-When('the customer pays using PayPal', function (this: PaymentMethodWorld) {
-    if (!this.orderAmount) throw new Error('Order amount not set');
-
-    this.selectedPaymentMethod = 'paypal';
-    const result = calculateCommission(this.orderAmount);
-    this.commission = result.commission;
-    this.payout = result.payout;
-    this.paymentProcessed = true;
-});
 
 When('the customer pays using Paymob card integration', function (this: PaymentMethodWorld) {
     if (!this.orderAmount) throw new Error('Order amount not set');
@@ -124,15 +106,7 @@ When('the customer pays using Paymob wallet integration', function (this: Paymen
     this.paymentProcessed = true;
 });
 
-When('the customer pays using crypto', function (this: PaymentMethodWorld) {
-    if (!this.orderAmount) throw new Error('Order amount not set');
 
-    this.selectedPaymentMethod = 'crypto';
-    const result = calculateCommission(this.orderAmount);
-    this.commission = result.commission;
-    this.payout = result.payout;
-    this.paymentProcessed = true;
-});
 
 When('the customer selects cash on delivery', function (this: PaymentMethodWorld) {
     if (!this.orderAmount) throw new Error('Order amount not set');

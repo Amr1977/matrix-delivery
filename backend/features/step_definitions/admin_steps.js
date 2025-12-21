@@ -1,6 +1,12 @@
-const { Given, When, Then, Before, After } = require('@cucumber/cucumber');
-const request = require('supertest');
+const { Given, When, Then, Before, After, setWorldConstructor } = require('@cucumber/cucumber');
 const { expect } = require('chai');
+const request = require('supertest');
+const BDDAuthHelper = require('../support/bdd_auth_helper');
+
+// Helper to set mock data on world object
+function setMockData(key, value) {
+    this[key] = value;
+}
 const app = require('../../server');
 const pool = require('../../config/db');
 
@@ -38,13 +44,27 @@ class AdminWorld {
     }
 }
 
-const BDDAuthHelper = require('../support/bdd_auth_helper');
+// setWorldConstructor(AdminWorld); // This line is commented out or removed in the original, but AdminWorld is used.
+
 let authHelper = null;
 
 Before(async function () {
-    this.world = new AdminWorld();
+    // Initialize world object with helper methods
+    this.world = {
+        response: null,
+        adminToken: null,
+        adminUser: null,
+        mockData: {}, // Added mockData object for setMockData to operate on
+        setMockData: function (key, value) {
+            this.mockData[key] = value; // Modified to use mockData object
+        },
+        getMockData: function (key) { // Added getMockData for consistency
+            return this.mockData[key];
+        }
+    };
 
-    // Setup real admin authentication for BDD tests
+    // Setup admin authentication
+    // Use the global authHelper variable
     if (!authHelper) {
         authHelper = new BDDAuthHelper();
         try {
@@ -54,6 +74,14 @@ Before(async function () {
         } catch (error) {
             console.warn('Failed to setup admin auth, using test token:', error.message);
             // Fall back to test token if setup fails
+            this.world.adminToken = 'test-admin-token'; // Ensure a fallback token is set
+            this.world.adminUser = { // Ensure a fallback user is set
+                id: 'admin-123',
+                email: 'admin@test.com',
+                name: 'Admin User',
+                primary_role: 'admin',
+                granted_roles: []
+            };
         }
     } else {
         this.world.adminToken = authHelper.getToken();
@@ -823,9 +851,7 @@ Then('the order status should be {string}', function (status) {
     expect(this.world.response).to.exist;
 });
 
-Then('the customer should be notified', function () {
-    expect(this.world.response).to.exist;
-});
+
 
 Then('the driver should be notified if assigned', function () {
     expect(this.world.response).to.exist;

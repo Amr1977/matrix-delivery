@@ -40,12 +40,13 @@ Given('a payment request with amount {int}', function (this: ErrorWorld, amount:
     this.paymentAmount = amount;
 });
 
-Given('a payment request with amount {word}', function (this: ErrorWorld, amount: string) {
-    if (amount === 'null') {
-        this.paymentAmount = null;
-    } else if (amount === 'undefined') {
-        this.paymentAmount = undefined;
-    }
+
+Given('a payment request with amount null', function (this: ErrorWorld) {
+    this.paymentAmount = null;
+});
+
+Given('a payment request with amount undefined', function (this: ErrorWorld) {
+    this.paymentAmount = undefined;
 });
 
 Given('the minimum digital payment amount is {int} EGP', function (this: ErrorWorld, minAmount: number) {
