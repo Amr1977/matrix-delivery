@@ -1,6 +1,7 @@
 const { initDatabase, createAdminTables } = require('../../../database/startup');
 const pool = require('../../../config/db');
 const { initializeDatabase } = require('../../../database/init.ts');
+const { resetTestDatabase } = require('../../setup/resetTestDatabase');
 
 /**
  * REAL DATABASE INTEGRATION TESTS
@@ -32,20 +33,19 @@ describe('Database Startup - Real Database Integration', () => {
     };
 
     beforeAll(async () => {
-        // Initialize full database schema once for all tests
-        console.log('Initializing full database schema for integration tests...');
+        // Reset test database to ensure it matches production schema
+        console.log('Resetting test database to match production schema...');
 
         try {
-            const result = await initializeDatabase({ pool, verbose: false });
-
-            if (result.success) {
+            const success = await resetTestDatabase();
+            if (success) {
                 schemaInitialized = true;
-                console.log(`✅ Schema initialized: ${result.tablesCreated.length} tables, ${result.indexesCreated} indexes`);
+                console.log('✅ Test database reset complete');
             } else {
-                console.warn('⚠️ Schema initialization had errors:', result.errors.map(e => e.message));
+                console.warn('⚠️ Test database reset had errors');
             }
         } catch (error) {
-            console.error('❌ Failed to initialize schema:', error.message);
+            console.error('❌ Failed to reset test database:', error.message);
         }
 
         // Clean up admin tables before tests

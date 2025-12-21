@@ -32,7 +32,7 @@ describe('COD Commission Integration Tests', () => {
 
         // Create test customer
         const customerResult = await pool.query(
-            `INSERT INTO users (name, email, password, phone, primary_role, country, city, area)
+            `INSERT INTO users (name, email, password_hash, phone, primary_role, country, city, area)
              VALUES ('Test Customer', $1, 'hashed', '01111111111', 'customer', 'Egypt', 'Cairo', 'Nasr City')
              RETURNING id`,
             [`cod.customer.${timestamp}@test.com`]
@@ -41,7 +41,7 @@ describe('COD Commission Integration Tests', () => {
 
         // Create test driver
         const driverResult = await pool.query(
-            `INSERT INTO users (name, email, password, phone, primary_role, country, city, area, vehicle_type)
+            `INSERT INTO users (name, email, password_hash, phone, primary_role, country, city, area, vehicle_type)
              VALUES ('Test Driver', $1, 'hashed', '01222222222', 'driver', 'Egypt', 'Cairo', 'Nasr City', 'car')
              RETURNING id`,
             [`cod.driver.${timestamp}@test.com`]
