@@ -546,10 +546,7 @@ When('I generate a revenue report for {string}', async function (period) {
     this.world.response = await req;
 });
 
-Then('the response should contain {int} orders', function (count) {
-    expect(this.world.response.body.orders || this.world.response.body).to.be.an('array');
-    expect((this.world.response.body.orders || this.world.response.body).length).to.be.at.most(count);
-});
+
 
 Then('all orders should have status {string}', function (status) {
     const orders = this.world.response.body.orders || this.world.response.body;
