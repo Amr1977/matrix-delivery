@@ -13,10 +13,11 @@ import bcrypt from 'bcryptjs';
 describe('Cookie-Based Authentication Integration Tests', () => {
     let authCookie: string;
     let testUser: any;
+    let hashedPassword: string;
 
     beforeAll(async () => {
         // Hash password
-        const hashedPassword = await bcrypt.hash('password123', 10);
+        hashedPassword = await bcrypt.hash('password123', 10);
 
         // Create test user
         const result = await pool.query(
@@ -126,11 +127,14 @@ describe('Cookie-Based Authentication Integration Tests', () => {
         });
 
         it('should work for /api/drivers/location with cookie (driver role)', async () => {
+            // Cleanup potential leftover
+            await pool.query('DELETE FROM users WHERE id = $1', ['test-driver-auth']);
+
             // Create driver user
             await pool.query(
                 `INSERT INTO users (id, name, email, password_hash, phone, primary_role, is_verified)
          VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-                ['test-driver-auth', 'Test Driver', 'driver@auth.com', 'hashedpassword', '1234567890', 'driver', true]
+                ['test-driver-auth', 'Test Driver', 'driver@auth.com', hashedPassword, '1234567890', 'driver', true]
             );
 
             // Login as driver
@@ -158,11 +162,14 @@ describe('Cookie-Based Authentication Integration Tests', () => {
         let adminCookie: string;
 
         beforeEach(async () => {
+            // Cleanup potential leftover
+            await pool.query('DELETE FROM users WHERE id = $1', ['test-admin-auth']);
+
             // Create admin user
             await pool.query(
                 `INSERT INTO users (id, name, email, password_hash, phone, primary_role, is_verified)
          VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-                ['test-admin-auth', 'Test Admin', 'admin@auth.com', 'hashedpassword', '1234567890', 'admin', true]
+                ['test-admin-auth', 'Test Admin', 'admin@auth.com', hashedPassword, '1234567890', 'admin', true]
             );
 
             // Login as admin
