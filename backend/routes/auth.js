@@ -305,6 +305,75 @@ router.post('/logout', (req, res) => {
   res.json({ message: 'Logged out successfully' });
 });
 
+// Refresh token
+router.post('/refresh', async (req, res) => {
+  const clientIP = req.ip || req.connection.remoteAddress;
+
+  logger.auth('Token refresh attempt', {
+    ip: clientIP,
+    category: 'auth'
+  });
+
+  try {
+    // Get token from cookie or Authorization header
+    const token = req.cookies.token || req.headers.authorization?.replace('Bearer ', '');
+
+    if (!token) {
+      return res.status(401).json({ error: 'No token provided' });
+    }
+
+    // Verify the current token
+    const jwt = require('jsonwebtoken');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+
+    // Generate a new token with the same user data
+    const newToken = jwt.sign(
+      {
+        userId: decoded.userId,
+        email: decoded.email,
+        role: decoded.role
+      },
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '30d' }
+    );
+
+    const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+
+    // Set new token in cookie
+    res.cookie('token', newToken, {
+      httpOnly: true,
+      secure: IS_PRODUCTION,
+      sameSite: IS_PRODUCTION ? 'none' : 'lax',
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      path: '/'
+    });
+
+    logger.info('Token refreshed successfully', {
+      userId: decoded.userId,
+      category: 'auth'
+    });
+
+    res.json({
+      token: newToken,
+      message: 'Token refreshed successfully'
+    });
+  } catch (error) {
+    logger.error(`Token refresh error: ${error.message}`, {
+      ip: clientIP,
+      category: 'error'
+    });
+
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ error: 'Token expired' });
+    }
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+
+    res.status(500).json({ error: 'Token refresh failed' });
+  }
+});
+
 // Get current user
 router.get('/me', (req, res, next) => {
   console.log('🍪 /me endpoint - Cookies received:', req.cookies);

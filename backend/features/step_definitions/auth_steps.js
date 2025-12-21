@@ -50,7 +50,10 @@ Given('I am a new user', function () {
         email: `test${Date.now()}@example.com`,
         phone: '+1234567890',
         password: 'SecurePass123!',
-        role: 'customer'
+        primary_role: 'customer',
+        country: 'Egypt',
+        city: 'Cairo',
+        area: 'Nasr City'
     });
 });
 
@@ -170,7 +173,10 @@ When('I register with valid credentials:', async function (dataTable) {
             email: data.email,
             phone: data.phone,
             password: data.password,
-            role: data.role
+            primary_role: data.role || data.primary_role || 'customer',
+            country: data.country || 'Egypt',
+            city: data.city || 'Cairo',
+            area: data.area || 'Nasr City'
         });
 
     if (this.world.response.status === 201) {
@@ -186,7 +192,10 @@ When('I try to register with email {string}', async function (email) {
             email,
             phone: '+1234567890',
             password: 'SecurePass123!',
-            role: 'customer'
+            primary_role: 'customer',
+            country: 'Egypt',
+            city: 'Cairo',
+            area: 'Nasr City'
         });
 });
 
@@ -198,6 +207,10 @@ When('I register with invalid email {string}', async function (email) {
             email,
             phone: '+1234567890',
             password: 'SecurePass123!',
+            primary_role: 'customer',
+            country: 'Egypt',
+            city: 'Cairo',
+            area: 'Nasr City',
             role: 'customer'
         });
 });
