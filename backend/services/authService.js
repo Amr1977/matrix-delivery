@@ -105,7 +105,7 @@ class AuthService {
     const userId = generateId();
 
     const result = await pool.query(
-      `INSERT INTO users (id, name, email, password, phone, primary_role, vehicle_type, country, city, area, rating, completed_deliveries)
+      `INSERT INTO users (id, name, email, password_hash, phone, primary_role, vehicle_type, country, city, area, rating, completed_deliveries)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
        RETURNING id, name, email, phone, primary_role, vehicle_type, country, city, area`,
       [
@@ -166,7 +166,7 @@ class AuthService {
       throw new Error('Invalid email or password');
     }
 
-    const isPasswordValid = await this.verifyPassword(password, user.password);
+    const isPasswordValid = await this.verifyPassword(password, user.password_hash);
     if (!isPasswordValid) {
       throw new Error('Invalid email or password');
     }
@@ -442,7 +442,7 @@ class AuthService {
       await client.query('BEGIN');
 
       await client.query(
-        'UPDATE users SET password = $1 WHERE id = $2',
+        'UPDATE users SET password_hash = $1 WHERE id = $2',
         [hashedPassword, tokenData.user_id]
       );
 

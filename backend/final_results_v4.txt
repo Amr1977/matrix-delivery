@@ -1,0 +1,3604 @@
+
+> matrix-delivery-backend@1.0.0 test:integration
+> jest --testPathPattern=tests/integration --runInBand
+
+FAIL tests/integration/cookieAuth.test.ts (13.536 s)
+  ΓùÅ Console
+
+    console.log
+      [dotenv@17.2.3] injecting env (32) from .env.testing -- tip: ≡ƒöÉ prevent building .env in docker: https://dotenvx.com/prebuild
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+    console.log
+      [dotenv@17.2.3] injecting env (0) from .env.testing -- tip: ΓÜÖ∩╕Å  override existing env vars with { override: true }
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+    console.log
+      Γ£à Loaded .env.testing for testing
+
+      at Object.log (server.js:11:11)
+
+    console.log
+      2025-12-21 23:23:15 [info]: ≡ƒöº Environment Configuration:
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:15 [info]:    NODE_ENV: testing
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:15 [info]:    IS_TEST: true
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:15 [info]:    DB_HOST: localhost
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:15 [info]:    DB_PORT: 5432
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:15 [info]:    DB_USER: postgres
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:15 [info]:    DB_NAME: matrix_delivery_test
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:15 [info]:    DB_NAME_TEST: matrix_delivery_test
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:15 [info]: ≡ƒöî Connecting to database: matrix_delivery_test (Test Mode: true)
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:16 [info]: ≡ƒöº Environment loaded for: testing
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      Γ£à Security configuration validated
+
+      at validateSecurityConfig (middleware/security.ts:188:13)
+
+    console.log
+      [dotenv@17.2.3] injecting env (8) from .env -- tip: ΓÜÖ∩╕Å  suppress all logs with { quiet: true }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      2025-12-21 23:23:18 [http]: REQUEST: POST /api/auth/login
+      {
+        "method": "POST",
+        "url": "/api/auth/login",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:18 [info]: AUTH: Login attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:18 [info]: AUTH: User logged in successfully
+      {
+        "userId": "test-user-auth",
+        "email": "test@auth.com",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:18 [info]: PERF: Login completed
+      {
+        "userId": "test-user-auth",
+        "duration": "143ms",
+        "category": "performance"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      ≡ƒì¬ Setting cookie with options: {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'lax',
+        maxAge: 2592000000,
+        path: '/'
+      }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      ≡ƒì¬ Token length: 388
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      2025-12-21 23:23:18 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:18",
+        "ip": "/api/auth/login",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:18 [http]: RESPONSE: POST /api/auth/login 200
+      {
+        "method": "POST",
+        "url": "/api/auth/login",
+        "statusCode": 200,
+        "duration": "177ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:19 [http]: REQUEST: POST /api/auth/login
+      {
+        "method": "POST",
+        "url": "/api/auth/login",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:19 [info]: AUTH: Login attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:19 [info]: AUTH: User logged in successfully
+      {
+        "userId": "test-user-auth",
+        "email": "test@auth.com",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:19 [info]: PERF: Login completed
+      {
+        "userId": "test-user-auth",
+        "duration": "122ms",
+        "category": "performance"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      ≡ƒì¬ Setting cookie with options: {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'lax',
+        maxAge: 2592000000,
+        path: '/'
+      }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      ≡ƒì¬ Token length: 388
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      2025-12-21 23:23:19 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:19",
+        "ip": "/api/auth/login",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:19 [http]: RESPONSE: POST /api/auth/login 200
+      {
+        "method": "POST",
+        "url": "/api/auth/login",
+        "statusCode": 200,
+        "duration": "132ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:19 [http]: REQUEST: POST /api/auth/login
+      {
+        "method": "POST",
+        "url": "/api/auth/login",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:19 [info]: AUTH: Login attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:19 [info]: AUTH: User logged in successfully
+      {
+        "userId": "test-user-auth",
+        "email": "test@auth.com",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:19 [info]: PERF: Login completed
+      {
+        "userId": "test-user-auth",
+        "duration": "117ms",
+        "category": "performance"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      ≡ƒì¬ Setting cookie with options: {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'lax',
+        maxAge: 2592000000,
+        path: '/'
+      }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      ≡ƒì¬ Token length: 388
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      2025-12-21 23:23:19 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:19",
+        "ip": "/api/auth/login",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:19 [http]: RESPONSE: POST /api/auth/login 200
+      {
+        "method": "POST",
+        "url": "/api/auth/login",
+        "statusCode": 200,
+        "duration": "126ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:19 [http]: REQUEST: GET /api/auth/me
+      {
+        "method": "GET",
+        "url": "/api/auth/me",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      ≡ƒì¬ /me endpoint - Cookies received: {
+        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ0ZXN0LXVzZXItYXV0aCIsImVtYWlsIjoidGVzdEBhdXRoLmNvbSIsIm5hbWUiOiJUZXN0IFVzZXIiLCJyb2xlIjoiY3VzdG9tZXIiLCJwcmltYXJ5X3JvbGUiOiJjdXN0b21lciIsInJvbGVzIjpbXSwiZ3JhbnRlZF9yb2xlcyI6W10sImlhdCI6MTc2NjM1MjE5OSwiZXhwIjoxNzY4OTQ0MTk5LCJhdWQiOiJtYXRyaXgtZGVsaXZlcnktYXBpIiwiaXNzIjoibWF0cml4LWRlbGl2ZXJ5In0.f8LmBIs7BHvPbSMM1C2Z9J8y9tfibnKHIFWK6FTTcFU'
+      }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      ≡ƒì¬ /me endpoint - Headers: token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ0ZXN0LXVzZXItYXV0aCIsImVtYWlsIjoidGVzdEBhdXRoLmNvbSIsIm5hbWUiOiJUZXN0IFVzZXIiLCJyb2xlIjoiY3VzdG9tZXIiLCJwcmltYXJ5X3JvbGUiOiJjdXN0b21lciIsInJvbGVzIjpbXSwiZ3JhbnRlZF9yb2xlcyI6W10sImlhdCI6MTc2NjM1MjE5OSwiZXhwIjoxNzY4OTQ0MTk5LCJhdWQiOiJtYXRyaXgtZGVsaXZlcnktYXBpIiwiaXNzIjoibWF0cml4LWRlbGl2ZXJ5In0.f8LmBIs7BHvPbSMM1C2Z9J8y9tfibnKHIFWK6FTTcFU
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      2025-12-21 23:23:19 [info]: AUTH: Token verified successfully
+      {
+        "userId": "test-user-auth",
+        "role": "customer",
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:19 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:19",
+        "ip": "/api/auth/me",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:19 [http]: RESPONSE: GET /api/auth/me 200
+      {
+        "method": "GET",
+        "url": "/api/auth/me",
+        "statusCode": 200,
+        "duration": "65ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:19 [http]: REQUEST: POST /api/auth/login
+      {
+        "method": "POST",
+        "url": "/api/auth/login",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:19 [info]: AUTH: Login attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:19 [info]: AUTH: User logged in successfully
+      {
+        "userId": "test-user-auth",
+        "email": "test@auth.com",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:19 [info]: PERF: Login completed
+      {
+        "userId": "test-user-auth",
+        "duration": "121ms",
+        "category": "performance"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      ≡ƒì¬ Setting cookie with options: {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'lax',
+        maxAge: 2592000000,
+        path: '/'
+      }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      ≡ƒì¬ Token length: 388
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      2025-12-21 23:23:19 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:19",
+        "ip": "/api/auth/login",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:19 [http]: RESPONSE: POST /api/auth/login 200
+      {
+        "method": "POST",
+        "url": "/api/auth/login",
+        "statusCode": 200,
+        "duration": "127ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:19 [http]: REQUEST: GET /api/auth/me
+      {
+        "method": "GET",
+        "url": "/api/auth/me",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      ≡ƒì¬ /me endpoint - Cookies received: [Object: null prototype] {}
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      ≡ƒì¬ /me endpoint - Headers: undefined
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      2025-12-21 23:23:19 [warn]: SECURITY: Access attempt without token
+      {
+        "ip": "::ffff:127.0.0.1",
+        "path": "/me",
+        "method": "GET",
+        "category": "security"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:19 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:19",
+        "ip": "/api/auth/me",
+        "userAgent": "401",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:19 [warn]: RESPONSE: GET /api/auth/me 401
+      {
+        "method": "GET",
+        "url": "/api/auth/me",
+        "statusCode": 401,
+        "duration": "13ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:19 [http]: REQUEST: POST /api/auth/login
+      {
+        "method": "POST",
+        "url": "/api/auth/login",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:19 [info]: AUTH: Login attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:19 [info]: AUTH: User logged in successfully
+      {
+        "userId": "test-user-auth",
+        "email": "test@auth.com",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:19 [info]: PERF: Login completed
+      {
+        "userId": "test-user-auth",
+        "duration": "117ms",
+        "category": "performance"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      ≡ƒì¬ Setting cookie with options: {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'lax',
+        maxAge: 2592000000,
+        path: '/'
+      }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      ≡ƒì¬ Token length: 388
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      2025-12-21 23:23:19 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:19",
+        "ip": "/api/auth/login",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:19 [http]: RESPONSE: POST /api/auth/login 200
+      {
+        "method": "POST",
+        "url": "/api/auth/login",
+        "statusCode": 200,
+        "duration": "124ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:19 [http]: REQUEST: GET /api/auth/me
+      {
+        "method": "GET",
+        "url": "/api/auth/me",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      ≡ƒì¬ /me endpoint - Cookies received: [Object: null prototype] {}
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      ≡ƒì¬ /me endpoint - Headers: undefined
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      2025-12-21 23:23:19 [warn]: SECURITY: Invalid token provided
+      {
+        "error": "jwt malformed",
+        "ip": "::ffff:127.0.0.1",
+        "path": "/me",
+        "category": "security"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:19 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:19",
+        "ip": "/api/auth/me",
+        "userAgent": "401",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:19 [warn]: RESPONSE: GET /api/auth/me 401
+      {
+        "method": "GET",
+        "url": "/api/auth/me",
+        "statusCode": 401,
+        "duration": "12ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:19 [http]: REQUEST: POST /api/auth/login
+      {
+        "method": "POST",
+        "url": "/api/auth/login",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:19 [info]: AUTH: Login attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:19 [info]: AUTH: User logged in successfully
+      {
+        "userId": "test-user-auth",
+        "email": "test@auth.com",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:19 [info]: PERF: Login completed
+      {
+        "userId": "test-user-auth",
+        "duration": "120ms",
+        "category": "performance"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      ≡ƒì¬ Setting cookie with options: {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'lax',
+        maxAge: 2592000000,
+        path: '/'
+      }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      ≡ƒì¬ Token length: 388
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      2025-12-21 23:23:19 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:19",
+        "ip": "/api/auth/login",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:19 [http]: RESPONSE: POST /api/auth/login 200
+      {
+        "method": "POST",
+        "url": "/api/auth/login",
+        "statusCode": 200,
+        "duration": "128ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:19 [http]: REQUEST: GET /api/orders
+      {
+        "method": "GET",
+        "url": "/api/orders",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:19 [info]: AUTH: Token verified successfully
+      {
+        "userId": "test-user-auth",
+        "role": "customer",
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.error
+      Get orders error: error: operator does not exist: integer = character varying
+          at D:\matrix-delivery\backend\node_modules\pg-pool\index.js:45:11
+          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at async D:\matrix-delivery\backend\map-location-picker-backend.js:701:22 {
+        length: 213,
+        severity: 'ERROR',
+        code: '42883',
+        detail: undefined,
+        hint: 'No operator matches the given name and argument types. You might need to add explicit type casts.',
+        position: '770',
+        internalPosition: undefined,
+        internalQuery: undefined,
+        where: undefined,
+        schema: undefined,
+        table: undefined,
+        column: undefined,
+        dataType: undefined,
+        constraint: undefined,
+        file: 'parse_oper.c',
+        line: '656',
+        routine: 'op_error'
+      }
+
+      785 |       res.json(orders);
+      786 |     } catch (error) {
+    > 787 |       console.error('Get orders error:', error);
+          |               ^
+      788 |       res.status(500).json({ error: 'Failed to get orders' });
+      789 |     }
+      790 |   });
+
+      at console.error (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+      at error (map-location-picker-backend.js:787:15)
+
+    console.log
+      2025-12-21 23:23:20 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:20",
+        "ip": "/api/orders",
+        "userAgent": "500",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:20 [warn]: RESPONSE: GET /api/orders 500
+      {
+        "method": "GET",
+        "url": "/api/orders",
+        "statusCode": 500,
+        "duration": "36ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:20 [http]: REQUEST: POST /api/auth/login
+      {
+        "method": "POST",
+        "url": "/api/auth/login",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:20 [info]: AUTH: Login attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:20 [info]: AUTH: User logged in successfully
+      {
+        "userId": "test-user-auth",
+        "email": "test@auth.com",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:20 [info]: PERF: Login completed
+      {
+        "userId": "test-user-auth",
+        "duration": "237ms",
+        "category": "performance"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      ≡ƒì¬ Setting cookie with options: {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'lax',
+        maxAge: 2592000000,
+        path: '/'
+      }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      ≡ƒì¬ Token length: 388
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      2025-12-21 23:23:20 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:20",
+        "ip": "/api/auth/login",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:20 [http]: RESPONSE: POST /api/auth/login 200
+      {
+        "method": "POST",
+        "url": "/api/auth/login",
+        "statusCode": 200,
+        "duration": "248ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:20 [http]: REQUEST: GET /api/notifications
+      {
+        "method": "GET",
+        "url": "/api/notifications",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:20 [info]: AUTH: Token verified successfully
+      {
+        "userId": "test-user-auth",
+        "role": "customer",
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:20 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:20",
+        "ip": "/api/notifications",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:20 [http]: RESPONSE: GET /api/notifications 200
+      {
+        "method": "GET",
+        "url": "/api/notifications",
+        "statusCode": 200,
+        "duration": "18ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:20 [http]: REQUEST: POST /api/auth/login
+      {
+        "method": "POST",
+        "url": "/api/auth/login",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:20 [info]: AUTH: Login attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:20 [info]: AUTH: User logged in successfully
+      {
+        "userId": "test-user-auth",
+        "email": "test@auth.com",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:20 [info]: PERF: Login completed
+      {
+        "userId": "test-user-auth",
+        "duration": "117ms",
+        "category": "performance"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      ≡ƒì¬ Setting cookie with options: {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'lax',
+        maxAge: 2592000000,
+        path: '/'
+      }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      ≡ƒì¬ Token length: 388
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      2025-12-21 23:23:20 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:20",
+        "ip": "/api/auth/login",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:20 [http]: RESPONSE: POST /api/auth/login 200
+      {
+        "method": "POST",
+        "url": "/api/auth/login",
+        "statusCode": 200,
+        "duration": "124ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:20 [http]: REQUEST: POST /api/auth/login
+      {
+        "method": "POST",
+        "url": "/api/auth/login",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:20 [info]: AUTH: Login attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:20 [info]: AUTH: User logged in successfully
+      {
+        "userId": "test-user-auth",
+        "email": "test@auth.com",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:20 [info]: PERF: Login completed
+      {
+        "userId": "test-user-auth",
+        "duration": "116ms",
+        "category": "performance"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      ≡ƒì¬ Setting cookie with options: {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'lax',
+        maxAge: 2592000000,
+        path: '/'
+      }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      ≡ƒì¬ Token length: 388
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      2025-12-21 23:23:20 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:20",
+        "ip": "/api/auth/login",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:20 [http]: RESPONSE: POST /api/auth/login 200
+      {
+        "method": "POST",
+        "url": "/api/auth/login",
+        "statusCode": 200,
+        "duration": "123ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:20 [http]: REQUEST: POST /api/auth/logout
+      {
+        "method": "POST",
+        "url": "/api/auth/logout",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:20 [info]: AUTH: User logged out
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:20 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:20",
+        "ip": "/api/auth/logout",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:20 [http]: RESPONSE: POST /api/auth/logout 200
+      {
+        "method": "POST",
+        "url": "/api/auth/logout",
+        "statusCode": 200,
+        "duration": "10ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:20 [http]: REQUEST: POST /api/auth/login
+      {
+        "method": "POST",
+        "url": "/api/auth/login",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:20 [info]: AUTH: Login attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:20 [info]: AUTH: User logged in successfully
+      {
+        "userId": "test-user-auth",
+        "email": "test@auth.com",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:21 [info]: PERF: Login completed
+      {
+        "userId": "test-user-auth",
+        "duration": "116ms",
+        "category": "performance"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      ≡ƒì¬ Setting cookie with options: {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'lax',
+        maxAge: 2592000000,
+        path: '/'
+      }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      ≡ƒì¬ Token length: 388
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      2025-12-21 23:23:21 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:21",
+        "ip": "/api/auth/login",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:21 [http]: RESPONSE: POST /api/auth/login 200
+      {
+        "method": "POST",
+        "url": "/api/auth/login",
+        "statusCode": 200,
+        "duration": "122ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:21 [http]: REQUEST: POST /api/auth/logout
+      {
+        "method": "POST",
+        "url": "/api/auth/logout",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:21 [info]: AUTH: User logged out
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:21 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:21",
+        "ip": "/api/auth/logout",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:21 [http]: RESPONSE: POST /api/auth/logout 200
+      {
+        "method": "POST",
+        "url": "/api/auth/logout",
+        "statusCode": 200,
+        "duration": "8ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:21 [http]: REQUEST: GET /api/auth/me
+      {
+        "method": "GET",
+        "url": "/api/auth/me",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      ≡ƒì¬ /me endpoint - Cookies received: {
+        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ0ZXN0LXVzZXItYXV0aCIsImVtYWlsIjoidGVzdEBhdXRoLmNvbSIsIm5hbWUiOiJUZXN0IFVzZXIiLCJyb2xlIjoiY3VzdG9tZXIiLCJwcmltYXJ5X3JvbGUiOiJjdXN0b21lciIsInJvbGVzIjpbXSwiZ3JhbnRlZF9yb2xlcyI6W10sImlhdCI6MTc2NjM1MjIwMCwiZXhwIjoxNzY4OTQ0MjAwLCJhdWQiOiJtYXRyaXgtZGVsaXZlcnktYXBpIiwiaXNzIjoibWF0cml4LWRlbGl2ZXJ5In0.53OAD6PSUjxZOdlP3lqT58DdcS4B_ec8QQ0X_mOrips'
+      }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      ≡ƒì¬ /me endpoint - Headers: token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ0ZXN0LXVzZXItYXV0aCIsImVtYWlsIjoidGVzdEBhdXRoLmNvbSIsIm5hbWUiOiJUZXN0IFVzZXIiLCJyb2xlIjoiY3VzdG9tZXIiLCJwcmltYXJ5X3JvbGUiOiJjdXN0b21lciIsInJvbGVzIjpbXSwiZ3JhbnRlZF9yb2xlcyI6W10sImlhdCI6MTc2NjM1MjIwMCwiZXhwIjoxNzY4OTQ0MjAwLCJhdWQiOiJtYXRyaXgtZGVsaXZlcnktYXBpIiwiaXNzIjoibWF0cml4LWRlbGl2ZXJ5In0.53OAD6PSUjxZOdlP3lqT58DdcS4B_ec8QQ0X_mOrips
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      2025-12-21 23:23:21 [info]: AUTH: Token verified successfully
+      {
+        "userId": "test-user-auth",
+        "role": "customer",
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:21 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:21",
+        "ip": "/api/auth/me",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:21 [http]: RESPONSE: GET /api/auth/me 200
+      {
+        "method": "GET",
+        "url": "/api/auth/me",
+        "statusCode": 200,
+        "duration": "21ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:21 [http]: REQUEST: GET /api/auth/me
+      {
+        "method": "GET",
+        "url": "/api/auth/me",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      ≡ƒì¬ /me endpoint - Cookies received: [Object: null prototype] {}
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      ≡ƒì¬ /me endpoint - Headers: undefined
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      2025-12-21 23:23:21 [warn]: SECURITY: Invalid token provided
+      {
+        "error": "jwt malformed",
+        "ip": "::ffff:127.0.0.1",
+        "path": "/me",
+        "category": "security"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:21 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:21",
+        "ip": "/api/auth/me",
+        "userAgent": "401",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:21 [warn]: RESPONSE: GET /api/auth/me 401
+      {
+        "method": "GET",
+        "url": "/api/auth/me",
+        "statusCode": 401,
+        "duration": "14ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:21 [http]: REQUEST: GET /api/drivers/location
+      {
+        "method": "GET",
+        "url": "/api/drivers/location",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:21 [warn]: SECURITY: Invalid token provided
+      {
+        "error": "jwt malformed",
+        "ip": "::ffff:127.0.0.1",
+        "path": "/location",
+        "category": "security"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:21 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:21",
+        "ip": "/api/drivers/location",
+        "userAgent": "401",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:21 [warn]: RESPONSE: GET /api/drivers/location 401
+      {
+        "method": "GET",
+        "url": "/api/drivers/location",
+        "statusCode": 401,
+        "duration": "10ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+  ΓùÅ Cookie-Based Authentication Integration Tests ΓÇ║ Protected Endpoints - Cookie Authentication ΓÇ║ should work for /api/orders with cookie
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 500
+
+      93 |         });
+      94 |
+    > 95 |         it('should reject requests without cookie', async () => {
+         |                                     ^
+      96 |             const response = await request(app)
+      97 |                 .get('/api/auth/me');
+      98 |
+
+      at Object.<anonymous> (tests/integration/cookieAuth.test.ts:95:37)
+
+  ΓùÅ Cookie-Based Authentication Integration Tests ΓÇ║ Protected Endpoints - Cookie Authentication ΓÇ║ should work for /api/drivers/location with cookie (driver role)
+
+    error: column "password" of relation "users" does not exist
+
+      105 |                 .set('Authorization', 'Bearer fake-token');
+      106 |
+    > 107 |             expect(response.status).toBe(401);
+          |             ^
+      108 |         });
+      109 |
+      110 |         it('should work for /api/orders with cookie', async () => {
+
+      at node_modules/pg-pool/index.js:45:11
+      at async Object.<anonymous> (tests/integration/cookieAuth.test.ts:107:13)
+
+  ΓùÅ Cookie-Based Authentication Integration Tests ΓÇ║ Admin Endpoints - Cookie Authentication ΓÇ║ should work for /api/admin/users with cookie
+
+    error: column "password" of relation "users" does not exist
+
+      127 |
+      128 |         it('should work for /api/drivers/location with cookie (driver role)', async () => {
+    > 129 |             // Create driver user
+          |             ^
+      130 |             await pool.query(
+      131 |                 `INSERT INTO users (id, name, email, password, phone, primary_role, is_verified)
+      132 |          VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+
+      at node_modules/pg-pool/index.js:45:11
+      at async Object.<anonymous> (tests/integration/cookieAuth.test.ts:129:13)
+
+  ΓùÅ Cookie-Based Authentication Integration Tests ΓÇ║ Admin Endpoints - Cookie Authentication ΓÇ║ should work for /api/admin/dashboard with cookie
+
+    error: column "password" of relation "users" does not exist
+
+      127 |
+      128 |         it('should work for /api/drivers/location with cookie (driver role)', async () => {
+    > 129 |             // Create driver user
+          |             ^
+      130 |             await pool.query(
+      131 |                 `INSERT INTO users (id, name, email, password, phone, primary_role, is_verified)
+      132 |          VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+
+      at node_modules/pg-pool/index.js:45:11
+      at async Object.<anonymous> (tests/integration/cookieAuth.test.ts:129:13)
+
+  ΓùÅ Cookie-Based Authentication Integration Tests ΓÇ║ Logout Flow ΓÇ║ should clear cookie on logout
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected substring: "Max-Age=0"
+    Received string:    "token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax"
+
+      172 |                     email: 'admin@auth.com',
+      173 |                     password: 'password123'
+    > 174 |                 });
+          |                              ^
+      175 |
+      176 |             adminCookie = adminLogin.headers['set-cookie']![0].split(';')[0];
+      177 |         });
+
+      at Object.<anonymous> (tests/integration/cookieAuth.test.ts:174:36)
+
+  ΓùÅ Cookie-Based Authentication Integration Tests ΓÇ║ Logout Flow ΓÇ║ should reject requests after logout
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 401
+    Received: 200
+
+      191 |         it('should work for /api/admin/dashboard with cookie', async () => {
+      192 |             const response = await request(app)
+    > 193 |                 .get('/api/admin/dashboard')
+          |                                     ^
+      194 |                 .set('Cookie', adminCookie);
+      195 |
+      196 |             expect(response.status).not.toBe(401);
+
+      at Object.<anonymous> (tests/integration/cookieAuth.test.ts:193:37)
+
+FAIL tests/integration/codCommission.test.ts
+  ΓùÅ Console
+
+    console.log
+      [dotenv@17.2.3] injecting env (32) from .env.testing -- tip: ≡ƒöÉ prevent building .env in docker: https://dotenvx.com/prebuild
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+  ΓùÅ COD Commission Integration Tests ΓÇ║ Basic COD Flow ΓÇ║ should complete full COD order with commission deduction
+
+    error: INSERT has more target columns than expressions
+
+      32 |
+      33 |         // Create test customer
+    > 34 |         const customerResult = await pool.query(
+         |                                ^
+      35 |             `INSERT INTO users (id, name, email, password_hash, phone, primary_role, country, city, area)
+      36 |              VALUES ($1, $2, 'hashed', '01111111111', 'customer', 'Egypt', 'Cairo', 'Nasr City')
+      37 |              RETURNING id`,
+
+      at node_modules/pg-pool/index.js:45:11
+      at Object.<anonymous> (tests/integration/codCommission.test.ts:34:32)
+
+  ΓùÅ COD Commission Integration Tests ΓÇ║ Basic COD Flow ΓÇ║ should handle COD order with driver having positive balance
+
+    error: INSERT has more target columns than expressions
+
+      32 |
+      33 |         // Create test customer
+    > 34 |         const customerResult = await pool.query(
+         |                                ^
+      35 |             `INSERT INTO users (id, name, email, password_hash, phone, primary_role, country, city, area)
+      36 |              VALUES ($1, $2, 'hashed', '01111111111', 'customer', 'Egypt', 'Cairo', 'Nasr City')
+      37 |              RETURNING id`,
+
+      at node_modules/pg-pool/index.js:45:11
+      at Object.<anonymous> (tests/integration/codCommission.test.ts:34:32)
+
+  ΓùÅ COD Commission Integration Tests ΓÇ║ Debt Creation ΓÇ║ should create debt when commission exceeds balance
+
+    error: INSERT has more target columns than expressions
+
+      32 |
+      33 |         // Create test customer
+    > 34 |         const customerResult = await pool.query(
+         |                                ^
+      35 |             `INSERT INTO users (id, name, email, password_hash, phone, primary_role, country, city, area)
+      36 |              VALUES ($1, $2, 'hashed', '01111111111', 'customer', 'Egypt', 'Cairo', 'Nasr City')
+      37 |              RETURNING id`,
+
+      at node_modules/pg-pool/index.js:45:11
+      at Object.<anonymous> (tests/integration/codCommission.test.ts:34:32)
+
+  ΓùÅ COD Commission Integration Tests ΓÇ║ Debt Creation ΓÇ║ should accumulate debt from multiple orders
+
+    error: INSERT has more target columns than expressions
+
+      32 |
+      33 |         // Create test customer
+    > 34 |         const customerResult = await pool.query(
+         |                                ^
+      35 |             `INSERT INTO users (id, name, email, password_hash, phone, primary_role, country, city, area)
+      36 |              VALUES ($1, $2, 'hashed', '01111111111', 'customer', 'Egypt', 'Cairo', 'Nasr City')
+      37 |              RETURNING id`,
+
+      at node_modules/pg-pool/index.js:45:11
+      at Object.<anonymous> (tests/integration/codCommission.test.ts:34:32)
+
+  ΓùÅ COD Commission Integration Tests ΓÇ║ Debt Creation ΓÇ║ should allow debt up to threshold (-200 EGP)
+
+    error: INSERT has more target columns than expressions
+
+      32 |
+      33 |         // Create test customer
+    > 34 |         const customerResult = await pool.query(
+         |                                ^
+      35 |             `INSERT INTO users (id, name, email, password_hash, phone, primary_role, country, city, area)
+      36 |              VALUES ($1, $2, 'hashed', '01111111111', 'customer', 'Egypt', 'Cairo', 'Nasr City')
+      37 |              RETURNING id`,
+
+      at node_modules/pg-pool/index.js:45:11
+      at Object.<anonymous> (tests/integration/codCommission.test.ts:34:32)
+
+  ΓùÅ COD Commission Integration Tests ΓÇ║ Order Blocking ΓÇ║ should block driver at exact debt threshold (-200 EGP)
+
+    error: INSERT has more target columns than expressions
+
+      32 |
+      33 |         // Create test customer
+    > 34 |         const customerResult = await pool.query(
+         |                                ^
+      35 |             `INSERT INTO users (id, name, email, password_hash, phone, primary_role, country, city, area)
+      36 |              VALUES ($1, $2, 'hashed', '01111111111', 'customer', 'Egypt', 'Cairo', 'Nasr City')
+      37 |              RETURNING id`,
+
+      at node_modules/pg-pool/index.js:45:11
+      at Object.<anonymous> (tests/integration/codCommission.test.ts:34:32)
+
+  ΓùÅ COD Commission Integration Tests ΓÇ║ Order Blocking ΓÇ║ should block driver with excessive debt
+
+    error: INSERT has more target columns than expressions
+
+      32 |
+      33 |         // Create test customer
+    > 34 |         const customerResult = await pool.query(
+         |                                ^
+      35 |             `INSERT INTO users (id, name, email, password_hash, phone, primary_role, country, city, area)
+      36 |              VALUES ($1, $2, 'hashed', '01111111111', 'customer', 'Egypt', 'Cairo', 'Nasr City')
+      37 |              RETURNING id`,
+
+      at node_modules/pg-pool/index.js:45:11
+      at Object.<anonymous> (tests/integration/codCommission.test.ts:34:32)
+
+  ΓùÅ COD Commission Integration Tests ΓÇ║ Order Blocking ΓÇ║ should provide clear error message when driver is blocked
+
+    error: INSERT has more target columns than expressions
+
+      32 |
+      33 |         // Create test customer
+    > 34 |         const customerResult = await pool.query(
+         |                                ^
+      35 |             `INSERT INTO users (id, name, email, password_hash, phone, primary_role, country, city, area)
+      36 |              VALUES ($1, $2, 'hashed', '01111111111', 'customer', 'Egypt', 'Cairo', 'Nasr City')
+      37 |              RETURNING id`,
+
+      at node_modules/pg-pool/index.js:45:11
+      at Object.<anonymous> (tests/integration/codCommission.test.ts:34:32)
+
+  ΓùÅ COD Commission Integration Tests ΓÇ║ Debt Recovery ΓÇ║ should allow orders after driver clears debt
+
+    error: INSERT has more target columns than expressions
+
+      32 |
+      33 |         // Create test customer
+    > 34 |         const customerResult = await pool.query(
+         |                                ^
+      35 |             `INSERT INTO users (id, name, email, password_hash, phone, primary_role, country, city, area)
+      36 |              VALUES ($1, $2, 'hashed', '01111111111', 'customer', 'Egypt', 'Cairo', 'Nasr City')
+      37 |              RETURNING id`,
+
+      at node_modules/pg-pool/index.js:45:11
+      at Object.<anonymous> (tests/integration/codCommission.test.ts:34:32)
+
+  ΓùÅ COD Commission Integration Tests ΓÇ║ Debt Recovery ΓÇ║ should allow partial debt recovery
+
+    error: INSERT has more target columns than expressions
+
+      32 |
+      33 |         // Create test customer
+    > 34 |         const customerResult = await pool.query(
+         |                                ^
+      35 |             `INSERT INTO users (id, name, email, password_hash, phone, primary_role, country, city, area)
+      36 |              VALUES ($1, $2, 'hashed', '01111111111', 'customer', 'Egypt', 'Cairo', 'Nasr City')
+      37 |              RETURNING id`,
+
+      at node_modules/pg-pool/index.js:45:11
+      at Object.<anonymous> (tests/integration/codCommission.test.ts:34:32)
+
+  ΓùÅ COD Commission Integration Tests ΓÇ║ Edge Cases ΓÇ║ should handle very small commission amounts
+
+    error: INSERT has more target columns than expressions
+
+      32 |
+      33 |         // Create test customer
+    > 34 |         const customerResult = await pool.query(
+         |                                ^
+      35 |             `INSERT INTO users (id, name, email, password_hash, phone, primary_role, country, city, area)
+      36 |              VALUES ($1, $2, 'hashed', '01111111111', 'customer', 'Egypt', 'Cairo', 'Nasr City')
+      37 |              RETURNING id`,
+
+      at node_modules/pg-pool/index.js:45:11
+      at Object.<anonymous> (tests/integration/codCommission.test.ts:34:32)
+
+  ΓùÅ COD Commission Integration Tests ΓÇ║ Edge Cases ΓÇ║ should handle large commission amounts
+
+    error: INSERT has more target columns than expressions
+
+      32 |
+      33 |         // Create test customer
+    > 34 |         const customerResult = await pool.query(
+         |                                ^
+      35 |             `INSERT INTO users (id, name, email, password_hash, phone, primary_role, country, city, area)
+      36 |              VALUES ($1, $2, 'hashed', '01111111111', 'customer', 'Egypt', 'Cairo', 'Nasr City')
+      37 |              RETURNING id`,
+
+      at node_modules/pg-pool/index.js:45:11
+      at Object.<anonymous> (tests/integration/codCommission.test.ts:34:32)
+
+  ΓùÅ COD Commission Integration Tests ΓÇ║ Edge Cases ΓÇ║ should maintain transaction history correctly
+
+    error: INSERT has more target columns than expressions
+
+      32 |
+      33 |         // Create test customer
+    > 34 |         const customerResult = await pool.query(
+         |                                ^
+      35 |             `INSERT INTO users (id, name, email, password_hash, phone, primary_role, country, city, area)
+      36 |              VALUES ($1, $2, 'hashed', '01111111111', 'customer', 'Egypt', 'Cairo', 'Nasr City')
+      37 |              RETURNING id`,
+
+      at node_modules/pg-pool/index.js:45:11
+      at Object.<anonymous> (tests/integration/codCommission.test.ts:34:32)
+
+  ΓùÅ COD Commission Integration Tests ΓÇ║ Realistic Scenarios ΓÇ║ should handle typical driver day: 10 orders with mixed balance
+
+    error: INSERT has more target columns than expressions
+
+      32 |
+      33 |         // Create test customer
+    > 34 |         const customerResult = await pool.query(
+         |                                ^
+      35 |             `INSERT INTO users (id, name, email, password_hash, phone, primary_role, country, city, area)
+      36 |              VALUES ($1, $2, 'hashed', '01111111111', 'customer', 'Egypt', 'Cairo', 'Nasr City')
+      37 |              RETURNING id`,
+
+      at node_modules/pg-pool/index.js:45:11
+      at Object.<anonymous> (tests/integration/codCommission.test.ts:34:32)
+
+  ΓùÅ COD Commission Integration Tests ΓÇ║ Realistic Scenarios ΓÇ║ should handle driver reaching threshold and recovering
+
+    error: INSERT has more target columns than expressions
+
+      32 |
+      33 |         // Create test customer
+    > 34 |         const customerResult = await pool.query(
+         |                                ^
+      35 |             `INSERT INTO users (id, name, email, password_hash, phone, primary_role, country, city, area)
+      36 |              VALUES ($1, $2, 'hashed', '01111111111', 'customer', 'Egypt', 'Cairo', 'Nasr City')
+      37 |              RETURNING id`,
+
+      at node_modules/pg-pool/index.js:45:11
+      at Object.<anonymous> (tests/integration/codCommission.test.ts:34:32)
+
+PASS tests/integration/database/startup.integration.test.js
+  ΓùÅ Console
+
+    console.log
+      [dotenv@17.2.3] injecting env (32) from .env.testing -- tip: ≡ƒöä add secrets lifecycle management: https://dotenvx.com/ops
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+    console.log
+      2025-12-21 23:23:22 [info]: ≡ƒöº Environment Configuration:
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:22 [info]:    NODE_ENV: testing
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:22 [info]:    IS_TEST: true
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:22 [info]:    DB_HOST: localhost
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:22 [info]:    DB_PORT: 5432
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:22 [info]:    DB_USER: postgres
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:22 [info]:    DB_NAME: matrix_delivery_test
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:22 [info]:    DB_NAME_TEST: matrix_delivery_test
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:22 [info]: ≡ƒöî Connecting to database: matrix_delivery_test (Test Mode: true)
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      Resetting test database to match production schema...
+
+      at Object.log (tests/integration/database/startup.integration.test.js:37:17)
+
+    console.log
+      ≡ƒöä Resetting test database...
+
+      at log (tests/setup/resetTestDatabase.js:16:13)
+
+    console.log
+        Executing test schema SQL...
+
+      at log (tests/setup/resetTestDatabase.js:23:17)
+
+    console.log
+      Γ£à Test database reset complete!
+
+      at log (tests/setup/resetTestDatabase.js:26:17)
+
+    console.log
+      Γ£à Test database reset complete
+
+      at Object.log (tests/integration/database/startup.integration.test.js:43:25)
+
+    console.log
+      2025-12-21 23:23:23 [info]: Γ£à Admin tables created successfully
+      {
+        "category": "database"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:23 [info]: Γ£à Admin tables created successfully
+      {
+        "category": "database"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:23 [info]: Γ£à Admin tables created successfully
+      {
+        "category": "database"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:23 [info]: Γ£à Admin tables created successfully
+      {
+        "category": "database"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:23 [info]: Γ£à Admin tables created successfully
+      {
+        "category": "database"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:23 [info]: Γ£à Admin tables created successfully
+      {
+        "category": "database"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:23 [info]: Γ£à Admin tables created successfully
+      {
+        "category": "database"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:24 [info]: Γ£à Admin tables created successfully
+      {
+        "category": "database"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:24 [info]: Γ£à Admin tables created successfully
+      {
+        "category": "database"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:24 [info]: Γ£à Admin tables created successfully
+      {
+        "category": "database"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:24 [info]: Γ£à Admin tables created successfully
+      {
+        "category": "database"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:24 [info]: Γ£à Admin tables created successfully
+      {
+        "category": "database"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+PASS tests/integration/admin/users.test.js
+  ΓùÅ Console
+
+    console.log
+      [dotenv@17.2.3] injecting env (32) from .env.testing -- tip: ≡ƒôí add observability to secrets: https://dotenvx.com/ops
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+    console.log
+      2025-12-21 23:23:26 [info]: ≡ƒöº Environment Configuration:
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:26 [info]:    NODE_ENV: testing
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:26 [info]:    IS_TEST: true
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:26 [info]:    DB_HOST: localhost
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:26 [info]:    DB_PORT: 5432
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:26 [info]:    DB_USER: postgres
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:26 [info]:    DB_NAME: matrix_delivery_test
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:26 [info]:    DB_NAME_TEST: matrix_delivery_test
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:26 [info]: ≡ƒöî Connecting to database: matrix_delivery_test (Test Mode: true)
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      [dotenv@17.2.3] injecting env (0) from .env.testing -- tip: ≡ƒôí add observability to secrets: https://dotenvx.com/ops
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+    console.log
+      Γ£à Loaded .env.testing for testing
+
+      at Object.log (server.js:11:11)
+
+    console.log
+      2025-12-21 23:23:27 [info]: ≡ƒöº Environment loaded for: testing
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      Γ£à Security configuration validated
+
+      at validateSecurityConfig (middleware/security.ts:188:13)
+
+    console.log
+      [dotenv@17.2.3] injecting env (8) from .env -- tip: ≡ƒùé∩╕Å backup and recover secrets: https://dotenvx.com/ops
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      2025-12-21 23:23:27 [http]: REQUEST: GET /api/admin/users?page=1&limit=20
+      {
+        "method": "GET",
+        "url": "/api/admin/users?page=1&limit=20",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:27 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:27",
+        "ip": "/api/admin/users?page=1&limit=20",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:27 [http]: RESPONSE: GET /api/admin/users?page=1&limit=20 200
+      {
+        "method": "GET",
+        "url": "/api/admin/users?page=1&limit=20",
+        "statusCode": 200,
+        "duration": "9ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:27 [http]: REQUEST: GET /api/admin/users?search=John
+      {
+        "method": "GET",
+        "url": "/api/admin/users?search=John",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:27 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:27",
+        "ip": "/api/admin/users?search=John",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:27 [http]: RESPONSE: GET /api/admin/users?search=John 200
+      {
+        "method": "GET",
+        "url": "/api/admin/users?search=John",
+        "statusCode": 200,
+        "duration": "7ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:27 [http]: REQUEST: GET /api/admin/users?role=driver
+      {
+        "method": "GET",
+        "url": "/api/admin/users?role=driver",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:27 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:27",
+        "ip": "/api/admin/users?role=driver",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:27 [http]: RESPONSE: GET /api/admin/users?role=driver 200
+      {
+        "method": "GET",
+        "url": "/api/admin/users?role=driver",
+        "statusCode": 200,
+        "duration": "7ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:27 [http]: REQUEST: POST /api/admin/users/user-123/verify
+      {
+        "method": "POST",
+        "url": "/api/admin/users/user-123/verify",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      Γ£à Admin Admin User verified user: test@example.com
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      2025-12-21 23:23:27 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:27",
+        "ip": "/api/admin/users/user-123/verify",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:27 [http]: RESPONSE: POST /api/admin/users/user-123/verify 200
+      {
+        "method": "POST",
+        "url": "/api/admin/users/user-123/verify",
+        "statusCode": 200,
+        "duration": "16ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:27 [http]: REQUEST: POST /api/admin/users/user-456/suspend
+      {
+        "method": "POST",
+        "url": "/api/admin/users/user-456/suspend",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      ΓÜá∩╕Å Admin Admin User suspended user: bad@example.com
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      2025-12-21 23:23:27 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:27",
+        "ip": "/api/admin/users/user-456/suspend",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:27 [http]: RESPONSE: POST /api/admin/users/user-456/suspend 200
+      {
+        "method": "POST",
+        "url": "/api/admin/users/user-456/suspend",
+        "statusCode": 200,
+        "duration": "9ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:27 [http]: REQUEST: DELETE /api/admin/users/user-789
+      {
+        "method": "DELETE",
+        "url": "/api/admin/users/user-789",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      ≡ƒùæ∩╕Å Admin Admin User deleted user: inactive@example.com
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      2025-12-21 23:23:27 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:27",
+        "ip": "/api/admin/users/user-789",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:27 [http]: RESPONSE: DELETE /api/admin/users/user-789 200
+      {
+        "method": "DELETE",
+        "url": "/api/admin/users/user-789",
+        "statusCode": 200,
+        "duration": "7ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:27 [http]: REQUEST: DELETE /api/admin/users/user-999
+      {
+        "method": "DELETE",
+        "url": "/api/admin/users/user-999",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:27 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:27",
+        "ip": "/api/admin/users/user-999",
+        "userAgent": "400",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:27 [warn]: RESPONSE: DELETE /api/admin/users/user-999 400
+      {
+        "method": "DELETE",
+        "url": "/api/admin/users/user-999",
+        "statusCode": 400,
+        "duration": "6ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+PASS tests/integration/admin/stats.test.js
+  ΓùÅ Console
+
+    console.log
+      [dotenv@17.2.3] injecting env (32) from .env.testing -- tip: ≡ƒ¢á∩╕Å  run anywhere with `dotenvx run -- yourcommand`
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+    console.log
+      2025-12-21 23:23:28 [info]: ≡ƒöº Environment Configuration:
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:28 [info]:    NODE_ENV: testing
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:28 [info]:    IS_TEST: true
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:28 [info]:    DB_HOST: localhost
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:28 [info]:    DB_PORT: 5432
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:28 [info]:    DB_USER: postgres
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:28 [info]:    DB_NAME: matrix_delivery_test
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:28 [info]:    DB_NAME_TEST: matrix_delivery_test
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:28 [info]: ≡ƒöî Connecting to database: matrix_delivery_test (Test Mode: true)
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      [dotenv@17.2.3] injecting env (0) from .env.testing -- tip: Γ£à audit secrets and track compliance: https://dotenvx.com/ops
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+    console.log
+      Γ£à Loaded .env.testing for testing
+
+      at Object.log (server.js:11:11)
+
+    console.log
+      2025-12-21 23:23:29 [info]: ≡ƒöº Environment loaded for: testing
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      Γ£à Security configuration validated
+
+      at validateSecurityConfig (middleware/security.ts:188:13)
+
+    console.log
+      [dotenv@17.2.3] injecting env (8) from .env -- tip: ΓÜÖ∩╕Å  enable debug logging with { debug: true }
+
+      at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+
+    console.log
+      2025-12-21 23:23:29 [http]: REQUEST: GET /api/admin/stats
+      {
+        "method": "GET",
+        "url": "/api/admin/stats",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:29 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:29",
+        "ip": "/api/admin/stats",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:29 [http]: RESPONSE: GET /api/admin/stats 200
+      {
+        "method": "GET",
+        "url": "/api/admin/stats",
+        "statusCode": 200,
+        "duration": "14ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:29 [http]: REQUEST: GET /api/admin/stats?range=30d
+      {
+        "method": "GET",
+        "url": "/api/admin/stats?range=30d",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:29 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:29",
+        "ip": "/api/admin/stats?range=30d",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:29 [http]: RESPONSE: GET /api/admin/stats?range=30d 200
+      {
+        "method": "GET",
+        "url": "/api/admin/stats?range=30d",
+        "statusCode": 200,
+        "duration": "11ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:29 [http]: REQUEST: GET /api/admin/stats
+      {
+        "method": "GET",
+        "url": "/api/admin/stats",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:29 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:29",
+        "ip": "/api/admin/stats",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:29 [http]: RESPONSE: GET /api/admin/stats 200
+      {
+        "method": "GET",
+        "url": "/api/admin/stats",
+        "statusCode": 200,
+        "duration": "12ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:29 [http]: REQUEST: GET /api/admin/stats
+      {
+        "method": "GET",
+        "url": "/api/admin/stats",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:29 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:29",
+        "ip": "/api/admin/stats",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:29 [http]: RESPONSE: GET /api/admin/stats 200
+      {
+        "method": "GET",
+        "url": "/api/admin/stats",
+        "statusCode": 200,
+        "duration": "7ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:30 [http]: REQUEST: GET /api/admin/stats
+      {
+        "method": "GET",
+        "url": "/api/admin/stats",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.error
+      Get admin stats error: Error: Database connection failed
+          at Object.<anonymous> (D:\matrix-delivery\backend\tests\integration\admin\stats.test.js:278:39)
+          at Promise.then.completed (D:\matrix-delivery\backend\node_modules\jest-circus\build\utils.js:298:28)
+          at new Promise (<anonymous>)
+          at callAsyncCircusFn (D:\matrix-delivery\backend\node_modules\jest-circus\build\utils.js:231:10)
+          at _callCircusTest (D:\matrix-delivery\backend\node_modules\jest-circus\build\run.js:316:40)
+          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at async _runTest (D:\matrix-delivery\backend\node_modules\jest-circus\build\run.js:252:3)
+          at async _runTestsForDescribeBlock (D:\matrix-delivery\backend\node_modules\jest-circus\build\run.js:126:9)
+          at async _runTestsForDescribeBlock (D:\matrix-delivery\backend\node_modules\jest-circus\build\run.js:121:9)
+          at async _runTestsForDescribeBlock (D:\matrix-delivery\backend\node_modules\jest-circus\build\run.js:121:9)
+          at async run (D:\matrix-delivery\backend\node_modules\jest-circus\build\run.js:71:3)
+          at async runAndTransformResultsToJestFormat (D:\matrix-delivery\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+          at async jestAdapter (D:\matrix-delivery\backend\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+          at async runTestInternal (D:\matrix-delivery\backend\node_modules\jest-runner\build\runTest.js:367:16)
+          at async runTest (D:\matrix-delivery\backend\node_modules\jest-runner\build\runTest.js:444:34)
+
+      190 |     await logAdminAction(req.admin.id, 'VIEW_STATS', 'dashboard', null, { range, ip: req.ip });
+      191 |   } catch (error) {
+    > 192 |     console.error('Get admin stats error:', error);
+          |             ^
+      193 |     res.status(500).json({ error: 'Failed to get statistics' });
+      194 |   }
+      195 | });
+
+      at console.error (node_modules/@sentry/core/src/instrument/console.ts:39:14)
+      at error (routes/admin.js:192:13)
+
+    console.log
+      2025-12-21 23:23:30 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:30",
+        "ip": "/api/admin/stats",
+        "userAgent": "500",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:30 [warn]: RESPONSE: GET /api/admin/stats 500
+      {
+        "method": "GET",
+        "url": "/api/admin/stats",
+        "statusCode": 500,
+        "duration": "11ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:30 [http]: REQUEST: GET /api/admin/stats?range=7d
+      {
+        "method": "GET",
+        "url": "/api/admin/stats?range=7d",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:30 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:30",
+        "ip": "/api/admin/stats?range=7d",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:30 [http]: RESPONSE: GET /api/admin/stats?range=7d 200
+      {
+        "method": "GET",
+        "url": "/api/admin/stats?range=7d",
+        "statusCode": 200,
+        "duration": "7ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:30 [http]: REQUEST: GET /api/admin/stats?range=24h
+      {
+        "method": "GET",
+        "url": "/api/admin/stats?range=24h",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:30 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:30",
+        "ip": "/api/admin/stats?range=24h",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:30 [http]: RESPONSE: GET /api/admin/stats?range=24h 200
+      {
+        "method": "GET",
+        "url": "/api/admin/stats?range=24h",
+        "statusCode": 200,
+        "duration": "7ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:30 [http]: REQUEST: GET /api/admin/stats?range=7d
+      {
+        "method": "GET",
+        "url": "/api/admin/stats?range=7d",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:30 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:30",
+        "ip": "/api/admin/stats?range=7d",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:30 [http]: RESPONSE: GET /api/admin/stats?range=7d 200
+      {
+        "method": "GET",
+        "url": "/api/admin/stats?range=7d",
+        "statusCode": 200,
+        "duration": "6ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:30 [http]: REQUEST: GET /api/admin/stats?range=30d
+      {
+        "method": "GET",
+        "url": "/api/admin/stats?range=30d",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:30 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:30",
+        "ip": "/api/admin/stats?range=30d",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:30 [http]: RESPONSE: GET /api/admin/stats?range=30d 200
+      {
+        "method": "GET",
+        "url": "/api/admin/stats?range=30d",
+        "statusCode": 200,
+        "duration": "6ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:30 [http]: REQUEST: GET /api/admin/stats?range=90d
+      {
+        "method": "GET",
+        "url": "/api/admin/stats?range=90d",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:30 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:30",
+        "ip": "/api/admin/stats?range=90d",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:30 [http]: RESPONSE: GET /api/admin/stats?range=90d 200
+      {
+        "method": "GET",
+        "url": "/api/admin/stats?range=90d",
+        "statusCode": 200,
+        "duration": "7ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:30 [http]: REQUEST: GET /api/admin/stats
+      {
+        "method": "GET",
+        "url": "/api/admin/stats",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:30 [http]: HTTP_REQUEST
+      {
+        "method": "::ffff:127.0.0.1",
+        "url": "-",
+        "status": null,
+        "responseTime": "[21/Dec/2025:21:23:30",
+        "ip": "/api/admin/stats",
+        "userAgent": "200",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:30 [http]: RESPONSE: GET /api/admin/stats 200
+      {
+        "method": "GET",
+        "url": "/api/admin/stats",
+        "statusCode": 200,
+        "duration": "7ms",
+        "ip": "::ffff:127.0.0.1",
+        "category": "http"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+PASS tests/integration/auth/register.test.js
+  ΓùÅ Console
+
+    console.log
+      [dotenv@17.2.3] injecting env (32) from .env.testing -- tip: ΓÜÖ∩╕Å  suppress all logs with { quiet: true }
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+    console.log
+      2025-12-21 23:23:30 [info]: ≡ƒöº Environment Configuration:
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:30 [info]:    NODE_ENV: testing
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:30 [info]:    IS_TEST: true
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:30 [info]:    DB_HOST: localhost
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:30 [info]:    DB_PORT: 5432
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:30 [info]:    DB_USER: postgres
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:30 [info]:    DB_NAME: matrix_delivery_test
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:30 [info]:    DB_NAME_TEST: matrix_delivery_test
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:30 [info]: ≡ƒöî Connecting to database: matrix_delivery_test (Test Mode: true)
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      [dotenv@17.2.3] injecting env (8) from .env -- tip: ≡ƒöä add secrets lifecycle management: https://dotenvx.com/ops
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+    console.log
+      2025-12-21 23:23:31 [info]: AUTH: Registration attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:31 [info]: AUTH: User registered successfully
+      {
+        "userId": "user-123",
+        "email": "john@example.com",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:31 [warn]: Failed to send verification email to new user: Cannot read properties of undefined (reading 'rows')
+      {
+        "userId": "user-123",
+        "email": "john@example.com",
+        "category": "auth"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:31 [info]: PERF: Registration completed
+      {
+        "userId": "user-123",
+        "duration": "11ms",
+        "category": "performance"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:31 [error]: Failed to notify admins about new user registration: Cannot read properties of undefined (reading 'rows')
+      {
+        "userId": "user-123",
+        "userName": "John Doe",
+        "error": "TypeError: Cannot read properties of undefined (reading 'rows')\n    at rows (D:\\matrix-delivery\\backend\\routes\\auth.js:61:21)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)",
+        "category": "notification"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:31 [info]: AUTH: Registration attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:31 [info]: AUTH: User registered successfully
+      {
+        "userId": "driver-123",
+        "email": "jane@example.com",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:31 [warn]: Failed to send verification email to new user: Cannot read properties of undefined (reading 'rows')
+      {
+        "userId": "driver-123",
+        "email": "jane@example.com",
+        "category": "auth"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:31 [info]: PERF: Registration completed
+      {
+        "userId": "driver-123",
+        "duration": "5ms",
+        "category": "performance"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:31 [error]: Failed to notify admins about new user registration: Cannot read properties of undefined (reading 'rows')
+      {
+        "userId": "driver-123",
+        "userName": "Jane Driver",
+        "error": "TypeError: Cannot read properties of undefined (reading 'rows')\n    at rows (D:\\matrix-delivery\\backend\\routes\\auth.js:61:21)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)",
+        "category": "notification"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:31 [info]: AUTH: Registration attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:31 [info]: AUTH: Registration attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:31 [error]: Registration error: Invalid email format
+      {
+        "stack": "Error: Invalid email format\n    at AuthService.registerUser (D:\\matrix-delivery\\backend\\services\\authService.js:189:13)\n    at registerUser (D:\\matrix-delivery\\backend\\routes\\auth.js:139:38)\n    at Layer.handle [as handle_request] (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at next (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\route.js:149:13)\n    at next (D:\\matrix-delivery\\backend\\tests\\integration\\auth\\register.test.js:11:40)\n    at Layer.handle [as handle_request] (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at next (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\route.js:149:13)\n    at Route.dispatch (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\route.js:119:3)\n    at Layer.handle [as handle_request] (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\index.js:284:15\n    at Function.process_params (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\index.js:346:12)\n    at next (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\index.js:280:10)\n    at Function.handle (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\index.js:175:3)\n    at router (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\index.js:47:12)\n    at Layer.handle [as handle_request] (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at trim_prefix (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\index.js:328:13)\n    at D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\index.js:286:9\n    at Function.process_params (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\index.js:346:12)\n    at next (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\index.js:280:10)\n    at D:\\matrix-delivery\\backend\\node_modules\\body-parser\\lib\\read.js:137:5\n    at AsyncResource.runInAsyncScope (node:async_hooks:214:14)\n    at invokeCallback (D:\\matrix-delivery\\backend\\node_modules\\raw-body\\index.js:238:16)\n    at done (D:\\matrix-delivery\\backend\\node_modules\\raw-body\\index.js:227:7)\n    at IncomingMessage.onEnd (D:\\matrix-delivery\\backend\\node_modules\\raw-body\\index.js:287:7)\n    at D:\\matrix-delivery\\backend\\node_modules\\@opentelemetry\\context-async-hooks\\src\\AbstractAsyncHooksContextManager.ts:75:49\n    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)\n    at SentryContextManager.with (D:\\matrix-delivery\\backend\\node_modules\\@opentelemetry\\context-async-hooks\\src\\AsyncLocalStorageContextManager.ts:40:36)\n    at SentryContextManager.with (D:\\matrix-delivery\\backend\\node_modules\\@sentry\\opentelemetry\\src\\contextManager.ts:70:24)\n    at IncomingMessage.contextWrapper (D:\\matrix-delivery\\backend\\node_modules\\@opentelemetry\\context-async-hooks\\src\\AbstractAsyncHooksContextManager.ts:75:26)\n    at D:\\matrix-delivery\\backend\\node_modules\\@opentelemetry\\context-async-hooks\\src\\AbstractAsyncHooksContextManager.ts:75:49\n    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)\n    at SentryContextManager.with (D:\\matrix-delivery\\backend\\node_modules\\@opentelemetry\\context-async-hooks\\src\\AsyncLocalStorageContextManager.ts:40:36)\n    at SentryContextManager.with (D:\\matrix-delivery\\backend\\node_modules\\@sentry\\opentelemetry\\src\\contextManager.ts:70:24)\n    at IncomingMessage.contextWrapper (D:\\matrix-delivery\\backend\\node_modules\\@opentelemetry\\context-async-hooks\\src\\AbstractAsyncHooksContextManager.ts:75:26)\n    at D:\\matrix-delivery\\backend\\node_modules\\@opentelemetry\\context-async-hooks\\src\\AbstractAsyncHooksContextManager.ts:75:49\n    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)\n    at SentryContextManager.with (D:\\matrix-delivery\\backend\\node_modules\\@opentelemetry\\context-async-hooks\\src\\AsyncLocalStorageContextManager.ts:40:36)\n    at SentryContextManager.with (D:\\matrix-delivery\\backend\\node_modules\\@sentry\\opentelemetry\\src\\contextManager.ts:70:24)\n    at IncomingMessage.contextWrapper (D:\\matrix-delivery\\backend\\node_modules\\@opentelemetry\\context-async-hooks\\src\\AbstractAsyncHooksContextManager.ts:75:26)\n    at IncomingMessage.emit (node:events:531:35)\n    at IncomingMessage.emit (node:domain:489:12)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at processTicksAndRejections (node:internal/process/task_queues:90:21)",
+        "ip": "::ffff:127.0.0.1",
+        "duration": "4ms",
+        "category": "error"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:31 [info]: AUTH: Registration attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:31 [error]: Registration error: Password must be at least 8 characters
+      {
+        "stack": "Error: Password must be at least 8 characters\n    at AuthService.registerUser (D:\\matrix-delivery\\backend\\services\\authService.js:193:13)\n    at registerUser (D:\\matrix-delivery\\backend\\routes\\auth.js:139:38)\n    at Layer.handle [as handle_request] (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at next (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\route.js:149:13)\n    at next (D:\\matrix-delivery\\backend\\tests\\integration\\auth\\register.test.js:11:40)\n    at Layer.handle [as handle_request] (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at next (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\route.js:149:13)\n    at Route.dispatch (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\route.js:119:3)\n    at Layer.handle [as handle_request] (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\index.js:284:15\n    at Function.process_params (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\index.js:346:12)\n    at next (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\index.js:280:10)\n    at Function.handle (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\index.js:175:3)\n    at router (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\index.js:47:12)\n    at Layer.handle [as handle_request] (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at trim_prefix (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\index.js:328:13)\n    at D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\index.js:286:9\n    at Function.process_params (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\index.js:346:12)\n    at next (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\index.js:280:10)\n    at D:\\matrix-delivery\\backend\\node_modules\\body-parser\\lib\\read.js:137:5\n    at AsyncResource.runInAsyncScope (node:async_hooks:214:14)\n    at invokeCallback (D:\\matrix-delivery\\backend\\node_modules\\raw-body\\index.js:238:16)\n    at done (D:\\matrix-delivery\\backend\\node_modules\\raw-body\\index.js:227:7)\n    at IncomingMessage.onEnd (D:\\matrix-delivery\\backend\\node_modules\\raw-body\\index.js:287:7)\n    at D:\\matrix-delivery\\backend\\node_modules\\@opentelemetry\\context-async-hooks\\src\\AbstractAsyncHooksContextManager.ts:75:49\n    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)\n    at SentryContextManager.with (D:\\matrix-delivery\\backend\\node_modules\\@opentelemetry\\context-async-hooks\\src\\AsyncLocalStorageContextManager.ts:40:36)\n    at SentryContextManager.with (D:\\matrix-delivery\\backend\\node_modules\\@sentry\\opentelemetry\\src\\contextManager.ts:70:24)\n    at IncomingMessage.contextWrapper (D:\\matrix-delivery\\backend\\node_modules\\@opentelemetry\\context-async-hooks\\src\\AbstractAsyncHooksContextManager.ts:75:26)\n    at D:\\matrix-delivery\\backend\\node_modules\\@opentelemetry\\context-async-hooks\\src\\AbstractAsyncHooksContextManager.ts:75:49\n    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)\n    at SentryContextManager.with (D:\\matrix-delivery\\backend\\node_modules\\@opentelemetry\\context-async-hooks\\src\\AsyncLocalStorageContextManager.ts:40:36)\n    at SentryContextManager.with (D:\\matrix-delivery\\backend\\node_modules\\@sentry\\opentelemetry\\src\\contextManager.ts:70:24)\n    at IncomingMessage.contextWrapper (D:\\matrix-delivery\\backend\\node_modules\\@opentelemetry\\context-async-hooks\\src\\AbstractAsyncHooksContextManager.ts:75:26)\n    at D:\\matrix-delivery\\backend\\node_modules\\@opentelemetry\\context-async-hooks\\src\\AbstractAsyncHooksContextManager.ts:75:49\n    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)\n    at SentryContextManager.with (D:\\matrix-delivery\\backend\\node_modules\\@opentelemetry\\context-async-hooks\\src\\AsyncLocalStorageContextManager.ts:40:36)\n    at SentryContextManager.with (D:\\matrix-delivery\\backend\\node_modules\\@sentry\\opentelemetry\\src\\contextManager.ts:70:24)\n    at IncomingMessage.contextWrapper (D:\\matrix-delivery\\backend\\node_modules\\@opentelemetry\\context-async-hooks\\src\\AbstractAsyncHooksContextManager.ts:75:26)\n    at IncomingMessage.emit (node:events:531:35)\n    at IncomingMessage.emit (node:domain:489:12)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at processTicksAndRejections (node:internal/process/task_queues:90:21)",
+        "ip": "::ffff:127.0.0.1",
+        "duration": "2ms",
+        "category": "error"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:31 [info]: AUTH: Registration attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:31 [error]: Registration error: Invalid role
+      {
+        "stack": "Error: Invalid role\n    at AuthService.registerUser (D:\\matrix-delivery\\backend\\services\\authService.js:197:13)\n    at registerUser (D:\\matrix-delivery\\backend\\routes\\auth.js:139:38)\n    at Layer.handle [as handle_request] (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at next (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\route.js:149:13)\n    at next (D:\\matrix-delivery\\backend\\tests\\integration\\auth\\register.test.js:11:40)\n    at Layer.handle [as handle_request] (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at next (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\route.js:149:13)\n    at Route.dispatch (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\route.js:119:3)\n    at Layer.handle [as handle_request] (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\index.js:284:15\n    at Function.process_params (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\index.js:346:12)\n    at next (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\index.js:280:10)\n    at Function.handle (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\index.js:175:3)\n    at router (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\index.js:47:12)\n    at Layer.handle [as handle_request] (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at trim_prefix (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\index.js:328:13)\n    at D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\index.js:286:9\n    at Function.process_params (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\index.js:346:12)\n    at next (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\index.js:280:10)\n    at D:\\matrix-delivery\\backend\\node_modules\\body-parser\\lib\\read.js:137:5\n    at AsyncResource.runInAsyncScope (node:async_hooks:214:14)\n    at invokeCallback (D:\\matrix-delivery\\backend\\node_modules\\raw-body\\index.js:238:16)\n    at done (D:\\matrix-delivery\\backend\\node_modules\\raw-body\\index.js:227:7)\n    at IncomingMessage.onEnd (D:\\matrix-delivery\\backend\\node_modules\\raw-body\\index.js:287:7)\n    at D:\\matrix-delivery\\backend\\node_modules\\@opentelemetry\\context-async-hooks\\src\\AbstractAsyncHooksContextManager.ts:75:49\n    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)\n    at SentryContextManager.with (D:\\matrix-delivery\\backend\\node_modules\\@opentelemetry\\context-async-hooks\\src\\AsyncLocalStorageContextManager.ts:40:36)\n    at SentryContextManager.with (D:\\matrix-delivery\\backend\\node_modules\\@sentry\\opentelemetry\\src\\contextManager.ts:70:24)\n    at IncomingMessage.contextWrapper (D:\\matrix-delivery\\backend\\node_modules\\@opentelemetry\\context-async-hooks\\src\\AbstractAsyncHooksContextManager.ts:75:26)\n    at D:\\matrix-delivery\\backend\\node_modules\\@opentelemetry\\context-async-hooks\\src\\AbstractAsyncHooksContextManager.ts:75:49\n    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)\n    at SentryContextManager.with (D:\\matrix-delivery\\backend\\node_modules\\@opentelemetry\\context-async-hooks\\src\\AsyncLocalStorageContextManager.ts:40:36)\n    at SentryContextManager.with (D:\\matrix-delivery\\backend\\node_modules\\@sentry\\opentelemetry\\src\\contextManager.ts:70:24)\n    at IncomingMessage.contextWrapper (D:\\matrix-delivery\\backend\\node_modules\\@opentelemetry\\context-async-hooks\\src\\AbstractAsyncHooksContextManager.ts:75:26)\n    at D:\\matrix-delivery\\backend\\node_modules\\@opentelemetry\\context-async-hooks\\src\\AbstractAsyncHooksContextManager.ts:75:49\n    at AsyncLocalStorage.run (node:internal/async_local_storage/async_hooks:91:14)\n    at SentryContextManager.with (D:\\matrix-delivery\\backend\\node_modules\\@opentelemetry\\context-async-hooks\\src\\AsyncLocalStorageContextManager.ts:40:36)\n    at SentryContextManager.with (D:\\matrix-delivery\\backend\\node_modules\\@sentry\\opentelemetry\\src\\contextManager.ts:70:24)\n    at IncomingMessage.contextWrapper (D:\\matrix-delivery\\backend\\node_modules\\@opentelemetry\\context-async-hooks\\src\\AbstractAsyncHooksContextManager.ts:75:26)\n    at IncomingMessage.emit (node:events:531:35)\n    at IncomingMessage.emit (node:domain:489:12)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at processTicksAndRejections (node:internal/process/task_queues:90:21)",
+        "ip": "::ffff:127.0.0.1",
+        "duration": "2ms",
+        "category": "error"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:31 [info]: AUTH: Registration attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:31 [info]: AUTH: Registration attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:31 [error]: Registration error: Email already registered
+      {
+        "stack": "Error: Email already registered\n    at AuthService.registerUser (D:\\matrix-delivery\\backend\\services\\authService.js:207:13)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at D:\\matrix-delivery\\backend\\routes\\auth.js:139:20",
+        "ip": "::ffff:127.0.0.1",
+        "duration": "2ms",
+        "category": "error"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:31 [info]: AUTH: Registration attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:31 [info]: AUTH: User registered successfully
+      {
+        "userId": "user-123",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:31 [warn]: Failed to send verification email to new user: Cannot read properties of undefined (reading 'rows')
+      {
+        "userId": "user-123",
+        "email": "john@example.com",
+        "category": "auth"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:31 [info]: PERF: Registration completed
+      {
+        "userId": "user-123",
+        "duration": "5ms",
+        "category": "performance"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:31 [error]: Failed to notify admins about new user registration: Cannot read properties of undefined (reading 'rows')
+      {
+        "userId": "user-123",
+        "error": "TypeError: Cannot read properties of undefined (reading 'rows')\n    at rows (D:\\matrix-delivery\\backend\\routes\\auth.js:61:21)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)",
+        "category": "notification"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:31 [info]: AUTH: Registration attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:31 [info]: AUTH: User registered successfully
+      {
+        "userId": "user-123",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:31 [warn]: Failed to send verification email to new user: Cannot read properties of undefined (reading 'rows')
+      {
+        "userId": "user-123",
+        "email": "john@example.com",
+        "category": "auth"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:31 [info]: PERF: Registration completed
+      {
+        "userId": "user-123",
+        "duration": "5ms",
+        "category": "performance"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:31 [error]: Failed to notify admins about new user registration: Cannot read properties of undefined (reading 'rows')
+      {
+        "userId": "user-123",
+        "error": "TypeError: Cannot read properties of undefined (reading 'rows')\n    at rows (D:\\matrix-delivery\\backend\\routes\\auth.js:61:21)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)",
+        "category": "notification"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:31 [info]: AUTH: Registration attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:31 [info]: AUTH: User registered successfully
+      {
+        "userId": "user-123",
+        "email": "john@example.com",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:31 [warn]: Failed to send verification email to new user: Cannot read properties of undefined (reading 'rows')
+      {
+        "userId": "user-123",
+        "email": "john@example.com",
+        "category": "auth"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:31 [info]: PERF: Registration completed
+      {
+        "userId": "user-123",
+        "duration": "12ms",
+        "category": "performance"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:31 [error]: Failed to notify admins about new user registration: Cannot read properties of undefined (reading 'rows')
+      {
+        "userId": "user-123",
+        "userName": "John Doe",
+        "error": "TypeError: Cannot read properties of undefined (reading 'rows')\n    at rows (D:\\matrix-delivery\\backend\\routes\\auth.js:61:21)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)",
+        "category": "notification"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:31 [info]: AUTH: Registration attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:31 [error]: Registration error: Database connection failed
+      {
+        "stack": "Error: Database connection failed\n    at Object.<anonymous> (D:\\matrix-delivery\\backend\\tests\\integration\\auth\\register.test.js:395:46)\n    at Promise.then.completed (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\utils.js:231:10)\n    at _callCircusTest (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\run.js:316:40)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at _runTest (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\run.js:252:3)\n    at _runTestsForDescribeBlock (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\run.js:126:9)\n    at _runTestsForDescribeBlock (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\run.js:121:9)\n    at _runTestsForDescribeBlock (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\run.js:121:9)\n    at run (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\run.js:71:3)\n    at runAndTransformResultsToJestFormat (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\legacy-code-todo-rewrite\\jestAdapterInit.js:122:21)\n    at jestAdapter (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\legacy-code-todo-rewrite\\jestAdapter.js:79:19)\n    at runTestInternal (D:\\matrix-delivery\\backend\\node_modules\\jest-runner\\build\\runTest.js:367:16)\n    at runTest (D:\\matrix-delivery\\backend\\node_modules\\jest-runner\\build\\runTest.js:444:34)",
+        "ip": "::ffff:127.0.0.1",
+        "duration": "6ms",
+        "category": "error"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+PASS tests/integration/health/health.test.js
+  ΓùÅ Console
+
+    console.log
+      [dotenv@17.2.3] injecting env (32) from .env.testing -- tip: Γ£à audit secrets and track compliance: https://dotenvx.com/ops
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+PASS tests/integration/auth/login.test.js
+  ΓùÅ Console
+
+    console.log
+      [dotenv@17.2.3] injecting env (32) from .env.testing -- tip: ΓÜÖ∩╕Å  specify custom .env file path with { path: '/custom/path/.env' }
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+    console.log
+      2025-12-21 23:23:33 [info]: ≡ƒöº Environment Configuration:
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:33 [info]:    NODE_ENV: testing
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:33 [info]:    IS_TEST: true
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:33 [info]:    DB_HOST: localhost
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:33 [info]:    DB_PORT: 5432
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:33 [info]:    DB_USER: postgres
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:33 [info]:    DB_NAME: matrix_delivery_test
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:33 [info]:    DB_NAME_TEST: matrix_delivery_test
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:33 [info]: ≡ƒöî Connecting to database: matrix_delivery_test (Test Mode: true)
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      [dotenv@17.2.3] injecting env (8) from .env -- tip: ≡ƒôí add observability to secrets: https://dotenvx.com/ops
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+    console.log
+      2025-12-21 23:23:33 [info]: AUTH: Login attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:33 [info]: AUTH: User logged in successfully
+      {
+        "userId": "user-123",
+        "email": "john@example.com",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:33 [info]: PERF: Login completed
+      {
+        "userId": "user-123",
+        "duration": "6ms",
+        "category": "performance"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      ≡ƒì¬ Setting cookie with options: {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'lax',
+        maxAge: 2592000000,
+        path: '/'
+      }
+
+      at log (routes/auth.js:258:13)
+
+    console.log
+      ≡ƒì¬ Token length: 14
+
+      at log (routes/auth.js:259:13)
+
+    console.log
+      2025-12-21 23:23:33 [info]: AUTH: Login attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:33 [info]: AUTH: User logged in successfully
+      {
+        "userId": "user-123",
+        "email": "john@example.com",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:33 [info]: PERF: Login completed
+      {
+        "userId": "user-123",
+        "duration": "6ms",
+        "category": "performance"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      ≡ƒì¬ Setting cookie with options: {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'lax',
+        maxAge: 2592000000,
+        path: '/'
+      }
+
+      at log (routes/auth.js:258:13)
+
+    console.log
+      ≡ƒì¬ Token length: 14
+
+      at log (routes/auth.js:259:13)
+
+    console.log
+      2025-12-21 23:23:33 [info]: AUTH: Login attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:33 [error]: Login error: Invalid email or password
+      {
+        "stack": "Error: Invalid email or password\n    at AuthService.authenticateUser (D:\\matrix-delivery\\backend\\services\\authService.js:166:13)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at AuthService.loginUser (D:\\matrix-delivery\\backend\\services\\authService.js:228:18)\n    at D:\\matrix-delivery\\backend\\routes\\auth.js:237:20",
+        "ip": "::ffff:127.0.0.1",
+        "duration": "3ms",
+        "category": "error"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:33 [info]: AUTH: Login attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:33 [error]: Login error: Invalid email or password
+      {
+        "stack": "Error: Invalid email or password\n    at AuthService.authenticateUser (D:\\matrix-delivery\\backend\\services\\authService.js:171:13)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at AuthService.loginUser (D:\\matrix-delivery\\backend\\services\\authService.js:228:18)\n    at D:\\matrix-delivery\\backend\\routes\\auth.js:237:20",
+        "ip": "::ffff:127.0.0.1",
+        "duration": "2ms",
+        "category": "error"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:33 [info]: AUTH: Login attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:33 [info]: AUTH: Login attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:33 [info]: AUTH: Login attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:33 [error]: Login error: Invalid email or password
+      {
+        "stack": "Error: Invalid email or password\n    at AuthService.authenticateUser (D:\\matrix-delivery\\backend\\services\\authService.js:166:13)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at AuthService.loginUser (D:\\matrix-delivery\\backend\\services\\authService.js:228:18)\n    at D:\\matrix-delivery\\backend\\routes\\auth.js:237:20",
+        "ip": "::ffff:127.0.0.1",
+        "duration": "3ms",
+        "category": "error"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:33 [info]: AUTH: Login attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:33 [info]: AUTH: User logged in successfully
+      {
+        "userId": "user-123",
+        "email": "john@example.com",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:33 [info]: PERF: Login completed
+      {
+        "userId": "user-123",
+        "duration": "4ms",
+        "category": "performance"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      ≡ƒì¬ Setting cookie with options: {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'lax',
+        maxAge: 2592000000,
+        path: '/'
+      }
+
+      at log (routes/auth.js:258:13)
+
+    console.log
+      ≡ƒì¬ Token length: 14
+
+      at log (routes/auth.js:259:13)
+
+    console.log
+      2025-12-21 23:23:33 [info]: AUTH: Login attempt
+      {
+        "ip": "::ffff:127.0.0.1",
+        "category": "authentication"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+    console.log
+      2025-12-21 23:23:33 [error]: Login error: Database connection failed
+      {
+        "stack": "Error: Database connection failed\n    at Object.<anonymous> (D:\\matrix-delivery\\backend\\tests\\integration\\auth\\login.test.js:260:46)\n    at Promise.then.completed (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\utils.js:231:10)\n    at _callCircusTest (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\run.js:316:40)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at _runTest (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\run.js:252:3)\n    at _runTestsForDescribeBlock (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\run.js:126:9)\n    at _runTestsForDescribeBlock (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\run.js:121:9)\n    at _runTestsForDescribeBlock (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\run.js:121:9)\n    at run (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\run.js:71:3)\n    at runAndTransformResultsToJestFormat (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\legacy-code-todo-rewrite\\jestAdapterInit.js:122:21)\n    at jestAdapter (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\legacy-code-todo-rewrite\\jestAdapter.js:79:19)\n    at runTestInternal (D:\\matrix-delivery\\backend\\node_modules\\jest-runner\\build\\runTest.js:367:16)\n    at runTest (D:\\matrix-delivery\\backend\\node_modules\\jest-runner\\build\\runTest.js:444:34)",
+        "ip": "::ffff:127.0.0.1",
+        "duration": "3ms",
+        "category": "error"
+      }
+
+      at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+
+
+Test Suites: 2 failed, 6 passed, 8 total
+Tests:       21 failed, 68 passed, 89 total
+Snapshots:   0 total
+Time:        26.987 s, estimated 27 s
+Ran all test suites matching /tests\\integration/i.
+Jest did not exit one second after the test run has completed.
+
+'This usually means that there are asynchronous operations that weren't stopped in your tests. Consider running Jest with `--detectOpenHandles` to troubleshoot this issue.

@@ -1,0 +1,109 @@
+
+  > matrix-delivery-backend@1.0.0 test:integration
+  > jest --testPathPattern=tests/integration --runInBand
+  
+> FAIL tests/integration/cookieAuth.test.ts (12.395 s)
+    ΓùÅ Console
+  
+        at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+  
+      console.error
+>       Get admin stats error: Error: Database connection failed
+            at Object.<anonymous> (D:\matrix-delivery\backend\tests\integration\admin\stats.test.js:278:39)
+            at Promise.then.completed (D:\matrix-delivery\backend\node_modules\jest-circus\build\utils.js:298:28)
+        191 |   } catch (error) {
+      > 192 |     console.error('Get admin stats error:', error);
+            |             ^
+>       193 |     res.status(500).json({ error: 'Failed to get statistics' });
+        194 |   }
+        195 | });
+  
+        at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+  
+> FAIL tests/integration/codCommission.test.ts
+    ΓùÅ Console
+  
+        at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+  
+      console.log
+>       2025-12-21 22:54:02 [warn]: Failed to send verification email to new user: Cannot read properties of undefined (reading 'rows')
+        {
+          "userId": "user-123",
+        at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+  
+      console.log
+>       2025-12-21 22:54:02 [error]: Failed to notify admins about new user registration: Cannot read properties of undefined (reading 'rows')
+        {
+          "userId": "user-123",
+        at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+  
+      console.log
+>       2025-12-21 22:54:02 [warn]: Failed to send verification email to new user: Cannot read properties of undefined (reading 'rows')
+        {
+          "userId": "driver-123",
+        at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+  
+      console.log
+>       2025-12-21 22:54:02 [error]: Failed to notify admins about new user registration: Cannot read properties of undefined (reading 'rows')
+        {
+          "userId": "driver-123",
+        at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+  
+      console.log
+>       2025-12-21 22:54:03 [warn]: Failed to send verification email to new user: Cannot read properties of undefined (reading 'rows')
+        {
+          "userId": "user-123",
+        at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+  
+      console.log
+>       2025-12-21 22:54:03 [error]: Failed to notify admins about new user registration: Cannot read properties of undefined (reading 'rows')
+        {
+          "userId": "user-123",
+        at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+  
+      console.log
+>       2025-12-21 22:54:03 [warn]: Failed to send verification email to new user: Cannot read properties of undefined (reading 'rows')
+        {
+          "userId": "user-123",
+        at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+  
+      console.log
+>       2025-12-21 22:54:03 [error]: Failed to notify admins about new user registration: Cannot read properties of undefined (reading 'rows')
+        {
+          "userId": "user-123",
+        at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+  
+      console.log
+>       2025-12-21 22:54:03 [warn]: Failed to send verification email to new user: Cannot read properties of undefined (reading 'rows')
+        {
+          "userId": "user-123",
+        at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+  
+      console.log
+>       2025-12-21 22:54:03 [error]: Failed to notify admins about new user registration: Cannot read properties of undefined (reading 'rows')
+        {
+          "userId": "user-123",
+        at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+  
+      console.log
+>       2025-12-21 22:54:03 [error]: Registration error: Database connection failed
+        {
+>         "stack": "Error: Database connection failed\n    at Object.<anonymous> (D:\\matrix-delivery\\backend\\tests\\integration\\auth\\register.test.js:395:46)\n    at Promise.then.completed (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\utils.js:231:10)\n    at _callCircusTest (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\run.js:316:40)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at _runTest (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\run.js:252:3)\n    at _runTestsForDescribeBlock (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\run.js:126:9)\n    at _runTestsForDescribeBlock (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\run.js:121:9)\n    at _runTestsForDescribeBlock (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\run.js:121:9)\n    at run (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\run.js:71:3)\n    at runAndTransformResultsToJestFormat (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\legacy-code-todo-rewrite\\jestAdapterInit.js:122:21)\n    at jestAdapter (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\legacy-code-todo-rewrite\\jestAdapter.js:79:19)\n    at runTestInternal (D:\\matrix-delivery\\backend\\node_modules\\jest-runner\\build\\runTest.js:367:16)\n    at runTest (D:\\matrix-delivery\\backend\\node_modules\\jest-runner\\build\\runTest.js:444:34)",
+          "ip": "::ffff:127.0.0.1",
+          "duration": "6ms",
+        at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+  
+      console.log
+>       2025-12-21 22:54:05 [error]: Login error: Database connection failed
+        {
+>         "stack": "Error: Database connection failed\n    at Object.<anonymous> (D:\\matrix-delivery\\backend\\tests\\integration\\auth\\login.test.js:260:46)\n    at Promise.then.completed (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\utils.js:231:10)\n    at _callCircusTest (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\run.js:316:40)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at _runTest (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\run.js:252:3)\n    at _runTestsForDescribeBlock (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\run.js:126:9)\n    at _runTestsForDescribeBlock (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\run.js:121:9)\n    at _runTestsForDescribeBlock (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\run.js:121:9)\n    at run (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\run.js:71:3)\n    at runAndTransformResultsToJestFormat (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\legacy-code-todo-rewrite\\jestAdapterInit.js:122:21)\n    at jestAdapter (D:\\matrix-delivery\\backend\\node_modules\\jest-circus\\build\\legacy-code-todo-rewrite\\jestAdapter.js:79:19)\n    at runTestInternal (D:\\matrix-delivery\\backend\\node_modules\\jest-runner\\build\\runTest.js:367:16)\n    at runTest (D:\\matrix-delivery\\backend\\node_modules\\jest-runner\\build\\runTest.js:444:34)",
+          "ip": "::ffff:127.0.0.1",
+          "duration": "2ms",
+        at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
+  
+  
+> Test Suites: 2 failed, 6 passed, 8 total
+> Tests:       27 failed, 62 passed, 89 total
+  Snapshots:   0 total
+  Time:        24.634 s
+

@@ -6,6 +6,9 @@ DROP TABLE IF EXISTS balance_holds CASCADE;
 DROP TABLE IF EXISTS balance_transactions CASCADE;
 DROP TABLE IF EXISTS user_balances CASCADE;
 DROP TABLE IF EXISTS wallet_payments CASCADE;
+DROP TABLE IF EXISTS notifications CASCADE;
+DROP TABLE IF EXISTS reviews CASCADE;
+DROP TABLE IF EXISTS bids CASCADE;
 DROP TABLE IF EXISTS orders CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 
@@ -26,6 +29,7 @@ CREATE TABLE users (
     vehicle_type VARCHAR(50),
     gender VARCHAR(10) DEFAULT 'male',
     rating DECIMAL(3, 2) DEFAULT 0.00,
+    completed_deliveries INTEGER DEFAULT 0,
     total_ratings INTEGER DEFAULT 0,
     language VARCHAR(10) DEFAULT 'en',
     theme VARCHAR(20) DEFAULT 'light',
@@ -37,19 +41,82 @@ CREATE TABLE users (
 
 -- Create orders table
 CREATE TABLE orders (
-    id SERIAL PRIMARY KEY,
+    id VARCHAR(255) PRIMARY KEY,
     customer_id VARCHAR(255) REFERENCES users(id),
     driver_id VARCHAR(255) REFERENCES users(id),
     total_amount DECIMAL(10, 2),
     status VARCHAR(50),
+    title VARCHAR(255),
+    description TEXT,
+    pickup_address TEXT,
+    delivery_address TEXT,
+    from_lat DECIMAL(10, 8),
+    from_lng DECIMAL(10, 8),
+    to_lat DECIMAL(10, 8),
+    to_lng DECIMAL(10, 8),
+    from_coordinates VARCHAR(100),
+    to_coordinates VARCHAR(100),
+    pickup_coordinates JSONB,
+    delivery_coordinates JSONB,
+    package_description TEXT,
+    package_weight DECIMAL(10, 2),
+    estimated_value DECIMAL(10, 2),
+    special_instructions TEXT,
+    price DECIMAL(10, 2),
+    order_number VARCHAR(50),
+    assigned_driver_user_id VARCHAR(255) REFERENCES users(id),
+    assigned_driver_name VARCHAR(255),
+    assigned_driver_bid_price DECIMAL(10, 2),
+    accepted_at TIMESTAMP,
+    picked_up_at TIMESTAMP,
+    delivered_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create bids table
+CREATE TABLE bids (
+    id SERIAL PRIMARY KEY,
+    order_id VARCHAR(255) REFERENCES orders(id) ON DELETE CASCADE,
+    user_id VARCHAR(255) REFERENCES users(id) ON DELETE CASCADE,
+    driver_name VARCHAR(255),
+    bid_price DECIMAL(10, 2),
+    estimated_pickup_time TIMESTAMP,
+    estimated_delivery_time TIMESTAMP,
+    message TEXT,
+    driver_location_lat DECIMAL(10, 8),
+    driver_location_lng DECIMAL(10, 8),
+    status VARCHAR(20) DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create reviews table
+CREATE TABLE reviews (
+    id SERIAL PRIMARY KEY,
+    order_id VARCHAR(255) REFERENCES orders(id) ON DELETE CASCADE,
+    reviewer_id VARCHAR(255) REFERENCES users(id),
+    reviewee_id VARCHAR(255) REFERENCES users(id),
+    rating INTEGER CHECK (rating >= 1 AND rating <= 5),
+    comment TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create notifications table
+CREATE TABLE notifications (
+    id SERIAL PRIMARY KEY,
+    user_id VARCHAR(255) REFERENCES users(id) ON DELETE CASCADE,
+    order_id VARCHAR(255) REFERENCES orders(id) ON DELETE CASCADE,
+    type VARCHAR(50) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Create wallet_payments table
 CREATE TABLE wallet_payments (
     id SERIAL PRIMARY KEY,
-    order_id INTEGER REFERENCES orders(id),
+    order_id VARCHAR(255) REFERENCES orders(id),
     amount DECIMAL(10, 2),
     status VARCHAR(20),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -101,7 +168,7 @@ CREATE TABLE balance_transactions (
     balance_before DECIMAL(12, 2) NOT NULL,
     balance_after DECIMAL(12, 2) NOT NULL,
     status VARCHAR(20) DEFAULT 'pending' NOT NULL,
-    order_id INTEGER REFERENCES orders(id),
+    order_id VARCHAR(255) REFERENCES orders(id),
     wallet_payment_id INTEGER REFERENCES wallet_payments(id),
     withdrawal_request_id INTEGER,
     related_transaction_id BIGINT REFERENCES balance_transactions(id),
@@ -134,7 +201,7 @@ CREATE TABLE balance_holds (
     amount DECIMAL(12, 2) NOT NULL,
     currency VARCHAR(3) DEFAULT 'EGP' NOT NULL,
     reason VARCHAR(100) NOT NULL,
-    order_id INTEGER REFERENCES orders(id),
+    order_id VARCHAR(255) REFERENCES orders(id),
     dispute_id INTEGER,
     transaction_id BIGINT REFERENCES balance_transactions(id),
     status VARCHAR(20) DEFAULT 'active' NOT NULL,

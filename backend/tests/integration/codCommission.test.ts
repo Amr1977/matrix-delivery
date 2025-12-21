@@ -14,8 +14,8 @@ import { PAYMENT_CONFIG } from '../../config/paymentConfig';
 describe('COD Commission Integration Tests', () => {
     let pool: Pool;
     let balanceService: BalanceService;
-    let testCustomerId: number;
-    let testDriverId: number;
+    let testCustomerId: string;
+    let testDriverId: string;
 
     beforeAll(async () => {
         pool = new Pool({
@@ -32,19 +32,19 @@ describe('COD Commission Integration Tests', () => {
 
         // Create test customer
         const customerResult = await pool.query(
-            `INSERT INTO users (name, email, password_hash, phone, primary_role, country, city, area)
-             VALUES ('Test Customer', $1, 'hashed', '01111111111', 'customer', 'Egypt', 'Cairo', 'Nasr City')
+            `INSERT INTO users (id, name, email, password_hash, phone, primary_role, country, city, area)
+             VALUES ($1, 'Test Customer', $2, 'hashed_password', '01111111111', 'customer', 'Egypt', 'Cairo', 'Nasr City')
              RETURNING id`,
-            [`cod.customer.${timestamp}@test.com`]
+            [`customer-${timestamp}`, `cod.customer.${timestamp}@test.com`]
         );
         testCustomerId = customerResult.rows[0].id;
 
         // Create test driver
         const driverResult = await pool.query(
-            `INSERT INTO users (name, email, password_hash, phone, primary_role, country, city, area, vehicle_type)
-             VALUES ('Test Driver', $1, 'hashed', '01222222222', 'driver', 'Egypt', 'Cairo', 'Nasr City', 'car')
+            `INSERT INTO users (id, name, email, password_hash, phone, primary_role, country, city, area, vehicle_type)
+             VALUES ($1, 'Test Driver', $2, 'hashed_password', '01222222222', 'driver', 'Egypt', 'Cairo', 'Nasr City', 'car')
              RETURNING id`,
-            [`cod.driver.${timestamp}@test.com`]
+            [`driver-${timestamp}`, `cod.driver.${timestamp}@test.com`]
         );
         testDriverId = driverResult.rows[0].id;
 
@@ -97,17 +97,19 @@ describe('COD Commission Integration Tests', () => {
     describe('Basic COD Flow', () => {
         it('should complete full COD order with commission deduction', async () => {
             // 1. Create order
+            const orderId = `order-${Date.now()}-${Math.random()}`;
             const orderResult = await pool.query(
                 `INSERT INTO orders (
+                    id,
                     customer_id, 
                     driver_id, 
                     total_amount,
                     status
-                ) VALUES ($1, $2, 100, 'delivered')
+                ) VALUES ($1, $2, $3, 100, 'delivered')
                 RETURNING id`,
-                [testCustomerId, testDriverId]
+                [orderId, testCustomerId, testDriverId]
             );
-            const orderId = orderResult.rows[0].id;
+            // const orderId = orderResult.rows[0].id; // Already defined above
 
             // 2. Calculate commission (15%)
             const totalAmount = 100;
@@ -170,15 +172,17 @@ describe('COD Commission Integration Tests', () => {
             });
 
             // Create and complete order
+            const orderId = `order-${Date.now()}-${Math.random()}`;
             const orderResult = await pool.query(
                 `INSERT INTO orders (
+                    id,
                     customer_id, 
                     driver_id, 
                     total_amount,
                     status
-                ) VALUES ($1, $2, 100, 'delivered')
+                ) VALUES ($1, $2, $3, 100, 'delivered')
                 RETURNING id`,
-                [testCustomerId, testDriverId]
+                [orderId, testCustomerId, testDriverId]
             );
 
             // Deduct commission
@@ -204,15 +208,17 @@ describe('COD Commission Integration Tests', () => {
             });
 
             // Order with 100 EGP (15 EGP commission)
+            const orderId = `order-${Date.now()}-${Math.random()}`;
             const orderResult = await pool.query(
                 `INSERT INTO orders (
+                    id,
                     customer_id, 
                     driver_id, 
                     total_amount,
                     status
-                ) VALUES ($1, $2, 100, 'delivered')
+                ) VALUES ($1, $2, $3, 100, 'delivered')
                 RETURNING id`,
-                [testCustomerId, testDriverId]
+                [orderId, testCustomerId, testDriverId]
             );
 
             await balanceService.deductCommission(testDriverId, orderResult.rows[0].id, 15);
@@ -224,15 +230,17 @@ describe('COD Commission Integration Tests', () => {
         it('should accumulate debt from multiple orders', async () => {
             // Complete 5 orders, each creating 15 EGP debt
             for (let i = 0; i < 5; i++) {
+                const orderId = `order-${Date.now()}-${Math.random()}`;
                 const orderResult = await pool.query(
                     `INSERT INTO orders (
+                        id,
                         customer_id, 
                         driver_id, 
                         total_amount,
                         status
-                    ) VALUES ($1, $2, 100, 'delivered')
+                    ) VALUES ($1, $2, $3, 100, 'delivered')
                     RETURNING id`,
-                    [testCustomerId, testDriverId]
+                    [orderId, testCustomerId, testDriverId]
                 );
 
                 await balanceService.deductCommission(testDriverId, orderResult.rows[0].id, 15);
@@ -245,15 +253,17 @@ describe('COD Commission Integration Tests', () => {
         it('should allow debt up to threshold (-200 EGP)', async () => {
             // Create debt of -150 EGP (below threshold)
             for (let i = 0; i < 10; i++) {
+                const orderId = `order-${Date.now()}-${Math.random()}`;
                 const orderResult = await pool.query(
                     `INSERT INTO orders (
+                        id,
                         customer_id, 
                         driver_id, 
                         total_amount,
                         status
-                    ) VALUES ($1, $2, 100, 'delivered')
+                    ) VALUES ($1, $2, $3, 100, 'delivered')
                     RETURNING id`,
-                    [testCustomerId, testDriverId]
+                    [orderId, testCustomerId, testDriverId]
                 );
 
                 await balanceService.deductCommission(testDriverId, orderResult.rows[0].id, 15);
@@ -275,15 +285,17 @@ describe('COD Commission Integration Tests', () => {
         it('should block driver at exact debt threshold (-200 EGP)', async () => {
             // Create debt of exactly -200 EGP
             for (let i = 0; i < 13; i++) {
+                const orderId = `order-${Date.now()}-${Math.random()}`;
                 const orderResult = await pool.query(
                     `INSERT INTO orders (
+                        id,
                         customer_id, 
                         driver_id, 
                         total_amount,
                         status
-                    ) VALUES ($1, $2, 100, 'delivered')
+                    ) VALUES ($1, $2, $3, 100, 'delivered')
                     RETURNING id`,
-                    [testCustomerId, testDriverId]
+                    [orderId, testCustomerId, testDriverId]
                 );
 
                 await balanceService.deductCommission(testDriverId, orderResult.rows[0].id, 15);
@@ -300,15 +312,17 @@ describe('COD Commission Integration Tests', () => {
             expect(balance.availableBalance).toBe(-190);
 
             // One more order to reach -200
+            const orderId = `order-${Date.now()}-${Math.random()}`;
             const orderResult = await pool.query(
                 `INSERT INTO orders (
+                    id,
                     customer_id, 
                     driver_id, 
                     total_amount,
                     status
-                ) VALUES ($1, $2, 66.67, 'delivered')
+                ) VALUES ($1, $2, $3, 66.67, 'delivered')
                 RETURNING id`,
-                [testCustomerId, testDriverId]
+                [orderId, testCustomerId, testDriverId]
             );
 
             await balanceService.deductCommission(testDriverId, orderResult.rows[0].id, 10);
@@ -324,15 +338,17 @@ describe('COD Commission Integration Tests', () => {
         it('should block driver with excessive debt', async () => {
             // Create debt of -250 EGP (exceeds threshold)
             for (let i = 0; i < 17; i++) {
+                const orderId = `order-${Date.now()}-${Math.random()}`;
                 const orderResult = await pool.query(
                     `INSERT INTO orders (
+                        id,
                         customer_id, 
                         driver_id, 
                         total_amount,
                         status
-                    ) VALUES ($1, $2, 100, 'delivered')
+                    ) VALUES ($1, $2, $3, 100, 'delivered')
                     RETURNING id`,
-                    [testCustomerId, testDriverId]
+                    [orderId, testCustomerId, testDriverId]
                 );
 
                 await balanceService.deductCommission(testDriverId, orderResult.rows[0].id, 15);
@@ -348,15 +364,17 @@ describe('COD Commission Integration Tests', () => {
         it('should provide clear error message when driver is blocked', async () => {
             // Create excessive debt
             for (let i = 0; i < 20; i++) {
+                const orderId = `order-${Date.now()}-${Math.random()}`;
                 const orderResult = await pool.query(
                     `INSERT INTO orders (
+                        id,
                         customer_id, 
                         driver_id, 
                         total_amount,
                         status
-                    ) VALUES ($1, $2, 100, 'delivered')
+                    ) VALUES ($1, $2, $3, 100, 'delivered')
                     RETURNING id`,
-                    [testCustomerId, testDriverId]
+                    [orderId, testCustomerId, testDriverId]
                 );
 
                 await balanceService.deductCommission(testDriverId, orderResult.rows[0].id, 15);
@@ -382,15 +400,17 @@ describe('COD Commission Integration Tests', () => {
         it('should allow orders after driver clears debt', async () => {
             // Create debt
             for (let i = 0; i < 15; i++) {
+                const orderId = `order-${Date.now()}-${Math.random()}`;
                 const orderResult = await pool.query(
                     `INSERT INTO orders (
+                        id,
                         customer_id, 
                         driver_id, 
                         total_amount,
                         status
-                    ) VALUES ($1, $2, 100, 'delivered')
+                    ) VALUES ($1, $2, $3, 100, 'delivered')
                     RETURNING id`,
-                    [testCustomerId, testDriverId]
+                    [orderId, testCustomerId, testDriverId]
                 );
 
                 await balanceService.deductCommission(testDriverId, orderResult.rows[0].id, 15);
@@ -418,15 +438,17 @@ describe('COD Commission Integration Tests', () => {
         it('should allow partial debt recovery', async () => {
             // Create debt of -100 EGP
             for (let i = 0; i < 7; i++) {
+                const orderId = `order-${Date.now()}-${Math.random()}`;
                 const orderResult = await pool.query(
                     `INSERT INTO orders (
+                        id,
                         customer_id, 
                         driver_id, 
                         total_amount,
                         status
-                    ) VALUES ($1, $2, 100, 'delivered')
+                    ) VALUES ($1, $2, $3, 100, 'delivered')
                     RETURNING id`,
-                    [testCustomerId, testDriverId]
+                    [orderId, testCustomerId, testDriverId]
                 );
 
                 await balanceService.deductCommission(testDriverId, orderResult.rows[0].id, 15);
@@ -455,15 +477,17 @@ describe('COD Commission Integration Tests', () => {
     describe('Edge Cases', () => {
 
         it('should handle very small commission amounts', async () => {
+            const orderId = `order-${Date.now()}-${Math.random()}`;
             const orderResult = await pool.query(
                 `INSERT INTO orders (
+                    id,
                     customer_id, 
                     driver_id, 
                     total_amount,
                     status
-                ) VALUES ($1, $2, 10, 'delivered')
+                ) VALUES ($1, $2, $3, 10, 'delivered')
                 RETURNING id`,
-                [testCustomerId, testDriverId]
+                [orderId, testCustomerId, testDriverId]
             );
 
             await balanceService.deductCommission(testDriverId, orderResult.rows[0].id, 1.5);
@@ -473,15 +497,17 @@ describe('COD Commission Integration Tests', () => {
         });
 
         it('should handle large commission amounts', async () => {
+            const orderId = `order-${Date.now()}-${Math.random()}`;
             const orderResult = await pool.query(
                 `INSERT INTO orders (
+                    id,
                     customer_id, 
                     driver_id, 
                     total_amount,
                     status
-                ) VALUES ($1, $2, 1000, 'delivered')
+                ) VALUES ($1, $2, $3, 1000, 'delivered')
                 RETURNING id`,
-                [testCustomerId, testDriverId]
+                [orderId, testCustomerId, testDriverId]
             );
 
             await balanceService.deductCommission(testDriverId, orderResult.rows[0].id, 150);
@@ -501,17 +527,19 @@ describe('COD Commission Integration Tests', () => {
                 description: 'Deposit'
             });
 
+            const order1Id = `order-${Date.now()}-1`;
             const order1 = await pool.query(
-                `INSERT INTO orders (customer_id, driver_id, total_amount, status)
-                 VALUES ($1, $2, 100, 'delivered') RETURNING id`,
-                [testCustomerId, testDriverId]
+                `INSERT INTO orders (id, customer_id, driver_id, total_amount, status)
+                 VALUES ($1, $2, $3, 100, 'delivered') RETURNING id`,
+                [order1Id, testCustomerId, testDriverId]
             );
             await balanceService.deductCommission(testDriverId, order1.rows[0].id, 15);
 
+            const order2Id = `order-${Date.now()}-2`;
             const order2 = await pool.query(
-                `INSERT INTO orders (customer_id, driver_id, total_amount, status)
-                 VALUES ($1, $2, 100, 'delivered') RETURNING id`,
-                [testCustomerId, testDriverId]
+                `INSERT INTO orders (id, customer_id, driver_id, total_amount, status)
+                 VALUES ($1, $2, $3, 100, 'delivered') RETURNING id`,
+                [order2Id, testCustomerId, testDriverId]
             );
             await balanceService.deductCommission(testDriverId, order2.rows[0].id, 15);
 
@@ -543,10 +571,11 @@ describe('COD Commission Integration Tests', () => {
             const orderAmounts = [80, 120, 95, 150, 75, 110, 85, 130, 90, 100];
 
             for (const amount of orderAmounts) {
+                const orderId = `order-${Date.now()}-${Math.random()}`;
                 const orderResult = await pool.query(
-                    `INSERT INTO orders (customer_id, driver_id, total_amount, status)
-                     VALUES ($1, $2, $3, 'delivered') RETURNING id`,
-                    [testCustomerId, testDriverId, amount]
+                    `INSERT INTO orders (id, customer_id, driver_id, total_amount, status)
+                     VALUES ($1, $2, $3, $4, 'delivered') RETURNING id`,
+                    [orderId, testCustomerId, testDriverId, amount]
                 );
 
                 const commission = amount * 0.15;
@@ -568,10 +597,11 @@ describe('COD Commission Integration Tests', () => {
 
             // Phase 1: Accumulate debt to blocking point
             for (let i = 0; i < 14; i++) {
+                const orderId = `order-${Date.now()}-${Math.random()}`;
                 const orderResult = await pool.query(
-                    `INSERT INTO orders (customer_id, driver_id, total_amount, status)
-                     VALUES ($1, $2, 100, 'delivered') RETURNING id`,
-                    [testCustomerId, testDriverId]
+                    `INSERT INTO orders (id, customer_id, driver_id, total_amount, status)
+                     VALUES ($1, $2, $3, 100, 'delivered') RETURNING id`,
+                    [orderId, testCustomerId, testDriverId]
                 );
                 await balanceService.deductCommission(testDriverId, orderResult.rows[0].id, 15);
             }
@@ -597,10 +627,11 @@ describe('COD Commission Integration Tests', () => {
 
             // Phase 3: Continue working
             for (let i = 0; i < 3; i++) {
+                const orderId = `order-${Date.now()}-${Math.random()}`;
                 const orderResult = await pool.query(
-                    `INSERT INTO orders (customer_id, driver_id, total_amount, status)
-                     VALUES ($1, $2, 100, 'delivered') RETURNING id`,
-                    [testCustomerId, testDriverId]
+                    `INSERT INTO orders (id, customer_id, driver_id, total_amount, status)
+                     VALUES ($1, $2, $3, 100, 'delivered') RETURNING id`,
+                    [orderId, testCustomerId, testDriverId]
                 );
                 await balanceService.deductCommission(testDriverId, orderResult.rows[0].id, 15);
             }
