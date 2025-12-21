@@ -11,7 +11,7 @@ DROP TABLE IF EXISTS users CASCADE;
 
 -- Create users table with ALL production columns
 CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
+    id VARCHAR(255) PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255),
@@ -38,8 +38,8 @@ CREATE TABLE users (
 -- Create orders table
 CREATE TABLE orders (
     id SERIAL PRIMARY KEY,
-    customer_id INTEGER REFERENCES users(id),
-    driver_id INTEGER REFERENCES users(id),
+    customer_id VARCHAR(255) REFERENCES users(id),
+    driver_id VARCHAR(255) REFERENCES users(id),
     total_amount DECIMAL(10, 2),
     status VARCHAR(50),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -57,7 +57,7 @@ CREATE TABLE wallet_payments (
 
 -- Create user_balances table
 CREATE TABLE user_balances (
-    user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    user_id VARCHAR(255) PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     available_balance DECIMAL(12, 2) DEFAULT 0.00 NOT NULL,
     pending_balance DECIMAL(12, 2) DEFAULT 0.00 NOT NULL,
     held_balance DECIMAL(12, 2) DEFAULT 0.00 NOT NULL,
@@ -77,7 +77,7 @@ CREATE TABLE user_balances (
     is_frozen BOOLEAN DEFAULT FALSE NOT NULL,
     freeze_reason TEXT,
     frozen_at TIMESTAMP,
-    frozen_by INTEGER REFERENCES users(id),
+    frozen_by VARCHAR(255) REFERENCES users(id),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     last_transaction_at TIMESTAMP,
@@ -94,7 +94,7 @@ CREATE TABLE user_balances (
 CREATE TABLE balance_transactions (
     id BIGSERIAL PRIMARY KEY,
     transaction_id VARCHAR(50) UNIQUE NOT NULL,
-    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     type VARCHAR(30) NOT NULL,
     amount DECIMAL(12, 2) NOT NULL,
     currency VARCHAR(3) DEFAULT 'EGP' NOT NULL,
@@ -106,7 +106,7 @@ CREATE TABLE balance_transactions (
     withdrawal_request_id INTEGER,
     related_transaction_id BIGINT REFERENCES balance_transactions(id),
     processed_at TIMESTAMP,
-    processed_by INTEGER REFERENCES users(id),
+    processed_by VARCHAR(255) REFERENCES users(id),
     processing_method VARCHAR(50),
     description TEXT NOT NULL,
     metadata JSONB,
@@ -130,7 +130,7 @@ CREATE TABLE balance_transactions (
 CREATE TABLE balance_holds (
     id SERIAL PRIMARY KEY,
     hold_id VARCHAR(50) UNIQUE NOT NULL,
-    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     amount DECIMAL(12, 2) NOT NULL,
     currency VARCHAR(3) DEFAULT 'EGP' NOT NULL,
     reason VARCHAR(100) NOT NULL,
@@ -141,7 +141,7 @@ CREATE TABLE balance_holds (
     held_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     expires_at TIMESTAMP,
     released_at TIMESTAMP,
-    released_by INTEGER REFERENCES users(id),
+    released_by VARCHAR(255) REFERENCES users(id),
     description TEXT,
     notes TEXT,
     metadata JSONB,
