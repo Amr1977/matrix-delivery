@@ -74,7 +74,7 @@ export enum HoldStatus {
  * Represents a user's complete balance state
  */
 export interface UserBalance {
-    userId: number;
+    userId: string;
 
     // Balance categories
     availableBalance: number;
@@ -105,7 +105,7 @@ export interface UserBalance {
     isFrozen: boolean;
     freezeReason?: string;
     frozenAt?: Date;
-    frozenBy?: number;
+    frozenBy?: string;
 
     // Metadata
     createdAt: Date;
@@ -120,7 +120,7 @@ export interface UserBalance {
 export interface BalanceTransaction {
     id: number;
     transactionId: string;
-    userId: number;
+    userId: string;
 
     // Transaction details
     type: TransactionType;
@@ -135,14 +135,14 @@ export interface BalanceTransaction {
     status: TransactionStatus;
 
     // Related entities
-    orderId?: number;
+    orderId?: string;
     walletPaymentId?: number;
     withdrawalRequestId?: number;
     relatedTransactionId?: number;
 
     // Processing info
     processedAt?: Date;
-    processedBy?: number;
+    processedBy?: string;
     processingMethod?: string;
 
     // Metadata
@@ -164,7 +164,7 @@ export interface BalanceTransaction {
 export interface BalanceHold {
     id: number;
     holdId: string;
-    userId: number;
+    userId: string;
 
     // Hold details
     amount: number;
@@ -172,7 +172,7 @@ export interface BalanceHold {
     reason: string;
 
     // Related entities
-    orderId?: number;
+    orderId?: string;
     disputeId?: number;
     transactionId?: number;
 
@@ -183,7 +183,7 @@ export interface BalanceHold {
     heldAt: Date;
     expiresAt?: Date;
     releasedAt?: Date;
-    releasedBy?: number;
+    releasedBy?: string;
 
     // Metadata
     description?: string;
@@ -202,7 +202,7 @@ export interface BalanceHold {
  * DTO for creating a deposit transaction
  */
 export interface DepositDTO {
-    userId: number;
+    userId: string;
     amount: number;
     currency?: Currency;
     walletPaymentId?: number;
@@ -214,7 +214,7 @@ export interface DepositDTO {
  * DTO for creating a withdrawal transaction
  */
 export interface WithdrawalDTO {
-    userId: number;
+    userId: string;
     amount: number;
     currency?: Currency;
     destination: string;
@@ -226,8 +226,8 @@ export interface WithdrawalDTO {
  * DTO for order payment
  */
 export interface OrderPaymentDTO {
-    userId: number;
-    orderId: number;
+    userId: string;
+    orderId: string;
     amount: number;
     currency?: Currency;
     description: string;
@@ -238,8 +238,8 @@ export interface OrderPaymentDTO {
  * DTO for order refund
  */
 export interface OrderRefundDTO {
-    userId: number;
-    orderId: number;
+    userId: string;
+    orderId: string;
     amount: number;
     currency?: Currency;
     reason: string;
@@ -250,8 +250,8 @@ export interface OrderRefundDTO {
  * DTO for driver earnings
  */
 export interface EarningsDTO {
-    driverId: number;
-    orderId: number;
+    driverId: string;
+    orderId: string;
     amount: number;
     currency?: Currency;
     description: string;
@@ -262,11 +262,11 @@ export interface EarningsDTO {
  * DTO for creating a balance hold
  */
 export interface CreateHoldDTO {
-    userId: number;
+    userId: string;
     amount: number;
     currency?: Currency;
     reason: string;
-    orderId?: number;
+    orderId?: string;
     expiresAt?: Date;
     description?: string;
     metadata?: Record<string, any>;
@@ -276,14 +276,14 @@ export interface CreateHoldDTO {
  * DTO for transaction filters
  */
 export interface TransactionFilters {
-    userId?: number;
+    userId?: string;
     type?: TransactionType | TransactionType[];
     status?: TransactionStatus | TransactionStatus[];
     startDate?: Date;
     endDate?: Date;
     minAmount?: number;
     maxAmount?: number;
-    orderId?: number;
+    orderId?: string;
     limit?: number;
     offset?: number;
 }
@@ -292,7 +292,7 @@ export interface TransactionFilters {
  * DTO for balance statement request
  */
 export interface BalanceStatementRequest {
-    userId: number;
+    userId: string;
     startDate: Date;
     endDate: Date;
     includeMetadata?: boolean;
@@ -332,7 +332,7 @@ export interface HoldResponse {
  * Balance statement response
  */
 export interface BalanceStatement {
-    userId: number;
+    userId: string;
     period: {
         startDate: Date;
         endDate: Date;
@@ -351,7 +351,7 @@ export interface BalanceStatement {
  * Transaction summary response
  */
 export interface TransactionSummary {
-    userId: number;
+    userId: string;
     period: {
         startDate: Date;
         endDate: Date;
@@ -398,8 +398,8 @@ export interface TransactionValidation {
  */
 export interface IBalanceService {
     // Balance operations
-    getBalance(userId: number): Promise<UserBalance>;
-    createBalance(userId: number, currency?: Currency): Promise<UserBalance>;
+    getBalance(userId: string): Promise<UserBalance>;
+    createBalance(userId: string, currency?: Currency): Promise<UserBalance>;
 
     // Deposit operations
     deposit(dto: DepositDTO): Promise<TransactionResponse>;
@@ -413,7 +413,7 @@ export interface IBalanceService {
 
     // Driver operations
     creditEarnings(dto: EarningsDTO): Promise<TransactionResponse>;
-    deductCommission(driverId: number, orderId: number, commission: number): Promise<TransactionResponse>;
+    deductCommission(driverId: string, orderId: string, commission: number): Promise<TransactionResponse>;
 
     // Hold operations
     createHold(dto: CreateHoldDTO): Promise<HoldResponse>;
@@ -423,16 +423,16 @@ export interface IBalanceService {
     // Query operations
     getTransactionHistory(filters: TransactionFilters): Promise<BalanceTransaction[]>;
     getBalanceStatement(request: BalanceStatementRequest): Promise<BalanceStatement>;
-    getTransactionSummary(userId: number, startDate: Date, endDate: Date): Promise<TransactionSummary>;
+    getTransactionSummary(userId: string, startDate: Date, endDate: Date): Promise<TransactionSummary>;
 
     // Validation operations
-    validateSufficientBalance(userId: number, amount: number): Promise<boolean>;
-    validateWithdrawalLimits(userId: number, amount: number): Promise<BalanceValidation>;
+    validateSufficientBalance(userId: string, amount: number): Promise<boolean>;
+    validateWithdrawalLimits(userId: string, amount: number): Promise<BalanceValidation>;
 
     // Admin operations
-    freezeBalance(userId: number, reason: string, adminId: number): Promise<UserBalance>;
-    unfreezeBalance(userId: number, adminId: number): Promise<UserBalance>;
-    adjustBalance(userId: number, amount: number, reason: string, adminId: number): Promise<TransactionResponse>;
+    freezeBalance(userId: string, reason: string, adminId: string): Promise<UserBalance>;
+    unfreezeBalance(userId: string, adminId: string): Promise<UserBalance>;
+    adjustBalance(userId: string, amount: number, reason: string, adminId: string): Promise<TransactionResponse>;
 }
 
 // ============================================================================

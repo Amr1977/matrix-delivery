@@ -74,7 +74,7 @@ export class BalanceService implements IBalanceService {
      * @returns User balance object
      * @throws Error if balance not found
      */
-    async getBalance(userId: number): Promise<UserBalance> {
+    async getBalance(userId: string): Promise<UserBalance> {
         try {
             const result = await this.pool.query(
                 `SELECT 
@@ -140,7 +140,7 @@ export class BalanceService implements IBalanceService {
      * @param currency - Currency code (default: EGP)
      * @returns Created user balance
      */
-    async createBalance(userId: number, currency: Currency = DEFAULT_CURRENCY): Promise<UserBalance> {
+    async createBalance(userId: string, currency: Currency = DEFAULT_CURRENCY): Promise<UserBalance> {
         try {
             const result = await this.pool.query(
                 `INSERT INTO user_balances (
@@ -614,8 +614,8 @@ export class BalanceService implements IBalanceService {
      * @returns Transaction and updated balance
      */
     async deductCommission(
-        driverId: number,
-        orderId: number,
+        driverId: string,
+        orderId: string,
         commission: number
     ): Promise<TransactionResponse> {
         const client = await this.pool.connect();
@@ -699,7 +699,7 @@ export class BalanceService implements IBalanceService {
      * @param driverId - Driver user ID
      * @returns Object with canAccept status, reason, and balance info
      */
-    async canAcceptOrders(driverId: number): Promise<{
+    async canAcceptOrders(driverId: string): Promise<{
         canAccept: boolean;
         reason?: string;
         currentBalance: number;
@@ -1203,7 +1203,7 @@ export class BalanceService implements IBalanceService {
      * @returns Transaction summary
      */
     async getTransactionSummary(
-        userId: number,
+        userId: string,
         startDate: Date,
         endDate: Date
     ): Promise<TransactionSummary> {
@@ -1257,7 +1257,7 @@ export class BalanceService implements IBalanceService {
      * @param amount - Amount to check
      * @returns True if sufficient balance
      */
-    async validateSufficientBalance(userId: number, amount: number): Promise<boolean> {
+    async validateSufficientBalance(userId: string, amount: number): Promise<boolean> {
         try {
             const balance = await this.getBalance(userId);
             return balance.availableBalance >= amount;
@@ -1274,7 +1274,7 @@ export class BalanceService implements IBalanceService {
      * @param amount - Withdrawal amount
      * @returns Validation result
      */
-    async validateWithdrawalLimits(userId: number, amount: number): Promise<BalanceValidation> {
+    async validateWithdrawalLimits(userId: string, amount: number): Promise<BalanceValidation> {
         const errors: string[] = [];
         const warnings: string[] = [];
 
@@ -1360,7 +1360,7 @@ export class BalanceService implements IBalanceService {
      * @param adminId - Admin user ID
      * @returns Updated balance
      */
-    async freezeBalance(userId: number, reason: string, adminId: number): Promise<UserBalance> {
+    async freezeBalance(userId: string, reason: string, adminId: string): Promise<UserBalance> {
         try {
             await this.pool.query(
                 `UPDATE user_balances
@@ -1388,7 +1388,7 @@ export class BalanceService implements IBalanceService {
      * @param adminId - Admin user ID
      * @returns Updated balance
      */
-    async unfreezeBalance(userId: number, adminId: number): Promise<UserBalance> {
+    async unfreezeBalance(userId: string, adminId: string): Promise<UserBalance> {
         try {
             await this.pool.query(
                 `UPDATE user_balances
@@ -1419,10 +1419,10 @@ export class BalanceService implements IBalanceService {
      * @returns Transaction and updated balance
      */
     async adjustBalance(
-        userId: number,
+        userId: string,
         amount: number,
         reason: string,
-        adminId: number
+        adminId: string
     ): Promise<TransactionResponse> {
         const client = await this.pool.connect();
 
@@ -1492,7 +1492,7 @@ export class BalanceService implements IBalanceService {
      * @returns User balance
      * @private
      */
-    private async getBalanceForUpdate(client: PoolClient, userId: number): Promise<UserBalance> {
+    private async getBalanceForUpdate(client: PoolClient, userId: string): Promise<UserBalance> {
         const result = await client.query(
             `SELECT 
         user_id as "userId",
@@ -1541,7 +1541,7 @@ export class BalanceService implements IBalanceService {
     private async createTransaction(
         client: PoolClient,
         data: {
-            userId: number;
+            userId: string;
             type: TransactionType;
             amount: number;
             currency: Currency;
@@ -1550,11 +1550,11 @@ export class BalanceService implements IBalanceService {
             status: TransactionStatus;
             description: string;
             metadata?: Record<string, any>;
-            orderId?: number;
+            orderId?: string;
             walletPaymentId?: number;
             withdrawalRequestId?: number;
             relatedTransactionId?: number;
-            processedBy?: number;
+            processedBy?: string;
             processingMethod?: string;
         }
     ): Promise<BalanceTransaction> {
