@@ -288,7 +288,7 @@ When('I try to reset my password', async function () {
         .post('/api/auth/reset-password')
         .send({
             token: this.world.resetToken,
-            password: 'NewPassword123!'
+            newPassword: 'NewPassword123!'
         });
 });
 

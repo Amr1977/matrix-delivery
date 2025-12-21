@@ -8,18 +8,20 @@
 import request from 'supertest';
 import app from '../../server';
 import pool from '../../config/db';
+import bcrypt from 'bcryptjs';
 
 describe('Cookie-Based Authentication Integration Tests', () => {
     let authCookie: string;
     let testUser: any;
 
     beforeAll(async () => {
-        // Create test user
+        // Create test user with proper bcrypt hash
+        const hashedPassword = await bcrypt.hash('password123', 10);
         const result = await pool.query(
-            `INSERT INTO users (id, name, email, password, phone, primary_role, is_verified)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+            `INSERT INTO users (id, name, email, password_hash, phone, primary_role, granted_roles, is_verified)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING *`,
-            ['test-user-auth', 'Test User', 'test@auth.com', 'hashedpassword', '1234567890', 'customer', true]
+            ['test-user-auth', 'Test User', 'test@auth.com', hashedPassword, '1234567890', 'customer', ['customer'], true]
         );
         testUser = result.rows[0];
     });
@@ -42,7 +44,7 @@ describe('Cookie-Based Authentication Integration Tests', () => {
             expect(response.status).toBe(200);
             expect(response.headers['set-cookie']).toBeDefined();
 
-            const cookies = response.headers['set-cookie'] as string[];
+            const cookies = (response.headers['set-cookie'] || []) as unknown as string[];
             const tokenCookie = cookies.find(cookie => cookie.startsWith('token='));
 
             expect(tokenCookie).toBeDefined();
@@ -122,11 +124,12 @@ describe('Cookie-Based Authentication Integration Tests', () => {
         });
 
         it('should work for /api/drivers/location with cookie (driver role)', async () => {
-            // Create driver user
+            // Create driver user with proper bcrypt hash
+            const hashedPassword = await bcrypt.hash('password123', 10);
             await pool.query(
-                `INSERT INTO users (id, name, email, password, phone, primary_role, is_verified)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-                ['test-driver-auth', 'Test Driver', 'driver@auth.com', 'hashedpassword', '1234567890', 'driver', true]
+                `INSERT INTO users (id, name, email, password_hash, phone, primary_role, granted_roles, is_verified)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+                ['test-driver-auth', 'Test Driver', 'driver@auth.com', hashedPassword, '1234567890', 'driver', ['driver'], true]
             );
 
             // Login as driver
@@ -154,11 +157,12 @@ describe('Cookie-Based Authentication Integration Tests', () => {
         let adminCookie: string;
 
         beforeEach(async () => {
-            // Create admin user
+            // Create admin user with proper bcrypt hash
+            const hashedPassword = await bcrypt.hash('password123', 10);
             await pool.query(
-                `INSERT INTO users (id, name, email, password, phone, primary_role, is_verified)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-                ['test-admin-auth', 'Test Admin', 'admin@auth.com', 'hashedpassword', '1234567890', 'admin', true]
+                `INSERT INTO users (id, name, email, password_hash, phone, primary_role, granted_roles, is_verified)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+                ['test-admin-auth', 'Test Admin', 'admin@auth.com', hashedPassword, '1234567890', 'admin', ['admin'], true]
             );
 
             // Login as admin
