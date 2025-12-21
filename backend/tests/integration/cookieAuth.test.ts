@@ -42,7 +42,7 @@ describe('Cookie-Based Authentication Integration Tests', () => {
             expect(response.status).toBe(200);
             expect(response.headers['set-cookie']).toBeDefined();
 
-            const cookies = response.headers['set-cookie'] as string[];
+            const cookies = (response.headers['set-cookie'] || []) as unknown as string[];
             const tokenCookie = cookies.find(cookie => cookie.startsWith('token='));
 
             expect(tokenCookie).toBeDefined();
