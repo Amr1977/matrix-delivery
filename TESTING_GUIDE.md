@@ -66,6 +66,113 @@ npm test -- --coverage
 
 ---
 
+## BDD Tests (Behavior-Driven Development)
+
+### Overview
+
+BDD tests use **Cucumber** with **Gherkin** syntax to define test scenarios in plain English. The tests support **dual-mode execution**:
+- **Backend mode**: Fast integration tests (direct service calls)
+- **Frontend mode**: UI tests (browser automation with Playwright)
+
+### COD Commission Tests
+
+#### Run Backend Tests (Integration)
+```bash
+cd tests
+npx cucumber-js -p cod-backend
+# or use default alias:
+npx cucumber-js -p cod-commission
+```
+
+**What it tests**:
+- Direct calls to `BalanceService`
+- Commission deduction logic
+- Debt threshold enforcement  
+- Balance warning notifications
+- Transaction history
+
+**Performance**: ~3-4 seconds  
+**Status**: 28/31 scenarios passing
+
+#### Run Frontend Tests (UI)
+```bash
+cd tests
+npx cucumber-js -p cod-frontend
+```
+
+**What it tests**:
+- Dashboard UI rendering
+- Warning/error box display
+- Button visibility
+- User-facing notifications
+- Balance display accuracy
+
+**Performance**: ~15-20 seconds  
+**Status**: Skeleton implemented (ready for full implementation)
+
+### Directory Structure
+
+```
+tests/
+├── features/
+│   └── cod-commission.feature    # Shared scenarios
+├── step_definitions/
+│   ├── backend/
+│   │   └── cod_commission_steps.js   # Integration tests
+│   └── frontend/
+│       └── cod_commission_steps.js   # UI tests
+└── support/
+    └── browser_hooks.js          # Playwright setup
+```
+
+### Prerequisites
+
+**For Backend Tests**:
+- PostgreSQL running
+- Test database created (`matrix_delivery_test`)
+- Backend dependencies installed
+
+**For Frontend Tests**:
+```bash
+npm install -D playwright
+npx playwright install chromium
+```
+
+### Configuration
+
+Profiles are defined in `tests/cucumber.js`:
+
+```javascript
+'cod-backend': {
+  require: ['step_definitions/backend/cod_commission_steps.js']
+},
+'cod-frontend': {
+  require: [
+    'step_definitions/frontend/cod_commission_steps.js',
+    'support/browser_hooks.js'
+  ]
+}
+```
+
+### Adding UI Test Support
+
+To enable frontend tests, add `data-testid` attributes to React components:
+
+```jsx
+// Balance Dashboard
+<div data-testid="balance-dashboard">
+  <span data-testid="cash-collected">{cashCollected}</span>
+  <span data-testid="current-balance">{balance}</span>
+</div>
+
+// Warnings & Errors
+<div data-testid="warning-box">
+  <p data-testid="warning-message">{warningMessage}</p>
+</div>
+```
+
+---
+
 ## Test Structure
 
 ### Backend Tests
