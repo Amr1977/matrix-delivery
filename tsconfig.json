@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "es2020",
+        "moduleResolution": "node",
+        "esModuleInterop": true,
+        "allowJs": true,
+        "noImplicitAny": false
+    },
+    "ts-node": {
+        "transpileOnly": true,
+        "files": true
+    }
+}

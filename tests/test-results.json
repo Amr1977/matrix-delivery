@@ -1,0 +1,5426 @@
+[INFO] Balance created { userId: 'driver_1766363244750', currency: 'EGP' }
+[INFO] Deposit completed {
+  userId: 'driver_1766363244750',
+  amount: 500,
+  transactionId: 'TXN-8b8c6785-2fcc-437c-b1fe-37ee633eb80b'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363244750',
+  orderId: 'ord_1766363244934_02d2q',
+  commission: 15,
+  newBalance: 485,
+  isDebt: false,
+  category: 'balance'
+}
+[INFO] Balance created { userId: 'driver_1766363244998', currency: 'EGP' }
+[INFO] Commission deducted {
+  driverId: 'driver_1766363244998',
+  orderId: 'ord_1766363245004_817s8',
+  commission: 15,
+  newBalance: -15,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Balance created { userId: 'driver_1766363245045', currency: 'EGP' }
+[INFO] Deposit completed {
+  userId: 'driver_1766363245045',
+  amount: 1000,
+  transactionId: 'TXN-e595fe46-77ff-41c3-81af-5d7f73c89164'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245045',
+  orderId: 'ord_1766363245062_ez80n',
+  commission: 7.5,
+  newBalance: 992.5,
+  isDebt: false,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245045',
+  orderId: 'ord_1766363245076_d65up',
+  commission: 15,
+  newBalance: 977.5,
+  isDebt: false,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245045',
+  orderId: 'ord_1766363245086_ym54v',
+  commission: 30,
+  newBalance: 947.5,
+  isDebt: false,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245045',
+  orderId: 'ord_1766363245097_i94qd',
+  commission: 49.9995,
+  newBalance: 897.5,
+  isDebt: false,
+  category: 'balance'
+}
+[INFO] Balance created { userId: 'driver_1766363245141', currency: 'EGP' }
+[INFO] Deposit completed {
+  userId: 'driver_1766363245141',
+  amount: 10,
+  transactionId: 'TXN-2560a4a1-0565-4e02-a4f0-29a50ab4615c'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245141',
+  orderId: 'ord_1766363245159_h4qaa',
+  commission: 15,
+  newBalance: -5,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Balance created { userId: 'driver_1766363245236', currency: 'EGP' }
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245236',
+  orderId: 'ord_1766363245246_w8h84',
+  commission: 15,
+  newBalance: -15,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245236',
+  orderId: 'ord_1766363245287_m5z20',
+  commission: 15,
+  newBalance: -30,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245236',
+  orderId: 'ord_1766363245332_72uue',
+  commission: 15,
+  newBalance: -45,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245236',
+  orderId: 'ord_1766363245377_krubz',
+  commission: 15,
+  newBalance: -60,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245236',
+  orderId: 'ord_1766363245405_uqc8n',
+  commission: 15,
+  newBalance: -75,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Balance created { userId: 'driver_1766363245448', currency: 'EGP' }
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245448',
+  orderId: 'ord_1766363245458_3wy73',
+  commission: 15,
+  newBalance: -15,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245448',
+  orderId: 'ord_1766363245469_e46f5',
+  commission: 15,
+  newBalance: -30,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245448',
+  orderId: 'ord_1766363245484_fxd54',
+  commission: 15,
+  newBalance: -45,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245448',
+  orderId: 'ord_1766363245495_n2f9z',
+  commission: 15,
+  newBalance: -60,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245448',
+  orderId: 'ord_1766363245505_8wr0m',
+  commission: 15,
+  newBalance: -75,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245448',
+  orderId: 'ord_1766363245516_ixg8p',
+  commission: 15,
+  newBalance: -90,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245448',
+  orderId: 'ord_1766363245536_jzg3v',
+  commission: 15,
+  newBalance: -105,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245448',
+  orderId: 'ord_1766363245551_if8ll',
+  commission: 15,
+  newBalance: -120,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245448',
+  orderId: 'ord_1766363245563_ohcp0',
+  commission: 15,
+  newBalance: -135,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245448',
+  orderId: 'ord_1766363245574_05mcg',
+  commission: 15,
+  newBalance: -150,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Balance created { userId: 'driver_1766363245638', currency: 'EGP' }
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245638',
+  orderId: 'ord_1766363245648_ub1bw',
+  commission: 15,
+  newBalance: -15,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245638',
+  orderId: 'ord_1766363245661_4dkl3',
+  commission: 15,
+  newBalance: -30,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245638',
+  orderId: 'ord_1766363245674_z7owg',
+  commission: 15,
+  newBalance: -45,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245638',
+  orderId: 'ord_1766363245689_hnyj4',
+  commission: 15,
+  newBalance: -60,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245638',
+  orderId: 'ord_1766363245706_qjead',
+  commission: 15,
+  newBalance: -75,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245638',
+  orderId: 'ord_1766363245719_n69nc',
+  commission: 15,
+  newBalance: -90,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245638',
+  orderId: 'ord_1766363245730_vxz2q',
+  commission: 15,
+  newBalance: -105,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245638',
+  orderId: 'ord_1766363245747_xpe56',
+  commission: 15,
+  newBalance: -120,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245638',
+  orderId: 'ord_1766363245758_ixrpo',
+  commission: 15,
+  newBalance: -135,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245638',
+  orderId: 'ord_1766363245769_e0rt1',
+  commission: 15,
+  newBalance: -150,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245638',
+  orderId: 'ord_1766363245789_vlxz6',
+  commission: 15,
+  newBalance: -165,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245638',
+  orderId: 'ord_1766363245800_vr8a6',
+  commission: 15,
+  newBalance: -180,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245638',
+  orderId: 'ord_1766363245813_8na8g',
+  commission: 15,
+  newBalance: -195,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245638',
+  orderId: 'ord_1766363245831_d688a',
+  commission: 10.0005,
+  newBalance: -205,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Balance created { userId: 'driver_1766363245882', currency: 'EGP' }
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245882',
+  orderId: 'ord_1766363245888_boom5',
+  commission: 15,
+  newBalance: -15,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245882',
+  orderId: 'ord_1766363245900_oqaop',
+  commission: 15,
+  newBalance: -30,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245882',
+  orderId: 'ord_1766363245913_v2hny',
+  commission: 15,
+  newBalance: -45,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245882',
+  orderId: 'ord_1766363245925_61q1p',
+  commission: 15,
+  newBalance: -60,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245882',
+  orderId: 'ord_1766363245937_hlpkm',
+  commission: 15,
+  newBalance: -75,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245882',
+  orderId: 'ord_1766363245950_xqxd8',
+  commission: 15,
+  newBalance: -90,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245882',
+  orderId: 'ord_1766363245961_kj1h2',
+  commission: 15,
+  newBalance: -105,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245882',
+  orderId: 'ord_1766363245972_f21c4',
+  commission: 15,
+  newBalance: -120,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245882',
+  orderId: 'ord_1766363245988_ezwiw',
+  commission: 15,
+  newBalance: -135,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245882',
+  orderId: 'ord_1766363246000_8qiks',
+  commission: 15,
+  newBalance: -150,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245882',
+  orderId: 'ord_1766363246015_t18zs',
+  commission: 15,
+  newBalance: -165,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245882',
+  orderId: 'ord_1766363246037_ab6gb',
+  commission: 15,
+  newBalance: -180,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245882',
+  orderId: 'ord_1766363246051_d9mvq',
+  commission: 15,
+  newBalance: -195,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245882',
+  orderId: 'ord_1766363246064_k6onq',
+  commission: 15,
+  newBalance: -210,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245882',
+  orderId: 'ord_1766363246083_7lu89',
+  commission: 15,
+  newBalance: -225,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245882',
+  orderId: 'ord_1766363246097_2vna1',
+  commission: 15,
+  newBalance: -240,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245882',
+  orderId: 'ord_1766363246110_csbmr',
+  commission: 15,
+  newBalance: -255,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245882',
+  orderId: 'ord_1766363246125_roj45',
+  commission: 15,
+  newBalance: -270,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245882',
+  orderId: 'ord_1766363246138_v6w70',
+  commission: 15,
+  newBalance: -285,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363245882',
+  orderId: 'ord_1766363246151_6x9fl',
+  commission: 15,
+  newBalance: -300,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Balance created { userId: 'driver_1766363246240', currency: 'EGP' }
+[INFO] Balance created { userId: 'driver_1766363246302', currency: 'EGP' }
+[INFO] Deposit completed {
+  userId: 'driver_1766363246302',
+  amount: 300,
+  transactionId: 'TXN-fe495488-9e93-4193-acc7-03b7b1ae89bd'
+}
+[INFO] Balance created { userId: 'driver_1766363246367', currency: 'EGP' }
+[INFO] Deposit completed {
+  userId: 'driver_1766363246367',
+  amount: 100,
+  transactionId: 'TXN-fb7d5cf8-dc3d-49a4-8bdc-10b919ca3a51'
+}
+[INFO] Balance created { userId: 'driver_1766363246414', currency: 'EGP' }
+[INFO] Deposit completed {
+  userId: 'driver_1766363246414',
+  amount: 1,
+  transactionId: 'TXN-752e28a9-0f3c-434f-9b19-b0674beb707e'
+}
+[INFO] Balance created { userId: 'driver_1766363246448_3', currency: 'EGP' }
+[INFO] Commission deducted {
+  driverId: 'driver_1766363246448_3',
+  orderId: 'ord_1766363246453_0',
+  commission: 15,
+  newBalance: -15,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363246448_3',
+  orderId: 'ord_1766363246465_1',
+  commission: 15,
+  newBalance: -30,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363246448_3',
+  orderId: 'ord_1766363246476_2',
+  commission: 15,
+  newBalance: -45,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363246448_3',
+  orderId: 'ord_1766363246491_3',
+  commission: 15,
+  newBalance: -60,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363246448_3',
+  orderId: 'ord_1766363246506_4',
+  commission: 15,
+  newBalance: -75,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Balance created { userId: 'driver_1766363246544_3', currency: 'EGP' }
+[INFO] Commission deducted {
+  driverId: 'driver_1766363246544_3',
+  orderId: 'ord_1766363246549_0',
+  commission: 15,
+  newBalance: -15,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363246544_3',
+  orderId: 'ord_1766363246560_1',
+  commission: 15,
+  newBalance: -30,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363246544_3',
+  orderId: 'ord_1766363246570_2',
+  commission: 15,
+  newBalance: -45,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363246544_3',
+  orderId: 'ord_1766363246581_3',
+  commission: 15,
+  newBalance: -60,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363246544_3',
+  orderId: 'ord_1766363246596_4',
+  commission: 15,
+  newBalance: -75,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363246544_3',
+  orderId: 'ord_1766363246610_5',
+  commission: 15,
+  newBalance: -90,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363246544_3',
+  orderId: 'ord_1766363246621_6',
+  commission: 15,
+  newBalance: -105,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363246544_3',
+  orderId: 'ord_1766363246633_7',
+  commission: 15,
+  newBalance: -120,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363246544_3',
+  orderId: 'ord_1766363246646_8',
+  commission: 15,
+  newBalance: -135,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363246544_3',
+  orderId: 'ord_1766363246661_9',
+  commission: 15,
+  newBalance: -150,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Balance created { userId: 'driver_1766363246696_3', currency: 'EGP' }
+[INFO] Commission deducted {
+  driverId: 'driver_1766363246696_3',
+  orderId: 'ord_1766363246703_0',
+  commission: 15,
+  newBalance: -15,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363246696_3',
+  orderId: 'ord_1766363246715_1',
+  commission: 15,
+  newBalance: -30,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363246696_3',
+  orderId: 'ord_1766363246727_2',
+  commission: 15,
+  newBalance: -45,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363246696_3',
+  orderId: 'ord_1766363246738_3',
+  commission: 15,
+  newBalance: -60,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363246696_3',
+  orderId: 'ord_1766363246753_4',
+  commission: 15,
+  newBalance: -75,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363246696_3',
+  orderId: 'ord_1766363246764_5',
+  commission: 15,
+  newBalance: -90,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363246696_3',
+  orderId: 'ord_1766363246784_6',
+  commission: 15,
+  newBalance: -105,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363246696_3',
+  orderId: 'ord_1766363246794_7',
+  commission: 15,
+  newBalance: -120,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363246696_3',
+  orderId: 'ord_1766363246805_8',
+  commission: 15,
+  newBalance: -135,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363246696_3',
+  orderId: 'ord_1766363246815_9',
+  commission: 15,
+  newBalance: -150,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363246696_3',
+  orderId: 'ord_1766363246828_10',
+  commission: 15,
+  newBalance: -165,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363246696_3',
+  orderId: 'ord_1766363246841_11',
+  commission: 15,
+  newBalance: -180,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363246696_3',
+  orderId: 'ord_1766363246861_12',
+  commission: 15,
+  newBalance: -195,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363246696_3',
+  orderId: 'ord_1766363246872_13',
+  commission: 15,
+  newBalance: -210,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363246696_3',
+  orderId: 'ord_1766363246885_14',
+  commission: 15,
+  newBalance: -225,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363246696_3',
+  orderId: 'ord_1766363246897_15',
+  commission: 15,
+  newBalance: -240,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363246696_3',
+  orderId: 'ord_1766363246935_16',
+  commission: 15,
+  newBalance: -255,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363246696_3',
+  orderId: 'ord_1766363246973_17',
+  commission: 15,
+  newBalance: -270,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363246696_3',
+  orderId: 'ord_1766363247016_18',
+  commission: 15,
+  newBalance: -285,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363246696_3',
+  orderId: 'ord_1766363247043_19',
+  commission: 15,
+  newBalance: -300,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Balance created { userId: 'driver_1766363247091', currency: 'EGP' }
+[INFO] Deposit completed {
+  userId: 'driver_1766363247091',
+  amount: 100,
+  transactionId: 'TXN-858e1bbc-abde-451b-936b-7281de19e481'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247091',
+  orderId: 'ord_1766363247106_ygsni',
+  commission: 15,
+  newBalance: 85,
+  isDebt: false,
+  category: 'balance'
+}
+[INFO] Balance created { userId: 'driver_1766363247145_4', currency: 'EGP' }
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247145_4',
+  orderId: 'ord_1766363247151_0',
+  commission: 15,
+  newBalance: -15,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247145_4',
+  orderId: 'ord_1766363247171_1',
+  commission: 15,
+  newBalance: -30,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247145_4',
+  orderId: 'ord_1766363247199_2',
+  commission: 15,
+  newBalance: -45,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Balance created { userId: 'driver_1766363247243', currency: 'EGP' }
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247243',
+  orderId: 'ord_1766363247249_n7vyi',
+  commission: 1.5,
+  newBalance: -1.5,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Balance created { userId: 'driver_1766363247288', currency: 'EGP' }
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247288',
+  orderId: 'ord_1766363247294_abrpf',
+  commission: 150,
+  newBalance: -150,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Balance created { userId: 'driver_1766363247331', currency: 'EGP' }
+[INFO] Deposit completed {
+  userId: 'driver_1766363247331',
+  amount: 100,
+  transactionId: 'TXN-c1c341e3-04a7-4ab3-af97-af955e3ef200'
+}
+[INFO] Zero or negative commission, skipping deduction {
+  driverId: 'driver_1766363247331',
+  orderId: 'ord_1766363247348_xkxm7',
+  commission: 0,
+  balance: 100
+}
+[INFO] Balance created { userId: 'driver_1766363247371', currency: 'EGP' }
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247371',
+  orderId: 'ord_1766363247378_l3gtd',
+  commission: 4.999499999999999,
+  newBalance: -5,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Balance created { userId: 'driver_1766363247430_2', currency: 'EGP' }
+[INFO] Deposit completed {
+  userId: 'driver_1766363247430_2',
+  amount: 50,
+  transactionId: 'TXN-0d47d26c-6cc0-4a48-a9b7-4642dd27c375'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247430_2',
+  orderId: 'ord_1766363247442_77i8d',
+  commission: 12,
+  newBalance: 38,
+  isDebt: false,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247430_2',
+  orderId: 'ord_1766363247452_cybo8',
+  commission: 18,
+  newBalance: 20,
+  isDebt: false,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247430_2',
+  orderId: 'ord_1766363247463_swzir',
+  commission: 14.25,
+  newBalance: 5.75,
+  isDebt: false,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247430_2',
+  orderId: 'ord_1766363247472_s6s2s',
+  commission: 22.5,
+  newBalance: -16.75,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247430_2',
+  orderId: 'ord_1766363247484_7917s',
+  commission: 11.25,
+  newBalance: -28,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247430_2',
+  orderId: 'ord_1766363247500_wzpdw',
+  commission: 16.5,
+  newBalance: -44.5,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247430_2',
+  orderId: 'ord_1766363247511_hnar5',
+  commission: 12.75,
+  newBalance: -57.25,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247430_2',
+  orderId: 'ord_1766363247522_uc3ae',
+  commission: 19.5,
+  newBalance: -76.75,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247430_2',
+  orderId: 'ord_1766363247534_lbt0z',
+  commission: 13.5,
+  newBalance: -90.25,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247430_2',
+  orderId: 'ord_1766363247546_5kjd0',
+  commission: 15,
+  newBalance: -105.25,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Balance created { userId: 'driver_1766363247582', currency: 'EGP' }
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247582',
+  orderId: 'ord_1766363247591_3lao4',
+  commission: 15,
+  newBalance: -15,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247582',
+  orderId: 'ord_1766363247602_cxm7o',
+  commission: 15,
+  newBalance: -30,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247582',
+  orderId: 'ord_1766363247614_d2dfd',
+  commission: 15,
+  newBalance: -45,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247582',
+  orderId: 'ord_1766363247625_jeszr',
+  commission: 15,
+  newBalance: -60,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247582',
+  orderId: 'ord_1766363247637_ur6bs',
+  commission: 15,
+  newBalance: -75,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247582',
+  orderId: 'ord_1766363247648_5dvxa',
+  commission: 15,
+  newBalance: -90,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247582',
+  orderId: 'ord_1766363247659_0m6uf',
+  commission: 15,
+  newBalance: -105,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247582',
+  orderId: 'ord_1766363247671_qmhvs',
+  commission: 15,
+  newBalance: -120,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247582',
+  orderId: 'ord_1766363247683_fylgg',
+  commission: 15,
+  newBalance: -135,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247582',
+  orderId: 'ord_1766363247695_8h94l',
+  commission: 15,
+  newBalance: -150,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247582',
+  orderId: 'ord_1766363247708_8h5jc',
+  commission: 15,
+  newBalance: -165,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247582',
+  orderId: 'ord_1766363247723_vuc0l',
+  commission: 15,
+  newBalance: -180,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247582',
+  orderId: 'ord_1766363247733_we04t',
+  commission: 15,
+  newBalance: -195,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247582',
+  orderId: 'ord_1766363247744_8900z',
+  commission: 15,
+  newBalance: -210,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Deposit completed {
+  userId: 'driver_1766363247582',
+  amount: 250,
+  transactionId: 'TXN-eb58db2e-a780-4aac-933f-88351cfbc842'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247582',
+  orderId: 'ord_1766363247777_j55fm',
+  commission: 15,
+  newBalance: 25,
+  isDebt: false,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247582',
+  orderId: 'ord_1766363247786_6makf',
+  commission: 15,
+  newBalance: 10,
+  isDebt: false,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247582',
+  orderId: 'ord_1766363247799_lggay',
+  commission: 15,
+  newBalance: -5,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Balance created { userId: 'driver_driver1_1766363247834', currency: 'EGP' }
+[INFO] Deposit completed {
+  userId: 'driver_driver1_1766363247834',
+  amount: 100,
+  transactionId: 'TXN-7435c284-b887-40d7-8384-0ed1542d7157'
+}
+[INFO] Balance created { userId: 'driver_driver2_1766363247849', currency: 'EGP' }
+[INFO] Balance created { userId: 'driver_driver3_1766363247859', currency: 'EGP' }
+[INFO] Balance created { userId: 'driver_driver4_1766363247867', currency: 'EGP' }
+[DEBUG] Driver: driver1, ID: driver_driver1_1766363247834, CanAccept: true, Reason: undefined
+[DEBUG] Driver: driver2, ID: driver_driver2_1766363247849, CanAccept: true, Reason: undefined
+[DEBUG] Driver: driver3, ID: driver_driver3_1766363247859, CanAccept: true, Reason: undefined
+[DEBUG] Driver: driver4, ID: driver_driver4_1766363247867, CanAccept: false, Reason: Balance (-250 EGP) below minimum threshold (-200 EGP). Please deposit funds to continue accepting orders.
+[INFO] Balance created { userId: 'driver_1766363247925', currency: 'EGP' }
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247925',
+  orderId: 'ord_1766363247931_i3rdc',
+  commission: 30,
+  newBalance: -30,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Balance created { userId: 'driver_1766363247962_4', currency: 'EGP' }
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247962_4',
+  orderId: 'ord_1766363247968_0',
+  commission: 15,
+  newBalance: -15,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247962_4',
+  orderId: 'ord_1766363247980_1',
+  commission: 15,
+  newBalance: -30,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247962_4',
+  orderId: 'ord_1766363247991_2',
+  commission: 15,
+  newBalance: -45,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247962_4',
+  orderId: 'ord_1766363248004_3',
+  commission: 15,
+  newBalance: -60,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363247962_4',
+  orderId: 'ord_1766363248018_4',
+  commission: 15,
+  newBalance: -75,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Balance created { userId: 'driver_1766363248058', currency: 'EGP' }
+[INFO] Commission deducted {
+  driverId: 'driver_1766363248058',
+  orderId: 'ord_1766363248067_mnsde',
+  commission: 15,
+  newBalance: -155,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Balance created { userId: 'driver_1766363248102', currency: 'EGP' }
+[INFO] Commission deducted {
+  driverId: 'driver_1766363248102',
+  orderId: 'ord_1766363248112_5yms5',
+  commission: 15,
+  newBalance: -205,
+  isDebt: true,
+  category: 'balance'
+}
+[INFO] Balance created { userId: 'driver_1766363248153', currency: 'EGP' }
+[INFO] Deposit completed {
+  userId: 'driver_1766363248153',
+  amount: 100,
+  transactionId: 'TXN-8cd3257e-a58c-4efb-9629-f529793807a2'
+}
+[INFO] Commission deducted {
+  driverId: 'driver_1766363248153',
+  orderId: 'ord_1766363248168_sa1uk',
+  commission: 15,
+  newBalance: 85,
+  isDebt: false,
+  category: 'balance'
+}
+[
+  {
+    "description": "  As a platform operator\n  I want to collect 15% commission on COD orders\n  And manage driver debt to ensure platform sustainability\n  So that drivers pay their fair share while maintaining cash flow",
+    "elements": [
+      {
+        "description": "",
+        "id": "cod-commission-and-debt-management;driver-completes-cod-order-with-positive-balance",
+        "keyword": "Scenario",
+        "line": 16,
+        "name": "Driver completes COD order with positive balance",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 8,
+            "name": "the platform commission rate is 15%",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:84"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 15129599
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "the maximum debt threshold is -200 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:90"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 4043899
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 10,
+            "name": "the warning debt threshold is -150 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:95"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2423899
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 17,
+            "name": "a driver with balance of 500 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:104"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 181347499
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 18,
+            "name": "the driver completes a 100 EGP COD order",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:312"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 19536399
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 19,
+            "name": "the platform should deduct 15 EGP commission",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:422"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 5679800
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 20,
+            "name": "the driver balance should be 485 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:416"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 7648799
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 21,
+            "name": "the driver should keep 85 EGP cash",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:426"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 5603000
+            }
+          },
+          {
+            "arguments": [
+              {
+                "rows": [
+                  {
+                    "cells": [
+                      "field",
+                      "value"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "amount",
+                      "100"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "platform_fee",
+                      "15"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "driver_earnings",
+                      "85"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "payment_method",
+                      "cash"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "status",
+                      "completed"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "keyword": "And ",
+            "line": 22,
+            "name": "the payment record should show:",
+            "result": {
+              "status": "undefined",
+              "duration": 0
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 24248500
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "cod-commission-and-debt-management;driver-completes-cod-order-with-zero-balance",
+        "keyword": "Scenario",
+        "line": 30,
+        "name": "Driver completes COD order with zero balance",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 8,
+            "name": "the platform commission rate is 15%",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:84"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 753799
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "the maximum debt threshold is -200 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:90"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 402300
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 10,
+            "name": "the warning debt threshold is -150 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:95"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 262600
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 31,
+            "name": "a driver with balance of 0 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:104"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 5069899
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 32,
+            "name": "the driver completes a 100 EGP COD order",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:312"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 13017200
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 33,
+            "name": "the platform should deduct 15 EGP commission",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:422"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 801400
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 34,
+            "name": "the driver balance should be -15 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:416"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2009400
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 35,
+            "name": "the driver should keep 85 EGP cash",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:426"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 564800
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 36,
+            "name": "the driver should still be able to accept orders",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:454"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 3939999
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 15216300
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "cod-commission-and-debt-management;commission-calculation-is-accurate-for-various-amounts",
+        "keyword": "Scenario",
+        "line": 38,
+        "name": "Commission calculation is accurate for various amounts",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 8,
+            "name": "the platform commission rate is 15%",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:84"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 301800
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "the maximum debt threshold is -200 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:90"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 241700
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 10,
+            "name": "the warning debt threshold is -150 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:95"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 276799
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 39,
+            "name": "a driver with balance of 1000 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:104"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 13288700
+            }
+          },
+          {
+            "arguments": [
+              {
+                "rows": [
+                  {
+                    "cells": [
+                      "amount"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "50"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "100"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "200"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "333.33"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "keyword": "When ",
+            "line": 40,
+            "name": "the driver completes the following COD orders:",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:324"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 50248200
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 46,
+            "name": "the total commission should be 102.50 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:431"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 4148099
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 47,
+            "name": "the driver balance should be 897.50 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:416"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2366199
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 19045100
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "cod-commission-and-debt-management;driver-balance-goes-negative-creating-debt",
+        "keyword": "Scenario",
+        "line": 53,
+        "name": "Driver balance goes negative creating debt",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 8,
+            "name": "the platform commission rate is 15%",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:84"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 320999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "the maximum debt threshold is -200 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:90"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 265699
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 10,
+            "name": "the warning debt threshold is -150 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:95"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 280500
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 54,
+            "name": "a driver with balance of 10 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:104"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 17232500
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 55,
+            "name": "the driver completes a 100 EGP COD order",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:312"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 47676599
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 56,
+            "name": "the platform should deduct 15 EGP commission",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:422"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 622800
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 57,
+            "name": "the driver balance should be -5 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:416"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2033900
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 58,
+            "name": "the balance should be marked as debt",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:444"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 3535499
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 59,
+            "name": "the driver should still be able to accept orders",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:454"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2022799
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 14814900
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "cod-commission-and-debt-management;driver-accumulates-debt-from-multiple-orders",
+        "keyword": "Scenario",
+        "line": 61,
+        "name": "Driver accumulates debt from multiple orders",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 8,
+            "name": "the platform commission rate is 15%",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:84"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 283099
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "the maximum debt threshold is -200 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:90"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 237999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 10,
+            "name": "the warning debt threshold is -150 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:95"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 225699
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 62,
+            "name": "a driver with balance of 0 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:104"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 6530700
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 63,
+            "name": "the driver completes 5 COD orders of 100 EGP each",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:317"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 177474600
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 64,
+            "name": "the total commission should be 75 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:431"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 730199
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 65,
+            "name": "the driver balance should be -75 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:416"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2272399
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 66,
+            "name": "the driver should still be able to accept orders",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:454"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2301800
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 15503700
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "cod-commission-and-debt-management;driver-approaches-warning-threshold",
+        "keyword": "Scenario",
+        "line": 68,
+        "name": "Driver approaches warning threshold",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 8,
+            "name": "the platform commission rate is 15%",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:84"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 280600
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "the maximum debt threshold is -200 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:90"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 227700
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 10,
+            "name": "the warning debt threshold is -150 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:95"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 229899
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 69,
+            "name": "a driver with balance of 0 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:104"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 8668700
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 70,
+            "name": "the driver completes 10 COD orders of 100 EGP each",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:317"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 145868499
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 71,
+            "name": "the driver balance should be -150 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:416"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2274900
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 72,
+            "name": "the driver should receive a warning notification",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:476"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 3228100
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 73,
+            "name": "the warning should say \"Your balance is low. Please deposit funds to continue accepting orders.\"",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:781"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 3821899
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 74,
+            "name": "the driver should still be able to accept orders",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:454"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1614799
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 14921199
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "cod-commission-and-debt-management;driver-is-blocked-at-exact-debt-threshold",
+        "keyword": "Scenario",
+        "line": 80,
+        "name": "Driver is blocked at exact debt threshold",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 8,
+            "name": "the platform commission rate is 15%",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:84"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 290999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "the maximum debt threshold is -200 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:90"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 337499
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 10,
+            "name": "the warning debt threshold is -150 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:95"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 711400
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 81,
+            "name": "a driver with balance of 0 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:104"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 10187300
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 82,
+            "name": "the driver completes 13 COD orders of 100 EGP each",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:317"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 177889800
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 83,
+            "name": "the driver completes 1 COD order of 66.67 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:349"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 22114099
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 84,
+            "name": "the driver balance should be -200 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:416"
+            },
+            "result": {
+              "status": "failed",
+              "duration": 2700200,
+              "error_message": "AssertionError: expected -205 to be close to -200 +/- 0.01\n    at World.<anonymous> (D:\\matrix-delivery\\tests\\step_definitions\\cod_commission_steps.js:419:44)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)"
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 85,
+            "name": "the driver should NOT be able to accept new orders",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:466"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 86,
+            "name": "the driver should receive a critical notification",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:370"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 87,
+            "name": "the notification should say \"You cannot accept new orders until your balance is above -200 EGP\"",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:383"
+            },
+            "result": {
+              "status": "skipped",
+              "duration": 0
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 12948300
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "cod-commission-and-debt-management;driver-is-blocked-with-excessive-debt",
+        "keyword": "Scenario",
+        "line": 89,
+        "name": "Driver is blocked with excessive debt",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 8,
+            "name": "the platform commission rate is 15%",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:84"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 257300
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "the maximum debt threshold is -200 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:90"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 182999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 10,
+            "name": "the warning debt threshold is -150 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:95"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 455199
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 90,
+            "name": "a driver with balance of 0 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:104"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 5826500
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 91,
+            "name": "the driver completes 20 COD orders of 100 EGP each",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:317"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 273872999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 92,
+            "name": "the driver balance should be -300 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:416"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1610399
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 93,
+            "name": "the driver should NOT be able to accept new orders",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:466"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 7673499
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 94,
+            "name": "the error message should contain \"Balance (-300 EGP) below minimum threshold (-200 EGP)\"",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:389"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 6014600
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 50983400
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "cod-commission-and-debt-management;blocked-driver-cannot-accept-bid",
+        "keyword": "Scenario",
+        "line": 96,
+        "name": "Blocked driver cannot accept bid",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 8,
+            "name": "the platform commission rate is 15%",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:84"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 795999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "the maximum debt threshold is -200 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:90"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 412499
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 10,
+            "name": "the warning debt threshold is -150 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:95"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 239300
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 97,
+            "name": "a driver with balance of -250 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:104"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 12711500
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 98,
+            "name": "a customer creates an order worth 100 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:354"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 4486399
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 99,
+            "name": "the driver tries to accept the order",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:359"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 3673999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 100,
+            "name": "the bid acceptance should fail",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:366"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1856099
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 101,
+            "name": "the error should say \"Cannot accept order: Balance (-250 EGP) below minimum threshold (-200 EGP). Please deposit funds to continue accepting orders.\"",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:793"
+            },
+            "result": {
+              "status": "failed",
+              "duration": 9915500,
+              "error_message": "AssertionError: expected 'Cannot accept order: Balance (-250 EGΓÇª' to include 'cannot accept new orders'\n    at World.<anonymous> (D:\\matrix-delivery\\tests\\step_definitions\\cod_commission_steps.js:796:35)"
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 16863699
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "cod-commission-and-debt-management;driver-clears-debt-and-can-accept-orders-again",
+        "keyword": "Scenario",
+        "line": 107,
+        "name": "Driver clears debt and can accept orders again",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 8,
+            "name": "the platform commission rate is 15%",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:84"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 349400
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "the maximum debt threshold is -200 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:90"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 220599
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 10,
+            "name": "the warning debt threshold is -150 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:95"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 211900
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 108,
+            "name": "a driver with balance of -250 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:104"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 27359399
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 109,
+            "name": "the driver deposits 300 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:403"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 11834199
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 110,
+            "name": "the driver balance should be 50 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:416"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1933100
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 111,
+            "name": "the driver should be able to accept new orders",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:460"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 3097800
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 112,
+            "name": "no warning notifications should be shown",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:518"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 3381000
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 10416400
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "cod-commission-and-debt-management;driver-makes-partial-debt-payment",
+        "keyword": "Scenario",
+        "line": 114,
+        "name": "Driver makes partial debt payment",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 8,
+            "name": "the platform commission rate is 15%",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:84"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 327900
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "the maximum debt threshold is -200 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:90"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 329400
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 10,
+            "name": "the warning debt threshold is -150 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:95"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 246100
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 115,
+            "name": "a driver with balance of -150 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:104"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 16761000
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 116,
+            "name": "the driver deposits 100 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:403"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 11150899
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 117,
+            "name": "the driver balance should be -50 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:416"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1779900
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 118,
+            "name": "the driver should still be able to accept orders",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:454"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1818800
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 119,
+            "name": "no warning notifications should be shown",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:518"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1355400
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 8623599
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "cod-commission-and-debt-management;driver-clears-debt-exactly-to-threshold",
+        "keyword": "Scenario",
+        "line": 121,
+        "name": "Driver clears debt exactly to threshold",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 8,
+            "name": "the platform commission rate is 15%",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:84"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 238400
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "the maximum debt threshold is -200 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:90"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 172900
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 10,
+            "name": "the warning debt threshold is -150 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:95"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 167400
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 122,
+            "name": "a driver with balance of -200 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:104"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 10438100
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 123,
+            "name": "the driver deposits 1 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:403"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 5971300
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 124,
+            "name": "the driver balance should be -199 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:416"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1637700
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 125,
+            "name": "the driver should be able to accept new orders",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:460"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1540100
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 7673800
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "cod-commission-and-debt-management;driver-views-earnings-dashboard-with-cod-summary",
+        "keyword": "Scenario",
+        "line": 131,
+        "name": "Driver views earnings dashboard with COD summary",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 8,
+            "name": "the platform commission rate is 15%",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:84"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 237299
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "the maximum debt threshold is -200 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:90"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 197499
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 10,
+            "name": "the warning debt threshold is -150 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:95"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 168099
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 132,
+            "name": "a driver has completed 5 COD orders totaling 500 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:223"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 71527000
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 133,
+            "name": "the total commission deducted is 75 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:304"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1832699
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 134,
+            "name": "the driver's current balance is -25 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:290"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 5076400
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 135,
+            "name": "the driver views the balance dashboard",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:729"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1420799
+            }
+          },
+          {
+            "arguments": [
+              {
+                "rows": [
+                  {
+                    "cells": [
+                      "field",
+                      "value"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "Cash Collected",
+                      "500"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "Platform Commission (15%)",
+                      "-75"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "Net Earnings",
+                      "425"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "Current Balance",
+                      "-25 (Debt)"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "keyword": "Then ",
+            "line": 136,
+            "name": "the COD earnings section should show:",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:734"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 3054699
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 142,
+            "name": "no warning should be displayed",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:769"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 833400
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 9419200
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "cod-commission-and-debt-management;driver-views-earnings-with-warning",
+        "keyword": "Scenario",
+        "line": 144,
+        "name": "Driver views earnings with warning",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 8,
+            "name": "the platform commission rate is 15%",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:84"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 236800
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "the maximum debt threshold is -200 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:90"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 173200
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 10,
+            "name": "the warning debt threshold is -150 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:95"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 177999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 145,
+            "name": "a driver has completed 10 COD orders totaling 1000 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:223"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 131232899
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 146,
+            "name": "the driver's current balance is -150 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:290"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1557399
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 147,
+            "name": "the driver views the balance dashboard",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:729"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 126800
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 148,
+            "name": "a warning box should be displayed",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:774"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1284300
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 149,
+            "name": "the warning should say \"ΓÜá∩╕Å Your balance is low. Please deposit funds to continue accepting orders.\"",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:781"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 642299
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 11912699
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "cod-commission-and-debt-management;driver-views-earnings-when-blocked",
+        "keyword": "Scenario",
+        "line": 151,
+        "name": "Driver views earnings when blocked",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 8,
+            "name": "the platform commission rate is 15%",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:84"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 257200
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "the maximum debt threshold is -200 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:90"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 192399
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 10,
+            "name": "the warning debt threshold is -150 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:95"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 179000
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 152,
+            "name": "a driver has completed 20 COD orders totaling 2000 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:223"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 366171400
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 153,
+            "name": "the driver's current balance is -300 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:290"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1623999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 154,
+            "name": "the driver views the balance dashboard",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:729"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 130500
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 155,
+            "name": "an error box should be displayed",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:787"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1468499
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 156,
+            "name": "the error should say \"≡ƒÜ½ You cannot accept new orders until your balance is above -200 EGP.\"",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:793"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 607500
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 157,
+            "name": "a \"Deposit Now\" button should be visible",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:799"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2589799
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 16739199
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "cod-commission-and-debt-management;commission-deductions-appear-in-transaction-history",
+        "keyword": "Scenario",
+        "line": 163,
+        "name": "Commission deductions appear in transaction history",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 8,
+            "name": "the platform commission rate is 15%",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:84"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 238299
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "the maximum debt threshold is -200 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:90"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 172300
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 10,
+            "name": "the warning debt threshold is -150 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:95"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 299099
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 164,
+            "name": "a driver with balance of 100 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:104"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 14103500
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 165,
+            "name": "the driver completes a 100 EGP COD order",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:312"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 9952999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 166,
+            "name": "the driver views transaction history",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:810"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 3220999
+            }
+          },
+          {
+            "arguments": [
+              {
+                "rows": [
+                  {
+                    "cells": [
+                      "field",
+                      "value"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "type",
+                      "commission_deduction"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "amount",
+                      "-15"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "description",
+                      "Platform commission for order #[ORDER]"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "status",
+                      "completed"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "keyword": "Then ",
+            "line": 167,
+            "name": "the history should contain a transaction with:",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:698"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 4178700
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 13001599
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "cod-commission-and-debt-management;multiple-commission-deductions-are-tracked",
+        "keyword": "Scenario",
+        "line": 174,
+        "name": "Multiple commission deductions are tracked",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 8,
+            "name": "the platform commission rate is 15%",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:84"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 249300
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "the maximum debt threshold is -200 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:90"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 170500
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 10,
+            "name": "the warning debt threshold is -150 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:95"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 188200
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 175,
+            "name": "a driver completes 3 COD orders of 100 EGP each",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:257"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 74319400
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 176,
+            "name": "the driver views transaction history",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:810"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1863900
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 177,
+            "name": "there should be 3 commission_deduction transactions",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:822"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2410099
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 178,
+            "name": "each transaction should have amount -15 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:827"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 3124600
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 12301800
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "cod-commission-and-debt-management;very-small-commission-amount",
+        "keyword": "Scenario",
+        "line": 184,
+        "name": "Very small commission amount",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 8,
+            "name": "the platform commission rate is 15%",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:84"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 302599
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "the maximum debt threshold is -200 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:90"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 179399
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 10,
+            "name": "the warning debt threshold is -150 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:95"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 132399
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 185,
+            "name": "a driver with balance of 0 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:104"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 6045000
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 186,
+            "name": "the driver completes a 10 EGP COD order",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:312"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 19180100
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 187,
+            "name": "the platform should deduct 1.50 EGP commission",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:422"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 354699
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 188,
+            "name": "the driver balance should be -1.50 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:416"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2028800
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 11186700
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "cod-commission-and-debt-management;large-commission-amount",
+        "keyword": "Scenario",
+        "line": 190,
+        "name": "Large commission amount",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 8,
+            "name": "the platform commission rate is 15%",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:84"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 237499
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "the maximum debt threshold is -200 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:90"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 180999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 10,
+            "name": "the warning debt threshold is -150 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:95"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 164400
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 191,
+            "name": "a driver with balance of 0 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:104"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 6358400
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 192,
+            "name": "the driver completes a 1000 EGP COD order",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:312"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 14865599
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 193,
+            "name": "the platform should deduct 150 EGP commission",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:422"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 264799
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 194,
+            "name": "the driver balance should be -150 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:416"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1559799
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 195,
+            "name": "the driver should still be able to accept orders",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:454"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1729600
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 12327499
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "cod-commission-and-debt-management;zero-commission-(edge-case)",
+        "keyword": "Scenario",
+        "line": 197,
+        "name": "Zero commission (edge case)",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 8,
+            "name": "the platform commission rate is 15%",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:84"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 237600
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "the maximum debt threshold is -200 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:90"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 177599
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 10,
+            "name": "the warning debt threshold is -150 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:95"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 169100
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 198,
+            "name": "a driver with balance of 100 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:104"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 16524299
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 199,
+            "name": "the driver completes a 0 EGP COD order",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:312"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 7269199
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 200,
+            "name": "the platform should deduct 0 EGP commission",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:422"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 344700
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 201,
+            "name": "the driver balance should be 100 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:416"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2793500
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 6146699
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "cod-commission-and-debt-management;decimal-precision-in-commission-calculation",
+        "keyword": "Scenario",
+        "line": 203,
+        "name": "Decimal precision in commission calculation",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 8,
+            "name": "the platform commission rate is 15%",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:84"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 249200
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "the maximum debt threshold is -200 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:90"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 203400
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 10,
+            "name": "the warning debt threshold is -150 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:95"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 146800
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 204,
+            "name": "a driver with balance of 0 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:104"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 7140100
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 205,
+            "name": "the driver completes a 33.33 EGP COD order",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:312"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 26296999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 206,
+            "name": "the platform should deduct 5.00 EGP commission",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:422"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 400900
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 207,
+            "name": "the driver balance should be -5.00 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:416"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1868800
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 13955800
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "cod-commission-and-debt-management;typical-driver-workday",
+        "keyword": "Scenario",
+        "line": 213,
+        "name": "Typical driver workday",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 8,
+            "name": "the platform commission rate is 15%",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:84"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 223899
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "the maximum debt threshold is -200 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:90"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 153000
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 10,
+            "name": "the warning debt threshold is -150 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:95"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 144199
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 214,
+            "name": "a driver starts the day with balance of 50 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:147"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 14162900
+            }
+          },
+          {
+            "arguments": [
+              {
+                "rows": [
+                  {
+                    "cells": [
+                      "amount"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "80"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "120"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "95"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "150"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "75"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "110"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "85"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "130"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "90"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "100"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "keyword": "When ",
+            "line": 215,
+            "name": "the driver completes the following COD orders:",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:324"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 115205600
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 227,
+            "name": "the total cash collected should be 1035 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:435"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2000099
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 228,
+            "name": "the total commission should be 155.25 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:431"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 273300
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 229,
+            "name": "the net earnings should be 879.75 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:439"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1997900
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 230,
+            "name": "the driver balance should be -105.25 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:416"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1695099
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 231,
+            "name": "the driver should still be able to accept orders",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:454"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1432399
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 12176599
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "cod-commission-and-debt-management;driver-reaches-threshold,-deposits,-and-continues-working",
+        "keyword": "Scenario",
+        "line": 233,
+        "name": "Driver reaches threshold, deposits, and continues working",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 8,
+            "name": "the platform commission rate is 15%",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:84"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 249699
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "the maximum debt threshold is -200 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:90"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 184799
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 10,
+            "name": "the warning debt threshold is -150 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:95"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 227399
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 234,
+            "name": "a driver with balance of 0 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:104"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 7614399
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 235,
+            "name": "the driver completes 14 COD orders of 100 EGP each",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:317"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 168893399
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 236,
+            "name": "the driver balance should be -210 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:416"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2095599
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 237,
+            "name": "the driver should NOT be able to accept new orders",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:466"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1768800
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 239,
+            "name": "the driver deposits 250 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:403"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 6674899
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 240,
+            "name": "the driver balance should be 40 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:416"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1899600
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 241,
+            "name": "the driver should be able to accept new orders",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:460"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1313599
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 243,
+            "name": "the driver completes 3 more COD orders of 100 EGP each",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:332"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 37164999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 244,
+            "name": "the driver balance should be -5 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:416"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1627099
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 245,
+            "name": "the driver should still be able to accept orders",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:454"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1486499
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 13542400
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "cod-commission-and-debt-management;multiple-drivers-with-different-debt-levels",
+        "keyword": "Scenario",
+        "line": 247,
+        "name": "Multiple drivers with different debt levels",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 8,
+            "name": "the platform commission rate is 15%",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:84"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 243400
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "the maximum debt threshold is -200 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:90"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 167000
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 10,
+            "name": "the warning debt threshold is -150 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:95"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 161699
+            }
+          },
+          {
+            "arguments": [
+              {
+                "rows": [
+                  {
+                    "cells": [
+                      "driver_id",
+                      "balance"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "driver1",
+                      "100"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "driver2",
+                      "-50"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "driver3",
+                      "-150"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "driver4",
+                      "-250"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "keyword": "Given ",
+            "line": 248,
+            "name": "the following drivers:",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:183"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 45949899
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 254,
+            "name": "each driver tries to accept a new order",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:345"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1416299
+            }
+          },
+          {
+            "arguments": [
+              {
+                "rows": [
+                  {
+                    "cells": [
+                      "driver_id",
+                      "can_accept",
+                      "reason"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "driver1",
+                      "true",
+                      ""
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "driver2",
+                      "true",
+                      ""
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "driver3",
+                      "true",
+                      ""
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "driver4",
+                      "false",
+                      "Balance below minimum threshold (-200 EGP)"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "keyword": "Then ",
+            "line": 255,
+            "name": "the results should be:",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:614"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 6599899
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 31591600
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "cod-commission-and-debt-management;payment-record-is-created-with-correct-commission-split",
+        "keyword": "Scenario",
+        "line": 266,
+        "name": "Payment record is created with correct commission split",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 8,
+            "name": "the platform commission rate is 15%",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:84"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 235300
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "the maximum debt threshold is -200 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:90"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 163199
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 10,
+            "name": "the warning debt threshold is -150 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:95"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 170099
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 267,
+            "name": "a driver with balance of 0 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:104"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 5900599
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 268,
+            "name": "the driver completes a 200 EGP COD order",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:312"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 11067199
+            }
+          },
+          {
+            "arguments": [
+              {
+                "rows": [
+                  {
+                    "cells": [
+                      "field",
+                      "value"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "amount",
+                      "200"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "platform_fee",
+                      "30"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "driver_earnings",
+                      "170"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "payment_method",
+                      "cash"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "status",
+                      "completed"
+                    ]
+                  },
+                  {
+                    "cells": [
+                      "currency",
+                      "EGP"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "keyword": "Then ",
+            "line": 269,
+            "name": "a payment record should be created with:",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:595"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1547199
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 277,
+            "name": "the payment should be linked to the order",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:606"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1226899
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 278,
+            "name": "the payment should be linked to the driver",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:610"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1538499
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 11130100
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "cod-commission-and-debt-management;multiple-payments-maintain-correct-commission-tracking",
+        "keyword": "Scenario",
+        "line": 280,
+        "name": "Multiple payments maintain correct commission tracking",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 8,
+            "name": "the platform commission rate is 15%",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:84"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 228199
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "the maximum debt threshold is -200 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:90"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 171000
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 10,
+            "name": "the warning debt threshold is -150 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:95"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 169600
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 281,
+            "name": "a driver completes 5 COD orders of 100 EGP each",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:257"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 68411900
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 282,
+            "name": "the platform queries payment records for the driver",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:556"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 3371500
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 283,
+            "name": "there should be 5 payment records",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:566"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1302900
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 284,
+            "name": "each payment should have platform_fee of 15 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:570"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2426000
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 285,
+            "name": "each payment should have driver_earnings of 85 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:576"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2121000
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 286,
+            "name": "the total platform_fee should be 75 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:584"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1433399
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 287,
+            "name": "the total driver_earnings should be 425 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:589"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1753899
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 9256800
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "cod-commission-and-debt-management;warning-notification-sent-at-threshold",
+        "keyword": "Scenario",
+        "line": 293,
+        "name": "Warning notification sent at threshold",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 8,
+            "name": "the platform commission rate is 15%",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:84"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 233699
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "the maximum debt threshold is -200 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:90"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 161600
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 10,
+            "name": "the warning debt threshold is -150 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:95"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 157199
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 294,
+            "name": "a driver with balance of -140 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:104"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 9164899
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 295,
+            "name": "the driver completes a 100 EGP COD order",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:312"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 11919800
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 296,
+            "name": "the driver balance should be -155 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:416"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1714199
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 297,
+            "name": "a warning notification should be sent to the driver",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:539"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2325200
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 298,
+            "name": "the notification type should be \"balance_warning\"",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:488"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2607899
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 299,
+            "name": "the notification title should be \"Balance Alert\"",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:495"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2482299
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 8762400
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "cod-commission-and-debt-management;critical-notification-sent-when-blocked",
+        "keyword": "Scenario",
+        "line": 301,
+        "name": "Critical notification sent when blocked",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 8,
+            "name": "the platform commission rate is 15%",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:84"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 228599
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "the maximum debt threshold is -200 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:90"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 169399
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 10,
+            "name": "the warning debt threshold is -150 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:95"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 164999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 302,
+            "name": "a driver with balance of -190 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:104"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 10088399
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 303,
+            "name": "the driver completes a 100 EGP COD order",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:312"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 13743699
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 304,
+            "name": "the driver balance should be -205 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:416"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1580799
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 305,
+            "name": "a critical notification should be sent to the driver",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:506"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2530600
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 306,
+            "name": "the notification type should be \"balance_warning\"",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:488"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 794800
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 307,
+            "name": "the notification message should contain \"cannot accept new orders\"",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:499"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 3058899
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 14055900
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "cod-commission-and-debt-management;no-notification-when-balance-is-healthy",
+        "keyword": "Scenario",
+        "line": 309,
+        "name": "No notification when balance is healthy",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 8,
+            "name": "the platform commission rate is 15%",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:84"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 237900
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "the maximum debt threshold is -200 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:90"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 374299
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 10,
+            "name": "the warning debt threshold is -150 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:95"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 217699
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 310,
+            "name": "a driver with balance of 100 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:104"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 13564999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 311,
+            "name": "the driver completes a 100 EGP COD order",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:312"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 11698500
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 312,
+            "name": "the driver balance should be 85 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:416"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1851699
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 313,
+            "name": "no balance warning notification should be sent",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:528"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2047599
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 8767799
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "cod-commission-and-debt-management;verify-debt-management-configuration",
+        "keyword": "Scenario",
+        "line": 319,
+        "name": "Verify debt management configuration",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 8,
+            "name": "the platform commission rate is 15%",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:84"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 226000
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "the maximum debt threshold is -200 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:90"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 169100
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 10,
+            "name": "the warning debt threshold is -150 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:95"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 150899
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 320,
+            "name": "the system checks debt management settings",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:662"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1626999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 321,
+            "name": "the MAX_DEBT_THRESHOLD should be -200 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:670"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1612799
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 322,
+            "name": "the WARNING_THRESHOLD should be -150 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:674"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1403800
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 323,
+            "name": "BLOCK_NEW_ORDERS should be true",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:678"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 799799
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 324,
+            "name": "ALLOW_NEGATIVE_BALANCE should be true",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:682"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1509700
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 347600
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      },
+      {
+        "description": "",
+        "id": "cod-commission-and-debt-management;verify-commission-rate-configuration",
+        "keyword": "Scenario",
+        "line": 326,
+        "name": "Verify commission rate configuration",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 8,
+            "name": "the platform commission rate is 15%",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:84"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 156200
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "the maximum debt threshold is -200 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:90"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 168299
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 10,
+            "name": "the warning debt threshold is -150 EGP",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:95"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 90600
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 327,
+            "name": "the system checks commission settings",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:666"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 912400
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 328,
+            "name": "the COMMISSION_RATE should be 0.15",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:686"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1914200
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 329,
+            "name": "the COMMISSION_RATE_PERCENT should be 15",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:690"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1813999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 330,
+            "name": "the COD fee should be 0",
+            "match": {
+              "location": "step_definitions\\cod_commission_steps.js:694"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1470899
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 250500
+            }
+          }
+        ],
+        "tags": [],
+        "type": "scenario"
+      }
+    ],
+    "id": "cod-commission-and-debt-management",
+    "line": 1,
+    "keyword": "Feature",
+    "name": "COD Commission and Debt Management",
+    "tags": [],
+    "uri": "features\\cod-commission.feature"
+  }
+]
