@@ -97,7 +97,9 @@ matrix-delivery/
 
 #### TypeScript/JavaScript
 ```typescript
-// ✅ Use TypeScript for new components
+// ✅ CRITICAL: Always prefer TypeScript (.ts/.tsx) for NEW files
+// Use JavaScript (.js) only when editing existing legacy files.
+
 interface BalanceProps {
   userId: number;
   userRole: 'customer' | 'driver';
@@ -109,17 +111,26 @@ const BalanceDashboard: React.FC<BalanceProps> = ({ userId, userRole }) => {
   // ...
 };
 
-// ✅ Destructure props
-const MyComponent = ({ title, onClose }) => { ... }
-
-// ❌ Avoid class components for new code
+// ...
 ```
 
 #### File Naming
-- Components: `PascalCase.tsx` (e.g., `BalanceDashboard.tsx`)
-- Hooks: `camelCase.ts` with `use` prefix (e.g., `useBalance.ts`)
+- Components: `PascalCase.tsx`
+- Hooks: `camelCase.ts`
 - Tests: `ComponentName.test.tsx`
 - Utilities: `camelCase.ts`
+
+---
+
+## 🤖 Agent Communication Standards
+
+When generating responses, Agents must:
+1.  **Header**: Start every response with the Model Name and Date/Time on a separate line.
+    *   Example: `Model: Claude 3.5 Sonnet | Date: 2025-12-22 10:00:00`
+2.  **Conciseness**: Keep artifacts and summaries brief.
+3.  **Transparency**: Explicitly state tool usage and rationale.
+
+---
 
 #### Component Structure
 ```tsx
@@ -220,6 +231,38 @@ npm test -- --coverage
 # Watch mode
 npm test -- --watch
 ```
+
+---
+
+## 🧪 BDD Dual-Mode Testing Strategy
+
+We follow a **BDD-First** approach where every feature is defined in Gherkin first, then implemented and tested in two modes:
+
+### 1. Structure
+```
+tests/features/*.feature          # Source of truth (Behavior)
+tests/step_definitions/
+├── backend/                      # Integration Tests
+│   └── *_steps.js                # Direct Service/DB calls
+└── frontend/                     # UI Automation Tests
+    └── *_steps.js                # Playwright Browser Automation
+```
+
+### 2. Workflow
+1.  **Define Feature**: Create/Update `tests/features/my_feature.feature`.
+2.  **Implement Backend**: Write `tests/step_definitions/backend/my_feature_steps.js`.
+    *   Goal: Verify business logic, DB constraints, and API responses.
+    *   Run: `npx cucumber-js -p backend`
+3.  **Implement Frontend**: Write `tests/step_definitions/frontend/my_feature_steps.js`.
+    *   Goal: Verify UI flows, dashboard rendering, and user notifications.
+    *   Run: `npx cucumber-js -p frontend`
+
+### 3. Mandates
+*   **Dual Coverage**: All new features MUST have both backend and frontend step definitions.
+*   **Shared Feature Files**: Do NOT create separate feature files for backend vs frontend. The *same* scenarios must run in both modes.
+*   **Mocking**:
+    *   Backend steps should interact with the *real* test database.
+    *   Frontend steps should ideally use the same test database or mock API responses if necessary (prefer full stack testing when possible).
 
 ---
 
@@ -421,8 +464,103 @@ Examples:
 2. **I18n Readiness** - Ensure all components use test IDs
 3. **Test Coverage** - Achieve 85% backend, 80% frontend coverage
 4. **Security** - httpOnly cookies, input validation
-5. **Performance** - Optimize balance calculations and queries
-6. **Documentation** - Keep README and AGENTS.md updated
+5. **Performance** - Optimize database queries, lazy loading
+6. **Documentation** - Keep this file updated as the project evolves
+
+---
+
+## 📚 Learning Resources
+
+### Free Learning Library
+
+We maintain a comprehensive collection of **100% FREE learning resources** for mastering this project:
+
+**Quick Access**:
+- ⭐ **[INTENSIVE STUDY PLAN](file:///d:/matrix-delivery/docs/INTENSIVE_STUDY_PLAN.md)** - 8h/day, 21-day program
+- 📖 [Complete Free Resources Guide](file:///d:/matrix-delivery/docs/FREE_RESOURCES_ONLY.md)
+- 📥 [Download Script](file:///d:/matrix-delivery/scripts/download-free-learning-resources.ps1)
+- 📋 [All Resources (Paid + Free)](file:///d:/matrix-delivery/docs/CLEAN_CODE_STARTUP_RESOURCES.md)
+- 📚 [Docs README](file:///d:/matrix-delivery/docs/README.md)
+
+### Download All Resources
+
+Run this command to download ~2-3 GB of free learning materials:
+
+```powershell
+cd d:\matrix-delivery\scripts
+.\download-free-learning-resources.ps1
+```
+
+**What You'll Get** ($500+ value, 100% FREE):
+- 🔐 **Security Engineering** (1,000-page textbook)
+- 🧪 **BDD/TDD** (Cucumber, Jest, Testing Best Practices)
+- 📚 **Clean Code** (JavaScript, TypeScript, Refactoring)
+- 📊 **Project Management** (Shape Up, Getting Real, Scrum)
+- 🚀 **Startup Resources** (Indie Hackers, YC Startup School)
+- 📖 **Node.js/JavaScript** (You Don't Know JS, Best Practices)
+- ⚛️ **React** (Official Docs, TypeScript Cheatsheet)
+- 🏗️ **Architecture** (System Design Primer, Design Patterns)
+- 🗄️ **PostgreSQL** (Official Docs, Awesome Postgres)
+- 📚 **1,000+ Free Programming Books**
+
+### Recommended Learning Path
+
+**Month 1: Security & Testing** (Critical for production)
+1. OWASP Top 10 + API Security Top 10
+2. Security Engineering (Chapters 1-5)
+3. Cucumber Documentation
+4. JavaScript Testing Best Practices
+5. Practice: OWASP Juice Shop
+
+**Month 2: Code Quality & Architecture**
+1. Clean Code JavaScript + TypeScript
+2. You Don't Know JS (Scope, this, Async)
+3. TypeScript Deep Dive
+4. System Design Primer
+5. Node.js Best Practices
+
+**Month 3: Project Management & Growth**
+1. Shape Up (6-week cycles)
+2. Getting Real (Lean development)
+3. React Documentation
+4. Indie Hackers (Founder stories)
+5. Apply: Implement learnings in Matrix Delivery
+
+### Key Resources by Topic
+
+**For Current BDD Refactoring**:
+- Cucumber Official Docs
+- JavaScript Testing Best Practices
+- Jest Documentation
+- Playwright Documentation
+
+**For Security Hardening**:
+- OWASP Cheat Sheet Series
+- Security Engineering (Free PDF)
+- Node.js Security Best Practices
+- OWASP Testing Guide
+
+**For TypeScript Migration**:
+- TypeScript Deep Dive (Free book)
+- Clean Code TypeScript
+- React TypeScript Cheatsheet
+
+**For Solo Development**:
+- Shape Up (Project management)
+- Indie Hackers (Revenue strategies)
+- Startup School (Product-market fit)
+
+### Study Tips
+
+1. **Daily Habit**: 1 hour/day = complete in 3 months
+2. **Apply Immediately**: Implement learnings in this codebase
+3. **Use Obsidian**: Organize notes and create knowledge graph
+4. **Practice**: Use OWASP Juice Shop for security testing
+5. **Community**: Join Indie Hackers, r/webdev, r/node
+
+---
+
+*Last Updated: 2025-12-22*
 
 ---
 

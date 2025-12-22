@@ -127,7 +127,7 @@ export class BalanceService implements IBalanceService {
                 lifetimeWithdrawals: parseFloat(row.lifetimeWithdrawals) || 0,
                 lifetimeEarnings: parseFloat(row.lifetimeEarnings) || 0,
             };
-        } catch (error) {
+        } catch (error: any) {
             logger.error('Error getting balance', { userId, error: error.message });
             throw error;
         }
@@ -189,7 +189,7 @@ export class BalanceService implements IBalanceService {
                 lifetimeWithdrawals: parseFloat(row.lifetimeWithdrawals) || 0,
                 lifetimeEarnings: parseFloat(row.lifetimeEarnings) || 0,
             };
-        } catch (error) {
+        } catch (error: any) {
             logger.error('Error creating balance', { userId, currency, error: error.message });
             throw error;
         }
@@ -280,7 +280,7 @@ export class BalanceService implements IBalanceService {
                 transaction,
                 balance: updatedBalance,
             };
-        } catch (error) {
+        } catch (error: any) {
             await client.query('ROLLBACK');
             logger.error('Deposit failed', { dto, error: error.message });
             throw error;
@@ -382,7 +382,7 @@ export class BalanceService implements IBalanceService {
                 transaction,
                 balance: updatedBalance,
             };
-        } catch (error) {
+        } catch (error: any) {
             await client.query('ROLLBACK');
             logger.error('Withdrawal failed', { dto, error: error.message });
             throw error;
@@ -460,7 +460,7 @@ export class BalanceService implements IBalanceService {
                 transaction,
                 balance: updatedBalance,
             };
-        } catch (error) {
+        } catch (error: any) {
             await client.query('ROLLBACK');
             logger.error('Order payment failed', { dto, error: error.message });
             throw error;
@@ -524,7 +524,7 @@ export class BalanceService implements IBalanceService {
                 transaction,
                 balance: updatedBalance,
             };
-        } catch (error) {
+        } catch (error: any) {
             await client.query('ROLLBACK');
             logger.error('Order refund failed', { dto, error: error.message });
             throw error;
@@ -593,7 +593,7 @@ export class BalanceService implements IBalanceService {
                 transaction,
                 balance: updatedBalance,
             };
-        } catch (error) {
+        } catch (error: any) {
             await client.query('ROLLBACK');
             logger.error('Credit earnings failed', { dto, error: error.message });
             throw error;
@@ -637,7 +637,7 @@ export class BalanceService implements IBalanceService {
                     balance: currentBalance.availableBalance
                 });
                 return {
-                    transaction: null,
+                    transaction: null as any,
                     balance: currentBalance
                 };
             }
@@ -725,7 +725,7 @@ export class BalanceService implements IBalanceService {
                         `Your balance (${balanceAfter} EGP) has reached the maximum debt limit (${maxThreshold} EGP). You cannot accept new orders.`
                     );
                 }
-            } catch (noteError) {
+            } catch (noteError: any) {
                 logger.error('Failed to send balance notification', { error: noteError.message });
                 // Don't fail the transaction just because notification failed
             }
@@ -734,7 +734,7 @@ export class BalanceService implements IBalanceService {
                 transaction,
                 balance: updatedBalance,
             };
-        } catch (error) {
+        } catch (error: any) {
             await client.query('ROLLBACK');
             logger.error('Commission deduction failed', { driverId, orderId, commission, error: error.message });
             throw error;
@@ -776,7 +776,7 @@ export class BalanceService implements IBalanceService {
                 currentBalance: balance.availableBalance,
                 debtThreshold: threshold,
             };
-        } catch (error) {
+        } catch (error: any) {
             logger.error('Error checking if driver can accept orders', { driverId, error: error.message });
             throw error;
         }
@@ -872,7 +872,7 @@ export class BalanceService implements IBalanceService {
                 hold,
                 balance: updatedBalance,
             };
-        } catch (error) {
+        } catch (error: any) {
             await client.query('ROLLBACK');
             logger.error('Create hold failed', { dto, error: error.message });
             throw error;
@@ -961,7 +961,7 @@ export class BalanceService implements IBalanceService {
                 hold: updatedHold,
                 balance: updatedBalance,
             };
-        } catch (error) {
+        } catch (error: any) {
             await client.query('ROLLBACK');
             logger.error('Release hold failed', { holdId, error: error.message });
             throw error;
@@ -1048,7 +1048,7 @@ export class BalanceService implements IBalanceService {
                 transaction,
                 balance: updatedBalance,
             };
-        } catch (error) {
+        } catch (error: any) {
             await client.query('ROLLBACK');
             logger.error('Capture hold failed', { holdId, error: error.message });
             throw error;
@@ -1161,7 +1161,7 @@ export class BalanceService implements IBalanceService {
                 balanceBefore: parseFloat(row.balanceBefore) || 0,
                 balanceAfter: parseFloat(row.balanceAfter) || 0,
             }));
-        } catch (error) {
+        } catch (error: any) {
             logger.error('Error getting transaction history', { filters, error: error.message });
             throw error;
         }
@@ -1241,7 +1241,7 @@ export class BalanceService implements IBalanceService {
                 transactions,
                 currency: balance.currency,
             };
-        } catch (error) {
+        } catch (error: any) {
             logger.error('Error getting balance statement', { request, error: error.message });
             throw error;
         }
@@ -1293,7 +1293,7 @@ export class BalanceService implements IBalanceService {
                 byStatus: byStatus as any,
                 currency: balance.currency,
             };
-        } catch (error) {
+        } catch (error: any) {
             logger.error('Error getting transaction summary', { userId, error: error.message });
             throw error;
         }
@@ -1314,7 +1314,7 @@ export class BalanceService implements IBalanceService {
         try {
             const balance = await this.getBalance(userId);
             return balance.availableBalance >= amount;
-        } catch (error) {
+        } catch (error: any) {
             logger.error('Error validating balance', { userId, amount, error: error.message });
             return false;
         }
@@ -1391,7 +1391,7 @@ export class BalanceService implements IBalanceService {
                 errors,
                 warnings,
             };
-        } catch (error) {
+        } catch (error: any) {
             logger.error('Error validating withdrawal limits', { userId, amount, error: error.message });
             return {
                 isValid: false,
@@ -1428,7 +1428,7 @@ export class BalanceService implements IBalanceService {
             logger.warn('Balance frozen', { userId, reason, adminId });
 
             return this.getBalance(userId);
-        } catch (error) {
+        } catch (error: any) {
             logger.error('Error freezing balance', { userId, reason, error: error.message });
             throw error;
         }
@@ -1456,7 +1456,7 @@ export class BalanceService implements IBalanceService {
             logger.info('Balance unfrozen', { userId, adminId });
 
             return this.getBalance(userId);
-        } catch (error) {
+        } catch (error: any) {
             logger.error('Error unfreezing balance', { userId, error: error.message });
             throw error;
         }
@@ -1524,9 +1524,9 @@ export class BalanceService implements IBalanceService {
                 transaction,
                 balance: updatedBalance,
             };
-        } catch (error) {
+        } catch (error: any) {
             await client.query('ROLLBACK');
-            logger.error('Balance adjustment failed', { userId, amount, reason, error: error.message });
+            logger.error('Balance adjustment failed', { userId, amount, reason, error: (error as Error).message });
             throw error;
         } finally {
             client.release();
