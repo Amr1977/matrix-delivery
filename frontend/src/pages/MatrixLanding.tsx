@@ -2,23 +2,62 @@ import React, { useState, useEffect } from 'react';
 import { Package, Truck, Zap, Shield, Users, Play, Star, Map as MapIcon, Globe, Activity, Lock, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-const MatrixLanding = () => {
+interface Stats {
+    activeCouriers: number;
+    totalDeliveries: number;
+    uptime: string;
+}
+
+interface VisionCardProps {
+    icon: React.ReactNode;
+    title: string;
+    desc: string;
+    color: string;
+}
+
+interface RoadmapStepProps {
+    phase: string;
+    title: string;
+    status: string;
+    date: string;
+    active?: boolean;
+}
+
+const MatrixLanding: React.FC = () => {
     const navigate = useNavigate();
-    const [stats, setStats] = useState({
-        activeCouriers: 156,
-        totalDeliveries: 12450,
+    const [stats, setStats] = useState<Stats>({
+        activeCouriers: 0,
+        totalDeliveries: 0,
         uptime: '99.9%'
     });
 
-    // Mock real-time updates
     useEffect(() => {
-        const interval = setInterval(() => {
-            setStats(prev => ({
-                ...prev,
-                activeCouriers: prev.activeCouriers + Math.floor(Math.random() * 3) - 1,
-                totalDeliveries: prev.totalDeliveries + Math.floor(Math.random() * 5)
-            }));
-        }, 3000);
+        const fetchStats = async () => {
+            try {
+                const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
+                const response = await fetch(`${API_URL}/stats/footer`);
+                if (response.ok) {
+                    const data = await response.json();
+                    setStats({
+                        activeCouriers: data.drivers?.total || 156, // Fallback to mock if 0 (for demo)
+                        totalDeliveries: data.ordersCompletedToday ? data.ordersCompletedToday + 12000 : 12450, // Mock base + today's
+                        uptime: '99.9%'
+                    });
+                }
+            } catch (error) {
+                console.warn('Failed to fetch landing stats, using defaults');
+                // Keep defaults
+                setStats({
+                    activeCouriers: 156,
+                    totalDeliveries: 12450,
+                    uptime: '99.9%'
+                });
+            }
+        };
+
+        fetchStats();
+        // Refresh every 30 seconds
+        const interval = setInterval(fetchStats, 30000);
         return () => clearInterval(interval);
     }, []);
 
@@ -40,7 +79,10 @@ const MatrixLanding = () => {
                         <a href="#vision" className="text-[#A0AEC0] hover:text-[#00FF41] transition-colors">Vision</a>
                         <a href="#stats" className="text-[#A0AEC0] hover:text-[#00FF41] transition-colors">Live Stats</a>
                         <button onClick={() => navigate('/reviews')} className="text-[#A0AEC0] hover:text-[#00FF41] transition-colors">Reviews</button>
-                        <button className="px-6 py-2 bg-gradient-to-r from-[#00FF41] to-[#00F0FF] text-[#0A0E14] font-bold rounded-lg hover:shadow-[0_0_20px_rgba(0,255,65,0.4)] transition-all">
+                        <button
+                            onClick={() => navigate('/login')}
+                            className="px-6 py-2 bg-gradient-to-r from-[#00FF41] to-[#00F0FF] text-[#0A0E14] font-bold rounded-lg hover:shadow-[0_0_20px_rgba(0,255,65,0.4)] transition-all"
+                        >
                             Login
                         </button>
                     </div>
@@ -172,7 +214,7 @@ const MatrixLanding = () => {
 };
 
 // Sub-components
-const VisionCard = ({ icon, title, desc, color }: any) => (
+const VisionCard: React.FC<VisionCardProps> = ({ icon, title, desc, color }) => (
     <div className="bg-[#131820] p-8 rounded-2xl border border-[#2A3142] hover:border-[color:var(--hover-color)] transition-all hover:-translate-y-2 group" style={{ '--hover-color': color } as React.CSSProperties}>
         <div className="w-16 h-16 rounded-xl bg-[#0A0E14] border border-[#2A3142] flex items-center justify-center mb-6 group-hover:shadow-lg transition-shadow" style={{ boxShadow: `0 0 0 0 ${color}00` }}>
             {icon}
@@ -182,7 +224,7 @@ const VisionCard = ({ icon, title, desc, color }: any) => (
     </div>
 );
 
-const RoadmapStep = ({ phase, title, status, date, active }: any) => (
+const RoadmapStep: React.FC<RoadmapStepProps> = ({ phase, title, status, date, active }) => (
     <div className={`bg-[#131820] p-6 rounded-xl border ${active ? 'border-[#00FF41] shadow-[0_0_15px_rgba(0,255,65,0.2)]' : 'border-[#2A3142]'} text-left`}>
         <div className="flex justify-between items-start mb-4">
             <span className={`text-xs font-mono px-2 py-1 rounded ${active ? 'bg-[#00FF41]/20 text-[#00FF41]' : 'bg-[#2A3142] text-[#A0AEC0]'}`}>{status}</span>

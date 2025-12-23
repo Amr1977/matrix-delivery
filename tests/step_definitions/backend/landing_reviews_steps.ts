@@ -1,4 +1,4 @@
-import { Given, When, Then, After } from '@cucumber/cucumber';
+import { Given, When, Then, After, AfterAll } from '@cucumber/cucumber';
 console.log('✅ Loading Step Definitions file: landing_reviews_steps.ts');
 // @ts-ignore
 import request from 'supertest';
@@ -7,9 +7,10 @@ import { expect } from 'chai';
 import app from '../../../backend/server'; // Point this to your express app
 // @ts-ignore
 import pool from '../../../backend/config/db';
+import bcrypt from 'bcryptjs';
 
 let response: any;
-let token: string;
+let authCookie: any;
 let userId: string;
 
 // Helper to clear DB
@@ -17,6 +18,13 @@ After(async () => {
     // Clean up reviews and users created during tests
     await pool.query('DELETE FROM reviews WHERE content LIKE \'%test%\' OR content = \'The system delivers freedom!\'');
     await pool.query('DELETE FROM users WHERE email LIKE \'%@test.com\'');
+});
+
+// Close pool after all tests
+AfterAll(async () => {
+    if (pool) {
+        await pool.end();
+    }
 });
 
 // --- GO GIVEN STEPS ---
@@ -33,10 +41,11 @@ Given('I am a registered user named {string}', async function (name: string) {
     const userRes = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     if (userRes.rows.length === 0) {
         // Create user
+        const hashedPassword = await bcrypt.hash('password123', 10);
         const insertRes = await pool.query(
-            `INSERT INTO users (name, email, password, role, is_verified) 
-             VALUES ($1, $2, 'password123', 'customer', true) RETURNING id`,
-            [name, email]
+            `INSERT INTO users (id, name, email, password_hash, phone, primary_role, is_verified) 
+             VALUES ($1, $2, $3, $4, '1234567890', 'customer', true) RETURNING id`,
+            [`user-${Date.now()}-${Math.floor(Math.random() * 1000)}`, name, email, hashedPassword]
         );
         userId = insertRes.rows[0].id;
     } else {
@@ -57,8 +66,7 @@ Given('I have logged in', async function () {
 
     // Depending on how your app returns token (cookie or body)
     // Adjust based on your Auth implementation
-    token = loginRes.body.token || (loginRes.headers['set-cookie'] ? 'cookie-session' : null);
-    // Note: If using httpOnly cookies, we need to persist the cookie in the agent
+    authCookie = loginRes.headers['set-cookie'];
 });
 
 Given('there are existing reviews with upvotes', async function () {
@@ -78,7 +86,8 @@ Given('there are existing reviews with different upvotes', async function () {
     const userRes = await pool.query('SELECT id FROM users LIMIT 1');
     let uId;
     if (userRes.rows.length === 0) {
-        const newU = await pool.query(`INSERT INTO users (name, email, password, role) VALUES ('Seeder', 'seeder@test.com', 'pass', 'customer') RETURNING id`);
+        const hashedPassword = await bcrypt.hash('pass', 10);
+        const newU = await pool.query(`INSERT INTO users (id, name, email, password_hash, phone, primary_role) VALUES ($1, 'Seeder', 'seeder@test.com', $2, '1234567890', 'customer') RETURNING id`, [`user-${Date.now()}`, hashedPassword]);
         uId = newU.rows[0].id;
     } else {
         uId = userRes.rows[0].id;
@@ -104,7 +113,8 @@ Given('there is a review by {string}', async function (userName: string) {
     const uRes = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
 
     if (uRes.rows.length === 0) {
-        const newU = await pool.query(`INSERT INTO users (name, email, password, role) VALUES ($1, $2, 'pass', 'customer') RETURNING id`, [userName, email]);
+        const hashedPassword = await bcrypt.hash('pass', 10);
+        const newU = await pool.query(`INSERT INTO users (id, name, email, password_hash, phone, primary_role) VALUES ($1, $2, $3, $4, '1234567890', 'customer') RETURNING id`, [`user-${Date.now()}`, userName, email, hashedPassword]);
         uId = newU.rows[0].id;
     } else {
         uId = uRes.rows[0].id;
@@ -119,7 +129,8 @@ Given('there is a review by {string} with comment {string}', async function (use
     let uId;
     const uRes = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
     if (uRes.rows.length === 0) {
-        const newU = await pool.query(`INSERT INTO users (name, email, password, role) VALUES ($1, $2, 'pass', 'customer') RETURNING id`, [userName, email]);
+        const hashedPassword = await bcrypt.hash('pass', 10);
+        const newU = await pool.query(`INSERT INTO users (id, name, email, password_hash, phone, primary_role) VALUES ($1, $2, $3, $4, '1234567890', 'customer') RETURNING id`, [`user-${Date.now()}`, userName, email, hashedPassword]);
         uId = newU.rows[0].id;
     } else {
         uId = uRes.rows[0].id;
@@ -132,7 +143,8 @@ Given('there is a review by {string} with {int} existing flags', async function 
     let uId;
     const uRes = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
     if (uRes.rows.length === 0) {
-        const newU = await pool.query(`INSERT INTO users (name, email, password, role) VALUES ($1, $2, 'pass', 'customer') RETURNING id`, [userName, email]);
+        const hashedPassword = await bcrypt.hash('pass', 10);
+        const newU = await pool.query(`INSERT INTO users (id, name, email, password_hash, phone, primary_role) VALUES ($1, $2, $3, $4, '1234567890', 'customer') RETURNING id`, [`user-${Date.now()}`, userName, email, hashedPassword]);
         uId = newU.rows[0].id;
     } else {
         uId = uRes.rows[0].id;
@@ -153,7 +165,7 @@ When('I visit the Matrix Landing Page', async function () {
 When('I submit a review with rating {int} and comment {string}', async function (rating: number, comment: string) {
     response = await request(app)
         .post('/api/reviews')
-        .set('Authorization', `Bearer ${token}`) // Adjust based on Auth
+        .set('Cookie', authCookie) // Use cookie for auth
         .send({ rating, content: comment });
 });
 
@@ -167,7 +179,7 @@ When('I upvote the review by {string}', async function (userName: string) {
 
     response = await request(app)
         .post(`/api/reviews/${reviewId}/vote`)
-        .set('Authorization', `Bearer ${token}`);
+        .set('Cookie', authCookie);
 });
 
 When('I report the review by {string}', async function (userName: string) {
@@ -177,10 +189,10 @@ When('I report the review by {string}', async function (userName: string) {
     `, [email]);
     const reviewId = rRes.rows[0].id;
 
-    // Assuming endpoint /api/reviews/:id/flag exists (need to implement)
     response = await request(app)
         .post(`/api/reviews/${reviewId}/flag`)
-        .set('Authorization', `Bearer ${token}`);
+        .set('Cookie', authCookie)
+        .send({ reason: 'Spam' });
 });
 
 // --- THEN STEPS ---
@@ -194,8 +206,20 @@ Then('I should see the Hero section with slogan {string}', function (slogan: str
 
 Then('I should see the "Live Matrix" real-time statistics', async function () {
     // Check if stats API is reachable
-    const res = await request(app).get('/api/stats');
-    // expect(res.status).to.equal(200);   
+    const res = await request(app).get('/api/stats/footer');
+    expect(res.status).to.equal(200);
+    expect(res.body).to.have.property('activeOrders');
+});
+
+When('I click the "Login" button', function () {
+    // Backend: No-op or check if login endpoint is up
+});
+
+Then('I should be navigated to the Login page', async function () {
+    // Backend: Check if login endpoint exists (POST /api/auth/login)
+    // Sending empty body should return 400, confirming endpoint is up
+    const res = await request(app).post('/api/auth/login').send({});
+    expect(res.status).to.equal(400);
 });
 
 Then('I should see the "Vision" section with {string}, {string}, {string}, {string}', function (v1: string, v2: string, v3: string, v4: string) {
@@ -211,6 +235,10 @@ Then('I should see the "Global Roadmap" section', function () {
 });
 
 Then('the review should be saved successfully', function () {
+    if (response.status !== 201) {
+        console.log('❌ Review submission failed. Status:', response.status);
+        console.log('❌ Response body:', JSON.stringify(response.body, null, 2));
+    }
     expect(response.status).to.equal(201);
     expect(response.body).to.have.property('id');
 });
