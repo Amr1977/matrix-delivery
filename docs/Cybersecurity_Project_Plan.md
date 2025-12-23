@@ -7,49 +7,52 @@
 
 ---
 
-## 🛡️ Part 1: The "Income-First" Cybersecurity Roadmap (4 Hrs/Day)
+## 🛡️ Part 1: The "Income-First" Cybersecurity Roadmap (12 Hrs/Day - INTENSE)
 
-**Strategy:** Don't start from zero. Leverage your QA Automation skills to dominate **Web Application Security** and **DevSecOps**. This is the fastest route to "Learn & Earn".
+**Strategy:** You have 12 hours a day. We will split this into **3 Blocks of 4 Hours**. This allows you to compress 1 year of learning into 3-4 months.
 
-### 🗓️ Phase 1: The "Bug Hunter" & Automated Security Engineer (Months 1-3)
-**Goal:** Earn first $ from Bug Bounties & Freelance Audits.
-**Focus:** Web Security (OWASP Top 10), Automating Attacks (Python/Bash).
+### 🗓️ Phase 1: The "Fast Track" Bug Hunter (Months 1-2)
+**Goal:** First Bounty / Freelance Gig within 60 days.
+**Daily Schedule (12 Hours):**
 
-*   **Daily Routine (4 Hours):**
-    *   **Hour 1 (Theory):** **PortSwigger Web Security Academy** (The standard for web hacking).
-        *   *Action:* Complete the "Apprentice" and "Practitioner" labs for SQLi, XSS, IDOR.
-    *   **Hour 2 (Practice):** **HackerOne / Bugcrowd**.
-        *   *Action:* Don't look for paid bounties yet. Join "Vulnerability Disclosure Programs" (VDPs) that offer "Points" or "Swag". Lower competition, great for building a resume/portfolio.
-    *   **Hour 3-4 (Automation/QA Integration - YOUR EDGE):**
-        *   *Action:* Write scripts to **automate** the attacks you learn. Use your QA skills.
-        *   *Project:* Build a "Security Regression Suite" for *Matrix Delivery* using Selenium/Playwright + OWASP ZAP API.
+*   **🌅 Block 1: Deep Learning & Certification (08:00 - 12:00)**
+    *   **Focus:** **PortSwigger Web Security Academy** & **eJPTv2** content.
+    *   *Action:* Don't just watch. Execute. If you learn about XSS, spend 2 hours *only* doing XSS labs.
+    *   *Target:* Complete 1 entire "Topic" (e.g., SQLi) every 2 days.
+
+*   **☀️ Block 2: Hands-on Hunting & Income Generation (13:00 - 17:00)**
+    *   **Focus:** **HackerOne / Bugcrowd VDPs** & **Freelance Setup**.
+    *   *Action:* Pick ONE program. Spend 4 hours reconning it.
+    *   *Monetization:* Create Upwork profile. "I will secure your React App". Apply to 5 gigs daily using your QA/Dev background as proof of competence.
+
+*   **End of Day Block 3: Project Building & "Matrix Delivery" (18:00 - 22:00)**
+    *   **Focus:** **Launch & Secure Your Own Products**.
+    *   *Action:* Migrate Matrix Delivery to **Render/Supabase** (See Part 2).
+    *   *Security:* Run the attacks you learned in Block 1 against *Matrix Delivery*. Fix them. Write a report. **This is your Portfolio.**
 
 **💰 Income Source:**
 *   **Freelance (Upwork/Fiverr):** "I will setup Automated Security Scanning (DAST) for your web app CI/CD." (Leverage your QA background!).
 *   **Bug Bounties:** Small payouts ($100-$500) from low-hanging fruit.
 
-### 🗓️ Phase 2: Professional Pentester & Certifications (Months 4-8)
-**Goal:** Certified Professional + Regular Contract Work.
-**Focus:** Network Security, Privilege Escalation, Active Directory.
+### 🗓️ Phase 2: Professional Pentester & Aggressive Growth (Months 3-5)
+**Goal:** Full-Time Equivalent Income ($2k+/mo) from Bounties/Contracting.
+**Status:** You are now applying for "Junior Pentester" or "AppSec Engineer" jobs.
 
-*   **Certifications (Choice):**
-    *   **Option A (Fastest ROI):** **eJPTv2** (eLearnSecurity Junior Penetration Tester). Practical, easy to pass, builds confidence. (~$250)
-    *   **Option B (Gold Standard):** **OSCP** (OffSec Certified Professional). Harder, expensive (~$1600), but guarantees a job. *Start studying for this now, take exam later.*
-    *   **Recommendation:** Skip CEH (it's expensive and less respected for *skills*). Do **PortSwigger (BSCP)** or **eJPT** first.
+*   **Daily Schedule (12 Hours):**
+    *   **Block 1:** **OSCP Prep (OffSec)**. 4 hours deep dive into the PEN-200 course.
+    *   **Block 2:** **HackTheBox Pro Labs**. Simulate real corporate networks.
+    *   **Block 3:** **Active Income:** Freelance auditing + Bug Bounties. Treat this as your job now.
 
-*   **Daily Routine (4 Hours):**
-    *   **Hour 1-2:** **HackTheBox (HTB)**. Complete the "Starting Point" and "CPTS" learning paths.
-    *   **Hour 3-4:** Freelance/Consulting work. Auditing small business networks/sites.
+**💰 Income Acceleration:**
+*   Move from VDPs (Points) to **Paid Bounties** on obscure programs.
+*   Market your "Secure Code Review" services on LinkedIn targeting Node.js/React founders.
 
-**💰 Income Source:**
-*   Mid-level freelancing. Pentesting contracts ($500-$2000/project).
+### 🗓️ Phase 3: Elite Specialist (Months 6+)
+**Goal:** Earning $100k+/year rate.
+**Focus:** You are now a Senior Security Engineer.
 
-### 🗓️ Phase 3: The Top 1% (Months 9-12+)
-**Goal:** Senior Security Consultant / Red Teamer.
-**Focus:** Advanced Exploit Development, Cloud Security (AWS/Azure).
-
-*   **Deep Dive:** Cloud Security is the future and pays the most.
-*   **Certification:** OSCP (if not done) -> OSEP (Advanced).
+*   **Deep Dive:** Cloud Security (AWS Certified Security) or Advanced Web Exploitation (OSWE).
+*   **Certification:** You should have OSCP by mid-Month 5. Now aim for **OSEP**.
 
 ---
 
@@ -89,15 +92,17 @@ You are losing VPS access. You need **Free Backend Hosting** immediately.
 
 ## 📝 Weekly Action Plan (Week 0 - "The Setup")
 
-| Day | Task (Cybersecurity) | Task (Projects) |
-| :--- | :--- | :--- |
-| **Mon** | Sign up for **PortSwigger Academy**. Complete "SQL Injection" basics. | Create **Render.com** account. Connect Matrix Delivery GitHub. |
-| **Tue** | Setup **Burp Suite Community** (Free). Config browser proxy. | Export VPS Database. Import to **MongoDB Atlas/Supabase**. |
-| **Wed** | PortSwigger: "XSS" basics. Practice on their labs. | Env Vars setup on Render. **Deploy Backend**. |
-| **Thu** | **Bug Bounty Recon:** Pick a program on HackerOne (VDP). Run subfinder/httpx. | **Frontend Update:** Change API URL to Render. Deploy to Firebase. |
-| **Fri** | Analyze Recon data. Look for low-hanging fruit (Info disclosure). | **QA:** Manual test the full Order Flow on new hosting. |
-| **Sat** | **Deep Dive:** Watch "Bug Bounty Hunter's Methodology" (Jason Haddix) on YouTube. | Fix bugs finding during QA. **Soft Launch** (Post on LinkedIn/Twitter). |
-| **Sun** | Rest / Plan next week. | Brainstorm "Security Automation" gig for Upwork. |
+## 📝 Weekly Action Plan (Week 0 - "The 12-Hour Sprint")
+
+| Day | Block 1 (Learning) | Block 2 (Hunting/Income) | Block 3 (Project/Launch) |
+| :--- | :--- | :--- | :--- |
+| **Mon** | **PortSwigger:** SQLi Apprentice Labs (All). | **Recon:** Pick VDP program. Subfinder/Amass scan. | **Render:** Create account, connect GitHub, Deploy Backend. |
+| **Tue** | **PortSwigger:** SQLi Practitioner Labs. | **Hunting:** Analyze Monday's recon. Look for login endpoints. | **DB Migration:** Export VPS DB -> Mongo Atlas/Supabase. |
+| **Wed** | **PortSwigger:** XSS Basics & Contexts. | **Hunting:** Test XSS on the VDP target (forms, search bars). | **Frontend:** Point React to Render URL. Deploy Firebase. |
+| **Thu** | **PortSwigger:** XSS Practitioner Labs. | **Freelance:** Setup Upwork Profile. "QA to Sec Engineer". | **Matrix:** Manual QA of full flow on new hosting. |
+| **Fri** | **Methodology:** Watch Jason Haddix "Bug Hunter's Methodology". | **Hunting:** Apply methodology to VDP target. | **Matrix:** Soft Launch Post. Write "Migration" blog draft. |
+| **Sat** | **Review:** Recap week. 50 Flashcards on ports/protocols. | ** hunting:** Deep dive on one specific endpoint found. | **Matrix:** Fix any bugs from soft launch. |
+| **Sun** | **Scripting:** Write Python script to automate recon (QA skills). | **Plan:** Select targets for next week. | **Rest/Family:** (Vital for maintaining 12h pace). |
 
 ## 🌟 Top 1% Mindset
 *   **Don't just learn:** *Apply*. Every vulnerability you learn about -> Test it on `Matrix Delivery` (Your own sandbox). Fix it. Document it.
