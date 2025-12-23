@@ -1,8 +1,8 @@
-const { logAdminAction } = require('../../../../services/adminService');
-const pool = require('../../../../config/db');
+const { logAdminAction } = require('../../../services/adminService');
+const pool = require('../../../config/db');
 
 // Mock the database pool
-jest.mock('../../../../config/db');
+jest.mock('../../../config/db');
 
 describe('Admin Service - Unit Tests', () => {
     let mockQuery;

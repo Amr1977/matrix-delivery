@@ -4,14 +4,14 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
 // Mock dependencies
-jest.mock('../../../../../config/db');
+jest.mock('../../../config/db');
 jest.mock('bcryptjs');
 jest.mock('jsonwebtoken');
-jest.mock('../../../../../middleware/rateLimit', () => ({
+jest.mock('../../../middleware/rateLimit', () => ({
     authRateLimit: (req, res, next) => next() // Bypass rate limiting in tests
 }));
 
-const pool = require('../../../../../config/db');
+const pool = require('../../../config/db');
 
 describe('POST /api/auth/login', () => {
     let app;
@@ -63,7 +63,7 @@ describe('POST /api/auth/login', () => {
             // Mock JWT
             jwt.sign.mockReturnValue('test-jwt-token');
 
-            const loginRoute = require('../../../../../routes/auth');
+            const loginRoute = require('../../../routes/auth');
             app.use('/api/auth', loginRoute);
 
             const res = await request(app)
@@ -99,7 +99,7 @@ describe('POST /api/auth/login', () => {
             bcrypt.compare.mockResolvedValue(true);
             jwt.sign.mockReturnValue('test-jwt-token');
 
-            const loginRoute = require('../../../../../routes/auth');
+            const loginRoute = require('../../../routes/auth');
             app.use('/api/auth', loginRoute);
 
             const res = await request(app)
@@ -122,7 +122,7 @@ describe('POST /api/auth/login', () => {
             // Mock no user found
             pool.query.mockResolvedValueOnce({ rows: [] });
 
-            const loginRoute = require('../../../../../routes/auth');
+            const loginRoute = require('../../../routes/auth');
             app.use('/api/auth', loginRoute);
 
             const res = await request(app)
@@ -151,7 +151,7 @@ describe('POST /api/auth/login', () => {
             // Mock password mismatch
             bcrypt.compare.mockResolvedValue(false);
 
-            const loginRoute = require('../../../../../routes/auth');
+            const loginRoute = require('../../../routes/auth');
             app.use('/api/auth', loginRoute);
 
             const res = await request(app)
@@ -167,7 +167,7 @@ describe('POST /api/auth/login', () => {
                 password: 'SecurePass123!'
             };
 
-            const loginRoute = require('../../../../../routes/auth');
+            const loginRoute = require('../../../routes/auth');
             app.use('/api/auth', loginRoute);
 
             const res = await request(app)
@@ -182,7 +182,7 @@ describe('POST /api/auth/login', () => {
                 email: 'john@example.com'
             };
 
-            const loginRoute = require('../../../../../routes/auth');
+            const loginRoute = require('../../../routes/auth');
             app.use('/api/auth', loginRoute);
 
             const res = await request(app)
@@ -202,7 +202,7 @@ describe('POST /api/auth/login', () => {
 
             pool.query.mockResolvedValueOnce({ rows: [] });
 
-            const loginRoute = require('../../../../../routes/auth');
+            const loginRoute = require('../../../routes/auth');
             app.use('/api/auth', loginRoute);
 
             const res = await request(app)
@@ -236,7 +236,7 @@ describe('POST /api/auth/login', () => {
             bcrypt.compare.mockResolvedValue(true);
             jwt.sign.mockReturnValue('test-jwt-token');
 
-            const loginRoute = require('../../../../../routes/auth');
+            const loginRoute = require('../../../routes/auth');
             app.use('/api/auth', loginRoute);
 
             const res = await request(app)
@@ -259,7 +259,7 @@ describe('POST /api/auth/login', () => {
 
             pool.query.mockRejectedValueOnce(new Error('Database connection failed'));
 
-            const loginRoute = require('../../../../../routes/auth');
+            const loginRoute = require('../../../routes/auth');
             app.use('/api/auth', loginRoute);
 
             const res = await request(app)
