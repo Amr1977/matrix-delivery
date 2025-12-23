@@ -1,6 +1,3 @@
-const Sentry = require('@sentry/node');
-const { nodeProfilingIntegration } = require('@sentry/profiling-node');
-
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
@@ -19,10 +16,8 @@ const pool = require('./config/db');
 const { getDistance } = require('geolib');
 const http = require('http');
 const socketIo = require('socket.io');
-const morgan = require('morgan');
 const logger = require('./config/logger');
 const { exec } = require('child_process');
-// const Recaptcha = require('google-recaptcha-v2');
 
 // Import utility modules
 const { generateId, generateOrderNumber } = require('./utils/generators');
@@ -44,221 +39,44 @@ const ordersRouter = require('./routes/orders');
 const cryptoPaymentRoutes = require('./routes/cryptoPayments');
 const reviewsRouter = require('./routes/reviews').default;
 
-// Import security middleware (TypeScript compiled to JS)
-const {
-  helmetConfig,
-  cookieParserMiddleware,
-  httpsRedirect,
-  strictCorsConfig,
-  additionalSecurityHeaders,
-  sanitizeRequest,
-  validateSecurityConfig
-} = require('./middleware/security');
-const { initAuditLogger } = require('./middleware/auditLogger');
-
-// Environment already loaded at top of file based on NODE_ENV
-logger.info(`🔧 Environment loaded for: ${process.env.NODE_ENV || 'development'}`);
-
-// Validate security configuration on startup
-try {
-  validateSecurityConfig();
-} catch (error) {
-  logger.error('❌ Security configuration validation failed:', error.message);
-  process.exit(1);
-}
-
-// Initialize Sentry
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 const IS_TEST = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing';
-
-Sentry.init({
-  dsn: process.env.SENTRY_DSN,
-  environment: IS_PRODUCTION ? 'production' : IS_TEST ? 'test' : 'development',
-  integrations: [
-    nodeProfilingIntegration(),
-    // HTTP integration is built-in in newer versions
-  ],
-  tracesSampleRate: IS_PRODUCTION ? 0.1 : 1.0,
-  profilesSampleRate: IS_PRODUCTION ? 0.1 : 1.0,
-  beforeSend(event) {
-    // Filter out sensitive data
-    if (event.request?.data) {
-      delete event.request.data.password;
-      delete event.request.data.token;
-      delete event.request.data.recaptchaToken;
-    }
-    return event;
-  },
-});
 
 const app = express();
 
 // ============================================================================
-// SECURITY MIDDLEWARE
+// EXPRESS CONFIGURATION (Middleware, Security, Logging, CORS)
 // ============================================================================
-
-// HTTPS redirect - DISABLED: Apache handles HTTPS termination
-// app.use(httpsRedirect);
-
-// Helmet.js security headers
-app.use(helmetConfig);
-
-// Additional security headers
-app.use(additionalSecurityHeaders);
-
-// Cookie parser - use standard cookie-parser for httpOnly cookies
-const cookieParser = require('cookie-parser');
-app.use(cookieParser());
-
-// Body parser - required for API requests
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-
-// Cookie parser from security middleware (required for CSRF) - DISABLED: causes conflict with cookie-parser
-// app.use(cookieParserMiddleware);
-
-// Request sanitization
-app.use(sanitizeRequest);
-
-
-// CORS Configuration - Allow credentials for cookie-based auth
-const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-
-    // Parse allowed origins from environment variable
-    const allowedOrigins = process.env.CORS_ORIGIN
-      ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
-      : [
-        'http://localhost:3000',
-        'http://192.168.1.200:3000',
-        'https://matrix.oldantique50.com'
-      ];
-
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      console.warn(`CORS blocked origin: ${origin}. Allowed: ${allowedOrigins.join(', ')}`);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true, // CRITICAL: Allow credentials (cookies)
-  optionsSuccessStatus: 200
-};
-
-app.use(cors(corsOptions));
-
-// Handle preflight requests
-app.options('*', cors(corsOptions));
+const configureExpress = require('./config/express');
+const corsOptions = configureExpress(app);
 
 // ============================================================================
-// DATABASE CONNECTION
+// DATABASE & ENVIRONMENT SETUP
 // ============================================================================
+const { validateDatabaseEnvironment, initializeDatabaseConnection } = require('./config/database-init');
 
-// Validate required database environment variables
-if (!IS_TEST) {
-  const requiredDbVars = ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'];
-  const missingVars = requiredDbVars.filter(varName => !process.env[varName]);
+// Validate DB Environment variables
+validateDatabaseEnvironment();
 
-  if (missingVars.length > 0) {
-    logger.error(`❌ Missing required database environment variables: ${missingVars.join(', ')}`);
-    process.exit(1);
-  }
-
-  if (IS_PRODUCTION && process.env.DB_PASSWORD.length < 12) {
-    logger.error('❌ DB_PASSWORD must be at least 12 characters in production');
-    process.exit(1);
-  }
-}
-
-
-
-
-
-// Register ts-node to load TypeScript modules
-require('ts-node/register');
-
-// Import TypeScript database initialization
-const { initializeDatabase } = require('./database/init.ts');
-const { initDatabase } = require('./database/startup');
-
-
-// Import rate limiting middleware
-const { apiRateLimit } = require('./middleware/rateLimit');
-
-// Initialize database on startup (skip in test mode)
-if (!IS_TEST) {
-  initDatabase(pool).catch(err => {
-    logger.error('Failed to initialize database:', err);
-    process.exit(1);
-  });
-}
-
-
-app.use('/api', apiRateLimit);
-app.use('/api/reviews', reviewsRouter);
-
-// HTTP request logging with Morgan
-app.use(morgan('combined', {
-  stream: {
-    write: (message) => {
-      // Parse Morgan log and convert to structured log
-      const parts = message.trim().split(' ');
-      if (parts.length >= 9) {
-        logger.http('HTTP_REQUEST', {
-          method: parts[0],
-          url: parts[1],
-          status: parseInt(parts[2]),
-          responseTime: parts[3],
-          ip: parts[6],
-          userAgent: parts[8],
-          category: 'http'
-        });
-      }
-    }
-  }
-}));
-
-// Request logging middleware
-app.use(logger.requestLogger);
-
-
-
-const JWT_SECRET = process.env.JWT_SECRET;
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
-
-
-// Admin routes now loaded via routes/admin.js (see line 289)
-
-
-// Validate JWT secrets
-if (!JWT_SECRET || JWT_SECRET.length < 64) {
-  logger.error('❌ JWT_SECRET must be at least 64 characters');
-  process.exit(1);
-}
-
-if (!JWT_REFRESH_SECRET || JWT_REFRESH_SECRET.length < 64) {
-  logger.error('❌ JWT_REFRESH_SECRET must be at least 64 characters');
-  process.exit(1);
-}
+// Initialize Database Connection (also registers ts-node)
+initializeDatabaseConnection();
 
 // ============================================================================
-// AUTHENTICATION MIDDLEWARE
+// ROUTES & MIDDLEWARE SETUP
 // ============================================================================
 
-// Import authentication middleware from dedicated module
+// Import authentication middleware
 const {
   verifyToken,
   requireAdmin,
   requireRole
 } = require('./middleware/auth');
 
-// Legacy middleware aliases for backward compatibility
+// Legacy middleware aliases
 const isAdmin = requireAdmin;
 const isVendor = requireRole('vendor', 'admin');
 
-// Test bypass middleware for development/testing
+// Test bypass middleware
 const verifyTokenOrTestBypass = (req, res, next) => {
   if (IS_TEST && req.headers['x-test-admin'] === '1') {
     req.user = { role: 'admin', userId: req.headers['x-test-user-id'] };
@@ -267,7 +85,7 @@ const verifyTokenOrTestBypass = (req, res, next) => {
   return verifyToken(req, res, next);
 };
 
-// Vendor ownership authorization middleware
+// Vendor authorization middleware
 const authorizeVendorManage = async (req, res, next) => {
   try {
     const role = req.user?.role;
@@ -285,20 +103,7 @@ const authorizeVendorManage = async (req, res, next) => {
   }
 };
 
-// Load auth endpoints
-app.use('/api/auth', require('./routes/auth'));
-
-// Load admin endpoints
-app.use('/api/admin', require('./routes/admin'));
-
-// ============================================================================
-// API v1 ROUTES (Versioned API)
-// ============================================================================
-// Skip v1 routes in test mode due to TypeScript import issues
-if (!IS_TEST) {
-  const v1Routes = require('./routes/v1');
-  app.use('/api/v1', v1Routes);
-}
+app.use('/api/reviews', reviewsRouter);
 
 // Load driver status endpoints
 const driverRoutes = require('./routes/drivers');
@@ -316,29 +121,18 @@ app.use('/api/logs', logsRouter);
 const statisticsRouter = require('./routes/statistics');
 app.use('/api/stats', statisticsRouter);
 
-// Load heartbeat endpoint (requires authentication)
+// Load heartbeat endpoint
 const heartbeatRouter = require('./routes/heartbeat.ts').default;
 const { verifyToken: heartbeatAuth } = require('./middleware/auth');
 app.use('/api/heartbeat', heartbeatAuth, heartbeatRouter);
 
-// Load wallet payment routes (Vodafone Cash, InstaPay, etc.)
-// TEMPORARILY DISABLED FOR BALANCE API TESTING
-// const walletPaymentRoutes = require('./routes/walletPayments');
-// app.use('/api/wallet-payments', walletPaymentRoutes);
+// Load health check
+app.use('/api/health', require('./routes/health'));
 
 let HAS_POSTGIS = false;
 
-
-// Health check and stats endpoints
-app.use('/api/health', require('./routes/health'));
-
-// ============ END OF PART 1 ============
-// Continue with Part 2 for Authentication Routes
-
-
-// ============ END OF PART 1 ============
-// Authentication Routes are now loaded via routes/auth.js
-// See line 289: app.use('/api/auth', require('./routes/auth'));
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 
 app.get('/api/browse/vendors', async (req, res) => {
   try {
