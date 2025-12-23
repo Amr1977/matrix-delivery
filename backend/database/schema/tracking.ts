@@ -72,8 +72,13 @@ export const driverLocationsSchema: TableSchema = {
     CREATE TABLE IF NOT EXISTS driver_locations (
       id SERIAL PRIMARY KEY,
       driver_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      order_id VARCHAR(255) REFERENCES orders(id) ON DELETE CASCADE,
       latitude DECIMAL(10,8) NOT NULL,
       longitude DECIMAL(11,8) NOT NULL,
+      heading DECIMAL(5,2),
+      speed_kmh DECIMAL(5,2),
+      accuracy_meters DECIMAL(8,2),
+      context VARCHAR(50) DEFAULT 'idle',
       timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       UNIQUE(driver_id)
     )
@@ -81,16 +86,18 @@ export const driverLocationsSchema: TableSchema = {
 
   indexes: [
     'CREATE INDEX IF NOT EXISTS idx_driver_locations_driver_id ON driver_locations(driver_id)',
-    'CREATE INDEX IF NOT EXISTS idx_driver_locations_timestamp ON driver_locations(timestamp DESC)'
+    'CREATE INDEX IF NOT EXISTS idx_driver_locations_timestamp ON driver_locations(timestamp DESC)',
+    'CREATE INDEX IF NOT EXISTS idx_driver_locations_order ON driver_locations(order_id)'
   ],
 
   alterStatements: [
+    // Ensure columns exist for existing tables
+    'ALTER TABLE driver_locations ADD COLUMN IF NOT EXISTS order_id VARCHAR(255)',
     'ALTER TABLE driver_locations DROP CONSTRAINT IF EXISTS driver_locations_order_id_fkey',
-    'ALTER TABLE driver_locations ADD COLUMN IF NOT EXISTS order_id VARCHAR(255) REFERENCES orders(id) ON DELETE CASCADE',
+    'ALTER TABLE driver_locations ADD CONSTRAINT driver_locations_order_id_fkey FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE',
     'ALTER TABLE driver_locations ADD COLUMN IF NOT EXISTS heading DECIMAL(5,2)',
     'ALTER TABLE driver_locations ADD COLUMN IF NOT EXISTS speed_kmh DECIMAL(5,2)',
     'ALTER TABLE driver_locations ADD COLUMN IF NOT EXISTS accuracy_meters DECIMAL(8,2)',
-    'ALTER TABLE driver_locations ADD COLUMN IF NOT EXISTS context VARCHAR(50) DEFAULT \'idle\'',
-    'CREATE INDEX IF NOT EXISTS idx_driver_locations_order ON driver_locations(order_id)'
+    'ALTER TABLE driver_locations ADD COLUMN IF NOT EXISTS context VARCHAR(50) DEFAULT \'idle\''
   ]
 };

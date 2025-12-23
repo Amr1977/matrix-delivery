@@ -75,7 +75,8 @@ export class MigrationRunner {
             return result.rows.map(row => row.migration_name);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            logger.error(`Failed to get applied migrations: ${errorMessage}`);
+            logger.error(`Failed to get applied migrations: ${errorMessage} `, error); // Enhanced logging
+            logger.error(`Failed to get applied migrations: ${errorMessage} `);
             return [];
         }
     }
@@ -86,7 +87,7 @@ export class MigrationRunner {
     getMigrationFiles(): string[] {
         try {
             if (!fs.existsSync(this.migrationsDir)) {
-                logger.warn(`Migrations directory not found: ${this.migrationsDir}`);
+                logger.warn(`Migrations directory not found: ${this.migrationsDir} `);
                 return [];
             }
 
@@ -97,7 +98,7 @@ export class MigrationRunner {
             return files;
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            logger.error(`Failed to read migration files: ${errorMessage}`);
+            logger.error(`Failed to read migration files: ${errorMessage} `);
             return [];
         }
     }
@@ -121,7 +122,7 @@ export class MigrationRunner {
             const migrationSQL = fs.readFileSync(migrationPath, 'utf8');
             const checksum = this.calculateChecksum(migrationSQL);
 
-            logger.info(`Applying migration: ${migrationFile}`);
+            logger.info(`Applying migration: ${migrationFile} `);
 
             // Begin transaction
             await this.pool.query('BEGIN');
@@ -133,8 +134,8 @@ export class MigrationRunner {
                 // Record migration in tracking table
                 const executionTime = Date.now() - startTime;
                 await this.pool.query(
-                    `INSERT INTO ${this.migrationsTable} (migration_name, checksum, execution_time_ms) 
-           VALUES ($1, $2, $3)`,
+                    `INSERT INTO ${this.migrationsTable} (migration_name, checksum, execution_time_ms)
+        VALUES($1, $2, $3)`,
                     [migrationFile, checksum, executionTime]
                 );
 
@@ -150,7 +151,7 @@ export class MigrationRunner {
             }
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            logger.error(`❌ Migration failed: ${migrationFile} - ${errorMessage}`);
+            logger.error(`❌ Migration failed: ${migrationFile} - ${errorMessage} `);
             throw error;
         }
     }
@@ -188,7 +189,7 @@ export class MigrationRunner {
                     await this.applyMigration(migration);
                     successCount++;
                 } catch (error) {
-                    logger.error(`Migration failed, stopping migration process: ${migration}`);
+                    logger.error(`Migration failed, stopping migration process: ${migration} `);
                     throw error;
                 }
             }
@@ -197,7 +198,7 @@ export class MigrationRunner {
             return { applied: successCount, skipped: appliedMigrations.length };
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            logger.error(`Migration process failed: ${errorMessage}`);
+            logger.error(`Migration process failed: ${errorMessage} `);
             throw error;
         }
     }
@@ -222,7 +223,7 @@ export class MigrationRunner {
             };
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            logger.error(`Failed to get migration status: ${errorMessage}`);
+            logger.error(`Failed to get migration status: ${errorMessage} `);
             throw error;
         }
     }

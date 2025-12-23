@@ -1,11 +1,11 @@
 const request = require('supertest');
-const { logAdminAction } = require('../../../services/adminService');
+const { logAdminAction } = require('../../../../../services/adminService');
 
 // Mock dependencies before importing app
-jest.mock('../../../config/db');
-jest.mock('../../../services/adminService');
-jest.mock('../../../services/notificationService.ts');
-jest.mock('../../../middleware/auth', () => ({
+jest.mock('../../../../../config/db');
+jest.mock('../../../../../services/adminService');
+jest.mock('../../../../../services/notificationService.ts');
+jest.mock('../../../../../middleware/auth', () => ({
     verifyToken: (req, res, next) => {
         req.user = { userId: 'test-user', role: 'customer' };
         next();
@@ -18,18 +18,18 @@ jest.mock('../../../middleware/auth', () => ({
     requireRole: () => (req, res, next) => next(),
     requireAdmin: (req, res, next) => next()
 }));
-jest.mock('../../../middleware/rateLimit', () => ({
+jest.mock('../../../../../middleware/rateLimit', () => ({
     apiRateLimit: (req, res, next) => next(),
     orderCreationRateLimit: (req, res, next) => next(),
     authRateLimit: (req, res, next) => next()
 }));
-jest.mock('../../../middleware/rateLimiter', () => ({
+jest.mock('../../../../../middleware/rateLimiter', () => ({
     balanceRateLimiter: (req, res, next) => next(),
     depositRateLimiter: (req, res, next) => next(),
     withdrawalRateLimiter: (req, res, next) => next(),
     adminRateLimiter: (req, res, next) => next()
 }));
-jest.mock('../../../middleware/validation/balanceValidation', () => ({
+jest.mock('../../../../../middleware/validation/balanceValidation', () => ({
     validateDeposit: (req, res, next) => next(),
     validateWithdrawal: (req, res, next) => next(),
     validateCreateHold: (req, res, next) => next(),
@@ -43,8 +43,8 @@ jest.mock('../../../middleware/validation/balanceValidation', () => ({
 }));
 
 // Import app after mocks are set up
-const app = require('../../../server');
-const pool = require('../../../config/db');
+const app = require('../../../../../server');
+const pool = require('../../../../../config/db');
 
 describe('Admin Routes - Dashboard Stats', () => {
     let mockQuery;

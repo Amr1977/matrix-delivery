@@ -84,18 +84,22 @@ export async function initializeDatabase(
         // Create indexes
         if (verbose) logger.info('📊 Creating indexes...', { category: 'database' });
         for (const schema of allSchemas) {
-            for (const indexStatement of schema.indexes) {
-                try {
-                    await pool.query(indexStatement);
-                    result.indexesCreated++;
-                } catch (error) {
-                    // Index creation may fail if index already exists - this is OK
-                    const err = error as Error;
-                    if (!err.message.includes('already exists')) {
-                        logger.warn(`Warning: Could not create index for ${schema.name}`, {
-                            category: 'database',
-                            error: err.message
-                        });
+            if (verbose && schema) logger.debug(`Processing indexes for schema: ${schema.name}`, { category: 'database' });
+
+            if (schema && schema.indexes) {
+                for (const indexStatement of schema.indexes) {
+                    try {
+                        await pool.query(indexStatement);
+                        result.indexesCreated++;
+                    } catch (error) {
+                        // Index creation may fail if index already exists - this is OK
+                        const err = error as Error;
+                        if (!err.message.includes('already exists')) {
+                            logger.warn(`Warning: Could not create index for ${schema.name}`, {
+                                category: 'database',
+                                error: err.message
+                            });
+                        }
                     }
                 }
             }

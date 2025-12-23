@@ -52,6 +52,13 @@ export class NotificationService {
     }
 
     /**
+     * Set the Socket.IO instance
+     */
+    setIo(io: SocketIOServer) {
+        this.io = io;
+    }
+
+    /**
      * Create a notification and emit it via WebSocket
      * @param params - Notification parameters
      * @returns The created notification record
