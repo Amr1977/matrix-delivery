@@ -241,6 +241,16 @@ class EmailService {
       throw new Error('Failed to send email verification');
     }
   }
+  /**
+   * Close the email transporter (useful for testing)
+   */
+  close() {
+    if (this.transporter) {
+      this.transporter.close();
+      this.transporter = null;
+      this.isInitialized = false;
+    }
+  }
 }
 
 module.exports = new EmailService();

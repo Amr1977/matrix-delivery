@@ -135,8 +135,31 @@ const cleanupRateLimitStore = () => {
   }
 };
 
-// Clean up every 30 minutes
-setInterval(cleanupRateLimitStore, 30 * 60 * 1000);
+let cleanupInterval;
+
+/**
+ * Start the cleanup interval
+ */
+const startCleanup = () => {
+  if (!cleanupInterval) {
+    cleanupInterval = setInterval(cleanupRateLimitStore, 30 * 60 * 1000);
+  }
+};
+
+/**
+ * Stop the cleanup interval
+ */
+const stopCleanup = () => {
+  if (cleanupInterval) {
+    clearInterval(cleanupInterval);
+    cleanupInterval = null;
+  }
+};
+
+// Start cleanup ONLY if not in test environment and not required as a module (e.g. by tests)
+// Actually, safer to just let server.js start it explicitly.
+// But valid legacy behavior might expect it to run.
+// Let's stick to explicit start. server.js will call it.
 
 module.exports = {
   rateLimit,
@@ -144,5 +167,7 @@ module.exports = {
   apiRateLimit,
   orderCreationRateLimit,
   uploadRateLimit,
-  cleanupRateLimitStore
+  cleanupRateLimitStore,
+  startCleanup,
+  stopCleanup
 };

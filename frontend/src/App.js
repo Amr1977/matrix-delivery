@@ -2870,13 +2870,26 @@ export const MainApp = () => {
 };
 
 // Router configuration - must be after MainApp definition to avoid circular dependency
+// Router configuration - must be after MainApp definition to avoid circular dependency
 const router = createBrowserRouter([
   {
     path: '/',
+    element: <MatrixLanding />,
+  },
+  {
+    path: '/app',
     element: <MainApp />,
   },
   {
-    path: '/landing',
+    path: '/login',
+    element: <MainApp />,
+  },
+  {
+    path: '/register',
+    element: <MainApp />,
+  },
+  {
+    path: '/landing', // Keep for backward compatibility/explicit access
     element: <MatrixLanding />,
   },
   {
