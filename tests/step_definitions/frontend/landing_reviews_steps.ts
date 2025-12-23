@@ -38,6 +38,10 @@ Given('there is a review by {string} with {int} existing flags', async function 
     // Setup state
 });
 
+Given('there are existing reviews with different upvotes', async function () {
+    // Setup state
+});
+
 // --- WHEN ---
 
 When('I visit the Matrix Landing Page', async function () {
@@ -57,6 +61,14 @@ When('I upvote the review by {string}', async function (name: string) {
 
 When('I report the review by {string}', async function (name: string) {
     // await page.click(`.review-card:has-text("${name}") .flag-btn`);
+});
+
+When('I click the "Login" button', async function () {
+    // await page.click('button:has-text("Login")');
+});
+
+Then('I should be navigated to the Login page', async function () {
+    // expect(page.url()).to.contain('/login');
 });
 
 // --- THEN ---
@@ -100,6 +112,18 @@ Then('I should see the "Voice of the People" section', async function () {
 
 Then('I should see the top 5 upvoted reviews', async function () {
     // check count of cards
+});
+
+Then('I should see the reviews sorted by highest upvotes first', async function () {
+    // Verify sorting order
+});
+
+Then('for reviews with same upvotes, older ones should appear first', async function () {
+    // Verify secondary sort
+});
+
+Then('I should see the number of upvotes and flags for each review', async function () {
+    // Verify stats visibility
 });
 
 Then('I should see a link to "View All Reviews"', async function () {

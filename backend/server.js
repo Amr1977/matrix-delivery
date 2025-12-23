@@ -110,6 +110,10 @@ app.use(additionalSecurityHeaders);
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
 
+// Body parser - required for API requests
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
 // Cookie parser from security middleware (required for CSRF) - DISABLED: causes conflict with cookie-parser
 // app.use(cookieParserMiddleware);
 
@@ -192,12 +196,8 @@ if (!IS_TEST) {
 }
 
 
-// Apply centralized API rate limiting to all /api routes
 app.use('/api', apiRateLimit);
 app.use('/api/reviews', reviewsRouter);
-
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // HTTP request logging with Morgan
 app.use(morgan('combined', {

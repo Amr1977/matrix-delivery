@@ -16,6 +16,11 @@ Feature: Matrix Landing Page and Reviews System
     And I should see the "Evolution Badge" indicating "Beta Phase"
     And I should see the "Global Roadmap" section
 
+  Scenario: Visitor navigates to Login page
+    When I visit the Matrix Landing Page
+    And I click the "Login" button
+    Then I should be navigated to the Login page
+
   Scenario: Reviews are sorted by Upvotes and Time
     Given there are existing reviews with different upvotes
     When I visit the Matrix Landing Page

@@ -1,6 +1,13 @@
 require('ts-node/register');
 const { Pool } = require('pg');
 const dotenv = require('dotenv');
+
+if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing') {
+    dotenv.config({ path: '.env.testing' });
+    console.log('✅ Loaded .env.testing for test migrations');
+} else {
+    dotenv.config();
+}
 // Import resetDatabase directly from init.ts to force clean slate
 const { resetDatabase } = require('../database/init.ts');
 
