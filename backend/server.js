@@ -42,6 +42,7 @@ const {
 // Import routes
 const ordersRouter = require('./routes/orders');
 const cryptoPaymentRoutes = require('./routes/cryptoPayments');
+const reviewsRouter = require('./routes/reviews').default;
 
 // Import security middleware (TypeScript compiled to JS)
 const {
@@ -193,6 +194,7 @@ if (!IS_TEST) {
 
 // Apply centralized API rate limiting to all /api routes
 app.use('/api', apiRateLimit);
+app.use('/api/reviews', reviewsRouter);
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
@@ -5609,6 +5611,8 @@ if (require.main === module) {
     console.log('   DELETE /api/orders/:id');
     console.log('   GET    /api/notifications');
     console.log('   PUT    /api/notifications/:id/read');
+    console.log('   POST   /api/reviews/:id/vote');
+    console.log('   POST   /api/reviews/:id/flag');
     console.log('   POST   /api/orders/:id/review');
     console.log('   GET    /api/orders/:id/reviews');
     console.log('   GET    /api/orders/:id/review-status');

@@ -3,8 +3,8 @@ module.exports = {
   'backend': {
     requireModule: ['ts-node/register'],
     require: [
-      'tests/step_definitions/backend/**/*.js',
-      'tests/support/hooks.js'
+      'tests/step_definitions/backend/landing_reviews_steps.ts',
+      'tests/support/backend_hooks.ts'
     ],
     format: [
       'progress-bar',
@@ -21,7 +21,7 @@ module.exports = {
   'frontend': {
     requireModule: ['ts-node/register'],
     require: [
-      'tests/step_definitions/frontend/**/*.js',
+      'tests/step_definitions/frontend/**/*.ts',
       'tests/support/browser_hooks.js'
     ],
     format: [

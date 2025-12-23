@@ -5,14 +5,14 @@
  */
 
 export interface DepositRequest {
-    userId: number;
+    userId: string;
     amount: number;
     description: string;
     metadata?: Record<string, any>;
 }
 
 export interface WithdrawalRequest {
-    userId: number;
+    userId: string;
     amount: number;
     destination: string;
     description: string;
@@ -20,7 +20,7 @@ export interface WithdrawalRequest {
 }
 
 export interface CreateHoldRequest {
-    userId: number;
+    userId: string;
     amount: number;
     reason: string;
     expiresInMinutes?: number;
@@ -37,7 +37,7 @@ export interface CaptureHoldRequest {
 }
 
 export interface TransactionHistoryQuery {
-    userId: number;
+    userId: string;
     type?: string | string[];
     status?: string | string[];
     startDate?: string;
@@ -49,22 +49,22 @@ export interface TransactionHistoryQuery {
 }
 
 export interface BalanceStatementQuery {
-    userId: number;
+    userId: string;
     startDate: string;
     endDate: string;
 }
 
 export interface FreezeBalanceRequest {
-    userId: number;
+    userId: string;
     reason: string;
 }
 
 export interface UnfreezeBalanceRequest {
-    userId: number;
+    userId: string;
 }
 
 export interface AdjustBalanceRequest {
-    userId: number;
+    userId: string;
     amount: number;
     reason: string;
 }

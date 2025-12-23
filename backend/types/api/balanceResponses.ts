@@ -13,7 +13,7 @@ export interface ApiResponse<T = any> {
 }
 
 export interface BalanceResponse {
-    userId: number;
+    userId: string;
     availableBalance: number;
     pendingBalance: number;
     heldBalance: number;
@@ -30,14 +30,14 @@ export interface BalanceResponse {
     isFrozen: boolean;
     freezeReason?: string;
     frozenAt?: string;
-    frozenBy?: number;
+    frozenBy?: string;
     createdAt: string;
     updatedAt: string;
 }
 
 export interface TransactionResponse {
     transactionId: string;
-    userId: number;
+    userId: string;
     type: string;
     amount: number;
     currency: string;
@@ -45,14 +45,14 @@ export interface TransactionResponse {
     balanceAfter: number;
     status: string;
     description: string;
-    orderId?: number;
+    orderId?: string;
     createdAt: string;
     balance: BalanceResponse;
 }
 
 export interface HoldResponse {
     holdId: string;
-    userId: number;
+    userId: string;
     amount: number;
     currency: string;
     status: string;
@@ -66,7 +66,7 @@ export interface TransactionHistoryResponse {
     transactions: Array<{
         id: number;
         transactionId: string;
-        userId: number;
+        userId: string;
         type: string;
         amount: number;
         currency: string;
@@ -74,7 +74,7 @@ export interface TransactionHistoryResponse {
         balanceAfter: number;
         status: string;
         description: string;
-        orderId?: number;
+        orderId?: string;
         createdAt: string;
     }>;
     pagination: {
@@ -86,7 +86,7 @@ export interface TransactionHistoryResponse {
 }
 
 export interface BalanceStatementResponse {
-    userId: number;
+    userId: string;
     period: {
         startDate: string;
         endDate: string;

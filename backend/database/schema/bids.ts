@@ -5,9 +5,9 @@ import { TableSchema } from '../types';
  * Stores driver bids on delivery orders
  */
 export const bidsSchema: TableSchema = {
-    name: 'bids',
+  name: 'bids',
 
-    createStatement: `
+  createStatement: `
     CREATE TABLE IF NOT EXISTS bids (
       id SERIAL PRIMARY KEY,
       order_id VARCHAR(255) NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
@@ -25,12 +25,12 @@ export const bidsSchema: TableSchema = {
     )
   `,
 
-    indexes: [
-        'CREATE INDEX IF NOT EXISTS idx_bids_order_id ON bids(order_id)',
-        'CREATE INDEX IF NOT EXISTS idx_bids_user_id ON bids(user_id)',
-        'CREATE INDEX IF NOT EXISTS idx_bids_status ON bids(status)',
-        'CREATE INDEX IF NOT EXISTS idx_bids_created_at ON bids(created_at DESC)'
-    ]
+  indexes: [
+    'CREATE INDEX IF NOT EXISTS idx_bids_order_id ON bids(order_id)',
+    'CREATE INDEX IF NOT EXISTS idx_bids_user_id ON bids(user_id)',
+    'CREATE INDEX IF NOT EXISTS idx_bids_status ON bids(status)',
+    'CREATE INDEX IF NOT EXISTS idx_bids_created_at ON bids(created_at DESC)'
+  ]
 };
 
 /**
@@ -38,31 +38,66 @@ export const bidsSchema: TableSchema = {
  * Stores mutual ratings between customers and drivers
  */
 export const reviewsSchema: TableSchema = {
-    name: 'reviews',
+  name: 'reviews',
 
-    createStatement: `
+  createStatement: `
     CREATE TABLE IF NOT EXISTS reviews (
-      id SERIAL PRIMARY KEY,
-      order_id VARCHAR(255) NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
-      reviewer_id VARCHAR(255) NOT NULL REFERENCES users(id),
-      reviewee_id VARCHAR(255) REFERENCES users(id),
-      reviewer_role VARCHAR(50) NOT NULL,
-      review_type VARCHAR(50) NOT NULL CHECK (review_type IN ('customer_to_driver', 'driver_to_customer', 'customer_to_platform', 'driver_to_platform')),
-      rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
-      comment TEXT,
-      professionalism_rating INTEGER CHECK (professionalism_rating >= 1 AND professionalism_rating <= 5),
-      communication_rating INTEGER CHECK (communication_rating >= 1 AND communication_rating <= 5),
-      timeliness_rating INTEGER CHECK (timeliness_rating >= 1 AND timeliness_rating <= 5),
-      condition_rating INTEGER CHECK (condition_rating >= 1 AND condition_rating <= 5),
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      UNIQUE(order_id, reviewer_id, review_type)
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+        content TEXT,
+        professionalism_rating INTEGER CHECK (professionalism_rating >= 1 AND professionalism_rating <= 5),
+        communication_rating INTEGER CHECK (communication_rating >= 1 AND communication_rating <= 5),
+        timeliness_rating INTEGER CHECK (timeliness_rating >= 1 AND timeliness_rating <= 5),
+        package_condition_rating INTEGER CHECK (package_condition_rating >= 1 AND package_condition_rating <= 5),
+        upvotes INTEGER DEFAULT 0,
+        flag_count INTEGER DEFAULT 0,
+        is_approved BOOLEAN DEFAULT TRUE,
+        is_featured BOOLEAN DEFAULT FALSE,
+        github_issue_link VARCHAR(255),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
     )
   `,
 
-    indexes: [
-        'CREATE INDEX IF NOT EXISTS idx_reviews_order_id ON reviews(order_id)',
-        'CREATE INDEX IF NOT EXISTS idx_reviews_reviewer_id ON reviews(reviewer_id)',
-        'CREATE INDEX IF NOT EXISTS idx_reviews_reviewee_id ON reviews(reviewee_id)',
-        'CREATE INDEX IF NOT EXISTS idx_reviews_created_at ON reviews(created_at DESC)'
-    ]
+  indexes: [
+    'CREATE INDEX IF NOT EXISTS idx_reviews_user_id ON reviews(user_id)',
+    'CREATE INDEX IF NOT EXISTS idx_reviews_created_at ON reviews(created_at)',
+    'CREATE INDEX IF NOT EXISTS idx_reviews_upvotes ON reviews(upvotes DESC)',
+    'CREATE INDEX IF NOT EXISTS idx_reviews_is_approved ON reviews(is_approved)',
+    'CREATE INDEX IF NOT EXISTS idx_reviews_flag_count ON reviews(flag_count)'
+  ],
+
+  alterStatements: [
+    // Ensure columns exist if table already exists (redundant for fresh init but good for safety)
+    'ALTER TABLE reviews ADD COLUMN IF NOT EXISTS upvotes INTEGER DEFAULT 0',
+    'ALTER TABLE reviews ADD COLUMN IF NOT EXISTS flag_count INTEGER DEFAULT 0'
+  ]
+};
+
+export const reviewVotesSchema: TableSchema = {
+  name: 'review_votes',
+  createStatement: `
+    CREATE TABLE IF NOT EXISTS review_votes (
+        review_id UUID NOT NULL REFERENCES reviews(id) ON DELETE CASCADE,
+        user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        PRIMARY KEY (review_id, user_id)
+    )
+    `,
+  indexes: []
+};
+
+export const reviewFlagsSchema: TableSchema = {
+  name: 'review_flags',
+  createStatement: `
+    CREATE TABLE IF NOT EXISTS review_flags (
+        review_id UUID NOT NULL REFERENCES reviews(id) ON DELETE CASCADE,
+        user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        reason VARCHAR(255),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        PRIMARY KEY (review_id, user_id)
+    )
+    `,
+  indexes: []
 };

@@ -264,3 +264,29 @@ export interface ApiResponse<T> {
     error?: string;
     message?: string;
 }
+
+// ============ Review Types ============
+
+export interface Review {
+    id: string;
+    user_id: string;
+    user_name: string;
+    rating: number;
+    comment: string;
+    upvotes: number;
+    downvotes?: number;
+    flag_count: number;
+    created_at: string;
+    is_approved?: boolean;
+}
+
+export interface CreateReviewRequest {
+    rating: number;
+    comment: string;
+}
+
+export interface ReviewFilters {
+    sort?: 'recent' | 'upvotes';
+    limit?: number;
+    page?: number;
+}
