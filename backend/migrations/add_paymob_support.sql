@@ -34,16 +34,17 @@ ON platform_revenue(payment_method);
 -- Add platform_commission and driver_payout to orders if not exists
 ALTER TABLE orders 
 ADD COLUMN IF NOT EXISTS platform_commission DECIMAL(10,2),
-ADD COLUMN IF NOT EXISTS driver_payout DECIMAL(10,2);
+ADD COLUMN IF NOT EXISTS driver_payout DECIMAL(10,2),
+ADD COLUMN IF NOT EXISTS payment_status VARCHAR(50) DEFAULT 'pending';
 
 -- Update existing orders to calculate commission (for historical data)
 UPDATE orders 
 SET 
-  platform_commission = COALESCE(accepted_bid_amount, total_price) * 0.15,
-  driver_payout = COALESCE(accepted_bid_amount, total_price) * 0.85
+  platform_commission = COALESCE(assigned_driver_bid_price, price) * 0.15,
+  driver_payout = COALESCE(assigned_driver_bid_price, price) * 0.85
 WHERE platform_commission IS NULL 
   AND payment_status = 'paid'
-  AND COALESCE(accepted_bid_amount, total_price) > 0;
+  AND COALESCE(assigned_driver_bid_price, price) > 0;
 
 -- Add comment for documentation
 COMMENT ON COLUMN payments.paymob_transaction_id IS 'Paymob transaction ID for tracking';
