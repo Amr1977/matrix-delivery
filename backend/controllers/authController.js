@@ -182,6 +182,9 @@ const register = async (req, res) => {
         const response = { ...result };
         delete response.token;
 
+        // Add message field for consistency
+        response.message = 'User registered successfully';
+
         res.status(201).json(response);
     } catch (error) {
         const duration = Date.now() - startTime;
@@ -191,8 +194,16 @@ const register = async (req, res) => {
             duration: `${duration}ms`,
             category: 'error'
         });
+
+        // Handle known validation errors
         if (error.message === 'Email already registered') {
             return res.status(409).json({ error: error.message });
+        }
+        if (error.message === 'Invalid email format' ||
+            error.message === 'Password must be at least 8 characters' ||
+            error.message === 'Invalid role' ||
+            error.message === 'Vehicle type is required for drivers') {
+            return res.status(400).json({ error: error.message });
         }
 
         res.status(500).json({ error: error.message || 'Registration failed' });
@@ -254,6 +265,9 @@ const login = async (req, res) => {
         const response = { ...result };
         delete response.token;
 
+        // Add message field
+        response.message = 'Login successful';
+
         res.json(response);
     } catch (error) {
         const duration = Date.now() - startTime;
@@ -264,11 +278,14 @@ const login = async (req, res) => {
             category: 'error'
         });
 
-        if (error.message === 'Invalid email or password') {
+        if (error.message === 'Invalid email or password' || error.message === 'Invalid credentials') {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
         if (error.message.includes('suspended')) {
             return res.status(403).json({ error: error.message });
+        }
+        if (error.message === 'Email and password required' || error.message === 'Invalid email format') {
+            return res.status(400).json({ error: error.message });
         }
 
         res.status(500).json({ error: error.message || 'Login failed' });
