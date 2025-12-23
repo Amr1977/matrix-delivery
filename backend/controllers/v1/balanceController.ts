@@ -75,7 +75,7 @@ export class BalanceController {
      */
     getBalance = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const userId = parseInt(req.params.userId);
+            const userId = req.params.userId;
 
             const balance = await this.balanceService.getBalance(userId);
 
@@ -224,7 +224,7 @@ export class BalanceController {
      */
     getTransactionHistory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const userId = parseInt(req.params.userId);
+            const userId = req.params.userId;
             const query: TransactionHistoryQuery = {
                 userId,
                 type: req.query.type as string | string[],
@@ -287,7 +287,7 @@ export class BalanceController {
      */
     getBalanceStatement = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const userId = parseInt(req.params.userId);
+            const userId = req.params.userId;
             const startDate = new Date(req.query.startDate as string);
             const endDate = new Date(req.query.endDate as string);
 

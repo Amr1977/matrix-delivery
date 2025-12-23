@@ -41,6 +41,8 @@ import './components/ui/GeolocationStatus.css';
 
 // Balance Pages (with auth context)
 import { BalanceDashboardPage, TransactionHistoryPage, BalanceStatementPage } from './pages/BalancePages';
+import MatrixLanding from './pages/MatrixLanding';
+import ReviewsPage from './pages/ReviewsPage';
 
 // TypeScript API Services
 import { AuthApi, OrdersApi, NotificationsApi, UsersApi } from './services/api';
@@ -2872,6 +2874,14 @@ const router = createBrowserRouter([
   {
     path: '/',
     element: <MainApp />,
+  },
+  {
+    path: '/landing',
+    element: <MatrixLanding />,
+  },
+  {
+    path: '/reviews',
+    element: <ReviewsPage />,
   },
   {
     path: '/chat/:orderId',

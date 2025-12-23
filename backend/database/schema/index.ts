@@ -53,8 +53,8 @@ import {
     userPaymentMethodsSchema
 } from './auth';
 import { ordersSchema } from './orders';
-import { bidsSchema, reviewsSchema } from './bids';
-import { paymentsSchema } from './payments';
+import { bidsSchema, reviewsSchema, reviewVotesSchema, reviewFlagsSchema } from './bids';
+import { paymentsSchema, walletPaymentsSchema } from './payments';
 import { notificationsSchema } from './notifications';
 import {
     messagesSchema,
@@ -93,8 +93,11 @@ export const allSchemas = [
     // Order-related tables (depend on users + orders)
     bidsSchema,
     paymentsSchema,
+    walletPaymentsSchema,
     notificationsSchema,
     reviewsSchema,
+    reviewVotesSchema,
+    reviewFlagsSchema,
     messagesSchema,
     locationUpdatesSchema,
     driverLocationsSchema,

@@ -57,8 +57,8 @@ export const useBackendHealth = (apiUrl) => {
 
             setConsecutiveFailures(prev => prev + 1);
 
-            // Only mark as unhealthy after 2 consecutive failures to avoid false positives
-            if (consecutiveFailures >= 1) {
+            // Only mark as unhealthy after 5 consecutive failures to avoid false positives
+            if (consecutiveFailures >= 4) {
                 if (isHealthy) {
                     console.error('🚨 Backend is DOWN - showing maintenance page');
                 }

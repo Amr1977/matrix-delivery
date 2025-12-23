@@ -25,8 +25,6 @@
     "@paypal/checkout-server-sdk": "^1.0.3",
     "@sentry/node": "^10.27.0",
     "@sentry/profiling-node": "^10.27.0",
-    "@types/express": "^5.0.6",
-    "@types/node": "^24.10.1",
     "axios": "^1.13.1",
     "compression": "^1.7.4",
     "cookie-parser": "^1.4.7",
@@ -49,13 +47,12 @@
     "sharp": "^0.34.5",
     "socket.io": "^4.8.1",
     "stripe": "^20.0.0",
-    "typescript": "^5.9.3",
     "winston": "^3.18.3",
     "winston-daily-rotate-file": "^4.7.1"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.28.5",
-    "@cucumber/cucumber": "^12.3.0",
+    "@cucumber/cucumber": "^12.4.0",
     "@nomicfoundation/hardhat-chai-matchers": "^2.1.0",
     "@nomicfoundation/hardhat-ethers": "^3.1.2",
     "@nomicfoundation/hardhat-network-helpers": "^1.1.2",
@@ -66,8 +63,10 @@
     "@typechain/hardhat": "^9.1.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/chai": "^4.3.20",
+    "@types/express": "^5.0.6",
     "@types/jest": "^30.0.0",
     "@types/mocha": "^9.1.1",
+    "@types/node": "^25.0.3",
     "@types/supertest": "^6.0.3",
     "babel-jest": "^30.2.0",
     "bcryptjs": "^3.0.3",
@@ -86,7 +85,8 @@
     "supertest": "^6.3.4",
     "ts-jest": "^29.4.6",
     "ts-node": "^10.9.2",
-    "typechain": "^8.3.2"
+    "typechain": "^8.3.2",
+    "typescript": "^5.9.3"
   },
   "engines": {
     "node": ">=18.0.0",

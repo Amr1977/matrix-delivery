@@ -6,6 +6,7 @@ export { OrdersApi } from './orders';
 export { DriversApi } from './drivers';
 export { UsersApi } from './users';
 export { NotificationsApi } from './notifications';
+export { ReviewsApi } from './reviews';
 
 // Export types
 export * from './types';
