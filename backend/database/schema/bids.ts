@@ -71,7 +71,14 @@ export const reviewsSchema: TableSchema = {
   alterStatements: [
     // Ensure columns exist if table already exists (redundant for fresh init but good for safety)
     'ALTER TABLE reviews ADD COLUMN IF NOT EXISTS upvotes INTEGER DEFAULT 0',
-    'ALTER TABLE reviews ADD COLUMN IF NOT EXISTS flag_count INTEGER DEFAULT 0'
+    'ALTER TABLE reviews ADD COLUMN IF NOT EXISTS flag_count INTEGER DEFAULT 0',
+    'ALTER TABLE reviews ADD COLUMN IF NOT EXISTS user_id VARCHAR(255) REFERENCES users(id) ON DELETE CASCADE',
+    'ALTER TABLE reviews ADD COLUMN IF NOT EXISTS is_approved BOOLEAN DEFAULT TRUE',
+    'ALTER TABLE reviews ADD COLUMN IF NOT EXISTS is_featured BOOLEAN DEFAULT FALSE',
+    'ALTER TABLE reviews ADD COLUMN IF NOT EXISTS professionalism_rating INTEGER CHECK (professionalism_rating >= 1 AND professionalism_rating <= 5)',
+    'ALTER TABLE reviews ADD COLUMN IF NOT EXISTS communication_rating INTEGER CHECK (communication_rating >= 1 AND communication_rating <= 5)',
+    'ALTER TABLE reviews ADD COLUMN IF NOT EXISTS timeliness_rating INTEGER CHECK (timeliness_rating >= 1 AND timeliness_rating <= 5)',
+    'ALTER TABLE reviews ADD COLUMN IF NOT EXISTS package_condition_rating INTEGER CHECK (package_condition_rating >= 1 AND package_condition_rating <= 5)'
   ]
 };
 

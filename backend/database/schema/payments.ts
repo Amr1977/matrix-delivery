@@ -77,5 +77,13 @@ export const walletPaymentsSchema: TableSchema = {
     'CREATE INDEX IF NOT EXISTS idx_wallet_payments_wallet_type ON wallet_payments(wallet_type)',
     'CREATE INDEX IF NOT EXISTS idx_wallet_payments_created_at ON wallet_payments(created_at)',
     'CREATE INDEX IF NOT EXISTS idx_wallet_payments_transaction_ref ON wallet_payments(transaction_reference)'
+  ],
+  alterStatements: [
+    'ALTER TABLE wallet_payments ADD COLUMN IF NOT EXISTS wallet_type VARCHAR(50) NOT NULL DEFAULT \'vodafone_cash\'',
+    'ALTER TABLE wallet_payments ADD COLUMN IF NOT EXISTS transaction_reference VARCHAR(100)',
+    'ALTER TABLE wallet_payments ADD COLUMN IF NOT EXISTS currency VARCHAR(3) DEFAULT \'EGP\'',
+    'ALTER TABLE wallet_payments ADD COLUMN IF NOT EXISTS screenshot_url VARCHAR(500)',
+    'ALTER TABLE wallet_payments DROP CONSTRAINT IF EXISTS valid_wallet_type',
+    'ALTER TABLE wallet_payments ADD CONSTRAINT valid_wallet_type CHECK (wallet_type IN (\'vodafone_cash\', \'instapay\', \'orange_cash\', \'etisalat_cash\', \'we_pay\'))'
   ]
 };
