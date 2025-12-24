@@ -89,7 +89,20 @@ router.post('/', verifyToken, orderCreationRateLimit, async (req, res) => {
       return res.status(403).json({ error: 'Only customers and admins can create orders' });
     }
 
-    const order = await orderService.createOrder(req.body, req.user.userId);
+    // Explicitly select allowed fields to prevent mass assignment
+    const {
+      title, price, description, package_description, package_weight, estimated_value,
+      special_instructions, pickupAddress, dropoffAddress, pickupLocation, dropoffLocation,
+      showManualEntry
+    } = req.body;
+
+    const orderData = {
+      title, price, description, package_description, package_weight, estimated_value,
+      special_instructions, pickupAddress, dropoffAddress, pickupLocation, dropoffLocation,
+      showManualEntry
+    };
+
+    const order = await orderService.createOrder(orderData, req.user.userId);
     res.status(201).json(order);
   } catch (error) {
     logger.error(`Order creation error: ${error.message}`, {

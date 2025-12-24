@@ -311,40 +311,7 @@ app.get('/api/browse/items-near', async (req, res) => {
   }
 });
 
-app.post('/api/test/seed', async (req, res) => {
-  try {
-    if (IS_PRODUCTION) return res.status(403).json({ error: 'Forbidden' });
-    const payload = req.body;
-    if (!payload || !Array.isArray(payload.vendors)) {
-      return res.status(400).json({ error: 'vendors array required' });
-    }
-    const created = [];
-    for (const v of payload.vendors) {
-      const vid = v.id || generateId();
-      await pool.query(
-        `INSERT INTO vendors (id, name, description, phone, address, city, country, logo_url, is_active)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,true)
-         ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name`,
-        [vid, v.name, v.description || null, v.phone || null, v.address || null, v.city, v.country || 'Egypt', v.logo_url || null]
-      );
-      if (Array.isArray(v.items)) {
-        for (const it of v.items) {
-          const iid = it.id || generateId();
-          await pool.query(
-            `INSERT INTO vendor_items (id, vendor_id, item_name, description, price, image_url, category, stock_qty, is_active)
-             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,true)
-             ON CONFLICT (id) DO UPDATE SET item_name = EXCLUDED.item_name`,
-            [iid, vid, it.item_name, it.description || null, parseFloat(it.price), it.image_url || null, it.category || null, it.stock_qty || 0]
-          );
-        }
-      }
-      created.push({ id: vid, name: v.name });
-    }
-    res.json({ created });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to seed test data' });
-  }
-});
+
 
 app.get('/api/vendors', async (req, res) => {
   try {
@@ -617,50 +584,7 @@ app.delete('/api/vendors/:id/categories/:categoryId', verifyTokenOrTestBypass, a
 // Verify user by email (for testing purposes)
 // ============ FRONTEND LOGGING ENDPOINT ============
 // Add endpoint to receive logs from frontend and save to files
-app.post('/api/logs/frontend', async (req, res) => {
-  try {
-    const logData = req.body;
 
-    // Create a formatted log entry similar to backend logger
-    const timestamp = new Date(logData.timestamp).toISOString();
-    const logLevel = logData.level || 'info';
-    const userId = logData.userId || 'anonymous';
-    const sessionId = logData.sessionId || 'unknown';
-    const category = logData.category || 'frontend';
-
-    // Use backend logger to write to files
-    const message = `[FRONTEND] ${logData.message || 'No message'}`;
-
-    // Format the log data for backend logger
-    const logEntry = {
-      timestamp: new Date(logData.timestamp),
-      level: logLevel,
-      message: `[FRONTEND] ${logData.message || 'No message'}`,
-      userId,
-      sessionId,
-      url: logData.url,
-      userAgent: logData.userAgent,
-      category,
-      frontendData: logData
-    };
-
-    // Log using the appropriate backend logger method
-    if (logLevel === 'error') {
-      logger.error(message, logEntry);
-    } else if (logLevel === 'warn') {
-      logger.warn(message, logEntry);
-    } else if (logLevel === 'debug') {
-      logger.debug(message, logEntry);
-    } else {
-      logger.info(message, logEntry);
-    }
-
-    res.json({ success: true, message: 'Log received and saved' });
-  } catch (error) {
-    logger.error('Frontend log endpoint error:', error);
-    res.status(500).json({ error: 'Failed to save frontend log' });
-  }
-});
 
 
 
