@@ -662,46 +662,7 @@ app.post('/api/logs/frontend', async (req, res) => {
   }
 });
 
-app.post('/api/auth/verify-user', async (req, res) => {
-  try {
-    const { email } = req.body;
 
-    if (!email) {
-      return res.status(400).json({ error: 'Email is required' });
-    }
-
-    const result = await pool.query(
-      'UPDATE users SET is_verified = true WHERE LOWER(email) = LOWER($1) RETURNING id, name, email, role',
-      [email.trim()]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    const user = result.rows[0];
-    logger.info(`User verified via API`, {
-      userId: user.id,
-      email: user.email,
-      role: user.role,
-      category: 'auth'
-    });
-
-    res.json({
-      success: true,
-      message: 'User verified successfully',
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role
-      }
-    });
-  } catch (error) {
-    logger.error('Verify user error:', error);
-    res.status(500).json({ error: 'Failed to verify user' });
-  }
-});
 
 // Get user reputation data
 app.get('/api/users/:id/reputation', verifyToken, async (req, res) => {
