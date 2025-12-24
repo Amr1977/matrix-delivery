@@ -148,7 +148,7 @@ let HAS_POSTGIS = false;
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 
-app.get('/api/browse/vendors', async (req, res) => {
+app.get('/api/browse/vendors', verifyToken, async (req, res) => {
   try {
     const q = (req.query.q || '').trim();
     const city = (req.query.city || '').trim();
@@ -182,7 +182,7 @@ app.get('/api/browse/vendors', async (req, res) => {
   }
 });
 
-app.get('/api/browse/items', async (req, res) => {
+app.get('/api/browse/items', verifyToken, async (req, res) => {
   try {
     const q = (req.query.q || '').trim();
     const category = (req.query.category || '').trim();
@@ -245,7 +245,7 @@ app.get('/api/browse/items', async (req, res) => {
   }
 });
 
-app.get('/api/browse/vendors-near', async (req, res) => {
+app.get('/api/browse/vendors-near', verifyToken, async (req, res) => {
   try {
     if (!HAS_POSTGIS) return res.status(501).json({ error: 'Geospatial near queries require PostGIS' });
     const lat = parseFloat(req.query.lat);
@@ -270,7 +270,7 @@ app.get('/api/browse/vendors-near', async (req, res) => {
   }
 });
 
-app.get('/api/browse/items-near', async (req, res) => {
+app.get('/api/browse/items-near', verifyToken, async (req, res) => {
   try {
     if (!HAS_POSTGIS) return res.status(501).json({ error: 'Geospatial near queries require PostGIS' });
     const lat = parseFloat(req.query.lat);
@@ -333,7 +333,7 @@ app.get('/api/vendors', async (req, res) => {
   }
 });
 
-app.post('/api/vendors', verifyTokenOrTestBypass, isAdmin, async (req, res) => {
+app.post('/api/vendors', verifyTokenOrTestBypass, isAdmin, async (req, res, next) => {
   try {
     const { name, description, phone, address, city, country, latitude, longitude, logo_url, owner_user_id } = req.body;
     if (!name || !city || !country) {
@@ -348,8 +348,7 @@ app.post('/api/vendors', verifyTokenOrTestBypass, isAdmin, async (req, res) => {
     );
     res.status(201).json(result.rows[0]);
   } catch (error) {
-    logger.error('Create vendor error:', error);
-    res.status(500).json({ error: 'Failed to create vendor', details: error.message });
+    next(error);
   }
 });
 

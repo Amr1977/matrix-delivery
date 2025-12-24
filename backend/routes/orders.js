@@ -83,7 +83,7 @@ router.get('/', verifyToken, async (req, res) => {
 });
 
 // Create new order
-router.post('/', verifyToken, orderCreationRateLimit, async (req, res) => {
+router.post('/', verifyToken, orderCreationRateLimit, async (req, res, next) => {
   try {
     if ((req.user.primary_role || req.user.role) !== 'customer' && (req.user.primary_role || req.user.role) !== 'admin') {
       return res.status(403).json({ error: 'Only customers and admins can create orders' });
@@ -105,11 +105,7 @@ router.post('/', verifyToken, orderCreationRateLimit, async (req, res) => {
     const order = await orderService.createOrder(orderData, req.user.userId);
     res.status(201).json(order);
   } catch (error) {
-    logger.error(`Order creation error: ${error.message}`, {
-      userId: req.user.userId,
-      category: 'error'
-    });
-    res.status(500).json({ error: error.message || 'Failed to create order' });
+    next(error);
   }
 });
 
