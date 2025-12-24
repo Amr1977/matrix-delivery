@@ -48,5 +48,14 @@ module.exports = {
     format: ['progress-bar'],
     paths: ['tests/features/map_location_picker.feature'],
     tags: '@smoke'
+  },
+
+  'core': {
+    require: [
+      'tests/steps/core/step_definitions.js',
+      'tests/support/world.js'
+    ],
+    format: ['summary', 'json:test-results.json'],
+    paths: ['tests/features/core/**/*.feature']
   }
 };

@@ -1,60 +1,20 @@
-const { setWorldConstructor, setDefaultTimeout } = require('@cucumber/cucumber');
-const { expect } = require('chai');
-const puppeteer = require('puppeteer');
+const { setWorldConstructor, World } = require('@cucumber/cucumber');
+const ApiAdapter = require('../steps/core/api/order_lifecycle.api');
 
-class CustomWorld {
-  constructor({ parameters }) {
-    this.context = {};
-    this.variables = {};
-    this.expect = expect;
-    this.baseUrl = parameters.baseUrl;
-    this.apiUrl = parameters.apiUrl;
-  }
+class CustomWorld extends World {
+  constructor(options) {
+    super(options);
 
-  async launchBrowser() {
-    this.browser = await puppeteer.launch({
-      headless: process.env.HEADLESS !== 'false',
-      slowMo: process.env.SLOWMO ? parseInt(process.env.SLOWMO) : 0,
-      defaultViewport: { width: 1200, height: 800 },
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
-    this.page = await this.browser.newPage();
-  }
-
-  async closeBrowser() {
-    if (this.browser) {
-      await this.browser.close();
+    if (process.env.TEST_MODE === 'e2e') {
+      // Lazy load E2E adapter
+      const E2eAdapter = require('../steps/core/e2e/order_lifecycle.e2e');
+      // For Playwright, we might need to handle page injection differently in a real runner
+      // But for now, we assume standard instantiation
+      this.adapter = new E2eAdapter(this.page);
+    } else {
+      this.adapter = new ApiAdapter();
     }
-  }
-
-  async visit(path = '/') {
-    await this.page.goto(`${this.baseUrl}${path}`, {
-      waitUntil: 'networkidle0'
-    });
-  }
-
-  async waitForSelector(selector, options = {}) {
-    return this.page.waitForSelector(selector, {
-      timeout: 30000,
-      ...options
-    });
-  }
-
-  async click(selector) {
-    await this.waitForSelector(selector);
-    await this.page.click(selector);
-  }
-
-  async type(selector, text) {
-    await this.waitForSelector(selector);
-    await this.page.type(selector, text);
-  }
-
-  async getText(selector) {
-    await this.waitForSelector(selector);
-    return this.page.$eval(selector, el => el.textContent.trim());
   }
 }
 
 setWorldConstructor(CustomWorld);
-setDefaultTimeout(30 * 1000); // 30 seconds
