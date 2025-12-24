@@ -9,7 +9,7 @@ const { uploadToCloudinary } = require('../middleware/upload');
  * @desc    Create a new wallet payment request
  * @access  Private (Customer)
  */
-router.post('/', verifyToken, uploadToCloudinary.single('screenshot'), async (req, res) => {
+router.post('/', verifyToken, uploadToCloudinary.single('screenshot'), async (req, res, next) => {
     try {
         const {
             orderId,
@@ -57,8 +57,7 @@ router.post('/', verifyToken, uploadToCloudinary.single('screenshot'), async (re
             walletPayment
         });
     } catch (error) {
-        console.error('Error creating wallet payment:', error);
-        res.status(500).json({ error: error.message });
+        next(error);
     }
 });
 
@@ -67,7 +66,7 @@ router.post('/', verifyToken, uploadToCloudinary.single('screenshot'), async (re
  * @desc    Get all pending wallet payments for admin review
  * @access  Private (Admin)
  */
-router.get('/pending', verifyToken, requireRole('admin'), async (req, res) => {
+router.get('/pending', verifyToken, requireRole('admin'), async (req, res, next) => {
     try {
         const limit = parseInt(req.query.limit) || 50;
         const pendingPayments = await walletPaymentService.getPendingPayments(limit);
@@ -78,8 +77,7 @@ router.get('/pending', verifyToken, requireRole('admin'), async (req, res) => {
             payments: pendingPayments
         });
     } catch (error) {
-        console.error('Error getting pending payments:', error);
-        res.status(500).json({ error: error.message });
+        next(error);
     }
 });
 
@@ -88,7 +86,7 @@ router.get('/pending', verifyToken, requireRole('admin'), async (req, res) => {
  * @desc    Get wallet payment by ID
  * @access  Private (Admin or payment owner)
  */
-router.get('/:id', verifyToken, async (req, res) => {
+router.get('/:id', verifyToken, async (req, res, next) => {
     try {
         const walletPayment = await walletPaymentService.getWalletPaymentById(req.params.id);
 
@@ -106,8 +104,7 @@ router.get('/:id', verifyToken, async (req, res) => {
             walletPayment
         });
     } catch (error) {
-        console.error('Error getting wallet payment:', error);
-        res.status(500).json({ error: error.message });
+        next(error);
     }
 });
 
@@ -116,7 +113,7 @@ router.get('/:id', verifyToken, async (req, res) => {
  * @desc    Confirm a wallet payment (admin only)
  * @access  Private (Admin)
  */
-router.post('/:id/confirm', verifyToken, requireRole('admin'), async (req, res) => {
+router.post('/:id/confirm', verifyToken, requireRole('admin'), async (req, res, next) => {
     try {
         const { notes } = req.body;
 
@@ -132,8 +129,7 @@ router.post('/:id/confirm', verifyToken, requireRole('admin'), async (req, res) 
             ...result
         });
     } catch (error) {
-        console.error('Error confirming wallet payment:', error);
-        res.status(500).json({ error: error.message });
+        next(error);
     }
 });
 
@@ -142,7 +138,7 @@ router.post('/:id/confirm', verifyToken, requireRole('admin'), async (req, res) 
  * @desc    Reject a wallet payment (admin only)
  * @access  Private (Admin)
  */
-router.post('/:id/reject', verifyToken, requireRole('admin'), async (req, res) => {
+router.post('/:id/reject', verifyToken, requireRole('admin'), async (req, res, next) => {
     try {
         const { reason } = req.body;
 
@@ -162,8 +158,7 @@ router.post('/:id/reject', verifyToken, requireRole('admin'), async (req, res) =
             walletPayment
         });
     } catch (error) {
-        console.error('Error rejecting wallet payment:', error);
-        res.status(500).json({ error: error.message });
+        next(error);
     }
 });
 
@@ -172,7 +167,7 @@ router.post('/:id/reject', verifyToken, requireRole('admin'), async (req, res) =
  * @desc    Get active platform wallets
  * @access  Private
  */
-router.get('/wallets/active', verifyToken, async (req, res) => {
+router.get('/wallets/active', verifyToken, async (req, res, next) => {
     try {
         const wallets = await walletPaymentService.getActivePlatformWallets();
 
@@ -181,8 +176,7 @@ router.get('/wallets/active', verifyToken, async (req, res) => {
             wallets
         });
     } catch (error) {
-        console.error('Error getting platform wallets:', error);
-        res.status(500).json({ error: error.message });
+        next(error);
     }
 });
 
