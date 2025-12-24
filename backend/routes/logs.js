@@ -12,52 +12,7 @@ module.exports = (pool) => {
     const LoggingService = require('../services/loggingService');
     const loggingService = new LoggingService(pool);
 
-    /**
-     * POST /api/logs/frontend
-     * Receive logs from frontend (no authentication required for better logging coverage)
-     */
-    router.post('/frontend', async (req, res) => {
-        try {
-            const logData = req.body;
 
-            // Support both single log and batch logs
-            const logs = Array.isArray(logData) ? logData : [logData];
-
-            // Process logs in parallel for better performance
-            const results = await Promise.allSettled(
-                logs.map(log => loggingService.logFrontendEvent({
-                    ...log,
-                    userId: req.user?.userId || log.userId,
-                    ipAddress: req.ip,
-                    userAgent: req.get('User-Agent')
-                }))
-            );
-
-            const successCount = results.filter(r => r.status === 'fulfilled').length;
-            const failureCount = results.filter(r => r.status === 'rejected').length;
-
-            logger.info(`Received ${logs.length} frontend logs`, {
-                category: 'logs_api',
-                successCount,
-                failureCount,
-                userId: req.user?.userId
-            });
-
-            res.status(201).json({
-                message: 'Logs received',
-                received: logs.length,
-                success: successCount,
-                failed: failureCount
-            });
-        } catch (error) {
-            logger.error('Failed to process frontend logs', {
-                error: error.message,
-                stack: error.stack,
-                category: 'logs_api'
-            });
-            res.status(500).json({ error: 'Failed to process logs' });
-        }
-    });
 
     /**
      * GET /api/logs

@@ -51,11 +51,8 @@ describe('LogBatcher', () => {
             expect(batcher.queue[0].timestamp).toBeDefined();
         });
 
-        it('should flush when batch size is reached', async () => {
-            global.fetch.mockResolvedValue({ ok: true });
-            localStorage.getItem.mockReturnValue('test-token');
-
-            // Add 50 logs to trigger flush
+        it('should flush queue but not call fetch (feature disabled)', async () => {
+            // Add logs to trigger flush
             for (let i = 0; i < 50; i++) {
                 batcher.addLog({ level: 'info', message: `Log ${i}` });
             }
@@ -63,85 +60,34 @@ describe('LogBatcher', () => {
             // Wait for flush
             await new Promise(resolve => setTimeout(resolve, 100));
 
-            expect(global.fetch).toHaveBeenCalled();
+            expect(global.fetch).not.toHaveBeenCalled();
+            // Should clear queue though (implied by internal implementation calls clearLocalStorage)
         });
     });
 
     describe('flush', () => {
-        it('should send logs to backend', async () => {
-            global.fetch.mockResolvedValue({ ok: true });
+        it('should not send logs to backend (feature disabled)', async () => {
             localStorage.getItem.mockReturnValue('test-token');
 
             batcher.addLog({ level: 'error', message: 'Test error' });
             await batcher.flush();
 
-            expect(global.fetch).toHaveBeenCalledWith(
-                'http://localhost:5000/api/logs/frontend',
-                expect.objectContaining({
-                    method: 'POST',
-                    headers: expect.objectContaining({
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer test-token'
-                    })
-                })
-            );
+            expect(global.fetch).not.toHaveBeenCalled();
         });
 
         it('should not send if queue is empty', async () => {
             await batcher.flush();
-
             expect(global.fetch).not.toHaveBeenCalled();
-        });
-
-        it('should not send if already flushing', async () => {
-            global.fetch.mockImplementation(() => new Promise(resolve => setTimeout(() => resolve({ ok: true }), 1000)));
-            localStorage.getItem.mockReturnValue('test-token');
-
-            batcher.addLog({ level: 'error', message: 'Test 1' });
-            batcher.flush(); // First flush
-            batcher.addLog({ level: 'error', message: 'Test 2' });
-            await batcher.flush(); // Second flush (should be ignored)
-
-            expect(global.fetch).toHaveBeenCalledTimes(1);
-        });
-
-        it('should save to localStorage if offline', async () => {
-            global.navigator.onLine = false;
-            batcher.isOnline = false;
-
-            batcher.addLog({ level: 'error', message: 'Offline log' });
-            await batcher.flush();
-
-            expect(localStorage.setItem).toHaveBeenCalledWith(
-                'pendingLogs',
-                expect.any(String)
-            );
         });
     });
 
     describe('sendLogs', () => {
-        it('should retry on failure', async () => {
-            global.fetch
-                .mockRejectedValueOnce(new Error('Network error'))
-                .mockRejectedValueOnce(new Error('Network error'))
-                .mockResolvedValueOnce({ ok: true });
-
-            localStorage.getItem.mockReturnValue('test-token');
-
+        it('should clear storage but not call fetch', async () => {
             const logs = [{ level: 'error', message: 'Test' }];
             await batcher.sendLogs(logs);
 
-            expect(global.fetch).toHaveBeenCalledTimes(3);
-        });
-
-        it('should throw after max retries', async () => {
-            global.fetch.mockRejectedValue(new Error('Network error'));
-            localStorage.getItem.mockReturnValue('test-token');
-
-            const logs = [{ level: 'error', message: 'Test' }];
-
-            await expect(batcher.sendLogs(logs)).rejects.toThrow('Network error');
-            expect(global.fetch).toHaveBeenCalledTimes(3);
+            expect(global.fetch).not.toHaveBeenCalled();
+            expect(localStorage.removeItem).toHaveBeenCalledWith('pendingLogs');
         });
 
         it('should not send without token', async () => {
@@ -230,15 +176,17 @@ describe('LogBatcher', () => {
 
             await new Promise(resolve => setTimeout(resolve, 100));
 
-            expect(global.fetch).toHaveBeenCalled();
-        });
-
-        it('should save to localStorage when going offline', () => {
-            batcher.addLog({ level: 'error', message: 'Going offline' });
-
-            window.dispatchEvent(new Event('offline'));
-
-            expect(batcher.isOnline).toBe(false);
+            expect(global.fetch).not.toHaveBeenCalled();
+            // Should still trigger flush flow but end up in no-op sendLogs
         });
     });
+
+    it('should save to localStorage when going offline', () => {
+        batcher.addLog({ level: 'error', message: 'Going offline' });
+
+        window.dispatchEvent(new Event('offline'));
+
+        expect(batcher.isOnline).toBe(false);
+    });
+});
 });
