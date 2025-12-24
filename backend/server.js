@@ -56,21 +56,12 @@ const io = socketIo(httpServer, {
 // Configure Socket.IO
 configureSocket(io);
 
-// Start rate limit cleanup
-startCleanup();
-
-// Inject io into NotificationService
-try {
-  const notificationService = getNotificationService();
-  notificationService.setIo(io);
-  logger.info('NotificationService updated with Socket.IO instance');
-} catch (err) {
-  logger.error('Failed to update NotificationService with Socket.IO:', err);
-}
-
 let server;
 
 if (require.main === module) {
+  // Start rate limit cleanup only when running the server directly
+  startCleanup();
+
   server = httpServer.listen(PORT, '0.0.0.0', () => {
     console.log('');
     console.log('╔════════════════════════════════════════════════════╗');
