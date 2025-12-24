@@ -109,6 +109,19 @@ async function setupTestDb() {
           to_lat DECIMAL(10, 8),
           to_lng DECIMAL(11, 8),
           to_name VARCHAR(255),
+          pickup_coordinates JSONB,
+          delivery_coordinates JSONB,
+          pickup_location_link TEXT,
+          delivery_location_link TEXT,
+          estimated_distance_km DECIMAL(10, 2),
+          estimated_duration_minutes INTEGER,
+          route_polyline TEXT,
+          is_remote_area BOOLEAN DEFAULT FALSE,
+          is_international BOOLEAN DEFAULT FALSE,
+          package_description TEXT,
+          package_weight DECIMAL(10, 2),
+          estimated_value DECIMAL(10, 2),
+          special_instructions TEXT,
           price DECIMAL(10, 2),
           status VARCHAR(50) NOT NULL,
           customer_id VARCHAR(255) REFERENCES users(id),
@@ -121,8 +134,13 @@ async function setupTestDb() {
           crypto_token VARCHAR(255),
           crypto_amount DECIMAL(20, 6),
           total_price DECIMAL(10, 2),
+          estimated_delivery_date TIMESTAMP,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          updated_at TIMESTAMP
+          updated_at TIMESTAMP,
+          accepted_at TIMESTAMP,
+          picked_up_at TIMESTAMP,
+          delivered_at TIMESTAMP,
+          cancelled_at TIMESTAMP
       );
 
       -- Password reset tokens table
@@ -145,6 +163,34 @@ async function setupTestDb() {
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
+      -- Bids table
+      CREATE TABLE IF NOT EXISTS bids (
+          id SERIAL PRIMARY KEY,
+          order_id VARCHAR(255) REFERENCES orders(id) ON DELETE CASCADE,
+          user_id VARCHAR(255) REFERENCES users(id),
+          driver_name VARCHAR(255),
+          bid_price DECIMAL(10, 2) NOT NULL,
+          estimated_pickup_time TIMESTAMP,
+          estimated_delivery_time TIMESTAMP,
+          message TEXT,
+          status VARCHAR(50) DEFAULT 'pending',
+          driver_location_lat DECIMAL(10, 8),
+          driver_location_lng DECIMAL(11, 8),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      -- Reviews table
+      CREATE TABLE IF NOT EXISTS reviews (
+          id SERIAL PRIMARY KEY,
+          order_id VARCHAR(255) REFERENCES orders(id),
+          reviewer_id VARCHAR(255) REFERENCES users(id),
+          reviewee_id VARCHAR(255) REFERENCES users(id),
+          rating INTEGER CHECK (rating >= 1 AND rating <= 5),
+          comment TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+
       -- Payments table
       CREATE TABLE IF NOT EXISTS payments (
           id VARCHAR(255) PRIMARY KEY,
@@ -163,6 +209,73 @@ async function setupTestDb() {
           driver_earnings DECIMAL(10, 2),
           updated_at TIMESTAMP,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      -- User balances table
+      CREATE TABLE IF NOT EXISTS user_balances (
+          user_id VARCHAR(255) PRIMARY KEY REFERENCES users(id),
+          currency VARCHAR(10) DEFAULT 'EGP',
+          available_balance DECIMAL(20, 2) DEFAULT 0,
+          pending_balance DECIMAL(20, 2) DEFAULT 0,
+          held_balance DECIMAL(20, 2) DEFAULT 0,
+          total_balance DECIMAL(20, 2) DEFAULT 0,
+          daily_withdrawal_limit DECIMAL(20, 2) DEFAULT 10000,
+          monthly_withdrawal_limit DECIMAL(20, 2) DEFAULT 50000,
+          minimum_balance DECIMAL(20, 2) DEFAULT 0,
+          auto_reload_threshold DECIMAL(20, 2),
+          auto_reload_amount DECIMAL(20, 2),
+          lifetime_deposits DECIMAL(20, 2) DEFAULT 0,
+          lifetime_withdrawals DECIMAL(20, 2) DEFAULT 0,
+          lifetime_earnings DECIMAL(20, 2) DEFAULT 0,
+          total_transactions INTEGER DEFAULT 0,
+          is_active BOOLEAN DEFAULT TRUE,
+          is_frozen BOOLEAN DEFAULT FALSE,
+          freeze_reason TEXT,
+          frozen_at TIMESTAMP,
+          frozen_by VARCHAR(255),
+          last_transaction_at TIMESTAMP,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS balance_transactions (
+          id SERIAL PRIMARY KEY,
+          transaction_id VARCHAR(255) UNIQUE NOT NULL,
+          user_id VARCHAR(255) REFERENCES users(id),
+          type VARCHAR(50) NOT NULL,
+          amount DECIMAL(20, 2) NOT NULL,
+          currency VARCHAR(10) DEFAULT 'EGP',
+          balance_before DECIMAL(20, 2) NOT NULL,
+          balance_after DECIMAL(20, 2) NOT NULL,
+          status VARCHAR(50) NOT NULL,
+          description TEXT,
+          metadata JSONB,
+          order_id VARCHAR(255),
+          wallet_payment_id INTEGER,
+          withdrawal_request_id INTEGER,
+          related_transaction_id INTEGER,
+          processed_by VARCHAR(255),
+          processing_method VARCHAR(255),
+          processed_at TIMESTAMP,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS balance_holds (
+          id SERIAL PRIMARY KEY,
+          hold_id VARCHAR(255) UNIQUE NOT NULL,
+          user_id VARCHAR(255) REFERENCES users(id),
+          amount DECIMAL(20, 2) NOT NULL,
+          currency VARCHAR(10) DEFAULT 'EGP',
+          reason TEXT,
+          order_id VARCHAR(255),
+          expires_at TIMESTAMP,
+          description TEXT,
+          metadata JSONB,
+          transaction_id INTEGER REFERENCES balance_transactions(id),
+          status VARCHAR(50) NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP
       );
 
       -- User payment methods table

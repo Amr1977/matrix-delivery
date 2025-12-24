@@ -209,6 +209,20 @@ class AuthService {
 
     // Create user
     const user = await this.createUser(userData);
+
+    // Initialize user balance
+    try {
+      await pool.query(
+        "INSERT INTO user_balances (user_id, currency, available_balance, pending_balance, held_balance) VALUES ($1, 'EGP', 0, 0, 0) ON CONFLICT (user_id) DO NOTHING",
+        [user.id]
+      );
+      logger.info(`Initialized balance for new user ${user.id}`);
+    } catch (balanceError) {
+      logger.error(`Failed to initialize balance for user ${user.id}: ${balanceError.message}`);
+      // Throwing here to ensure we don't end up with inconsistent user state
+      throw new Error('Failed to initialize user balance');
+    }
+
     const token = this.generateToken(user);
 
     logger.auth('User registered successfully', {
