@@ -1,4 +1,0 @@
-\"feat: Clean up remaining emojis in login/register forms\"  
-\"- Replace eye emojis with 'Show'/'Hide' text buttons\"  
-\"- Improve UI consistency and branding professionalism\"  
-\"- Align with Matrix Heroes standards\"  
