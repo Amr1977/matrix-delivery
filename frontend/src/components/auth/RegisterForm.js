@@ -33,6 +33,7 @@ const RegisterForm = ({ onSubmit, loading, error, t, countries }) => {
 
     await onSubmit({
       ...formData,
+      primary_role: formData.role,
       recaptchaToken
     });
   };

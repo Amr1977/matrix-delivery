@@ -58,6 +58,18 @@ configureSocket(io);
 
 let server;
 
+process.on('uncaughtException', (err) => {
+  console.error('❌ UNCAUGHT EXCEPTION:', err);
+  logger.error('❌ UNCAUGHT EXCEPTION:', err);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ UNHANDLED REJECTION:', reason);
+  logger.error('❌ UNHANDLED REJECTION:', reason);
+  process.exit(1);
+});
+
 if (require.main === module) {
   // Start rate limit cleanup only when running the server directly
   startCleanup();

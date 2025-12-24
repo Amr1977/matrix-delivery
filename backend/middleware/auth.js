@@ -250,11 +250,50 @@ const verifyAdmin = async (req, res, next) => {
   }
 };
 
+// Define IS_TEST for middleware use (consistent with app.js)
+const IS_TEST = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing';
+
+/**
+ * Test bypass middleware
+ * Allows bypassing token verification in test environment with special headers
+ */
+const verifyTokenOrTestBypass = (req, res, next) => {
+  if (IS_TEST && req.headers['x-test-admin'] === '1') {
+    req.user = { role: 'admin', userId: req.headers['x-test-user-id'] };
+    return next();
+  }
+  return verifyToken(req, res, next);
+};
+
+/**
+ * Vendor authorization middleware
+ * Checks if user is admin or owns the vendor resource
+ */
+const authorizeVendorManage = async (req, res, next) => {
+  const pool = require('../config/db'); // Require locally to avoid circular dependency issues if any
+  try {
+    const role = req.user?.role;
+    const roles = req.user?.roles || [];
+    if (role === 'admin' || (Array.isArray(roles) && roles.includes('admin'))) {
+      return next();
+    }
+    const result = await pool.query('SELECT owner_user_id FROM vendors WHERE id = $1', [req.params.id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Vendor not found' });
+    const owner = result.rows[0].owner_user_id;
+    if (owner && owner === req.user?.userId) return next();
+    return res.status(403).json({ error: 'Forbidden' });
+  } catch (error) {
+    return res.status(500).json({ error: 'Authorization failed' });
+  }
+};
+
 module.exports = {
   verifyToken,
   requireRole,
   requireOwnershipOrAdmin,
   verifyBalanceOwnership,
   requireAdmin,
-  verifyAdmin
+  verifyAdmin,
+  verifyTokenOrTestBypass,
+  authorizeVendorManage
 };

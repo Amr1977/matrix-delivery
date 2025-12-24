@@ -99,12 +99,18 @@ const useAuth = () => {
       return false;
     }
 
+    // Ensure primary_role is set for backend
+    const payload = {
+      ...formData,
+      primary_role: formData.primary_role || formData.role
+    };
+
     setLoading(true);
     try {
       const response = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) {
