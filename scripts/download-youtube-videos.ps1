@@ -76,6 +76,17 @@ function Test-YtDlp {
     }
 }
 
+# Check if ffmpeg is installed
+function Test-FFmpeg {
+    try {
+        $null = ffmpeg -version
+        return $true
+    }
+    catch {
+        return $false
+    }
+}
+
 # Install yt-dlp
 function Install-YtDlp {
     Write-Info "Installing yt-dlp..."
@@ -129,7 +140,7 @@ function Download-Channel {
     
     $format = Get-QualityFormat $quality
     
-    $args = @(
+    $dlArgs = @(
         '--format', $format,
         '--output', "$outputDir/%(uploader)s/%(playlist)s/%(title)s.%(ext)s",
         '--write-description',
@@ -145,7 +156,7 @@ function Download-Channel {
         $channelUrl
     )
     
-    yt-dlp @args
+    yt-dlp @dlArgs
 }
 
 # Download playlist
@@ -158,7 +169,7 @@ function Download-Playlist {
     
     $format = Get-QualityFormat $quality
     
-    $args = @(
+    $dlArgs = @(
         '--format', $format,
         '--output', "$outputDir/%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s",
         '--write-description',
@@ -170,7 +181,7 @@ function Download-Playlist {
         $playlistUrl
     )
     
-    yt-dlp @args
+    yt-dlp @dlArgs
 }
 
 # Download from list
@@ -196,7 +207,7 @@ function Download-FromList {
         $i++
         Write-Info "[$i/$count] Downloading: $url"
         
-        $args = @(
+        $dlArgs = @(
             '--format', $format,
             '--output', "$outputDir/%(title)s.%(ext)s",
             '--write-description',
@@ -208,7 +219,7 @@ function Download-FromList {
             $url
         )
         
-        yt-dlp @args
+        yt-dlp @dlArgs
     }
 }
 
@@ -222,7 +233,7 @@ function Download-Single {
     
     $format = Get-QualityFormat $quality
     
-    $args = @(
+    $dlArgs = @(
         '--format', $format,
         '--output', "$outputDir/%(title)s.%(ext)s",
         '--write-description',
@@ -234,7 +245,7 @@ function Download-Single {
         $videoUrl
     )
     
-    yt-dlp @args
+    yt-dlp @dlArgs
 }
 
 # Main execution
@@ -249,6 +260,16 @@ if (-not (Test-YtDlp)) {
 }
 else {
     Write-Success "✓ yt-dlp is installed"
+}
+
+# Check FFmpeg
+if (-not (Test-FFmpeg)) {
+    Write-Warning "⚠️  FFmpeg is not installed or not in PATH."
+    Write-Warning "   High quality (1080p+) downloads may fail or lack audio."
+    Write-Info    "   Install it via: winget install Gyan.FFmpeg"
+}
+else {
+    Write-Success "✓ ffmpeg is installed"
 }
 
 # Create output directory
