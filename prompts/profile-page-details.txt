@@ -1,6 +1,0 @@
-also we need ok and cancel buttons in profile page so that changes are saved on ok and discarded otherwise
-
-also we can use user picture as profile button in header bar
-also add comprehensive settings like saved home address and location fields (country, city, area, building, floor, apartment) , location , and other favourite locations with address details
-
-if driver it should show a link to his daily and monthly income  details page
