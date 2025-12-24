@@ -82,7 +82,11 @@ function startBackend() {
       cwd: path.join(process.cwd(), 'backend'),
       stdio: ['ignore', 'pipe', 'pipe'],
       shell: true,
-      env: { ...process.env, NODE_ENV: 'development' }
+      env: {
+        ...process.env,
+        NODE_ENV: 'development',
+        NODE_OPTIONS: '--max-old-space-size=4096'
+      }
     });
 
     let backendReady = false;
@@ -91,8 +95,8 @@ function startBackend() {
       const output = data.toString();
       console.log(`[BACKEND] ${output.trim()}`);
 
-  // Check if backend is ready
-  if (output.includes('Server running on:') && !backendReady) {
+      // Check if backend is ready
+      if (output.includes('Server running on:') && !backendReady) {
         backendReady = true;
         log(colors.green, `✅ Backend server started (PID: ${backendProcess.pid})`);
         resolve(backendProcess);

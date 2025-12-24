@@ -68,6 +68,7 @@ export async function initializeDatabase(
             if (schema.alterStatements && schema.alterStatements.length > 0) {
                 for (const alterStatement of schema.alterStatements) {
                     try {
+                        if (verbose) logger.info(`  Running alter: ${alterStatement}`, { category: 'database' });
                         await pool.query(alterStatement);
                     } catch (error) {
                         // Alter statements may fail if column already exists - this is OK

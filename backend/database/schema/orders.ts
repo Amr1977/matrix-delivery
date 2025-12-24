@@ -5,9 +5,9 @@ import { TableSchema } from '../types';
  * Stores delivery orders with pickup/delivery locations and status tracking
  */
 export const ordersSchema: TableSchema = {
-    name: 'orders',
+  name: 'orders',
 
-    createStatement: `
+  createStatement: `
     CREATE TABLE IF NOT EXISTS orders (
       id VARCHAR(255) PRIMARY KEY,
       order_number VARCHAR(50) UNIQUE NOT NULL,
@@ -45,23 +45,23 @@ export const ordersSchema: TableSchema = {
     )
   `,
 
-    indexes: [
-        'CREATE INDEX IF NOT EXISTS idx_orders_customer_id ON orders(customer_id)',
-        'CREATE INDEX IF NOT EXISTS idx_orders_assigned_driver_user_id ON orders(assigned_driver_user_id)',
-        'CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status)',
-        'CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at DESC)',
-        'CREATE INDEX IF NOT EXISTS idx_orders_order_number ON orders(order_number)'
-    ],
+  indexes: [
+    'CREATE INDEX IF NOT EXISTS idx_orders_customer_id ON orders(customer_id)',
+    'CREATE INDEX IF NOT EXISTS idx_orders_assigned_driver_user_id ON orders(assigned_driver_user_id)',
+    'CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status)',
+    'CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at DESC)',
+    'CREATE INDEX IF NOT EXISTS idx_orders_order_number ON orders(order_number)'
+  ],
 
-    alterStatements: [
-        'ALTER TABLE orders ADD COLUMN IF NOT EXISTS pickup_coordinates JSONB',
-        'ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_coordinates JSONB',
-        'ALTER TABLE orders ADD COLUMN IF NOT EXISTS pickup_location_link TEXT',
-        'ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_location_link TEXT',
-        'ALTER TABLE orders ADD COLUMN IF NOT EXISTS estimated_distance_km DECIMAL(10,2)',
-        'ALTER TABLE orders ADD COLUMN IF NOT EXISTS estimated_duration_minutes INTEGER',
-        'ALTER TABLE orders ADD COLUMN IF NOT EXISTS route_polyline TEXT',
-        'ALTER TABLE orders ADD COLUMN IF NOT EXISTS is_remote_area BOOLEAN DEFAULT false',
-        'ALTER TABLE orders ADD COLUMN IF NOT EXISTS is_international BOOLEAN DEFAULT false'
-    ]
+  alterStatements: [
+    'ALTER TABLE orders ADD COLUMN IF NOT EXISTS pickup_coordinates JSONB',
+    'ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_coordinates JSONB',
+    'ALTER TABLE orders ADD COLUMN IF NOT EXISTS pickup_location_link TEXT',
+    'ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_location_link TEXT',
+    'ALTER TABLE orders ADD COLUMN IF NOT EXISTS estimated_distance_km DECIMAL(10,2)',
+    // 'ALTER TABLE orders ADD COLUMN IF NOT EXISTS estimated_duration_minutes INTEGER',
+    // 'ALTER TABLE orders ADD COLUMN IF NOT EXISTS route_polyline TEXT',
+    'ALTER TABLE orders ADD COLUMN IF NOT EXISTS is_remote_area BOOLEAN DEFAULT false',
+    'ALTER TABLE orders ADD COLUMN IF NOT EXISTS is_international BOOLEAN DEFAULT false'
+  ]
 };

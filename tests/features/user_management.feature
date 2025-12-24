@@ -18,6 +18,9 @@ Feature: User Registration and Authentication
       | password  | SecurePass123!   |
       | phone     | +1234567890      |
       | user_type | customer         |
+      | country   | Egypt            |
+      | city      | Cairo            |
+      | area      | Maadi            |
     And I submit the registration form
     Then I should see a success message "Registration successful"
     And I should receive a verification email at "john@example.com"
@@ -39,6 +42,9 @@ Feature: User Registration and Authentication
       | phone        | +1234567891      |
       | user_type    | driver           |
       | vehicle_type | bike             |
+      | country      | Egypt            |
+      | city         | Cairo            |
+      | area         | Maadi            |
     And I submit the registration form
     Then I should see a success message "Registration successful"
     And I should receive a verification email at "jane@example.com"
