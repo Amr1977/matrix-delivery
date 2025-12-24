@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const walletPaymentService = require('../services/walletPaymentService');
-const { authenticate, authorize } = require('../middleware/auth');
+const { verifyToken, requireRole } = require('../middleware/auth');
 const { uploadToCloudinary } = require('../middleware/upload');
 
 /**
@@ -9,7 +9,7 @@ const { uploadToCloudinary } = require('../middleware/upload');
  * @desc    Create a new wallet payment request
  * @access  Private (Customer)
  */
-router.post('/', authenticate, uploadToCloudinary.single('screenshot'), async (req, res) => {
+router.post('/', verifyToken, uploadToCloudinary.single('screenshot'), async (req, res) => {
     try {
         const {
             orderId,
@@ -32,7 +32,7 @@ router.post('/', authenticate, uploadToCloudinary.single('screenshot'), async (r
             return res.status(404).json({ error: 'Order not found' });
         }
 
-        if (orderCheck.rows[0].customer_id !== req.user.id) {
+        if (orderCheck.rows[0].customer_id !== req.user.userId) {
             return res.status(403).json({ error: 'Not authorized to pay for this order' });
         }
 
@@ -67,7 +67,7 @@ router.post('/', authenticate, uploadToCloudinary.single('screenshot'), async (r
  * @desc    Get all pending wallet payments for admin review
  * @access  Private (Admin)
  */
-router.get('/pending', authenticate, authorize(['admin']), async (req, res) => {
+router.get('/pending', verifyToken, requireRole('admin'), async (req, res) => {
     try {
         const limit = parseInt(req.query.limit) || 50;
         const pendingPayments = await walletPaymentService.getPendingPayments(limit);
@@ -88,7 +88,7 @@ router.get('/pending', authenticate, authorize(['admin']), async (req, res) => {
  * @desc    Get wallet payment by ID
  * @access  Private (Admin or payment owner)
  */
-router.get('/:id', authenticate, async (req, res) => {
+router.get('/:id', verifyToken, async (req, res) => {
     try {
         const walletPayment = await walletPaymentService.getWalletPaymentById(req.params.id);
 
@@ -116,7 +116,7 @@ router.get('/:id', authenticate, async (req, res) => {
  * @desc    Confirm a wallet payment (admin only)
  * @access  Private (Admin)
  */
-router.post('/:id/confirm', authenticate, authorize(['admin']), async (req, res) => {
+router.post('/:id/confirm', verifyToken, requireRole('admin'), async (req, res) => {
     try {
         const { notes } = req.body;
 
@@ -142,7 +142,7 @@ router.post('/:id/confirm', authenticate, authorize(['admin']), async (req, res)
  * @desc    Reject a wallet payment (admin only)
  * @access  Private (Admin)
  */
-router.post('/:id/reject', authenticate, authorize(['admin']), async (req, res) => {
+router.post('/:id/reject', verifyToken, requireRole('admin'), async (req, res) => {
     try {
         const { reason } = req.body;
 
@@ -172,7 +172,7 @@ router.post('/:id/reject', authenticate, authorize(['admin']), async (req, res) 
  * @desc    Get active platform wallets
  * @access  Private
  */
-router.get('/wallets/active', authenticate, async (req, res) => {
+router.get('/wallets/active', verifyToken, async (req, res) => {
     try {
         const wallets = await walletPaymentService.getActivePlatformWallets();
 

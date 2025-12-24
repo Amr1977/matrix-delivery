@@ -122,44 +122,15 @@ class LogBatcher {
     }
 
     /**
-     * Send logs to backend with retry logic
+     * Send logs to backend (DISABLED)
      * @param {Array} logs - Array of log entries
      * @param {number} attempt - Current retry attempt
      */
     async sendLogs(logs, attempt = 1) {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            // Can't send without token, save for later
-            this.saveToLocalStorage();
-            return;
-        }
-
-        try {
-            const response = await fetch(`${this.apiUrl}/logs/frontend`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(logs)
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-
-            // Clear localStorage on successful send
-            this.clearLocalStorage();
-        } catch (error) {
-            if (attempt < this.retryAttempts) {
-                // Retry with exponential backoff
-                await new Promise(resolve =>
-                    setTimeout(resolve, this.retryDelay * attempt)
-                );
-                return this.sendLogs(logs, attempt + 1);
-            }
-            throw error;
-        }
+        // Feature disabled as backend endpoint has been removed
+        // Just clear the queue to prevent memory leaks
+        this.clearLocalStorage();
+        return;
     }
 
     /**
