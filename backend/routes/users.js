@@ -194,9 +194,28 @@ router.get('/:id/reviews/given', verifyToken, async (req, res, next) => {
 router.get('/me/profile', verifyToken, async (req, res, next) => {
     try {
         const result = await pool.query(
-            `SELECT id, name, email, phone, primary_role, granted_roles, vehicle_type, rating, completed_deliveries, is_available, is_verified,
-              profile_picture_url, license_number, service_area_zone, preferences, notification_prefs,
-              two_factor_methods, language, theme, gender, document_verification_status, verified_at
+            `SELECT id, 
+            name,
+            email,
+            phone,
+            primary_role,
+            granted_roles,
+            vehicle_type,
+            rating,
+            completed_deliveries,
+            is_available,
+            is_verified,
+            profile_picture_url,
+            license_number,
+            service_area_zone,
+            preferences,
+            notification_prefs,
+            two_factor_methods,
+            language,
+            theme,
+            gender,
+            document_verification_status,
+            verified_at
        FROM users WHERE id = $1`,
             [req.user.userId]
         );
@@ -233,7 +252,7 @@ router.put('/me/profile', verifyToken, async (req, res, next) => {
         if (phone) { updates.push(`phone = $${i++}`); params.push(phone); }
         if (language) { updates.push(`language = $${i++}`); params.push(language); }
         if (theme) { updates.push(`theme = $${i++}`); params.push(theme); }
-        if (gender && ['male', 'female', 'other'].includes(gender.toLowerCase())) {
+        if (gender && ['male', 'female'].includes(gender.toLowerCase())) {
             updates.push(`gender = $${i++}`);
             params.push(gender.toLowerCase());
         }

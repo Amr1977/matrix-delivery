@@ -167,7 +167,7 @@ const ProfilePage = ({
                     {/* Only show RoleSwitcher if user has multiple granted_roles */}
                     {(profileData.granted_roles?.length > 1 || profileData.granted_roles?.length > 1) && (
                         <div style={{ background: 'rgba(0,0,0,0.3)', padding: '15px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                            <h3 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Switch primary_role</h3>
+                            <h3 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Switch Role</h3>
                             <RoleSwitcher
                                 currentRole={profileData.primary_role || profileData.primary_role}
                                 grantedRoles={profileData.granted_roles || profileData.granted_roles}

@@ -1159,7 +1159,7 @@ export const MainApp = () => {
       setToken('authenticated');
       setCurrentUser((prev) => ({ ...(prev || {}), primary_role }));
     } catch (err) {
-      setError(err.message || err.error || 'Failed to switch primary_role');
+      setError(err.message || err.error || 'Failed to switch role');
     }
   };
 

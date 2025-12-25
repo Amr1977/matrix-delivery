@@ -5,4 +5,4 @@
 ALTER TABLE users ADD COLUMN IF NOT EXISTS gender VARCHAR(10) DEFAULT 'male';
 
 -- Add comment to column
-COMMENT ON COLUMN users.gender IS 'User gender for avatar selection (male/female/other)';
+COMMENT ON COLUMN users.gender IS 'User gender for avatar selection (male/female)';
