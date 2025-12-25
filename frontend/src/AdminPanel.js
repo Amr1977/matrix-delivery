@@ -42,7 +42,7 @@ const AdminPanel = ({ onClose }) => {
       const roleParam = filterRole === 'all' ? '' : filterRole;
       const [statsRes, usersRes, ordersRes, verifiedCountRes] = await Promise.all([
         fetch(`${API_URL}/admin/stats?range=${dateRange}`, { credentials: 'include' }),
-        fetch(`${API_URL}/admin/users?page=${usersPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchQuery)}&primary_role=${roleParam}`, { credentials: 'include' }),
+        fetch(`${API_URL}/admin/users?page=${usersPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchQuery)}${roleParam ? '&primary_role=' + roleParam : '' }`, { credentials: 'include' }),
         fetch(`${API_URL}/admin/orders?page=${ordersPage}&limit=${itemsPerPage}`, { credentials: 'include' }),
         fetch(`${API_URL}/admin/users?page=1&limit=1&status=verified`, { credentials: 'include' })
       ]);
