@@ -74,7 +74,10 @@ const useAuth = () => {
       }
 
       const data = await response.json();
+
+      //TODO Fix vulnerability storing token in localstorage!!!!!
       localStorage.setItem('token', data.token);
+
       setToken(data.token);
       setCurrentUser(data.user);
       setAuthForm({ name: '', email: '', password: '', phone: '', primary_role: 'customer', vehicle_type: '', country: '', city: '', area: '' });
@@ -119,7 +122,10 @@ const useAuth = () => {
       }
 
       const data = await response.json();
+
+      //TODO Fix vulnerability storing token in localstorage!!!!!
       localStorage.setItem('token', data.token);
+
       setToken(data.token);
       setCurrentUser(data.user);
       setAuthForm({ name: '', email: '', password: '', phone: '', primary_role: 'customer', vehicle_type: '', country: '', city: '', area: '' });
@@ -134,7 +140,9 @@ const useAuth = () => {
   }, [API_URL]);
 
   const login = (userData, authToken) => {
+    //TODO Fix vulnerability storing token in localstorage!!!!!
     localStorage.setItem('token', authToken);
+    
     setToken(authToken);
     setCurrentUser(userData);
   };

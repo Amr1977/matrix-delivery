@@ -26,6 +26,7 @@ export interface User {
     stripe_customer_id?: string;
     createdAt?: string;
     updatedAt?: string;
+    profile_picture_url?: string;
 }
 
 export interface LoginRequest {

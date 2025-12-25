@@ -80,7 +80,7 @@ class AuthService {
    */
   async findUserById(id) {
     const result = await pool.query(
-      'SELECT id, name, email, primary_role, granted_roles, rating, completed_deliveries, is_verified, country, city, area, created_at FROM users WHERE id = $1',
+      'SELECT id, name, email, primary_role, granted_roles, rating, completed_deliveries, is_verified, country, city, area, created_at, profile_picture_url FROM users WHERE id = $1',
       [id]
     );
     return result.rows[0] || null;
@@ -363,8 +363,6 @@ class AuthService {
       email: user.email,
       phone: user.phone,
       primary_role: user.primary_role,
-      primary_role: user.primary_role,
-      granted_roles: user.granted_roles,
       granted_roles: user.granted_roles,
       country: user.country,
       city: user.city,

@@ -29,7 +29,7 @@ const ProfilePage = ({
     // Debug Log for primary_role Switcher
     useEffect(() => {
         console.log('ProfilePage: profileData:', profileData);
-        console.log('ProfilePage: granted_roles:', profileData?.granted_roles);
+        console.log('ProfilePage: primary_roles:', profileData?.primary_role);
         console.log('ProfilePage: granted_roles:', profileData?.granted_roles);
     }, [profileData]);
 
