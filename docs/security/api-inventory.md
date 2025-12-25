@@ -49,7 +49,7 @@ This document lists all enumerated backend API endpoints for the Matrix Delivery
 | `/api/auth/logout` | POST | `authController.logout` | No | None | None | Session |
 | `/api/auth/me` | GET | `authController.getMe` | Yes | `verifyToken` | None | `users` |
 | `/api/auth/profile` | PUT | `authController.updateProfile` | Yes | `verifyToken` | Profile fields | `users` |
-| `/api/auth/switch-role` | POST | `authController.switchRole` | Yes | `verifyToken` | `role` | `users` |
+| `/api/auth/switch-primary_role` | POST | `authController.switchRole` | Yes | `verifyToken` | `primary_role` | `users` |
 | `/api/auth/verify-user` | POST | `authController.verifyUser` | Yes (Admin) | `requireRole('admin')` | `email` | `users` |
 | `/api/auth/forgot-password` | POST | `authController.forgotPassword` | No | None | `email` | `users` |
 

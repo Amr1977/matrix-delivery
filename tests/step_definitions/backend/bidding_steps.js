@@ -2,7 +2,7 @@ const { Given, When, Then } = require('@cucumber/cucumber');
 const { expect } = require('chai');
 
 // Driver bidding scenario setup
-Given('there are open customer orders available', async function() {
+Given('there are open customer orders available', async function () {
   if (!this.testData.customer) {
     throw new Error('Customer test data not available. Create a customer account first.');
   }
@@ -43,11 +43,11 @@ Given('there are open customer orders available', async function() {
   }
 });
 
-Given('there is an open customer order', async function() {
+Given('there is an open customer order', async function () {
   await this.Given('there are open customer orders available');
 });
 
-Given('multiple drivers are registered', async function() {
+Given('multiple drivers are registered', async function () {
   this.testData.additionalDrivers = [];
 
   // Create additional test drivers
@@ -57,7 +57,7 @@ Given('multiple drivers are registered', async function() {
       name: `Driver ${i}`,
       email: `driver${i}_${timestamp}@test.com`,
       password: 'test123',
-      role: 'driver'
+      primary_role: 'driver'
     };
 
     const response = await fetch(`${this.apiUrl}/auth/register`, {
@@ -77,7 +77,7 @@ Given('multiple drivers are registered', async function() {
 });
 
 // Driver dashboard steps
-Then('I should see the available orders for bidding', async function() {
+Then('I should see the available orders for bidding', async function () {
   await this.page.waitForSelector('h2:has-text("Available Orders")', { timeout: 10000 });
 
   const orderItems = this.page.locator('[data-testid*="order-item"], .order-item, [class*="order"]');
@@ -85,7 +85,7 @@ Then('I should see the available orders for bidding', async function() {
   expect(orderCount).to.be.greaterThan(0);
 });
 
-Then('each order should show pickup and delivery locations', async function() {
+Then('each order should show pickup and delivery locations', async function () {
   const orderItems = this.page.locator('[data-testid*="order-item"], .order-item, [class*="order"]');
 
   for (let i = 0; i < await orderItems.count(); i++) {
@@ -100,7 +100,7 @@ Then('each order should show pickup and delivery locations', async function() {
   }
 });
 
-Then('each order should show the offered price', async function() {
+Then('each order should show the offered price', async function () {
   const orderItems = this.page.locator('[data-testid*="order-item"], .order-item, [class*="order"]');
 
   for (let i = 0; i < await orderItems.count(); i++) {
@@ -113,7 +113,7 @@ Then('each order should show the offered price', async function() {
 });
 
 // Bidding actions
-When('I place a bid of {string} on the order', async function(bidAmount) {
+When('I place a bid of {string} on the order', async function (bidAmount) {
   // Find the first available order and click its bid button
   const bidButton = this.page.locator('input[placeholder*="bid"], input[type="number"]').first();
   await expect(bidButton).toBeVisible();
@@ -130,30 +130,30 @@ When('I place a bid of {string} on the order', async function(bidAmount) {
   this.testData.lastBidAmount = numericBid;
 });
 
-Then('I should see my bid listed in my active bids', async function() {
+Then('I should see my bid listed in my active bids', async function () {
   // Look for active bids section or the bid we just placed
   const myBids = this.page.locator('text=/Bid:/').or(
     this.page.locator('[data-testid*="my-bid"]').or(
-    this.page.locator('[class*="bid"]')
-  ));
+      this.page.locator('[class*="bid"]')
+    ));
 
   await expect(myBids.first()).toBeVisible();
 });
 
-Then('the bid amount should be {string}', async function(expectedAmount) {
+Then('the bid amount should be {string}', async function (expectedAmount) {
   const bidAmountText = this.page.locator(`text=/\\$${expectedAmount.replace(/[$,]/g, '')}/`).or(
     this.page.locator(`text=${expectedAmount}`)
   );
   await expect(bidAmountText).toBeVisible();
 });
 
-Then('the customer should be able to see my bid', async function() {
+Then('the customer should be able to see my bid', async function () {
   // This would require switching to customer view
   // For now, just verify the bid was placed successfully
   const successMessage = this.page.locator('text=Bid placed successfully').or(
     this.page.locator('.success').or(
-    this.page.locator('[class*="success"]')
-  ));
+      this.page.locator('[class*="success"]')
+    ));
 
   // If success message exists, check it; otherwise just verify we're still on the page
   if (await successMessage.isVisible()) {
@@ -162,7 +162,7 @@ Then('the customer should be able to see my bid', async function() {
 });
 
 // Bid acceptance scenario
-Given('a driver has placed a bid on a customer order', async function() {
+Given('a driver has placed a bid on a customer order', async function () {
   if (!this.testData.driver || !this.testData.customer) {
     throw new Error('Both driver and customer test accounts are needed');
   }
@@ -202,7 +202,7 @@ Given('a driver has placed a bid on a customer order', async function() {
   expect(bidResponse.ok).to.be.true;
 });
 
-Given('a driver has an accepted order assigned to them', async function() {
+Given('a driver has an accepted order assigned to them', async function () {
   // First create a bid scenario
   await this.Given('a driver has placed a bid on a customer order');
 
@@ -220,7 +220,7 @@ Given('a driver has an accepted order assigned to them', async function() {
   this.testData.acceptedOrder = await acceptResponse.json();
 });
 
-Given('multiple drivers have placed bids on the same order', async function() {
+Given('multiple drivers have placed bids on the same order', async function () {
   if (!this.testData.additionalDrivers) {
     await this.Given('multiple drivers are registered');
   }
@@ -247,11 +247,11 @@ Given('multiple drivers have placed bids on the same order', async function() {
   }
 });
 
-When('multiple drivers place bids on the same order', async function() {
+When('multiple drivers place bids on the same order', async function () {
   await this.Given('multiple drivers have placed bids on the same order');
 });
 
-When('the driver marks the order as completed', async function() {
+When('the driver marks the order as completed', async function () {
   const completeButton = this.page.locator('button:has-text("Complete Delivery")').or(
     this.page.locator('[data-testid*="complete"]')
   );
@@ -260,7 +260,7 @@ When('the driver marks the order as completed', async function() {
 });
 
 // Bid acceptance steps
-When('I accept the driver\'s bid', async function() {
+When('I accept the driver\'s bid', async function () {
   // Find and click the accept button for the first bid
   const acceptButton = this.page.locator('button:has-text("Accept")').first().or(
     this.page.locator('[data-testid*="accept"]').first()
@@ -280,7 +280,7 @@ When('I accept the driver\'s bid', async function() {
   await this.page.waitForTimeout(2000); // Wait for acceptance to process
 });
 
-Then('the order should be assigned to the driver', async function() {
+Then('the order should be assigned to the driver', async function () {
   // Verify the order status changed to accepted
   const statusElement = this.page.locator('[class*="status"]:has-text("accepted")').or(
     this.page.locator('text=/Accepted/i')
@@ -288,7 +288,7 @@ Then('the order should be assigned to the driver', async function() {
   await expect(statusElement).toBeVisible();
 });
 
-Then('the order status should change to {string}', async function(expectedStatus) {
+Then('the order status should change to {string}', async function (expectedStatus) {
   const statusElement = this.page.locator(`[class*="status"]:has-text("${expectedStatus}")`).or(
     this.page.locator(`text=/${expectedStatus}/i`)
   );
@@ -298,7 +298,7 @@ Then('the order status should change to {string}', async function(expectedStatus
   expect(statusText.toLowerCase()).to.include(expectedStatus.toLowerCase());
 });
 
-Then('the driver should see the order in their accepted deliveries', async function() {
+Then('the driver should see the order in their accepted deliveries', async function () {
   // This would require switching to driver view
   // For now, verify the API call worked by checking the response structure
   if (this.testData.acceptedOrder) {
@@ -308,7 +308,7 @@ Then('the driver should see the order in their accepted deliveries', async funct
 });
 
 // Multiple bids verification
-Then('all bids should be visible to the customer', async function() {
+Then('all bids should be visible to the customer', async function () {
   // Verify multiple bids are displayed
   const bidsList = this.page.locator('div[class*="bid"]').or(
     this.page.locator('[data-testid*="bid"]')
@@ -318,14 +318,14 @@ Then('all bids should be visible to the customer', async function() {
   expect(bidCount).to.be.greaterThan(1);
 });
 
-Then('the customer can choose any bid to accept', async function() {
+Then('the customer can choose any bid to accept', async function () {
   // Verify multiple accept buttons are available
   const acceptButtons = this.page.locator('button:has-text("Accept")');
   const acceptCount = await acceptButtons.count();
   expect(acceptCount).to.be.greaterThan(1);
 });
 
-Then('other drivers should be notified their bids are not accepted', async function() {
+Then('other drivers should be notified their bids are not accepted', async function () {
   // This would require checking driver notifications
   // For now, just verify the order can only be accepted once
   const acceptedOrderText = this.page.locator('text=/accepted/i').or(
@@ -335,7 +335,7 @@ Then('other drivers should be notified their bids are not accepted', async funct
 });
 
 // Bid withdrawal
-Given('a driver has placed a bid on an order', async function() {
+Given('a driver has placed a bid on an order', async function () {
   await this.Given('there is an open customer order');
 
   // Store the first open order for withdrawal test
@@ -343,7 +343,7 @@ Given('a driver has placed a bid on an order', async function() {
   this.testData.bidPlaced = true;
 });
 
-When('the driver withdraws their bid', async function() {
+When('the driver withdraws their bid', async function () {
   const withdrawButton = this.page.locator('button:has-text("Withdraw")').or(
     this.page.locator('[data-testid*="withdraw"]')
   );
@@ -361,7 +361,7 @@ When('the driver withdraws their bid', async function() {
   await this.page.waitForTimeout(2000);
 });
 
-Then('the bid should be removed from the order', async function() {
+Then('the bid should be removed from the order', async function () {
   // Verify the bid is no longer visible
   const myBidElement = this.page.locator('text=/My bid:/').or(
     this.page.locator('[data-testid*="my-bid"]')
@@ -369,7 +369,7 @@ Then('the bid should be removed from the order', async function() {
   await expect(myBidElement).toHaveCount(0);
 });
 
-Then('the bid should not appear in active bids', async function() {
+Then('the bid should not appear in active bids', async function () {
   const activeBidsSection = this.page.locator('h2:has-text("Active Bids")').or(
     this.page.locator('text="My Bids"')
   );
@@ -390,7 +390,7 @@ Then('the bid should not appear in active bids', async function() {
 });
 
 // Driver completion and delivery count
-Then('the driver should get credited for the delivery', async function() {
+Then('the driver should get credited for the delivery', async function () {
   // Verify delivery count increased in the test data
   if (this.testData.driver) {
     // This would require fetching updated driver stats from API
@@ -408,14 +408,14 @@ Then('the driver should get credited for the delivery', async function() {
   }
 });
 
-Then('the delivery count should increase for the driver', async function() {
+Then('the delivery count should increase for the driver', async function () {
   const originalCount = this.testData.driver.originalDeliveryCount || 0;
   const currentCount = this.testData.driver.completedDeliveries || 0;
   expect(currentCount).to.be.greaterThan(originalCount);
 });
 
 // Driver bidding history
-Given('a driver has placed multiple bids', async function() {
+Given('a driver has placed multiple bids', async function () {
   await this.Given('there are open customer orders available');
 
   // Driver places bids on multiple orders via API
@@ -444,7 +444,7 @@ Given('a driver has placed multiple bids', async function() {
   }
 });
 
-When('the driver views their bid history', async function() {
+When('the driver views their bid history', async function () {
   // Navigate to bids section
   const bidsSection = this.page.locator('text="My Bids"').or(
     this.page.locator('h2:has-text("Bids")')
@@ -452,7 +452,7 @@ When('the driver views their bid history', async function() {
   await expect(bidsSection).toBeVisible();
 });
 
-Then('they should see all their previous bids', async function() {
+Then('they should see all their previous bids', async function () {
   const bidItems = this.page.locator('[class*="bid"]').or(
     this.page.locator('[data-testid*="bid"]')
   );
@@ -460,7 +460,7 @@ Then('they should see all their previous bids', async function() {
   expect(bidCount).to.be.at.least(this.testData.driverBids?.length || 1);
 });
 
-Then('each bid should show the order details', async function() {
+Then('each bid should show the order details', async function () {
   const bidItems = this.page.locator('[class*="bid"]').or(
     this.page.locator('[data-testid*="bid"]')
   );
@@ -479,7 +479,7 @@ Then('each bid should show the order details', async function() {
   }
 });
 
-Then('bid status should be shown \\(active, accepted, withdrawn, rejected\\)', async function() {
+Then('bid status should be shown \\(active, accepted, withdrawn, rejected\\)', async function () {
   const statusElements = this.page.locator('[class*="status"]').or(
     this.page.locator('text=/active|accepted|withdrawn|rejected/i')
   );
@@ -487,11 +487,11 @@ Then('bid status should be shown \\(active, accepted, withdrawn, rejected\\)', a
 });
 
 // Post-acceptance state
-Given('an order has been accepted by one driver', async function() {
+Given('an order has been accepted by one driver', async function () {
   await this.Given('a driver has an accepted order assigned to them');
 });
 
-When('another driver tries to interact with the same order', async function() {
+When('another driver tries to interact with the same order', async function () {
   // Switch to another driver context (if we have additional drivers)
   if (this.testData.additionalDrivers && this.testData.additionalDrivers.length > 0) {
     const anotherDriver = this.testData.additionalDrivers[0];
@@ -502,7 +502,7 @@ When('another driver tries to interact with the same order', async function() {
   }
 });
 
-Then('the order should not be available for new bids', async function() {
+Then('the order should not be available for new bids', async function () {
   const bidButtons = this.page.locator('button:has-text("Bid")').or(
     this.page.locator('input[placeholder*="bid"]')
   );
@@ -510,7 +510,7 @@ Then('the order should not be available for new bids', async function() {
   expect(bidButtonCount).to.equal(0);
 });
 
-Then('the second driver should not see the option to bid', async function() {
+Then('the second driver should not see the option to bid', async function () {
   const bidInput = this.page.locator('input[placeholder*="bid"]').or(
     this.page.locator('button:has-text("Place Bid")')
   );

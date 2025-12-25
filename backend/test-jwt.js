@@ -9,7 +9,7 @@ try {
 
   // Check if it matches our user
   console.log('User ID:', decoded.userId);
-  console.log('Role:', decoded.role);
+  console.log('primary_role:', decoded.primary_role);
   console.log('Email:', decoded.email);
 } catch (e) {
   console.error('Failed to decode JWT:', e.message);

@@ -71,7 +71,7 @@ const PAYMENT_STATUS = {
     CANCELLED: 'cancelled'
 };
 
-// User roles
+// User granted_roles
 const USER_ROLES = {
     CUSTOMER: 'customer',
     DRIVER: 'driver',

@@ -32,13 +32,13 @@ async function createAdminUser() {
             console.log('📧 Email:', adminEmail);
             console.log('🔑 Password: (unchanged)');
 
-            // Ensure admin has admin role
+            // Ensure admin has admin primary_role
             const userId = existingAdmin.rows[0].id;
             await pool.query(
-                `UPDATE users SET roles = ARRAY['admin', 'customer', 'driver'] WHERE id = $1`,
+                `UPDATE users SET granted_roles = ARRAY['admin', 'customer', 'driver'] WHERE id = $1`,
                 [userId]
             );
-            console.log('✅ Admin roles updated');
+            console.log('✅ Admin granted_roles updated');
 
             await pool.end();
             return;
@@ -63,7 +63,7 @@ async function createAdminUser() {
                 hashedPassword,
                 adminPhone,
                 'admin',
-                ['admin', 'customer', 'driver'], // Multiple roles for flexibility
+                ['admin', 'customer', 'driver'], // Multiple granted_roles for flexibility
                 true, // Verified
                 5.0, // Perfect rating
                 0, // No deliveries

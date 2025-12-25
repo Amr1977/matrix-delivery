@@ -2260,7 +2260,7 @@ FAIL tests/services/loggingService.test.js (5.651 s)
       20 |         // Create test user
     > 21 |         const result = await pool.query(
          |                        ^
-      22 |             `INSERT INTO users (id, name, email, password, phone, role)
+      22 |             `INSERT INTO users (id, name, email, password, phone, primary_role)
       23 |        VALUES ('test_user_logs', 'Test User', 'testlogs@example.com', 'hash', '+1234567890', 'customer')
       24 |        RETURNING id`
 
@@ -2275,7 +2275,7 @@ FAIL tests/services/loggingService.test.js (5.651 s)
       20 |         // Create test user
     > 21 |         const result = await pool.query(
          |                        ^
-      22 |             `INSERT INTO users (id, name, email, password, phone, role)
+      22 |             `INSERT INTO users (id, name, email, password, phone, primary_role)
       23 |        VALUES ('test_user_logs', 'Test User', 'testlogs@example.com', 'hash', '+1234567890', 'customer')
       24 |        RETURNING id`
 
@@ -2290,7 +2290,7 @@ FAIL tests/services/loggingService.test.js (5.651 s)
       20 |         // Create test user
     > 21 |         const result = await pool.query(
          |                        ^
-      22 |             `INSERT INTO users (id, name, email, password, phone, role)
+      22 |             `INSERT INTO users (id, name, email, password, phone, primary_role)
       23 |        VALUES ('test_user_logs', 'Test User', 'testlogs@example.com', 'hash', '+1234567890', 'customer')
       24 |        RETURNING id`
 
@@ -2305,7 +2305,7 @@ FAIL tests/services/loggingService.test.js (5.651 s)
       20 |         // Create test user
     > 21 |         const result = await pool.query(
          |                        ^
-      22 |             `INSERT INTO users (id, name, email, password, phone, role)
+      22 |             `INSERT INTO users (id, name, email, password, phone, primary_role)
       23 |        VALUES ('test_user_logs', 'Test User', 'testlogs@example.com', 'hash', '+1234567890', 'customer')
       24 |        RETURNING id`
 
@@ -2320,7 +2320,7 @@ FAIL tests/services/loggingService.test.js (5.651 s)
       20 |         // Create test user
     > 21 |         const result = await pool.query(
          |                        ^
-      22 |             `INSERT INTO users (id, name, email, password, phone, role)
+      22 |             `INSERT INTO users (id, name, email, password, phone, primary_role)
       23 |        VALUES ('test_user_logs', 'Test User', 'testlogs@example.com', 'hash', '+1234567890', 'customer')
       24 |        RETURNING id`
 
@@ -2335,7 +2335,7 @@ FAIL tests/services/loggingService.test.js (5.651 s)
       20 |         // Create test user
     > 21 |         const result = await pool.query(
          |                        ^
-      22 |             `INSERT INTO users (id, name, email, password, phone, role)
+      22 |             `INSERT INTO users (id, name, email, password, phone, primary_role)
       23 |        VALUES ('test_user_logs', 'Test User', 'testlogs@example.com', 'hash', '+1234567890', 'customer')
       24 |        RETURNING id`
 
@@ -2350,7 +2350,7 @@ FAIL tests/services/loggingService.test.js (5.651 s)
       20 |         // Create test user
     > 21 |         const result = await pool.query(
          |                        ^
-      22 |             `INSERT INTO users (id, name, email, password, phone, role)
+      22 |             `INSERT INTO users (id, name, email, password, phone, primary_role)
       23 |        VALUES ('test_user_logs', 'Test User', 'testlogs@example.com', 'hash', '+1234567890', 'customer')
       24 |        RETURNING id`
 
@@ -2365,7 +2365,7 @@ FAIL tests/services/loggingService.test.js (5.651 s)
       20 |         // Create test user
     > 21 |         const result = await pool.query(
          |                        ^
-      22 |             `INSERT INTO users (id, name, email, password, phone, role)
+      22 |             `INSERT INTO users (id, name, email, password, phone, primary_role)
       23 |        VALUES ('test_user_logs', 'Test User', 'testlogs@example.com', 'hash', '+1234567890', 'customer')
       24 |        RETURNING id`
 
@@ -2380,7 +2380,7 @@ FAIL tests/services/loggingService.test.js (5.651 s)
       20 |         // Create test user
     > 21 |         const result = await pool.query(
          |                        ^
-      22 |             `INSERT INTO users (id, name, email, password, phone, role)
+      22 |             `INSERT INTO users (id, name, email, password, phone, primary_role)
       23 |        VALUES ('test_user_logs', 'Test User', 'testlogs@example.com', 'hash', '+1234567890', 'customer')
       24 |        RETURNING id`
 
@@ -2395,7 +2395,7 @@ FAIL tests/services/loggingService.test.js (5.651 s)
       20 |         // Create test user
     > 21 |         const result = await pool.query(
          |                        ^
-      22 |             `INSERT INTO users (id, name, email, password, phone, role)
+      22 |             `INSERT INTO users (id, name, email, password, phone, primary_role)
       23 |        VALUES ('test_user_logs', 'Test User', 'testlogs@example.com', 'hash', '+1234567890', 'customer')
       24 |        RETURNING id`
 
@@ -2410,7 +2410,7 @@ FAIL tests/services/loggingService.test.js (5.651 s)
       20 |         // Create test user
     > 21 |         const result = await pool.query(
          |                        ^
-      22 |             `INSERT INTO users (id, name, email, password, phone, role)
+      22 |             `INSERT INTO users (id, name, email, password, phone, primary_role)
       23 |        VALUES ('test_user_logs', 'Test User', 'testlogs@example.com', 'hash', '+1234567890', 'customer')
       24 |        RETURNING id`
 
@@ -2439,7 +2439,7 @@ FAIL tests/services/loggingService.test.js (5.651 s)
       20 |         // Create test user
     > 21 |         const result = await pool.query(
          |                        ^
-      22 |             `INSERT INTO users (id, name, email, password, phone, role)
+      22 |             `INSERT INTO users (id, name, email, password, phone, primary_role)
       23 |        VALUES ('test_user_logs', 'Test User', 'testlogs@example.com', 'hash', '+1234567890', 'customer')
       24 |        RETURNING id`
 
@@ -2468,7 +2468,7 @@ FAIL tests/services/loggingService.test.js (5.651 s)
       20 |         // Create test user
     > 21 |         const result = await pool.query(
          |                        ^
-      22 |             `INSERT INTO users (id, name, email, password, phone, role)
+      22 |             `INSERT INTO users (id, name, email, password, phone, primary_role)
       23 |        VALUES ('test_user_logs', 'Test User', 'testlogs@example.com', 'hash', '+1234567890', 'customer')
       24 |        RETURNING id`
 
@@ -2483,7 +2483,7 @@ FAIL tests/services/loggingService.test.js (5.651 s)
       20 |         // Create test user
     > 21 |         const result = await pool.query(
          |                        ^
-      22 |             `INSERT INTO users (id, name, email, password, phone, role)
+      22 |             `INSERT INTO users (id, name, email, password, phone, primary_role)
       23 |        VALUES ('test_user_logs', 'Test User', 'testlogs@example.com', 'hash', '+1234567890', 'customer')
       24 |        RETURNING id`
 
@@ -2513,7 +2513,7 @@ FAIL tests/services/loggingService.test.js (5.651 s)
       20 |         // Create test user
     > 21 |         const result = await pool.query(
          |                        ^
-      22 |             `INSERT INTO users (id, name, email, password, phone, role)
+      22 |             `INSERT INTO users (id, name, email, password, phone, primary_role)
       23 |        VALUES ('test_user_logs', 'Test User', 'testlogs@example.com', 'hash', '+1234567890', 'customer')
       24 |        RETURNING id`
 
@@ -2528,7 +2528,7 @@ FAIL tests/services/loggingService.test.js (5.651 s)
       20 |         // Create test user
     > 21 |         const result = await pool.query(
          |                        ^
-      22 |             `INSERT INTO users (id, name, email, password, phone, role)
+      22 |             `INSERT INTO users (id, name, email, password, phone, primary_role)
       23 |        VALUES ('test_user_logs', 'Test User', 'testlogs@example.com', 'hash', '+1234567890', 'customer')
       24 |        RETURNING id`
 
@@ -2639,7 +2639,7 @@ FAIL tests/auth.test.js (19.257 s)
       {
         "userId": "1764957774876ixa32r4ic",
         "email": "test@example.com",
-        "role": "customer",
+        "primary_role": "customer",
         "category": "authentication"
       }
 
@@ -2720,7 +2720,7 @@ FAIL tests/auth.test.js (19.257 s)
       {
         "userId": "1764957776055j3yfu3dhh",
         "email": "duplicate@example.com",
-        "role": "customer",
+        "primary_role": "customer",
         "category": "authentication"
       }
 
@@ -2840,7 +2840,7 @@ FAIL tests/auth.test.js (19.257 s)
       {
         "userId": "test-user-id",
         "email": "login@example.com",
-        "role": "customer",
+        "primary_role": "customer",
         "category": "authentication"
       }
 
@@ -3353,17 +3353,17 @@ FAIL tests/auth.test.js (19.257 s)
         "error": "jwt audience invalid. expected: matrix-delivery-api",
         "code": "INVALID_TOKEN",
         "ip": "::ffff:127.0.0.1",
-        "path": "/switch-role",
+        "path": "/switch-primary_role",
         "category": "security"
       }
 
       at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
 
     console.log
-      2025-12-05 20:03:00 [warn]: RESPONSE: POST /api/auth/switch-role 401
+      2025-12-05 20:03:00 [warn]: RESPONSE: POST /api/auth/switch-primary_role 401
       {
         "method": "POST",
-        "url": "/api/auth/switch-role",
+        "url": "/api/auth/switch-primary_role",
         "statusCode": 401,
         "duration": "12ms",
         "ip": "::ffff:127.0.0.1",
@@ -3392,17 +3392,17 @@ FAIL tests/auth.test.js (19.257 s)
         "error": "jwt audience invalid. expected: matrix-delivery-api",
         "code": "INVALID_TOKEN",
         "ip": "::ffff:127.0.0.1",
-        "path": "/switch-role",
+        "path": "/switch-primary_role",
         "category": "security"
       }
 
       at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
 
     console.log
-      2025-12-05 20:03:01 [warn]: RESPONSE: POST /api/auth/switch-role 401
+      2025-12-05 20:03:01 [warn]: RESPONSE: POST /api/auth/switch-primary_role 401
       {
         "method": "POST",
-        "url": "/api/auth/switch-role",
+        "url": "/api/auth/switch-primary_role",
         "statusCode": 401,
         "duration": "10ms",
         "ip": "::ffff:127.0.0.1",
@@ -3728,7 +3728,7 @@ FAIL tests/auth.test.js (19.257 s)
       at callback (node_modules/superagent/src/node/index.js:1166:18)
       at IncomingMessage.fn (node_modules/superagent/src/node/parsers/json.js:19:7)
 
-  ΓùÅ Authentication API Tests ΓÇ║ POST /api/auth/switch-role ΓÇ║ should switch role successfully
+  ΓùÅ Authentication API Tests ΓÇ║ POST /api/auth/switch-primary_role ΓÇ║ should switch primary_role successfully
 
     expected 200 "OK", got 401 "Unauthorized"
 
@@ -3738,7 +3738,7 @@ FAIL tests/auth.test.js (19.257 s)
           |          ^
       471 |
       472 |       expect(response.body).toHaveProperty('token');
-      473 |       expect(response.body).toHaveProperty('role');
+      473 |       expect(response.body).toHaveProperty('primary_role');
 
       at Object.expect (tests/auth.test.js:470:10)
       ----
@@ -3752,7 +3752,7 @@ FAIL tests/auth.test.js (19.257 s)
       at callback (node_modules/superagent/src/node/index.js:1166:18)
       at IncomingMessage.fn (node_modules/superagent/src/node/parsers/json.js:19:7)
 
-  ΓùÅ Authentication API Tests ΓÇ║ POST /api/auth/switch-role ΓÇ║ should return 400 for invalid role
+  ΓùÅ Authentication API Tests ΓÇ║ POST /api/auth/switch-primary_role ΓÇ║ should return 400 for invalid primary_role
 
     expected 400 "Bad Request", got 401 "Unauthorized"
 
@@ -3761,7 +3761,7 @@ FAIL tests/auth.test.js (19.257 s)
     > 486 |         .expect(400);
           |          ^
       487 |
-      488 |       expect(response.body.error).toContain('Role not assigned');
+      488 |       expect(response.body.error).toContain('primary_role not assigned');
       489 |     });
 
       at Object.expect (tests/auth.test.js:486:10)

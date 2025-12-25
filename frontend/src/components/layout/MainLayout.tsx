@@ -13,7 +13,7 @@ interface MainLayoutProps {
     onLogout: () => void;
     onToggleOnline?: () => void;
     isDriverOnline?: boolean;
-    onSwitchRole?: (role: string) => void;
+    onSwitchRole?: (primary_role: string) => void;
     availableRoles?: string[];
     onChangeLocale?: (locale: string) => void;
     currentLocale?: string;

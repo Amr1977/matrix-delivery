@@ -40,11 +40,11 @@ const OrderCard = ({
     orderId: order._id,
     orderNumber: order.orderNumber,
     status: order.status,
-    userRole: currentUser?.role,
+    userRole: currentUser?.primary_role,
     hasRoutePolyline: !!order.routePolyline,
     polylineLength: order.routePolyline?.length || 0,
     estimatedDistanceKm: order.estimatedDistanceKm,
-    willShowMap: order.status === 'pending_bids' && currentUser?.role === 'customer'
+    willShowMap: order.status === 'pending_bids' && currentUser?.primary_role === 'customer'
   });
 
   const statusColor = getStatusColor(order.status);
@@ -167,7 +167,7 @@ const OrderCard = ({
       )}
 
       {/* Route Preview Map for Customers */}
-      {order.status === 'pending_bids' && currentUser?.role === 'customer' && (
+      {order.status === 'pending_bids' && currentUser?.primary_role === 'customer' && (
         <div style={{
           borderTop: '2px solid var(--matrix-border)',
           paddingTop: '1rem',
@@ -336,7 +336,7 @@ const OrderCard = ({
               </div>
             )}
             {/* Contact Info - Only show to customer if order is active */}
-            {currentUser?.role === 'customer' && ['accepted', 'picked_up', 'in_transit'].includes(order.status) && (
+            {currentUser?.primary_role === 'customer' && ['accepted', 'picked_up', 'in_transit'].includes(order.status) && (
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <span style={{ color: '#9CA3AF', minWidth: '4.5rem' }}>Contact:</span>
                 <a href={`tel:${order.assignedDriver.phone}`} style={{ color: '#60A5FA', textDecoration: 'none' }}>{order.assignedDriver.phone}</a>
@@ -446,7 +446,7 @@ const OrderCard = ({
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           {order.status === 'delivered' && (
             <>
-              {currentUser?.role === 'customer' && !order.reviewStatus?.reviews.toDriver && (
+              {currentUser?.primary_role === 'customer' && !order.reviewStatus?.reviews.toDriver && (
                 <button
                   onClick={() => onOpenReviewModal(order._id, 'customer_to_driver')}
                   className="btn-success"
@@ -455,7 +455,7 @@ const OrderCard = ({
                   ⭐ {t('reviews.reviewDriver')}
                 </button>
               )}
-              {currentUser?.role === 'driver' && order.assignedDriver?.userId === currentUser?.id && !order.reviewStatus?.reviews.toCustomer && (
+              {currentUser?.primary_role === 'driver' && order.assignedDriver?.userId === currentUser?.id && !order.reviewStatus?.reviews.toCustomer && (
                 <button
                   onClick={() => onOpenReviewModal(order._id, 'driver_to_customer')}
                   className="btn-success"
@@ -466,7 +466,7 @@ const OrderCard = ({
               )}
               {!order.reviewStatus?.reviews.toPlatform && (
                 <button
-                  onClick={() => onOpenReviewModal(order._id, `${currentUser?.role}_to_platform`)}
+                  onClick={() => onOpenReviewModal(order._id, `${currentUser?.primary_role}_to_platform`)}
                   style={{
                     background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 50%, #6366F1 100%)',
                     color: '#FFFFFF',
@@ -503,7 +503,7 @@ const OrderCard = ({
             </>
           )}
 
-          {currentUser?.role === 'customer' && order.status === 'pending_bids' && order.customerId === currentUser?.id && typeof onDeleteOrder === 'function' && (
+          {currentUser?.primary_role === 'customer' && order.status === 'pending_bids' && order.customerId === currentUser?.id && typeof onDeleteOrder === 'function' && (
             <button
               onClick={() => onDeleteOrder(order._id)}
               disabled={loadingStates?.deleteOrder}
@@ -518,7 +518,7 @@ const OrderCard = ({
 
       {/* Driver bidding section */}
       {
-        order.status === 'pending_bids' && currentUser?.role === 'driver' && (
+        order.status === 'pending_bids' && currentUser?.primary_role === 'driver' && (
           <div style={{
             borderTop: '2px solid var(--matrix-border)',
             paddingTop: '1rem',
@@ -781,7 +781,7 @@ const OrderCard = ({
 
       {/* Route Preview Map for Customers */}
       {
-        order.status === 'pending_bids' && currentUser?.role === 'customer' && (
+        order.status === 'pending_bids' && currentUser?.primary_role === 'customer' && (
           <div style={{
             borderTop: '2px solid var(--matrix-border)',
             paddingTop: '1rem',
@@ -807,7 +807,7 @@ const OrderCard = ({
 
       {/* Customer bid acceptance section */}
       {
-        order.status === 'pending_bids' && currentUser?.role === 'customer' && order.bids && order.bids.length > 0 && (
+        order.status === 'pending_bids' && currentUser?.primary_role === 'customer' && order.bids && order.bids.length > 0 && (
           <div style={{
             borderTop: '2px solid var(--matrix-border)',
             paddingTop: '1rem',
@@ -924,7 +924,7 @@ const OrderCard = ({
 
       {/* Status-specific action buttons */}
       {
-        order.status === 'accepted' && currentUser?.role === 'customer' && (
+        order.status === 'accepted' && currentUser?.primary_role === 'customer' && (
           <div style={{
             borderTop: '2px solid var(--matrix-border)',
             paddingTop: '1rem',
@@ -959,7 +959,7 @@ const OrderCard = ({
       }
 
       {
-        order.status === 'accepted' && currentUser?.role === 'driver' && isDriverAssigned && (
+        order.status === 'accepted' && currentUser?.primary_role === 'driver' && isDriverAssigned && (
           <div style={{
             borderTop: '2px solid var(--matrix-border)',
             paddingTop: '1rem',
@@ -995,7 +995,7 @@ const OrderCard = ({
       }
 
       {
-        order.status === 'picked_up' && currentUser?.role === 'driver' && isDriverAssigned && (
+        order.status === 'picked_up' && currentUser?.primary_role === 'driver' && isDriverAssigned && (
           <div style={{
             borderTop: '2px solid var(--matrix-border)',
             paddingTop: '1rem',
@@ -1040,7 +1040,7 @@ const OrderCard = ({
       }
 
       {
-        order.status === 'in_transit' && currentUser?.role === 'driver' && isDriverAssigned && (
+        order.status === 'in_transit' && currentUser?.primary_role === 'driver' && isDriverAssigned && (
           <div style={{
             borderTop: '2px solid var(--matrix-border)',
             paddingTop: '1rem',
@@ -1077,7 +1077,7 @@ const OrderCard = ({
 
       {/* Status messages */}
       {
-        order.status === 'picked_up' && currentUser?.role === 'customer' && (
+        order.status === 'picked_up' && currentUser?.primary_role === 'customer' && (
           <div style={{
             borderTop: '2px solid var(--matrix-border)',
             paddingTop: '1rem',
@@ -1104,7 +1104,7 @@ const OrderCard = ({
       }
 
       {
-        order.status === 'in_transit' && currentUser?.role === 'customer' && (
+        order.status === 'in_transit' && currentUser?.primary_role === 'customer' && (
           <div style={{
             borderTop: '2px solid var(--matrix-border)',
             paddingTop: '1rem',

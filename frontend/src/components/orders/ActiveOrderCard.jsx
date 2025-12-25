@@ -156,7 +156,7 @@ const ActiveOrderCard = ({
                     {/* Review Buttons (Delivered Orders) */}
                     {order.status === 'delivered' && (
                         <>
-                            {currentUser?.role === 'customer' && !reviewStatus?.reviews.toDriver && (
+                            {currentUser?.primary_role === 'customer' && !reviewStatus?.reviews.toDriver && (
                                 <button
                                     onClick={() => openReviewModal(order._id, 'customer_to_driver')}
                                     style={{ padding: '0.5rem 1rem', background: '#10B981', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
@@ -164,7 +164,7 @@ const ActiveOrderCard = ({
                                     ⭐ {t('reviews.reviewDriver')}
                                 </button>
                             )}
-                            {currentUser?.role === 'driver' && order.assignedDriver?.userId === currentUser?.id && !reviewStatus?.reviews.toCustomer && (
+                            {currentUser?.primary_role === 'driver' && order.assignedDriver?.userId === currentUser?.id && !reviewStatus?.reviews.toCustomer && (
                                 <button
                                     onClick={() => openReviewModal(order._id, 'driver_to_customer')}
                                     style={{ padding: '0.5rem 1rem', background: '#10B981', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
@@ -174,7 +174,7 @@ const ActiveOrderCard = ({
                             )}
                             {!reviewStatus?.reviews.toPlatform && (
                                 <button
-                                    onClick={() => openReviewModal(order._id, `${currentUser?.role}_to_platform`)}
+                                    onClick={() => openReviewModal(order._id, `${currentUser?.primary_role}_to_platform`)}
                                     style={{ padding: '0.5rem 1rem', background: '#6366F1', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
                                 >
                                     🌟 {t('reviews.reviewPlatform')}
@@ -190,7 +190,7 @@ const ActiveOrderCard = ({
                     )}
 
                     {/* Delete Order Button (Customer, Pending Bids) */}
-                    {currentUser?.role === 'customer' && order.status === 'pending_bids' && order.customerId === currentUser?.id && (
+                    {currentUser?.primary_role === 'customer' && order.status === 'pending_bids' && order.customerId === currentUser?.id && (
                         <button
                             onClick={() => handleDeleteOrder(order._id)}
                             disabled={loadingStates.deleteOrder}

@@ -24,10 +24,10 @@ class DBSeeder {
     throw new Error('Server did not become ready within timeout');
   }
 
-  async createUser(name, email, password, phone, role, vehicleType = null, isVerified = true, isAvailable = true, country = 'Egypt', city = 'Alexandria', area = 'city_center') {
+  async createUser(name, email, password, phone, primary_role, vehicleType = null, isVerified = true, isAvailable = true, country = 'Egypt', city = 'Alexandria', area = 'city_center') {
     // Admin is created via direct DB insertion for tests
     let userData;
-    if (role === 'admin') {
+    if (primary_role === 'admin') {
       userData = await this.createAdminViaDB(name, email, password, phone);
     } else {
       const response = await fetch(`${this.apiUrl}/auth/register`, {
@@ -38,7 +38,7 @@ class DBSeeder {
           email,
           password,
           phone,
-          role,
+          primary_role,
           vehicle_type: vehicleType,
           country,
           city,
@@ -48,8 +48,8 @@ class DBSeeder {
 
       if (!response.ok) {
         const error = await response.text();
-        console.error(`Failed to create ${role}: ${error}`);
-        throw new Error(`Failed to create ${role}: ${error}`);
+        console.error(`Failed to create ${primary_role}: ${error}`);
+        throw new Error(`Failed to create ${primary_role}: ${error}`);
       }
 
       const data = await response.json();
@@ -70,7 +70,7 @@ class DBSeeder {
       email,
       password, // Plain password for testing
       token: userData.token,
-      role,
+      primary_role,
       phone,
       isVerified,
       isAvailable,
@@ -105,7 +105,7 @@ class DBSeeder {
           email,
           password,
           phone,
-          role: 'customer',
+          primary_role: 'customer',
           country: 'Egypt',
           city: 'Cairo',
           area: 'Downtown'
@@ -121,12 +121,12 @@ class DBSeeder {
 
     const user = existing.rows[0];
 
-    // Update role to admin and roles array
-    await pool.query('UPDATE users SET role = $1, roles = $2 WHERE id = $3', ['admin', ['admin'], user.id]);
+    // Update primary_role to admin and granted_roles array
+    await pool.query('UPDATE users SET primary_role = $1, granted_roles = $2 WHERE id = $3', ['admin', ['admin'], user.id]);
 
     await pool.end();
 
-    // Login to get a token with admin role
+    // Login to get a token with admin primary_role
     const loginRes = await fetch(`${this.apiUrl}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -144,13 +144,13 @@ class DBSeeder {
         id: user.id,
         name: name,
         email: email,
-        role: 'admin'
+        primary_role: 'admin'
       },
       token: loginData.token
     };
   }
 
-  async createUserViaDB(name, email, password, phone, role = 'vendor') {
+  async createUserViaDB(name, email, password, phone, primary_role = 'vendor') {
     const { Pool } = require('pg');
     const pool = new Pool({
       host: process.env.DB_HOST || 'localhost',
@@ -165,11 +165,11 @@ class DBSeeder {
     let userId;
     if (existing.rows.length > 0) {
       userId = existing.rows[0].id;
-      await pool.query('UPDATE users SET role = $1 WHERE id = $2', [role, userId]);
+      await pool.query('UPDATE users SET primary_role = $1 WHERE id = $2', [primary_role, userId]);
     } else {
       userId = `${Date.now().toString()}_${Math.random().toString(36).slice(2, 10)}`;
       await pool.query(
-        `INSERT INTO users (id, name, email, password, phone, role)
+        `INSERT INTO users (id, name, email, password, phone, primary_role)
          VALUES ($1,$2,$3,$4,$5,$6)`,
         [userId, name, email.toLowerCase(), password || 'password123', phone || '+100000000', 'customer']
       );
@@ -180,14 +180,14 @@ class DBSeeder {
     const crypto = require('crypto');
     const JWT_SECRET = process.env.JWT_SECRET || 'test-secret-key-12345';
     const header = { alg: 'HS256', typ: 'JWT' };
-    const payload = { userId, email, name, role };
+    const payload = { userId, email, name, primary_role };
     const base64url = (obj) => Buffer.from(JSON.stringify(obj)).toString('base64').replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
     const data = `${base64url(header)}.${base64url(payload)}`;
     const signature = crypto.createHmac('sha256', JWT_SECRET).update(data).digest('base64').replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
     const token = `${data}.${signature}`;
 
     return {
-      user: { id: userId, name, email, role },
+      user: { id: userId, name, email, primary_role },
       token
     };
   }
@@ -359,7 +359,7 @@ class DBSeeder {
 
   async cancelOrder(orderId, driver) {
     // Cancel via admin endpoint
-    const adminUser = this.testUsers.find(u => u.role === 'admin');
+    const adminUser = this.testUsers.find(u => u.primary_role === 'admin');
     if (adminUser) {
       await fetch(`${this.apiUrl}/admin/orders/${orderId}/cancel`, {
         method: 'POST',
@@ -386,7 +386,7 @@ class DBSeeder {
 
       console.log('👥 Creating test users...');
 
-      // Create users of all roles
+      // Create users of all granted_roles
       const customers = [];
       const drivers = [];
       let admin;
@@ -523,12 +523,12 @@ class DBSeeder {
   }
 
   // Utility methods for tests
-  getUserByRole(role) {
-    return this.testUsers.find(u => u.role === role);
+  getUserByRole(primary_role) {
+    return this.testUsers.find(u => u.primary_role === primary_role);
   }
 
-  getUsersByRole(role) {
-    return this.testUsers.filter(u => u.role === role);
+  getUsersByRole(primary_role) {
+    return this.testUsers.filter(u => u.primary_role === primary_role);
   }
 
   getOrderByStatus(status) {

@@ -40,7 +40,7 @@ const useDriver = (token: string | null, currentUser: User | null) => {
 
     // Driver location functions
     const updateDriverLocation = useCallback(async (): Promise<boolean> => {
-        if (currentUser?.role !== 'driver') return false;
+        if (currentUser?.primary_role !== 'driver') return false;
 
         // Debounce location updates to prevent excessive API calls and re-renders
         const now = Date.now();
@@ -141,7 +141,7 @@ const useDriver = (token: string | null, currentUser: User | null) => {
 
     const getDriverLocation = useCallback(async () => {
         // Only call if user is authenticated driver
-        if (!token || currentUser?.role !== 'driver') {
+        if (!token || currentUser?.primary_role !== 'driver') {
             return null;
         }
 
@@ -168,7 +168,7 @@ const useDriver = (token: string | null, currentUser: User | null) => {
 
     // Filter orders based on driver view type and city filter
     const getFilteredDriverOrders = useCallback((): Order[] => {
-        if (currentUser?.role !== 'driver') return orders;
+        if (currentUser?.primary_role !== 'driver') return orders;
 
         let filteredOrders: Order[];
 
@@ -296,14 +296,14 @@ const useDriver = (token: string | null, currentUser: User | null) => {
 
     // Driver location effect - only get initial location, no automatic updates
     useEffect(() => {
-        if (currentUser?.role === 'driver' && token) {
+        if (currentUser?.primary_role === 'driver' && token) {
             getDriverLocation();
         }
     }, [currentUser, token, getDriverLocation]);
 
     // Effect to reverse geocode current location when it's updated
     useEffect(() => {
-        if (currentUser?.role === 'driver' && driverLocation?.latitude && driverLocation?.longitude) {
+        if (currentUser?.primary_role === 'driver' && driverLocation?.latitude && driverLocation?.longitude) {
             reverseGeocodeCurrentLocation();
         }
     }, [currentUser, driverLocation, reverseGeocodeCurrentLocation]);
@@ -329,7 +329,7 @@ const useDriver = (token: string | null, currentUser: User | null) => {
         );
     };
 
-    const isDriver = currentUser?.role === 'driver';
+    const isDriver = currentUser?.primary_role === 'driver';
 
     return {
         viewType,

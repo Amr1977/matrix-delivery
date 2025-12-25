@@ -48,7 +48,7 @@ describe('Refactored Routes Compliance', () => {
 
         it('should return vendors list when authenticated', async () => {
             // Mock JWT verify
-            jwt.verify.mockReturnValue({ userId: 'user-123', role: 'customer' });
+            jwt.verify.mockReturnValue({ userId: 'user-123', primary_role: 'customer' });
 
             // Mock DB query
             pool.query.mockResolvedValueOnce({ rows: [{ id: 'v1', name: 'Vendor 1' }] });
@@ -84,7 +84,7 @@ describe('Refactored Routes Compliance', () => {
         });
 
         it('should return user profile when authenticated', async () => {
-            jwt.verify.mockReturnValue({ userId: 'user-123', role: 'customer' });
+            jwt.verify.mockReturnValue({ userId: 'user-123', primary_role: 'customer' });
 
             // Mock queries: 1. User profile, 2. Payment methods count, 3. Favorites count
             pool.query

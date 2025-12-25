@@ -31,17 +31,17 @@ class AuthService {
    * Generate JWT token
    */
   generateToken(user) {
-    const primaryRole = user.primary_role || user.role;
-    const grantedRoles = user.granted_roles || user.roles || (primaryRole ? [primaryRole] : []);
+    const primaryRole = user.primary_role;
+    const grantedRoles = user.granted_roles || (primaryRole ? [primaryRole] : []);
 
     return jwt.sign(
       {
         userId: user.id,
         email: user.email,
         name: user.name,
-        role: primaryRole, // Backward compatibility
+        primary_role: primaryRole, // Backward compatibility
         primary_role: primaryRole,
-        roles: grantedRoles, // Backward compatibility
+        granted_roles: grantedRoles, // Backward compatibility
         granted_roles: grantedRoles
       },
       JWT_SECRET,
@@ -80,7 +80,7 @@ class AuthService {
    */
   async findUserById(id) {
     const result = await pool.query(
-      'SELECT id, name, email, primary_role, roles, rating, completed_deliveries, is_verified, country, city, area, created_at FROM users WHERE id = $1',
+      'SELECT id, name, email, primary_role, granted_roles, rating, completed_deliveries, is_verified, country, city, area, created_at FROM users WHERE id = $1',
       [id]
     );
     return result.rows[0] || null;
@@ -94,7 +94,8 @@ class AuthService {
       name,
       email,
       password,
-      phone, primary_role,
+      phone,
+      primary_role,
       vehicle_type,
       country,
       city,
@@ -105,20 +106,35 @@ class AuthService {
     const userId = generateId();
 
     const result = await pool.query(
-      `INSERT INTO users (id, name, email, password, phone, primary_role, vehicle_type, country, city, area, rating, completed_deliveries)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      `INSERT INTO users (
+      id, 
+      name, 
+      email, 
+      password_hash, 
+      phone, 
+      primary_role,
+      granted_roles, 
+      vehicle_type, 
+      country, 
+      city, 
+      area, 
+      rating, 
+      completed_deliveries)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
        RETURNING id, name, email, phone, primary_role, vehicle_type, country, city, area`,
       [
         userId,
         sanitizeString(name, 100),
         email.toLowerCase().trim(),
         hashedPassword,
-        sanitizeString(phone, 20), primary_role,
-        primary_role === 'driver' ? vehicle_type : null,
+        sanitizeString(phone, 20),
+        primary_role,
+        [primary_role],
+        vehicle_type,
         sanitizeString(country, 100),
         sanitizeString(city, 100),
         sanitizeString(area, 100),
-        5, // Default rating
+        0, // Default rating
         0  // Default completed deliveries
       ]
     );
@@ -131,7 +147,7 @@ class AuthService {
    */
   async verifyUser(email) {
     const result = await pool.query(
-      'UPDATE users SET is_verified = true WHERE LOWER(email) = LOWER($1) RETURNING id, name, email, role',
+      'UPDATE users SET is_verified = true WHERE LOWER(email) = LOWER($1) RETURNING id, name, email, primary_role',
       [email.trim()]
     );
     return result.rows[0] || null;
@@ -166,7 +182,7 @@ class AuthService {
       throw new Error('Invalid email or password');
     }
 
-    const isPasswordValid = await this.verifyPassword(password, user.password);
+    const isPasswordValid = await this.verifyPassword(password, user.password_hash);
     if (!isPasswordValid) {
       throw new Error('Invalid email or password');
     }
@@ -194,7 +210,7 @@ class AuthService {
     }
 
     if (!['customer', 'driver'].includes(primary_role)) {
-      throw new Error('Invalid role');
+      throw new Error('Invalid primary_role');
     }
 
     if (primary_role === 'driver' && !vehicle_type) {
@@ -228,7 +244,7 @@ class AuthService {
     logger.auth('User registered successfully', {
       userId: user.id,
       email: user.email,
-      role: user.role,
+      primary_role: user.primary_role,
       category: 'auth'
     });
 
@@ -245,7 +261,7 @@ class AuthService {
     logger.auth('User logged in successfully', {
       userId: user.id,
       email: user.email,
-      role: user.role,
+      primary_role: user.primary_role,
       category: 'auth'
     });
 
@@ -254,8 +270,8 @@ class AuthService {
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role,
-        roles: Array.isArray(user.roles) && user.roles.length ? user.roles : [user.role].filter(Boolean),
+        primary_role: user.primary_role,
+        granted_roles: Array.isArray(user.granted_roles) && user.granted_roles.length ? user.granted_roles : [user.primary_role].filter(Boolean),
         rating: parseFloat(user.rating),
         completedDeliveries: user.completed_deliveries,
         is_verified: user.is_verified,
@@ -312,10 +328,9 @@ class AuthService {
       name: user.name,
       email: user.email,
       phone: user.phone,
-      role: user.primary_role || user.role,
-      primary_role: user.primary_role || user.role,
-      roles: user.granted_roles || user.roles || (user.primary_role ? [user.primary_role] : []),
-      granted_roles: user.granted_roles || user.roles || (user.primary_role ? [user.primary_role] : []),
+      primary_role: user.primary_role || user.primary_role,
+      primary_role: user.primary_role || user.primary_role,
+      granted_roles: user.granted_roles || (user.primary_role ? [user.primary_role] : []),
       language: user.language,
       theme: user.theme,
       vehicle_type: user.vehicle_type,
@@ -347,9 +362,9 @@ class AuthService {
       name: user.name,
       email: user.email,
       phone: user.phone,
-      role: user.primary_role,
       primary_role: user.primary_role,
-      roles: user.granted_roles,
+      primary_role: user.primary_role,
+      granted_roles: user.granted_roles,
       granted_roles: user.granted_roles,
       country: user.country,
       city: user.city,
@@ -363,27 +378,25 @@ class AuthService {
     };
   }
 
-  async switchRole(userId, role) {
-    const result = await pool.query('SELECT id, name, email, primary_role, roles FROM users WHERE id = $1', [userId]);
+  async switchRole(userId, primary_role) {
+    const result = await pool.query('SELECT id, name, email, primary_role, granted_roles FROM users WHERE id = $1', [userId]);
     if (result.rows.length === 0) throw new Error('User not found');
     const user = result.rows[0];
-    const roles = user.granted_roles || user.roles || (user.primary_role ? [user.primary_role] : []);
-    if (!roles.includes(role)) throw new Error('Role not assigned to user');
+    const granted_roles = user.granted_roles || (user.primary_role ? [user.primary_role] : []);
+    if (!granted_roles.includes(primary_role)) throw new Error('primary_role not assigned to user');
 
     // Update primary_role in database for persistence
-    await pool.query('UPDATE users SET primary_role = $1 WHERE id = $2', [role, userId]);
+    await pool.query('UPDATE users SET primary_role = $1 WHERE id = $2', [primary_role, userId]);
 
     const token = jwt.sign({
       userId: user.id,
       email: user.email,
       name: user.name,
-      role: role,
-      primary_role: role,
-      roles: roles,
-      granted_roles: roles
+      primary_role: primary_role,
+      granted_roles: granted_roles
     }, JWT_SECRET, { expiresIn: '30d' });
 
-    return { token, primary_role: role, roles };
+    return { token, primary_role: primary_role, granted_roles };
   }
 
   /**

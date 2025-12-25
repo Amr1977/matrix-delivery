@@ -185,17 +185,17 @@ When('I fill in registration details for a customer:', async function (dataTable
   await this.page.fill('input[placeholder="Email"]', data.email);
   await this.page.fill('input[placeholder="Password"]', data.password);
 
-  // Select role if dropdown exists
+  // Select primary_role if dropdown exists
   const roleSelect = this.page.locator('select');
   if (await roleSelect.isVisible()) {
-    await roleSelect.selectOption(data.role);
+    await roleSelect.selectOption(data.primary_role);
   }
 
   this.testData.currentRegistration = data;
 });
 
 When('I fill in registration details for a driver:', async function (dataTable) {
-  // Same as customer but with driver role
+  // Same as customer but with driver primary_role
   const data = dataTable.rowsHash();
   await this.page.fill('input[placeholder="Full Name"]', data.name);
   await this.page.fill('input[placeholder="Email"]', data.email);
@@ -203,7 +203,7 @@ When('I fill in registration details for a driver:', async function (dataTable) 
 
   const roleSelect = this.page.locator('select');
   if (await roleSelect.isVisible()) {
-    await roleSelect.selectOption(data.role);
+    await roleSelect.selectOption(data.primary_role);
   }
 
   this.testData.currentRegistration = data;
@@ -258,14 +258,14 @@ Then('I should see my dashboard with customer content', async function () {
   await this.page.waitForSelector('button:has-text("Publish New Order")', { timeout: 5000 });
   await this.page.waitForSelector('text="My Orders"', { timeout: 5000 });
 
-  const roleIndicator = await this.page.locator('[class*="role"]').textContent();
+  const roleIndicator = await this.page.locator('[class*="primary_role"]').textContent();
   expect(roleIndicator.toLowerCase()).to.include('customer');
 });
 
 Then('I should see my dashboard with driver content', async function () {
   await this.page.waitForSelector('text="Available Orders"', { timeout: 5000 });
 
-  const roleIndicator = await this.page.locator('[class*="role"]').textContent();
+  const roleIndicator = await this.page.locator('[class*="primary_role"]').textContent();
   expect(roleIndicator.toLowerCase()).to.include('driver');
 });
 
@@ -485,7 +485,7 @@ Given('setup test driver', async function () {
         email: `driver_${Date.now()}@test.com`,
         password: 'test123',
         phone: '+1987654321',
-        role: 'driver',
+        primary_role: 'driver',
         vehicle_type: 'bike'
       })
     });

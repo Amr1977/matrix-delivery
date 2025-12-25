@@ -8,7 +8,7 @@ This document contains curated summaries of essential security resources, "fetch
 *Based on the 2021 standard, confirmed as still relevant for 2024.*
 
 1.  **Broken Access Control**: Users can act outside of their intended permissions.
-    *   *Fix*: Implement strict Role-Based Access Control (RBAC). Deny by default.
+    *   *Fix*: Implement strict primary_role-Based Access Control (RBAC). Deny by default.
 2.  **Cryptographic Failures**: Protecting data in transit and at rest.
     *   *Fix*: Use TLS 1.3, strong bcrypt/argon2 hashing for passwords, and never store cleartext secrets.
 3.  **Injection**: SQL, NoSQL, OS command injection.

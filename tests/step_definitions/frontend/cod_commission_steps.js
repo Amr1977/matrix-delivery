@@ -16,7 +16,7 @@ async function createDriver(context, baseUrl) {
             name: `Driver ${timestamp}`,
             email,
             password,
-            role: 'driver',
+            primary_role: 'driver',
             phone: `012${timestamp.toString().substr(-8)}`,
             vehicle_type: 'car',
             plate_number: 'ABC-123'
@@ -37,7 +37,7 @@ async function createCustomer(context, baseUrl) {
             name: `Customer ${timestamp}`,
             email,
             password,
-            role: 'customer',
+            primary_role: 'customer',
             phone: `011${timestamp.toString().substr(-8)}`
         }
     });

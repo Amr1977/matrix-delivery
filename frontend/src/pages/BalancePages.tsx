@@ -35,7 +35,7 @@ export const BalanceDashboardPage = () => {
     return (
         <BalanceDashboard
             userId={(currentUser as any).id}
-            userRole={(currentUser as any).role || (currentUser as any).primary_role || 'customer'}
+            userRole={(currentUser as any).primary_role || (currentUser as any).primary_role || 'customer'}
         />
     );
 };
@@ -90,7 +90,7 @@ export const BalanceStatementPage = () => {
     return (
         <BalanceStatement
             userId={(currentUser as any).id}
-            userRole={(currentUser as any).role || (currentUser as any).primary_role || 'customer'}
+            userRole={(currentUser as any).primary_role || (currentUser as any).primary_role || 'customer'}
         />
     );
 };

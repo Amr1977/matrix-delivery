@@ -129,7 +129,7 @@ FAIL tests/payment.test.js (32.423 s)
       2025-12-08 19:47:35 [info]: AUTH: Token verified successfully
       {
         "userId": "customer-pay-id",
-        "role": "customer",
+        "primary_role": "customer",
         "ip": "::ffff:127.0.0.1",
         "category": "authentication"
       }
@@ -228,7 +228,7 @@ FAIL tests/payment.test.js (32.423 s)
       2025-12-08 19:47:35 [info]: AUTH: Token verified successfully
       {
         "userId": "customer-pay-id",
-        "role": "customer",
+        "primary_role": "customer",
         "ip": "::ffff:127.0.0.1",
         "category": "authentication"
       }
@@ -336,7 +336,7 @@ FAIL tests/payment.test.js (32.423 s)
       2025-12-08 19:47:35 [info]: AUTH: Token verified successfully
       {
         "userId": "customer-pay-id",
-        "role": "customer",
+        "primary_role": "customer",
         "ip": "::ffff:127.0.0.1",
         "category": "authentication"
       }
@@ -395,7 +395,7 @@ FAIL tests/payment.test.js (32.423 s)
       2025-12-08 19:47:36 [info]: AUTH: Token verified successfully
       {
         "userId": "customer-pay-id",
-        "role": "customer",
+        "primary_role": "customer",
         "ip": "::ffff:127.0.0.1",
         "category": "authentication"
       }
@@ -493,7 +493,7 @@ FAIL tests/payment.test.js (32.423 s)
       2025-12-08 19:47:37 [info]: AUTH: Token verified successfully
       {
         "userId": "customer-pay-id",
-        "role": "customer",
+        "primary_role": "customer",
         "ip": "::ffff:127.0.0.1",
         "category": "authentication"
       }
@@ -574,7 +574,7 @@ FAIL tests/payment.test.js (32.423 s)
       2025-12-08 19:47:37 [info]: AUTH: Token verified successfully
       {
         "userId": "customer-pay-id",
-        "role": "customer",
+        "primary_role": "customer",
         "ip": "::ffff:127.0.0.1",
         "category": "authentication"
       }
@@ -896,7 +896,7 @@ FAIL routes/__tests__/cryptoPayments.test.ts
       2025-12-08 19:47:41 [info]: AUTH: Token verified successfully
       {
         "userId": "test-driver-1",
-        "role": "driver",
+        "primary_role": "driver",
         "ip": "::ffff:127.0.0.1",
         "category": "authentication"
       }
@@ -945,7 +945,7 @@ FAIL routes/__tests__/cryptoPayments.test.ts
       2025-12-08 19:47:41 [info]: AUTH: Token verified successfully
       {
         "userId": "test-driver-1",
-        "role": "driver",
+        "primary_role": "driver",
         "ip": "::ffff:127.0.0.1",
         "category": "authentication"
       }
@@ -994,7 +994,7 @@ FAIL routes/__tests__/cryptoPayments.test.ts
       2025-12-08 19:47:41 [info]: AUTH: Token verified successfully
       {
         "userId": "test-driver-1",
-        "role": "driver",
+        "primary_role": "driver",
         "ip": "::ffff:127.0.0.1",
         "category": "authentication"
       }
@@ -1271,8 +1271,8 @@ FAIL routes/__tests__/cryptoPayments.test.ts
 
     expected 200 "OK", got 400 "Bad Request"
 
-      39 |         driverToken = generateToken({ userId: testDriverId, role: 'driver' });
-      40 |         adminToken = generateToken({ userId: 'admin-1', role: 'admin' });
+      39 |         driverToken = generateToken({ userId: testDriverId, primary_role: 'driver' });
+      40 |         adminToken = generateToken({ userId: 'admin-1', primary_role: 'admin' });
     > 41 |     });
          |                  ^
       42 |
@@ -1341,7 +1341,7 @@ FAIL routes/__tests__/cryptoPayments.test.ts
       at node_modules/pg-pool/index.js:45:11
       at Object.<anonymous> (routes/__tests__/cryptoPayments.test.ts:79:13)
 
-  ΓùÅ Crypto Payments API ΓÇ║ GET /api/crypto/driver/earnings ΓÇ║ should require driver role
+  ΓùÅ Crypto Payments API ΓÇ║ GET /api/crypto/driver/earnings ΓÇ║ should require driver primary_role
 
     error: insert or update on table "user_wallets" violates foreign key constraint "user_wallets_user_id_fkey"
 
@@ -2395,10 +2395,10 @@ FAIL tests/auth.test.js (37.137 s)
       at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
 
     console.log
-      2025-12-08 19:47:40 [http]: REQUEST: POST /api/auth/switch-role
+      2025-12-08 19:47:40 [http]: REQUEST: POST /api/auth/switch-primary_role
       {
         "method": "POST",
-        "url": "/api/auth/switch-role",
+        "url": "/api/auth/switch-primary_role",
         "ip": "::ffff:127.0.0.1",
         "category": "http"
       }
@@ -2410,7 +2410,7 @@ FAIL tests/auth.test.js (37.137 s)
       {
         "error": "jwt audience invalid. expected: matrix-delivery-api",
         "ip": "::ffff:127.0.0.1",
-        "path": "/switch-role",
+        "path": "/switch-primary_role",
         "category": "security"
       }
 
@@ -2423,7 +2423,7 @@ FAIL tests/auth.test.js (37.137 s)
         "url": "-",
         "status": null,
         "responseTime": "[08/Dec/2025:17:47:40",
-        "ip": "/api/auth/switch-role",
+        "ip": "/api/auth/switch-primary_role",
         "userAgent": "401",
         "category": "http"
       }
@@ -2431,10 +2431,10 @@ FAIL tests/auth.test.js (37.137 s)
       at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
 
     console.log
-      2025-12-08 19:47:40 [warn]: RESPONSE: POST /api/auth/switch-role 401
+      2025-12-08 19:47:40 [warn]: RESPONSE: POST /api/auth/switch-primary_role 401
       {
         "method": "POST",
-        "url": "/api/auth/switch-role",
+        "url": "/api/auth/switch-primary_role",
         "statusCode": 401,
         "duration": "12ms",
         "ip": "::ffff:127.0.0.1",
@@ -2444,10 +2444,10 @@ FAIL tests/auth.test.js (37.137 s)
       at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
 
     console.log
-      2025-12-08 19:47:40 [http]: REQUEST: POST /api/auth/switch-role
+      2025-12-08 19:47:40 [http]: REQUEST: POST /api/auth/switch-primary_role
       {
         "method": "POST",
-        "url": "/api/auth/switch-role",
+        "url": "/api/auth/switch-primary_role",
         "ip": "::ffff:127.0.0.1",
         "category": "http"
       }
@@ -2459,7 +2459,7 @@ FAIL tests/auth.test.js (37.137 s)
       {
         "error": "jwt audience invalid. expected: matrix-delivery-api",
         "ip": "::ffff:127.0.0.1",
-        "path": "/switch-role",
+        "path": "/switch-primary_role",
         "category": "security"
       }
 
@@ -2472,7 +2472,7 @@ FAIL tests/auth.test.js (37.137 s)
         "url": "-",
         "status": null,
         "responseTime": "[08/Dec/2025:17:47:40",
-        "ip": "/api/auth/switch-role",
+        "ip": "/api/auth/switch-primary_role",
         "userAgent": "401",
         "category": "http"
       }
@@ -2480,10 +2480,10 @@ FAIL tests/auth.test.js (37.137 s)
       at Console.log (node_modules/winston/lib/winston/transports/console.js:87:23)
 
     console.log
-      2025-12-08 19:47:40 [warn]: RESPONSE: POST /api/auth/switch-role 401
+      2025-12-08 19:47:40 [warn]: RESPONSE: POST /api/auth/switch-primary_role 401
       {
         "method": "POST",
-        "url": "/api/auth/switch-role",
+        "url": "/api/auth/switch-primary_role",
         "statusCode": 401,
         "duration": "11ms",
         "ip": "::ffff:127.0.0.1",
@@ -2931,7 +2931,7 @@ FAIL tests/auth.test.js (37.137 s)
       at fn (node_modules/superagent/src/node/index.js:1166:18)
       at IncomingMessage.<anonymous> (node_modules/superagent/src/node/parsers/json.js:19:7)
 
-  ΓùÅ Authentication API Tests ΓÇ║ POST /api/auth/switch-role ΓÇ║ should switch role successfully
+  ΓùÅ Authentication API Tests ΓÇ║ POST /api/auth/switch-primary_role ΓÇ║ should switch primary_role successfully
 
     expected 200 "OK", got 401 "Unauthorized"
 
@@ -2940,7 +2940,7 @@ FAIL tests/auth.test.js (37.137 s)
     > 468 |         .expect(200);
           |          ^
       469 |
-      470 |       // Token is returned in body for switch-role as it returns new token
+      470 |       // Token is returned in body for switch-primary_role as it returns new token
       471 |       expect(response.body).toHaveProperty('token');
 
       at Object.<anonymous> (tests/auth.test.js:468:10)
@@ -2955,7 +2955,7 @@ FAIL tests/auth.test.js (37.137 s)
       at fn (node_modules/superagent/src/node/index.js:1166:18)
       at IncomingMessage.<anonymous> (node_modules/superagent/src/node/parsers/json.js:19:7)
 
-  ΓùÅ Authentication API Tests ΓÇ║ POST /api/auth/switch-role ΓÇ║ should return 400 for invalid role
+  ΓùÅ Authentication API Tests ΓÇ║ POST /api/auth/switch-primary_role ΓÇ║ should return 400 for invalid primary_role
 
     expected 400 "Bad Request", got 401 "Unauthorized"
 
@@ -2964,7 +2964,7 @@ FAIL tests/auth.test.js (37.137 s)
     > 485 |         .expect(400);
           |          ^
       486 |
-      487 |       expect(response.body.error).toContain('Role not assigned');
+      487 |       expect(response.body.error).toContain('primary_role not assigned');
       488 |     });
 
       at Object.<anonymous> (tests/auth.test.js:485:10)
@@ -3918,7 +3918,7 @@ FAIL tests/fileUpload.test.js (63.173 s)
       2025-12-08 19:47:34 [info]: AUTH: Token verified successfully
       {
         "userId": "test-user-123",
-        "role": "customer",
+        "primary_role": "customer",
         "ip": "::ffff:127.0.0.1",
         "category": "authentication"
       }
@@ -3989,7 +3989,7 @@ FAIL tests/fileUpload.test.js (63.173 s)
       2025-12-08 19:47:34 [info]: AUTH: Token verified successfully
       {
         "userId": "test-user-123",
-        "role": "customer",
+        "primary_role": "customer",
         "ip": "::ffff:127.0.0.1",
         "category": "authentication"
       }
@@ -4048,7 +4048,7 @@ FAIL tests/fileUpload.test.js (63.173 s)
       2025-12-08 19:47:35 [info]: AUTH: Token verified successfully
       {
         "userId": "test-user-123",
-        "role": "customer",
+        "primary_role": "customer",
         "ip": "::ffff:127.0.0.1",
         "category": "authentication"
       }
@@ -4156,7 +4156,7 @@ FAIL tests/fileUpload.test.js (63.173 s)
       2025-12-08 19:47:35 [info]: AUTH: Token verified successfully
       {
         "userId": "test-user-123",
-        "role": "customer",
+        "primary_role": "customer",
         "ip": "::ffff:127.0.0.1",
         "category": "authentication"
       }
@@ -4238,7 +4238,7 @@ FAIL tests/fileUpload.test.js (63.173 s)
       2025-12-08 19:47:36 [info]: AUTH: Token verified successfully
       {
         "userId": "test-user-123",
-        "role": "customer",
+        "primary_role": "customer",
         "ip": "::ffff:127.0.0.1",
         "category": "authentication"
       }
@@ -4297,7 +4297,7 @@ FAIL tests/fileUpload.test.js (63.173 s)
       2025-12-08 19:47:37 [info]: AUTH: Token verified successfully
       {
         "userId": "test-user-123",
-        "role": "customer",
+        "primary_role": "customer",
         "ip": "::ffff:127.0.0.1",
         "category": "authentication"
       }
@@ -4356,7 +4356,7 @@ FAIL tests/fileUpload.test.js (63.173 s)
       2025-12-08 19:47:37 [info]: AUTH: Token verified successfully
       {
         "userId": "test-user-123",
-        "role": "customer",
+        "primary_role": "customer",
         "ip": "::ffff:127.0.0.1",
         "category": "authentication"
       }
@@ -4415,7 +4415,7 @@ FAIL tests/fileUpload.test.js (63.173 s)
       2025-12-08 19:47:38 [info]: AUTH: Token verified successfully
       {
         "userId": "test-user-123",
-        "role": "customer",
+        "primary_role": "customer",
         "ip": "::ffff:127.0.0.1",
         "category": "authentication"
       }
@@ -4437,7 +4437,7 @@ FAIL tests/fileUpload.test.js (63.173 s)
       2025-12-08 19:47:48 [info]: AUTH: Token verified successfully
       {
         "userId": "test-user-123",
-        "role": "customer",
+        "primary_role": "customer",
         "ip": "::ffff:127.0.0.1",
         "category": "authentication"
       }
@@ -4459,7 +4459,7 @@ FAIL tests/fileUpload.test.js (63.173 s)
       2025-12-08 19:47:58 [info]: AUTH: Token verified successfully
       {
         "userId": "test-user-123",
-        "role": "customer",
+        "primary_role": "customer",
         "ip": "::ffff:127.0.0.1",
         "category": "authentication"
       }
@@ -4481,7 +4481,7 @@ FAIL tests/fileUpload.test.js (63.173 s)
       2025-12-08 19:48:08 [info]: AUTH: Token verified successfully
       {
         "userId": "test-user-123",
-        "role": "customer",
+        "primary_role": "customer",
         "ip": "::ffff:127.0.0.1",
         "category": "authentication"
       }

@@ -38,8 +38,8 @@ describe('Crypto Payments Integration', () => {
         );
         testCustomerId = customerResult.rows[0].id;
 
-        driverToken = generateToken({ userId: testDriverId, role: 'driver' });
-        customerToken = generateToken({ userId: testCustomerId, role: 'customer' });
+        driverToken = generateToken({ userId: testDriverId, primary_role: 'driver' });
+        customerToken = generateToken({ userId: testCustomerId, primary_role: 'customer' });
     });
 
     afterAll(async () => {
@@ -244,7 +244,7 @@ describe('Crypto Payments Integration', () => {
                 .expect(401);
         });
 
-        it('should require driver role for earnings', async () => {
+        it('should require driver primary_role for earnings', async () => {
             await request(app)
                 .get('/api/crypto/driver/earnings')
                 .set('Authorization', `Bearer ${customerToken}`)
@@ -269,7 +269,7 @@ describe('Crypto Payments Integration', () => {
                 ['test-driver-no-wallet', 'driver-no-wallet@test.com', 'hash', 'driver']
             );
             const newDriverId = newDriverResult.rows[0].id;
-            const newDriverToken = generateToken({ userId: newDriverId, role: 'driver' });
+            const newDriverToken = generateToken({ userId: newDriverId, primary_role: 'driver' });
 
             const response = await request(app)
                 .get('/api/crypto/driver/earnings')

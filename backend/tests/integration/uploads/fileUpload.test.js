@@ -26,7 +26,7 @@ describe('File Upload API', () => {
         // Generate test token (you'll need to use your actual JWT_SECRET)
         const jwt = require('jsonwebtoken');
         token = jwt.sign(
-            { userId, role: 'customer' },
+            { userId, primary_role: 'customer' },
             process.env.JWT_SECRET || 'test-secret',
             { expiresIn: '1h', audience: 'matrix-delivery-api', issuer: 'matrix-delivery' }
         );
@@ -169,7 +169,7 @@ describe('Media Messages API', () => {
 
         const jwt = require('jsonwebtoken');
         token = jwt.sign(
-            { userId, role: 'customer' },
+            { userId, primary_role: 'customer' },
             process.env.JWT_SECRET || 'test-secret',
             { expiresIn: '1h', audience: 'matrix-delivery-api', issuer: 'matrix-delivery' }
         );

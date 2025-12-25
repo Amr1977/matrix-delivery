@@ -7,7 +7,7 @@ const mockUser = {
     id: 1,
     name: 'Test Driver',
     email: 'driver@test.com',
-    role: 'driver',
+    primary_role: 'driver',
     isVerified: true,
     completedDeliveries: 25
 };

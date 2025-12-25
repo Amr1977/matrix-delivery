@@ -725,7 +725,7 @@ Send confirmation
    - Device fingerprinting
 
 3. **Access Control**
-   - Role-based permissions
+   - primary_role-based permissions
    - Two-factor authentication for withdrawals
    - Admin approval workflows
    - Audit logging

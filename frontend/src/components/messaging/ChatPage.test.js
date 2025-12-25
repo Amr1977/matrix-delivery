@@ -27,7 +27,7 @@ describe('ChatPage Component', () => {
 
     const mockUser = {
         userId: 'customer-123',
-        role: 'customer'
+        primary_role: 'customer'
     };
 
     const mockMessages = [

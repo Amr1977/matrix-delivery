@@ -152,14 +152,14 @@ describe('App Track Order Button UI Functionality', () => {
       .mockImplementationOnce(() =>
         Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ token: 'mock-token', user: { id: '1', name: 'Test User', role: 'customer' } })
+          json: () => Promise.resolve({ token: 'mock-token', user: { id: '1', name: 'Test User', primary_role: 'customer' } })
         })
       )
       // Mock user fetch
       .mockImplementationOnce(() =>
         Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ id: '1', name: 'Test User', role: 'customer' })
+          json: () => Promise.resolve({ id: '1', name: 'Test User', primary_role: 'customer' })
         })
       )
       // Mock orders fetch - return orders with accepted status
@@ -314,7 +314,7 @@ describe('App Track Order Button UI Functionality', () => {
   test('should display error if LiveTrackingMap component is not properly scoped', async () => {
     // Mock console.error to capture React errors
     const consoleSpy = jest.spyOn(console, 'error');
-    consoleSpy.mockImplementation(() => {});
+    consoleSpy.mockImplementation(() => { });
 
     render(<App />);
 

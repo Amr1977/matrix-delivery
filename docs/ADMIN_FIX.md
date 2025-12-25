@@ -42,14 +42,14 @@ Then run:
 node create-admin-user.js
 ```
 
-### Step 4: Verify Roles
+### Step 4: Verify granted_roles
 
-Ensure admin has correct roles:
+Ensure admin has correct granted_roles:
 
 ```sql
 UPDATE users 
-SET roles = ARRAY['admin', 'customer', 'driver'],
-    role = 'admin',
+SET granted_roles = ARRAY['admin', 'customer', 'driver'],
+    primary_role = 'admin',
     is_verified = true
 WHERE email = 'admin@matrix-delivery.com';
 ```
@@ -73,7 +73,7 @@ Password: Admin@Matrix2024!
 ## Common Issues
 
 1. **Wrong password hash**: The create-admin-user script should hash the password correctly
-2. **Missing roles array**: Ensure `roles` column contains `['admin']`
+2. **Missing granted_roles array**: Ensure `granted_roles` column contains `['admin']`
 3. **Not verified**: Ensure `is_verified = true`
 4. **Case sensitivity**: Email should be lowercase
 

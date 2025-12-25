@@ -47,7 +47,7 @@ class ApiAdapter extends OrderLifecycleAdapter {
         await pool.end();
     }
 
-    async _registerAndLogin(name, role) {
+    async _registerAndLogin(name, primary_role) {
         const email = `${name.toLowerCase()}@test.com`;
         const password = 'password123';
 
@@ -55,9 +55,9 @@ class ApiAdapter extends OrderLifecycleAdapter {
         await request(app)
             .post('/api/auth/register')
             .send({
-                name, email, password, primary_role: role,
+                name, email, password, primary_role: primary_role,
                 phone: '1234567890',
-                vehicle_type: role === 'driver' ? 'car' : undefined,
+                vehicle_type: primary_role === 'driver' ? 'car' : undefined,
                 country: 'Egypt', city: 'Cairo', area: 'Maadi'
             });
 
@@ -132,7 +132,7 @@ class ApiAdapter extends OrderLifecycleAdapter {
             .set('Authorization', `Bearer ${user.token}`);
 
         if (res.status !== 200) {
-            // If 403/401, it might be due to role or auth
+            // If 403/401, it might be due to primary_role or auth
         }
 
         const orders = Array.isArray(res.body) ? res.body : (res.body.orders || []);

@@ -94,7 +94,7 @@ import DriverEarnings from './components/crypto/DriverEarnings';
 const DriverDashboard = () => {
   const { user } = useAuth();
 
-  if (user.role !== 'driver') {
+  if (user.primary_role !== 'driver') {
     return <div>Access denied</div>;
   }
 

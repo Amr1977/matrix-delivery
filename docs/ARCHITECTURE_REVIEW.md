@@ -74,7 +74,7 @@ backend/server.js: 6,101 lines, 227KB
 **Evidence:**
 ```javascript
 // App.js contains ALL of:
-- Authentication (login, register, role switching)
+- Authentication (login, register, primary_role switching)
 - Order creation and management
 - Bidding system
 - Live tracking
@@ -265,15 +265,15 @@ ENABLE_PAYMENTS=true
 3. **Mixed authorization patterns:**
    ```javascript
    const isAdmin = (req, res, next) => {
-     const role = req.user?.role;
-     const roles = req.user?.roles || [];
-     if (role === 'admin' || (Array.isArray(roles) && roles.includes('admin'))) {
+     const primary_role = req.user?.primary_role;
+     const granted_roles = req.user?.granted_roles || [];
+     if (primary_role === 'admin' || (Array.isArray(granted_roles) && granted_roles.includes('admin'))) {
        return next();
      }
      return res.status(403).json({ error: 'Forbidden' });
    };
    ```
-   - Checks both `role` and `roles` array
+   - Checks both `primary_role` and `granted_roles` array
    - Inconsistent data model
 
 ---
@@ -773,11 +773,11 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING(50),
     allowNull: false
   },
-  role: {
+  primary_role: {
     type: DataTypes.ENUM('customer', 'driver', 'admin', 'vendor'),
     allowNull: false
   },
-  roles: {
+  granted_roles: {
     type: DataTypes.ARRAY(DataTypes.STRING),
     defaultValue: []
   },
@@ -850,7 +850,7 @@ module.exports = {
 
     // Add indexes
     await queryInterface.addIndex('users', ['email'], { unique: true });
-    await queryInterface.addIndex('users', ['role']);
+    await queryInterface.addIndex('users', ['primary_role']);
   },
 
   down: async (queryInterface, Sequelize) => {
@@ -999,9 +999,9 @@ const registerValidation = [
   body('phone')
     .isMobilePhone()
     .withMessage('Invalid phone number'),
-  body('role')
+  body('primary_role')
     .isIn(['customer', 'driver', 'vendor'])
-    .withMessage('Invalid role'),
+    .withMessage('Invalid primary_role'),
   validateRequest
 ];
 

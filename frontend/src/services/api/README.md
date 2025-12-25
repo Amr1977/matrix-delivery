@@ -33,7 +33,7 @@ await UsersApi.updateProfile({ name: 'John Doe' });
 
 ## Services
 
-- **AuthApi** - Authentication (login, register, logout, switch role)
+- **AuthApi** - Authentication (login, register, logout, switch primary_role)
 - **OrdersApi** - Orders management (CRUD, bids, status updates)
 - **DriversApi** - Driver operations (location, status, earnings)
 - **UsersApi** - User profile and preferences

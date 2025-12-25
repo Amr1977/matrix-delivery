@@ -2,13 +2,13 @@ const { Given, When, Then } = require('@cucumber/cucumber');
 const { expect } = require('chai');
 
 // Environment/Background
-Given('the P2P delivery platform is running', async function() {
+Given('the P2P delivery platform is running', async function () {
   // Basic health check via base URL
   await this.page.goto(this.baseUrl);
   await this.page.waitForLoadState('networkidle');
 });
 
-Given('the database is clean', async function() {
+Given('the database is clean', async function () {
   // Optional: call a test-only cleanup endpoint if available
   if (this.apiUrl) {
     try {
@@ -20,7 +20,7 @@ Given('the database is clean', async function() {
 });
 
 // Simple navigation to registration page
-Given('I am on the registration page', async function() {
+Given('I am on the registration page', async function () {
   await this.page.goto(this.baseUrl);
   await this.page.waitForLoadState('networkidle');
   const registerLink = this.page.locator('button:has-text("Sign Up")');
@@ -30,7 +30,7 @@ Given('I am on the registration page', async function() {
 });
 
 // Registration form steps (flexible table-driven)
-When('I fill in the registration form with:', async function(dataTable) {
+When('I fill in the registration form with:', async function (dataTable) {
   const data = dataTable.rowsHash();
 
   if (data.name) await this.page.fill('input[placeholder="Full Name"]', data.name);
@@ -38,12 +38,12 @@ When('I fill in the registration form with:', async function(dataTable) {
   if (data.password) await this.page.fill('input[placeholder="Password"]', data.password);
   if (data.phone) await this.page.fill('input[placeholder*="Phone"], input[type="tel"]', data.phone);
 
-  // user_type / role
-  const role = data.user_type || data.role;
-  if (role) {
+  // user_type / primary_role
+  const primary_role = data.user_type || data.primary_role;
+  if (primary_role) {
     const roleSelect = this.page.locator('select');
     if (await roleSelect.isVisible()) {
-      await roleSelect.selectOption(role);
+      await roleSelect.selectOption(primary_role);
     }
   }
 
@@ -56,7 +56,7 @@ When('I fill in the registration form with:', async function(dataTable) {
 });
 
 // Generic assertions for success/error messages
-Then('I should see a success message {string}', async function(expected) {
+Then('I should see a success message {string}', async function (expected) {
   // For registration success, we check if we're redirected to dashboard (no error message)
   const errorBox = this.page.locator('[style*="background: #FEF2F2"]');
   await this.page.waitForTimeout(1000); // Wait for potential error to appear
@@ -64,7 +64,7 @@ Then('I should see a success message {string}', async function(expected) {
   expect(hasError).to.be.false; // No error means success
 });
 
-Then('I should receive a verification email at {string}', async function(email) {
+Then('I should receive a verification email at {string}', async function (email) {
   // In UI E2E we can only assert UI hint/toast; optionally check a test inbox API
   const hint = this.page.locator('text=/verification email/i').or(this.page.locator('[data-testid="email-sent"]'));
   if (await hint.first().isVisible()) {
@@ -76,7 +76,7 @@ Then('I should receive a verification email at {string}', async function(email) 
   this.testData.lastVerificationEmail = email;
 });
 
-Then('my account should be created with:', async function(dataTable) {
+Then('my account should be created with:', async function (dataTable) {
   // If API available, verify user defaults via /auth/me using stored token
   if (this.apiUrl && this.testData?.customer?.token) {
     const res = await fetch(`${this.apiUrl}/auth/me`, {
@@ -93,15 +93,15 @@ Then('my account should be created with:', async function(dataTable) {
 });
 
 // Login steps
-Given('I am a registered user with:', async function(dataTable) {
+Given('I am a registered user with:', async function (dataTable) {
   const fields = dataTable.rowsHash();
   const payload = {
     name: fields.name || 'BDD User',
     email: fields.email,
     password: fields.password,
     phone: '+1234567890', // Default phone for API registration
-    role: (fields.user_type || fields.role || 'customer'),
-    vehicle_type: (fields.user_type || fields.role) === 'driver' ? 'bike' : undefined
+    primary_role: (fields.user_type || fields.primary_role || 'customer'),
+    vehicle_type: (fields.user_type || fields.primary_role) === 'driver' ? 'bike' : undefined
   };
 
   if (!this.apiUrl) return;
@@ -128,7 +128,7 @@ Given('I am a registered user with:', async function(dataTable) {
           password: payload.password
         })
       });
-      
+
       if (login.ok) {
         const loginData = await login.json();
         this.testData.customer = { ...payload, id: loginData.user.id, token: loginData.token };
@@ -141,9 +141,9 @@ Given('I am a registered user with:', async function(dataTable) {
   }
 });
 
-Given('I am a registered user with email {string}', async function(email) {
+Given('I am a registered user with email {string}', async function (email) {
   if (!this.apiUrl) return;
-  const payload = { name: 'BDD User', email, password: 'SecurePass123!', phone: '+1234567890', role: 'customer' };
+  const payload = { name: 'BDD User', email, password: 'SecurePass123!', phone: '+1234567890', primary_role: 'customer' };
   const res = await fetch(`${this.apiUrl}/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -157,9 +157,9 @@ Given('I am a registered user with email {string}', async function(email) {
   }
 });
 
-Given('a user exists with email {string}', async function(email) {
+Given('a user exists with email {string}', async function (email) {
   if (!this.apiUrl) return;
-  const payload = { name: 'Existing User', email, password: 'SecurePass123!', phone: '+1234567890', role: 'customer' };
+  const payload = { name: 'Existing User', email, password: 'SecurePass123!', phone: '+1234567890', primary_role: 'customer' };
   await fetch(`${this.apiUrl}/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -167,7 +167,7 @@ Given('a user exists with email {string}', async function(email) {
   });
 });
 
-When('I attempt to register with email {string}', async function(email) {
+When('I attempt to register with email {string}', async function (email) {
   await this.page.goto(this.baseUrl);
   await this.page.waitForLoadState('networkidle');
   const signUp = this.page.locator('button:has-text("Sign Up")');
@@ -181,37 +181,37 @@ When('I attempt to register with email {string}', async function(email) {
   await this.page.waitForTimeout(1000);
 });
 
-Then('I should see an error message {string}', async function(expectedMessage) {
+Then('I should see an error message {string}', async function (expectedMessage) {
   // Wait a bit for error to appear
   await this.page.waitForTimeout(2000);
-  
+
   // Try multiple selectors for error messages
   const errorSelectors = [
     '[style*="background: #FEF2F2"]',
     '[style*="color: #991B1B"]',
     '.error',
     '[class*="error"]',
-    '[role="alert"]',
+    '[primary_role="alert"]',
     'text=/error/i',
     'text=/invalid/i',
     'text=/already/i'
   ];
-  
+
   let errorFound = false;
   let errorText = '';
-  
+
   for (const selector of errorSelectors) {
     const elements = this.page.locator(selector);
     const count = await elements.count();
-    
+
     for (let i = 0; i < count; i++) {
       const element = elements.nth(i);
       if (await element.isVisible()) {
         const text = (await element.textContent()) || '';
-        if (text.toLowerCase().includes(expectedMessage.toLowerCase()) || 
-            text.toLowerCase().includes('error') ||
-            text.toLowerCase().includes('invalid') ||
-            text.toLowerCase().includes('already')) {
+        if (text.toLowerCase().includes(expectedMessage.toLowerCase()) ||
+          text.toLowerCase().includes('error') ||
+          text.toLowerCase().includes('invalid') ||
+          text.toLowerCase().includes('already')) {
           errorFound = true;
           errorText = text;
           break;
@@ -220,13 +220,13 @@ Then('I should see an error message {string}', async function(expectedMessage) {
     }
     if (errorFound) break;
   }
-  
+
   // Debug: log page content if no error found
   if (!errorFound) {
     const pageContent = await this.page.content();
     console.log('Page content when looking for error:', pageContent.substring(0, 1000));
   }
-  
+
   expect(errorFound).to.be.true;
   if (errorText) {
     // Map expected messages to actual frontend messages
@@ -234,10 +234,10 @@ Then('I should see an error message {string}', async function(expectedMessage) {
       'email already registered': ['already', 'registered'],
       'invalid credentials': ['invalid', 'email', 'password']
     };
-    
+
     const expectedLower = expectedMessage.toLowerCase();
     const textLower = errorText.toLowerCase();
-    
+
     if (messageMap[expectedLower]) {
       // Check if any of the mapped keywords are present
       const found = messageMap[expectedLower].some(keyword => textLower.includes(keyword));
@@ -248,9 +248,9 @@ Then('I should see an error message {string}', async function(expectedMessage) {
   }
 });
 
-Then('no new account should be created', async function() {
+Then('no new account should be created', async function () {
   // Basic UI assertion: success message should not be visible
-  const success = this.page.locator('.success, [class*="success"], [role="alert"]:has-text("success")');
+  const success = this.page.locator('.success, [class*="success"], [primary_role="alert"]:has-text("success")');
   await this.page.waitForTimeout(500);
   const count = await success.count();
   if (count > 0) {
@@ -263,14 +263,14 @@ Then('no new account should be created', async function() {
   }
 });
 
-When('I login with email {string} and password {string}', async function(email, password) {
+When('I login with email {string} and password {string}', async function (email, password) {
   await this.page.fill('input[placeholder="Email"]', email);
   await this.page.fill('input[placeholder="Password"]', password);
   await this.page.click('button:has-text("Sign In")');
   await this.page.waitForTimeout(1000);
 });
 
-Then('I should be redirected to the dashboard', async function() {
+Then('I should be redirected to the dashboard', async function () {
   // Check common dashboard elements
   const dashboardSelectors = [
     'text="My Orders"',
@@ -286,10 +286,10 @@ Then('I should be redirected to the dashboard', async function() {
   expect(visible).to.be.true;
 });
 
-Then('I should see a welcome message {string}', async function(expected) {
+Then('I should see a welcome message {string}', async function (expected) {
   // Wait a bit for the page to load
   await this.page.waitForTimeout(2000);
-  
+
   // Look for various welcome message patterns
   const welcomeSelectors = [
     'text=/welcome/i',
@@ -300,22 +300,22 @@ Then('I should see a welcome message {string}', async function(expected) {
     '[class*="welcome"]',
     '[class*="greeting"]'
   ];
-  
+
   let welcomeFound = false;
   let welcomeText = '';
-  
+
   for (const selector of welcomeSelectors) {
     const elements = this.page.locator(selector);
     const count = await elements.count();
-    
+
     for (let i = 0; i < count; i++) {
       const element = elements.nth(i);
       if (await element.isVisible()) {
         const text = (await element.textContent()) || '';
-        if (text.toLowerCase().includes('welcome') || 
-            text.toLowerCase().includes('hello') ||
-            text.toLowerCase().includes('hi') ||
-            text.toLowerCase().includes(expected.toLowerCase())) {
+        if (text.toLowerCase().includes('welcome') ||
+          text.toLowerCase().includes('hello') ||
+          text.toLowerCase().includes('hi') ||
+          text.toLowerCase().includes(expected.toLowerCase())) {
           welcomeFound = true;
           welcomeText = text;
           break;
@@ -324,7 +324,7 @@ Then('I should see a welcome message {string}', async function(expected) {
     }
     if (welcomeFound) break;
   }
-  
+
   // If no welcome message found, just check that we're on the dashboard
   if (!welcomeFound) {
     // Look for any dashboard indicators
@@ -339,7 +339,7 @@ Then('I should see a welcome message {string}', async function(expected) {
       'h1',
       'h2'
     ];
-    
+
     let dashboardFound = false;
     for (const selector of dashboardSelectors) {
       const element = this.page.locator(selector);
@@ -349,7 +349,7 @@ Then('I should see a welcome message {string}', async function(expected) {
         break;
       }
     }
-    
+
     // If still no dashboard found, just check that we're not on login page
     if (!dashboardFound) {
       const loginPage = this.page.locator('h2:has-text("Sign In"), h2:has-text("Register")');
@@ -364,7 +364,7 @@ Then('I should see a welcome message {string}', async function(expected) {
   }
 });
 
-Then('I should remain on the login page', async function() {
+Then('I should remain on the login page', async function () {
   const loginHeader = this.page.locator('h2:has-text("Sign In")');
   const isVisible = await loginHeader.isVisible();
   expect(isVisible).to.be.true;

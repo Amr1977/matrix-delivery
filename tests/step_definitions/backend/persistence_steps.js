@@ -18,7 +18,7 @@ Given('I have a registered customer for persistence test', async function () {
         email: `customer_${timestamp}@test.com`,
         password: 'test123456',
         phone: `+1${timestamp.toString().slice(-10)}`,
-        role: 'customer',
+        primary_role: 'customer',
         country: 'USA',
         city: 'New York',
         area: 'Manhattan'

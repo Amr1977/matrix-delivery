@@ -36,13 +36,13 @@ const validatePhone = (phone) => {
 };
 
 /**
- * Validate role
- * @param {string} role - User role to validate
- * @returns {boolean} True if valid role
+ * Validate primary_role
+ * @param {string} primary_role - User primary_role to validate
+ * @returns {boolean} True if valid primary_role
  */
-const validateRole = (role) => {
+const validateRole = (primary_role) => {
     const validRoles = ['customer', 'driver', 'admin', 'vendor'];
-    return validRoles.includes(role);
+    return validRoles.includes(primary_role);
 };
 
 module.exports = {

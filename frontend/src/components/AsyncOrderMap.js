@@ -18,13 +18,13 @@ const AsyncOrderMap = ({ order, currentUser, driverLocation, theme = 'dark', ...
 
     const isActiveOrder = ['picked_up', 'in_transit', 'delivered'].includes(order.status);
     const shouldFetch = isActiveOrder && (
-        currentUser?.role === 'admin' ||
-        (currentUser?.role === 'customer' && order.customerId === currentUser?.id) ||
-        (currentUser?.role === 'driver' && order.assignedDriver?.userId === currentUser?.id)
+        currentUser?.primary_role === 'admin' ||
+        (currentUser?.primary_role === 'customer' && order.customerId === currentUser?.id) ||
+        (currentUser?.primary_role === 'driver' && order.assignedDriver?.userId === currentUser?.id)
     );
 
     // Check if we need to calculate bidding route (driver to pickup to dropoff)
-    const isBiddingView = currentUser?.role === 'driver' && driverLocation &&
+    const isBiddingView = currentUser?.primary_role === 'driver' && driverLocation &&
         Number.isFinite(driverLocation.latitude) && Number.isFinite(driverLocation.longitude);
 
     useEffect(() => {

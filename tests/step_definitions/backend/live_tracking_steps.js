@@ -37,7 +37,7 @@ Given('I am a registered customer', async function () {
 
     const response = await axios.post(`${API_URL}/auth/login`, loginData);
 
-    if (response.data.user.role !== 'customer') {
+    if (response.data.user.primary_role !== 'customer') {
       throw new Error('User is not a customer');
     }
 
@@ -53,7 +53,7 @@ Given('I am a registered customer', async function () {
         email: 'testcustomer@example.com',
         password: 'TestCustomer123!',
         phone: '+1234567890',
-        role: 'customer',
+        primary_role: 'customer',
         country: 'Egypt',
         city: 'Cairo',
         area: 'Downtown'

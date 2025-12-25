@@ -102,7 +102,7 @@ export const getAvailableCities = (orders) => {
 };
 
 export const filterDriverOrders = (orders, viewType, currentUser, cityFilter = '') => {
-  if (currentUser?.role !== 'driver') return orders;
+  if (currentUser?.primary_role !== 'driver') return orders;
 
   let filteredOrders;
   switch (viewType) {

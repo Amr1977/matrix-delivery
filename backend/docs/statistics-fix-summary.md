@@ -2,7 +2,7 @@
 
 ## Issues Fixed
 
-### 1. SQL Error: Column "role" Does Not Exist
+### 1. SQL Error: Column "primary_role" Does Not Exist
 - **Error Count**: 42 occurrences
 - **Time Range**: 08:30:34 - 08:44:14
 - **Last Error**: 08:44:14 (before fixes)
@@ -18,12 +18,12 @@ Created comprehensive test suite: `backend/tests/statistics.test.js`
 
 ### Test Categories
 - ✅ Both endpoints (`/api/footer/stats` and `/api/stats/footer`)
-- ✅ SQL query correctness (no "column role" errors)
+- ✅ SQL query correctness (no "column primary_role" errors)
 - ✅ `granted_roles` array functionality
 - ✅ `primary_role` column usage
 - ✅ Online user detection from logs
 - ✅ Database schema validation
-- ✅ Edge cases (users with multiple roles)
+- ✅ Edge cases (users with multiple granted_roles)
 - ✅ Error handling
 
 ### Total Tests: 18
@@ -43,7 +43,7 @@ Created comprehensive test suite: `backend/tests/statistics.test.js`
 
 ### Error Log (error-2025-12-08.log)
 - Total entries: 42
-- All errors: "column role does not exist"
+- All errors: "column primary_role does not exist"
 - Last error: 08:44:14
 
 ### Combined Log (combined-2025-12-08.log)

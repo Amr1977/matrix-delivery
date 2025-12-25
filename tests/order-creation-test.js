@@ -61,7 +61,7 @@ async function runOrderCreationTest() {
       email: `customer_${timestamp}@test.com`,
       password: 'test1234',
       phone: `+1${timestamp.toString().slice(-10)}`,
-      role: 'customer',
+      primary_role: 'customer',
       country: 'Egypt',
       city: 'Cairo',
       area: 'Zamalek'
@@ -227,9 +227,9 @@ async function runOrderCreationTest() {
 
     // Check if the form appeared - be more flexible
     const isFormVisible = await page.locator('form').count() > 0 ||
-                         await page.locator('.order-form').count() > 0 ||
-                         await page.locator('[role="dialog"]').count() > 0 ||
-                         await page.locator('.modal').count() > 0;
+      await page.locator('.order-form').count() > 0 ||
+      await page.locator('[primary_role="dialog"]').count() > 0 ||
+      await page.locator('.modal').count() > 0;
 
     if (!isFormVisible) {
       console.log('⚠️ No obvious form found, but continuing with test');

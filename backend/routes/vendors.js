@@ -9,7 +9,7 @@ const {
 } = require('../middleware/auth');
 const { generateId } = require('../utils/generators');
 
-// Vendor role check alias
+// Vendor primary_role check alias
 const isVendor = requireRole('vendor', 'admin');
 const IS_TEST = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing';
 

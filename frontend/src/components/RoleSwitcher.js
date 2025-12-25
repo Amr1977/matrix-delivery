@@ -5,7 +5,7 @@ const RoleSwitcher = ({ currentRole, grantedRoles, onSwitch }) => {
     const [switching, setSwitching] = useState(false);
     const [error, setError] = useState('');
 
-    // Don't show if user only has one role
+    // Don't show if user only has one primary_role
     if (!grantedRoles || grantedRoles.length <= 1) {
         return null;
     }
@@ -17,7 +17,7 @@ const RoleSwitcher = ({ currentRole, grantedRoles, onSwitch }) => {
         setError('');
 
         try {
-            const response = await fetch(`${process.env.REACT_APP_API_URL}/users/me/switch-role`, {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/users/me/switch-primary_role`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -28,7 +28,7 @@ const RoleSwitcher = ({ currentRole, grantedRoles, onSwitch }) => {
 
             if (!response.ok) {
                 const data = await response.json();
-                throw new Error(data.error || 'Failed to switch role');
+                throw new Error(data.error || 'Failed to switch primary_role');
             }
 
             const data = await response.json();
@@ -38,7 +38,7 @@ const RoleSwitcher = ({ currentRole, grantedRoles, onSwitch }) => {
                 onSwitch(data.user);
             }
 
-            // Reload page to refresh all data with new role
+            // Reload page to refresh all data with new primary_role
             window.location.reload();
         } catch (err) {
             setError(err.message);
@@ -46,33 +46,33 @@ const RoleSwitcher = ({ currentRole, grantedRoles, onSwitch }) => {
         }
     };
 
-    const getRoleLabel = (role) => {
+    const getRoleLabel = (primary_role) => {
         const labels = {
             customer: '👤 Customer',
             driver: '🚗 Driver',
             vendor: '🏪 Vendor',
             admin: '⚙️ Admin'
         };
-        return labels[role] || role;
+        return labels[primary_role] || primary_role;
     };
 
     return (
-        <div className="role-switcher">
-            <label className="role-switcher-label">Active Role:</label>
+        <div className="primary_role-switcher">
+            <label className="primary_role-switcher-label">Active primary_role:</label>
             <select
-                className="role-switcher-select"
+                className="primary_role-switcher-select"
                 value={currentRole}
                 onChange={(e) => handleRoleChange(e.target.value)}
                 disabled={switching}
             >
-                {grantedRoles.map(role => (
-                    <option key={role} value={role}>
-                        {getRoleLabel(role)}
+                {grantedRoles.map(primary_role => (
+                    <option key={primary_role} value={primary_role}>
+                        {getRoleLabel(primary_role)}
                     </option>
                 ))}
             </select>
-            {switching && <span className="role-switcher-loading">Switching...</span>}
-            {error && <span className="role-switcher-error">{error}</span>}
+            {switching && <span className="primary_role-switcher-loading">Switching...</span>}
+            {error && <span className="primary_role-switcher-error">{error}</span>}
         </div>
     );
 };

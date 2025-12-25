@@ -11,7 +11,7 @@ const jwt = require('jsonwebtoken');
 const https = require('https');
 const http = require('http');
 
-global.fetch = function(url, options) {
+global.fetch = function (url, options) {
   return new Promise((resolve, reject) => {
     const urlObj = new URL(url);
     const protocol = urlObj.protocol === 'https:' ? https : http;
@@ -80,14 +80,14 @@ const testUser = {
   id: 'test-user-id',
   email: 'test@example.com',
   name: 'Test User',
-  role: 'customer'
+  primary_role: 'customer'
 };
 
 const testDriver = {
   id: 'test-driver-id',
   email: 'driver@example.com',
   name: 'Test Driver',
-  role: 'driver'
+  primary_role: 'driver'
 };
 
 describe('Map Location Picker API Tests', () => {

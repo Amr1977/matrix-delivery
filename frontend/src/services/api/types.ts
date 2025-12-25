@@ -8,9 +8,7 @@ export interface User {
     email: string;
     name: string;
     phone?: string;
-    role: 'customer' | 'driver' | 'admin' | 'vendor';
     primary_role?: 'customer' | 'driver' | 'admin' | 'vendor';
-    roles?: string[];
     granted_roles?: string[];
     country?: string;
     city?: string;
@@ -55,7 +53,7 @@ export interface AuthResponse {
 }
 
 export interface SwitchRoleRequest {
-    role: string;
+    primary_role: string;
 }
 
 // ============ Order Types ============

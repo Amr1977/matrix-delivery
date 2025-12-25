@@ -14,7 +14,7 @@ Given('I am logged in as a driver', async function () {
       email: 'status-driver@test.com',
       password: 'driver123',
       phone: '+123456789003',
-      role: 'driver',
+      primary_role: 'driver',
       vehicle_type: 'car'
     };
 

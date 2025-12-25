@@ -226,7 +226,7 @@ const fetchCurrentUser = async () => {
     }
     const data = await response.json();
     setCurrentUser(data);
-    setAvailableRoles(data.granted_roles || data.roles || (data.role ? [data.role] : []));
+    setAvailableRoles(data.granted_roles || data.granted_roles || (data.primary_role ? [data.primary_role] : []));
     setToken('authenticated');
     setError('');
   } catch (err) {
@@ -247,7 +247,7 @@ const fetchCurrentUser = async () => {
   try {
     const data = await AuthApi.getCurrentUser();
     setCurrentUser(data);
-    setAvailableRoles(data.granted_roles || data.roles || (data.role ? [data.role] : []));
+    setAvailableRoles(data.granted_roles || data.granted_roles || (data.primary_role ? [data.primary_role] : []));
     setToken('authenticated');
     setError('');
   } catch (err) {

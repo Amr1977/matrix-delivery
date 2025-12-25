@@ -18,7 +18,7 @@ if (!JWT_SECRET) {
 
 // Generate valid token
 const token = jwt.sign(
-    { userId: 'test-user-1', email: 'test@example.com', name: 'Test User', role: 'customer' },
+    { userId: 'test-user-1', email: 'test@example.com', name: 'Test User', primary_role: 'customer' },
     JWT_SECRET,
     { expiresIn: '1h', issuer: 'matrix-delivery', audience: 'matrix-delivery-api' }
 );

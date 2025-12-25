@@ -74,11 +74,11 @@ else {
 Write-Host ""
 Write-Host "🔄 Step 5: Running migrations..." -ForegroundColor Yellow
 
-# Migration 1: Rename role columns
+# Migration 1: Rename primary_role columns
 if (Test-Path "migrations\rename_role_columns.sql") {
     Write-Host "   Running: rename_role_columns.sql"
     psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f migrations\rename_role_columns.sql
-    Write-Host "   ✅ Role columns renamed" -ForegroundColor Green
+    Write-Host "   ✅ primary_role columns renamed" -ForegroundColor Green
 }
 else {
     Write-Host "   ⚠️  Migration not found: rename_role_columns.sql" -ForegroundColor Yellow

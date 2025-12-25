@@ -7,11 +7,11 @@ jest.mock('../../../services/adminService');
 jest.mock('../../../services/notificationService.ts');
 jest.mock('../../../middleware/auth', () => ({
     verifyToken: (req, res, next) => {
-        req.user = { userId: 'test-user', role: 'customer' };
+        req.user = { userId: 'test-user', primary_role: 'customer' };
         next();
     },
     verifyAdmin: (req, res, next) => {
-        req.user = { userId: 'admin-123', role: 'admin' };
+        req.user = { userId: 'admin-123', primary_role: 'admin' };
         req.admin = { id: 'admin-123', email: 'admin@test.com', name: 'Admin User' };
         next();
     },
@@ -73,7 +73,7 @@ describe('Admin Routes - Dashboard Stats', () => {
                 .mockResolvedValueOnce({ rows: [{ count: '100' }] })
                 // Query 2: New users in range
                 .mockResolvedValueOnce({ rows: [{ count: '10' }] })
-                // Query 3: Users by role
+                // Query 3: Users by primary_role
                 .mockResolvedValueOnce({
                     rows: [
                         { primary_role: 'customer', count: '60' },

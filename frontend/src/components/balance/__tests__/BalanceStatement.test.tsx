@@ -241,7 +241,7 @@ describe('BalanceStatement', () => {
             expect(screen.getByTestId('download-csv-button')).toBeInTheDocument();
         });
 
-        test('shows driver-specific fields for driver role', () => {
+        test('shows driver-specific fields for driver primary_role', () => {
             const mockStatement = {
                 period: { startDate: '2024-01-01', endDate: '2024-01-31' },
                 openingBalance: 1000,

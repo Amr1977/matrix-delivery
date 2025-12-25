@@ -62,7 +62,7 @@ describe('PayPal Payment Integration Tests', () => {
 
         // Generate token
         customerToken = jwt.sign(
-            { userId: customerId, email: 'customer-paypal@example.com', role: 'customer' },
+            { userId: customerId, email: 'customer-paypal@example.com', primary_role: 'customer' },
             JWT_SECRET,
             { expiresIn: '1h', audience: 'matrix-delivery-api', issuer: 'matrix-delivery' }
         );

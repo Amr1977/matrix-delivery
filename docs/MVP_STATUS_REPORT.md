@@ -8,10 +8,10 @@
 ## ✅ **COMPLETED FEATURES**
 
 ### 1. **Core Authentication & User Management** ✅
-- User registration (customer/driver/admin roles)
+- User registration (customer/driver/admin granted_roles)
 - Login/logout with JWT tokens
 - Session persistence
-- Role switching for multi-role users
+- primary_role switching for multi-primary_role users
 - Profile management with picture upload
 - User preferences and settings
 

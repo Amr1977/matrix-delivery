@@ -36,7 +36,7 @@ describe('Logging API Tests', () => {
                 email: 'testuser@example.com',
                 password: 'Test@1234',
                 phone: '+1234567890',
-                role: 'customer'
+                primary_role: 'customer'
             });
 
         userToken = userResponse.body.token;

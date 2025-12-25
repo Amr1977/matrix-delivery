@@ -52,7 +52,7 @@ interface UserData {
   id: string;
   name: string;
   email: string;
-  role: 'customer' | 'driver' | 'admin';
+  primary_role: 'customer' | 'driver' | 'admin';
 }
 
 const fetchUser = async (userId: string): Promise<UserData> => {

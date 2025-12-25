@@ -307,7 +307,7 @@ res.cookie('refreshToken', refreshToken, {
 ```javascript
 // backend/routes/auth.js (line 50)
 router.post('/register', authRateLimit, async (req, res) => {
-  const { name, email, password, phone, role, vehicle_type, country, city, area } = req.body;
+  const { name, email, password, phone, primary_role, vehicle_type, country, city, area } = req.body;
   // ⚠️ Only basic null checks, no sanitization
   if (!name || !email || !password...) {
     // No regex validation, no length limits, no sanitization
@@ -326,7 +326,7 @@ router.post('/register', [
     .isLength({ min: 12 })
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/),
   body('phone').matches(/^\+?[1-9]\d{1,14}$/),
-  body('role').isIn(['customer', 'driver', 'vendor', 'admin']),
+  body('primary_role').isIn(['customer', 'driver', 'vendor', 'admin']),
   body('country').trim().isLength({ min: 2, max: 100 }).escape(),
   body('city').trim().isLength({ min: 2, max: 100 }).escape(),
   body('area').trim().isLength({ min: 2, max: 100 }).escape(),
@@ -568,7 +568,7 @@ const pool = new Pool({
 Create audit log table and track:
 - All login attempts (success/failure)
 - Payment transactions
-- User role changes
+- User primary_role changes
 - Admin actions
 - Password changes
 
@@ -615,7 +615,7 @@ require('./admin-panel.js')(app, pool, jwt, createNotification, generateId, JWT_
 
 #### ✅ REMEDIATION:
 ```javascript
-// Ensure admin-panel.js properly validates admin role on EVERY endpoint
+// Ensure admin-panel.js properly validates admin primary_role on EVERY endpoint
 // No endpoint should be callable without explicit admin check
 ```
 
@@ -635,7 +635,7 @@ io.use((socket, next) => {
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     socket.userId = decoded.userId;
-    socket.userRole = decoded.role;
+    socket.userRole = decoded.primary_role;
     next();
   } catch (err) {
     next(new Error('Authentication error'));
@@ -765,8 +765,8 @@ const generateTokens = (user) => {
   const payload = {
     userId: user.id,
     email: user.email,
-    role: user.role,
-    roles: user.roles || [user.role]
+    primary_role: user.primary_role,
+    granted_roles: user.granted_roles || [user.primary_role]
   };
   
   const accessToken = jwt.sign(payload, JWT_SECRET, {
@@ -807,7 +807,7 @@ router.post('/login', strictAuthRateLimit, async (req, res) => {
   
   res.json({
     accessToken,
-    user: { id: user.id, email: user.email, role: user.role }
+    user: { id: user.id, email: user.email, primary_role: user.primary_role }
   });
 });
 
@@ -1028,9 +1028,9 @@ const validateRegistration = [
   body('phone')
     .matches(/^\+?[1-9]\d{1,14}$/)
     .withMessage('Invalid phone number'),
-  body('role')
+  body('primary_role')
     .isIn(['customer', 'driver', 'vendor', 'admin'])
-    .withMessage('Invalid role'),
+    .withMessage('Invalid primary_role'),
   body('vehicle_type')
     .optional()
     .isIn(['motorcycle', 'car', 'truck', 'van', 'bicycle']),
@@ -1328,7 +1328,7 @@ CREATE TABLE audit_logs (
 - [ ] Refresh tokens rotate on use
 - [ ] Password meets minimum requirements (12+ chars, special chars, numbers)
 - [ ] Bcrypt rounds ≥ 12
-- [ ] Role-based access control enforced on all endpoints
+- [ ] primary_role-based access control enforced on all endpoints
 - [ ] Admin endpoints require explicit admin verification
 - [ ] reCAPTCHA v3 enabled on login/register
 

@@ -224,7 +224,7 @@ const LiveTrackingMap = ({ orderId, t, compact = false, theme = 'dark', isDriver
     // Start smart tracking if driver and order is active
     // Note: In a real app, we would check if currentUser.id === trackingData.driver.userId
     // For this demo, we'll assume if the component is mounted and we have geolocation, we might be the driver
-    // But strictly speaking, we should check role. Since we don't have currentUser prop here easily without context,
+    // But strictly speaking, we should check primary_role. Since we don't have currentUser prop here easily without context,
     // we'll rely on the fact that only drivers see the "Start Tracking" button which usually leads to this view or similar.
     // However, this component is used by BOTH driver and customer.
     // We need to be careful not to have the CUSTOMER send location updates.

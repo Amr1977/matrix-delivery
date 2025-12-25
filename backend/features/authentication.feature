@@ -11,7 +11,7 @@ Feature: User Authentication
       | email    | john@example.com    |
       | phone    | +1234567890         |
       | password | SecurePass123!      |
-      | role     | customer            |
+      | primary_role     | customer            |
     Then I should receive a successful registration response
     And I should receive a JWT token
     And my account should be created in the system

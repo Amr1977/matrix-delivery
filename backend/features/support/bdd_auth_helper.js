@@ -44,7 +44,7 @@ class BDDAuthHelper {
                 {
                     userId: this.adminUser.id,
                     email: this.adminUser.email,
-                    role: 'admin'
+                    primary_role: 'admin'
                 },
                 process.env.JWT_SECRET || 'your-secret-key',
                 { expiresIn: '1h' }

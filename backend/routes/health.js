@@ -51,7 +51,7 @@ router.get('/', async (req, res) => {
  */
 router.get('/footer/stats', async (req, res) => {
     try {
-        // Get users by role
+        // Get users by primary_role
         const usersByRoleResult = await pool.query(
             `SELECT primary_role, COUNT(*) as count FROM users GROUP BY primary_role`
         );

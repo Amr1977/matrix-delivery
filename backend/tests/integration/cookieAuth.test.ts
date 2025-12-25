@@ -126,7 +126,7 @@ describe('Cookie-Based Authentication Integration Tests', () => {
             expect(Array.isArray(response.body)).toBe(true);
         });
 
-        it('should work for /api/drivers/location with cookie (driver role)', async () => {
+        it('should work for /api/drivers/location with cookie (driver primary_role)', async () => {
             // Cleanup potential leftover
             await pool.query('DELETE FROM users WHERE id = $1', ['test-driver-auth']);
 

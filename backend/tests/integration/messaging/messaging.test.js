@@ -91,13 +91,13 @@ describe('Messaging API Tests', () => {
 
         // Generate tokens
         customerToken = jwt.sign(
-            { userId: customerId, email: 'customer-msg@example.com', role: 'customer' },
+            { userId: customerId, email: 'customer-msg@example.com', primary_role: 'customer' },
             JWT_SECRET,
             { expiresIn: '1h', audience: 'matrix-delivery-api', issuer: 'matrix-delivery' }
         );
 
         driverToken = jwt.sign(
-            { userId: driverId, email: 'driver-msg@example.com', role: 'driver' },
+            { userId: driverId, email: 'driver-msg@example.com', primary_role: 'driver' },
             JWT_SECRET,
             { expiresIn: '1h', audience: 'matrix-delivery-api', issuer: 'matrix-delivery' }
         );

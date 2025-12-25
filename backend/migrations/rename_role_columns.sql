@@ -1,9 +1,9 @@
 -- ============================================
--- Primary Role System Migration
+-- Primary primary_role System Migration
 -- ============================================
--- This migration renames role columns for clarity:
---   role  -> primary_role (active role)
---   roles -> granted_roles (all roles user can switch to)
+-- This migration renames primary_role columns for clarity:
+--   primary_role  -> primary_role (active primary_role)
+--   granted_roles -> granted_roles (all granted_roles user can switch to)
 -- ============================================
 
 BEGIN;
@@ -15,25 +15,25 @@ SELECT * FROM users;
 -- Step 2: Rename columns (only if they haven't been renamed yet)
 DO $$ 
 BEGIN
-    -- Rename role to primary_role if role column exists
+    -- Rename primary_role to primary_role if primary_role column exists
     IF EXISTS (
         SELECT 1 FROM information_schema.columns 
-        WHERE table_name = 'users' AND column_name = 'role'
+        WHERE table_name = 'users' AND column_name = 'primary_role'
     ) THEN
-        ALTER TABLE users RENAME COLUMN role TO primary_role;
+        ALTER TABLE users RENAME COLUMN primary_role TO primary_role;
     END IF;
     
-    -- Rename roles to granted_roles if roles column exists
+    -- Rename granted_roles to granted_roles if granted_roles column exists
     IF EXISTS (
         SELECT 1 FROM information_schema.columns 
-        WHERE table_name = 'users' AND column_name = 'roles'
+        WHERE table_name = 'users' AND column_name = 'granted_roles'
     ) THEN
-        ALTER TABLE users RENAME COLUMN roles TO granted_roles;
+        ALTER TABLE users RENAME COLUMN granted_roles TO granted_roles;
     END IF;
 END $$;
 
 -- Step 3: Ensure granted_roles includes primary_role
--- This ensures every user has their primary role in their granted roles
+-- This ensures every user has their primary primary_role in their granted granted_roles
 UPDATE users 
 SET granted_roles = CASE
     WHEN granted_roles IS NULL THEN ARRAY[primary_role]
@@ -45,8 +45,8 @@ END;
 CREATE INDEX IF NOT EXISTS idx_users_granted_roles ON users USING GIN(granted_roles);
 
 -- Step 5: Add comment to columns for documentation
-COMMENT ON COLUMN users.primary_role IS 'Currently active role for the user';
-COMMENT ON COLUMN users.granted_roles IS 'Array of all roles the user is granted and can switch to';
+COMMENT ON COLUMN users.primary_role IS 'Currently active primary_role for the user';
+COMMENT ON COLUMN users.granted_roles IS 'Array of all granted_roles the user is granted and can switch to';
 
 COMMIT;
 

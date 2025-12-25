@@ -17,7 +17,7 @@ async function verifyUserByEmail(email) {
 
     // First check if user exists and current status
     const checkResult = await client.query(`
-      SELECT id, name, email, role, is_verified, created_at
+      SELECT id, name, email, primary_role, is_verified, created_at
       FROM users
       WHERE email = $1
     `, [email]);
@@ -31,7 +31,7 @@ async function verifyUserByEmail(email) {
     console.log('\n👤 Current User Status:');
     console.log(`   Name: ${user.name}`);
     console.log(`   Email: ${user.email}`);
-    console.log(`   Role: ${user.role}`);
+    console.log(`   primary_role: ${user.primary_role}`);
     console.log(`   Verified: ${user.is_verified ? '✅ YES' : '❌ NO'}`);
 
     if (user.is_verified) {
@@ -52,7 +52,7 @@ async function verifyUserByEmail(email) {
 
       // Verify the update
       const verifyResult = await client.query(`
-        SELECT id, name, email, role, is_verified, created_at
+        SELECT id, name, email, primary_role, is_verified, created_at
         FROM users
         WHERE email = $1
       `, [email]);
@@ -62,7 +62,7 @@ async function verifyUserByEmail(email) {
         console.log('\n🎉 Verification Complete!');
         console.log(`   Name: ${updatedUser.name}`);
         console.log(`   Email: ${updatedUser.email}`);
-        console.log(`   Role: ${updatedUser.role}`);
+        console.log(`   primary_role: ${updatedUser.primary_role}`);
         console.log(`   Verified: ${updatedUser.is_verified ? '✅ YES' : '❌ NO'}`);
         console.log(`   Joined: ${new Date(updatedUser.created_at).toLocaleDateString()}`);
 

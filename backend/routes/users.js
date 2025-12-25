@@ -51,7 +51,7 @@ router.get('/:id/reputation', verifyToken, async (req, res, next) => {
             user: {
                 id: user.id,
                 name: user.name,
-                role: user.role,
+                primary_role: user.primary_role,
                 rating: parseFloat(user.rating),
                 completedDeliveries: user.completed_deliveries,
                 isVerified: user.is_verified,
@@ -108,7 +108,7 @@ router.get('/:id/reviews/received', verifyToken, async (req, res, next) => {
             user: {
                 id: user.id,
                 name: user.name,
-                role: user.primary_role
+                primary_role: user.primary_role
             },
             reviews: reviewsResult.rows.map(review => ({
                 id: review.id,
@@ -164,7 +164,7 @@ router.get('/:id/reviews/given', verifyToken, async (req, res, next) => {
             user: {
                 id: user.id,
                 name: user.name,
-                role: user.primary_role
+                primary_role: user.primary_role
             },
             reviews: reviewsResult.rows.map(review => ({
                 id: review.id,
@@ -194,7 +194,7 @@ router.get('/:id/reviews/given', verifyToken, async (req, res, next) => {
 router.get('/me/profile', verifyToken, async (req, res, next) => {
     try {
         const result = await pool.query(
-            `SELECT id, name, email, phone, primary_role, roles, vehicle_type, rating, completed_deliveries, is_available, is_verified,
+            `SELECT id, name, email, phone, primary_role, granted_roles, vehicle_type, rating, completed_deliveries, is_available, is_verified,
               profile_picture_url, license_number, service_area_zone, preferences, notification_prefs,
               two_factor_methods, language, theme, gender, document_verification_status, verified_at
        FROM users WHERE id = $1`,
@@ -223,8 +223,8 @@ router.put('/me/profile', verifyToken, async (req, res, next) => {
         const { name, phone, vehicle_type, license_number, service_area_zone, language, theme, gender } = req.body || {};
         const userRes = await pool.query('SELECT id, granted_roles FROM users WHERE id = $1', [req.user.userId]);
         if (userRes.rows.length === 0) return res.status(404).json({ error: 'User not found' });
-        const roles = userRes.rows[0].roles || [];
-        const isDriver = Array.isArray(roles) ? roles.includes('driver') : false;
+        const granted_roles = userRes.rows[0].granted_roles || [];
+        const isDriver = Array.isArray(granted_roles) ? granted_roles.includes('driver') : false;
 
         const updates = [];
         const params = [];

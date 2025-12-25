@@ -108,14 +108,14 @@ describe('BalanceDashboard', () => {
             expect(screen.getByTestId('withdraw-button')).toBeInTheDocument();
         });
 
-        test('renders driver stats for driver role', () => {
+        test('renders driver stats for driver primary_role', () => {
             render(<BalanceDashboard userId={1} userRole="driver" />);
 
             expect(screen.getByTestId('driver-stats')).toBeInTheDocument();
             expect(screen.getByTestId('earnings-title')).toBeInTheDocument();
         });
 
-        test('does not render driver stats for customer role', () => {
+        test('does not render driver stats for customer primary_role', () => {
             render(<BalanceDashboard userId={1} userRole="customer" />);
 
             expect(screen.queryByTestId('driver-stats')).not.toBeInTheDocument();

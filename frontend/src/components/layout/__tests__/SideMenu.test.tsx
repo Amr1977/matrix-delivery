@@ -7,7 +7,7 @@ const mockUser = {
     id: 1,
     name: 'Test Driver',
     email: 'driver@test.com',
-    role: 'driver',
+    primary_role: 'driver',
     isVerified: true,
     completedDeliveries: 25
 };
@@ -88,7 +88,7 @@ describe('SideMenu Component', () => {
     });
 
     it('should hide driver toggle when user is not driver', () => {
-        const customerUser = { ...mockUser, role: 'customer' };
+        const customerUser = { ...mockUser, primary_role: 'customer' };
         render(<SideMenu {...defaultProps} currentUser={customerUser} />);
 
         expect(screen.queryByText('🚗 menu.driverStatus')).not.toBeInTheDocument();
@@ -116,20 +116,20 @@ describe('SideMenu Component', () => {
         expect(screen.getByText('🌐 menu.language')).toBeInTheDocument();
     });
 
-    it('should render role switcher when multiple roles available', () => {
+    it('should render primary_role switcher when multiple granted_roles available', () => {
         render(<SideMenu {...defaultProps} />);
 
         expect(screen.getByText('🔄 menu.switchRole')).toBeInTheDocument();
         expect(screen.getByDisplayValue('driver')).toBeInTheDocument();
     });
 
-    it('should hide role switcher when only one role', () => {
+    it('should hide primary_role switcher when only one primary_role', () => {
         render(<SideMenu {...defaultProps} availableRoles={['driver']} />);
 
         expect(screen.queryByText('🔄 menu.switchRole')).not.toBeInTheDocument();
     });
 
-    it('should call onSwitchRole when role changed', () => {
+    it('should call onSwitchRole when primary_role changed', () => {
         render(<SideMenu {...defaultProps} />);
 
         const roleSelect = screen.getByDisplayValue('driver');

@@ -8,11 +8,11 @@ jest.mock('../../../services/adminService');
 jest.mock('../../../services/notificationService.ts');
 jest.mock('../../../middleware/auth', () => ({
     verifyToken: (req, res, next) => {
-        req.user = { userId: 'test-user', role: 'customer' };
+        req.user = { userId: 'test-user', primary_role: 'customer' };
         next();
     },
     verifyAdmin: (req, res, next) => {
-        req.user = { userId: 'admin-123', role: 'admin' };
+        req.user = { userId: 'admin-123', primary_role: 'admin' };
         req.admin = { id: 'admin-123', email: 'admin@test.com', name: 'Admin User' };
         next();
     },
@@ -132,7 +132,7 @@ describe('Admin Routes - User Management', () => {
             expect(response.body.users[0].name).toBe('John Doe');
         });
 
-        it('should filter users by role', async () => {
+        it('should filter users by primary_role', async () => {
             mockQuery
                 .mockResolvedValueOnce({ rows: [{ count: '20' }] })
                 .mockResolvedValueOnce({
@@ -150,11 +150,11 @@ describe('Admin Routes - User Management', () => {
                 });
 
             const response = await request(app)
-                .get('/api/admin/users?role=driver')
+                .get('/api/admin/users?primary_role=driver')
                 .set('Cookie', [`token=${adminToken}`])
                 .expect(200);
 
-            expect(response.body.users.every(u => u.role === 'driver')).toBe(true);
+            expect(response.body.users.every(u => u.primary_role === 'driver')).toBe(true);
         });
     });
 

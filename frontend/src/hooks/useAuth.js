@@ -9,7 +9,7 @@ const useAuth = () => {
     email: '',
     password: '',
     phone: '',
-    role: 'customer',
+    primary_role: 'customer',
     vehicle_type: '',
     country: '',
     city: '',
@@ -77,7 +77,7 @@ const useAuth = () => {
       localStorage.setItem('token', data.token);
       setToken(data.token);
       setCurrentUser(data.user);
-      setAuthForm({ name: '', email: '', password: '', phone: '', role: 'customer', vehicle_type: '', country: '', city: '', area: '' });
+      setAuthForm({ name: '', email: '', password: '', phone: '', primary_role: 'customer', vehicle_type: '', country: '', city: '', area: '' });
       setError('');
       return true;
     } catch (err) {
@@ -94,7 +94,7 @@ const useAuth = () => {
       return false;
     }
 
-    if (formData.role === 'driver' && !formData.vehicle_type) {
+    if (formData.primary_role === 'driver' && !formData.vehicle_type) {
       setError('Vehicle type is required for drivers');
       return false;
     }
@@ -102,7 +102,7 @@ const useAuth = () => {
     // Ensure primary_role is set for backend
     const payload = {
       ...formData,
-      primary_role: formData.primary_role || formData.role
+      primary_role: formData.primary_role || formData.primary_role
     };
 
     setLoading(true);
@@ -122,7 +122,7 @@ const useAuth = () => {
       localStorage.setItem('token', data.token);
       setToken(data.token);
       setCurrentUser(data.user);
-      setAuthForm({ name: '', email: '', password: '', phone: '', role: 'customer', vehicle_type: '', country: '', city: '', area: '' });
+      setAuthForm({ name: '', email: '', password: '', phone: '', primary_role: 'customer', vehicle_type: '', country: '', city: '', area: '' });
       setError('');
       return true;
     } catch (err) {
@@ -277,7 +277,7 @@ const useAuth = () => {
       email: '',
       password: '',
       phone: '',
-      role: 'customer',
+      primary_role: 'customer',
       vehicle_type: '',
       country: '',
       city: '',

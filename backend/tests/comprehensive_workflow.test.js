@@ -50,8 +50,8 @@ describe('Comprehensive Workflow Tests', () => {
             pool.query
                 .mockResolvedValueOnce({ rows: [{ count: '5' }] }) // Online drivers
                 .mockResolvedValueOnce({ rows: [{ count: '20' }] }) // Total drivers
-                .mockResolvedValueOnce({ rows: [{ role: 'customer', count: '10' }, { role: 'admin', count: '2' }] }) // Online users
-                .mockResolvedValueOnce({ rows: [{ role: 'customer', count: '100' }, { role: 'admin', count: '5' }] }) // Total users
+                .mockResolvedValueOnce({ rows: [{ primary_role: 'customer', count: '10' }, { primary_role: 'admin', count: '2' }] }) // Online users
+                .mockResolvedValueOnce({ rows: [{ primary_role: 'customer', count: '100' }, { primary_role: 'admin', count: '5' }] }) // Total users
                 .mockResolvedValueOnce({ rows: [{ count: '15' }] }) // Orders completed today
                 .mockResolvedValueOnce({ rows: [{ count: '8' }] }) // Active orders
                 .mockResolvedValueOnce({ rows: [{ count: '3' }] }) // Countries

@@ -333,7 +333,7 @@ Given('there is a user {string} with:', function (email, dataTable) {
         id: 'user-detailed',
         email,
         name: userData.name || 'Test User',
-        primary_role: userData.role || 'customer',
+        primary_role: userData.primary_role || 'customer',
         ...userData
     });
 });
@@ -364,14 +364,14 @@ When('I search for users with term {string}', async function (searchTerm) {
     this.world.response = await req;
 });
 
-When('I filter users by role {string}', async function (role) {
+When('I filter users by primary_role {string}', async function (primary_role) {
     this.world.mockQuery
         .mockResolvedValueOnce({ rows: [{ count: '10' }] })
         .mockResolvedValueOnce({
             rows: Array(10).fill(null).map((_, i) => ({
-                id: `${role}-${i}`,
-                name: `${role} ${i}`,
-                primary_role: role,
+                id: `${primary_role}-${i}`,
+                name: `${primary_role} ${i}`,
+                primary_role: primary_role,
                 is_verified: true,
                 total_orders: '0',
                 total_reviews: '0'
@@ -379,7 +379,7 @@ When('I filter users by role {string}', async function (role) {
         });
 
     const req = request(app)
-        .get(`/api/admin/users?role=${role}`)
+        .get(`/api/admin/users?primary_role=${primary_role}`)
         .set('Cookie', [`token=${this.world.adminToken}`]);
 
     this.world.response = await req;
@@ -423,10 +423,10 @@ When('I perform a bulk verification', async function () {
     };
 });
 
-Then('the response should contain only {string} users', function (role) {
+Then('the response should contain only {string} users', function (primary_role) {
     expect(this.world.response.body.users).to.be.an('array');
     this.world.response.body.users.forEach(user => {
-        expect(user.role).to.equal(role);
+        expect(user.primary_role).to.equal(primary_role);
     });
 });
 
@@ -687,9 +687,9 @@ Then('the results should include {string}', function (name) {
     expect(found).to.be.true;
 });
 
-Given('the system has users with different roles:', function (dataTable) {
-    const roles = dataTable.hashes();
-    this.world.setMockData('user_roles', roles);
+Given('the system has users with different granted_roles:', function (dataTable) {
+    const granted_roles = dataTable.hashes();
+    this.world.setMockData('user_roles', granted_roles);
 });
 
 Then('I should receive {int} users', function (count) {
@@ -697,10 +697,10 @@ Then('I should receive {int} users', function (count) {
     expect(this.world.response.body.users.length).to.be.at.most(count);
 });
 
-Then('all users should have role {string}', function (role) {
+Then('all users should have primary_role {string}', function (primary_role) {
     const users = this.world.response.body.users || [];
     users.forEach(user => {
-        expect(user.role).to.equal(role);
+        expect(user.primary_role).to.equal(primary_role);
     });
 });
 

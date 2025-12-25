@@ -19,18 +19,18 @@ const ProfilePage = ({
     setFavorites,
     onNavigate
 }) => {
-    // Local state for role switcher
+    // Local state for primary_role switcher
     const [switching, setSwitching] = useState(false);
 
     // Edit Mode State
     const [isEditing, setIsEditing] = useState(false);
     const [editFormData, setEditFormData] = useState({});
 
-    // Debug Log for Role Switcher
+    // Debug Log for primary_role Switcher
     useEffect(() => {
         console.log('ProfilePage: profileData:', profileData);
         console.log('ProfilePage: granted_roles:', profileData?.granted_roles);
-        console.log('ProfilePage: roles:', profileData?.roles);
+        console.log('ProfilePage: granted_roles:', profileData?.granted_roles);
     }, [profileData]);
 
     // Initialize edit form data when entering edit mode
@@ -58,7 +58,7 @@ const ProfilePage = ({
         if (!token) return;
         try {
             // Remove read-only or derived fields if present to avoid backend errors
-            const { id, email, created_at, updated_at, role, primary_role, granted_roles, ...updatableFields } = patch;
+            const { id, email, created_at, updated_at, primary_role, granted_roles, ...updatableFields } = patch;
 
             const res = await fetch(`${API_URL}/auth/profile`, {
                 method: 'PUT',
@@ -87,7 +87,7 @@ const ProfilePage = ({
         // Update local state and parent state
         setProfileData(prev => ({ ...prev, ...updatedUser }));
         if (setCurrentUser) setCurrentUser(updatedUser);
-        // Reload page to ensure all app state (sockets, orders, etc.) refreshes with new role
+        // Reload page to ensure all app state (sockets, orders, etc.) refreshes with new primary_role
         window.location.reload();
     };
 
@@ -156,21 +156,21 @@ const ProfilePage = ({
                                 fontWeight: '500',
                                 textTransform: 'capitalize'
                             }}>
-                                {profileData.primary_role || profileData.role || 'User'}
+                                {profileData.primary_role || profileData.primary_role || 'User'}
                             </span>
                         </div>
                     </div>
                 </div>
 
-                {/* Role Switcher Section */}
+                {/* primary_role Switcher Section */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '10px' }}>
-                    {/* Only show RoleSwitcher if user has multiple roles */}
-                    {(profileData.granted_roles?.length > 1 || profileData.roles?.length > 1) && (
+                    {/* Only show RoleSwitcher if user has multiple granted_roles */}
+                    {(profileData.granted_roles?.length > 1 || profileData.granted_roles?.length > 1) && (
                         <div style={{ background: 'rgba(0,0,0,0.3)', padding: '15px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                            <h3 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Switch Role</h3>
+                            <h3 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Switch primary_role</h3>
                             <RoleSwitcher
-                                currentRole={profileData.primary_role || profileData.role}
-                                grantedRoles={profileData.granted_roles || profileData.roles}
+                                currentRole={profileData.primary_role || profileData.primary_role}
+                                grantedRoles={profileData.granted_roles || profileData.granted_roles}
                                 onSwitch={handleRoleSwitch}
                             />
                         </div>
@@ -252,7 +252,7 @@ const ProfilePage = ({
                             <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#FBBF24' }}>{profileData.rating ? Number(profileData.rating).toFixed(1) : '5.0'}</div>
                             <div style={{ fontSize: '13px', color: '#9CA3AF', marginTop: '5px' }}>Average Rating</div>
                         </div>
-                        {(profileData.primary_role === 'driver' || profileData.role === 'driver') && (
+                        {(profileData.primary_role === 'driver' || profileData.primary_role === 'driver') && (
                             <div style={{ gridColumn: '1 / -1', padding: '15px', borderRadius: '10px', background: 'rgba(0,0,0,0.2)', textAlign: 'center', cursor: 'pointer' }} onClick={() => onNavigate && onNavigate('earnings')}>
                                 <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#60A5FA' }}>View Earnings ➔</div>
                                 <div style={{ fontSize: '13px', color: '#9CA3AF', marginTop: '5px' }}>Go to Dashboard</div>
@@ -347,7 +347,7 @@ const ProfilePage = ({
                 </div>
 
                 {/* Driver Specifics */}
-                {(profileData.primary_role === 'driver' || profileData.role === 'driver' || (profileData.roles && profileData.roles.includes('driver')) || (profileData.granted_roles && profileData.granted_roles.includes('driver'))) && (
+                {(profileData.primary_role === 'driver' || profileData.primary_role === 'driver' || (profileData.granted_roles && profileData.granted_roles.includes('driver')) || (profileData.granted_roles && profileData.granted_roles.includes('driver'))) && (
                     <div className="card" style={{ padding: '20px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
                         <h3 style={{ marginTop: 0, color: '#A7F3D0', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '10px' }}>🚗 Driver Settings</h3>
 

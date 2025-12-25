@@ -33,7 +33,7 @@ This document highlights security heuristics and risk indicators identified duri
 ### 2. IDOR Potential in Wallet Payments
 - **Risk Type**: IDOR
 - **Location**: `backend/routes/walletPayments.js` -> `router.get('/:id', ...)`
-- **Issue**: Checks `if (req.user.role !== 'admin' && walletPayment.customer_id !== req.user.id)`.
+- **Issue**: Checks `if (req.user.primary_role !== 'admin' && walletPayment.customer_id !== req.user.id)`.
 - **Observation**: This logic appears correct *inline*, but relies on the developer to remember it. `verifyBalanceOwnership` middleware exists in `v1` but is not used here.
 
 ### 3. Trust Boundary Violation in Order Creation

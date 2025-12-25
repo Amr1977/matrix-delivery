@@ -18,12 +18,12 @@ if (!JWT_REFRESH_SECRET || JWT_REFRESH_SECRET.length < 64) {
 /**
  * Generate access and refresh tokens for a user
  */
-export const generateTokens = (user: { id: string; email: string; role: string; roles?: string[] }): TokenPair => {
+export const generateTokens = (user: { id: string; email: string; primary_role: string; granted_roles?: string[] }): TokenPair => {
     const payload: TokenPayload = {
         userId: user.id,
         email: user.email,
-        role: user.role,
-        roles: user.roles || [user.role]
+        primary_role: user.primary_role,
+        granted_roles: user.granted_roles || [user.primary_role]
     };
 
     const accessToken = jwt.sign(payload, JWT_SECRET!, {

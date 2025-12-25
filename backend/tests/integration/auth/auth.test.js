@@ -386,7 +386,7 @@ describe('Authentication API Tests', () => {
       );
       testUser = result.rows[0];
       testToken = jwt.sign(
-        { userId: testUser.id, email: testUser.email, name: testUser.name, role: testUser.role },
+        { userId: testUser.id, email: testUser.email, name: testUser.name, primary_role: testUser.primary_role },
         JWT_SECRET,
         { expiresIn: '30d', audience: 'matrix-delivery-api', issuer: 'matrix-delivery' }
       );
@@ -421,12 +421,12 @@ describe('Authentication API Tests', () => {
     });
   });
 
-  describe('POST /api/auth/switch-role', () => {
+  describe('POST /api/auth/switch-primary_role', () => {
     beforeEach(async () => {
-      // Create a test user with multiple roles
+      // Create a test user with multiple granted_roles
       const hashedPassword = await bcrypt.hash('password123', 10);
       const result = await pool.query(
-        `INSERT INTO users (id, name, email, password, phone, primary_role, roles, country, city, area, rating, completed_deliveries)
+        `INSERT INTO users (id, name, email, password_hash, phone, primary_role, granted_roles, country, city, area, rating, completed_deliveries)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
          RETURNING *`,
         [
@@ -436,7 +436,7 @@ describe('Authentication API Tests', () => {
           hashedPassword,
           '+1234567890',
           'customer',
-          ['customer', 'driver'], // Multiple roles
+          ['customer', 'driver'], // Multiple granted_roles
           'Test Country',
           'Test City',
           'Test Area',
@@ -450,43 +450,43 @@ describe('Authentication API Tests', () => {
           userId: testUser.id,
           email: testUser.email,
           name: testUser.name,
-          role: testUser.role,
-          roles: testUser.roles
+          primary_role: testUser.primary_role,
+          granted_roles: testUser.granted_roles
         },
         JWT_SECRET,
         { expiresIn: '30d', audience: 'matrix-delivery-api', issuer: 'matrix-delivery' }
       );
     });
 
-    it('should switch role successfully', async () => {
+    it('should switch primary_role successfully', async () => {
       const switchData = {
-        role: 'driver'
+        primary_role: 'driver'
       };
 
       const response = await request(server)
-        .post('/api/auth/switch-role')
+        .post('/api/auth/switch-primary_role')
         .set('Authorization', `Bearer ${testToken}`)
         .send(switchData)
         .expect(200);
 
-      // Token is returned in body for switch-role as it returns new token
+      // Token is returned in body for switch-primary_role as it returns new token
       expect(response.body).toHaveProperty('token');
       expect(response.body).toHaveProperty('primary_role');
       expect(response.body.primary_role).toBe('driver');
     });
 
-    it('should return 400 for invalid role', async () => {
+    it('should return 400 for invalid primary_role', async () => {
       const switchData = {
-        role: 'admin' // User doesn't have admin role
+        primary_role: 'admin' // User doesn't have admin primary_role
       };
 
       const response = await request(server)
-        .post('/api/auth/switch-role')
+        .post('/api/auth/switch-primary_role')
         .set('Authorization', `Bearer ${testToken}`)
         .send(switchData)
         .expect(400);
 
-      expect(response.body.error).toContain('Role not assigned');
+      expect(response.body.error).toContain('primary_role not assigned');
     });
   });
 
@@ -515,7 +515,7 @@ describe('Authentication API Tests', () => {
       );
       testUser = result.rows[0];
       testToken = jwt.sign(
-        { userId: testUser.id, email: testUser.email, name: testUser.name, role: testUser.role },
+        { userId: testUser.id, email: testUser.email, name: testUser.name, primary_role: testUser.primary_role },
         JWT_SECRET,
         { expiresIn: '30d', audience: 'matrix-delivery-api', issuer: 'matrix-delivery' }
       );

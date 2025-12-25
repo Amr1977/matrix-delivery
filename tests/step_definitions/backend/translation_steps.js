@@ -83,7 +83,7 @@ function getLanguageDisplayName(language) {
   return languageNames[language] || language;
 }
 
-When('I switch to {string} language', async function(language) {
+When('I switch to {string} language', async function (language) {
   // Click on language selector
   const languageSelector = this.page.locator('[data-testid="language-selector"]').or(
     this.page.locator('select').or(
@@ -107,10 +107,10 @@ When('I switch to {string} language', async function(language) {
   console.log(`Switched to ${language} language`);
 });
 
-When('I select customer role', async function() {
+When('I select customer primary_role', async function () {
   const customerRadio = this.page.locator('input[value="customer"]').or(
     this.page.locator('label:has-text("Customer")').or(
-      this.page.locator('[data-testid="customer-role"]')
+      this.page.locator('[data-testid="customer-primary_role"]')
     )
   );
 
@@ -119,7 +119,7 @@ When('I select customer role', async function() {
   }
 });
 
-When('I navigate to create order page', async function() {
+When('I navigate to create order page', async function () {
   const createOrderButton = this.page.locator('button:has-text("Create New Order")').or(
     this.page.locator('a:has-text("Create New Order")').or(
       this.page.locator('[data-testid="create-order"]')
@@ -130,7 +130,7 @@ When('I navigate to create order page', async function() {
   await this.page.waitForLoadState('networkidle');
 });
 
-When('I try to submit an empty form', async function() {
+When('I try to submit an empty form', async function () {
   const submitButton = this.page.locator('button[type="submit"]').or(
     this.page.locator('button:has-text("Publish Order")').or(
       this.page.locator('button:has-text("Create Order")')
@@ -142,7 +142,7 @@ When('I try to submit an empty form', async function() {
   await this.page.waitForTimeout(1000);
 });
 
-Then('the {string} button should display {string} in {string}', async function(elementName, expectedText, language) {
+Then('the {string} button should display {string} in {string}', async function (elementName, expectedText, language) {
   const element = this.page.locator(`button:has-text("${expectedText}")`).or(
     this.page.locator(`button`).filter({ hasText: expectedText }).first()
   );
@@ -151,7 +151,7 @@ Then('the {string} button should display {string} in {string}', async function(e
   await assertElementText(this.page, element, expectedText, language);
 });
 
-Then('the {string} field label should display {string} in {string}', async function(fieldName, expectedText, language) {
+Then('the {string} field label should display {string} in {string}', async function (fieldName, expectedText, language) {
   const element = this.page.locator(`label:has-text("${expectedText}")`).or(
     this.page.locator(`label`).filter({ hasText: expectedText }).first()
   );
@@ -160,14 +160,14 @@ Then('the {string} field label should display {string} in {string}', async funct
   await assertElementText(this.page, element, expectedText, language);
 });
 
-Then('the {string} text should display {string} in {string}', async function(elementName, expectedText, language) {
+Then('the {string} text should display {string} in {string}', async function (elementName, expectedText, language) {
   const element = this.page.locator(`text=${expectedText}`).first();
 
   await element.waitFor({ state: 'visible', timeout: 5000 });
   await assertElementText(this.page, element, expectedText, language);
 });
 
-Then('the {string} section should display {string} in {string}', async function(sectionName, expectedText, language) {
+Then('the {string} section should display {string} in {string}', async function (sectionName, expectedText, language) {
   const element = this.page.locator(`h1:has-text("${expectedText}")`).or(
     this.page.locator(`h2:has-text("${expectedText}")`).or(
       this.page.locator(`h3:has-text("${expectedText}")`).or(
@@ -180,7 +180,7 @@ Then('the {string} section should display {string} in {string}', async function(
   await assertElementText(this.page, element, expectedText, language);
 });
 
-Then('the {string} role option should display {string} in {string}', async function(roleName, expectedText, language) {
+Then('the {string} primary_role option should display {string} in {string}', async function (roleName, expectedText, language) {
   const element = this.page.locator(`label:has-text("${expectedText}")`).or(
     this.page.locator(`option:has-text("${expectedText}")`).or(
       this.page.locator(`text=${expectedText}`).first()
@@ -191,7 +191,7 @@ Then('the {string} role option should display {string} in {string}', async funct
   await assertElementText(this.page, element, expectedText, language);
 });
 
-Then('the language selector should show current language as {string}', async function(expectedLanguage) {
+Then('the language selector should show current language as {string}', async function (expectedLanguage) {
   const languageSelector = this.page.locator('[data-testid="language-selector"]').or(
     this.page.locator('select').or(
       this.page.locator('button').filter({ hasText: /Language|العربية|Español|Français|中文|Deutsch|Português|Русский|日本語|Türkçe|اردو|हिंदी/ })
@@ -203,7 +203,7 @@ Then('the language selector should show current language as {string}', async fun
   expect(currentText).to.include(expectedLanguage);
 });
 
-Then('the language dropdown should contain all supported languages', async function() {
+Then('the language dropdown should contain all supported languages', async function () {
   const supportedLanguages = ['English', 'العربية', 'Español', 'Français', '中文', 'Deutsch', 'Português', 'Русский', '日本語', 'Türkçe', 'اردو', 'हिंदी'];
 
   for (const lang of supportedLanguages) {
@@ -212,14 +212,14 @@ Then('the language dropdown should contain all supported languages', async funct
   }
 });
 
-Then('the status {string} should display {string} in {string}', async function(statusName, expectedText, language) {
+Then('the status {string} should display {string} in {string}', async function (statusName, expectedText, language) {
   const element = this.page.locator(`text=${expectedText}`).first();
 
   await element.waitFor({ state: 'visible', timeout: 5000 });
   await assertElementText(this.page, element, expectedText, language);
 });
 
-Then('the {string} error should display {string} in {string}', async function(errorType, expectedText, language) {
+Then('the {string} error should display {string} in {string}', async function (errorType, expectedText, language) {
   const element = this.page.locator(`text=${expectedText}`).or(
     this.page.locator('[class*="error"]').filter({ hasText: expectedText }).first()
   );
@@ -228,19 +228,19 @@ Then('the {string} error should display {string} in {string}', async function(er
   await assertElementText(this.page, element, expectedText, language);
 });
 
-Then('the {string} message should display {string} in {string}', async function(messageType, expectedText, language) {
+Then('the {string} message should display {string} in {string}', async function (messageType, expectedText, language) {
   const element = this.page.locator(`text=${expectedText}`).first();
 
   await element.waitFor({ state: 'visible', timeout: 5000 });
   await assertElementText(this.page, element, expectedText, language);
 });
 
-Given('I am on any page', async function() {
+Given('I am on any page', async function () {
   // This step is just for context, page should already be loaded
   console.log('On current page for language testing');
 });
 
-Given('I am on the order creation page', async function() {
+Given('I am on the order creation page', async function () {
   await this.page.goto(`${this.baseUrl}/create-order`);
   await this.page.waitForLoadState('networkidle');
 });

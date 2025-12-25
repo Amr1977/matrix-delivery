@@ -35,7 +35,7 @@ Establish comprehensive test coverage for existing monolithic code BEFORE any re
 - ✅ Email validation (invalid format, duplicate email)
 - ✅ Password validation (too short, missing requirements)
 - ✅ Phone validation
-- ✅ Role validation (customer, driver, invalid roles)
+- ✅ primary_role validation (customer, driver, invalid granted_roles)
 - ✅ Driver-specific validation (vehicle_type required)
 - ✅ reCAPTCHA verification (production only)
 - ✅ Rate limiting (5 requests per hour)
@@ -78,7 +78,7 @@ describe('POST /api/auth/register', () => {
 - ✅ Account lockout after 5 failed attempts
 - ✅ Token refresh mechanism
 - ✅ Cookie-based authentication
-- ✅ Role switching functionality
+- ✅ primary_role switching functionality
 
 ---
 
@@ -168,7 +168,7 @@ describe('POST /api/auth/register', () => {
 - ✅ User login flow
 - ✅ Logout and session cleanup
 - ✅ Token refresh on page reload
-- ✅ Role switching
+- ✅ primary_role switching
 - ✅ Protected route access
 - ✅ Auto-logout on token expiration
 

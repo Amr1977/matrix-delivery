@@ -77,11 +77,11 @@ fi
 echo ""
 echo "🔄 Step 6: Running migrations..."
 
-# Migration 1: Rename role columns (may fail if columns don't exist yet - that's OK)
+# Migration 1: Rename primary_role columns (may fail if columns don't exist yet - that's OK)
 if [ -f "migrations/rename_role_columns.sql" ]; then
     echo "   Running: rename_role_columns.sql"
     PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f migrations/rename_role_columns.sql 2>&1 | grep -v "does not exist" || true
-    echo "   ✅ Role columns migration attempted"
+    echo "   ✅ primary_role columns migration attempted"
 else
     echo "   ⚠️  Migration not found: rename_role_columns.sql"
 fi

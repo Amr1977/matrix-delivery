@@ -324,7 +324,7 @@ header {
   gap: var(--spacing-sm);
 }
 
-.mobile-user-role {
+.mobile-user-primary_role {
   font-size: 0.875rem;
   color: var(--matrix-green);
   text-transform: capitalize;

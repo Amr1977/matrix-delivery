@@ -11,7 +11,7 @@ After analyzing the test suite, here are the key findings:
 - **Step Definition Coverage**: 10/16 features have step definitions (62.5%)
 - **Implemented Features**: 8/16 features are fully implementable (50%)
 - **Obsolete Features**: 3/16 features are obsolete/not planned (18.75%)
-- **Test Fixtures**: ✅ Comprehensive fixtures now created covering all user roles and order states
+- **Test Fixtures**: ✅ Comprehensive fixtures now created covering all user granted_roles and order states
 
 ---
 
@@ -137,10 +137,10 @@ After analyzing the test suite, here are the key findings:
 
 ### ✅ NEW COMPREHENSIVE FIXTURES CREATED
 
-**Users Created (by Role):**
+**Users Created (by primary_role):**
 - **Customers**: 3 (1 verified, 2 unverified)
 - **Drivers**: 4 (3 active with different vehicle types, 1 unavailable)
-- **Admin**: 1 (full admin role)
+- **Admin**: 1 (full admin primary_role)
 
 **Orders Created (by Status):**
 - **pending_bids**: 3 orders
@@ -158,8 +158,8 @@ After analyzing the test suite, here are the key findings:
 ### 🛠️ FIXTURE UTILITIES
 
 **Available Methods:**
-- `getUserByRole(role)` - Get single user by role
-- `getUsersByRole(role)` - Get all users by role
+- `getUserByRole(primary_role)` - Get single user by primary_role
+- `getUsersByRole(primary_role)` - Get all users by primary_role
 - `getOrderByStatus(status)` - Get single order by status
 - `getOrdersByStatus(status)` - Get all orders by status
 - `getActiveOrder()` - Get first active order
@@ -199,8 +199,8 @@ After analyzing the test suite, here are the key findings:
 | Architecturally Feasible | 🏗️ | 2/16 | 12.5% |
 | Obsolete/Not Implemented | ❌ | 3/16 | 18.75% |
 | Step Definitions Exist | ✅ | 10/16 | 62.5% |
-| Test Fixtures Complete | ✅ | All roles/states | 100% |
+| Test Fixtures Complete | ✅ | All granted_roles/states | 100% |
 
 ---
 
-**SUMMARY**: The test suite now has comprehensive fixtures covering all user roles and order states. About 50% of features are fully implementable with current architecture, while obsolete features should be removed or archived. The system is ready for extensive BDD testing with the new comprehensive test data.
+**SUMMARY**: The test suite now has comprehensive fixtures covering all user granted_roles and order states. About 50% of features are fully implementable with current architecture, while obsolete features should be removed or archived. The system is ready for extensive BDD testing with the new comprehensive test data.

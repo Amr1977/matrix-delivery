@@ -144,7 +144,7 @@ router.post('/wallet/connect', verifyToken, async (req, res) => {
 router.post('/order/:orderId/complete', verifyToken, async (req, res) => {
     try {
         // Verify admin or system
-        if ((req.user.primary_role || (req.user.primary_role || req.user.role)) !== 'admin') {
+        if ((req.user.primary_role || (req.user.primary_role || req.user.primary_role)) !== 'admin') {
             return res.status(403).json({ error: 'Unauthorized' });
         }
 
@@ -222,7 +222,7 @@ router.post('/order/:orderId/refund', verifyToken, async (req, res) => {
         // Verify ownership or admin
         const orderResult = await pool.query(
             'SELECT * FROM orders WHERE id = $1 AND (customer_id = $2 OR $3 = true)',
-            [orderId, req.user.userId, req.user.role === 'admin']
+            [orderId, req.user.userId, req.user.primary_role === 'admin']
         );
 
         if (orderResult.rows.length === 0) {

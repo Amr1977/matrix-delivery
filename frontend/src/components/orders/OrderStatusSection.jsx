@@ -26,7 +26,7 @@ const OrderStatusSection = ({
     return (
         <>
             {/* Customer View: Display Bids (pending_bids) */}
-            {order.status === 'pending_bids' && currentUser?.role === 'customer' && order.bids && order.bids.length > 0 && (
+            {order.status === 'pending_bids' && currentUser?.primary_role === 'customer' && order.bids && order.bids.length > 0 && (
                 <div style={{ borderTop: '2px solid var(--matrix-border)', paddingTop: 'var(--spacing-lg)', marginTop: 'var(--spacing-md)' }}>
                     <h4 className="text-matrix" style={{ fontSize: '1rem', fontWeight: '600', marginBottom: 'var(--spacing-md)', textShadow: 'var(--shadow-glow)' }}>
                         {t('driver.driverBids')} ({order.bids.length})
@@ -275,7 +275,7 @@ const OrderStatusSection = ({
             )}
 
             {/* Customer View: Accepted Bid Info */}
-            {order.status === 'accepted' && currentUser?.role === 'customer' && order.bids && order.bids.length > 0 && (
+            {order.status === 'accepted' && currentUser?.primary_role === 'customer' && order.bids && order.bids.length > 0 && (
                 <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
                     <h4 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.75rem' }}>{t('orders.acceptedBid')}</h4>
                     <div style={{ background: '#F0F9FF', padding: '1rem', borderRadius: '0.375rem', border: '1px solid #DBEAFE' }}>
@@ -296,7 +296,7 @@ const OrderStatusSection = ({
             )}
 
             {/* Driver View: Pickup Button */}
-            {order.status === 'accepted' && currentUser?.role === 'driver' && isDriverAssigned && (
+            {order.status === 'accepted' && currentUser?.primary_role === 'driver' && isDriverAssigned && (
                 <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                         <button
@@ -311,7 +311,7 @@ const OrderStatusSection = ({
             )}
 
             {/* Driver View: In Transit Button */}
-            {order.status === 'picked_up' && currentUser?.role === 'driver' && isDriverAssigned && (
+            {order.status === 'picked_up' && currentUser?.primary_role === 'driver' && isDriverAssigned && (
                 <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                         <button
@@ -326,7 +326,7 @@ const OrderStatusSection = ({
             )}
 
             {/* Driver View: Complete Button */}
-            {order.status === 'in_transit' && currentUser?.role === 'driver' && isDriverAssigned && (
+            {order.status === 'in_transit' && currentUser?.primary_role === 'driver' && isDriverAssigned && (
                 <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                         <button
@@ -341,7 +341,7 @@ const OrderStatusSection = ({
             )}
 
             {/* Customer View: Status Messages */}
-            {order.status === 'accepted' && currentUser?.role === 'customer' && (
+            {order.status === 'accepted' && currentUser?.primary_role === 'customer' && (
                 <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
                     <div style={{ background: '#FEF3C7', padding: '1rem', borderRadius: '0.375rem', border: '1px solid #FCD34D' }}>
                         <p style={{ fontSize: '0.875rem', color: '#92400E', marginBottom: '0.5rem' }}>
@@ -354,7 +354,7 @@ const OrderStatusSection = ({
                 </div>
             )}
 
-            {order.status === 'picked_up' && currentUser?.role === 'customer' && (
+            {order.status === 'picked_up' && currentUser?.primary_role === 'customer' && (
                 <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
                     <div style={{ background: '#E0E7FF', padding: '1rem', borderRadius: '0.375rem', border: '1px solid #C7D2FE' }}>
                         <p style={{ fontSize: '0.875rem', color: '#3730A3' }}>
@@ -364,7 +364,7 @@ const OrderStatusSection = ({
                 </div>
             )}
 
-            {order.status === 'in_transit' && currentUser?.role === 'customer' && (
+            {order.status === 'in_transit' && currentUser?.primary_role === 'customer' && (
                 <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
                     <div style={{ background: '#FCE7F3', padding: '1rem', borderRadius: '0.375rem', border: '1px solid #F9A8D4' }}>
                         <p style={{ fontSize: '0.875rem', color: '#831843' }}>

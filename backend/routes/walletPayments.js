@@ -95,7 +95,7 @@ router.get('/:id', verifyToken, async (req, res, next) => {
         }
 
         // Check authorization
-        if (req.user.role !== 'admin' && walletPayment.customer_id !== req.user.id) {
+        if (req.user.primary_role !== 'admin' && walletPayment.customer_id !== req.user.id) {
             return res.status(403).json({ error: 'Not authorized' });
         }
 

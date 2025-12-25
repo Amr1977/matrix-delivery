@@ -23,7 +23,7 @@ async function registerTestUser() {
       email: email,
       password: 'test1234',
       phone: '+201234567890',
-      role: 'customer',
+      primary_role: 'customer',
       country: 'Egypt',
       city: 'Alexandria',
       area: 'city_center',

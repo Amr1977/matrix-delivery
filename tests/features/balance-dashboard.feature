@@ -33,7 +33,7 @@ Feature: Balance Dashboard
     And I should see a "Withdraw" button
     And I should see a "View All Transactions" link
 
-  Scenario: Balance display for different user roles
+  Scenario: Balance display for different user granted_roles
     When I am logged in as a driver
     And I navigate to the balance page
     Then I should see my driver earnings

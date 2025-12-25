@@ -114,7 +114,7 @@ describe('Health & Stats Endpoints', () => {
         it('should return comprehensive footer statistics', async () => {
             // Mock all database queries
             pool.query
-                .mockResolvedValueOnce({ // users by role
+                .mockResolvedValueOnce({ // users by primary_role
                     rows: [
                         { primary_role: 'customer', count: '100' },
                         { primary_role: 'driver', count: '40' },
@@ -155,7 +155,7 @@ describe('Health & Stats Endpoints', () => {
 
         it('should round average rating to 1 decimal place', async () => {
             pool.query
-                .mockResolvedValueOnce({ rows: [] }) // users by role
+                .mockResolvedValueOnce({ rows: [] }) // users by primary_role
                 .mockResolvedValueOnce({ rows: [{ count: '0' }] })
                 .mockResolvedValueOnce({ rows: [{ count: '0' }] })
                 .mockResolvedValueOnce({ rows: [{ count: '0' }] })

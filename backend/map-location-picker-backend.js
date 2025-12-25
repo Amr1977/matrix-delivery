@@ -337,7 +337,7 @@ module.exports = (app, pool, jwt) => {
   // Get/Update delivery agent preferences
   app.get('/api/delivery-agent/preferences', verifyToken, async (req, res) => {
     try {
-      if ((req.user.primary_role || (req.user.primary_role || req.user.role)) !== 'driver') {
+      if ((req.user.primary_role || (req.user.primary_role || req.user.primary_role)) !== 'driver') {
         return res.status(403).json({ error: 'Only delivery agents can access preferences' });
       }
 
@@ -366,7 +366,7 @@ module.exports = (app, pool, jwt) => {
 
   app.put('/api/delivery-agent/preferences', verifyToken, async (req, res) => {
     try {
-      if ((req.user.primary_role || (req.user.primary_role || req.user.role)) !== 'driver') {
+      if ((req.user.primary_role || (req.user.primary_role || req.user.primary_role)) !== 'driver') {
         return res.status(403).json({ error: 'Only delivery agents can update preferences' });
       }
 
@@ -612,7 +612,7 @@ module.exports = (app, pool, jwt) => {
     try {
       let query, params;
 
-      if ((req.user.primary_role || (req.user.primary_role || req.user.role)) === 'customer') {
+      if ((req.user.primary_role || (req.user.primary_role || req.user.primary_role)) === 'customer') {
         // Customer view - show only active orders (exclude delivered and cancelled)
         query = `SELECT o.*,
                COALESCE(json_agg(json_build_object(
@@ -634,7 +634,7 @@ module.exports = (app, pool, jwt) => {
                WHERE o.customer_id = $1 AND o.status NOT IN ('delivered', 'cancelled')
                GROUP BY o.id ORDER BY o.created_at DESC`;
         params = [req.user.userId];
-      } else if ((req.user.primary_role || (req.user.primary_role || req.user.role)) === 'driver') {
+      } else if ((req.user.primary_role || (req.user.primary_role || req.user.primary_role)) === 'driver') {
         // Driver view - show their assigned orders, bids, and available orders WITHIN 7KM
         const { lat, lng } = req.query;
 
@@ -696,7 +696,7 @@ module.exports = (app, pool, jwt) => {
         ORDER BY o.created_at DESC
       `;
         params = [req.user.userId, driverLng, driverLat];
-      } else if ((req.user.primary_role || (req.user.primary_role || req.user.role)) === 'admin') {
+      } else if ((req.user.primary_role || (req.user.primary_role || req.user.primary_role)) === 'admin') {
         // Admin view - show all orders
         query = `SELECT o.*,
                COALESCE(json_agg(json_build_object(
@@ -807,7 +807,7 @@ module.exports = (app, pool, jwt) => {
 
       let query, params, countQuery, countParams;
 
-      if ((req.user.primary_role || (req.user.primary_role || req.user.role)) === 'customer') {
+      if ((req.user.primary_role || (req.user.primary_role || req.user.primary_role)) === 'customer') {
         // Get total count
         countQuery = `SELECT COUNT(*) as total FROM orders o WHERE o.customer_id = $1 AND ${statusCondition}`;
         countParams = [req.user.userId];
@@ -835,7 +835,7 @@ module.exports = (app, pool, jwt) => {
                ORDER BY COALESCE(o.delivered_at, o.cancelled_at, o.created_at) DESC
                LIMIT $2 OFFSET $3`;
         params = [req.user.userId, limit, offset];
-      } else if ((req.user.primary_role || (req.user.primary_role || req.user.role)) === 'driver') {
+      } else if ((req.user.primary_role || (req.user.primary_role || req.user.primary_role)) === 'driver') {
         // Get total count for driver
         countQuery = `SELECT COUNT(DISTINCT o.id) as total 
                       FROM orders o 
@@ -877,7 +877,7 @@ module.exports = (app, pool, jwt) => {
         LIMIT $2 OFFSET $3
       `;
         params = [req.user.userId, limit, offset];
-      } else if ((req.user.primary_role || (req.user.primary_role || req.user.role)) === 'admin') {
+      } else if ((req.user.primary_role || (req.user.primary_role || req.user.primary_role)) === 'admin') {
         // Get total count for admin
         countQuery = `SELECT COUNT(*) as total FROM orders o WHERE ${statusCondition}`;
         countParams = [];
@@ -1003,7 +1003,7 @@ module.exports = (app, pool, jwt) => {
       // 2. Fetch Orders (reusing logic from /api/orders)
       let orderQuery, orderParams;
 
-      if ((req.user.primary_role || (req.user.primary_role || req.user.role)) === 'customer') {
+      if ((req.user.primary_role || (req.user.primary_role || req.user.primary_role)) === 'customer') {
         orderQuery = `SELECT o.*,
                COALESCE(json_agg(json_build_object(
                  'userId', b.user_id,
@@ -1024,7 +1024,7 @@ module.exports = (app, pool, jwt) => {
                WHERE o.customer_id = $1 AND o.status NOT IN ('delivered', 'cancelled')
                GROUP BY o.id ORDER BY o.created_at DESC`;
         orderParams = [req.user.userId];
-      } else if ((req.user.primary_role || (req.user.primary_role || req.user.role)) === 'driver') {
+      } else if ((req.user.primary_role || (req.user.primary_role || req.user.primary_role)) === 'driver') {
         const { lat, lng } = req.query;
         // For drivers, location is REQUIRED to fetch available orders
         if (!lat || !lng) {
