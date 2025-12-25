@@ -47,35 +47,7 @@ import ReviewsPage from './pages/ReviewsPage';
 // TypeScript API Services
 import { AuthApi, OrdersApi, NotificationsApi, UsersApi } from './services/api';
 
-import * as Sentry from '@sentry/react';
 import { RouterProvider, createBrowserRouter, Navigate } from 'react-router-dom';
-
-Sentry.init({
-  dsn: process.env.REACT_APP_SENTRY_DSN,
-  environment: process.env.REACT_APP_ENV || 'development',
-  integrations: [
-    Sentry.browserTracingIntegration({
-      tracePropagationTargets: [process.env.REACT_APP_API_URL || 'localhost:5000'],
-    }),
-    Sentry.replayIntegration({
-      maskAllText: false,
-      blockAllMedia: false,
-    }),
-  ],
-  tracesSampleRate: process.env.REACT_APP_ENV === 'production' ? 0.1 : 1.0,
-  replaysSessionSampleRate: process.env.REACT_APP_ENV === 'production' ? 0.1 : 1.0,
-  replaysOnErrorSampleRate: 1.0,
-  beforeSend(event) {
-    // Filter out sensitive data
-    if (event.request?.data) {
-      delete event.request.data.password;
-      delete event.request.data.token;
-      delete event.request.data.recaptchaToken;
-    }
-    return event;
-  },
-});
-
 
 // Location data state and API functions
 export const MainApp = () => {
@@ -751,34 +723,34 @@ export const MainApp = () => {
     };
   }, [token, currentUser, API_URL, fetchOrders, speakNotification]);
 
-  // Fetch footer statistics
-  useEffect(() => {
-    const fetchFooterStats = async () => {
-      try {
-        // Note: Footer stats endpoint doesn't exist in our API services yet
-        // Using direct fetch for now - TODO: Add to StatsApi
-        const response = await fetch(`${API_URL}/footer/stats`);
-        if (response.ok) {
-          const data = await response.json();
-          setFooterStats(data);
-        }
-      } catch (error) {
-        console.error('Failed to fetch footer stats:', error);
-      }
-    };
+  // // Fetch footer statistics
+  // useEffect(() => {
+  //   const fetchFooterStats = async () => {
+  //     try {
+  //       // Note: Footer stats endpoint doesn't exist in our API services yet
+  //       // Using direct fetch for now - TODO: Add to StatsApi
+  //       const response = await fetch(`${API_URL}/footer/stats`);
+  //       if (response.ok) {
+  //         const data = await response.json();
+  //         setFooterStats(data);
+  //       }
+  //     } catch (error) {
+  //       console.error('Failed to fetch footer stats:', error);
+  //     }
+  //   };
 
-    if (isPageVisible) {
-      fetchFooterStats();
-    }
+  //   if (isPageVisible) {
+  //     fetchFooterStats();
+  //   }
 
-    // Refresh stats every 5 minutes
-    const interval = setInterval(() => {
-      if (isPageVisible) {
-        fetchFooterStats();
-      }
-    }, 5 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, [API_URL, isPageVisible]);
+  //   // Refresh stats every 5 minutes
+  //   const interval = setInterval(() => {
+  //     if (isPageVisible) {
+  //       fetchFooterStats();
+  //     }
+  //   }, 5 * 60 * 1000);
+  //   return () => clearInterval(interval);
+  // }, [API_URL, isPageVisible]);
 
   // ============ END OF PART 1 ============
   // Continue with Part 2 for API Functions

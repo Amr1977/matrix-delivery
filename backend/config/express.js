@@ -2,8 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
-const Sentry = require('@sentry/node');
-const { nodeProfilingIntegration } = require('@sentry/profiling-node');
 
 const logger = require('./logger');
 const {
@@ -18,27 +16,6 @@ const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 const IS_TEST = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing';
 
 const configureExpress = (app) => {
-    // ============================================================================
-    // SENTRY INITIALIZATION
-    // ============================================================================
-    Sentry.init({
-        dsn: process.env.SENTRY_DSN,
-        environment: IS_PRODUCTION ? 'production' : IS_TEST ? 'test' : 'development',
-        integrations: [
-            nodeProfilingIntegration(),
-        ],
-        tracesSampleRate: IS_PRODUCTION ? 0.1 : 1.0,
-        profilesSampleRate: IS_PRODUCTION ? 0.1 : 1.0,
-        beforeSend(event) {
-            // Filter out sensitive data
-            if (event.request?.data) {
-                delete event.request.data.password;
-                delete event.request.data.token;
-                delete event.request.data.recaptchaToken;
-            }
-            return event;
-        },
-    });
 
     // ============================================================================
     // SECURITY VALIDATION
