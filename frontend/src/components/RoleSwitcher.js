@@ -28,7 +28,7 @@ const RoleSwitcher = ({ currentRole, grantedRoles, onSwitch }) => {
 
             if (!response.ok) {
                 const data = await response.json();
-                throw new Error(data.error || 'Failed to switch primary_role');
+                throw new Error(data.error || 'Failed to switch role');
             }
 
             const data = await response.json();
@@ -58,7 +58,7 @@ const RoleSwitcher = ({ currentRole, grantedRoles, onSwitch }) => {
 
     return (
         <div className="primary_role-switcher">
-            <label className="primary_role-switcher-label">Active primary_role:</label>
+            <label className="primary_role-switcher-label">Active Role:</label>
             <select
                 className="primary_role-switcher-select"
                 value={currentRole}
