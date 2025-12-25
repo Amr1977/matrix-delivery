@@ -177,8 +177,8 @@ const ReviewsPage = () => {
                     <div className="text-center py-20 text-[#00FF41] animate-pulse">Initializing Matrix data stream...</div>
                 ) : (
                     <div className="space-y-4">
-                        {reviews.length === 0 && <p className="text-center text-[#A0AEC0] py-10">No signals detected yet. Be the first to broadcast.</p>}
-                        {reviews.map(review => (
+                        {reviews?.length === 0 && <p className="text-center text-[#A0AEC0] py-10">No signals detected yet. Be the first to broadcast.</p>}
+                        {reviews?.map(review => (
                             <div key={review.id} className="bg-[#131820] p-6 rounded-xl border border-[#2A3142] hover:border-[#00FF41] transition-all group">
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="flex items-center gap-3">
