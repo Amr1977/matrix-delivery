@@ -132,7 +132,6 @@
     "@capacitor/cli": "^7.4.4",
     "@capacitor/core": "^7.4.4",
     "@paypal/checkout-server-sdk": "^1.0.3",
-    "@sentry/node": "^10.27.0",
     "eslint-plugin-security": "^3.0.1"
   }
 }
