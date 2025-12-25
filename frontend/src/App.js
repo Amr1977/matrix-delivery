@@ -361,15 +361,8 @@ export const MainApp = () => {
   const registerCaptchaRef = useRef(null);
   const loginCaptchaRef = useRef(null);
 
-
-
   const [bidInput, setBidInput] = useState({});
   const [bidDetails, setBidDetails] = useState({});
-
-
-
-
-
 
   const fetchOrders = useCallback(async (filters = {}) => {
     try {
@@ -692,10 +685,10 @@ export const MainApp = () => {
 
   // Lazy load history orders when customer opens history tab
   useEffect(() => {
-    if (currentUser?.primary_role === 'customer' && customerViewType === 'history' && historyOrders.length === 0 && !historyLoading) {
+    if (currentUser?.primary_role === 'customer' && customerViewType === 'history' && historyOrders?.length === 0 && !historyLoading) {
       fetchHistoryOrders(1);
     }
-  }, [customerViewType, currentUser?.primary_role, historyOrders.length, historyLoading, fetchHistoryOrders]);
+  }, [customerViewType, currentUser?.primary_role, historyOrders?.length, historyLoading, fetchHistoryOrders]);
 
   // Real-time notifications via WebSocket
   useEffect(() => {
@@ -2652,9 +2645,9 @@ export const MainApp = () => {
                 }
               }
 
-              return ordersToDisplay.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '3rem', background: 'white', borderRadius: '0.5rem' }}>
-                  <p style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>📦</p>
+              return ordersToDisplay?.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '3rem', background: 'black', borderRadius: '0.5rem' }}>
+                  <p style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>...</p>
                   <p style={{ color: '#6B7280' }}>
                     {currentUser?.primary_role === 'driver'
                       ? viewType === 'active' ? t('driver.noActiveOrders')
@@ -2665,7 +2658,7 @@ export const MainApp = () => {
                   </p>
                 </div>
               ) : (
-                ordersToDisplay.map((order) => {
+                ordersToDisplay?.map((order) => {
                   const isDriverAssigned = order.assignedDriver?.userId === currentUser?.id;
                   const hasDriverBid = Array.isArray(order.bids) && order.bids.some(b => b.userId === currentUser?.id);
                   if (currentUser?.primary_role === 'driver') {
@@ -2736,7 +2729,7 @@ export const MainApp = () => {
                   </>
                 ) : (
                   <>
-                    ⬇️ {t('common.loadMore') || 'Load More'} ({historyPagination.total - historyOrders.length} remaining)
+                    ⬇️ {t('common.loadMore') || 'Load More'} ({historyPagination.total - historyOrders?.length} remaining)
                   </>
                 )}
               </button>
