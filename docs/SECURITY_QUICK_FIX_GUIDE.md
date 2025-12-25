@@ -166,7 +166,7 @@ const validateRegistration = [
     .isLength({ min: 12 })
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/),
   body('phone').matches(/^\+?[1-9]\d{1,14}$/),
-  body('role').isIn(['customer', 'driver', 'vendor']),
+  body('primary_role').isIn(['customer', 'driver', 'vendor']),
   body('country').trim().isLength({ min: 2 }),
   body('city').trim().isLength({ min: 2 }),
   body('area').trim().isLength({ min: 2 })
@@ -205,7 +205,7 @@ router.post('/refresh', (req, res) => {
     const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
     // Generate new access token
     const newAccessToken = jwt.sign(
-      { userId: decoded.userId, role: decoded.role },
+      { userId: decoded.userId, primary_role: decoded.primary_role },
       process.env.JWT_SECRET,
       { expiresIn: '15m' }
     );
@@ -220,7 +220,7 @@ Update login response to send refresh token cookie:
 ```javascript
 // In login route, after successful authentication:
 const accessToken = jwt.sign(
-  { userId: user.id, email: user.email, role: user.role },
+  { userId: user.id, email: user.email, primary_role: user.primary_role },
   process.env.JWT_SECRET,
   { expiresIn: '15m' }
 );
@@ -242,7 +242,7 @@ res.cookie('refreshToken', refreshToken, {
 
 res.json({
   accessToken,
-  user: { id: user.id, email: user.email, role: user.role }
+  user: { id: user.id, email: user.email, primary_role: user.primary_role }
 });
 ```
 

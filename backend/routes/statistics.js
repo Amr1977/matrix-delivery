@@ -18,7 +18,7 @@ router.get('/footer', async (req, res) => {
     `);
     const onlineDrivers = parseInt(onlineDriversResult.rows[0].count);
 
-    // Total counts by granted_roles (count users who have each role in their granted_roles array)
+    // Total counts by granted_roles (count users who have each primary_role in their granted_roles array)
     const totalDriversResult = await pool.query("SELECT COUNT(*) as count FROM users WHERE 'driver' = ANY(granted_roles)");
     const totalDrivers = parseInt(totalDriversResult.rows[0].count);
 
@@ -32,11 +32,11 @@ router.get('/footer', async (req, res) => {
     const totalSupport = parseInt(totalSupportResult.rows[0].count);
 
     // Online users: Check last_active field (updated by heartbeat and activity tracking)
-    // Users with multiple roles will be counted for each role they have
+    // Users with multiple roles will be counted for each primary_role they have
     // NULL last_active means user has never sent a heartbeat (offline)
     const onlineUsersResult = await pool.query(`
       SELECT 
-        user_role as role,
+        user_role as primary_role,
         COUNT(DISTINCT user_id) as count
       FROM (
         SELECT 
@@ -56,8 +56,8 @@ router.get('/footer', async (req, res) => {
       support: 0
     };
     onlineUsersResult.rows.forEach(row => {
-      if (row.role) {
-        onlineCounts[row.role] = parseInt(row.count);
+      if (row.primary_role) {
+        onlineCounts[row.primary_role] = parseInt(row.count);
       }
     });
 

@@ -42,7 +42,7 @@ const AdminPanel = ({ onClose }) => {
       const roleParam = filterRole === 'all' ? '' : filterRole;
       const [statsRes, usersRes, ordersRes, verifiedCountRes] = await Promise.all([
         fetch(`${API_URL}/admin/stats?range=${dateRange}`, { credentials: 'include' }),
-        fetch(`${API_URL}/admin/users?page=${usersPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchQuery)}&role=${roleParam}`, { credentials: 'include' }),
+        fetch(`${API_URL}/admin/users?page=${usersPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchQuery)}&primary_role=${roleParam}`, { credentials: 'include' }),
         fetch(`${API_URL}/admin/orders?page=${ordersPage}&limit=${itemsPerPage}`, { credentials: 'include' }),
         fetch(`${API_URL}/admin/users?page=1&limit=1&status=verified`, { credentials: 'include' })
       ]);
@@ -173,7 +173,7 @@ const AdminPanel = ({ onClose }) => {
   const updateUserRoles = async (userId, { add = [], remove = [] }) => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/admin/users/${userId}/roles`, {
+      const response = await fetch(`${API_URL}/admin/users/${userId}/granted_roles`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -181,7 +181,7 @@ const AdminPanel = ({ onClose }) => {
         credentials: 'include',
         body: JSON.stringify({ add, remove })
       });
-      if (!response.ok) throw new Error('Failed to update roles');
+      if (!response.ok) throw new Error('Failed to update granted_roles');
       await fetchDashboardData();
     } catch (err) {
       setError(err.message);
@@ -495,7 +495,7 @@ const AdminPanel = ({ onClose }) => {
                   onChange={(e) => setFilterRole(e.target.value)}
                   style={{ minWidth: '150px' }}
                 >
-                  <option value="all">All Roles</option>
+                  <option value="all">All granted_roles</option>
                   <option value="customer">Customers</option>
                   <option value="driver">Drivers</option>
                 </select>
@@ -527,7 +527,7 @@ const AdminPanel = ({ onClose }) => {
                 <thead>
                   <tr>
                     <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>User</th>
-                    <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>Role</th>
+                    <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>primary_role</th>
                     <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>Status</th>
                     <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>Rating</th>
                     <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>Orders</th>
@@ -580,10 +580,10 @@ const AdminPanel = ({ onClose }) => {
                             borderRadius: '9999px',
                             fontSize: '0.75rem',
                             fontWeight: '600',
-                            background: user.role === 'customer' ? '#DBEAFE' : '#FEF3C7',
-                            color: user.role === 'customer' ? '#1E40AF' : '#92400E'
+                            background: user.primary_role === 'customer' ? '#DBEAFE' : '#FEF3C7',
+                            color: user.primary_role === 'customer' ? '#1E40AF' : '#92400E'
                           }}>
-                            {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                            {user.primary_role.charAt(0).toUpperCase() + user.primary_role.slice(1)}
                           </span>
                         </td>
                         <td style={{ padding: '1rem' }}>
@@ -632,23 +632,23 @@ const AdminPanel = ({ onClose }) => {
                             </button>
                             <button
                               onClick={() => {
-                                const isAdmin = (user.roles || [user.role]).includes('admin');
+                                const isAdmin = (user.granted_roles || [user.primary_role]).includes('admin');
                                 updateUserRoles(user.id, isAdmin ? { remove: ['admin'] } : { add: ['admin'] });
                               }}
                               disabled={loading}
                               className="btn btn-primary"
                             >
-                              {(user.roles || [user.role]).includes('admin') ? 'Remove Admin' : 'Make Admin'}
+                              {(user.granted_roles || [user.primary_role]).includes('admin') ? 'Remove Admin' : 'Make Admin'}
                             </button>
                             <button
                               onClick={() => {
-                                const isSupport = (user.roles || [user.role]).includes('support');
+                                const isSupport = (user.granted_roles || [user.primary_role]).includes('support');
                                 updateUserRoles(user.id, isSupport ? { remove: ['support'] } : { add: ['support'] });
                               }}
                               disabled={loading}
                               className="btn btn-success"
                             >
-                              {(user.roles || [user.role]).includes('support') ? 'Remove Support' : 'Grant Support'}
+                              {(user.granted_roles || [user.primary_role]).includes('support') ? 'Remove Support' : 'Grant Support'}
                             </button>
                           </div>
                         </td>

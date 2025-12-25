@@ -12,7 +12,7 @@ interface AuthenticatedRequest extends Request {
     user?: {
         id?: number;
         userId?: number;
-        role?: string;
+        primary_role?: string;
         [key: string]: any;
     };
 }

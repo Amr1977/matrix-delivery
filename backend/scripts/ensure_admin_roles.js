@@ -19,18 +19,18 @@ async function run() {
             const user = res.rows[0];
             console.log('Found admin:', user.id);
 
-            // Update roles
+            // Update granted_roles
             const update = await pool.query(`
         UPDATE users 
         SET 
           granted_roles = '["admin", "driver", "customer"]'::jsonb, 
           primary_role = 'admin',
-          role = 'admin' 
+          primary_role = 'admin' 
         WHERE id = $1 
         RETURNING *
       `, [user.id]);
 
-            console.log('Updated admin roles:', update.rows[0].granted_roles);
+            console.log('Updated admin granted_roles:', update.rows[0].granted_roles);
         }
     } catch (err) {
         console.error(err);

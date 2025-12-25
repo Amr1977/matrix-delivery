@@ -319,7 +319,7 @@ SELECT
   AVG(p.max_distance_km) as avg_max_distance
 FROM users u
 JOIN delivery_agent_preferences p ON u.id = p.agent_id
-WHERE u.role = 'driver'
+WHERE u.primary_role = 'driver'
 GROUP BY u.vehicle_type
 ORDER BY count DESC;
 ```

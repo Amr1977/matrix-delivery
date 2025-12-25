@@ -63,13 +63,13 @@ describe('Payment API Tests', () => {
 
         // Generate tokens
         customerToken = jwt.sign(
-            { userId: customerId, email: 'customer-pay@example.com', role: 'customer' },
+            { userId: customerId, email: 'customer-pay@example.com', primary_role: 'customer' },
             JWT_SECRET,
             { expiresIn: '1h', audience: 'matrix-delivery-api', issuer: 'matrix-delivery' }
         );
 
         driverToken = jwt.sign(
-            { userId: driverId, email: 'driver-pay@example.com', role: 'driver' },
+            { userId: driverId, email: 'driver-pay@example.com', primary_role: 'driver' },
             JWT_SECRET,
             { expiresIn: '1h', audience: 'matrix-delivery-api', issuer: 'matrix-delivery' }
         );

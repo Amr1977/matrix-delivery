@@ -50,7 +50,7 @@ const useDriver = (token, currentUser) => {
      * Update driver location to backend
      */
     const updateDriverLocation = async () => {
-        if (!token || !currentUser || currentUser.role !== 'driver') {
+        if (!token || !currentUser || currentUser.primary_role !== 'driver') {
             return;
         }
 
@@ -118,7 +118,7 @@ const useDriver = (token, currentUser) => {
      * Start continuous location tracking for drivers
      */
     useEffect(() => {
-        if (!token || !currentUser || currentUser.role !== 'driver') {
+        if (!token || !currentUser || currentUser.primary_role !== 'driver') {
             // Clean up if not a driver
             if (watchIdRef.current) {
                 navigator.geolocation.clearWatch(watchIdRef.current);

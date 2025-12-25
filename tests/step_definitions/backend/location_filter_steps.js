@@ -22,7 +22,7 @@ const TEST_CONFIG = {
     name: 'Ahmed',
     email: 'ahmed.driver@test.com',
     password: 'TestPassword123!',
-    role: 'driver',
+    primary_role: 'driver',
     country: 'Egypt',
     city: 'Cairo'
   },

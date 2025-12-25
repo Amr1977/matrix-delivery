@@ -3,8 +3,8 @@
 export interface TokenPayload {
     userId: string;
     email: string;
-    role: string;
-    roles: string[];
+    primary_role: string;
+    granted_roles: string[];
 }
 
 export interface TokenPair {

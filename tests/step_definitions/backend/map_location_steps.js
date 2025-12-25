@@ -31,14 +31,14 @@ const testUser = {
   email: 'testcustomer@example.com',
   password: 'TestPassword123!',
   name: 'Test Customer',
-  role: 'customer'
+  primary_role: 'customer'
 };
 
 const testDriver = {
   email: 'testdriver@example.com',
   password: 'TestPassword123!',
   name: 'Test Driver',
-  role: 'driver'
+  primary_role: 'driver'
 };
 
 // Test orders data
@@ -251,7 +251,7 @@ Then('I should see the distance between locations', async function () {
 
 Then('the route should be displayed on the map', async function () {
   const routeExists = await page.$('[data-testid="map-route"]') !== null ||
-                     await page.$('[data-testid="route-polyline"]') !== null;
+    await page.$('[data-testid="route-polyline"]') !== null;
   expect(routeExists).to.be.true;
 });
 

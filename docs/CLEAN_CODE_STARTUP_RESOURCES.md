@@ -369,7 +369,7 @@ tests/support/
 
 1. **Authentication & Authorization**
    - JWT token management (backend/middleware/auth.js)
-   - Role-based access control (customer, driver, admin)
+   - primary_role-based access control (customer, driver, admin)
    - Session management (httpOnly cookies)
 
 2. **Payment Security**

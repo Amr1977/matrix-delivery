@@ -21,10 +21,10 @@ const testUser = {
     id: 'history-test-user-id',
     email: 'history-test@example.com',
     name: 'History Test User',
-    role: 'customer'
+    primary_role: 'customer'
 };
 
-const testUserToken = jwt.sign({ userId: testUser.id, role: testUser.role, name: testUser.name }, process.env.JWT_SECRET);
+const testUserToken = jwt.sign({ userId: testUser.id, primary_role: testUser.primary_role, name: testUser.name }, process.env.JWT_SECRET);
 
 describe('Customer Order History API Tests', () => {
     let createdOrderIds = [];
@@ -38,7 +38,7 @@ describe('Customer Order History API Tests', () => {
             email VARCHAR(255) UNIQUE NOT NULL,
             password VARCHAR(255) NOT NULL,
             phone VARCHAR(50),
-            role VARCHAR(50) NOT NULL,
+            primary_role VARCHAR(50) NOT NULL,
             rating DECIMAL(3,2) DEFAULT 5.00,
             completed_deliveries INTEGER DEFAULT 0,
             is_verified BOOLEAN DEFAULT false,
@@ -106,10 +106,10 @@ describe('Customer Order History API Tests', () => {
 
         // Create test user
         await pool.query(`
-          INSERT INTO users (id, email, name, role, password, phone)
+          INSERT INTO users (id, email, name, primary_role, password, phone)
           VALUES ($1, $2, $3, $4, 'hash', '1234567890')
           ON CONFLICT (id) DO NOTHING
-        `, [testUser.id, testUser.email, testUser.name, testUser.role]);
+        `, [testUser.id, testUser.email, testUser.name, testUser.primary_role]);
     });
 
     afterAll(async () => {

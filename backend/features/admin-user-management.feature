@@ -24,14 +24,14 @@ Feature: Admin User Management
     Then I should receive a successful response
     And the results should include "John Doe"
 
-  Scenario: Filter users by role
-    Given the system has users with different roles:
-      | role     | count |
+  Scenario: Filter users by primary_role
+    Given the system has users with different granted_roles:
+      | primary_role     | count |
       | customer | 30    |
       | driver   | 20    |
-    When I filter users by role "driver"
+    When I filter users by primary_role "driver"
     Then I should receive 20 users
-    And all users should have role "driver"
+    And all users should have primary_role "driver"
 
   Scenario: Verify a user account
     Given there is an unverified user "jane@example.com"

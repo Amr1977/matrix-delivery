@@ -528,10 +528,10 @@ describe('Balance API v1', () => {
 });
 
 // Helper function to generate test JWT tokens
-function generateTestToken(userId: number, role: string): string {
+function generateTestToken(userId: number, primary_role: string): string {
     const jwt = require('jsonwebtoken');
     return jwt.sign(
-        { userId, role, primary_role: role },
+        { userId, primary_role, primary_role: primary_role },
         process.env.JWT_SECRET,
         { expiresIn: '1h', issuer: 'matrix-delivery', audience: 'matrix-delivery-api' }
     );

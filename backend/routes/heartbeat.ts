@@ -8,8 +8,8 @@ interface AuthRequest extends Request {
     user?: {
         userId: string;
         email: string;
-        role?: string;
-        roles?: string[];
+        primary_role?: string;
+        granted_roles?: string[];
     };
 }
 

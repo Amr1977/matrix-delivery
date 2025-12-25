@@ -46,7 +46,7 @@ router.get('/stats', verifyAdmin, async (req, res) => {
     );
     const newUsers = parseInt(newUsersResult.rows[0].count);
 
-    // Get users by role
+    // Get users by primary_role
     const usersByRoleResult = await pool.query(
       `SELECT primary_role, COUNT(*) as count FROM users GROUP BY primary_role`
     );
@@ -197,7 +197,7 @@ router.get('/stats', verifyAdmin, async (req, res) => {
 // ============ USER MANAGEMENT ============
 router.get('/users', verifyAdmin, async (req, res) => {
   try {
-    const { page = 1, limit = 20, search = '', role = 'all', status = 'all' } = req.query;
+    const { page = 1, limit = 20, search = '', primary_role = 'all', status = 'all' } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
 
     let whereConditions = [];
@@ -214,9 +214,9 @@ router.get('/users', verifyAdmin, async (req, res) => {
       paramCount++;
     }
 
-    if (role !== 'all') {
+    if (primary_role !== 'all') {
       whereConditions.push(`primary_role = $${paramCount}`);
-      queryParams.push(role);
+      queryParams.push(primary_role);
       paramCount++;
     }
 
@@ -252,7 +252,7 @@ router.get('/users', verifyAdmin, async (req, res) => {
       name: user.name,
       email: user.email,
       phone: user.phone,
-      role: user.primary_role,
+      primary_role: user.primary_role,
       vehicleType: user.vehicle_type,
       rating: parseFloat(user.rating),
       completedDeliveries: user.completed_deliveries,
@@ -276,7 +276,7 @@ router.get('/users', verifyAdmin, async (req, res) => {
       }
     });
 
-    await logAdminAction(req.admin.id, 'VIEW_USERS', 'users', null, { page, limit, search, role, ip: req.ip });
+    await logAdminAction(req.admin.id, 'VIEW_USERS', 'users', null, { page, limit, search, primary_role, ip: req.ip });
   } catch (error) {
     console.error('Get users error:', error);
     res.status(500).json({ error: 'Failed to get users' });
@@ -328,7 +328,7 @@ router.get('/users/:id', verifyAdmin, async (req, res) => {
         name: user.name,
         email: user.email,
         phone: user.phone,
-        role: user.primary_role,
+        primary_role: user.primary_role,
         vehicleType: user.vehicle_type,
         rating: parseFloat(user.rating),
         completedDeliveries: user.completed_deliveries,

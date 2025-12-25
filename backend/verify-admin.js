@@ -22,7 +22,7 @@ async function verifyAndFixAdmin() {
 
         // Check if admin exists
         const result = await pool.query(
-            'SELECT id, email, primary_role, roles, is_verified, password FROM users WHERE email = $1',
+            'SELECT id, email, primary_role, granted_roles, is_verified, password FROM users WHERE email = $1',
             [adminEmail]
         );
 
@@ -36,8 +36,8 @@ async function verifyAndFixAdmin() {
         const admin = result.rows[0];
         console.log('✅ Admin user found');
         console.log('📧 Email:', admin.email);
-        console.log('👤 Role:', admin.role);
-        console.log('🎭 Roles:', admin.roles);
+        console.log('👤 Primary primary_role:', admin.primary_role);
+        console.log('🎭 Granted granted_roles:', admin.granted_roles);
         console.log('✓ Verified:', admin.is_verified);
         console.log('');
 
@@ -77,18 +77,18 @@ async function verifyAndFixAdmin() {
             console.log('═══════════════════════════════════════');
         }
 
-        // Ensure correct roles
-        if (!admin.roles || !admin.roles.includes('admin')) {
-            console.log('\n🔧 Fixing roles...');
+        // Ensure correct granted_roles
+        if (!admin.granted_roles || !admin.granted_roles.includes('admin')) {
+            console.log('\n🔧 Fixing granted_roles...');
             await pool.query(
                 `UPDATE users SET 
-         roles = ARRAY['admin', 'customer', 'driver'],
-         role = 'admin',
+         granted_roles = ARRAY['admin', 'customer', 'driver'],
+         primary_role = 'admin',
          is_verified = true
          WHERE email = $1`,
                 [adminEmail]
             );
-            console.log('✅ Roles updated');
+            console.log('✅ granted_roles updated');
         }
 
         console.log('\n💡 You can now log in with these credentials');

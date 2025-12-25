@@ -131,14 +131,14 @@ describe('Validators Utility', () => {
     });
 
     describe('validateRole', () => {
-        test('should accept valid roles', () => {
+        test('should accept valid granted_roles', () => {
             expect(validateRole('customer')).toBe(true);
             expect(validateRole('driver')).toBe(true);
             expect(validateRole('admin')).toBe(true);
             expect(validateRole('vendor')).toBe(true);
         });
 
-        test('should reject invalid roles', () => {
+        test('should reject invalid granted_roles', () => {
             expect(validateRole('superuser')).toBe(false);
             expect(validateRole('moderator')).toBe(false);
             expect(validateRole('user')).toBe(false);
@@ -160,7 +160,7 @@ describe('Validators Utility', () => {
             expect(validateRole('Admin')).toBe(false);
         });
 
-        test('should reject roles with extra characters', () => {
+        test('should reject granted_roles with extra characters', () => {
             expect(validateRole('customer ')).toBe(false);
             expect(validateRole(' driver')).toBe(false);
             expect(validateRole('admin123')).toBe(false);

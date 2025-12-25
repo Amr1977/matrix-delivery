@@ -27,7 +27,8 @@ export const usersSchema: TableSchema = {
       area VARCHAR(100),
       profile_picture_url TEXT,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      last_active TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `,
 

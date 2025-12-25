@@ -2,14 +2,14 @@ const { Given, When, Then } = require('@cucumber/cucumber');
 const { expect } = require('chai');
 
 // Driver location step definitions
-When('I click the update location button', async function() {
+When('I click the update location button', async function () {
   // Find and click the location update button
   const locationButton = await this.page.locator('button:has-text("Update Location")');
   await locationButton.waitFor({ state: 'visible', timeout: 5000 });
   await locationButton.click();
 });
 
-When('I grant location permission', async function() {
+When('I grant location permission', async function () {
   // Handle browser geolocation permission dialog
   this.page.on('dialog', async dialog => {
     console.log('Dialog type:', dialog.type());
@@ -23,7 +23,7 @@ When('I grant location permission', async function() {
   await this.page.waitForTimeout(2000);
 });
 
-When('I view the available bids tab', async function() {
+When('I view the available bids tab', async function () {
   // Click on the Available Bids/Available Orders Near Me tab
   const biddingTab = await this.page.locator('button:has-text("Available Bids")').or(
     this.page.locator('button:has-text("Available Orders Near Me")')
@@ -35,7 +35,7 @@ When('I view the available bids tab', async function() {
   await this.page.waitForTimeout(1000);
 });
 
-When('I click on the {string} tab', async function(tabName) {
+When('I click on the {string} tab', async function (tabName) {
   const tabButton = await this.page.locator(`button:has-text("${tabName}")`);
   await tabButton.waitFor({ state: 'visible', timeout: 5000 });
   await tabButton.click();
@@ -44,7 +44,7 @@ When('I click on the {string} tab', async function(tabName) {
   await this.page.waitForTimeout(1000);
 });
 
-Given('there are customer orders available', async function() {
+Given('there are customer orders available', async function () {
   // Create some test orders via API to ensure data exists
   const orderData = [
     {
@@ -82,11 +82,11 @@ Given('there are customer orders available', async function() {
   }
 });
 
-Given('there are customer orders available at various locations', async function() {
+Given('there are customer orders available at various locations', async function () {
   await this.givenThereAreCustomerOrdersAvailable();
 });
 
-Given('I am logged in as a driver with location set', async function() {
+Given('I am logged in as a driver with location set', async function () {
   await this.amLoggedInAsADriver();
 
   // Set driver location via API
@@ -107,16 +107,16 @@ Given('I am logged in as a driver with location set', async function() {
   this.testData.driverLocationSet = true;
 });
 
-Given('I have not granted location permission', async function() {
+Given('I have not granted location permission', async function () {
   // Note: Location permission will be denied in the test
   this.testData.locationPermissionDenied = true;
 });
 
-Given('multiple customer orders exist at different locations', async function() {
+Given('multiple customer orders exist at different locations', async function () {
   await this.givenThereAreCustomerOrdersAvailable();
 });
 
-Given('there is a customer order within 5km of the driver location', async function() {
+Given('there is a customer order within 5km of the driver location', async function () {
   const orderResponse = await fetch(`${this.apiUrl}/orders`, {
     method: 'POST',
     headers: {
@@ -137,16 +137,16 @@ Given('there is a customer order within 5km of the driver location', async funct
   expect(orderResponse.ok).to.be.true;
 });
 
-When('I update my location', async function() {
+When('I update my location', async function () {
   await this.whenIClickTheUpdateLocationButton();
   await this.whenIGrantLocationPermission();
 });
 
-When('I try to update my location', async function() {
+When('I try to update my location', async function () {
   await this.whenIClickTheUpdateLocationButton();
 });
 
-Given('location services are unavailable or disabled', async function() {
+Given('location services are unavailable or disabled', async function () {
   // Mock navigator.geolocation to be unavailable
   await this.page.addScriptTag({
     content: `
@@ -159,13 +159,13 @@ Given('location services are unavailable or disabled', async function() {
   this.testData.geolocationDisabled = true;
 });
 
-When('distance calculations should be recalculated', async function() {
+When('distance calculations should be recalculated', async function () {
   // Wait for any distance calculation updates
   await this.page.waitForTimeout(2000);
 });
 
 // Assertions
-Then('my location should be updated successfully', async function() {
+Then('my location should be updated successfully', async function () {
   // Check that location update button shows success or granted status
   const locationButton = await this.page.locator('button:has-text("Update Location")');
   const buttonText = await locationButton.textContent();
@@ -174,18 +174,18 @@ Then('my location should be updated successfully', async function() {
   expect(buttonText).to.include('✅');
 });
 
-Then('I should see the location permission as granted', async function() {
+Then('I should see the location permission as granted', async function () {
   const locationButton = await this.page.locator('button:has-text("Update Location")');
   expect(await locationButton.isVisible()).to.be.true;
 });
 
-Then('my coordinates should be displayed', async function() {
+Then('my coordinates should be displayed', async function () {
   // Look for coordinate display in the interface
   const coordinatesElement = await this.page.locator('text =~ \\d+\\.\\d+,\\s*-\\d+\\.\\d+').first();
   expect(await coordinatesElement.isVisible()).to.be.true;
 });
 
-Then('I should see only orders within 5 km of my location', async function() {
+Then('I should see only orders within 5 km of my location', async function () {
   // Check that orders are displayed in the current view
   const orders = await this.page.locator('[class*="card"]').all();
   expect(orders.length).to.be.greaterThan(0);
@@ -202,7 +202,7 @@ Then('I should see only orders within 5 km of my location', async function() {
   }
 });
 
-Then('each nearby order should show the distance to pickup location', async function() {
+Then('each nearby order should show the distance to pickup location', async function () {
   const distanceElements = await this.page.locator('text =~ \\d+(\\.\\d+)?\\s*km\\s*away').all();
 
   // Should have some distance information visible
@@ -213,12 +213,12 @@ Then('each nearby order should show the distance to pickup location', async func
   expect(highlightedDistances.length).to.be.greaterThan(0);
 });
 
-Then('orders should be highlighted with location information', async function() {
+Then('orders should be highlighted with location information', async function () {
   const highlightedOrders = await this.page.locator('.bg-sky-100, .border-sky-400').all();
   expect(highlightedOrders.length).to.be.greaterThan(0);
 });
 
-Then('I should see orders marked for bidding', async function() {
+Then('I should see orders marked for bidding', async function () {
   const orders = await this.page.locator('[class*="card"]').all();
   expect(orders.length).to.be.greaterThan(0);
 
@@ -227,60 +227,60 @@ Then('I should see orders marked for bidding', async function() {
   expect(bidButtons.length).to.be.greaterThan(0);
 });
 
-Then('distance information should not be shown', async function() {
+Then('distance information should not be shown', async function () {
   const distanceElements = await this.page.locator('text =~ \\d+(\\.\\d+)?\\s*km\\s*away').all();
   expect(distanceElements.length).to.equal(0);
 });
 
-Then('I should be prompted to enable location', async function() {
+Then('I should be prompted to enable location', async function () {
   // Check for location permission prompt or button
   const locationButton = await this.page.locator('button:has-text("Update Location")');
   expect(await locationButton.isVisible()).to.be.true;
 });
 
-Then('I should not see orders that are more than 5km away', async function() {
+Then('I should not see orders that are more than 5km away', async function () {
   // Should see nearby orders but not distant ones
   await this.thenIShouldSeeOnlyOrdersWithin5KmOfMyLocation();
 });
 
-Then('I should only see nearby orders with distance information', async function() {
+Then('I should only see nearby orders with distance information', async function () {
   await this.thenEachNearbyOrderShouldShowTheDistanceToPickupLocation();
 });
 
-Then('I should see my currently assigned deliveries', async function() {
+Then('I should see my currently assigned deliveries', async function () {
   await this.page.waitForSelector('text="Active Orders"', { timeout: 5000 });
   const activeOrdersText = await this.page.locator('h2').textContent();
   expect(activeOrdersText).to.include('Active Orders');
 });
 
-Then('I should see orders available for bidding within range', async function() {
+Then('I should see orders available for bidding within range', async function () {
   const biddingOrders = await this.page.locator('[class*="card"]').all();
   expect(biddingOrders.length).to.be.at.least(0); // May have orders or not
 });
 
-Then('orders should show distance information when available', async function() {
+Then('orders should show distance information when available', async function () {
   if (this.testData.driverLocationSet) {
     await this.thenEachNearbyOrderShouldShowTheDistanceToPickupLocation();
   }
 });
 
-Then('I should see my completed deliveries', async function() {
+Then('I should see my completed deliveries', async function () {
   await this.page.waitForSelector('text="My History"', { timeout: 5000 });
   const historyText = await this.page.locator('h2').textContent();
   expect(historyText).to.include('History');
 });
 
-Then('my coordinates should be updated', async function() {
+Then('my coordinates should be updated', async function () {
   await this.thenMyCoordinatesShouldBeDisplayed();
 });
 
-Then('nearby orders should be refreshed', async function() {
+Then('nearby orders should be refreshed', async function () {
   // Check that orders are still displayed after location update
   const orders = await this.page.locator('[class*="card"]').all();
   expect(orders.length).to.be.greaterThan(0);
 });
 
-Then('the nearby order should be displayed with distance information', async function() {
+Then('the nearby order should be displayed with distance information', async function () {
   const orders = await this.page.locator('[class*="card"]').all();
   expect(orders.length).to.be.greaterThan(0);
 
@@ -289,31 +289,31 @@ Then('the nearby order should be displayed with distance information', async fun
   expect(distanceElements.length).to.be.greaterThan(0);
 });
 
-Then('the order should be marked as available for bidding', async function() {
+Then('the order should be marked as available for bidding', async function () {
   const bidButtons = await this.page.locator('button:has-text("Place Bid")').all();
   expect(bidButtons.length).to.be.greaterThan(0);
 });
 
-Then('the driver should be able to place a bid on the order', async function() {
+Then('the driver should be able to place a bid on the order', async function () {
   const bidInput = await this.page.locator('input[placeholder="Bid Amount ($)"]').first();
   expect(await bidInput.isVisible()).to.be.true;
 });
 
-Then('the system should automatically filter orders within 5km', async function() {
+Then('the system should automatically filter orders within 5km', async function () {
   await this.thenIShouldSeeOnlyOrdersWithin5KmOfMyLocation();
 });
 
-Then('I should see distance information for each nearby order', async function() {
+Then('I should see distance information for each nearby order', async function () {
   const distanceElements = await this.page.locator('text =~ \\d+(\\.\\d+)?\\s*km\\s*away').all();
   expect(distanceElements.length).to.be.greaterThan(0);
 });
 
-Then('orders outside the radius should be hidden', async function() {
+Then('orders outside the radius should be hidden', async function () {
   // This is implicit - if we only see orders within 5km, the rest are hidden
   await this.thenIShouldSeeOnlyOrdersWithin5KmOfMyLocation();
 });
 
-When('I deny location permission', async function() {
+When('I deny location permission', async function () {
   // Handle browser permission prompt by denying it
   this.page.on('dialog', async dialog => {
     if (dialog.type() === 'prompt') {
@@ -324,20 +324,20 @@ When('I deny location permission', async function() {
   await this.page.waitForTimeout(1000);
 });
 
-Then('I should see a location access denied message', async function() {
+Then('I should see a location access denied message', async function () {
   // Check for error message about location access
   const errorMessage = await this.page.locator('.error, .text-red-600').textContent();
   expect(errorMessage.toLowerCase()).to.include('location') ||
-         expect(errorMessage.toLowerCase()).to.include('denied');
+    expect(errorMessage.toLowerCase()).to.include('denied');
 });
 
-Then('the location status should show as denied', async function() {
+Then('the location status should show as denied', async function () {
   const locationButton = await this.page.locator('button:has-text("Update Location")');
   const buttonText = await locationButton.textContent();
   expect(buttonText).to.include('❌');
 });
 
-Then('I should still be able to view orders but without distance filtering', async function() {
+Then('I should still be able to view orders but without distance filtering', async function () {
   const orders = await this.page.locator('[class*="card"]').all();
   expect(orders.length).to.be.greaterThan(0);
 
@@ -346,22 +346,22 @@ Then('I should still be able to view orders but without distance filtering', asy
   expect(distanceElements.length).to.equal(0);
 });
 
-Then('I should see a location unavailable message', async function() {
+Then('I should see a location unavailable message', async function () {
   const errorMessage = await this.page.locator('.error, .text-red-600').textContent();
   expect(errorMessage.toLowerCase()).to.include('location') ||
-         expect(errorMessage.toLowerCase()).to.include('unavailable');
+    expect(errorMessage.toLowerCase()).to.include('unavailable');
 });
 
-Then('I should still be able to view all available orders', async function() {
+Then('I should still be able to view all available orders', async function () {
   const orders = await this.page.locator('[class*="card"]').all();
   expect(orders.length).to.be.greaterThan(0);
 });
 
-Then('distance information should not be displayed', async function() {
+Then('distance information should not be displayed', async function () {
   await this.thenDistanceInformationShouldNotBeShown();
 });
 
-Then('orders should show accurate distance information', async function() {
+Then('orders should show accurate distance information', async function () {
   const distanceElements = await this.page.locator('text =~ \\d+(\\.\\d+)?\\s*km\\s*away').all();
   expect(distanceElements.length).to.be.greaterThan(0);
 
@@ -374,17 +374,17 @@ Then('orders should show accurate distance information', async function() {
   }
 });
 
-Then('distances should be calculated correctly', async function() {
+Then('distances should be calculated correctly', async function () {
   await this.thenOrdersShouldShowAccurateDistanceInformation();
 });
 
-Then('orders should be easily distinguishable by proximity', async function() {
+Then('orders should be easily distinguishable by proximity', async function () {
   const highlightedOrders = await this.page.locator('.bg-sky-100').all();
   expect(highlightedOrders.length).to.be.greaterThan(0);
 });
 
 // Helper method for creating test driver
-Given('setup test driver with location', async function() {
+Given('setup test driver with location', async function () {
   if (!this.testData.driver) {
     const driverResponse = await fetch(`${this.apiUrl}/auth/register`, {
       method: 'POST',
@@ -394,7 +394,7 @@ Given('setup test driver with location', async function() {
         email: `driver_loc_${Date.now()}@test.com`,
         password: 'test123',
         phone: '+1987654321',
-        role: 'driver',
+        primary_role: 'driver',
         vehicle_type: 'car'
       })
     });

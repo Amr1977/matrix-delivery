@@ -21,7 +21,7 @@ When('I view the order details as a driver', async function () {
       email: 'driver@test.com',
       password: 'driver123',
       phone: '+123456789001',
-      role: 'driver',
+      primary_role: 'driver',
       vehicle_type: 'car'
     };
 
@@ -144,7 +144,7 @@ When('the customer accepts the bid', async function () {
       email: 'customer@test.com',
       password: 'customer123',
       phone: '+123456789002',
-      role: 'customer'
+      primary_role: 'customer'
     };
 
     // Try to register/login as customer

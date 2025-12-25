@@ -32,7 +32,7 @@ const testUser = {
   id: 'test-user-id',
   email: 'test@example.com',
   name: 'Test User',
-  role: 'customer'
+  primary_role: 'customer'
 };
 
 describe('Enhanced Map Location Picker Integration Tests', () => {

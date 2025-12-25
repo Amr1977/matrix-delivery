@@ -118,7 +118,7 @@ const BalanceDashboard: React.FC<BalanceDashboardProps> = ({ userId, userRole })
         <div className="balance-dashboard" data-testid="balance-dashboard">
             <div className="dashboard-header" data-testid="dashboard-header">
                 <h1 data-testid="dashboard-title">💰 My Balance</h1>
-                {userRole === 'driver' && <span className="role-badge" data-testid="driver-badge">Driver Account</span>}
+                {userRole === 'driver' && <span className="primary_role-badge" data-testid="driver-badge">Driver Account</span>}
             </div>
 
             {isFrozen && (

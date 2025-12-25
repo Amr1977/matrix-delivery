@@ -291,7 +291,7 @@ FROM orders WHERE created_at > NOW() - INTERVAL '7 days';
 -- Vehicle type distribution
 SELECT vehicle_type, COUNT(*) 
 FROM users 
-WHERE role = 'driver' AND created_at > NOW() - INTERVAL '7 days'
+WHERE primary_role = 'driver' AND created_at > NOW() - INTERVAL '7 days'
 GROUP BY vehicle_type;
 
 -- Average distances

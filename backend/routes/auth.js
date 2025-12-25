@@ -26,8 +26,8 @@ router.get('/me', verifyToken, authController.getMe);
 // Update user profile
 router.put('/profile', verifyToken, authController.updateProfile);
 
-// Switch active role and issue new token
-router.post('/switch-role', verifyToken, authController.switchRole);
+// Switch active primary_role and issue new token
+router.post('/switch-primary_role', verifyToken, authController.switchRole);
 
 // Verify user by email (for testing purposes) - Admin only
 router.post('/verify-user', requireRole('admin'), authController.verifyUser);

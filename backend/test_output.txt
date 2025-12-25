@@ -956,19 +956,19 @@ Failures:
     ΓêÜ After # features\step_definitions\auth_steps.js:34
     ΓêÜ After # features\step_definitions\admin_steps.js:92
 
-23) Scenario: Filter users by role # features\admin-user-management.feature:27
+23) Scenario: Filter users by primary_role # features\admin-user-management.feature:27
     ΓêÜ Before # features\step_definitions\admin_steps.js:51
     ΓêÜ Before # features\step_definitions\auth_steps.js:30
     ΓêÜ Given I am authenticated as an admin user # features\step_definitions\admin_steps.js:98
     ├ù Given the system has users with different roles: # features\step_definitions\admin_steps.js:690
-        | role     | count |
+        | primary_role     | count |
         | customer | 30    |
         | driver   | 20    |
         TypeError: this.world.setMockData is not a function
             at World.<anonymous> (D:\matrix-delivery\backend\features\step_definitions\admin_steps.js:692:16)
-    - When I filter users by role "driver" # features\step_definitions\admin_steps.js:367
+    - When I filter users by primary_role "driver" # features\step_definitions\admin_steps.js:367
     - Then I should receive 20 users # features\step_definitions\admin_steps.js:695
-    - And all users should have role "driver" # features\step_definitions\admin_steps.js:700
+    - And all users should have primary_role "driver" # features\step_definitions\admin_steps.js:700
     ΓêÜ After # features\step_definitions\auth_steps.js:34
     ΓêÜ After # features\step_definitions\admin_steps.js:92
 
@@ -1084,7 +1084,7 @@ Failures:
         | email    | john@example.com |
         | phone    | +1234567890      |
         | password | SecurePass123!   |
-        | role     | customer         |
+        | primary_role     | customer         |
     ├ù Then I should receive a successful registration response # features\step_definitions\auth_steps.js:297
         AssertionError
             + expected - actual

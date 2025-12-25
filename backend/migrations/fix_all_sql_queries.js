@@ -21,39 +21,39 @@ files.forEach(filePath => {
     const originalContent = content;
     let fileChanges = 0;
 
-    // Pattern 1: SELECT ... role ... FROM users (but not primary_role or granted_roles)
-    const selectPattern = /SELECT\s+([^;]*?)\b(role|roles)\b([^;]*?)\s+FROM\s+users/gi;
+    // Pattern 1: SELECT ... primary_role ... FROM users (but not primary_role or granted_roles)
+    const selectPattern = /SELECT\s+([^;]*?)\b(primary_role|granted_roles)\b([^;]*?)\s+FROM\s+users/gi;
     content = content.replace(selectPattern, (match, before, column, after) => {
         if (match.includes('primary_role') || match.includes('granted_roles')) {
             return match; // Already updated
         }
         fileChanges++;
-        const newColumn = column === 'role' ? 'primary_role' : 'granted_roles';
+        const newColumn = column === 'primary_role' ? 'primary_role' : 'granted_roles';
         return `SELECT ${before}${newColumn}${after} FROM users`;
     });
 
-    // Pattern 2: WHERE role = 'something' (but not primary_role)
-    const wherePattern = /WHERE\s+(?!primary_)role\s*=\s*'([^']+)'/gi;
+    // Pattern 2: WHERE primary_role = 'something' (but not primary_role)
+    const wherePattern = /WHERE\s+(?!primary_)primary_role\s*=\s*'([^']+)'/gi;
     content = content.replace(wherePattern, (match, value) => {
         fileChanges++;
         return `WHERE primary_role = '${value}'`;
     });
 
-    // Pattern 3: WHERE role IN (...)
-    const whereInPattern = /WHERE\s+(?!primary_)role\s+IN\s*\(/gi;
+    // Pattern 3: WHERE primary_role IN (...)
+    const whereInPattern = /WHERE\s+(?!primary_)primary_role\s+IN\s*\(/gi;
     content = content.replace(whereInPattern, () => {
         fileChanges++;
         return 'WHERE primary_role IN (';
     });
 
-    // Pattern 4: UPDATE users SET role =
-    const updatePattern = /UPDATE\s+users\s+SET\s+(?!primary_)role\s*=/gi;
+    // Pattern 4: UPDATE users SET primary_role =
+    const updatePattern = /UPDATE\s+users\s+SET\s+(?!primary_)primary_role\s*=/gi;
     content = content.replace(updatePattern, () => {
         fileChanges++;
         return 'UPDATE users SET primary_role =';
     });
 
-    // Pattern 5: INSERT INTO users (...role...)
+    // Pattern 5: INSERT INTO users (...primary_role...)
     const insertPattern = /INSERT\s+INTO\s+users\s*\(([^)]*)\brol(?:e|es)\b([^)]*)\)/gi;
     content = content.replace(insertPattern, (match, before, after) => {
         if (match.includes('primary_role') || match.includes('granted_roles')) {
@@ -65,22 +65,22 @@ files.forEach(filePath => {
         return fixed;
     });
 
-    // Pattern 6: , role, in column lists
-    const columnListPattern = /,\s*(?!primary_)role\s*,/gi;
+    // Pattern 6: , primary_role, in column lists
+    const columnListPattern = /,\s*(?!primary_)primary_role\s*,/gi;
     content = content.replace(columnListPattern, () => {
         fileChanges++;
         return ', primary_role,';
     });
 
-    // Pattern 7: users.role
-    const usersRolePattern = /users\.(?!primary_)role\b/gi;
+    // Pattern 7: users.primary_role
+    const usersRolePattern = /users\.(?!primary_)primary_role\b/gi;
     content = content.replace(usersRolePattern, () => {
         fileChanges++;
         return 'users.primary_role';
     });
 
-    // Pattern 8: u.role (alias)
-    const aliasPattern = /\bu\.(?!primary_)role\b/gi;
+    // Pattern 8: u.primary_role (alias)
+    const aliasPattern = /\bu\.(?!primary_)primary_role\b/gi;
     content = content.replace(aliasPattern, () => {
         fileChanges++;
         return 'u.primary_role';

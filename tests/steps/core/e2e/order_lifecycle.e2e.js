@@ -28,7 +28,7 @@ class E2eAdapter extends OrderLifecycleAdapter {
         await this.page.fill('#name', name);
         await this.page.fill('#email', `${name.toLowerCase()}@test.com`);
         await this.page.fill('#password', 'password123');
-        await this.page.selectOption('#role', 'driver');
+        await this.page.selectOption('#primary_role', 'driver');
         await this.page.click('#submit-register');
         await this.page.waitForSelector('#dashboard');
         await this.page.click('#logout-btn');

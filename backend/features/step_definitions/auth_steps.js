@@ -173,7 +173,7 @@ When('I register with valid credentials:', async function (dataTable) {
             email: data.email,
             phone: data.phone,
             password: data.password,
-            primary_role: data.role || data.primary_role || 'customer',
+            primary_role: data.primary_role || data.primary_role || 'customer',
             country: data.country || 'Egypt',
             city: data.city || 'Cairo',
             area: data.area || 'Nasr City'
@@ -211,7 +211,7 @@ When('I register with invalid email {string}', async function (email) {
             country: 'Egypt',
             city: 'Cairo',
             area: 'Nasr City',
-            role: 'customer'
+            primary_role: 'customer'
         });
 });
 
@@ -223,7 +223,7 @@ When('I register with password {string}', async function (password) {
             email: `test${Date.now()}@example.com`,
             phone: '+1234567890',
             password,
-            role: 'customer'
+            primary_role: 'customer'
         });
 });
 

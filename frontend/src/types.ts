@@ -3,9 +3,7 @@ export interface User {
     name: string;
     email: string;
     phone?: string;
-    role: 'customer' | 'driver' | 'admin' | 'vendor';
-    primary_role?: 'customer' | 'driver' | 'admin' | 'vendor';
-    roles?: string[];
+    primary_role: 'customer' | 'driver' | 'admin' | 'vendor';
     granted_roles?: string[];
     profile_picture_url?: string;
     // isVerified removed in favor of is_verified

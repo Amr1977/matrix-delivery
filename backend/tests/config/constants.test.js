@@ -161,21 +161,21 @@ describe('Constants Configuration', () => {
     });
 
     describe('USER_ROLES', () => {
-        test('should have all required role values', () => {
+        test('should have all required primary_role values', () => {
             expect(USER_ROLES).toHaveProperty('CUSTOMER');
             expect(USER_ROLES).toHaveProperty('DRIVER');
             expect(USER_ROLES).toHaveProperty('ADMIN');
             expect(USER_ROLES).toHaveProperty('VENDOR');
         });
 
-        test('should have correct role values', () => {
+        test('should have correct primary_role values', () => {
             expect(USER_ROLES.CUSTOMER).toBe('customer');
             expect(USER_ROLES.DRIVER).toBe('driver');
             expect(USER_ROLES.ADMIN).toBe('admin');
             expect(USER_ROLES.VENDOR).toBe('vendor');
         });
 
-        test('should have 4 role values', () => {
+        test('should have 4 primary_role values', () => {
             expect(Object.keys(USER_ROLES).length).toBe(4);
         });
     });

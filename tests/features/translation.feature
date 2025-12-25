@@ -37,11 +37,11 @@ Feature: Translation Testing
   Scenario Outline: Customer login page translations in <language>
     Given I am on the login page
     When I switch to "<language>" language
-    And I select customer role
+    And I select customer primary_role
     Then the "Sign In" button should display "<signIn>" in "<language>"
     And the "Create Account" button should display "<createAccount>" in "<language>"
-    And the "Customer" role option should display "<customer>" in "<language>"
-    And the "Driver" role option should display "<driver>" in "<language>"
+    And the "Customer" primary_role option should display "<customer>" in "<language>"
+    And the "Driver" primary_role option should display "<driver>" in "<language>"
 
     Examples:
       | language | signIn     | createAccount    | customer | driver  |

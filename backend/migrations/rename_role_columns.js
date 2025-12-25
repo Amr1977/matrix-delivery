@@ -1,9 +1,9 @@
 /**
- * Migration: Rename role columns to primary_role and granted_roles
+ * Migration: Rename primary_role columns to primary_role and granted_roles
  * 
  * This migration renames:
- *   role  -> primary_role (active role)
- *   roles -> granted_roles (all roles user can switch to)
+ *   primary_role  -> primary_role (active primary_role)
+ *   granted_roles -> granted_roles (all granted_roles user can switch to)
  */
 
 const pool = require('../config/db');
@@ -29,7 +29,7 @@ async function up() {
       SELECT column_name 
       FROM information_schema.columns 
       WHERE table_name = 'users' 
-      AND column_name IN ('role', 'roles', 'primary_role', 'granted_roles')
+      AND column_name IN ('primary_role', 'granted_roles', 'primary_role', 'granted_roles')
     `);
 
         const existingColumns = checkColumns.rows.map(r => r.column_name);
@@ -41,11 +41,11 @@ async function up() {
         }
 
         // Step 3: Rename columns
-        console.log('🔄 Renaming role -> primary_role...');
-        await client.query('ALTER TABLE users RENAME COLUMN role TO primary_role');
+        console.log('🔄 Renaming primary_role -> primary_role...');
+        await client.query('ALTER TABLE users RENAME COLUMN primary_role TO primary_role');
 
-        console.log('🔄 Renaming roles -> granted_roles...');
-        await client.query('ALTER TABLE users RENAME COLUMN roles TO granted_roles');
+        console.log('🔄 Renaming granted_roles -> granted_roles...');
+        await client.query('ALTER TABLE users RENAME COLUMN granted_roles TO granted_roles');
         console.log('✅ Columns renamed');
 
         // Step 4: Ensure granted_roles includes primary_role
@@ -70,10 +70,10 @@ async function up() {
 
         // Step 6: Add comments
         await client.query(`
-      COMMENT ON COLUMN users.primary_role IS 'Currently active role for the user'
+      COMMENT ON COLUMN users.primary_role IS 'Currently active primary_role for the user'
     `);
         await client.query(`
-      COMMENT ON COLUMN users.granted_roles IS 'Array of all roles the user is granted and can switch to'
+      COMMENT ON COLUMN users.granted_roles IS 'Array of all granted_roles the user is granted and can switch to'
     `);
 
         await client.query('COMMIT');
@@ -114,11 +114,11 @@ async function down() {
         await client.query('BEGIN');
 
         // Rename back
-        console.log('🔄 Renaming primary_role -> role...');
-        await client.query('ALTER TABLE users RENAME COLUMN primary_role TO role');
+        console.log('🔄 Renaming primary_role -> primary_role...');
+        await client.query('ALTER TABLE users RENAME COLUMN primary_role TO primary_role');
 
-        console.log('🔄 Renaming granted_roles -> roles...');
-        await client.query('ALTER TABLE users RENAME COLUMN granted_roles TO roles');
+        console.log('🔄 Renaming granted_roles -> granted_roles...');
+        await client.query('ALTER TABLE users RENAME COLUMN granted_roles TO granted_roles');
 
         // Drop index
         console.log('🔄 Dropping index...');

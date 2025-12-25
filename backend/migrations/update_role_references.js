@@ -1,6 +1,6 @@
 /**
- * Automated script to update all req.user.role references to support both
- * primary_role (new) and role (old) for backward compatibility
+ * Automated script to update all req.user.primary_role references to support both
+ * primary_role (new) and primary_role (old) for backward compatibility
  */
 
 const fs = require('fs');
@@ -15,29 +15,29 @@ const filesToUpdate = [
 
 const replacements = [
     {
-        // Simple role checks
-        pattern: /if \(req\.user\.role !== '([^']+)'\)/g,
-        replacement: "if ((req.user.primary_role || req.user.role) !== '$1')"
+        // Simple primary_role checks
+        pattern: /if \(req\.user\.primary_role !== '([^']+)'\)/g,
+        replacement: "if ((req.user.primary_role || req.user.primary_role) !== '$1')"
     },
     {
-        // Role equality checks
-        pattern: /if \(req\.user\.role === '([^']+)'\)/g,
-        replacement: "if ((req.user.primary_role || req.user.role) === '$1')"
+        // primary_role equality checks
+        pattern: /if \(req\.user\.primary_role === '([^']+)'\)/g,
+        replacement: "if ((req.user.primary_role || req.user.primary_role) === '$1')"
     },
     {
-        // Role in variables
-        pattern: /const userRole = req\.user\.role;/g,
-        replacement: "const userRole = req.user.primary_role || req.user.role;"
+        // primary_role in variables
+        pattern: /const userRole = req\.user\.primary_role;/g,
+        replacement: "const userRole = req.user.primary_role || req.user.primary_role;"
     },
     {
-        // Role in objects
-        pattern: /role: req\.user\.role,/g,
-        replacement: "role: (req.user.primary_role || req.user.role),"
+        // primary_role in objects
+        pattern: /primary_role: req\.user\.primary_role,/g,
+        replacement: "primary_role: (req.user.primary_role || req.user.primary_role),"
     },
     {
-        // Role in arrays/function calls
-        pattern: /req\.user\.role(?=[,\)])/g,
-        replacement: "(req.user.primary_role || req.user.role)"
+        // primary_role in arrays/function calls
+        pattern: /req\.user\.primary_role(?=[,\)])/g,
+        replacement: "(req.user.primary_role || req.user.primary_role)"
     }
 ];
 
@@ -73,7 +73,7 @@ async function updateFile(filePath) {
 }
 
 async function main() {
-    console.log('🔄 Starting automated role migration...\n');
+    console.log('🔄 Starting automated primary_role migration...\n');
 
     const results = [];
 

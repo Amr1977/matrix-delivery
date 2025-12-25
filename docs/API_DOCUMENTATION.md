@@ -22,7 +22,7 @@ Register a new user account.
   "email": "string",
   "password": "string",
   "phone": "string",
-  "role": "customer|driver|admin"
+  "primary_role": "customer|driver|admin"
 }
 ```
 
@@ -33,7 +33,7 @@ Register a new user account.
     "id": "string",
     "name": "string",
     "email": "string",
-    "role": "string",
+    "primary_role": "string",
     "isVerified": false
   },
   "token": "string"
@@ -62,7 +62,7 @@ Authenticate user credentials.
     "id": "string",
     "name": "string",
     "email": "string",
-    "role": "string",
+    "primary_role": "string",
     "isVerified": true
   },
   "token": "string"
@@ -86,7 +86,7 @@ Get current authenticated user information.
     "id": "string",
     "name": "string",
     "email": "string",
-    "role": "string",
+    "primary_role": "string",
     "isVerified": true,
     "phone": "string"
   }
@@ -97,8 +97,8 @@ Get current authenticated user information.
 
 ---
 
-### POST `/auth/switch-role`
-Switch user role (for multi-role users).
+### POST `/auth/switch-primary_role`
+Switch user primary_role (for multi-primary_role users).
 
 **Headers:**
 - `Authorization: Bearer <token>`
@@ -106,7 +106,7 @@ Switch user role (for multi-role users).
 **Request Body:**
 ```json
 {
-  "role": "customer|driver|admin"
+  "primary_role": "customer|driver|admin"
 }
 ```
 
@@ -117,7 +117,7 @@ Switch user role (for multi-role users).
     "id": "string",
     "name": "string",
     "email": "string",
-    "role": "string"
+    "primary_role": "string"
   },
   "token": "string"
 }
@@ -440,7 +440,7 @@ Create a new delivery order.
 ---
 
 ### GET `/orders`
-Get orders based on user role and filters.
+Get orders based on user primary_role and filters.
 
 **Headers:**
 - `Authorization: Bearer <token>`
@@ -449,7 +449,7 @@ Get orders based on user role and filters.
 - `page`: Page number (default: 1)
 - `limit`: Items per page (default: 20)
 - `status`: Filter by status
-- `role`: User role context
+- `primary_role`: User primary_role context
 
 **Response:**
 ```json
@@ -1073,7 +1073,7 @@ Get users with admin controls.
 - `page`: Page number (default: 1)
 - `limit`: Items per page (default: 20)
 - `search`: Search query
-- `role`: Filter by role
+- `primary_role`: Filter by primary_role
 - `status`: Filter by verification status
 
 **Response:**
@@ -1149,8 +1149,8 @@ Perform admin action on user.
 
 ---
 
-### POST `/admin/users/{userId}/roles`
-Update user roles.
+### POST `/admin/users/{userId}/granted_roles`
+Update user granted_roles.
 
 **Headers:**
 - `Authorization: Bearer <admin_token>`
@@ -1170,7 +1170,7 @@ Update user roles.
   "success": true,
   "user": {
     "id": "string",
-    "roles": []
+    "granted_roles": []
   }
 }
 ```
@@ -1277,7 +1277,7 @@ All endpoints return errors in the following format:
 
 ## Rate Limiting
 
-The API implements rate limiting based on endpoint type and user role:
+The API implements rate limiting based on endpoint type and user primary_role:
 - Public endpoints: 100 requests per minute
 - Authenticated endpoints: 1000 requests per minute
 - Admin endpoints: 500 requests per minute

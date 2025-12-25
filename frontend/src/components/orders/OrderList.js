@@ -22,7 +22,7 @@ const OrderList = ({
 }) => {
   const { t } = useI18n();
 
-  const displayOrders = currentUser?.role === 'driver' && driverState
+  const displayOrders = currentUser?.primary_role === 'driver' && driverState
     ? driverState.getFilteredDriverOrders()
     : orders;
 
@@ -42,7 +42,7 @@ const OrderList = ({
           textShadow: 'var(--shadow-glow)',
           fontSize: '1.25rem'
         }}>
-          {currentUser?.role === 'customer'
+          {currentUser?.primary_role === 'customer'
             ? t('orders.noOrdersAvailable')
             : driverState
               ? driverState.getDriverViewTitle().includes('Active')

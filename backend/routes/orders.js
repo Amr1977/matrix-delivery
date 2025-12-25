@@ -8,7 +8,7 @@ const router = express.Router();
 
 // Routes
 
-// Get orders (filtered by user role and location filters)
+// Get orders (filtered by user primary_role and location filters)
 router.get('/', verifyToken, async (req, res) => {
   try {
     const { country, city, area, lat, lng } = req.query;
@@ -16,7 +16,7 @@ router.get('/', verifyToken, async (req, res) => {
 
     logger.info('GET /api/orders request received', {
       userId: req.user?.userId || 'unauthenticated',
-      role: req.user?.role || 'unknown',
+      primary_role: req.user?.primary_role || 'unknown',
       query: req.query,
       hasLat: !!req.query.lat,
       hasLng: !!req.query.lng,
@@ -25,11 +25,11 @@ router.get('/', verifyToken, async (req, res) => {
     });
 
     // For drivers, location-based filtering is preferred but no longer mandatory for fetching ASSIGNED orders
-    if ((req.user.primary_role || req.user.role) === 'driver') {
+    if ((req.user.primary_role || req.user.primary_role) === 'driver') {
       if (!lat || !lng) {
         logger.warn('Driver fetching orders without location - showing only assigned orders', {
           userId: req.user.userId,
-          role: (req.user.primary_role || req.user.role),
+          primary_role: (req.user.primary_role || req.user.primary_role),
           category: 'orders'
         });
         // We do NOT return 400 here anymore. We let it pass to the service,
@@ -51,7 +51,7 @@ router.get('/', verifyToken, async (req, res) => {
       if (lat || lng) {
         logger.warn('Non-driver provided lat/lng parameters - ignoring (no filtering applied)', {
           userId: req.user.userId,
-          role: (req.user.primary_role || req.user.role),
+          primary_role: (req.user.primary_role || req.user.primary_role),
           lat,
           lng,
           category: 'orders'
@@ -59,11 +59,11 @@ router.get('/', verifyToken, async (req, res) => {
       }
     }
 
-    const orders = await orderService.getOrders(req.user.userId, (req.user.primary_role || req.user.role), filters);
+    const orders = await orderService.getOrders(req.user.userId, (req.user.primary_role || req.user.primary_role), filters);
 
     console.log('📦 ORDERS RESPONSE:', {
       userId: req.user.userId,
-      role: (req.user.primary_role || req.user.role),
+      primary_role: (req.user.primary_role || req.user.primary_role),
       totalOrders: orders.length,
       pendingBidsOrders: orders.filter(o => o.status === 'pending_bids').length,
       assignedOrders: orders.filter(o => o.assignedDriver).length,
@@ -74,7 +74,7 @@ router.get('/', verifyToken, async (req, res) => {
   } catch (error) {
     logger.error(`Get orders error: ${error.message}`, {
       userId: req.user.userId,
-      role: (req.user.primary_role || req.user.role),
+      primary_role: (req.user.primary_role || req.user.primary_role),
       filters: req.query,
       category: 'error'
     });
@@ -85,7 +85,7 @@ router.get('/', verifyToken, async (req, res) => {
 // Create new order
 router.post('/', verifyToken, orderCreationRateLimit, async (req, res, next) => {
   try {
-    if ((req.user.primary_role || req.user.role) !== 'customer' && (req.user.primary_role || req.user.role) !== 'admin') {
+    if ((req.user.primary_role || req.user.primary_role) !== 'customer' && (req.user.primary_role || req.user.primary_role) !== 'admin') {
       return res.status(403).json({ error: 'Only customers and admins can create orders' });
     }
 
@@ -112,7 +112,7 @@ router.post('/', verifyToken, orderCreationRateLimit, async (req, res, next) => 
 // Place bid on order
 router.post('/:orderId/bid', verifyToken, async (req, res) => {
   try {
-    if ((req.user.primary_role || req.user.role) !== 'driver') {
+    if ((req.user.primary_role || req.user.primary_role) !== 'driver') {
       return res.status(400).json({ error: 'Only drivers can place bids' });
     }
 
@@ -131,7 +131,7 @@ router.post('/:orderId/bid', verifyToken, async (req, res) => {
 // Accept bid
 router.post('/:orderId/accept-bid', verifyToken, async (req, res) => {
   try {
-    if ((req.user.primary_role || req.user.role) !== 'customer') {
+    if ((req.user.primary_role || req.user.primary_role) !== 'customer') {
       return res.status(403).json({ error: 'Only customers can accept bids' });
     }
 

@@ -14,7 +14,7 @@ describe('Admin Notification on User Registration', () => {
         const bcrypt = require('bcryptjs');
         const hashedPassword = await bcrypt.hash('adminpassword123', 10);
         const adminResult = await pool.query(
-            `INSERT INTO users (id, name, email, password, phone, primary_role, granted_roles, country, city, area)
+            `INSERT INTO users (id, name, email, password_hash, phone, primary_role, granted_roles, country, city, area)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        RETURNING id`,
             [
@@ -91,7 +91,7 @@ describe('Admin Notification on User Registration', () => {
     });
 
     it('should handle registration when no admin users exist', async () => {
-        // Temporarily remove admin role
+        // Temporarily remove admin primary_role
         await pool.query(
             'UPDATE users SET granted_roles = $1 WHERE id = $2',
             [['customer'], adminUserId]
@@ -117,7 +117,7 @@ describe('Admin Notification on User Registration', () => {
         // Registration should still succeed even if no admins to notify
         expect(response.status).toBe(201);
 
-        // Restore admin role
+        // Restore admin primary_role
         await pool.query(
             'UPDATE users SET granted_roles = $1 WHERE id = $2',
             [['admin'], adminUserId]

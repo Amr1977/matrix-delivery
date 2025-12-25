@@ -350,7 +350,7 @@ export const MainApp = () => {
     email: '',
     password: '',
     phone: '',
-    role: 'customer',
+    primary_role: 'customer',
     vehicle_type: '',
     country: '',
     city: '',
@@ -381,7 +381,7 @@ export const MainApp = () => {
 
       // Check for fake location in localStorage (development feature)
       const fakeLocation = localStorage.getItem('fakeDriverLocation');
-      if (fakeLocation && currentUser?.role === 'driver') {
+      if (fakeLocation && currentUser?.primary_role === 'driver') {
         try {
           const loc = JSON.parse(fakeLocation);
           if (loc.lat && loc.lng) {
@@ -392,7 +392,7 @@ export const MainApp = () => {
         } catch (e) {
           console.warn('Invalid fake location data:', e);
         }
-      } else if (currentUser?.role === 'driver' && driverLocation?.latitude && driverLocation?.longitude) {
+      } else if (currentUser?.primary_role === 'driver' && driverLocation?.latitude && driverLocation?.longitude) {
         // Use real driver location for filtering if no fake location is set
         queryParams.append('lat', driverLocation.latitude.toString());
         queryParams.append('lng', driverLocation.longitude.toString());
@@ -407,14 +407,14 @@ export const MainApp = () => {
 
       // Only require query parameters for drivers (they need lat/lng for distance filtering)
       // Customers should be able to fetch their orders without any query parameters
-      if (currentUser?.role === 'driver' && !queryString) {
+      if (currentUser?.primary_role === 'driver' && !queryString) {
         console.warn('⚠️ Driver location required for fetching orders');
         return;
       }
 
       // Build query parameters object for OrdersApi
       const queryOptions = {};
-      if (currentUser?.role === 'driver' && queryString) {
+      if (currentUser?.primary_role === 'driver' && queryString) {
         // Parse query params for driver
         const params = new URLSearchParams(queryString);
         if (params.has('lat')) queryOptions.lat = params.get('lat');
@@ -429,7 +429,7 @@ export const MainApp = () => {
     } catch (err) {
       console.error('Error fetching orders:', err.message);
     }
-  }, [API_URL, token, currentUser?.role, driverLocation]);
+  }, [API_URL, token, currentUser?.primary_role, driverLocation]);
 
   // Sound and Text-to-Speech Notifications (moved before fetchUpdates to avoid initialization error)
   const playNotificationSound = useCallback(() => {
@@ -510,7 +510,7 @@ export const MainApp = () => {
       const queryParams = new URLSearchParams();
 
       // Driver location logic
-      if (currentUser?.role === 'driver') {
+      if (currentUser?.primary_role === 'driver') {
         const fakeLocation = localStorage.getItem('fakeDriverLocation');
         let usedFake = false;
         if (fakeLocation) {
@@ -575,7 +575,7 @@ export const MainApp = () => {
     } catch (err) {
       console.error('Fetch updates error:', err);
     }
-  }, [API_URL, token, currentUser?.role, playNotificationSound, speakNotification]);
+  }, [API_URL, token, currentUser?.primary_role, playNotificationSound, speakNotification]);
 
   // Location picker callback - moved after fetchOrders to avoid initialization error
   const handleLocationSelect = useCallback((lat, lng) => {
@@ -651,7 +651,7 @@ export const MainApp = () => {
   useEffect(() => {
     if (token && currentUser) {
       // For drivers, only fetch orders if we have location data
-      if (currentUser.role === 'driver') {
+      if (currentUser.primary_role === 'driver') {
         const fakeLocation = localStorage.getItem('fakeDriverLocation');
         const hasFakeLocation = fakeLocation && (() => {
           try {
@@ -682,20 +682,20 @@ export const MainApp = () => {
 
   // Start location tracking when driver enters bidding view
   useEffect(() => {
-    if (currentUser?.role === 'driver' && token && viewType === 'bidding') {
+    if (currentUser?.primary_role === 'driver' && token && viewType === 'bidding') {
       // Get initial location
       driverHook.getDriverLocation();
       // Start continuous location updates
       driverHook.updateDriverLocation();
     }
-  }, [currentUser?.role, token, viewType]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [currentUser?.primary_role, token, viewType]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Lazy load history orders when customer opens history tab
   useEffect(() => {
-    if (currentUser?.role === 'customer' && customerViewType === 'history' && historyOrders.length === 0 && !historyLoading) {
+    if (currentUser?.primary_role === 'customer' && customerViewType === 'history' && historyOrders.length === 0 && !historyLoading) {
       fetchHistoryOrders(1);
     }
-  }, [customerViewType, currentUser?.role, historyOrders.length, historyLoading, fetchHistoryOrders]);
+  }, [customerViewType, currentUser?.primary_role, historyOrders.length, historyLoading, fetchHistoryOrders]);
 
   // Real-time notifications via WebSocket
   useEffect(() => {
@@ -805,7 +805,7 @@ export const MainApp = () => {
     try {
       const data = await AuthApi.getCurrentUser();
       setCurrentUser(data);
-      setAvailableRoles(data.granted_roles || data.roles || (data.role ? [data.role] : []));
+      setAvailableRoles(data.granted_roles || data.granted_roles || (data.primary_role ? [data.primary_role] : []));
       setToken('authenticated'); // Set token flag to indicate logged in
       setError('');
 
@@ -1084,14 +1084,14 @@ export const MainApp = () => {
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    logger.user('Registration attempt', { role: authForm.role });
+    logger.user('Registration attempt', { primary_role: authForm.primary_role });
 
     if (!authForm.name || !authForm.email || !authForm.password || !authForm.phone || !authForm.country || !authForm.city) {
       logger.warn('Registration validation failed: missing required fields');
       setError('All required fields must be filled');
       return;
     }
-    if (authForm.role === 'driver' && !authForm.vehicle_type) {
+    if (authForm.primary_role === 'driver' && !authForm.vehicle_type) {
       logger.warn('Registration validation failed: missing vehicle type for driver');
       setError('Vehicle type is required for drivers');
       return;
@@ -1110,7 +1110,7 @@ export const MainApp = () => {
     try {
       const data = await AuthApi.register({
         ...authForm,
-        primary_role: authForm.role, // Backend expects primary_role
+        primary_role: authForm.primary_role, // Backend expects primary_role
         recaptchaToken
       });
 
@@ -1118,12 +1118,12 @@ export const MainApp = () => {
       // Token is now set in httpOnly cookie by server, no need to store in localStorage
       setToken('authenticated'); // Just a flag to indicate user is logged in
       setCurrentUser(data.user);
-      setAuthForm({ name: '', email: '', password: '', phone: '', role: 'customer', vehicle_type: '', country: '', city: '', area: '' });
+      setAuthForm({ name: '', email: '', password: '', phone: '', primary_role: 'customer', vehicle_type: '', country: '', city: '', area: '' });
       setError('');
 
       logger.user('Registration successful', {
         userId: data.user.id,
-        role: data.user.role,
+        primary_role: data.user.primary_role,
         duration: `${duration}ms`
       });
     } catch (err) {
@@ -1156,8 +1156,8 @@ export const MainApp = () => {
       // Token is now set in httpOnly cookie by server, no need to store in localStorage
       setToken('authenticated'); // Just a flag to indicate user is logged in
       setCurrentUser(data.user);
-      setAvailableRoles(data.user.roles || (data.user.role ? [data.user.role] : []));
-      setAuthForm({ name: '', email: '', password: '', phone: '', role: 'customer', vehicle_type: '' });
+      setAvailableRoles(data.user.granted_roles || (data.user.primary_role ? [data.user.primary_role] : []));
+      setAuthForm({ name: '', email: '', password: '', phone: '', primary_role: 'customer', vehicle_type: '' });
       setError('');
     } catch (err) {
       setError(err.message);
@@ -1166,15 +1166,15 @@ export const MainApp = () => {
     }
   };
 
-  const switchRole = async (role) => {
-    if (!token || !role) return;
+  const switchRole = async (primary_role) => {
+    if (!token || !primary_role) return;
     try {
-      const data = await AuthApi.switchRole({ role });
+      const data = await AuthApi.switchRole({ primary_role });
       // Token is now in httpOnly cookie, just update the flag
       setToken('authenticated');
-      setCurrentUser((prev) => ({ ...(prev || {}), role }));
+      setCurrentUser((prev) => ({ ...(prev || {}), primary_role }));
     } catch (err) {
-      setError(err.message || err.error || 'Failed to switch role');
+      setError(err.message || err.error || 'Failed to switch primary_role');
     }
   };
 
@@ -1496,7 +1496,7 @@ export const MainApp = () => {
 
   // Driver status functions
   const hasActiveOrders = useCallback(() => {
-    if (currentUser?.role !== 'driver') return false;
+    if (currentUser?.primary_role !== 'driver') return false;
     return orders.some(order =>
       order.assignedDriver?.userId === currentUser.id &&
       ['accepted', 'picked_up', 'in_transit'].includes(order.status)
@@ -1504,7 +1504,7 @@ export const MainApp = () => {
   }, [currentUser, orders]);
 
   const updateDriverStatus = async (isOnline) => {
-    if (currentUser?.role !== 'driver') {
+    if (currentUser?.primary_role !== 'driver') {
       setError('Only drivers can toggle online/offline status');
       return;
     }
@@ -1530,7 +1530,7 @@ export const MainApp = () => {
   };
 
   const updateDriverLocationOnce = useCallback(async () => {
-    if (currentUser?.role !== 'driver' || !driverOnline || loading) return;
+    if (currentUser?.primary_role !== 'driver' || !driverOnline || loading) return;
 
     try {
       if (navigator.geolocation) {
@@ -1687,7 +1687,7 @@ export const MainApp = () => {
   // Admin Panel Navigation Handler
   const handleAdminPanelNavigation = () => {
     // Check if user has admin privileges
-    if (!currentUser || (!currentUser.role === 'admin' && !availableRoles.includes('admin'))) {
+    if (!currentUser || (!currentUser.primary_role === 'admin' && !availableRoles.includes('admin'))) {
       setError('Access denied: Admin privileges required');
       return;
     }
@@ -1834,14 +1834,14 @@ export const MainApp = () => {
                     </button>
                   </div>
                   <select
-                    value={authForm.role}
-                    onChange={(e) => setAuthForm({ ...authForm, role: e.target.value })}
+                    value={authForm.primary_role}
+                    onChange={(e) => setAuthForm({ ...authForm, primary_role: e.target.value })}
                     style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
                   >
                     <option value="customer">{t('auth.customer')}</option>
                     <option value="driver">{t('auth.driver')}</option>
                   </select>
-                  {authForm.role === 'driver' && (
+                  {authForm.primary_role === 'driver' && (
                     <select
                       value={authForm.vehicle_type}
                       onChange={(e) => setAuthForm({ ...authForm, vehicle_type: e.target.value })}
@@ -2044,7 +2044,7 @@ export const MainApp = () => {
           />
         )}
 
-        {viewType !== 'profile' && (currentUser?.role === 'customer' || currentUser?.role === 'admin') && (
+        {viewType !== 'profile' && (currentUser?.primary_role === 'customer' || currentUser?.primary_role === 'admin') && (
           <div style={{ marginBottom: '1.5rem' }}>
             <button
               onClick={() => setShowOrderForm(!showOrderForm)}
@@ -2401,11 +2401,11 @@ export const MainApp = () => {
 
         {!['profile', 'settings', 'admin_panel'].includes(viewType) && (
           <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>
-            {currentUser?.role === 'customer' ? t('orders.myOrders') : getDriverViewTitle(viewType)}
+            {currentUser?.primary_role === 'customer' ? t('orders.myOrders') : getDriverViewTitle(viewType)}
           </h2>
         )}
 
-        {currentUser?.role === 'driver' && viewType === 'map' && (
+        {currentUser?.primary_role === 'driver' && viewType === 'map' && (
           <div style={{ marginBottom: '1rem' }}>
             <OrdersMap
               orders={orders.filter(order => {
@@ -2428,11 +2428,11 @@ export const MainApp = () => {
           </div>
         )}
 
-        {currentUser?.role === 'driver' && viewType === 'earnings' && (
+        {currentUser?.primary_role === 'driver' && viewType === 'earnings' && (
           <DriverEarningsDashboard token={token} API_URL={API_URL} t={t} />
         )}
 
-        {currentUser?.role === 'driver' && viewType === 'location_settings' && (
+        {currentUser?.primary_role === 'driver' && viewType === 'location_settings' && (
           <div style={{ marginBottom: '1rem' }}>
             <div style={{ background: 'white', padding: '1.5rem', borderRadius: '0.5rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}>
               <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.25rem', fontWeight: 'bold', color: '#1F2937' }}>
@@ -2638,11 +2638,11 @@ export const MainApp = () => {
         {!['profile', 'settings', 'admin_panel'].includes(viewType) && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {(() => {
-              // Determine which orders to display based on role and view type
+              // Determine which orders to display based on primary_role and view type
               let ordersToDisplay = orders;
               let emptyMessage = t('orders.noOrdersAvailable');
 
-              if (currentUser?.role === 'customer') {
+              if (currentUser?.primary_role === 'customer') {
                 if (customerViewType === 'history') {
                   ordersToDisplay = historyOrders;
                   emptyMessage = historyLoading ? t('common.loading') || 'Loading...' : (t('orders.noOrderHistory') || 'No order history');
@@ -2656,7 +2656,7 @@ export const MainApp = () => {
                 <div style={{ textAlign: 'center', padding: '3rem', background: 'white', borderRadius: '0.5rem' }}>
                   <p style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>📦</p>
                   <p style={{ color: '#6B7280' }}>
-                    {currentUser?.role === 'driver'
+                    {currentUser?.primary_role === 'driver'
                       ? viewType === 'active' ? t('driver.noActiveOrders')
                         : viewType === 'bidding' ? t('orders.noAvailableBids')
                           : t('orders.noOrderHistory')
@@ -2668,7 +2668,7 @@ export const MainApp = () => {
                 ordersToDisplay.map((order) => {
                   const isDriverAssigned = order.assignedDriver?.userId === currentUser?.id;
                   const hasDriverBid = Array.isArray(order.bids) && order.bids.some(b => b.userId === currentUser?.id);
-                  if (currentUser?.role === 'driver') {
+                  if (currentUser?.primary_role === 'driver') {
                     if (viewType === 'my_bids' && (!hasDriverBid || order.status !== 'pending_bids')) return null;
                     if (viewType === 'bidding' && hasDriverBid) return null;
                   }
@@ -2709,7 +2709,7 @@ export const MainApp = () => {
             })()}
 
             {/* Load More Button for History */}
-            {currentUser?.role === 'customer' && customerViewType === 'history' && historyPagination?.hasMore && (
+            {currentUser?.primary_role === 'customer' && customerViewType === 'history' && historyPagination?.hasMore && (
               <button
                 onClick={() => fetchHistoryOrders(historyPagination.page + 1)}
                 disabled={historyLoading}
@@ -2746,7 +2746,7 @@ export const MainApp = () => {
       </main>
 
       {
-        showAdminPanel && (currentUser?.role === 'admin' || availableRoles.includes('admin')) && (
+        showAdminPanel && (currentUser?.primary_role === 'admin' || availableRoles.includes('admin')) && (
           <AdminPanel onClose={() => setShowAdminPanel(false)} />
         )
       }

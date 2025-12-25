@@ -77,12 +77,12 @@ matrix-delivery/
 - Real-time balance updates
 - Transaction filtering and search
 - PDF/CSV statement generation
-- Driver vs customer role differences
+- Driver vs customer primary_role differences
 
 ### 2. Authentication
 - JWT-based authentication
 - Secure httpOnly cookies (migrated from localStorage)
-- Role-based access control (customer, driver, admin)
+- primary_role-based access control (customer, driver, admin)
 
 ### 3. Order Management
 - Bidding system between drivers and customers
@@ -307,7 +307,7 @@ All modals follow a consistent multi-step pattern:
 1. **Authentication**
    - Use httpOnly cookies for tokens (NOT localStorage)
    - Validate JWT on every protected route
-   - Implement role-based access control
+   - Implement primary_role-based access control
 
 2. **Input Validation**
    - Validate all user inputs on both frontend and backend

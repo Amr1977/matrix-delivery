@@ -41,7 +41,7 @@ class OrderService {
   }
 
   /**
-   * Get orders for a user based on their role
+   * Get orders for a user based on their primary_role
    */
   async getOrders(userId, userRole, filters = {}) {
     let query;
@@ -349,7 +349,7 @@ END as acceptedBid
     }
 
     console.log('🔍 EXECUTING QUERY:');
-    console.log('User role:', userRole);
+    console.log('User primary_role:', userRole);
     console.log('Query:', query);
     console.log('Params:', params);
     console.log('Location conditions applied:', !!locationConditions);
@@ -1035,12 +1035,12 @@ o.*,
 
     let reviewerIdFinal, revieweeId, revieweeRole, reviewerRole;
 
-    // Get reviewer's role from database
+    // Get reviewer's primary_role from database
     const reviewerResult = await pool.query('SELECT primary_role FROM users WHERE id = $1', [reviewerId]);
     if (reviewerResult.rows.length === 0) {
       throw new Error('Reviewer not found');
     }
-    reviewerRole = reviewerResult.rows[0].role;
+    reviewerRole = reviewerResult.rows[0].primary_role;
 
     if (reviewType === 'customer_to_driver') {
       if (order.customer_id !== reviewerId) {
@@ -1133,9 +1133,9 @@ o.*,
       `SELECT
 r.*,
   ru.name as reviewer_name,
-  ru.role as reviewer_role,
+  ru.primary_role as reviewer_role,
   re.name as reviewee_name,
-  re.role as reviewee_role
+  re.primary_role as reviewee_role
       FROM reviews r
       LEFT JOIN users ru ON r.reviewer_id = ru.id
       LEFT JOIN users re ON r.reviewee_id = re.id

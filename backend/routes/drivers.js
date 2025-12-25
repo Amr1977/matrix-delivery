@@ -123,7 +123,7 @@ router.get('/tracking/:orderId/status', verifyToken, async (req, res) => {
   try {
     const { orderId } = req.params;
     const userId = req.user.userId;
-    const userRole = req.user.primary_role || req.user.role;
+    const userRole = req.user.primary_role || req.user.primary_role;
 
     // Check if user has permission to view this order
     const orderCheck = await pool.query(
@@ -442,7 +442,7 @@ router.get('/location/order/:orderId/bidders', verifyToken, async (req, res) => 
     const order = orderCheck.rows[0];
 
     // Only customer or assigned driver can view bidder locations
-    if (order.customer_id !== userId && order.assigned_driver_user_id !== userId && req.user.role !== 'admin') {
+    if (order.customer_id !== userId && order.assigned_driver_user_id !== userId && req.user.primary_role !== 'admin') {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 

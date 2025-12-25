@@ -59,7 +59,7 @@ async function setupTestDb() {
           password VARCHAR(255) NOT NULL,
           phone VARCHAR(50),
           primary_role VARCHAR(50) NOT NULL,
-          roles TEXT[],
+          granted_roles TEXT[],
           vehicle_type VARCHAR(50),
           country VARCHAR(100),
           city VARCHAR(100),

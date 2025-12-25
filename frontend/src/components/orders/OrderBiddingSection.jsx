@@ -31,7 +31,7 @@ const OrderBiddingSection = ({
     openReviewModal,
 }) => {
     // Only show for drivers on pending_bids orders
-    if (order.status !== 'pending_bids' || currentUser?.role !== 'driver') {
+    if (order.status !== 'pending_bids' || currentUser?.primary_role !== 'driver') {
         return null;
     }
 

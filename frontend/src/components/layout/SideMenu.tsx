@@ -11,7 +11,7 @@ interface SideMenuProps {
     onLogout: () => void;
     onToggleOnline?: () => void;
     isDriverOnline?: boolean;
-    onSwitchRole?: (role: string) => void;
+    onSwitchRole?: (primary_role: string) => void;
     availableRoles?: string[];
     onChangeLocale?: (locale: string) => void;
     currentLocale?: string;
@@ -171,11 +171,11 @@ const SideMenu: React.FC<SideMenuProps> = ({
                                         </span>
                                     )}
                                 </div>
-                                <div className="mobile-user-role" style={{ color: 'var(--matrix-green)', fontSize: '0.75rem', textTransform: 'capitalize', marginBottom: '0.5rem' }}>
-                                    {currentUser?.primary_role || currentUser?.role}
+                                <div className="mobile-user-primary_role" style={{ color: 'var(--matrix-green)', fontSize: '0.75rem', textTransform: 'capitalize', marginBottom: '0.5rem' }}>
+                                    {currentUser?.primary_role || currentUser?.primary_role}
                                 </div>
                                 {/* User Stats */}
-                                {currentUser?.role === 'driver' && (
+                                {currentUser?.primary_role === 'driver' && (
                                     <div style={{ fontSize: '0.75rem', color: '#9CA3AF', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                                         {currentUser?.completedDeliveries !== undefined && (
                                             <div>
@@ -243,7 +243,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
                             🏠 Home / Active Orders
                         </button>
 
-                        {currentUser?.role === 'driver' && (
+                        {currentUser?.primary_role === 'driver' && (
                             <button
                                 onClick={() => { onNavigate('earnings'); onClose(); }}
                                 style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', fontSize: '1rem', borderRadius: '0.5rem', marginBottom: '0.5rem', transition: 'background 0.2s' }}
@@ -287,7 +287,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
                         </button>
 
                         {/* Admin Panel - Only for admins */}
-                        {(currentUser?.role === 'admin' || (currentUser?.granted_roles && currentUser.granted_roles.includes('admin')) || availableRoles.includes('admin')) && (
+                        {(currentUser?.primary_role === 'admin' || (currentUser?.granted_roles && currentUser.granted_roles.includes('admin')) || availableRoles.includes('admin')) && (
                             <button
                                 onClick={() => { onNavigate('admin_panel'); onClose(); }}
                                 style={{
@@ -320,7 +320,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
                     </div>
 
                     {/* Driver Actions */}
-                    {currentUser?.role === 'driver' && (
+                    {currentUser?.primary_role === 'driver' && (
                         <div className="mobile-menu-section" style={{ marginBottom: '2rem' }}>
                             <h4 style={{ color: '#9CA3AF', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '1rem', letterSpacing: '0.05em' }}>
                                 Driver Actions
@@ -374,7 +374,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
                     )}
 
                     {/* Driver Controls */}
-                    {currentUser?.role === 'driver' && onToggleOnline && (
+                    {currentUser?.primary_role === 'driver' && onToggleOnline && (
                         <div className="mobile-menu-section" style={{ marginBottom: '2rem', padding: '1rem', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '0.5rem' }}>
                             <h4 style={{ color: '#9CA3AF', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '1rem', letterSpacing: '0.05em' }}>
                                 Driver Status

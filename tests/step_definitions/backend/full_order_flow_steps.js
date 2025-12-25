@@ -42,7 +42,7 @@ Given('I exist as a customer with email {string} and password {string}', async f
         email: email,
         password: password,
         phone: '+1234567890',
-        role: 'customer'
+        primary_role: 'customer'
     };
     this.testData.customer = await ensureUserExists(this.apiUrl, userData);
 });
@@ -53,7 +53,7 @@ Given('I exist as a driver with email {string} and password {string}', async fun
         email: email,
         password: password,
         phone: '+1987654321',
-        role: 'driver',
+        primary_role: 'driver',
         vehicle_type: 'car'
     };
     this.testData.driver = await ensureUserExists(this.apiUrl, userData);

@@ -36,20 +36,20 @@ describe('Authentication Middleware', () => {
         };
 
         isAdmin = (req, res, next) => {
-            const role = req.user?.role;
-            const roles = req.user?.roles || [];
+            const primary_role = req.user?.primary_role;
+            const granted_roles = req.user?.granted_roles || [];
 
-            if (role === 'admin' || roles.includes('admin')) {
+            if (primary_role === 'admin' || granted_roles.includes('admin')) {
                 return next();
             }
             return res.status(403).json({ error: 'Forbidden' });
         };
 
         isVendor = (req, res, next) => {
-            const role = req.user?.role;
-            const roles = req.user?.roles || [];
+            const primary_role = req.user?.primary_role;
+            const granted_roles = req.user?.granted_roles || [];
 
-            if (role === 'vendor' || roles.includes('vendor') || role === 'admin' || roles.includes('admin')) {
+            if (primary_role === 'vendor' || granted_roles.includes('vendor') || primary_role === 'admin' || granted_roles.includes('admin')) {
                 return next();
             }
             return res.status(403).json({ error: 'Forbidden' });
@@ -58,7 +58,7 @@ describe('Authentication Middleware', () => {
 
     describe('verifyToken', () => {
         it('should accept valid token from cookie', () => {
-            const token = jwt.sign({ userId: '123', role: 'customer' }, JWT_SECRET);
+            const token = jwt.sign({ userId: '123', primary_role: 'customer' }, JWT_SECRET);
             const req = { cookies: { token } };
             const res = {};
             const next = jest.fn();
@@ -70,7 +70,7 @@ describe('Authentication Middleware', () => {
         });
 
         it('should accept valid token from Authorization header', () => {
-            const token = jwt.sign({ userId: '123', role: 'customer' }, JWT_SECRET);
+            const token = jwt.sign({ userId: '123', primary_role: 'customer' }, JWT_SECRET);
             const req = { headers: { authorization: `Bearer ${token}` }, cookies: {} };
             const res = {};
             const next = jest.fn();
@@ -94,7 +94,7 @@ describe('Authentication Middleware', () => {
         });
 
         it('should reject expired token', () => {
-            const token = jwt.sign({ userId: '123', role: 'customer' }, JWT_SECRET, { expiresIn: '-1s' });
+            const token = jwt.sign({ userId: '123', primary_role: 'customer' }, JWT_SECRET, { expiresIn: '-1s' });
             const req = { cookies: { token } };
             const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
             const next = jest.fn();
@@ -121,7 +121,7 @@ describe('Authentication Middleware', () => {
 
     describe('isAdmin', () => {
         it('should allow admin user', () => {
-            const req = { user: { userId: '123', role: 'admin' } };
+            const req = { user: { userId: '123', primary_role: 'admin' } };
             const res = {};
             const next = jest.fn();
 
@@ -130,8 +130,8 @@ describe('Authentication Middleware', () => {
             expect(next).toHaveBeenCalled();
         });
 
-        it('should allow user with admin in roles array', () => {
-            const req = { user: { userId: '123', role: 'customer', roles: ['admin'] } };
+        it('should allow user with admin in granted_roles array', () => {
+            const req = { user: { userId: '123', primary_role: 'customer', granted_roles: ['admin'] } };
             const res = {};
             const next = jest.fn();
 
@@ -141,7 +141,7 @@ describe('Authentication Middleware', () => {
         });
 
         it('should reject non-admin user', () => {
-            const req = { user: { userId: '123', role: 'customer' } };
+            const req = { user: { userId: '123', primary_role: 'customer' } };
             const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
             const next = jest.fn();
 
@@ -166,7 +166,7 @@ describe('Authentication Middleware', () => {
 
     describe('isVendor', () => {
         it('should allow vendor user', () => {
-            const req = { user: { userId: '123', role: 'vendor' } };
+            const req = { user: { userId: '123', primary_role: 'vendor' } };
             const res = {};
             const next = jest.fn();
 
@@ -176,7 +176,7 @@ describe('Authentication Middleware', () => {
         });
 
         it('should allow admin user (admins can access vendor routes)', () => {
-            const req = { user: { userId: '123', role: 'admin' } };
+            const req = { user: { userId: '123', primary_role: 'admin' } };
             const res = {};
             const next = jest.fn();
 
@@ -186,7 +186,7 @@ describe('Authentication Middleware', () => {
         });
 
         it('should reject customer user', () => {
-            const req = { user: { userId: '123', role: 'customer' } };
+            const req = { user: { userId: '123', primary_role: 'customer' } };
             const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
             const next = jest.fn();
 

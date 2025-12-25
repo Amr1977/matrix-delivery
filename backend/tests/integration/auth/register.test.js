@@ -126,7 +126,7 @@ describe('POST /api/auth/register', () => {
             const incompleteData = {
                 name: 'John Doe',
                 email: 'john@example.com'
-                // Missing password, phone, role, location
+                // Missing password, phone, primary_role, location
             };
 
             const registerRoute = require('../../../routes/auth');
@@ -186,7 +186,7 @@ describe('POST /api/auth/register', () => {
             expect(res.body.error).toBeDefined();
         });
 
-        it('should reject registration with invalid role', async () => {
+        it('should reject registration with invalid primary_role', async () => {
             const invalidRoleData = {
                 name: 'John Doe',
                 email: 'john@example.com',

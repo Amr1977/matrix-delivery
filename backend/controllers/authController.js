@@ -50,7 +50,7 @@ const notifyAdminsOfNewUser = async (userId, userName, userRole) => {
     try {
         // Query all admin users
         const adminResult = await pool.query(
-            "SELECT id FROM users WHERE primary_role = 'admin' OR (roles IS NOT NULL AND 'admin' = ANY(roles))"
+            "SELECT id FROM users WHERE primary_role = 'admin' OR (granted_roles IS NOT NULL AND 'admin' = ANY(granted_roles))"
         );
 
         if (adminResult.rows.length === 0) {
@@ -201,7 +201,7 @@ const register = async (req, res) => {
         }
         if (error.message === 'Invalid email format' ||
             error.message === 'Password must be at least 8 characters' ||
-            error.message === 'Invalid role' ||
+            error.message === 'Invalid primary_role' ||
             error.message === 'Vehicle type is required for drivers') {
             return res.status(400).json({ error: error.message });
         }
@@ -337,7 +337,7 @@ const refresh = async (req, res) => {
             {
                 userId: decoded.userId,
                 email: decoded.email,
-                role: decoded.role
+                primary_role: decoded.primary_role
             },
             process.env.JWT_SECRET || 'your-secret-key',
             { expiresIn: '30d' }
@@ -432,15 +432,15 @@ const updateProfile = async (req, res) => {
 
 const switchRole = async (req, res) => {
     try {
-        const { role } = req.body;
-        if (!role) {
-            return res.status(400).json({ error: 'Role is required' });
+        const { new_primary_role } = req.body;
+        if (!new_primary_role) {
+            return res.status(400).json({ error: 'primary_role is required' });
         }
-        const { token, roles, primary_role } = await authService.switchRole(req.user.userId, role);
-        res.json({ token, primary_role, roles });
+        const { token, granted_roles, primary_role } = await authService.switchRole(req.user.userId, new_primary_role);
+        res.json({ token, primary_role, granted_roles });
     } catch (error) {
-        logger.error(`Switch role error: ${error.message}`, { userId: req.user.userId, category: 'error' });
-        res.status(400).json({ error: error.message || 'Failed to switch role' });
+        logger.error(`Switch primary_role error: ${error.message}`, { userId: req.user.userId, category: 'error' });
+        res.status(400).json({ error: error.message || 'Failed to switch primary_role' });
     }
 };
 
@@ -460,7 +460,7 @@ const verifyUser = async (req, res) => {
         logger.info(`User verified via API`, {
             userId: user.id,
             email: user.email,
-            role: user.role,
+            primary_role: user.primary_role,
             category: 'auth'
         });
 

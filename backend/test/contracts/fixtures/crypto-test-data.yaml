@@ -3,13 +3,13 @@
 
 # Test accounts configuration
 test_accounts:
-  - role: "owner"
+  - primary_role: "owner"
     description: "Contract deployer"
-  - role: "platform_wallet"
+  - primary_role: "platform_wallet"
     description: "Receives platform commission"
-  - role: "customer"
+  - primary_role: "customer"
     description: "Order placer"
-  - role: "driver"
+  - primary_role: "driver"
     description: "Order fulfiller"
 
 # Order test scenarios

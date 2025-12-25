@@ -2,7 +2,7 @@
 
 /**
  * Admin User Promotion Script
- * Promotes an existing user to admin role
+ * Promotes an existing user to admin primary_role
  *
  * Usage: node scripts/promote-to-admin.js <email>
  */
@@ -41,8 +41,8 @@ async function promoteToAdmin(email) {
     console.log('\n📋 Current user data:');
     console.log(`   Name: ${user.name}`);
     console.log(`   Email: ${user.email}`);
-    console.log(`   Primary Role: ${user.primary_role}`);
-    console.log(`   Granted Roles: ${JSON.stringify(user.granted_roles || [])}`);
+    console.log(`   Primary primary_role: ${user.primary_role}`);
+    console.log(`   Granted granted_roles: ${JSON.stringify(user.granted_roles || [])}`);
 
     if (user.primary_role === 'admin') {
       console.log('\nℹ️  User is already an admin');
@@ -61,8 +61,8 @@ async function promoteToAdmin(email) {
     console.log('\n✅ User promoted to admin successfully!');
     console.log(`   Name: ${user.name}`);
     console.log(`   Email: ${user.email}`);
-    console.log(`   New Primary Role: admin`);
-    console.log(`   New Granted Roles: ${JSON.stringify(newRoles)}`);
+    console.log(`   New Primary primary_role: admin`);
+    console.log(`   New Granted granted_roles: ${JSON.stringify(newRoles)}`);
 
   } catch (error) {
     console.error('❌ Error promoting user:', error.message);

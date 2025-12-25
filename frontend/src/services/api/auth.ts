@@ -32,10 +32,10 @@ export class AuthApi {
     }
 
     /**
-     * Switch user role
+     * Switch user primary_role
      */
     static async switchRole(data: SwitchRoleRequest): Promise<AuthResponse> {
-        return ApiClient.post<AuthResponse>('/auth/switch-role', data);
+        return ApiClient.post<AuthResponse>('/auth/switch-primary_role', data);
     }
 
     /**

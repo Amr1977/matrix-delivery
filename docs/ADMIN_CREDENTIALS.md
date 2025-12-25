@@ -30,9 +30,9 @@ An admin user has been created with the following credentials:
 - Do not commit this file to version control in production
 - Consider using environment variables for admin credentials in production
 
-## Roles
+## granted_roles
 
-The admin user has the following roles:
+The admin user has the following granted_roles:
 - `admin` - Full administrative access
 - `customer` - Can create orders
 - `driver` - Can accept bids and deliver orders
@@ -51,5 +51,5 @@ node create-admin-user.js
 The script will:
 - Check if admin already exists
 - Create new admin if not found
-- Update roles if admin exists
+- Update granted_roles if admin exists
 - Display credentials

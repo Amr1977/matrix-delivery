@@ -18,7 +18,7 @@ describe('Statistics SQL Queries - Bug Fixes', () => {
 
             expect(result.rows).toBeDefined();
             expect(Array.isArray(result.rows)).toBe(true);
-            // Should not throw "column role does not exist" error
+            // Should not throw "column primary_role does not exist" error
         });
 
         it('should query users by granted_roles array without errors', async () => {
@@ -33,14 +33,14 @@ describe('Statistics SQL Queries - Bug Fixes', () => {
 
         it('should use UNNEST on granted_roles without errors', async () => {
             const query = `
-        SELECT role, COUNT(DISTINCT user_id) as count
+        SELECT primary_role, COUNT(DISTINCT user_id) as count
         FROM (
-          SELECT id as user_id, UNNEST(granted_roles) as role
+          SELECT id as user_id, UNNEST(granted_roles) as primary_role
           FROM users
           WHERE granted_roles IS NOT NULL
         ) subquery
-        WHERE role IN ('customer', 'admin', 'support', 'driver')
-        GROUP BY role
+        WHERE primary_role IN ('customer', 'admin', 'support', 'driver')
+        GROUP BY primary_role
       `;
 
             const result = await pool.query(query);
@@ -73,11 +73,11 @@ describe('Statistics SQL Queries - Bug Fixes', () => {
             expect(result.rows[0].data_type).toBe('character varying');
         });
 
-        it('should NOT have old "role" column in users table', async () => {
+        it('should NOT have old "primary_role" column in users table', async () => {
             const result = await pool.query(`
         SELECT column_name 
         FROM information_schema.columns 
-        WHERE table_name = 'users' AND column_name = 'role'
+        WHERE table_name = 'users' AND column_name = 'primary_role'
       `);
 
             expect(result.rows.length).toBe(0);
@@ -105,18 +105,18 @@ describe('Statistics SQL Queries - Bug Fixes', () => {
     });
 
     describe('Statistics Queries from server.js', () => {
-        it('should execute footer stats query without column role error', async () => {
+        it('should execute footer stats query without column primary_role error', async () => {
             // This is the exact query from server.js line 1012 (after fix)
             const query = `SELECT primary_role, COUNT(*) as count FROM users GROUP BY primary_role`;
 
             const result = await pool.query(query);
 
             expect(result.rows).toBeDefined();
-            // Verify we can access primary_role (not role)
+            // Verify we can access primary_role (not primary_role)
             result.rows.forEach(row => {
                 expect(row).toHaveProperty('primary_role');
                 expect(row).toHaveProperty('count');
-                expect(row).not.toHaveProperty('role'); // Old column should not exist
+                expect(row).not.toHaveProperty('primary_role'); // Old column should not exist
             });
         });
     });

@@ -33,7 +33,7 @@ const createTestApp = () => {
 
 // Helper to create JWT token
 const createToken = (userId, primary_role) => {
-    return jwt.sign({ userId, role }, process.env.JWT_SECRET || 'test-secret');
+    return jwt.sign({ userId, primary_role }, process.env.JWT_SECRET || 'test-secret');
 };
 
 describe('Driver Earnings Endpoints', () => {

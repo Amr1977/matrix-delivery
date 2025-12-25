@@ -9,7 +9,7 @@ The OrderCard component in `App.js` is **554 lines** (lines 2856-3410) with comp
 - Review system
 - Chat navigation
 - Multiple action buttons
-- Conditional rendering based on user role and order status
+- Conditional rendering based on user primary_role and order status
 
 ## Extraction Options
 

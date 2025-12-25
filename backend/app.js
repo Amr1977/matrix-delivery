@@ -485,7 +485,7 @@ app.put('/api/orders/:id/bid', verifyToken, async (req, res) => {
   const client = await pool.connect();
   try {
     const { bidPrice, message } = req.body;
-    if ((req.user.primary_role || (req.user.primary_role || req.user.role)) !== 'driver') {
+    if ((req.user.primary_role || (req.user.primary_role || req.user.primary_role)) !== 'driver') {
       return res.status(403).json({ error: 'Only drivers can modify bids' });
     }
 
@@ -525,7 +525,7 @@ app.put('/api/orders/:id/bid', verifyToken, async (req, res) => {
 app.delete('/api/orders/:id/bid', verifyToken, async (req, res) => {
   const client = await pool.connect();
   try {
-    if ((req.user.primary_role || (req.user.primary_role || req.user.role)) !== 'driver') {
+    if ((req.user.primary_role || (req.user.primary_role || req.user.primary_role)) !== 'driver') {
       return res.status(403).json({ error: 'Only drivers can withdraw bids' });
     }
 
@@ -877,7 +877,7 @@ app.get('/api/orders/:id/tracking', verifyToken, async (req, res) => {
 // Update driver location
 app.post('/api/drivers/location', verifyToken, async (req, res) => {
   try {
-    if ((req.user.primary_role || (req.user.primary_role || req.user.role)) !== 'driver') {
+    if ((req.user.primary_role || (req.user.primary_role || req.user.primary_role)) !== 'driver') {
       return res.status(403).json({ error: 'Only drivers can update location' });
     }
 
@@ -916,7 +916,7 @@ app.post('/api/drivers/location', verifyToken, async (req, res) => {
 // Get driver current location
 app.get('/api/drivers/location', verifyToken, async (req, res) => {
   try {
-    if ((req.user.primary_role || (req.user.primary_role || req.user.role)) !== 'driver') {
+    if ((req.user.primary_role || (req.user.primary_role || req.user.primary_role)) !== 'driver') {
       return res.status(403).json({ error: 'Only drivers can access location' });
     }
 
@@ -943,16 +943,16 @@ app.get('/api/drivers/location', verifyToken, async (req, res) => {
   }
 });
 
-// Switch user's primary role
-app.post('/api/users/me/switch-role', verifyToken, async (req, res) => {
+// Switch user's primary primary_role
+app.post('/api/users/me/switch-primary_role', verifyToken, async (req, res) => {
   try {
     const { newRole } = req.body;
 
     if (!newRole) {
-      return res.status(400).json({ error: 'New role is required' });
+      return res.status(400).json({ error: 'New primary_role is required' });
     }
 
-    // Get user's current roles
+    // Get user's current granted_roles
     const userResult = await pool.query(
       'SELECT id, email, name, primary_role, granted_roles FROM users WHERE id = $1',
       [req.user.userId]
@@ -964,10 +964,10 @@ app.post('/api/users/me/switch-role', verifyToken, async (req, res) => {
 
     const user = userResult.rows[0];
 
-    // Verify user has this role in granted_roles
+    // Verify user has this primary_role in granted_roles
     if (!user.granted_roles || !user.granted_roles.includes(newRole)) {
       return res.status(403).json({
-        error: 'Role not granted',
+        error: 'primary_role not granted',
         grantedRoles: user.granted_roles || []
       });
     }
@@ -978,11 +978,11 @@ app.post('/api/users/me/switch-role', verifyToken, async (req, res) => {
       [newRole, req.user.userId]
     );
 
-    // Issue new token with updated role
+    // Issue new token with updated primary_role
     const newToken = jwt.sign(
       {
         userId: req.user.userId,
-        role: newRole,  // Keep 'role' for backward compatibility
+        primary_role: newRole,  // Keep 'primary_role' for backward compatibility
         primary_role: newRole,
         granted_roles: user.granted_roles
       },
@@ -998,7 +998,7 @@ app.post('/api/users/me/switch-role', verifyToken, async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
 
-    logger.auth('Role switched successfully', {
+    logger.auth('primary_role switched successfully', {
       userId: req.user.userId,
       oldRole: user.primary_role,
       newRole,
@@ -1018,13 +1018,13 @@ app.post('/api/users/me/switch-role', verifyToken, async (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Role switch error:', {
+    logger.error('primary_role switch error:', {
       error: error.message,
       userId: req.user?.userId,
       requestedRole: req.body.newRole,
       category: 'error'
     });
-    res.status(500).json({ error: 'Failed to switch role' });
+    res.status(500).json({ error: 'Failed to switch primary_role' });
   }
 });
 
@@ -1199,7 +1199,7 @@ app.post('/api/orders/:id/review', verifyToken, async (req, res) => {
 
     const reviewResult = await client.query(
       `INSERT INTO reviews (order_id, reviewer_id, reviewee_id, reviewer_role, review_type, rating, comment, professionalism_rating, communication_rating, timeliness_rating, condition_rating) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
-      [req.params.id, req.user.userId, revieweeId, (req.user.primary_role || (req.user.primary_role || req.user.role)), reviewType, rating, comment || null, professionalismRating || null, communicationRating || null, timelinessRating || null, conditionRating || null]
+      [req.params.id, req.user.userId, revieweeId, (req.user.primary_role || (req.user.primary_role || req.user.primary_role)), reviewType, rating, comment || null, professionalismRating || null, communicationRating || null, timelinessRating || null, conditionRating || null]
     );
 
     if (revieweeId) {
@@ -1299,11 +1299,11 @@ app.get('/api/orders/:id/review-status', verifyToken, async (req, res) => {
 
     const status = {
       canReview: order.status === 'delivered',
-      userRole: (req.user.primary_role || req.user.role),
+      userRole: (req.user.primary_role || req.user.primary_role),
       reviews: {
         toDriver: isCustomer ? submittedReviews.includes('customer_to_driver') : null,
         toCustomer: isDriver ? submittedReviews.includes('driver_to_customer') : null,
-        toPlatform: submittedReviews.includes(`${req.user.role}_to_platform`)
+        toPlatform: submittedReviews.includes(`${req.user.primary_role}_to_platform`)
       }
     };
 
@@ -1520,7 +1520,7 @@ app.get('/api/orders/:id/payment', verifyToken, async (req, res) => {
 // Get user's earnings/payments summary (for drivers)
 app.get('/api/payments/earnings', verifyToken, async (req, res) => {
   try {
-    if ((req.user.primary_role || (req.user.primary_role || req.user.role)) !== 'driver') {
+    if ((req.user.primary_role || (req.user.primary_role || req.user.primary_role)) !== 'driver') {
       return res.status(403).json({ error: 'Only drivers can access earnings' });
     }
 
@@ -2272,7 +2272,7 @@ const verifyAdmin = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, JWT_SECRET);
-    console.log('🔐 verifyAdmin - Token decoded:', { userId: decoded.userId, role: decoded.role, primary_role: decoded.primary_role });
+    console.log('🔐 verifyAdmin - Token decoded:', { userId: decoded.userId, primary_role: decoded.primary_role, primary_role: decoded.primary_role });
 
     // Check if user is admin
     const userResult = await pool.query(
@@ -2355,7 +2355,7 @@ app.get('/api/admin/stats', verifyAdmin, async (req, res) => {
     );
     const newUsers = parseInt(newUsersResult.rows[0].count);
 
-    // Get users by role
+    // Get users by primary_role
     const usersByRoleResult = await pool.query(
       `SELECT primary_role, COUNT(*) as count FROM users GROUP BY primary_role`
     );
@@ -2506,7 +2506,7 @@ app.get('/api/admin/stats', verifyAdmin, async (req, res) => {
 // ============ USER MANAGEMENT ============
 app.get('/api/admin/users', verifyAdmin, async (req, res) => {
   try {
-    const { page = 1, limit = 20, search = '', role = 'all', status = 'all' } = req.query;
+    const { page = 1, limit = 20, search = '', primary_role = 'all', status = 'all' } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
 
     let whereConditions = [];
@@ -2523,9 +2523,9 @@ app.get('/api/admin/users', verifyAdmin, async (req, res) => {
       paramCount++;
     }
 
-    if (role !== 'all') {
-      whereConditions.push(`role = $${paramCount}`);
-      queryParams.push(role);
+    if (primary_role !== 'all') {
+      whereConditions.push(`primary_role = $${paramCount}`);
+      queryParams.push(primary_role);
       paramCount++;
     }
 
@@ -2545,7 +2545,7 @@ app.get('/api/admin/users', verifyAdmin, async (req, res) => {
 
     queryParams.push(parseInt(limit), offset);
     const usersResult = await pool.query(
-      `SELECT u.id, u.name, u.email, u.phone, u.primary_role, u.roles, u.vehicle_type,
+      `SELECT u.id, u.name, u.email, u.phone, u.primary_role, u.granted_roles, u.vehicle_type,
         u.rating, u.completed_deliveries, u.is_verified, u.is_available,
         u.country, u.city, u.area, u.created_at,
         (SELECT COUNT(*) FROM orders WHERE customer_id = u.id OR assigned_driver_user_id = u.id) as total_orders,
@@ -2562,8 +2562,8 @@ app.get('/api/admin/users', verifyAdmin, async (req, res) => {
       name: user.name,
       email: user.email,
       phone: user.phone,
-      role: user.role,
-      roles: Array.isArray(user.roles) && user.roles.length ? user.roles : [user.role].filter(Boolean),
+      primary_role: user.primary_role,
+      granted_roles: Array.isArray(user.granted_roles) && user.granted_roles.length ? user.granted_roles : [user.primary_role].filter(Boolean),
       vehicleType: user.vehicle_type,
       rating: parseFloat(user.rating),
       completedDeliveries: user.completed_deliveries,
@@ -2639,7 +2639,7 @@ app.get('/api/admin/users/:id', verifyAdmin, async (req, res) => {
         name: user.name,
         email: user.email,
         phone: user.phone,
-        role: user.role,
+        primary_role: user.primary_role,
         vehicleType: user.vehicle_type,
         rating: parseFloat(user.rating),
         completedDeliveries: user.completed_deliveries,
@@ -2666,29 +2666,29 @@ app.get('/api/admin/users/:id', verifyAdmin, async (req, res) => {
   }
 });
 
-// Update user roles (assign/remove roles)
-app.post('/api/admin/users/:id/roles', verifyAdmin, async (req, res) => {
+// Update user granted_roles (assign/remove granted_roles)
+app.post('/api/admin/users/:id/granted_roles', verifyAdmin, async (req, res) => {
   try {
     const { add = [], remove = [] } = req.body || {};
     const allowed = ['customer', 'driver', 'admin', 'support'];
-    const userResult = await pool.query('SELECT id, primary_role, roles FROM users WHERE id = $1', [req.params.id]);
+    const userResult = await pool.query('SELECT id, primary_role, granted_roles FROM users WHERE id = $1', [req.params.id]);
     if (userResult.rows.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
     const current = userResult.rows[0];
-    let roles = Array.isArray(current.roles) && current.roles.length ? current.roles.slice() : [current.role].filter(Boolean);
+    let granted_roles = Array.isArray(current.granted_roles) && current.granted_roles.length ? current.granted_roles.slice() : [current.primary_role].filter(Boolean);
     const addClean = add.filter(r => allowed.includes(r));
     const removeClean = remove.filter(r => allowed.includes(r));
-    roles = Array.from(new Set([...roles, ...addClean])).filter(r => !removeClean.includes(r));
-    if (roles.length === 0) {
-      roles = [current.role].filter(Boolean);
+    granted_roles = Array.from(new Set([...granted_roles, ...addClean])).filter(r => !removeClean.includes(r));
+    if (granted_roles.length === 0) {
+      granted_roles = [current.primary_role].filter(Boolean);
     }
-    await pool.query('UPDATE users SET roles = $1 WHERE id = $2', [roles, req.params.id]);
+    await pool.query('UPDATE users SET granted_roles = $1 WHERE id = $2', [granted_roles, req.params.id]);
     await logAdminAction(req.admin.id, 'UPDATE_ROLES', 'user', req.params.id, { add: addClean, remove: removeClean, ip: req.ip });
-    res.json({ id: req.params.id, roles });
+    res.json({ id: req.params.id, granted_roles });
   } catch (error) {
-    logger.error('Update roles error:', error);
-    res.status(500).json({ error: 'Failed to update roles' });
+    logger.error('Update granted_roles error:', error);
+    res.status(500).json({ error: 'Failed to update granted_roles' });
   }
 });
 

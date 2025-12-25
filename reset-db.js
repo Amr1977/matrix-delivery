@@ -38,7 +38,7 @@ async function resetDatabase() {
         email VARCHAR(255) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
         phone VARCHAR(50) NOT NULL,
-        role VARCHAR(50) NOT NULL CHECK (role IN ('customer', 'driver', 'admin')),
+        primary_role VARCHAR(50) NOT NULL CHECK (primary_role IN ('customer', 'driver', 'admin')),
         vehicle_type VARCHAR(100),
         rating DECIMAL(3,2) DEFAULT 5.00,
         completed_deliveries INTEGER DEFAULT 0,

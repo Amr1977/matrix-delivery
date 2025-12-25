@@ -8,7 +8,7 @@ const RegisterForm = ({ onSubmit, loading, error, t, countries }) => {
     email: '',
     password: '',
     phone: '',
-    role: 'customer',
+    primary_role: 'customer',
     vehicle_type: '',
     country: '',
     city: '',
@@ -19,10 +19,10 @@ const RegisterForm = ({ onSubmit, loading, error, t, countries }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.email || !formData.password || !formData.phone || !formData.role || !formData.country || !formData.city || !formData.area) {
+    if (!formData.name || !formData.email || !formData.password || !formData.phone || !formData.primary_role || !formData.country || !formData.city || !formData.area) {
       return;
     }
-    if (formData.role === 'driver' && !formData.vehicle_type) {
+    if (formData.primary_role === 'driver' && !formData.vehicle_type) {
       return;
     }
 
@@ -33,7 +33,7 @@ const RegisterForm = ({ onSubmit, loading, error, t, countries }) => {
 
     await onSubmit({
       ...formData,
-      primary_role: formData.role,
+      primary_role: formData.primary_role,
       recaptchaToken
     });
   };
@@ -78,14 +78,14 @@ const RegisterForm = ({ onSubmit, loading, error, t, countries }) => {
         </button>
       </div>
       <select
-        value={formData.role}
-        onChange={(e) => setFormData({ ...formData, role: e.target.value, vehicle_type: e.target.value === 'customer' ? '' : formData.vehicle_type })}
+        value={formData.primary_role}
+        onChange={(e) => setFormData({ ...formData, primary_role: e.target.value, vehicle_type: e.target.value === 'customer' ? '' : formData.vehicle_type })}
         style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
       >
         <option value="customer">{t('auth.customer')}</option>
         <option value="driver">{t('auth.driver')}</option>
       </select>
-      {formData.role === 'driver' && (
+      {formData.primary_role === 'driver' && (
         <select
           value={formData.vehicle_type}
           onChange={(e) => setFormData({ ...formData, vehicle_type: e.target.value })}
