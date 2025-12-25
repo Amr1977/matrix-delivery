@@ -666,13 +666,6 @@ export const MainApp = () => {
     }
   }, [token, currentUser, driverLocation]); // eslint-disable-line react-hooks/exhaustive-deps
 
-
-
-
-
-
-
-
   // Start location tracking when driver enters bidding view
   useEffect(() => {
     if (currentUser?.primary_role === 'driver' && token && viewType === 'bidding') {
@@ -798,15 +791,14 @@ export const MainApp = () => {
     try {
       const data = await AuthApi.getCurrentUser();
       setCurrentUser(data);
-      setAvailableRoles(data.granted_roles || data.granted_roles || (data.primary_role ? [data.primary_role] : []));
+      setAvailableRoles(data.granted_roles || (data.primary_role ? [data.primary_role] : []));
       setToken('authenticated'); // Set token flag to indicate logged in
       setError('');
 
       // Also update profileData with the user data including profile_picture_url
       setProfileData(prev => ({
         ...prev,
-        ...data,
-        profile_picture_url: data.profile_picture_url || data.profilePictureUrl
+        ...data
       }));
 
     } catch (err) {
