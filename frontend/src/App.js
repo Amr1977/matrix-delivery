@@ -1949,11 +1949,6 @@ export const MainApp = () => {
       footerStats={footerStats}
     >
 
-
-      {/* ProfileOverlay removed - replaced by ProfilePage page view */}
-
-      {/* OLD INLINE MODAL - REMOVED - Kept commented for reference */}
-
       <SettingsModal
         isOpen={showSettings}
         onClose={() => setShowSettings(false)}
@@ -2049,10 +2044,6 @@ export const MainApp = () => {
           </div>
         )}
 
-
-
-
-
         {showOrderForm && (
           <OrderCreationForm
             onSubmit={handlePublishOrder}
@@ -2060,8 +2051,6 @@ export const MainApp = () => {
             t={t}
           />
         )}
-
-
 
         {showReviewModal && (
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '1rem' }}>
@@ -2754,27 +2743,11 @@ export const MainApp = () => {
             style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1900, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
             onClick={() => setShowNotifications(false)}
           >
-            <div
-              style={{ width: '100%', maxWidth: '600px', background: 'var(--matrix-bg)', borderRadius: '0.5rem', overflow: 'hidden', border: '2px solid var(--matrix-border)' }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div style={{ padding: '1rem', borderBottom: '2px solid var(--matrix-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', margin: 0, color: 'var(--matrix-bright-green)' }}>{t('notifications.title') || 'Notifications'}</h2>
-                <button
-                  onClick={() => setShowNotifications(false)}
-                  style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', padding: '0.25rem', color: 'var(--matrix-bright-green)' }}
-                >
-                  ×
-                </button>
-              </div>
-              <div style={{ maxHeight: '80vh', overflowY: 'auto' }}>
-                <NotificationPanel
-                  notifications={notifications}
-                  onMarkAsRead={markNotificationRead}
-                  showHeader={false}
-                />
-              </div>
-            </div>
+            <NotificationPanel
+              notifications={notifications}
+              onMarkAsRead={markNotificationRead}
+              showHeader={false}
+            />
           </div>
         )
       }
@@ -2827,7 +2800,6 @@ export const MainApp = () => {
 };
 
 // Router configuration - must be after MainApp definition to avoid circular dependency
-// Router configuration - must be after MainApp definition to avoid circular dependency
 const router = createBrowserRouter([
   {
     path: '/',
@@ -2877,7 +2849,7 @@ const router = createBrowserRouter([
 
 const AppWithErrorBoundary = () => {
   // Show maintenance page if backend is down
-  const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
+  const API_URL = process.env.REACT_APP_API_URL;
   const { isHealthy, isChecking, lastCheck, checkHealth } = useBackendHealth(API_URL);
 
   if (!isHealthy) {
