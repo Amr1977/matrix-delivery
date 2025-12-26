@@ -54,7 +54,12 @@ const io = socketIo(httpServer, {
 });
 
 // Configure Socket.IO
+// Configure Socket.IO
 configureSocket(io);
+
+// Initialize Notification Service with Socket.IO instance
+const { initializeNotificationService } = require('./services/notificationService');
+initializeNotificationService(pool, io, logger);
 
 let server;
 

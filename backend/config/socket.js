@@ -1,13 +1,49 @@
 const pool = require('./db');
 const logger = require('./logger');
 
+const jwt = require('jsonwebtoken');
+const cookie = require('cookie');
+
 const configureSocket = (io) => {
+    // Middleware for authentication
+    io.use((socket, next) => {
+        try {
+            const cookies = cookie.parse(socket.request.headers.cookie || '');
+            const token = cookies.token;
+
+            if (!token) {
+                logger.warn('Socket connection attempt without token', { category: 'websocket' });
+                return next(new Error('Authentication required'));
+            }
+
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            socket.userId = decoded.userId;
+            socket.userName = decoded.name; // Assuming name is in token, or fetch from DB if critical
+            socket.userRole = decoded.role || decoded.primary_role;
+
+            logger.info('Socket authenticated', {
+                socketId: socket.id,
+                userId: socket.userId,
+                category: 'websocket'
+            });
+
+            next();
+        } catch (error) {
+            logger.error('Socket authentication failed:', error);
+            next(new Error('Invalid token'));
+        }
+    });
+
     io.on('connection', (socket) => {
+        // Join the user to their own room for targeted notifications
+        socket.join(`user_${socket.userId}`);
+
         logger.info('Socket.IO client connected', {
             socketId: socket.id,
             userId: socket.userId,
             userName: socket.userName,
             transport: socket.conn.transport.name,
+            room: `user_${socket.userId}`,
             category: 'websocket'
         });
 
