@@ -226,6 +226,12 @@ router.post('/:orderId/:action', verifyToken, async (req, res) => {
       userId: req.user.userId,
       category: 'error'
     });
+
+    // Return 400 for validation errors
+    if (error.message.includes('Order must be in') || error.message.includes('Invalid action') || error.message.includes('Only assigned driver')) {
+      return res.status(400).json({ error: error.message });
+    }
+
     res.status(500).json({ error: error.message || 'Failed to update order status' });
   }
 });
