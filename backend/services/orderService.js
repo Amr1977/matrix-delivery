@@ -897,8 +897,9 @@ RETURNING * `;
     const actionAlias = {
       'picked_up': 'pickup',
       'pickup': 'pickup',
-      'in_transit': 'in-transit', // Handle underscore variant
+      'in_transit': 'in-transit',
       'in-transit': 'in-transit',
+      'delivered': 'complete', // Handle frontend 'delivered' action
       'complete': 'complete'
     };
 
@@ -927,13 +928,15 @@ RETURNING * `;
 
     // Validate status transitions
     const statusMap = {
-      pickup: { from: 'accepted', to: 'picked_up' },
-      'in-transit': { from: 'picked_up', to: 'in_transit' },
-      complete: { from: 'in_transit', to: 'delivered' }
+      pickup: { from: ['accepted'], to: 'picked_up' },
+      'in-transit': { from: ['picked_up'], to: 'in_transit' }, // Standardize to underscore
+      complete: { from: ['in_transit', 'in-transit'], to: 'delivered' } // Accept both forms
     };
 
-    if (order.status !== statusMap[normalizedAction].from) {
-      throw new Error(`Order must be in ${statusMap[normalizedAction].from} status`);
+    const expectedPreviousStatuses = statusMap[normalizedAction].from;
+
+    if (!expectedPreviousStatuses.includes(order.status)) {
+      throw new Error(`Order must be in ${expectedPreviousStatuses.join(' or ')} status (current: ${order.status})`);
     }
 
     // Update order status
@@ -975,6 +978,9 @@ RETURNING * `;
       if (normalizedAction === 'pickup') {
         title = 'Order Picked Up 📦';
         message = `Your order "${order.title}" has been picked up and is on the way!`;
+      } else if (normalizedAction === 'in-transit') {
+        title = 'Order In Transit 🚚';
+        message = `Your order "${order.title}" is now moving towards the destination.`;
       } else if (normalizedAction === 'complete') {
         title = 'Order Delivered ✅';
         message = `Your order "${order.title}" has been successfully delivered.`;
