@@ -7,6 +7,7 @@ import 'leaflet/dist/leaflet.css';
 import logger from './logger';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
+import SavedAddressSelector from './components/SavedAddressSelector';
 
 // Fix Leaflet default icon issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -961,7 +962,7 @@ const MapLocationPicker = ({ location, onChange, onAddressFill, userLocation, ma
         }}>
           {userLocation ? (
             <MapContainer
-              center={location?.coordinates ? [location.coordinates.lat, location.coordinates.lng] : [userLocation.lat, userLocation.lng]}
+              center={location?.coordinates ? [location.coordinates.lat, location.coordinates.lng] : (userLocation ? [userLocation.lat, userLocation.lng] : [30.0444, 31.2357])}
               zoom={15}
               style={{
                 height: '100%',
@@ -1074,7 +1075,7 @@ const MapLocationPicker = ({ location, onChange, onAddressFill, userLocation, ma
           </div>
           <div style={{ width: '100%', maxWidth: 900, height: '80vh', background: 'white', borderRadius: '0.5rem', overflow: 'hidden' }}>
             <MapContainer
-              center={location?.coordinates ? [location.coordinates.lat, location.coordinates.lng] : [userLocation.lat, userLocation.lng]}
+              center={location?.coordinates ? [location.coordinates.lat, location.coordinates.lng] : (userLocation ? [userLocation.lat, userLocation.lng] : [30.0444, 31.2357])}
               zoom={16}
               style={{ height: '100%', width: '100%' }}
               whenReady={(map) => {
@@ -2152,6 +2153,27 @@ const LocationEntryCombined = ({
     }
   };
 
+  // Handle selecting a saved address
+  const handleSavedAddressSelect = (savedLocation) => {
+    // Update map location
+    onMapLocationChange(savedLocation);
+
+    // Update address form fields
+    if (savedLocation.address) {
+      onAddressChange({
+        ...addressData,
+        ...savedLocation.address,
+        country: savedLocation.address.country || addressData.country,
+        city: savedLocation.address.city || '',
+        area: savedLocation.address.area || '',
+        street: savedLocation.address.street || '',
+        building: savedLocation.address.building || '',
+        floor: savedLocation.address.floor || '',
+        apartment: savedLocation.address.apartment || ''
+      });
+    }
+  };
+
   return (
     <div className="card" style={{
       background: 'linear-gradient(135deg, #000000 0%, #001100 100%)',
@@ -2159,6 +2181,16 @@ const LocationEntryCombined = ({
       borderRadius: '0.75rem',
       overflow: 'hidden'
     }}>
+      {/* Saved Address Selector */}
+      <div style={{ padding: '1rem', borderBottom: '1px solid #00AA00', background: 'rgba(0,30,0,0.3)' }}>
+        <SavedAddressSelector
+          onSelect={handleSavedAddressSelect}
+          currentAddress={addressData}
+          currentCoordinates={mapLocation?.coordinates}
+          onSaved={() => { }}
+          t={t}
+        />
+      </div>
       {/* Map Section - Full Width - MOVED TO TOP */}
       <div style={{ padding: '1rem', borderBottom: '2px solid #00AA00' }}>
         <div style={{

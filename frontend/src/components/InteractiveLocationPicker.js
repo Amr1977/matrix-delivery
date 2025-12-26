@@ -104,7 +104,7 @@ const InteractiveLocationPicker = ({ onLocationSelect }) => {
         ref={mapRef}
       >
         <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          url="http://localhost:5000/api/maps/tiles/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
         {isMapReady && <LocationMarker />}

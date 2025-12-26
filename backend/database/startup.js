@@ -76,6 +76,34 @@ async function createAdminTables(pool) {
 }
 
 /**
+ * Create user-related database tables
+ */
+async function createUserTables(pool) {
+    try {
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS user_saved_addresses (
+                id VARCHAR(255) PRIMARY KEY,
+                user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                label VARCHAR(100) NOT NULL,
+                address_data JSONB NOT NULL,
+                lat DECIMAL(10, 7),
+                lng DECIMAL(10, 7),
+                is_default BOOLEAN DEFAULT FALSE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_user_saved_addresses_user ON user_saved_addresses(user_id)`);
+
+        logger.info('✅ User tables created successfully', { category: 'database' });
+    } catch (error) {
+        logger.error('❌ User tables creation error:', error);
+        throw error;
+    }
+}
+
+/**
  * Complete database initialization
  * Orchestrates all database setup including schema, admin tables, audit logging, and migrations
  */
@@ -105,6 +133,7 @@ async function initDatabase(pool) {
 
         // Initialize admin tables
         await createAdminTables(pool);
+        await createUserTables(pool);
 
         // Initialize audit logging
         initAuditLogger(pool);

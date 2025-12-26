@@ -458,4 +458,64 @@ router.get('/me/activity', verifyToken, async (req, res, next) => {
     }
 });
 
+/**
+ * GET /api/users/me/addresses
+ * Get user saved addresses
+ */
+router.get('/me/addresses', verifyToken, async (req, res, next) => {
+    try {
+        const result = await pool.query('SELECT * FROM user_saved_addresses WHERE user_id = $1 ORDER BY created_at DESC', [req.user.userId]);
+        res.json(result.rows);
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * POST /api/users/me/addresses
+ * Add user saved address
+ */
+router.post('/me/addresses', verifyToken, async (req, res, next) => {
+    try {
+        const { label, address_data, lat, lng, is_default } = req.body || {};
+
+        if (!label || !address_data) {
+            return res.status(400).json({ error: 'Label and address data are required' });
+        }
+
+        // If setting as default, unset others first
+        if (is_default) {
+            await pool.query('UPDATE user_saved_addresses SET is_default = false WHERE user_id = $1', [req.user.userId]);
+        }
+
+        const id = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+
+        const result = await pool.query(
+            `INSERT INTO user_saved_addresses (id, user_id, label, address_data, lat, lng, is_default)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)
+             RETURNING *`,
+            [id, req.user.userId, label, address_data, lat, lng, !!is_default]
+        );
+
+        logger.info('User added saved address', { userId: req.user.userId, category: 'user' });
+        res.json(result.rows[0]);
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * DELETE /api/users/me/addresses/:id
+ * Remove user saved address
+ */
+router.delete('/me/addresses/:id', verifyToken, async (req, res, next) => {
+    try {
+        await pool.query('DELETE FROM user_saved_addresses WHERE user_id = $1 AND id = $2', [req.user.userId, req.params.id]);
+        logger.info('User removed saved address', { userId: req.user.userId, addressId: req.params.id, category: 'user' });
+        res.json({ ok: true });
+    } catch (error) {
+        next(error);
+    }
+});
+
 module.exports = router;

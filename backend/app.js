@@ -110,6 +110,9 @@ app.use('/api/reviews', reviewsRouter);
 const driverRoutes = require('./routes/drivers');
 app.use('/api/drivers', driverRoutes);
 
+// Load map tile proxy endpoints
+app.use('/api/maps', require('./routes/maps'));
+
 // Load map location picker endpoints
 const mapPickerEndpoints = require('./map-location-picker-backend.js');
 mapPickerEndpoints(app, pool, jwt);
