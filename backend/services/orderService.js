@@ -214,10 +214,10 @@ END as acceptedBid,
       query = `
 SELECT
 o.*,
-  CASE WHEN o.assigned_driver_user_id = $1 THEN o.pickup_contact_name ELSE NULL END as pickupContactName,
-  CASE WHEN o.assigned_driver_user_id = $1 THEN o.pickup_contact_phone ELSE NULL END as pickupContactPhone,
-  CASE WHEN o.assigned_driver_user_id = $1 THEN o.dropoff_contact_name ELSE NULL END as dropoffContactName,
-  CASE WHEN o.assigned_driver_user_id = $1 THEN o.dropoff_contact_phone ELSE NULL END as dropoffContactPhone,
+  CASE WHEN o.assigned_driver_user_id = $1 THEN o.pickup_contact_name ELSE NULL END as "pickupContactName",
+  CASE WHEN o.assigned_driver_user_id = $1 THEN o.pickup_contact_phone ELSE NULL END as "pickupContactPhone",
+  CASE WHEN o.assigned_driver_user_id = $1 THEN o.dropoff_contact_name ELSE NULL END as "dropoffContactName",
+  CASE WHEN o.assigned_driver_user_id = $1 THEN o.dropoff_contact_phone ELSE NULL END as "dropoffContactPhone",
   json_build_object(
     'userId', d.id,
     'name', d.name,
@@ -297,10 +297,10 @@ WHERE(o.status = 'pending_bids' AND o.assigned_driver_user_id IS NULL${locationC
       query = `
 SELECT
 o.*,
-  o.pickup_contact_name as pickupContactName,
-  o.pickup_contact_phone as pickupContactPhone,
-  o.dropoff_contact_name as dropoffContactName,
-  o.dropoff_contact_phone as dropoffContactPhone,
+  o.pickup_contact_name as "pickupContactName",
+  o.pickup_contact_phone as "pickupContactPhone",
+  o.dropoff_contact_name as "dropoffContactName",
+  o.dropoff_contact_phone as "dropoffContactPhone",
   json_build_object(
     'userId', d.id,
     'name', d.name,
@@ -441,6 +441,21 @@ END as acceptedBid
       });
     }
 
+    // Debug logging for contact info visibility
+    if (ordersToReturn.length > 0 && userRole === 'driver') {
+      const sample = ordersToReturn.find(o => o.assigned_driver_user_id);
+      if (sample) {
+        logger.info(`[DEBUG] Driver Order Check`, {
+          inspectorId: params[0],
+          orderId: sample.id,
+          assignedDriverId: sample.assigned_driver_user_id,
+          match: sample.assigned_driver_user_id == params[0],
+          pickupContact: sample.pickupContactName, // Check raw alias return
+          pickupContactRaw: sample.pickup_contact_name // Check column return if alias failed
+        });
+      }
+    }
+
     return ordersToReturn.map(order => ({
       _id: order.id,
       title: order.title,
@@ -468,10 +483,10 @@ END as acceptedBid
         lat: parseFloat(order.to_coordinates.split(',')[0]),
         lng: parseFloat(order.to_coordinates.split(',')[1])
       } : null,
-      pickupContactName: order.pickupcontactname,
-      pickupContactPhone: order.pickupcontactphone,
-      dropoffContactName: order.dropoffcontactname,
-      dropoffContactPhone: order.dropoffcontactphone
+      pickupContactName: order.pickupContactName,
+      pickupContactPhone: order.pickupContactPhone,
+      dropoffContactName: order.dropoffContactName,
+      dropoffContactPhone: order.dropoffContactPhone
     }));
   }
 
@@ -710,7 +725,86 @@ RETURNING * `;
       category: 'order'
     });
 
+    // Send notification to customer
+    try {
+      const order = (await pool.query('SELECT customer_id, title FROM orders WHERE id = $1', [orderId])).rows[0];
+      const { createNotification } = require('./notificationService');
+      await createNotification(
+        order.customer_id,
+        orderId,
+        'bid_placed',
+        'New Bid Received',
+        `${driverName} placed a bid of $${bidPrice} on your order "${order.title}"`
+      );
+    } catch (notifyError) {
+      logger.error('Failed to send bid notification', notifyError);
+    }
+
     return { message: 'Bid placed successfully' };
+  }
+
+  /**
+   * Modify an existing bid
+   */
+  async modifyBid(orderId, driverId, bidData) {
+    const { bidPrice, message } = bidData;
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      const orderResult = await client.query('SELECT id, status, customer_id, order_number, title FROM orders WHERE id = $1', [orderId]);
+      if (orderResult.rows.length === 0) {
+        throw new Error('Order not found');
+      }
+      const order = orderResult.rows[0];
+
+      if (order.status !== 'pending_bids') {
+        throw new Error('Cannot modify bid after order is no longer accepting bids');
+      }
+
+      const bidResult = await client.query('SELECT id FROM bids WHERE order_id = $1 AND user_id = $2', [orderId, driverId]);
+      if (bidResult.rows.length === 0) {
+        throw new Error('Bid not found for this driver');
+      }
+      const bidId = bidResult.rows[0].id;
+
+      await client.query('UPDATE bids SET bid_price = $1, message = $2 WHERE id = $3', [bidPrice, message || null, bidId]);
+
+      // Get driver name
+      const driverResult = await client.query('SELECT name FROM users WHERE id = $1', [driverId]);
+      const driverName = driverResult.rows[0]?.name || 'Driver';
+
+      logger.order('Bid modified successfully', {
+        bidId,
+        orderId,
+        driverId,
+        bidPrice,
+        category: 'order'
+      });
+
+      // Send notification using NotificationService
+      try {
+        const { createNotification } = require('./notificationService');
+        await createNotification(
+          order.customer_id,
+          order.id,
+          'bid_modified',
+          'Bid Modified',
+          `${driverName} updated their bid to $${parseFloat(bidPrice).toFixed(2)} for order "${order.title}"`
+        );
+      } catch (notifyError) {
+        logger.error('Failed to send bid modification notification', notifyError);
+      }
+
+      await client.query('COMMIT');
+      return { success: true };
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
   /**
@@ -719,7 +813,7 @@ RETURNING * `;
   async acceptBid(orderId, customerId, driverId) {
     // Check if order belongs to customer and is in correct state
     const orderCheck = await pool.query(
-      'SELECT customer_id, status FROM orders WHERE id = $1',
+      'SELECT customer_id, status, title, order_number FROM orders WHERE id = $1',
       [orderId]
     );
 
@@ -738,7 +832,7 @@ RETURNING * `;
 
     // Check if bid exists
     const bidCheck = await pool.query(
-      'SELECT id FROM bids WHERE order_id = $1 AND user_id = $2',
+      'SELECT id, bid_price FROM bids WHERE order_id = $1 AND user_id = $2',
       [orderId, driverId]
     );
 
@@ -778,6 +872,20 @@ RETURNING * `;
       category: 'order'
     });
 
+    // Send notification to driver
+    try {
+      const { createNotification } = require('./notificationService');
+      await createNotification(
+        driverId,
+        orderId,
+        'bid_accepted',
+        'Bid Accepted! 🚀',
+        `Your bid for order "${order.title}" (${order.order_number}) was accepted! Proceed to pickup.`
+      );
+    } catch (notifyError) {
+      logger.error('Failed to send bid acceptance notification', notifyError);
+    }
+
     return { message: 'Bid accepted successfully' };
   }
 
@@ -785,15 +893,24 @@ RETURNING * `;
    * Update order status
    */
   async updateOrderStatus(orderId, driverId, action) {
-    const validActions = ['pickup', 'in-transit', 'complete'];
+    // Alias map to handle frontend calling 'picked_up' instead of 'pickup'
+    const actionAlias = {
+      'picked_up': 'pickup',
+      'pickup': 'pickup',
+      'in_transit': 'in-transit', // Handle underscore variant
+      'in-transit': 'in-transit',
+      'complete': 'complete'
+    };
 
-    if (!validActions.includes(action)) {
-      throw new Error('Invalid action');
+    const normalizedAction = actionAlias[action];
+
+    if (!normalizedAction) {
+      throw new Error(`Invalid action: ${action}`);
     }
 
     // Check order ownership/assignment
     const orderCheck = await pool.query(
-      'SELECT customer_id, assigned_driver_user_id, status FROM orders WHERE id = $1',
+      'SELECT customer_id, assigned_driver_user_id, status, title FROM orders WHERE id = $1',
       [orderId]
     );
 
@@ -815,27 +932,27 @@ RETURNING * `;
       complete: { from: 'in_transit', to: 'delivered' }
     };
 
-    if (order.status !== statusMap[action].from) {
-      throw new Error(`Order must be in ${statusMap[action].from} status`);
+    if (order.status !== statusMap[normalizedAction].from) {
+      throw new Error(`Order must be in ${statusMap[normalizedAction].from} status`);
     }
 
     // Update order status
     let query = `UPDATE orders SET status = $1 WHERE id = $2`;
-    let params = [statusMap[action].to, orderId];
+    let params = [statusMap[normalizedAction].to, orderId];
 
     const updateFields = {
       pickup: 'picked_up_at = NOW()',
       complete: 'delivered_at = NOW()'
     };
 
-    if (updateFields[action]) {
-      query = `UPDATE orders SET status = $1, ${updateFields[action]} WHERE id = $2`;
+    if (updateFields[normalizedAction]) {
+      query = `UPDATE orders SET status = $1, ${updateFields[normalizedAction]} WHERE id = $2`;
     }
 
     await pool.query(query, params);
 
     // If order is completed, update driver stats
-    if (action === 'complete') {
+    if (normalizedAction === 'complete') {
       await pool.query(
         'UPDATE users SET completed_deliveries = completed_deliveries + 1 WHERE id = $1',
         [driverId]
@@ -844,13 +961,99 @@ RETURNING * `;
 
     logger.order('Order status updated successfully', {
       orderId,
-      action,
-      newStatus: statusMap[action].to,
+      action: normalizedAction,
+      newStatus: statusMap[normalizedAction].to,
       driverId,
       category: 'order'
     });
 
-    return { message: `Order ${action} successful` };
+    // Notify Customer about status change
+    try {
+      const { createNotification } = require('./notificationService');
+      let title, message;
+
+      if (normalizedAction === 'pickup') {
+        title = 'Order Picked Up 📦';
+        message = `Your order "${order.title}" has been picked up and is on the way!`;
+      } else if (normalizedAction === 'complete') {
+        title = 'Order Delivered ✅';
+        message = `Your order "${order.title}" has been successfully delivered.`;
+      }
+
+      if (title) {
+        await createNotification(
+          order.customer_id,
+          orderId,
+          `order_${normalizedAction}`,
+          title,
+          message
+        );
+      }
+    } catch (notifyError) {
+      logger.error('Failed to send status update notification', notifyError);
+    }
+
+    return { message: `Order ${normalizedAction} successful` };
+  }
+
+  /**
+   * Withdraw a bid
+   */
+  async withdrawBid(orderId, driverId) {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      const orderResult = await client.query('SELECT id, status, customer_id, order_number FROM orders WHERE id = $1', [orderId]);
+      if (orderResult.rows.length === 0) {
+        throw new Error('Order not found');
+      }
+      const order = orderResult.rows[0];
+
+      if (order.status !== 'pending_bids') {
+        throw new Error('Cannot withdraw bid after order is no longer accepting bids');
+      }
+
+      const bidResult = await client.query('SELECT id, bid_price FROM bids WHERE order_id = $1 AND user_id = $2', [orderId, driverId]);
+      if (bidResult.rows.length === 0) {
+        throw new Error('Bid not found for this driver');
+      }
+      const bid = bidResult.rows[0];
+
+      await client.query('DELETE FROM bids WHERE id = $1', [bid.id]);
+
+      // Get driver name for notification
+      const driverResult = await client.query('SELECT name FROM users WHERE id = $1', [driverId]);
+      const driverName = driverResult.rows[0]?.name || 'Driver';
+
+      // Send notification using the NotificationService
+      try {
+        const { createNotification } = require('./notificationService');
+        await createNotification(
+          order.customer_id,
+          order.id,
+          'bid_withdrawn',
+          'Bid Withdrawn',
+          `${driverName} withdrew their bid`
+        );
+      } catch (notifyError) {
+        logger.error('Failed to send withdrawn notification', notifyError);
+        // Fallback to direct insert if service fails
+        await client.query(
+          `INSERT INTO notifications (user_id, order_id, type, title, message, is_read, created_at)
+           VALUES ($1, $2, $3, $4, $5, false, NOW())`,
+          [order.customer_id, order.id, 'bid_withdrawn', 'Bid Withdrawn', `${driverName} withdrew their bid`]
+        );
+      }
+
+      await client.query('COMMIT');
+      return { success: true };
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
   /**

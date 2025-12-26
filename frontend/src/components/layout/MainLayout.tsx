@@ -94,8 +94,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                             {unreadCount > 0 && (
                                 <span className="notification-badge" style={{
                                     position: 'absolute',
-                                    top: '-8px',
-                                    right: '-8px',
+                                    top: '-2px',
+                                    right: '-2px',
                                     background: '#EF4444',
                                     color: 'white',
                                     fontSize: '0.7rem',
