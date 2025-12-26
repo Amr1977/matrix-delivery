@@ -42,6 +42,7 @@ import './components/ui/GeolocationStatus.css';
 import { BalanceDashboardPage, TransactionHistoryPage, BalanceStatementPage } from './pages/BalancePages';
 import MatrixLanding from './pages/MatrixLanding';
 import ReviewsPage from './pages/ReviewsPage';
+import CreateOrderPage from './pages/CreateOrderPage';
 
 // TypeScript API Services
 import { AuthApi, OrdersApi, NotificationsApi, UsersApi } from './services/api';
@@ -1989,11 +1990,11 @@ export const MainApp = () => {
         {viewType !== 'profile' && (currentUser?.primary_role === 'customer' || currentUser?.primary_role === 'admin') && (
           <div style={{ marginBottom: '1.5rem' }}>
             <button
-              onClick={() => setShowOrderForm(!showOrderForm)}
+              onClick={() => navigate('/create-order')}
               disabled={loading}
               className="btn-primary"
             >
-              📦 {showOrderForm ? t('common.cancel') : t('orders.createOrder')}
+              📦 {t('orders.createOrder')}
             </button>
 
             {/* Customer Tab Switcher */}
@@ -2034,13 +2035,7 @@ export const MainApp = () => {
           </div>
         )}
 
-        {showOrderForm && (
-          <OrderCreationForm
-            onSubmit={handlePublishOrder}
-            countries={countries}
-            t={t}
-          />
-        )}
+
 
         {showReviewModal && (
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '1rem' }}>
@@ -2810,6 +2805,10 @@ const router = createBrowserRouter([
   {
     path: '/landing', // Keep for backward compatibility/explicit access
     element: <MatrixLanding />,
+  },
+  {
+    path: '/create-order',
+    element: <CreateOrderPage />,
   },
   {
     path: '/reviews',
