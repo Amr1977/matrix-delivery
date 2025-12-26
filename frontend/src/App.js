@@ -33,7 +33,7 @@ import useDriver from './hooks/useDriver';
 import GeolocationStatus from './components/ui/GeolocationStatus';
 import InteractiveLocationPicker from './components/InteractiveLocationPicker';
 import usePageVisibility from './hooks/usePageVisibility';
-import { useBackendHealth } from './hooks/useBackendHealth';
+// import { useBackendHealth } from './hooks/useBackendHealth';
 import { useHeartbeat } from './hooks/useHeartbeat';
 import MaintenancePage from './components/MaintenancePage';
 import './components/ui/GeolocationStatus.css';
@@ -52,13 +52,10 @@ import { RouterProvider, createBrowserRouter, Navigate } from 'react-router-dom'
 export const MainApp = () => {
   const navigate = useNavigate();
   const { t, locale, changeLocale } = useI18n();
-  const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
+  const API_URL = process.env.REACT_APP_API_URL;
 
   // Performance optimization: Page visibility detection
   const isPageVisible = usePageVisibility();
-
-  // Backend health monitoring
-  const { isHealthy, isChecking, lastCheck, checkHealth } = useBackendHealth(API_URL);
 
   // Fixed: LiveTrackingMap component moved outside DeliveryApp function for proper scoping
   // State variables
@@ -193,16 +190,6 @@ export const MainApp = () => {
     }
     metaTag.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
   }, []);
-
-  // Hamburger menu handler
-  // const toggleMobileMenu = () => setShowMobileMenu(!showMobileMenu); // Moved to MainLayout
-
-  // Add effect to close menu when clicking backdrop
-  // This useEffect was related to showMobileMenu, which is now handled by MainLayout.
-  // It should be removed or adapted if MainLayout needs to control body overflow.
-  // Given the instruction "Remove the old header and mobile menu JSX", this useEffect is part of the old mobile menu logic.
-  // So, remove it.
-
 
   // Mobile touch optimization
   const isMobile = () => window.innerWidth <= 768;
@@ -2849,17 +2836,17 @@ const router = createBrowserRouter([
 const AppWithErrorBoundary = () => {
   // Show maintenance page if backend is down
   const API_URL = process.env.REACT_APP_API_URL;
-  const { isHealthy, isChecking, lastCheck, checkHealth } = useBackendHealth(API_URL);
+  // const { isHealthy, isChecking, lastCheck, checkHealth } = useBackendHealth(API_URL);
 
-  if (!isHealthy) {
-    return (
-      <MaintenancePage
-        onRetry={checkHealth}
-        isChecking={isChecking}
-        lastCheck={lastCheck}
-      />
-    );
-  }
+  // if (!isHealthy) {
+  //   return (
+  //     <MaintenancePage
+  //       onRetry={checkHealth}
+  //       isChecking={isChecking}
+  //       lastCheck={lastCheck}
+  //     />
+  //   );
+  // }
 
   return (
     <ErrorBoundary>
