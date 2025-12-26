@@ -17,7 +17,6 @@ import MessagingPanel from './components/messaging/MessagingPanel';
 import ChatPage from './components/messaging/ChatPage';
 import ActiveOrderCard from './components/orders/ActiveOrderCard';
 import PaymentMethodsManager from './components/payments/PaymentMethodsManager';
-// Email verification banner moved into profile modal
 import MainLayout from './components/layout/MainLayout';
 import ProfilePage from './pages/ProfilePage';
 import NotificationPanel from './components/notifications/NotificationPanel';
