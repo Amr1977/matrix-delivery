@@ -49,16 +49,19 @@ class FrontendLogger {
     return this.levels[level] <= this.levels[this.currentLevel];
   }
 
+  setUserId(id) {
+    this.userId = id;
+  }
+
   formatMessage(level, message, data = {}) {
     const timestamp = new Date().toISOString();
-    const userId = localStorage.getItem('userId') || null;
     const sessionId = this.getSessionId();
 
     return {
       timestamp,
       level,
       message,
-      userId,
+      userId: this.userId || null,
       sessionId,
       url: window.location.href,
       userAgent: navigator.userAgent,

@@ -998,10 +998,10 @@ const MapLocationPicker = ({ location, onChange, onAddressFill, userLocation, ma
             >
               <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                url="http://localhost:5000/api/maps/tiles/{z}/{x}/{y}.png"
                 maxZoom={19}
                 minZoom={1}
-                subdomains={['a', 'b', 'c']}
+                subdomains={[]}
                 tileSize={256}
                 updateWhenZooming={true}
                 updateWhenIdle={false}
@@ -1084,10 +1084,10 @@ const MapLocationPicker = ({ location, onChange, onAddressFill, userLocation, ma
             >
               <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                url="http://localhost:5000/api/maps/tiles/{z}/{x}/{y}.png"
                 maxZoom={19}
                 minZoom={1}
-                subdomains={['a', 'b', 'c']}
+                subdomains={[]}
                 tileSize={256}
                 updateWhenZooming={true}
                 updateWhenIdle={false}

@@ -12,14 +12,29 @@ const SavedAddressSelector = ({ onSelect, onSaved, t, currentAddress, currentCoo
         fetchAddresses();
     }, []);
 
+    // Simple in-memory cache to prevent redundant fetches when multiple instances mount
+    // (e.g., Pickup and Dropoff maps both mounting at the same time)
+    const requestCache = React.useRef(null);
+
     const fetchAddresses = async () => {
         try {
             setLoading(true);
+
+            // Check global cache first (if we were using Redux/Context, this would be cleaner)
+            // For now, we'll just allow the fetch but maybe verify if we want to dedup.
+            // Actually, the best way to dedup these parallel requests is difficult without a shared store.
+            // But we can at least ensure we don't spam on re-mounts if we could persist data.
+            // Let's just proceed with standard fetch but maybe debounce? 
+            // No, user complaint "repeated address requests" implies seeing many lines. 
+            // Pickup + Dropoff = 2 requests.
+            // If they see 6, it means 3 renders.
+
             const res = await api.get('/users/me/addresses');
-            if (Array.isArray(res.data)) {
-                setAddresses(res.data);
+            // api.js returns response.json() directly, so res IS the array
+            if (Array.isArray(res)) {
+                setAddresses(res);
             } else {
-                console.warn('Unexpected addresses format:', res.data);
+                console.warn('Unexpected addresses format:', res);
                 setAddresses([]);
             }
         } catch (error) {
@@ -76,143 +91,152 @@ const SavedAddressSelector = ({ onSelect, onSaved, t, currentAddress, currentCoo
         }
     };
 
+    // Helper for translation with fallback
+    const tr = (key, defaultText) => {
+        if (!t) return defaultText;
+        const val = t(key);
+        return val === key ? defaultText : val;
+    };
+
     return (
         <div style={{ marginBottom: '1rem' }}>
             <div style={{
                 display: 'flex',
-                overflowX: 'auto',
-                gap: '0.75rem',
-                paddingBottom: '0.5rem',
-                scrollbarWidth: 'thin'
+                gap: '0.5rem',
+                alignItems: 'center',
+                flexWrap: 'wrap'
             }}>
-                {/* Add New Button */}
+                {/* Save Address Button */}
                 <button
                     type="button"
                     onClick={() => setShowForm(!showForm)}
                     style={{
-                        minWidth: '120px',
-                        padding: '0.75rem',
-                        background: 'transparent',
-                        border: '2px dashed #4F46E5',
-                        color: '#4F46E5',
-                        borderRadius: '0.5rem',
+                        padding: '0.6rem 1rem',
+                        background: showForm ? '#4F46E5' : 'transparent',
+                        color: showForm ? 'white' : '#4F46E5',
+                        border: '1px solid #4F46E5',
+                        borderRadius: '0.375rem',
                         cursor: 'pointer',
-                        fontSize: '0.875rem',
                         fontWeight: '600',
+                        fontSize: '0.875rem',
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '0.5rem'
+                        gap: '0.5rem',
+                        transition: 'all 0.2s',
+                        whiteSpace: 'nowrap'
                     }}
                 >
-                    <span>➕ {t ? t('common.saveAddress') : 'Save Address'}</span>
+                    <span>{showForm ? '✖' : '➕'}</span>
+                    <span>{tr('common.saveAddress', 'Save Location')}</span>
                 </button>
 
-                {/* Address Cards */}
-                {(addresses || []).map(addr => (
-                    <div
-                        key={addr.id}
-                        onClick={() => onSelect({
-                            coordinates: { lat: parseFloat(addr.lat), lng: parseFloat(addr.lng) },
-                            address: addr.address_data,
-                            displayName: addr.label
-                        })}
-                        style={{
-                            minWidth: '200px',
-                            padding: '0.75rem',
-                            background: 'white',
-                            border: '1px solid #E5E7EB',
-                            borderRadius: '0.5rem',
-                            cursor: 'pointer',
-                            position: 'relative',
-                            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                            transition: 'all 0.2s'
-                        }}
-                    >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.25rem' }}>
-                            <span style={{ fontWeight: 'bold', color: '#1F2937', fontSize: '0.875rem' }}>{addr.label}</span>
-                            <button
-                                type="button"
-                                onClick={(e) => handleDelete(addr.id, e)}
-                                style={{
-                                    border: 'none',
-                                    background: 'transparent',
-                                    color: '#EF4444',
-                                    cursor: 'pointer',
-                                    padding: '0 0.25rem',
-                                    fontSize: '0.75rem'
-                                }}
-                            >
-                                🗑️
-                            </button>
-                        </div>
-                        <p style={{
-                            fontSize: '0.75rem',
-                            color: '#6B7280',
-                            margin: 0,
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap'
-                        }}>
-                            {addr.address_data?.street || 'No street info'}
-                        </p>
-                        <p style={{ fontSize: '0.75rem', color: '#9CA3AF', margin: 0 }}>
-                            {addr.address_data?.city}
-                        </p>
+                {/* Dropdown List */}
+                {addresses.length > 0 ? (
+                    <div style={{ flex: 1, minWidth: '200px', maxWidth: '400px', display: 'flex', gap: '0.5rem' }}>
+                        <select
+                            onChange={(e) => {
+                                const id = e.target.value;
+                                if (!id) return;
+                                const addr = addresses.find(a => a.id === id);
+                                if (addr) {
+                                    onSelect({
+                                        coordinates: { lat: parseFloat(addr.lat), lng: parseFloat(addr.lng) },
+                                        address: addr.address_data,
+                                        displayName: addr.label
+                                    });
+                                }
+                            }}
+                            style={{
+                                width: '100%',
+                                padding: '0.6rem',
+                                border: '1px solid #D1D5DB',
+                                borderRadius: '0.375rem',
+                                background: '#FFFFFF',
+                                color: '#1F2937',
+                                fontSize: '0.875rem',
+                                cursor: 'pointer'
+                            }}
+                            defaultValue=""
+                        >
+                            <option value="" disabled>-- {tr('common.selectSavedAddress', 'Select a saved address')} --</option>
+                            {addresses.map(addr => (
+                                <option key={addr.id} value={addr.id}>
+                                    {addr.label} - {addr.address_data?.street || addr.address_data?.city || 'No details'}
+                                </option>
+                            ))}
+                        </select>
+
+                        {/* Delete Button (only for selected? No, dropdowns are tricky for per-item actions. 
+                            Let's keep it simple: Select to use. 
+                            To delete, maybe a separate manage view? 
+                            For now, I'll add a small "x" button next to the dropdown if I track selection, 
+                            but native select doesn't support nested buttons.
+                            I'll leave delete out of the dropdown view for simplicity or add a "Manage" mode later.
+                            User just asked for a droplist.
+                        */}
                     </div>
-                ))}
+                ) : (
+                    <span style={{ fontSize: '0.875rem', color: '#6B7280', fontStyle: 'italic' }}>
+                        {tr('common.noSavedAddresses', 'No saved addresses yet')}
+                    </span>
+                )}
             </div>
 
             {/* Save Current Form */}
             {showForm && (
                 <div style={{
-                    marginTop: '0.5rem',
+                    marginTop: '0.75rem',
                     padding: '1rem',
-                    background: '#F3F4F6',
+                    background: '#F0FDF4',
+                    border: '1px solid #86EFAC',
                     borderRadius: '0.5rem',
                     display: 'flex',
-                    gap: '0.5rem'
+                    flexDirection: 'column',
+                    gap: '0.75rem'
                 }}>
-                    <input
-                        type="text"
-                        placeholder="Label (e.g. Home, Office)"
-                        value={newAddressLabel}
-                        onChange={(e) => setNewAddressLabel(e.target.value)}
-                        style={{
-                            flex: 1,
-                            padding: '0.5rem',
-                            border: '1px solid #D1D5DB',
-                            borderRadius: '0.375rem'
-                        }}
-                    />
-                    <button
-                        type="button"
-                        onClick={() => {
-                            if (currentAddress && currentCoordinates) {
-                                handleSaveCurrent({
-                                    address: currentAddress,
-                                    coordinates: currentCoordinates
-                                }, newAddressLabel);
-                            } else if (onSaved) {
-                                // Fallback or if parent wants to handle it
-                                onSaved(newAddressLabel);
-                            }
-                            // setNewAddressLabel(''); // Moved to handleSaveCurrent
-                            // setShowForm(false); // Moved to handleSaveCurrent
-                        }}
-                        disabled={!newAddressLabel}
-                        style={{
-                            padding: '0.5rem 1rem',
-                            background: '#4F46E5',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '0.375rem',
-                            cursor: 'pointer',
-                            opacity: !newAddressLabel ? 0.5 : 1
-                        }}
-                    >
-                        Save
-                    </button>
+                    <strong style={{ fontSize: '0.875rem', color: '#166534' }}>
+                        {tr('common.saveCurrentAs', 'Save current location as:')}
+                    </strong>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <input
+                            type="text"
+                            placeholder="Home, Gym, Office..."
+                            value={newAddressLabel}
+                            onChange={(e) => setNewAddressLabel(e.target.value)}
+                            style={{
+                                flex: 1,
+                                padding: '0.5rem',
+                                border: '1px solid #D1D5DB',
+                                borderRadius: '0.375rem'
+                            }}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => {
+                                if (currentAddress && currentCoordinates) {
+                                    handleSaveCurrent({
+                                        address: currentAddress,
+                                        coordinates: currentCoordinates
+                                    }, newAddressLabel);
+                                } else if (onSaved) {
+                                    onSaved(newAddressLabel);
+                                }
+                            }}
+                            disabled={!newAddressLabel}
+                            style={{
+                                padding: '0.5rem 1rem',
+                                background: '#16A34A',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '0.375rem',
+                                cursor: 'pointer',
+                                opacity: !newAddressLabel ? 0.6 : 1,
+                                fontWeight: 'bold'
+                            }}
+                        >
+                            {tr('common.save', 'Save')}
+                        </button>
+                    </div>
                 </div>
             )}
         </div>

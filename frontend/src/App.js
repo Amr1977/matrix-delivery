@@ -749,6 +749,7 @@ export const MainApp = () => {
     try {
       const data = await AuthApi.getCurrentUser();
       setCurrentUser(data);
+      if (data.id) logger.setUserId(data.id); // Secure in-memory logging
       setAvailableRoles(data.granted_roles || (data.primary_role ? [data.primary_role] : []));
       setToken('authenticated'); // Set token flag to indicate logged in
       setError('');
@@ -1099,6 +1100,7 @@ export const MainApp = () => {
       // Token is now set in httpOnly cookie by server, no need to store in localStorage
       setToken('authenticated'); // Just a flag to indicate user is logged in
       setCurrentUser(data.user);
+      if (data.user.id) logger.setUserId(data.user.id);
       setAvailableRoles(data.user.granted_roles || (data.user.primary_role ? [data.user.primary_role] : []));
       setAuthForm({ name: '', email: '', password: '', phone: '', primary_role: 'customer', vehicle_type: '' });
       setError('');
@@ -1132,6 +1134,8 @@ export const MainApp = () => {
     // Clear all client-side state
     setToken(null);
     setCurrentUser(null);
+    logger.setUserId(null); // Clear logger user ID
+    setProfileData({});
     setOrders([]);
     setNotifications([]);
     setAuthState('login');
