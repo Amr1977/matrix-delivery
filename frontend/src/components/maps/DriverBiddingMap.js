@@ -119,7 +119,8 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
 
   const hasDriverCoords = !!(driverCoords && Number.isFinite(driverCoords.lat) && Number.isFinite(driverCoords.lng));
 
-  const tileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+  // Use local tile proxy for offline support
+  const tileUrl = "http://localhost:5000/api/maps/tiles/{z}/{x}/{y}.png";
 
   // Parse order locations (handle both old and new formats)
   React.useEffect(() => {

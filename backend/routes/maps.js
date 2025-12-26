@@ -37,17 +37,23 @@ const insertTileParams = db.prepare('INSERT OR REPLACE INTO tiles (z, x, y, data
  * @access Public
  */
 router.get('/tiles/:z/:x/:y.png', async (req, res) => {
-    const { z, x, y } = req.params;
+    const z = parseInt(req.params.z);
+    const x = parseInt(req.params.x);
+    const y = parseInt(req.params.y);
 
     try {
         // 1. Check local cache
         const row = getTileParams.get(z, x, y);
         if (row) {
             // Serve from cache
+            console.log(`🗺️ Cache HIT for tile ${z}/${x}/${y}`); // DEBUG
             res.setHeader('Content-Type', 'image/png');
+            res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
             res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 1 day in browser
             return res.send(row.data);
         }
+
+        console.log(`🌍 Cache MISS for tile ${z}/${x}/${y} - Fetching from OSM`); // DEBUG
 
         // 2. Fetch from OpenStreetMap (or other provider)
         // User-Agent is required by OSM tile usage policy
@@ -66,12 +72,14 @@ router.get('/tiles/:z/:x/:y.png', async (req, res) => {
         // 3. Save to cache (async, don't block response too much)
         try {
             insertTileParams.run(z, x, y, tileData, Date.now());
+            // console.log(`💾 Saved tile ${z}/${x}/${y} to cache`);
         } catch (saveError) {
-            logger.error('Failed to cache tile:', saveError.message);
+            logger.error(`Failed to cache tile ${z}/${x}/${y}:`, saveError.message);
         }
 
         // 4. Serve requested tile
         res.setHeader('Content-Type', 'image/png');
+        res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
         res.setHeader('Cache-Control', 'public, max-age=604800'); // Cache for 1 week
         res.send(tileData);
 

@@ -22,8 +22,8 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, loading, 
   const effectiveCenterLat = driverLocation ? (centerLat + driverLocation.latitude) / 2 : centerLat;
   const effectiveCenterLng = driverLocation ? (centerLng + driverLocation.longitude) / 2 : centerLng;
 
-  // Use original OpenStreetMap tiles for all themes (no color effects)
-  const tileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+  // Use local tile proxy for offline support
+  const tileUrl = "http://localhost:5000/api/maps/tiles/{z}/{x}/{y}.png";
 
   // Decode polyline if available from OSRM, otherwise use straight line
   let routePath = [];
