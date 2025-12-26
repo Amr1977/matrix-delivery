@@ -53,6 +53,10 @@ class OrderService {
       query = `
 SELECT
 o.*,
+  o.pickup_contact_name as pickupContactName,
+  o.pickup_contact_phone as pickupContactPhone,
+  o.dropoff_contact_name as dropoffContactName,
+  o.dropoff_contact_phone as dropoffContactPhone,
   json_build_object(
     'userId', d.id,
     'name', d.name,
@@ -210,6 +214,10 @@ END as acceptedBid,
       query = `
 SELECT
 o.*,
+  CASE WHEN o.assigned_driver_user_id = $1 THEN o.pickup_contact_name ELSE NULL END as pickupContactName,
+  CASE WHEN o.assigned_driver_user_id = $1 THEN o.pickup_contact_phone ELSE NULL END as pickupContactPhone,
+  CASE WHEN o.assigned_driver_user_id = $1 THEN o.dropoff_contact_name ELSE NULL END as dropoffContactName,
+  CASE WHEN o.assigned_driver_user_id = $1 THEN o.dropoff_contact_phone ELSE NULL END as dropoffContactPhone,
   json_build_object(
     'userId', d.id,
     'name', d.name,
@@ -289,6 +297,10 @@ WHERE(o.status = 'pending_bids' AND o.assigned_driver_user_id IS NULL${locationC
       query = `
 SELECT
 o.*,
+  o.pickup_contact_name as pickupContactName,
+  o.pickup_contact_phone as pickupContactPhone,
+  o.dropoff_contact_name as dropoffContactName,
+  o.dropoff_contact_phone as dropoffContactPhone,
   json_build_object(
     'userId', d.id,
     'name', d.name,
@@ -455,14 +467,18 @@ END as acceptedBid
       to: order.to_coordinates ? {
         lat: parseFloat(order.to_coordinates.split(',')[0]),
         lng: parseFloat(order.to_coordinates.split(',')[1])
-      } : null
+      } : null,
+      pickupContactName: order.pickupcontactname,
+      pickupContactPhone: order.pickupcontactphone,
+      dropoffContactName: order.dropoffcontactname,
+      dropoffContactPhone: order.dropoffcontactphone
     }));
   }
 
   /**
    * Create a new order
    */
-  async createOrder(orderData, customerId) {
+  async createOrder(orderData, customerId, customerName) {
     console.log('🛠️ ORDER SERVICE - RECEIVED ORDER CREATION REQUEST');
     console.log('🛠️ ORDER SERVICE - RAW ORDER DATA RECEIVED:', JSON.stringify(orderData, null, 2));
     console.log('🛠️ ORDER SERVICE - CUSTOMER ID:', customerId);
@@ -511,7 +527,9 @@ END as acceptedBid
     package_description = orderData.package_description;
     package_weight = orderData.package_weight ? parseFloat(orderData.package_weight) : null;
     estimated_value = orderData.estimated_value ? parseFloat(orderData.estimated_value) : null;
+    estimated_value = orderData.estimated_value ? parseFloat(orderData.estimated_value) : null;
     special_instructions = orderData.special_instructions;
+    const estimated_delivery_date = orderData.estimated_delivery_date;
 
     console.log('🛠️ ORDER SERVICE - EXTRACTED ALL FIELDS:', {
       title, price, description, package_description, special_instructions
@@ -528,8 +546,8 @@ END as acceptedBid
 
     if (pa && da) {
       // Build addresses from manual entry if provided
-      pickupAddress = `${pa.personName || 'Contact'} ${pa.personPhone ? `(${pa.personPhone})` : ''}, ${pa.street || ''} ${pa.building || ''}, ${pa.floor ? `Floor ${pa.floor}` : ''}, ${pa.apartment ? `Apt ${pa.apartment}` : ''}, ${pa.area || ''}, ${pa.city || ''}, ${pa.country || ''} `.replace(/, ,/g, ',').replace(/^,|,$/g, '').replace(/,+/g, ', ');
-      deliveryAddress = `${da.personName || 'Contact'} ${da.personPhone ? `(${da.personPhone})` : ''}, ${da.street || ''} ${da.building || ''}, ${da.floor ? `Floor ${da.floor}` : ''}, ${da.apartment ? `Apt ${da.apartment}` : ''}, ${da.area || ''}, ${da.city || ''}, ${da.country || ''} `.replace(/, ,/g, ',').replace(/^,|,$/g, '').replace(/,+/g, ', ');
+      pickupAddress = `${pa.street || ''} ${pa.building ? `Building ${pa.building}` : ''}, ${pa.floor ? `Floor ${pa.floor}` : ''}, ${pa.apartment ? `Apt ${pa.apartment}` : ''}, ${pa.area || ''}, ${pa.city || ''}, ${pa.country || ''} `.replace(/, ,/g, ',').replace(/^,|,$/g, '').replace(/,+/g, ', ');
+      deliveryAddress = `${da.street || ''} ${da.building ? `Building ${da.building}` : ''}, ${da.floor ? `Floor ${da.floor}` : ''}, ${da.apartment ? `Apt ${da.apartment}` : ''}, ${da.area || ''}, ${da.city || ''}, ${da.country || ''} `.replace(/, ,/g, ',').replace(/^,|,$/g, '').replace(/,+/g, ', ');
     } else {
       // Use coordinates-only addresses (from map click)
       const pickupCoords = orderData.pickupLocation.coordinates;
@@ -538,21 +556,31 @@ END as acceptedBid
       deliveryAddress = `${dropoffCoords.lat.toFixed(6)}, ${dropoffCoords.lng.toFixed(6)} `;
     }
 
+    // Extract separate contact info for new columns
+    const pickupContactName = pa?.personName || null;
+    const pickupContactPhone = pa?.personPhone || null;
+    const dropoffContactName = da?.personName || null;
+    const dropoffContactPhone = da?.personPhone || null;
+
     console.log('🛠️ ORDER SERVICE - BUILT ADDRESSES:', { pickupAddress, deliveryAddress });
 
     // Set coordinates from map location (guaranteed to exist from validation above)
     fromCoordinates = `${orderData.pickupLocation.coordinates.lat},${orderData.pickupLocation.coordinates.lng} `;
     toCoordinates = `${orderData.dropoffLocation.coordinates.lat},${orderData.dropoffLocation.coordinates.lng} `;
 
-    const result = await pool.query(
-      `INSERT INTO orders(
+    const queryText = `INSERT INTO orders(
   id, customer_id, title, description, pickup_address, delivery_address,
   from_lat, from_lng, to_lat, to_lng, from_coordinates, to_coordinates,
   pickup_coordinates, delivery_coordinates, package_description, package_weight,
   estimated_value, special_instructions, price, status, order_number,
-  created_at
-) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, NOW())
-RETURNING * `,
+  pickup_contact_name, pickup_contact_phone, dropoff_contact_name, dropoff_contact_phone,
+  created_at, customer_name, estimated_delivery_date
+) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, NOW(), $26, $27)
+RETURNING * `;
+
+    console.log('🔍 EXECUTING ORDER INSERT:', queryText);
+
+    const result = await pool.query(queryText,
       [
         orderId,
         customerId,
@@ -574,7 +602,13 @@ RETURNING * `,
         this.sanitizeString(special_instructions, 500),
         parseFloat(price),
         'pending_bids',
-        orderNumber
+        orderNumber,
+        this.sanitizeString(pickupContactName, 255),
+        this.sanitizeString(pickupContactPhone, 50),
+        this.sanitizeString(dropoffContactName, 255),
+        this.sanitizeString(dropoffContactPhone, 50),
+        this.sanitizeString(customerName, 255),
+        estimated_delivery_date || null
       ]
     );
 

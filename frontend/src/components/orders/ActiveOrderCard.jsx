@@ -116,10 +116,22 @@ const ActiveOrderCard = ({
                 <div>
                     <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>📤 Pickup</p>
                     <p style={{ fontSize: '0.875rem' }}>{order.pickupAddress || order.from?.name}</p>
+                    {order.pickupContactName && (
+                        <div style={{ marginTop: '0.25rem', fontSize: '0.8rem', color: '#4B5563' }}>
+                            <span role="img" aria-label="user">👤</span> {order.pickupContactName}
+                            {order.pickupContactPhone && <><br /><span role="img" aria-label="phone">📞</span> <a href={`tel:${order.pickupContactPhone}`} style={{ color: '#4F46E5', textDecoration: 'none' }}>{order.pickupContactPhone}</a></>}
+                        </div>
+                    )}
                 </div>
                 <div>
                     <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>📥 Delivery</p>
                     <p style={{ fontSize: '0.875rem' }}>{order.deliveryAddress || order.to?.name}</p>
+                    {order.dropoffContactName && (
+                        <div style={{ marginTop: '0.25rem', fontSize: '0.8rem', color: '#4B5563' }}>
+                            <span role="img" aria-label="user">👤</span> {order.dropoffContactName}
+                            {order.dropoffContactPhone && <><br /><span role="img" aria-label="phone">📞</span> <a href={`tel:${order.dropoffContactPhone}`} style={{ color: '#4F46E5', textDecoration: 'none' }}>{order.dropoffContactPhone}</a></>}
+                        </div>
+                    )}
                 </div>
                 {order.packageDescription && (
                     <div style={{ gridColumn: '1 / -1' }}>

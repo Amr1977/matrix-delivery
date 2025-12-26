@@ -61,10 +61,10 @@ const CreateOrderPage = () => {
                 ...(orderData.routeInfo && { routeInfo: orderData.routeInfo })
             };
 
-            await OrdersApi.createOrder(newOrder);
+            const createdOrder = await OrdersApi.createOrder(newOrder);
 
             alert(t('common.orderPublished', 'Order published successfully!'));
-            navigate('/'); // Go back to dashboard/active orders
+            navigate('/app'); // Go back to dashboard/active orders
         } catch (err) {
             throw err; // Form component will catch and display
         } finally {
