@@ -85,7 +85,7 @@ router.get('/', verifyToken, async (req, res) => {
 // Create new order
 router.post('/', verifyToken, orderCreationRateLimit, async (req, res, next) => {
   try {
-    if ((req.user.primary_role || req.user.primary_role) !== 'customer' && (req.user.primary_role || req.user.primary_role) !== 'admin') {
+    if (!['customer', 'admin'].includes(req.user.primary_role)) {
       return res.status(403).json({ error: 'Only customers and admins can create orders' });
     }
 
@@ -93,16 +93,16 @@ router.post('/', verifyToken, orderCreationRateLimit, async (req, res, next) => 
     const {
       title, price, description, package_description, package_weight, estimated_value,
       special_instructions, pickupAddress, dropoffAddress, pickupLocation, dropoffLocation,
-      showManualEntry
+      showManualEntry, estimated_delivery_date
     } = req.body;
 
     const orderData = {
       title, price, description, package_description, package_weight, estimated_value,
       special_instructions, pickupAddress, dropoffAddress, pickupLocation, dropoffLocation,
-      showManualEntry
+      showManualEntry, estimated_delivery_date
     };
 
-    const order = await orderService.createOrder(orderData, req.user.userId);
+    const order = await orderService.createOrder(orderData, req.user.userId, req.user.name);
     res.status(201).json(order);
   } catch (error) {
     next(error);
