@@ -60,7 +60,6 @@ matrix-heroes/
 └── docs/
 ```
 
-```
 
 ---
 
@@ -145,30 +144,8 @@ npm test -- --testPathPattern=balance
 npm test -- --coverage
 ```
 
----
-
-## 🧑‍💻 Contributing
-We welcome contributors of all skill levels who believe in fair mobility platforms!
-
-Please see [`CONTRIBUTING.md`](CONTRIBUTING.md) for setup instructions, contribution guidelines, and code standards.
-
-**Join us in building the future of fair transportation! 🚀**
-
----
-
 ## 🗺️ Project Roadmap
 A full roadmap of upcoming milestones and features can be found in [`ROADMAP.md`](ROADMAP.md).
-
----
-
-## ❤️ Maintainers
-**The Matrix Heroes Team**
-Maintained by developers and contributors from around the world who believe in fairness, transparency, and heroic service.
-
----
-
-## 📜 License
-This project is licensed under the **MIT License** – see [`LICENSE`](LICENSE) for details.
 
 ---
 
