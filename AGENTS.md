@@ -25,12 +25,12 @@
 - **Real-time**: Socket.IO for live updates
 
 > [!IMPORTANT]
-> **Refactoring in Progress**: The project is undergoing a comprehensive architectural refactoring to address monolithic code issues. See [docs/REFACTORING_PLAN.md](docs/REFACTORING_PLAN.md) for details.
+> **Refactoring in Progress**: The project is undergoing a comprehensive architectural refactoring to address monolithic code issues. See [DOCS/PLANNING/REFACTORING_PLAN.md](DOCS/PLANNING/REFACTORING_PLAN.md) for details.
 
 **Current Architectural Issues**:
 - `backend/server.js`: 6,009 lines (being refactored)
 - `frontend/src/App.js`: 2,921 lines (being refactored)
-- See [docs/ARCHITECTURE_ANALYSIS.md](docs/ARCHITECTURE_ANALYSIS.md) for full analysis
+- See [DOCS/ARCHITECTURE/ARCHITECTURE_ANALYSIS.md](DOCS/ARCHITECTURE/ARCHITECTURE_ANALYSIS.md) for full analysis
 
 ---
 
@@ -55,7 +55,7 @@ matrix-delivery/
 │   │   ├── services/            # API clients
 │   │   └── pages/               # Page components
 │   └── public/
-└── docs/
+└── DOCS/
 ```
 
 ---
@@ -426,9 +426,9 @@ mockUseBalance.mockReturnValue({ balance: mockData, ... });
 - `.env` - Environment variables (not in git)
 
 ### Documentation
-- `docs/REFACTORING_PLAN.md` - Test-first refactoring strategy (12-week plan)
-- `docs/ARCHITECTURE_ANALYSIS.md` - Comprehensive architectural review
-- `docs/README.md` - Documentation index
+- `DOCS/PLANNING/REFACTORING_PLAN.md` - Test-first refactoring strategy (12-week plan)
+- `DOCS/ARCHITECTURE/ARCHITECTURE_ANALYSIS.md` - Comprehensive architectural review
+- `DOCS/README.md` - Documentation index
 
 ---
 
@@ -476,11 +476,11 @@ Examples:
 We maintain a comprehensive collection of **100% FREE learning resources** for mastering this project:
 
 **Quick Access**:
-- ⭐ **[INTENSIVE STUDY PLAN](file:///d:/matrix-delivery/docs/INTENSIVE_STUDY_PLAN.md)** - 8h/day, 21-day program
-- 📖 [Complete Free Resources Guide](file:///d:/matrix-delivery/docs/FREE_RESOURCES_ONLY.md)
-- 📥 [Download Script](file:///d:/matrix-delivery/scripts/download-free-learning-resources.ps1)
-- 📋 [All Resources (Paid + Free)](file:///d:/matrix-delivery/docs/CLEAN_CODE_STARTUP_RESOURCES.md)
-- 📚 [Docs README](file:///d:/matrix-delivery/docs/README.md)
+- ⭐ **[INTENSIVE STUDY PLAN](DOCS/LEARNING/LEARNING_PLAN.md)** - 8h/day, 21-day program
+- 📖 [Complete Free Resources Guide](DOCS/LEARNING/FREE_RESOURCES_ONLY.md)
+- 📥 [Download Script](scripts/download-free-learning-resources.ps1)
+- 📋 [All Resources (Paid + Free)](DOCS/LEARNING/CLEAN_CODE_STARTUP_RESOURCES.md)
+- 📚 [Docs README](DOCS/LEARNING/README.md)
 
 ### Download All Resources
 
