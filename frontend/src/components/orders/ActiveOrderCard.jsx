@@ -63,6 +63,7 @@ const ActiveOrderCard = ({
     handlePickupOrder,
     handleInTransit,
     handleCompleteOrder,
+    handleConfirmDelivery,
     openReviewModal,
     fetchOrderReviews,
 }) => {
@@ -265,6 +266,7 @@ const ActiveOrderCard = ({
                 handlePickupOrder={handlePickupOrder}
                 handleInTransit={handleInTransit}
                 handleCompleteOrder={handleCompleteOrder}
+                handleConfirmDelivery={handleConfirmDelivery}
                 openReviewModal={openReviewModal}
             />
         </div>

@@ -1432,6 +1432,21 @@ export const MainApp = () => {
     }
   };
 
+  const handleConfirmDelivery = async (orderId) => {
+    setLoading(true);
+    try {
+      await OrdersApi.updateStatus(orderId, 'confirm_delivery');
+
+      fetchOrders();
+      setError('');
+      showSuccess(t('status.orderConfirmed') || 'Order confirmed and completed!');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Driver location functions - now using the driver hook
   const updateDriverLocation = async () => {
     await driverHook.updateDriverLocation();
@@ -2631,6 +2646,7 @@ export const MainApp = () => {
                       handlePickupOrder={handlePickupOrder}
                       handleInTransit={handleInTransit}
                       handleCompleteOrder={handleCompleteOrder}
+                      handleConfirmDelivery={handleConfirmDelivery}
                       openReviewModal={openReviewModal}
                       fetchOrderReviews={fetchOrderReviews}
                     />

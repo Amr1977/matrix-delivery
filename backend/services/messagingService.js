@@ -14,8 +14,10 @@ class MessagingService {
     return Date.now().toString() + Math.random().toString(36).substr(2, 9);
   }
 
+  //TODO:  USE PROFESSIONAL SANITIZATION PACKAGE!!!!!!!!!
   /**
    * Sanitize message content
+   * 
    */
   sanitizeContent(content) {
     if (typeof content !== 'string') return '';

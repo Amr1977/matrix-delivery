@@ -41,6 +41,7 @@ export const ordersSchema: TableSchema = {
       accepted_at TIMESTAMP,
       picked_up_at TIMESTAMP,
       delivered_at TIMESTAMP,
+      completed_at TIMESTAMP,
       cancelled_at TIMESTAMP
     )
   `,
@@ -50,6 +51,7 @@ export const ordersSchema: TableSchema = {
     'CREATE INDEX IF NOT EXISTS idx_orders_assigned_driver_user_id ON orders(assigned_driver_user_id)',
     'CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status)',
     'CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at DESC)',
+    'CREATE INDEX IF NOT EXISTS idx_orders_completed_at ON orders(completed_at DESC)',
     'CREATE INDEX IF NOT EXISTS idx_orders_order_number ON orders(order_number)'
   ],
 
@@ -59,9 +61,10 @@ export const ordersSchema: TableSchema = {
     'ALTER TABLE orders ADD COLUMN IF NOT EXISTS pickup_location_link TEXT',
     'ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_location_link TEXT',
     'ALTER TABLE orders ADD COLUMN IF NOT EXISTS estimated_distance_km DECIMAL(10,2)',
-    // 'ALTER TABLE orders ADD COLUMN IF NOT EXISTS estimated_duration_minutes INTEGER',
-    // 'ALTER TABLE orders ADD COLUMN IF NOT EXISTS route_polyline TEXT',
+    'ALTER TABLE orders ADD COLUMN IF NOT EXISTS estimated_duration_minutes INTEGER',
+    'ALTER TABLE orders ADD COLUMN IF NOT EXISTS route_polyline TEXT',
     'ALTER TABLE orders ADD COLUMN IF NOT EXISTS is_remote_area BOOLEAN DEFAULT false',
-    'ALTER TABLE orders ADD COLUMN IF NOT EXISTS is_international BOOLEAN DEFAULT false'
+    'ALTER TABLE orders ADD COLUMN IF NOT EXISTS is_international BOOLEAN DEFAULT false',
+    'ALTER TABLE orders ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP'
   ]
 };

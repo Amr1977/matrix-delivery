@@ -18,7 +18,6 @@ const { getDistance } = require('geolib');
 const http = require('http');
 const socketIo = require('socket.io');
 const logger = require('./config/logger');
-const { exec } = require('child_process');
 const path = require('path');
 
 // Import utility modules
@@ -2794,35 +2793,6 @@ app.get('/api/admin/logs', verifyAdmin, async (req, res) => {
   } catch (error) {
     logger.error('Get logs error:', error);
     res.status(500).json({ error: 'Failed to get logs' });
-  }
-});
-
-// Trigger backend deploy (admin-only). Controlled by ADMIN_DEPLOY_CMD/ADMIN_DEPLOY_POWERSHELL and ENABLE_ADMIN_DEPLOY
-app.post('/api/admin/deploy', verifyAdmin, async (req, res) => {
-  try {
-    const enabled = process.env.ENABLE_ADMIN_DEPLOY === 'true';
-    if (!enabled) return res.status(403).json({ error: 'Admin deploy disabled' });
-
-    const cwd = process.env.ADMIN_DEPLOY_CWD || process.cwd();
-    const cmd = process.env.ADMIN_DEPLOY_CMD || '';
-    const ps = process.env.ADMIN_DEPLOY_POWERSHELL || '';
-
-    const finalCmd = cmd || (ps ? `powershell -ExecutionPolicy Bypass -File ${ps}` : '');
-    if (!finalCmd) return res.status(400).json({ error: 'No deploy command configured' });
-
-    const child = exec(finalCmd, { cwd, timeout: 5 * 60 * 1000 }, (error, stdout, stderr) => {
-      logger.info('Admin deploy executed', { adminId: req.admin.id, stdout: stdout?.slice(0, 5000), stderr: stderr?.slice(0, 5000) });
-    });
-
-    child.on('exit', (code) => {
-      res.json({ status: 'done', exitCode: code });
-    });
-    child.on('error', (err) => {
-      res.status(500).json({ error: 'Deploy process error', details: err.message });
-    });
-  } catch (error) {
-    logger.error('Admin deploy error:', error);
-    res.status(500).json({ error: 'Failed to trigger deploy' });
   }
 });
 
