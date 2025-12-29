@@ -22,6 +22,7 @@ class FileUploadService {
         this.ensureDirectoryExists(this.voiceDir);
         this.ensureDirectoryExists(this.thumbnailDir);
 
+        // TODO: put this in .env file!!
         // File size limits (in bytes)
         this.limits = {
             image: 10 * 1024 * 1024,  // 10MB

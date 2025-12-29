@@ -2,7 +2,7 @@
 
 ## 📚 Complete Documentation Package
 
-All comprehensive refactoring documentation has been saved to the `docs/` directory:
+All comprehensive refactoring documentation has been saved to the `DOCS/` directory:
 
 ### Core Documents
 

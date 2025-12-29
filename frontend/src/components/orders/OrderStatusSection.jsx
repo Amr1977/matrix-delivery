@@ -19,6 +19,7 @@ const OrderStatusSection = ({
     handlePickupOrder,
     handleInTransit,
     handleCompleteOrder,
+    handleConfirmDelivery,
     openReviewModal,
 }) => {
     const isDriverAssigned = order.assignedDriver?.userId === currentUser?.id;
@@ -371,6 +372,35 @@ const OrderStatusSection = ({
                             {t('orders.packageInTransit')}
                         </p>
                     </div>
+                </div>
+            )}
+
+            {order.status === 'delivered_pending' && (
+                <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
+                    {currentUser?.primary_role === 'customer' ? (
+                        <>
+                            <div style={{ background: '#DBEAFE', padding: '1rem', borderRadius: '0.375rem', border: '1px solid #93C5FD', marginBottom: '1rem' }}>
+                                <p style={{ fontSize: '0.875rem', color: '#1E40AF' }}>
+                                    <strong>Driver marked as delivered.</strong> Please confirm receiving the package.
+                                </p>
+                            </div>
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                <button
+                                    onClick={() => handleConfirmDelivery(order._id)}
+                                    // disabled={loadingStates.confirmDelivery} // Add this if you track it
+                                    style={{ flex: 1, padding: '0.75rem', background: '#10B981', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600' }}
+                                >
+                                    ✅ {t('orders.confirmDelivery') || 'Confirm Delivery'}
+                                </button>
+                            </div>
+                        </>
+                    ) : (
+                        <div style={{ background: '#FEF3C7', padding: '1rem', borderRadius: '0.375rem', border: '1px solid #FCD34D' }}>
+                            <p style={{ fontSize: '0.875rem', color: '#92400E' }}>
+                                ⏳ Waiting for customer confirmation...
+                            </p>
+                        </div>
+                    )}
                 </div>
             )}
 

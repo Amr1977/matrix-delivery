@@ -10,7 +10,7 @@ This guide provides a comprehensive overview of potential web vulnerabilities re
 | **Auth** | ✅ Secure | JWT verification (`verifyToken`) is standard. `bcrypt` is used for hashing. |
 | **SQL Injection** | ✅ Secure | `pg` pool queries use parameterized inputs (e.g., `$1`, `$2`), preventing injection. |
 | **Rate Limiting** | ✅ Secure | `express-rate-limit` is active on `/api` routes. |
-| **Command Injection**| ⚠️ Caution | `routes/deploy.js` executes shell scripts. **Action Required**: Verify this route is mounted securely or remove it if unused. |
+| **Command Injection**| ⚠️ Caution ✅ | `routes/deploy.js` executes shell scripts. **Action Required**: Verify this route is mounted securely or remove it if unused.**[DONE]** |
 | **CORS** | ✅ Secure | CORS is whitelist-based in `server.js` and `config/express.js`. |
 
 ---
@@ -24,19 +24,21 @@ Below is a partial list of key vulnerabilities, detailed for this project's stac
 **How to Check (Manual)**:
 - Search for `pool.query` or `sequelize.query`. Ensure no variables are interpolated directly into the string (e.g., `` `SELECT * FROM users WHERE name = '${name}'` `` is **BAD**).
 - Search for `child_process.exec`, `spawn`, or `fork`. Ensure inputs are not user-controlled.
+
 **Remediation**:
 - Always use parameterized queries: `pool.query('SELECT * FROM users WHERE id = $1', [id])`.
 - Avoid `exec` with user input.
 
 ### 2. Broken Authentication
-**Description**: Attackers compromise passwords, keys, or session tokens.
-**Relevance**: Using `jsonwebtoken` and `bcryptjs`.
+- **Description**: Attackers compromise passwords, keys, or session tokens.
+- **Relevance**: Using `jsonwebtoken` and `bcryptjs`.
+
 **How to Check (Manual)**:
 - Verify `JWT_SECRET` is strong and loaded from `.env` (not hardcoded).
 - Ensure passwords are hashed *before* storage (check `bcrypt.hash`).
 - Ensure rate limiting is applied to `/api/auth/login`.
 
-### 3. Sensitive Data Exposure
+### 3. Sensitive Data Exposure **[<<<<<================[TODO]=====================>]**
 **Description**: APIs verify authorization, but expose too much data in the JSON response (e.g., returning a hashed password or user address in a public profile).
 **Relevance**: API responses often dump full objects.
 **How to Check (Manual)**:

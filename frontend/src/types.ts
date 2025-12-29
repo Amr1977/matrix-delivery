@@ -11,7 +11,7 @@ export interface User {
     completedDeliveries?: number;
     completed_deliveries?: number;
     rating?: number;
-    gender?: 'male' | 'female' | 'other';
+    gender?: 'male' | 'female';
     language?: string;
     theme?: string;
     vehicle_type?: string;

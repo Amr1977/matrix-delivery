@@ -3,6 +3,7 @@
  */
 
 const { Pool } = require('pg');
+const crypto = require('crypto');
 const {
     Currency,
     TransactionType,
@@ -151,7 +152,7 @@ class BalanceService {
 
     async createTransaction(client, data) {
         // Generates ID and Inserts
-        const txId = require('uuid').v4(); // simplified
+        const txId = crypto.randomUUID();
         // Assume implementation...
         return {
             transactionId: txId,

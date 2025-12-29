@@ -15,6 +15,7 @@ const rateLimit = (options = {}) => {
     skipFailedRequests = false
   } = options;
 
+  // TODO use FingerprintJS, ip can be fake!!
   return (req, res, next) => {
     const key = req.ip || req.connection.remoteAddress;
     const now = Date.now();

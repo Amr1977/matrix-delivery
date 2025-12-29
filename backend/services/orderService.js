@@ -2,11 +2,12 @@ const pool = require('../config/db');
 const { getDistance } = require('geolib');
 const logger = require('../config/logger');
 
-// Register ts-node to enable TypeScript module loading
-require('ts-node/register');
+// Register ts-node disabled
+// require('ts-node/register');
 
-// Import BalanceService (TypeScript)
-const { BalanceService } = require('./balanceService.ts');
+// Import BalanceService (JavaScript)
+const { BalanceService } = require('./balanceService.js');
+const { PAYMENT_CONFIG } = require('../config/paymentConfig.js');
 const balanceService = new BalanceService(pool);
 
 // Environment is already loaded by server.js or jest.setup.js
@@ -892,7 +893,7 @@ RETURNING * `;
   /**
    * Update order status
    */
-  async updateOrderStatus(orderId, driverId, action) {
+  async updateOrderStatus(orderId, userId, action) {
     // Alias map to handle frontend calling 'picked_up' instead of 'pickup'
     const actionAlias = {
       'picked_up': 'pickup',
@@ -900,7 +901,8 @@ RETURNING * `;
       'in_transit': 'in-transit',
       'in-transit': 'in-transit',
       'delivered': 'complete', // Handle frontend 'delivered' action
-      'complete': 'complete'
+      'complete': 'complete', // عك يعك عكا !!! صلح العك دة!!!
+      'confirm_delivery': 'confirm_delivery' // NEW: Customer confirms delivery
     };
 
     const normalizedAction = actionAlias[action];
@@ -911,7 +913,7 @@ RETURNING * `;
 
     // Check order ownership/assignment
     const orderCheck = await pool.query(
-      'SELECT customer_id, assigned_driver_user_id, status, title FROM orders WHERE id = $1',
+      'SELECT customer_id, assigned_driver_user_id, status, title, price FROM orders WHERE id = $1',
       [orderId]
     );
 
@@ -921,19 +923,34 @@ RETURNING * `;
 
     const order = orderCheck.rows[0];
 
-    // Validate permissions
-    if (order.assigned_driver_user_id !== driverId) {
-      throw new Error('Only assigned driver can perform this action');
+    // Validate permissions and actions
+    if (normalizedAction === 'confirm_delivery') {
+      if (order.customer_id !== userId) {
+        throw new Error('Only customer can confirm delivery');
+      }
+    } else {
+      // Driver actions
+      if (order.assigned_driver_user_id !== userId) {
+        throw new Error('Only assigned driver can perform this action');
+      }
     }
 
     // Validate status transitions
     const statusMap = {
       pickup: { from: ['accepted'], to: 'picked_up' },
-      'in-transit': { from: ['picked_up'], to: 'in_transit' }, // Standardize to underscore
-      complete: { from: ['in_transit', 'in-transit'], to: 'delivered' } // Accept both forms
+      'in-transit': { from: ['picked_up'], to: 'in_transit' },
+      // Driver marks as complete -> pending confirmation
+      complete: { from: ['in_transit', 'in-transit', 'picked_up'], to: 'delivered_pending' },
+      // Customer confirms -> delivered
+      confirm_delivery: { from: ['delivered_pending'], to: 'delivered' }
     };
 
-    const expectedPreviousStatuses = statusMap[normalizedAction].from;
+    const transition = statusMap[normalizedAction];
+    if (!transition) {
+      throw new Error(`Invalid action transition for ${normalizedAction}`);
+    }
+
+    const expectedPreviousStatuses = transition.from;
 
     if (!expectedPreviousStatuses.includes(order.status)) {
       throw new Error(`Order must be in ${expectedPreviousStatuses.join(' or ')} status (current: ${order.status})`);
@@ -941,11 +958,13 @@ RETURNING * `;
 
     // Update order status
     let query = `UPDATE orders SET status = $1 WHERE id = $2`;
-    let params = [statusMap[normalizedAction].to, orderId];
+    let params = [transition.to, orderId];
 
     const updateFields = {
       pickup: 'picked_up_at = NOW()',
-      complete: 'delivered_at = NOW()'
+      // complete (driver) -> no timestamp update yet, or maybe 'arrived_at'? 
+      complete: 'delivered_at = NOW()', // We can set it tentatively, or wait for confirm. Let's set it now.
+      confirm_delivery: 'completed_at = NOW()' // Maybe a new field? Or just leave delivered_at.
     };
 
     if (updateFields[normalizedAction]) {
@@ -954,41 +973,82 @@ RETURNING * `;
 
     await pool.query(query, params);
 
-    // If order is completed, update driver stats
-    if (normalizedAction === 'complete') {
+    // If order is confirmed by customer, update driver stats AND deduct commission
+    if (normalizedAction === 'confirm_delivery') {
       await pool.query(
         'UPDATE users SET completed_deliveries = completed_deliveries + 1 WHERE id = $1',
-        [driverId]
+        [order.assigned_driver_user_id]
       );
+
+      // Deduct Commission
+      const commission = (parseFloat(order.price) || 0) * PAYMENT_CONFIG.COMMISSION_RATE;
+      if (commission > 0) {
+        try {
+          await balanceService.deductCommission(order.assigned_driver_user_id, orderId, commission);
+          logger.info(`Commission of ${commission} deducted for order ${orderId}`);
+          let driver_balance = await balanceService.getBalance(order.assigned_driver_user_id);
+          logger.info(`Driver Balance: ` + JSON.stringify(driver_balance));
+        } catch (commError) {
+          logger.error('Failed to deduct commission', { orderId, error: commError.message });
+          // We do NOT treat this as a failure of the API call, but we log it critical.
+          // In real world, we might want to retry.
+        }
+      }
+
+      // Credit driver (Earnings)
+      // Usually, for COD, driver keeps cash (Price). Earning = Price - Commission.
+      // But we track "Wallet Balance".
+      // If COD: Driver gets Cash (+Price). Wallet Balance should decrease by Commission (-Commission).
+      // So `deductCommission` does exactly that.
+      // If Online Payment: Driver gets nothing locally. Wallet Balance should increase by (Price - Commission).
+      // We assume COD for now or simplicity. 
+      // If we supported Online Payment, we'd need to know payment method.
+      // Let's assume COD implies: Driver holds cash (Debt).
+      // Wait, `deductCommission` reduces balance.
+      // If user starts with 0. 
+      // Order 100. Commission 15.
+      // Driver collects 100 Cash.
+      // Wallet = 0 - 15 = -15.
+      // Driver has 100 Cash + (-15 Wallet). Net +85. Correct.
+      // Eventually Driver pays platform 15 to reset wallet.
     }
 
     logger.order('Order status updated successfully', {
       orderId,
       action: normalizedAction,
-      newStatus: statusMap[normalizedAction].to,
-      driverId,
+      newStatus: transition.to,
+      userId,
       category: 'order'
     });
 
-    // Notify Customer about status change
+    // Notify users about status change
     try {
       const { createNotification } = require('./notificationService');
-      let title, message;
+      let title, message, targetUserId;
 
       if (normalizedAction === 'pickup') {
+        targetUserId = order.customer_id;
         title = 'Order Picked Up 📦';
         message = `Your order "${order.title}" has been picked up and is on the way!`;
       } else if (normalizedAction === 'in-transit') {
+        targetUserId = order.customer_id;
         title = 'Order In Transit 🚚';
         message = `Your order "${order.title}" is now moving towards the destination.`;
       } else if (normalizedAction === 'complete') {
-        title = 'Order Delivered ✅';
-        message = `Your order "${order.title}" has been successfully delivered.`;
+        // Driver marked as complete -> Notify Customer to Confirm
+        targetUserId = order.customer_id;
+        title = 'Delivery Confirmation Required ✅';
+        message = `Driver marked "${order.title}" as delivered. Please confirm to complete the order.`;
+      } else if (normalizedAction === 'confirm_delivery') {
+        // Customer confirmed -> Notify Driver
+        targetUserId = order.assigned_driver_user_id;
+        title = 'Order Completed 🎉';
+        message = `Customer confirmed delivery for "${order.title}". Great job!`;
       }
 
-      if (title) {
+      if (title && targetUserId) {
         await createNotification(
-          order.customer_id,
+          targetUserId,
           orderId,
           `order_${normalizedAction}`,
           title,
