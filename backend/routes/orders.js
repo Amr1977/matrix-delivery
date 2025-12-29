@@ -11,7 +11,7 @@ const router = express.Router();
 // Get orders (filtered by user primary_role and location filters)
 router.get('/', verifyToken, async (req, res) => {
   try {
-    const { country, city, area, lat, lng } = req.query;
+    const { country, city, area, lat, lng, status } = req.query;
     const filters = { country, city, area };
 
     logger.info('GET /api/orders request received', {
@@ -21,7 +21,8 @@ router.get('/', verifyToken, async (req, res) => {
       hasLat: !!req.query.lat,
       hasLng: !!req.query.lng,
       isAuthenticated: !!req.user,
-      category: 'orders'
+      category: 'orders',
+      status: !!req.query.status
     });
 
     // For drivers, location-based filtering is preferred but no longer mandatory for fetching ASSIGNED orders

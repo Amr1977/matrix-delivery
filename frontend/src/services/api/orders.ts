@@ -19,6 +19,11 @@ export class OrdersApi {
         return ApiClient.get<Order[]>(`/orders${queryString}`);
     }
 
+    static async getHistoryOrders(filters: OrderFilters = {}): Promise<Order[]> {
+        const queryString = ApiClient.buildQueryString(filters);
+        return ApiClient.get<Order[]>(`/orders/history${queryString}`);
+    }
+
     /**
      * Create new order
      */

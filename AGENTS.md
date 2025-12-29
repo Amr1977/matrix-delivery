@@ -82,7 +82,7 @@ matrix-delivery/
 ### 2. Authentication
 - JWT-based authentication
 - Secure httpOnly cookies (migrated from localStorage)
-- primary_role-based access control (customer, driver, admin)
+- Role-based access control (customer, driver, admin)
 
 ### 3. Order Management
 - Bidding system between drivers and customers

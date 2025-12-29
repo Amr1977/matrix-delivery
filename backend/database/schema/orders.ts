@@ -42,7 +42,7 @@ export const ordersSchema: TableSchema = {
       picked_up_at TIMESTAMP,
       delivered_at TIMESTAMP,
       completed_at TIMESTAMP,
-      cancelled_at TIMESTAMP
+      cancelled_at TIMESTAMP 
     )
   `,
 
@@ -65,6 +65,7 @@ export const ordersSchema: TableSchema = {
     'ALTER TABLE orders ADD COLUMN IF NOT EXISTS route_polyline TEXT',
     'ALTER TABLE orders ADD COLUMN IF NOT EXISTS is_remote_area BOOLEAN DEFAULT false',
     'ALTER TABLE orders ADD COLUMN IF NOT EXISTS is_international BOOLEAN DEFAULT false',
-    'ALTER TABLE orders ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP'
+    'ALTER TABLE orders ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP',
+    'ALTER TABLE orders ADD COLUMN IF NOT EXISTS cancelled_at TIMESTAMP'
   ]
 };
