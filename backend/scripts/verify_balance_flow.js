@@ -5,7 +5,7 @@ const axios = require('axios');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 
-const API_URL = 'http://localhost:5000/api/v1';
+const API_URL = 'http://localhost:5000/api';
 
 async function main() {
     try {
@@ -58,11 +58,17 @@ async function main() {
         // 3. Customer Creates Order
         console.log('Creating Order...');
         const orderData = {
-            title: 'Test Order for Balance',
-            price: 100,
-            pickupAddress: { country: 'Egypt', city: 'Cairo', personName: 'Ali' },
-            dropoffAddress: { country: 'Egypt', city: 'Giza', personName: 'Omar' }
+            _id: 'order1',
+            title: 'title',
+            price: 10,
+            orderNumber: 'ORD-001',
+            from: { lat: 40.7589, lng: -73.9851 },
+            pickupLocation: { coordinates: { lat: 40.7589, lng: -73.9851 } },
+            dropoffLocation: { coordinates: { lat: 40.7589, lng: -73.9851 } },
+            to: { lat: 40.7505, lng: -73.9934 },
+            assignedDriver: { userId: '2', name: 'Test Driver' }
         };
+
         const orderRes = await axios.post(`${API_URL}/orders`, orderData, {
             headers: { Cookie: customerCookie }
         });

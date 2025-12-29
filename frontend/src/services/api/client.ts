@@ -13,6 +13,7 @@ export class ApiClient {
         options: RequestInit = {}
     ): Promise<T> {
         // Get token from localStorage for backward compatibility
+        //TODO SECURITY PREACH!!!!! do not use localstorage
         const token = localStorage.getItem('token');
 
         const config: RequestInit = {

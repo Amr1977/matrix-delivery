@@ -543,7 +543,7 @@ export const MainApp = () => {
 
     try {
       setHistoryLoading(true);
-      const data = await OrdersApi.getOrders({ page, limit: 20, status: 'history' });
+      const data = await OrdersApi.getHistoryOrders({ page, limit: 20, status: 'history' });
 
       // If page 1, replace all history orders; otherwise append
       setHistoryOrders(prev => page === 1 ? data.orders : [...prev, ...data.orders]);

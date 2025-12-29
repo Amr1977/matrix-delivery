@@ -973,6 +973,7 @@ RETURNING * `;
 
     await pool.query(query, params);
 
+    //TODO How about completed orders count for customer user!!
     // If order is confirmed by customer, update driver stats AND deduct commission
     if (normalizedAction === 'confirm_delivery') {
       await pool.query(
