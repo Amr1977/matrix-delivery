@@ -4,6 +4,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useBalance } from '../../hooks/useBalance';
 import type { TransactionType, TransactionStatus, TransactionFilters } from '../../types/balance';
 import './TransactionHistory.css';
@@ -13,6 +14,7 @@ interface TransactionHistoryProps {
 }
 
 const TransactionHistory: React.FC<TransactionHistoryProps> = ({ userId }) => {
+    const navigate = useNavigate();
     const { transactions, loading, error, fetchTransactions } = useBalance();
     const [filters, setFilters] = useState<TransactionFilters>({
         limit: 20,
@@ -129,11 +131,16 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ userId }) => {
     return (
         <div className="transaction-history" data-testid="transaction-history">
             <div className="history-header" data-testid="history-header">
-                <h1 data-testid="history-title">📊 Transaction History</h1>
-                <button className="export-btn" onClick={handleExportCSV} data-testid="export-csv-button">
-                    <span className="btn-icon">📥</span>
-                    Export CSV
+                <button onClick={() => navigate(-1)} className="back-btn matrix-btn-ghost">
+                    ← Back
                 </button>
+                <div className="header-title-group">
+                    <h1 data-testid="history-title">📊 Transaction History</h1>
+                    <button className="export-btn" onClick={handleExportCSV} data-testid="export-csv-button">
+                        <span className="btn-icon">📥</span>
+                        Export CSV
+                    </button>
+                </div>
             </div>
 
             <div className="filters-section" data-testid="filters-section">

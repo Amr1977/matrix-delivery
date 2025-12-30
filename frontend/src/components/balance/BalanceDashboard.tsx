@@ -4,6 +4,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useBalance } from '../../hooks/useBalance';
 import DepositModal from './DepositModal';
 import WithdrawalModal from './WithdrawalModal';
@@ -15,6 +16,7 @@ interface BalanceDashboardProps {
 }
 
 const BalanceDashboard: React.FC<BalanceDashboardProps> = ({ userId, userRole }) => {
+    const navigate = useNavigate();
     const {
         balance,
         transactions,
@@ -117,8 +119,13 @@ const BalanceDashboard: React.FC<BalanceDashboardProps> = ({ userId, userRole })
     return (
         <div className="balance-dashboard" data-testid="balance-dashboard">
             <div className="dashboard-header" data-testid="dashboard-header">
-                <h1 data-testid="dashboard-title">💰 My Balance</h1>
-                {userRole === 'driver' && <span className="primary_role-badge" data-testid="driver-badge">Driver Account</span>}
+                <button onClick={() => navigate(-1)} className="back-btn matrix-btn-ghost">
+                    ← Back
+                </button>
+                <div className="header-title-group">
+                    <h1 data-testid="dashboard-title">💰 My Balance</h1>
+                    {userRole === 'driver' && <span className="primary_role-badge" data-testid="driver-badge">Driver Account</span>}
+                </div>
             </div>
 
             {isFrozen && (

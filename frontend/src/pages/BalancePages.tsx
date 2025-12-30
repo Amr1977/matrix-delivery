@@ -1,31 +1,26 @@
 /**
  * Balance Page Wrappers
- * These components wrap the balance components to provide user context from auth
+ * These components wrap the balance components with MainLayout and provide user context
  */
 
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import BalanceDashboard from '../components/balance/BalanceDashboard';
 import TransactionHistory from '../components/balance/TransactionHistory';
 import BalanceStatement from '../components/balance/BalanceStatement';
+import MainLayout from '../components/layout/MainLayout';
+import LoadingSpinner from '../components/LoadingSpinner';
 import useAuth from '../hooks/useAuth';
+import { useI18n } from '../i18n/i18nContext';
 
 // Wrapper for Balance Dashboard
 export const BalanceDashboardPage = () => {
     const { currentUser, loading } = useAuth();
+    const { t, locale, changeLocale } = useI18n();
+    const navigate = useNavigate();
 
     if (loading) {
-        return (
-            <div style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                height: '100vh',
-                background: '#0a0e27'
-            }}>
-                <div style={{ color: 'white', fontSize: '1.2rem' }}>Loading...</div>
-            </div>
-        );
+        return <LoadingSpinner />;
     }
 
     if (!currentUser) {
@@ -33,54 +28,36 @@ export const BalanceDashboardPage = () => {
     }
 
     return (
-        <BalanceDashboard
-            userId={(currentUser as any).id}
-            userRole={(currentUser as any).primary_role || (currentUser as any).primary_role || 'customer'}
-        />
+        <MainLayout
+            currentUser={currentUser}
+            notifications={[]}
+            onNavigate={(view) => {
+                if (view === 'notifications') navigate('/notifications');
+                else navigate('/');
+            }}
+            onLogout={() => navigate('/logout')}
+            t={t}
+            currentLocale={locale}
+            onChangeLocale={changeLocale}
+            availableRoles={[]}
+            unreadCount={0}
+        >
+            <BalanceDashboard
+                userId={(currentUser as any).id}
+                userRole={(currentUser as any).primary_role || 'customer'}
+            />
+        </MainLayout>
     );
 };
 
 // Wrapper for Transaction History
 export const TransactionHistoryPage = () => {
     const { currentUser, loading } = useAuth();
+    const { t, locale, changeLocale } = useI18n();
+    const navigate = useNavigate();
 
     if (loading) {
-        return (
-            <div style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                height: '100vh',
-                background: '#0a0e27'
-            }}>
-                <div style={{ color: 'white', fontSize: '1.2rem' }}>Loading...</div>
-            </div>
-        );
-    }
-
-    if (!currentUser) {
-        return <Navigate to="/" replace />;
-    }
-
-    return <TransactionHistory userId={(currentUser as any).id} />;
-};
-
-// Wrapper for Balance Statement
-export const BalanceStatementPage = () => {
-    const { currentUser, loading } = useAuth();
-
-    if (loading) {
-        return (
-            <div style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                height: '100vh',
-                background: '#0a0e27'
-            }}>
-                <div style={{ color: 'white', fontSize: '1.2rem' }}>Loading...</div>
-            </div>
-        );
+        return <LoadingSpinner />;
     }
 
     if (!currentUser) {
@@ -88,9 +65,58 @@ export const BalanceStatementPage = () => {
     }
 
     return (
-        <BalanceStatement
-            userId={(currentUser as any).id}
-            userRole={(currentUser as any).primary_role || (currentUser as any).primary_role || 'customer'}
-        />
+        <MainLayout
+            currentUser={currentUser}
+            notifications={[]}
+            onNavigate={(view) => {
+                if (view === 'notifications') navigate('/notifications');
+                else navigate('/');
+            }}
+            onLogout={() => navigate('/logout')}
+            t={t}
+            currentLocale={locale}
+            onChangeLocale={changeLocale}
+            availableRoles={[]}
+            unreadCount={0}
+        >
+            <TransactionHistory userId={(currentUser as any).id} />
+        </MainLayout>
+    );
+};
+
+// Wrapper for Balance Statement
+export const BalanceStatementPage = () => {
+    const { currentUser, loading } = useAuth();
+    const { t, locale, changeLocale } = useI18n();
+    const navigate = useNavigate();
+
+    if (loading) {
+        return <LoadingSpinner />;
+    }
+
+    if (!currentUser) {
+        return <Navigate to="/" replace />;
+    }
+
+    return (
+        <MainLayout
+            currentUser={currentUser}
+            notifications={[]}
+            onNavigate={(view) => {
+                if (view === 'notifications') navigate('/notifications');
+                else navigate('/');
+            }}
+            onLogout={() => navigate('/logout')}
+            t={t}
+            currentLocale={locale}
+            onChangeLocale={changeLocale}
+            availableRoles={[]}
+            unreadCount={0}
+        >
+            <BalanceStatement
+                userId={(currentUser as any).id}
+                userRole={(currentUser as any).primary_role || 'customer'}
+            />
+        </MainLayout>
     );
 };
