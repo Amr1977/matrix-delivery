@@ -27,3 +27,5 @@
 - Excessive FE re-rendering: check hooks ⚠️
 - Language Switch: should keep each language text in its native text ⚠️
 - Use HTTPS in server ⚠️
+- After login: where do you save token ?? token lifecycle ??! ⚠️
+- DISASTER !! you mixed users reviews with order reviews ⚠️
