@@ -30,11 +30,7 @@ class ApiClient {
         ...options
       };
 
-      // Add authorization header if token exists
-      const token = localStorage.getItem('token');
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
+
 
       // Add body for non-GET requests
       if (data && method !== 'GET') {
@@ -201,7 +197,6 @@ class ApiClient {
 
   async uploadFile(endpoint, formData, onProgress) {
     const url = `${this.baseURL}${endpoint}`;
-    const token = localStorage.getItem('token');
 
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
@@ -231,9 +226,7 @@ class ApiClient {
       });
 
       xhr.open('POST', url);
-      if (token) {
-        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-      }
+
       xhr.send(formData);
     });
   }
