@@ -31,6 +31,7 @@
   "scripts": {
     "dev": "node ../../start-dev.js",
     "dev:stop": "node ../../stop-dev.js",
+    "dev:restore": "node -e \"require('fs').copyFileSync('.env.develop', '.env')\"",
     "start": "node scripts/generate-git-info.js && cross-env NODE_OPTIONS=--max-old-space-size=4096 GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true react-scripts start",
     "build": "react-scripts build",
     "build:dev": "node -e \"require('fs').copyFileSync('.env.develop', '.env')\" && set REACT_APP_ENV=development && react-scripts build",
