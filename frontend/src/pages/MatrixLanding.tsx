@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Package, Truck, Zap, Shield, Users, Play, Star, Map as MapIcon, Globe, Activity, Lock, TrendingUp } from 'lucide-react';
+import { Package, Truck, Zap, Shield, Users, Play, Star, Map as MapIcon, Globe, Activity, Lock, TrendingUp, Menu, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface Stats {
@@ -25,6 +25,7 @@ interface RoadmapStepProps {
 
 const MatrixLanding: React.FC = () => {
     const navigate = useNavigate();
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [stats, setStats] = useState<Stats>({
         activeCouriers: 0,
         totalDeliveries: 0,
@@ -75,6 +76,8 @@ const MatrixLanding: React.FC = () => {
                             <p className="text-[#00FF41] text-xs font-mono tracking-widest">DELIVERY</p>
                         </div>
                     </div>
+
+                    {/* Desktop Navigation */}
                     <div className="flex items-center gap-6 hidden md:flex">
                         <a href="#vision" className="text-[#A0AEC0] hover:text-[#00FF41] transition-colors">Vision</a>
                         <a href="#stats" className="text-[#A0AEC0] hover:text-[#00FF41] transition-colors">Live Stats</a>
@@ -86,7 +89,56 @@ const MatrixLanding: React.FC = () => {
                             Login
                         </button>
                     </div>
+
+                    {/* Mobile Menu Button */}
+                    <button
+                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                        className="md:hidden text-[#A0AEC0] hover:text-[#00FF41] transition-colors"
+                        aria-label="Toggle menu"
+                    >
+                        {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                    </button>
                 </div>
+
+                {/* Mobile Navigation Drawer */}
+                {mobileMenuOpen && (
+                    <div className="md:hidden border-t border-[#2A3142] bg-[#131820] animate-slideDown">
+                        <div className="px-6 py-4 flex flex-col gap-4">
+                            <a
+                                href="#vision"
+                                onClick={() => setMobileMenuOpen(false)}
+                                className="text-[#A0AEC0] hover:text-[#00FF41] transition-colors py-2"
+                            >
+                                Vision
+                            </a>
+                            <a
+                                href="#stats"
+                                onClick={() => setMobileMenuOpen(false)}
+                                className="text-[#A0AEC0] hover:text-[#00FF41] transition-colors py-2"
+                            >
+                                Live Stats
+                            </a>
+                            <button
+                                onClick={() => {
+                                    setMobileMenuOpen(false);
+                                    navigate('/reviews');
+                                }}
+                                className="text-[#A0AEC0] hover:text-[#00FF41] transition-colors text-left py-2"
+                            >
+                                Reviews
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setMobileMenuOpen(false);
+                                    navigate('/login');
+                                }}
+                                className="px-6 py-3 bg-gradient-to-r from-[#00FF41] to-[#00F0FF] text-[#0A0E14] font-bold rounded-lg hover:shadow-[0_0_20px_rgba(0,255,65,0.4)] transition-all mt-2"
+                            >
+                                Login
+                            </button>
+                        </div>
+                    </div>
+                )}
             </nav>
 
             {/* Hero Section */}
