@@ -325,6 +325,14 @@ async function setupTestDb() {
       CREATE INDEX IF NOT EXISTS idx_logs_category ON logs(category);
       CREATE INDEX IF NOT EXISTS idx_logs_user_id ON logs(user_id);
       CREATE INDEX IF NOT EXISTS idx_logs_session_id ON logs(session_id);
+      
+      -- Balance transactions indexes for performance
+      CREATE INDEX IF NOT EXISTS idx_balance_tx_user ON balance_transactions(user_id);
+      CREATE INDEX IF NOT EXISTS idx_balance_tx_user_created ON balance_transactions(user_id, created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_balance_tx_type ON balance_transactions(type);
+      CREATE INDEX IF NOT EXISTS idx_balance_tx_status ON balance_transactions(status);
+      CREATE INDEX IF NOT EXISTS idx_balance_tx_order ON balance_transactions(order_id);
+      CREATE INDEX IF NOT EXISTS idx_balance_tx_created ON balance_transactions(created_at DESC);
     `;
 
         await dbClient.query(schema);

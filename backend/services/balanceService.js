@@ -270,6 +270,165 @@ class BalanceService {
         }
     }
 
+    /**
+     * Get transaction history with pagination and filtering
+     * @param {Object} options - Query options
+     * @param {string} options.userId - User ID
+     * @param {number} [options.limit=20] - Number of transactions per page (max 100)
+     * @param {number} [options.offset=0] - Offset for pagination
+     * @param {string} [options.type] - Filter by transaction type
+     * @param {string} [options.status] - Filter by transaction status
+     * @param {Date} [options.startDate] - Filter by start date
+     * @param {Date} [options.endDate] - Filter by end date
+     * @param {string} [options.orderId] - Filter by order ID
+     * @param {string} [options.sortBy='created_at'] - Sort field
+     * @param {string} [options.sortOrder='DESC'] - Sort order (ASC/DESC)
+     * @returns {Promise<Object>} Transaction history with pagination info
+     */
+    async getTransactionHistory(options = {}) {
+        try {
+            const {
+                userId,
+                limit = 20,
+                offset = 0,
+                type,
+                status,
+                startDate,
+                endDate,
+                orderId,
+                sortBy = 'created_at',
+                sortOrder = 'DESC'
+            } = options;
+
+            // Validation
+            if (!userId) {
+                throw new Error('userId is required');
+            }
+
+            // Sanitize and validate limit (max 100, min 1)
+            const sanitizedLimit = Math.min(Math.max(parseInt(limit) || 20, 1), 100);
+            const sanitizedOffset = Math.max(parseInt(offset) || 0, 0);
+
+            // Validate sort fields to prevent SQL injection
+            const allowedSortFields = ['created_at', 'amount', 'type', 'status'];
+            const sanitizedSortBy = allowedSortFields.includes(sortBy) ? sortBy : 'created_at';
+            const sanitizedSortOrder = sortOrder.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+
+            // Build WHERE clause dynamically
+            const conditions = ['user_id = $1'];
+            const params = [userId];
+            let paramIndex = 2;
+
+            if (type) {
+                conditions.push(`type = $${paramIndex}`);
+                params.push(type);
+                paramIndex++;
+            }
+
+            if (status) {
+                conditions.push(`status = $${paramIndex}`);
+                params.push(status);
+                paramIndex++;
+            }
+
+            if (startDate) {
+                conditions.push(`created_at >= $${paramIndex}`);
+                params.push(startDate);
+                paramIndex++;
+            }
+
+            if (endDate) {
+                conditions.push(`created_at <= $${paramIndex}`);
+                params.push(endDate);
+                paramIndex++;
+            }
+
+            if (orderId) {
+                conditions.push(`order_id = $${paramIndex}`);
+                params.push(orderId);
+                paramIndex++;
+            }
+
+            const whereClause = conditions.join(' AND ');
+
+            // Get total count for pagination
+            const countQuery = `
+                SELECT COUNT(*) as total
+                FROM balance_transactions
+                WHERE ${whereClause}
+            `;
+            const countResult = await this.pool.query(countQuery, params);
+            const total = parseInt(countResult.rows[0]?.total || 0);
+
+            // Get transactions
+            const query = `
+                SELECT 
+                    id,
+                    transaction_id as "transactionId",
+                    user_id as "userId",
+                    type,
+                    amount,
+                    currency,
+                    balance_before as "balanceBefore",
+                    balance_after as "balanceAfter",
+                    status,
+                    description,
+                    metadata,
+                    order_id as "orderId",
+                    wallet_payment_id as "walletPaymentId",
+                    withdrawal_request_id as "withdrawalRequestId",
+                    related_transaction_id as "relatedTransactionId",
+                    processed_by as "processedBy",
+                    processing_method as "processingMethod",
+                    processed_at as "processedAt",
+                    created_at as "createdAt",
+                    updated_at as "updatedAt"
+                FROM balance_transactions
+                WHERE ${whereClause}
+                ORDER BY ${sanitizedSortBy} ${sanitizedSortOrder}
+                LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+            `;
+
+            params.push(sanitizedLimit, sanitizedOffset);
+            const result = await this.pool.query(query, params);
+
+            // Format transactions
+            const transactions = result.rows.map(tx => ({
+                ...tx,
+                amount: parseFloat(tx.amount) || 0,
+                balanceBefore: parseFloat(tx.balanceBefore) || 0,
+                balanceAfter: parseFloat(tx.balanceAfter) || 0,
+                createdAt: tx.createdAt ? new Date(tx.createdAt).toISOString() : null,
+                updatedAt: tx.updatedAt ? new Date(tx.updatedAt).toISOString() : null,
+                processedAt: tx.processedAt ? new Date(tx.processedAt).toISOString() : null,
+            }));
+
+            // Calculate pagination metadata
+            const hasMore = (sanitizedOffset + sanitizedLimit) < total;
+            const totalPages = Math.ceil(total / sanitizedLimit);
+            const currentPage = Math.floor(sanitizedOffset / sanitizedLimit) + 1;
+
+            return {
+                transactions,
+                pagination: {
+                    total,
+                    limit: sanitizedLimit,
+                    offset: sanitizedOffset,
+                    currentPage,
+                    totalPages,
+                    hasMore,
+                    hasPrevious: sanitizedOffset > 0
+                }
+            };
+        } catch (error) {
+            logger.error('Error getting transaction history', {
+                userId: options.userId,
+                error: error.message
+            });
+            throw error;
+        }
+    }
+
     async canAcceptOrders(driverId) {
         try {
             const balance = await this.getBalance(driverId);

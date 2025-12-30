@@ -32,6 +32,7 @@ const verifyBalanceOwnership = (req, res, next) => {
 router.use(verifyToken);
 
 router.get('/:userId', validateUserId, verifyBalanceOwnership, controller.getBalance);
+router.get('/:userId/transactions', validateUserId, verifyBalanceOwnership, controller.getTransactionHistory);
 router.post('/deposit', validateDeposit, verifyBalanceOwnership, controller.deposit);
 router.post('/withdraw', validateWithdrawal, verifyBalanceOwnership, controller.withdraw);
 
