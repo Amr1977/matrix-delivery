@@ -4,7 +4,7 @@
 
 -- Insert Mohamed Gaber
 INSERT INTO public.users (
-    id, name, email, password, phone, primary_role, granted_roles,
+    id, name, email, password_hash, phone, primary_role, granted_roles,
     vehicle_type, rating, completed_deliveries, is_available, is_verified,
     verified_at, country, city, area, profile_picture_url, created_at,
     updated_at, license_number, service_area_zone, preferences,
@@ -48,13 +48,13 @@ INSERT INTO public.users (
 ON CONFLICT (id) DO UPDATE SET
     name = EXCLUDED.name,
     email = EXCLUDED.email,
-    password = EXCLUDED.password,
+    password_hash = EXCLUDED.password_hash,
     phone = EXCLUDED.phone,
     updated_at = NOW();
 
 -- Insert kemo
 INSERT INTO public.users (
-    id, name, email, password, phone, primary_role, granted_roles,
+    id, name, email, password_hash, phone, primary_role, granted_roles,
     vehicle_type, rating, completed_deliveries, is_available, is_verified,
     verified_at, country, city, area, profile_picture_url, created_at,
     updated_at, license_number, service_area_zone, preferences,
@@ -98,7 +98,7 @@ INSERT INTO public.users (
 ON CONFLICT (id) DO UPDATE SET
     name = EXCLUDED.name,
     email = EXCLUDED.email,
-    password = EXCLUDED.password,
+    password_hash = EXCLUDED.password_hash,
     phone = EXCLUDED.phone,
     updated_at = NOW();
 
