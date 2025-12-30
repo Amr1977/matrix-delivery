@@ -16,7 +16,8 @@ export {
 
 // Order-related tables
 export { ordersSchema } from './orders';
-export { bidsSchema, platformReviewsSchema } from './bids';
+export { bidsSchema } from './bids';
+export { platformReviewsSchema } from './platform_reviews';
 export { paymentsSchema } from './payments';
 export { notificationsSchema } from './notifications';
 
@@ -53,7 +54,8 @@ import {
     userPaymentMethodsSchema
 } from './auth';
 import { ordersSchema } from './orders';
-import { bidsSchema, platformReviewsSchema, platformReviewVotesSchema, platformReviewFlagsSchema } from './bids';
+import { bidsSchema } from './bids';
+import { platformReviewsSchema, platformReviewVotesSchema, platformReviewFlagsSchema } from './platform_reviews';
 import { paymentsSchema, walletPaymentsSchema } from './payments';
 import { notificationsSchema } from './notifications';
 import {
