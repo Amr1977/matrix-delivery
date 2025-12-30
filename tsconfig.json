@@ -10,5 +10,11 @@
     "ts-node": {
         "transpileOnly": true,
         "files": true
-    }
+    },
+    "exclude": [
+        "node_modules",
+        "backend/scripts",
+        "backend/tests",
+        "backend/features"
+    ]
 }
