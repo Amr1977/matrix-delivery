@@ -15,6 +15,7 @@
         "node_modules",
         "backend/scripts",
         "backend/tests",
-        "backend/features"
+        "backend/features",
+        "backend/debug-init.js"
     ]
 }

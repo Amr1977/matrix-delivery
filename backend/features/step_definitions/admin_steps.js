@@ -204,7 +204,14 @@ Then('the response should contain:', function (dataTable) {
     Object.entries(expected).forEach(([key, value]) => {
         expect(this.world.response.body).to.have.property(key);
         const actualValue = this.world.response.body[key];
-        const expectedValue = isNaN(value) ? value : parseInt(value);
+        let expectedValue = value;
+        if (!isNaN(value)) {
+            expectedValue = parseInt(value); // Keep explicit int conversion for now
+        } else if (value === 'true') {
+            expectedValue = true;
+        } else if (value === 'false') {
+            expectedValue = false;
+        }
         expect(actualValue).to.equal(expectedValue);
     });
 });
