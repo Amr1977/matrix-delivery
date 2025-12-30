@@ -129,7 +129,6 @@ export const MainApp = () => {
   const [countriesLoading, setCountriesLoading] = useState(false);
 
   // Customer history view state
-  const [customerViewType, setCustomerViewType] = useState('active'); // 'active' | 'history'
   const [historyOrders, setHistoryOrders] = useState([]);
   const [historyPagination, setHistoryPagination] = useState(null);
   const [historyLoading, setHistoryLoading] = useState(false);
@@ -627,20 +626,24 @@ export const MainApp = () => {
 
   // Start location tracking when driver enters bidding view
   useEffect(() => {
-    if (currentUser?.primary_role === 'driver' && token && viewType === 'bidding') {
-      // Get initial location
-      driverHook.getDriverLocation();
-      // Start continuous location updates
-      driverHook.updateDriverLocation();
+    if (currentUser?.primary_role === 'driver' && token) {
+      if (viewType === 'bidding') {
+        // Get initial location
+        driverHook.getDriverLocation();
+        // Start continuous location updates
+        driverHook.updateDriverLocation();
+      } else if (viewType === 'history') {
+        fetchHistoryOrders(1);
+      }
     }
   }, [currentUser?.primary_role, token, viewType]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Lazy load history orders when customer opens history tab
   useEffect(() => {
-    if (currentUser?.primary_role === 'customer' && customerViewType === 'history' && historyOrders?.length === 0 && !historyLoading) {
+    if (currentUser?.primary_role === 'customer' && viewType === 'history' && historyOrders?.length === 0 && !historyLoading) {
       fetchHistoryOrders(1);
     }
-  }, [customerViewType, currentUser?.primary_role, historyOrders?.length, historyLoading, fetchHistoryOrders]);
+  }, [viewType, currentUser?.primary_role, historyOrders?.length, historyLoading, fetchHistoryOrders]);
 
   // Real-time notifications via WebSocket
   useEffect(() => {
@@ -951,7 +954,7 @@ export const MainApp = () => {
       fetchOrders();
     } catch (err) {
       // Handle "Review already submitted" error with a user-friendly message
-      if (err.message.includes('Review already submitted for this order')) {
+      if (err.message?.includes('Review already submitted for this order')) {
         setError('⚠️ You have already submitted a review for this order. You can only review each order once.');
         setShowReviewModal(false);
       } else {
@@ -2015,12 +2018,12 @@ export const MainApp = () => {
             {/* Customer Tab Switcher */}
             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem', borderRadius: '0.375rem', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
               <button
-                onClick={() => setCustomerViewType('active')}
+                onClick={() => setViewType('active')}
                 style={{
                   flex: 1,
                   padding: '0.75rem 1rem',
-                  background: customerViewType === 'active' ? '#4F46E5' : '#F3F4F6',
-                  color: customerViewType === 'active' ? 'white' : '#374151',
+                  background: viewType === 'active' ? '#4F46E5' : '#F3F4F6',
+                  color: viewType === 'active' ? 'white' : '#374151',
                   border: 'none',
                   cursor: 'pointer',
                   fontWeight: '600',
@@ -2031,12 +2034,12 @@ export const MainApp = () => {
                 📋 {t('orders.activeOrders') || 'Active Orders'}
               </button>
               <button
-                onClick={() => setCustomerViewType('history')}
+                onClick={() => setViewType('history')}
                 style={{
                   flex: 1,
                   padding: '0.75rem 1rem',
-                  background: customerViewType === 'history' ? '#4F46E5' : '#F3F4F6',
-                  color: customerViewType === 'history' ? 'white' : '#374151',
+                  background: viewType === 'history' ? '#4F46E5' : '#F3F4F6',
+                  color: viewType === 'history' ? 'white' : '#374151',
                   border: 'none',
                   cursor: 'pointer',
                   fontWeight: '600',
@@ -2588,15 +2591,15 @@ export const MainApp = () => {
               let ordersToDisplay = orders;
               let emptyMessage = t('orders.noOrdersAvailable');
 
-              if (currentUser?.primary_role === 'customer') {
-                if (customerViewType === 'history') {
-                  ordersToDisplay = historyOrders;
-                  emptyMessage = historyLoading ? t('common.loading') || 'Loading...' : (t('orders.noOrderHistory') || 'No order history');
-                } else {
-                  ordersToDisplay = orders;
-                  emptyMessage = t('orders.noOrdersAvailable');
-                }
+
+              if (viewType === 'history') {
+                ordersToDisplay = historyOrders;
+                emptyMessage = historyLoading ? t('common.loading') || 'Loading...' : (t('orders.noOrderHistory') || 'No order history');
+              } else {
+                ordersToDisplay = orders;
+                emptyMessage = t('orders.noOrdersAvailable');
               }
+
 
               return ordersToDisplay?.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '3rem', background: 'black', borderRadius: '0.5rem' }}>
@@ -2617,6 +2620,7 @@ export const MainApp = () => {
                   if (currentUser?.primary_role === 'driver') {
                     if (viewType === 'my_bids' && (!hasDriverBid || order.status !== 'pending_bids')) return null;
                     if (viewType === 'bidding' && hasDriverBid) return null;
+                    if (viewType === 'history' && order.status !== 'delivered') return null;
                   }
 
                   return (
@@ -2656,7 +2660,7 @@ export const MainApp = () => {
             })()}
 
             {/* Load More Button for History */}
-            {currentUser?.primary_role === 'customer' && customerViewType === 'history' && historyPagination?.hasMore && (
+            {currentUser?.primary_role === 'customer' && viewType === 'history' && historyPagination?.hasMore && (
               <button
                 onClick={() => fetchHistoryOrders(historyPagination.page + 1)}
                 disabled={historyLoading}
