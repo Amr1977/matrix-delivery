@@ -4,6 +4,7 @@
  */
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useBalance } from '../../hooks/useBalance';
 import type { BalanceStatement as BalanceStatementType } from '../../types/balance';
 import './BalanceStatement.css';
@@ -14,6 +15,7 @@ interface BalanceStatementProps {
 }
 
 const BalanceStatement: React.FC<BalanceStatementProps> = ({ userId, userRole }) => {
+    const navigate = useNavigate();
     const { statement, loading, error, generateStatement } = useBalance();
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
@@ -150,6 +152,9 @@ const BalanceStatement: React.FC<BalanceStatementProps> = ({ userId, userRole })
     return (
         <div className="balance-statement" data-testid="balance-statement">
             <div className="statement-header" data-testid="statement-header">
+                <button onClick={() => navigate(-1)} className="back-btn matrix-btn-ghost">
+                    ← Back
+                </button>
                 <h1 data-testid="statement-title">📄 Balance Statement</h1>
             </div>
 
