@@ -6,7 +6,7 @@
 INSERT INTO public.users (
     id, name, email, password_hash, phone, primary_role, granted_roles,
     vehicle_type, rating, completed_deliveries, is_available, is_verified,
-    verified_at, country, city, area, profile_picture_url, created_at,
+    country, city, area, profile_picture_url, created_at,
     updated_at, license_number, service_area_zone, preferences,
     notification_prefs, two_factor_methods, language, theme,
     document_verification_status, wallet_address, wallet_verified,
@@ -24,7 +24,6 @@ INSERT INTO public.users (
     0,
     true,
     true,
-    NULL,
     'Egypt',
     'alex',
     'alex',
@@ -56,7 +55,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO public.users (
     id, name, email, password_hash, phone, primary_role, granted_roles,
     vehicle_type, rating, completed_deliveries, is_available, is_verified,
-    verified_at, country, city, area, profile_picture_url, created_at,
+    country, city, area, profile_picture_url, created_at,
     updated_at, license_number, service_area_zone, preferences,
     notification_prefs, two_factor_methods, language, theme,
     document_verification_status, wallet_address, wallet_verified,
@@ -74,7 +73,6 @@ INSERT INTO public.users (
     0,
     true,
     false,
-    NULL,
     'Egypt',
     'alex',
     'sidi beshr',
