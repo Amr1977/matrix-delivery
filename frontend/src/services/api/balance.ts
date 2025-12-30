@@ -3,7 +3,7 @@
  * Client for interacting with Balance API v1
  */
 
-import axios from 'axios';
+import { ApiClient } from './client';
 import type {
     UserBalance,
     DepositRequest,
@@ -16,8 +16,6 @@ import type {
     BalanceTransaction
 } from '../../types/balance';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
-
 /**
  * Balance API Client
  */
@@ -26,32 +24,32 @@ export const balanceApi = {
      * Get user balance
      */
     async getBalance(userId: number): Promise<UserBalance> {
-        const response = await axios.get<ApiResponse<UserBalance>>(
-            `${API_BASE_URL}/v1/balance/${userId}`
+        const response = await ApiClient.get<ApiResponse<UserBalance>>(
+            `/v1/balance/${userId}`
         );
-        return response.data.data;
+        return response.data;
     },
 
     /**
      * Deposit funds to balance
      */
     async deposit(request: DepositRequest): Promise<BalanceTransaction> {
-        const response = await axios.post<ApiResponse<{ transaction: BalanceTransaction }>>(
-            `${API_BASE_URL}/v1/balance/deposit`,
+        const response = await ApiClient.post<ApiResponse<{ transaction: BalanceTransaction }>>(
+            '/v1/balance/deposit',
             request
         );
-        return response.data.data.transaction;
+        return response.data.transaction;
     },
 
     /**
      * Request withdrawal
      */
     async withdraw(request: WithdrawalRequest): Promise<BalanceTransaction> {
-        const response = await axios.post<ApiResponse<{ transaction: BalanceTransaction }>>(
-            `${API_BASE_URL}/v1/balance/withdraw`,
+        const response = await ApiClient.post<ApiResponse<{ transaction: BalanceTransaction }>>(
+            '/v1/balance/withdraw',
             request
         );
-        return response.data.data.transaction;
+        return response.data.transaction;
     },
 
     /**
@@ -61,11 +59,14 @@ export const balanceApi = {
         userId: number,
         filters?: TransactionFilters
     ): Promise<TransactionHistoryResponse> {
-        const response = await axios.get<ApiResponse<TransactionHistoryResponse>>(
-            `${API_BASE_URL}/v1/balance/${userId}/transactions`,
-            { params: filters }
+        // Build query manually since ApiClient doesn't support params object in get() directly yet 
+        // OR simply use the buildQueryString if available. 
+        // Checking client.ts, it has buildQueryString static method.
+        const queryString = ApiClient.buildQueryString(filters || {});
+        const response = await ApiClient.get<ApiResponse<TransactionHistoryResponse>>(
+            `/v1/balance/${userId}/transactions${queryString}`
         );
-        return response.data.data;
+        return response.data;
     },
 
     /**
@@ -73,22 +74,22 @@ export const balanceApi = {
      */
     async getStatement(request: BalanceStatementRequest): Promise<BalanceStatement> {
         const { userId, startDate, endDate } = request;
-        const response = await axios.get<ApiResponse<BalanceStatement>>(
-            `${API_BASE_URL}/v1/balance/${userId}/statement`,
-            { params: { startDate, endDate } }
+        const queryString = ApiClient.buildQueryString({ startDate, endDate });
+        const response = await ApiClient.get<ApiResponse<BalanceStatement>>(
+            `/v1/balance/${userId}/statement${queryString}`
         );
-        return response.data.data;
+        return response.data;
     },
 
     /**
      * Create balance hold
      */
     async createHold(userId: number, amount: number, reason: string) {
-        const response = await axios.post<ApiResponse<any>>(
-            `${API_BASE_URL}/v1/balance/hold`,
+        const response = await ApiClient.post<ApiResponse<any>>(
+            '/v1/balance/hold',
             { userId, amount, reason }
         );
-        return response.data.data;
+        return response.data;
     }
 };
 
