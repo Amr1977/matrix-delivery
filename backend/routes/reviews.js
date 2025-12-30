@@ -39,14 +39,14 @@ router.get('/', async (req, res) => {
 
         const reviewsQuery = `
             SELECT r.*, u.name as reviewer_name, u.profile_picture_url, u.is_verified
-            FROM reviews r
+            FROM platform_reviews r
             JOIN users u ON r.user_id = u.id
             WHERE r.is_approved = TRUE
             ORDER BY ${sort}
             LIMIT $1 OFFSET $2
         `;
 
-        const countQuery = 'SELECT COUNT(*) FROM reviews WHERE is_approved = TRUE';
+        const countQuery = 'SELECT COUNT(*) FROM platform_reviews WHERE is_approved = TRUE';
 
         const [reviewsResult, countResult] = await Promise.all([
             db.query(reviewsQuery, [limit, offset]),
@@ -99,7 +99,7 @@ router.post(
             // For now, rely on rate limiter and maybe unique constraint if needed later.
 
             const result = await db.query(
-                `INSERT INTO reviews 
+                `INSERT INTO platform_reviews 
                 (user_id, rating, content, professionalism_rating, communication_rating, timeliness_rating, package_condition_rating)
                 VALUES ($1, $2, $3, $4, $5, $6, $7)
                 RETURNING *`,
@@ -126,17 +126,17 @@ router.post('/:id/vote', [verifyToken, voteLimiter], async (req, res) => {
         const userId = req.user.userId;
 
         // Check availability
-        const checkVote = await db.query('SELECT * FROM review_votes WHERE review_id = $1 AND user_id = $2', [reviewId, userId]);
+        const checkVote = await db.query('SELECT * FROM platform_review_votes WHERE review_id = $1 AND user_id = $2', [reviewId, userId]);
         if (checkVote.rows.length > 0) {
             return res.status(400).json({ error: 'You have already voted on this review' });
         }
 
         // Add vote
-        await db.query('INSERT INTO review_votes (review_id, user_id) VALUES ($1, $2)', [reviewId, userId]);
+        await db.query('INSERT INTO platform_review_votes (review_id, user_id) VALUES ($1, $2)', [reviewId, userId]);
 
         // Update review count
         const result = await db.query(
-            'UPDATE reviews SET upvotes = upvotes + 1 WHERE id = $1 RETURNING upvotes',
+            'UPDATE platform_reviews SET upvotes = upvotes + 1 WHERE id = $1 RETURNING upvotes',
             [reviewId]
         );
 
@@ -159,17 +159,17 @@ router.post('/:id/flag', [verifyToken, voteLimiter], async (req, res) => {
         const { reason } = req.body;
 
         // Check if user already flagged
-        const checkFlag = await db.query('SELECT * FROM review_flags WHERE review_id = $1 AND user_id = $2', [reviewId, userId]);
+        const checkFlag = await db.query('SELECT * FROM platform_review_flags WHERE review_id = $1 AND user_id = $2', [reviewId, userId]);
         if (checkFlag.rows.length > 0) {
             return res.status(400).json({ error: 'You have already reported this review' });
         }
 
         // Add flag tracker
-        await db.query('INSERT INTO review_flags (review_id, user_id, reason) VALUES ($1, $2, $3)', [reviewId, userId, reason || 'Inappropriate content']);
+        await db.query('INSERT INTO platform_review_flags (review_id, user_id, reason) VALUES ($1, $2, $3)', [reviewId, userId, reason || 'Inappropriate content']);
 
         // Increment flag count and check for auto-hide
         const result = await db.query(
-            'UPDATE reviews SET flag_count = flag_count + 1 WHERE id = $1 RETURNING flag_count, is_approved',
+            'UPDATE platform_reviews SET flag_count = flag_count + 1 WHERE id = $1 RETURNING flag_count, is_approved',
             [reviewId]
         );
 
@@ -177,7 +177,7 @@ router.post('/:id/flag', [verifyToken, voteLimiter], async (req, res) => {
 
         // Auto-hide if > 2 flags
         if (newFlagCount > 2) {
-            await db.query('UPDATE reviews SET is_approved = FALSE WHERE id = $1', [reviewId]);
+            await db.query('UPDATE platform_reviews SET is_approved = FALSE WHERE id = $1', [reviewId]);
             logger.info(`Review ${reviewId} auto-hidden due to excessive flags (${newFlagCount})`);
         }
 
@@ -220,7 +220,7 @@ router.patch('/:id/admin', [verifyToken, requireRole('admin')], async (req, res)
         }
 
         values.push(reviewId);
-        const query = `UPDATE reviews SET ${updateFields.join(', ')}, updated_at = NOW() WHERE id = $${index} RETURNING *`;
+        const query = `UPDATE platform_reviews SET ${updateFields.join(', ')}, updated_at = NOW() WHERE id = $${index} RETURNING *`;
 
         const result = await db.query(query, values);
 

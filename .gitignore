@@ -51,7 +51,7 @@ WSL_SETUP.md
 # Compiled TypeScript (keep .ts, ignore .js in specific dirs)
 backend/utils/*.js
 backend/middleware/*.js
-backend/types/*.js
+
 !backend/utils/generators.js
 !backend/utils/sanitizers.js
 !backend/utils/validators.js
