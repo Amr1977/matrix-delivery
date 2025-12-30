@@ -4,7 +4,7 @@ Feature: Platform Reviews
   So that I can share my feedback with others
 
   Background:
-    Given I am authenticated as a regular user
+    Given I am authenticated as a reviewer
 
   Scenario: User submits a valid review
     Given I have not reviewed the platform today
@@ -20,7 +20,7 @@ Feature: Platform Reviews
       | rating | 5 |
       | content | Excellent service and fast delivery! |
       | upvotes | 0 |
-      | is_approved | 1 |
+      | is_approved | true |
 
   Scenario: User submits an invalid review
     When I submit a review with:

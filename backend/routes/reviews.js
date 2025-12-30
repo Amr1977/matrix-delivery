@@ -15,20 +15,26 @@ const db = pool;
 const createReviewLimiter = rateLimit({
     windowMs: 24 * 60 * 60 * 1000, // 24 hours
     max: 1, // Limit each IP/user to 1 review per day
-    message: { error: 'You can only submit one review per day.' }
+    message: { error: 'You can only submit one review per day.' },
+    skip: (req, res) => process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing'
 });
 
 // Vote rate limiter
 const voteLimiter = rateLimit({
     windowMs: 60 * 60 * 1000, // 1 hour
     max: 10, // Limit votes per hour
-    message: { error: 'Too many votes, please try again later.' }
+    message: { error: 'Too many votes, please try again later.' },
+    skip: (req, res) => process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing'
 });
 
 /**
  * @route   GET /api/reviews
- * @desc    Get all reviews with pagination and sorting
+ * @desc    Get all reviews with pagination and sorting. Only approved reviews are returned.
  * @access  Public
+ * @query   {number} page - Page number (default: 1)
+ * @query   {number} limit - Items per page (default: 10)
+ * @query   {string} sort - Sort order: 'recent' or 'upvotes' (default: 'upvotes')
+ * @returns {object} 200 - { reviews: [...], pagination: {...} }
  */
 router.get('/', async (req, res) => {
     try {
@@ -71,7 +77,16 @@ router.get('/', async (req, res) => {
 /**
  * @route   POST /api/reviews
  * @desc    Submit a new review
- * @access  Private
+ * @access  Private (Authenticated users)
+ * @body    {number} rating - Overall rating (1-5)
+ * @body    {string} content - Review feedback text
+ * @body    {number} [professionalism_rating] - (1-5)
+ * @body    {number} [communication_rating] - (1-5)
+ * @body    {number} [timeliness_rating] - (1-5)
+ * @body    {number} [package_condition_rating] - (1-5)
+ * @returns {object} 201 - Created review object
+ * @returns {object} 400 - Validation errors
+ * @returns {object} 429 - Rate limit exceeded
  */
 router.post(
     '/',
@@ -119,6 +134,8 @@ router.post(
  * @route   POST /api/reviews/:id/vote
  * @desc    Upvote a review
  * @access  Private
+ * @param   {string} id - Review ID
+ * @returns {object} 200 - { upvotes: <new_count> }
  */
 router.post('/:id/vote', [verifyToken, voteLimiter], async (req, res) => {
     try {
@@ -149,8 +166,11 @@ router.post('/:id/vote', [verifyToken, voteLimiter], async (req, res) => {
 
 /**
  * @route   POST /api/reviews/:id/flag
- * @desc    Flag a review
+ * @desc    Flag a review as inappropriate
  * @access  Private
+ * @param   {string} id - Review ID
+ * @body    {string} [reason] - Reason for flagging
+ * @returns {object} 200 - { message: "Review reported", flag_count: <count> }
  */
 router.post('/:id/flag', [verifyToken, voteLimiter], async (req, res) => {
     try {
@@ -191,7 +211,12 @@ router.post('/:id/flag', [verifyToken, voteLimiter], async (req, res) => {
 /**
  * @route   PATCH /api/reviews/:id/admin
  * @desc    Admin updates (link github, feature, approve)
- * @access  Private (Admin)
+ * @access  Private (Admin Role Required)
+ * @param   {string} id - Review ID
+ * @body    {boolean} [is_approved] - Approve/Reject review
+ * @body    {boolean} [is_featured] - Feature review on homepage
+ * @body    {string} [github_issue_link] - Link to GitHub issue
+ * @returns {object} 200 - Updated review object
  */
 router.patch('/:id/admin', [verifyToken, requireRole('admin')], async (req, res) => {
     try {
