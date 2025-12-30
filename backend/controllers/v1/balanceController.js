@@ -121,15 +121,49 @@ class BalanceController {
     // GET /api/v1/balance/:userId/transactions
     getTransactionHistory = async (req, res, next) => {
         try {
-            // Mock implementation since getTransactionHistory is not fully implemented in service JS above
-            // But let's assume service has it or returns empty
-            // Use placeholder
+            const userId = req.params.userId;
+
+            // Parse query parameters
+            const {
+                limit,
+                offset,
+                type,
+                status,
+                startDate,
+                endDate,
+                orderId,
+                sortBy,
+                sortOrder
+            } = req.query;
+
+            // Build options object
+            const options = {
+                userId,
+                limit: limit ? parseInt(limit) : undefined,
+                offset: offset ? parseInt(offset) : undefined,
+                type,
+                status,
+                startDate: startDate ? new Date(startDate) : undefined,
+                endDate: endDate ? new Date(endDate) : undefined,
+                orderId,
+                sortBy,
+                sortOrder
+            };
+
+            // Get transaction history from service
+            const result = await this.balanceService.getTransactionHistory(options);
+
             res.status(200).json({
                 success: true,
-                data: { transactions: [], pagination: { total: 0, hasMore: false } }
+                data: result,
+                timestamp: new Date().toISOString()
             });
         } catch (error) {
-            return sendError(res, 500, error.message);
+            console.error('Transaction history error:', error);
+            if (error.message && error.message.includes('required')) {
+                return sendError(res, 400, error.message);
+            }
+            return sendError(res, 500, error.message || 'Failed to retrieve transaction history');
         }
     }
 }

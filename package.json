@@ -132,6 +132,7 @@
     "@capacitor/cli": "^7.4.4",
     "@capacitor/core": "^7.4.4",
     "@paypal/checkout-server-sdk": "^1.0.3",
-    "eslint-plugin-security": "^3.0.1"
+    "eslint-plugin-security": "^3.0.1",
+    "firebase": "^12.7.0"
   }
 }
