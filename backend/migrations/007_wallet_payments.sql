@@ -45,11 +45,11 @@ CREATE TABLE IF NOT EXISTS wallet_payments (
 );
 
 -- Indexes for performance
-CREATE INDEX idx_wallet_payments_order_id ON wallet_payments(order_id);
-CREATE INDEX idx_wallet_payments_status ON wallet_payments(status);
-CREATE INDEX idx_wallet_payments_wallet_type ON wallet_payments(wallet_type);
-CREATE INDEX idx_wallet_payments_created_at ON wallet_payments(created_at);
-CREATE INDEX idx_wallet_payments_transaction_ref ON wallet_payments(transaction_reference);
+CREATE INDEX IF NOT EXISTS idx_wallet_payments_order_id ON wallet_payments(order_id);
+CREATE INDEX IF NOT EXISTS idx_wallet_payments_status ON wallet_payments(status);
+CREATE INDEX IF NOT EXISTS idx_wallet_payments_wallet_type ON wallet_payments(wallet_type);
+CREATE INDEX IF NOT EXISTS idx_wallet_payments_created_at ON wallet_payments(created_at);
+CREATE INDEX IF NOT EXISTS idx_wallet_payments_transaction_ref ON wallet_payments(transaction_reference);
 
 -- Platform Wallet Configuration
 CREATE TABLE IF NOT EXISTS platform_wallets (
@@ -83,6 +83,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS wallet_payments_updated_at ON wallet_payments;
 CREATE TRIGGER wallet_payments_updated_at
     BEFORE UPDATE ON wallet_payments
     FOR EACH ROW
