@@ -9,6 +9,7 @@ const app = require('../../../backend/server');
 const pool = require('../../../backend/config/db');
 const bcrypt = require('bcryptjs');
 const { createTestToken } = require('../../utils/testAuth');
+const orderService = require('../../../backend/services/orderService');
 
 //World for authorization tests
 class AuthorizationWorld {
@@ -59,7 +60,7 @@ VALUES($1, $2, $3, $4, $5, $6, $7, $8)
 RETURNING * `,
             [
                 user.userId,
-                `Test ${user.role} `,
+                `Test ${user.role}`,
                 user.email,
                 '+1234567890',
                 hashedPassword,
@@ -75,39 +76,81 @@ RETURNING * `,
 });
 
 Given('{string} has an order {string}', async function (userId, orderId) {
-    const orderNumber = `ORD - ${Date.now()} -${Math.random().toString(36).substr(2, 9)} `;
-    const result = await pool.query(
-        `INSERT INTO orders (id, order_number, customer_id, title, status, price, pickup_address, delivery_address, from_lat, from_lng, to_lat, to_lng)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-         RETURNING *`,
-        [orderId, orderNumber, userId, 'Test Order', 'pending', 100.00, '123 Test St', '456 Delivery Ave', 30.0444, 31.2357, 30.0626, 31.2497]
-    );
+    // Use orderService to create complete order
+    const orderData = {
+        title: 'Test Order',
+        price: 100.00,
+        pickup_address: '123 Test St',
+        delivery_address: '456 Delivery Ave',
+        from_lat: 30.0444,
+        from_lng: 31.2357,
+        to_lat: 30.0626,
+        to_lng: 31.2497,
+        from_name: 'John Doe',
+        to_name: 'Jane Smith'
+    };
 
-    this.authWorld.testOrders[orderId] = result.rows[0];
+    const order = await orderService.createOrder(orderData, userId, this.authWorld.testUsers[userId].name);
+
+    // Update the order ID to match expected test ID
+    await pool.query('UPDATE orders SET id = $1 WHERE id = $2', [orderId, order.id]);
+    order.id = orderId;
+
+    this.authWorld.testOrders[orderId] = order;
 });
 
 Given('{string} has order {string} assigned to {string}', async function (customerId, orderId, driverId) {
-    const orderNumber = `ORD - ${Date.now()} -${Math.random().toString(36).substr(2, 9)} `;
-    const result = await pool.query(
-        `INSERT INTO orders (id, order_number, customer_id, assigned_driver_user_id, title, status, price, pickup_address, delivery_address, from_lat, from_lng, to_lat, to_lng)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-         RETURNING *`,
-        [orderId, orderNumber, customerId, driverId, 'Test Assigned Order', 'accepted', 100.00, '123 Test St', '456 Delivery Ave', 30.0444, 31.2357, 30.0626, 31.2497]
-    );
+    // Use orderService to create complete order
+    const orderData = {
+        title: 'Test Assigned Order',
+        price: 100.00,
+        pickup_address: '123 Test St',
+        delivery_address: '456 Delivery Ave',
+        from_lat: 30.0444,
+        from_lng: 31.2357,
+        to_lat: 30.0626,
+        to_lng: 31.2497,
+        from_name: 'John Doe',
+        to_name: 'Jane Smith'
+    };
 
-    this.authWorld.testOrders[orderId] = result.rows[0];
+    const order = await orderService.createOrder(orderData, customerId, this.authWorld.testUsers[customerId].name);
+
+    // Assign to driver and update status
+    await pool.query(
+        `UPDATE orders SET assigned_driver_user_id = $1, status = 'accepted', id = $2 WHERE id = $3`,
+        [driverId, orderId, order.id]
+    );
+    order.id = orderId;
+    order.assigned_driver_user_id = driverId;
+    order.status = 'accepted';
+
+    this.authWorld.testOrders[orderId] = order;
 });
 
 Given('{string} has order {string} with status {string}', async function (userId, orderId, status) {
-    const orderNumber = `ORD - ${Date.now()} -${Math.random().toString(36).substr(2, 9)} `;
-    const result = await pool.query(
-        `INSERT INTO orders (id, order_number, customer_id, title, status, price, pickup_address, delivery_address, from_lat, from_lng, to_lat, to_lng)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-         RETURNING *`,
-        [orderId, orderNumber, userId, 'Test Order', status, 100.00, '123 Test St', '456 Delivery Ave', 30.0444, 31.2357, 30.0626, 31.2497]
-    );
+    // Use orderService to create complete order
+    const orderData = {
+        title: 'Test Order',
+        price: 100.00,
+        pickup_address: '123 Test St',
+        delivery_address: '456 Delivery Ave',
+        from_lat: 30.0444,
+        from_lng: 31.2357,
+        to_lat: 30.0626,
+        to_lng: 31.2497,
+        from_name: 'John Doe',
+        to_name: 'Jane Smith'
+    };
 
-    this.authWorld.testOrders[orderId] = result.rows[0];
+    const order = await orderService.createOrder(orderData, userId, this.authWorld.testUsers[userId].name);
+
+    // Update status and ID
+    await pool.query('UPDATE orders SET status = $1, id = $2 WHERE id = $3', [status, orderId, order.id]);
+    order.id = orderId;
+    order.status = status;
+
+    this.authWorld.testOrders[orderId] = order;
 });
 
 Given('{string} has placed bid on order {string}', async function (driverId, orderId) {
