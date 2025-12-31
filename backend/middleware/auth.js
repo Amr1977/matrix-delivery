@@ -6,10 +6,13 @@ const logger = require('../config/logger');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
+// Lazy load authService to prevent circular dependency issues if any
+const getAuthService = () => require('../services/authService');
+
 /**
  * Middleware to verify JWT token and attach user to request
  */
-const verifyToken = (req, res, next) => {
+const verifyToken = async (req, res, next) => {
   // Check for token in cookies first (preferred method)
   let token = req.cookies?.token;
 
@@ -31,10 +34,24 @@ const verifyToken = (req, res, next) => {
   }
 
   try {
+    // 1. Verify Signature & Expiry
     const decoded = jwt.verify(token, JWT_SECRET, {
       audience: 'matrix-delivery-api',
       issuer: 'matrix-delivery'
     });
+
+    // 2. Check Blacklist (Redis)
+    const isBlacklisted = await getAuthService().isTokenBlacklisted(token);
+    if (isBlacklisted) {
+      logger.security('Blacklisted token access attempt', {
+        userId: decoded.userId,
+        ip: clientIP,
+        path: req.path,
+        category: 'security'
+      });
+      return res.status(401).json({ error: 'Token has been revoked. Please log in again.' });
+    }
+
     req.user = decoded;
 
     logger.auth('Token verified successfully', {

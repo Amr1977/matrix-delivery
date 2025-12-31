@@ -605,6 +605,47 @@ class AuthService {
     // Create new verification token (this will clean up old ones)
     return await this.createEmailVerificationToken(email);
   }
+  /**
+   * Blacklist a token until it expires
+   */
+  async blacklistToken(token) {
+    const redis = require('../config/redis');
+    if (!redis) return; // Redis not enabled
+
+    try {
+      const decoded = jwt.decode(token);
+      if (!decoded || !decoded.exp) return;
+
+      const now = Math.floor(Date.now() / 1000);
+      const ttl = decoded.exp - now;
+
+      if (ttl > 0) {
+        const key = `blacklist:token:${token}`; // Consider hashing if token is long
+        await redis.set(key, 'revoked', 'EX', ttl);
+        logger.info(`Token blacklisted for user ${decoded.userId}`, { ttl });
+      }
+    } catch (error) {
+      logger.error(`Failed to blacklist token: ${error.message}`);
+      // Don't throw, logout should continue
+    }
+  }
+
+  /**
+   * Check if token is blacklisted
+   */
+  async isTokenBlacklisted(token) {
+    const redis = require('../config/redis');
+    if (!redis) return false;
+
+    try {
+      const key = `blacklist:token:${token}`;
+      const result = await redis.get(key);
+      return result === 'revoked';
+    } catch (error) {
+      logger.error(`Failed to check token blacklist: ${error.message}`);
+      return false; // Fail open to allow access if Redis is down
+    }
+  }
 }
 
 module.exports = new AuthService();
