@@ -106,6 +106,16 @@ Given('{string} has order {string} with status {string}', async function (userId
     this.authWorld.testOrders[orderId] = result.rows[0];
 });
 
+Given('{string} has placed bid on order {string}', async function (driverId, orderId) {
+    // Create a bid for testing bid acceptance
+    const token = this.authWorld.tokens[driverId];
+
+    await request(app)
+        .post(`/api/orders/${orderId}/bid`)
+        .set('Cookie', `token=${token}`)
+        .send({ bid_price: 50.00 });
+});
+
 // ============ WHEN STEPS (API) ============
 
 When('{string} tries to access order {string}', async function (userId, orderId) {
@@ -154,7 +164,9 @@ When('{string} tries to cancel order {string}', async function (userId, orderId)
     const token = this.authWorld.tokens[userId];
 
     this.authWorld.response = await request(app)
-        .post(`/api/orders/${orderId}/cancel`)
+
+    this.authWorld.response = await request(app)
+        .post(`/api/admin/orders/${orderId}/cancel`)
         .set('Cookie', `token=${token}`);
 });
 
@@ -162,9 +174,28 @@ When('{string} tries to bid on order {string}', async function (driverId, orderI
     const token = this.authWorld.tokens[driverId];
 
     this.authWorld.response = await request(app)
-        .post(`/api/orders/${orderId}/bids`)
+        .post(`/api/orders/${orderId}/bid`)
         .set('Cookie', `token=${token}`)
         .send({ bid_price: 50.00 });
+});
+
+When('{string} tries to update their own profile', async function (userId) {
+    const token = this.authWorld.tokens[userId];
+
+    this.authWorld.response = await request(app)
+        .put('/api/users/me/profile')
+        .set('Cookie', `token=${token}`)
+        .send({ name: 'Updated Name' });
+});
+
+When('{string} tries to accept bid on order {string}', async function (customerId, orderId) {
+    const token = this.authWorld.tokens[customerId];
+    const driverId = 'driver-1'; // Using the driver who placed the bid
+
+    this.authWorld.response = await request(app)
+        .post(`/api/orders/${orderId}/accept-bid`)
+        .set('Cookie', `token=${token}`)
+        .send({ driverId });
 });
 
 When('{string} tries to access {string} for {string}', async function (actorId, path, targetId) {
