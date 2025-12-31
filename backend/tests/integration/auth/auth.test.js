@@ -112,7 +112,7 @@ describe('Authentication API Tests', () => {
       // Create a test user for login
       const hashedPassword = await bcrypt.hash('password123', 10);
       const result = await pool.query(
-        `INSERT INTO users (id, name, email, password, phone, primary_role, country, city, area, rating, completed_deliveries)
+        `INSERT INTO users (id, name, email, password_hash, phone, primary_role, country, city, area, rating, completed_deliveries)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
          RETURNING *`,
         [
@@ -175,7 +175,7 @@ describe('Authentication API Tests', () => {
       // Create a test user
       const hashedPassword = await bcrypt.hash('password123', 10);
       const result = await pool.query(
-        `INSERT INTO users (id, name, email, password, phone, primary_role, country, city, area, rating, completed_deliveries)
+        `INSERT INTO users (id, name, email, password_hash, phone, primary_role, country, city, area, rating, completed_deliveries)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
          RETURNING *`,
         [
@@ -255,7 +255,7 @@ describe('Authentication API Tests', () => {
       // Create a test user
       const hashedPassword = await bcrypt.hash('oldpassword', 10);
       const result = await pool.query(
-        `INSERT INTO users (id, name, email, password, phone, primary_role, country, city, area, rating, completed_deliveries)
+        `INSERT INTO users (id, name, email, password_hash, phone, primary_role, country, city, area, rating, completed_deliveries)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
          RETURNING *`,
         [
@@ -301,8 +301,8 @@ describe('Authentication API Tests', () => {
       expect(response.body.message).toContain('Password has been reset successfully');
 
       // Check that password was updated
-      const userResult = await pool.query('SELECT password FROM users WHERE id = $1', [testUser.id]);
-      const isNewPasswordValid = await bcrypt.compare('newpassword123', userResult.rows[0].password);
+      const userResult = await pool.query('SELECT password_hash FROM users WHERE id = $1', [testUser.id]);
+      const isNewPasswordValid = await bcrypt.compare('newpassword123', userResult.rows[0].password_hash);
       expect(isNewPasswordValid).toBe(true);
 
       // Check that token was marked as used
@@ -367,7 +367,7 @@ describe('Authentication API Tests', () => {
       // Create a test user and get token
       const hashedPassword = await bcrypt.hash('password123', 10);
       const result = await pool.query(
-        `INSERT INTO users (id, name, email, password, phone, primary_role, country, city, area, rating, completed_deliveries)
+        `INSERT INTO users (id, name, email, password_hash, phone, primary_role, country, city, area, rating, completed_deliveries)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
          RETURNING *`,
         [
@@ -495,7 +495,7 @@ describe('Authentication API Tests', () => {
       // Create an unverified test user
       const hashedPassword = await bcrypt.hash('password123', 10);
       const result = await pool.query(
-        `INSERT INTO users (id, name, email, password, phone, primary_role, country, city, area, rating, completed_deliveries, is_verified)
+        `INSERT INTO users (id, name, email, password_hash, phone, primary_role, country, city, area, rating, completed_deliveries, is_verified)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
          RETURNING *`,
         [
@@ -567,7 +567,7 @@ describe('Authentication API Tests', () => {
       // Create an unverified test user
       const hashedPassword = await bcrypt.hash('password123', 10);
       const result = await pool.query(
-        `INSERT INTO users (id, name, email, password, phone, primary_role, country, city, area, rating, completed_deliveries, is_verified)
+        `INSERT INTO users (id, name, email, password_hash, phone, primary_role, country, city, area, rating, completed_deliveries, is_verified)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
          RETURNING *`,
         [
