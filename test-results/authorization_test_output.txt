@@ -1,0 +1,14 @@
+[dotenv@17.2.3] injecting env (0) from .env.testing -- tip: ≡ƒæÑ sync secrets across teammates & machines: https://dotenvx.com/ops
+Γ£à Loaded .env.testing for testing
+2025-12-31 18:07:56 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m≡ƒôä Loading environment from: .env.testing[1m[32m[22m[39m
+[dotenv@17.2.3] injecting env (0) from .env.testing -- tip: ≡ƒæÑ sync secrets across teammates & machines: https://dotenvx.com/ops
+2025-12-31 18:07:56 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m≡ƒöº Environment Configuration:[1m[32m[22m[39m
+2025-12-31 18:07:56 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   NODE_ENV: testing[1m[32m[22m[39m
+2025-12-31 18:07:56 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   IS_TEST: true[1m[32m[22m[39m
+2025-12-31 18:07:56 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   DB_HOST: localhost[1m[32m[22m[39m
+2025-12-31 18:07:56 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   DB_PORT: 5432[1m[32m[22m[39m
+2025-12-31 18:07:56 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   DB_USER: postgres[1m[32m[22m[39m
+2025-12-31 18:07:56 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   DB_NAME: matrix_delivery[1m[32m[22m[39m
+2025-12-31 18:07:56 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   DB_NAME_TEST: matrix_delivery_test[1m[32m[22m[39m
+2025-12-31 18:07:56 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m≡ƒöî Connecting to database: matrix_delivery_test (Test Mode: true)[1m[32m[22m[39m
+2025-12-31 18:07:57 [[31m[1m[31m[1merror[1m[31m[22m[39m]: [31m[1m[31m[1mΓ¥î Security configuration validation failed:[1m[31m[22m[39m

@@ -76,18 +76,37 @@ RETURNING * `,
 });
 
 Given('{string} has an order {string}', async function (userId, orderId) {
-    // Use orderService to create complete order
+    // Use orderService to create complete order with correct structure
     const orderData = {
         title: 'Test Order',
         price: 100.00,
-        pickup_address: '123 Test St',
-        delivery_address: '456 Delivery Ave',
-        from_lat: 30.0444,
-        from_lng: 31.2357,
-        to_lat: 30.0626,
-        to_lng: 31.2497,
-        from_name: 'John Doe',
-        to_name: 'Jane Smith'
+        description: 'Authorization test order',
+        pickupLocation: {
+            coordinates: { lat: 30.0444, lng: 31.2357 }
+        },
+        dropoffLocation: {
+            coordinates: { lat: 30.0626, lng: 31.2497 }
+        },
+        pickupAddress: {
+            personName: 'John Doe',
+            street: '123 Test St',
+            buildingNumber: '10',
+            floor: '1',
+            apartmentNumber: '1A',
+            area: 'Zamalek',
+            city: 'Cairo',
+            country: 'Egypt'
+        },
+        dropoffAddress: {
+            personName: 'Jane Smith',
+            street: '456 Delivery Ave',
+            buildingNumber: '20',
+            floor: '2',
+            apartmentNumber: '2B',
+            area: 'Maadi',
+            city: 'Cairo',
+            country: 'Egypt'
+        }
     };
 
     const order = await orderService.createOrder(orderData, userId, this.authWorld.testUsers[userId].name);
@@ -100,18 +119,31 @@ Given('{string} has an order {string}', async function (userId, orderId) {
 });
 
 Given('{string} has order {string} assigned to {string}', async function (customerId, orderId, driverId) {
-    // Use orderService to create complete order
     const orderData = {
         title: 'Test Assigned Order',
         price: 100.00,
-        pickup_address: '123 Test St',
-        delivery_address: '456 Delivery Ave',
-        from_lat: 30.0444,
-        from_lng: 31.2357,
-        to_lat: 30.0626,
-        to_lng: 31.2497,
-        from_name: 'John Doe',
-        to_name: 'Jane Smith'
+        pickupLocation: {
+            coordinates: { lat: 30.0444, lng: 31.2357 }
+        },
+        dropoffLocation: {
+            coordinates: { lat: 30.0626, lng: 31.2497 }
+        },
+        pickupAddress: {
+            personName: 'John Doe',
+            street: '123 Test St',
+            city: 'Cairo',
+            country: 'Egypt',
+            area: 'Zamalek',
+            buildingNumber: '10'
+        },
+        dropoffAddress: {
+            personName: 'Jane Smith',
+            street: '456 Delivery Ave',
+            city: 'Cairo',
+            country: 'Egypt',
+            area: 'Maadi',
+            buildingNumber: '20'
+        }
     };
 
     const order = await orderService.createOrder(orderData, customerId, this.authWorld.testUsers[customerId].name);
@@ -129,18 +161,29 @@ Given('{string} has order {string} assigned to {string}', async function (custom
 });
 
 Given('{string} has order {string} with status {string}', async function (userId, orderId, status) {
-    // Use orderService to create complete order
     const orderData = {
         title: 'Test Order',
         price: 100.00,
-        pickup_address: '123 Test St',
-        delivery_address: '456 Delivery Ave',
-        from_lat: 30.0444,
-        from_lng: 31.2357,
-        to_lat: 30.0626,
-        to_lng: 31.2497,
-        from_name: 'John Doe',
-        to_name: 'Jane Smith'
+        pickupLocation: {
+            coordinates: { lat: 30.0444, lng: 31.2357 }
+        },
+        dropoffLocation: {
+            coordinates: { lat: 30.0626, lng: 31.2497 }
+        },
+        pickupAddress: {
+            personName: 'John Doe',
+            street: '123 Test St',
+            city: 'Cairo',
+            country: 'Egypt',
+            area: 'Zamalek'
+        },
+        dropoffAddress: {
+            personName: 'Jane Smith',
+            street: '456 Delivery Ave',
+            city: 'Cairo',
+            country: 'Egypt',
+            area: 'Maadi'
+        }
     };
 
     const order = await orderService.createOrder(orderData, userId, this.authWorld.testUsers[userId].name);
