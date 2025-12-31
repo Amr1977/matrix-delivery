@@ -1,13 +1,13 @@
 const { Given, When, Then, Before, After, setWorldConstructor } = require('@cucumber/cucumber');
 const { expect } = require('chai');
 const request = require('supertest');
-const BDDAuthHelper = require('../support/bdd_auth_helper');
+const BDDAuthHelper = require('../../support/bdd_auth_helper');
 
 // Helper to set mock data on world object
 function setMockData(key, value) {
     this[key] = value;
 }
-const app = require('../../server');
+const app = require('../../../backend/server');
 const pool = require('../../config/db');
 
 // Note: Mocking is handled differently in Cucumber vs Jest
@@ -977,4 +977,7 @@ Then('the report should include average delivery time', function () {
 });
 
 module.exports = { AdminWorld };
+
+
+
 

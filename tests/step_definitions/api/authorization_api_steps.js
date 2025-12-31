@@ -1,10 +1,11 @@
+```javascript
 const { Given, When, Then, Before, After } = require('@cucumber/cucumber');
 const request = require('supertest');
 const { expect } = require('chai');
-const app = require('../../server');
-const pool = require('../../config/db');
+const app = require('../../../backend/server');
+const pool = require('../../../backend/config/db');
 const bcrypt = require('bcryptjs');
-const { createTestToken } = require('../../tests/utils/testAuth');
+const { createTestToken } = require('../../utils/testAuth');
 
 // World for authorization tests
 class AuthorizationWorld {
@@ -50,12 +51,12 @@ Given('test users exist:', async function (dataTable) {
         const hashedPassword = await bcrypt.hash('SecurePass123!', 10);
 
         const result = await pool.query(
-            `INSERT INTO users (id, name, email, phone, password_hash, primary_role, granted_roles, is_verified)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-             RETURNING *`,
+            `INSERT INTO users(id, name, email, phone, password_hash, primary_role, granted_roles, is_verified)
+VALUES($1, $2, $3, $4, $5, $6, $7, $8)
+RETURNING * `,
             [
                 user.userId,
-                `Test ${user.role}`,
+                `Test ${ user.role } `,
                 user.email,
                 '+1234567890',
                 hashedPassword,
@@ -71,11 +72,11 @@ Given('test users exist:', async function (dataTable) {
 });
 
 Given('{string} has an order {string}', async function (userId, orderId) {
-    const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const orderNumber = `ORD - ${ Date.now() } -${ Math.random().toString(36).substr(2, 9) } `;
     const result = await pool.query(
-        `INSERT INTO orders (id, order_number, customer_id, title, status, price)
-         VALUES ($1, $2, $3, $4, $5, $6)
-         RETURNING *`,
+        `INSERT INTO orders(id, order_number, customer_id, title, status, price)
+VALUES($1, $2, $3, $4, $5, $6)
+RETURNING * `,
         [orderId, orderNumber, userId, 'Test Order', 'pending', 100.00]
     );
 
@@ -83,11 +84,11 @@ Given('{string} has an order {string}', async function (userId, orderId) {
 });
 
 Given('{string} has order {string} assigned to {string}', async function (customerId, orderId, driverId) {
-    const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const orderNumber = `ORD - ${ Date.now() } -${ Math.random().toString(36).substr(2, 9) } `;
     const result = await pool.query(
-        `INSERT INTO orders (id, order_number, customer_id, assigned_driver_user_id, title, status, price)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)
-         RETURNING *`,
+        `INSERT INTO orders(id, order_number, customer_id, assigned_driver_user_id, title, status, price)
+VALUES($1, $2, $3, $4, $5, $6, $7)
+RETURNING * `,
         [orderId, orderNumber, customerId, driverId, 'Test Assigned Order', 'accepted', 100.00]
     );
 
@@ -95,11 +96,11 @@ Given('{string} has order {string} assigned to {string}', async function (custom
 });
 
 Given('{string} has order {string} with status {string}', async function (userId, orderId, status) {
-    const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const orderNumber = `ORD - ${ Date.now() } -${ Math.random().toString(36).substr(2, 9) } `;
     const result = await pool.query(
-        `INSERT INTO orders (id, order_number, customer_id, title, status, price)
-         VALUES ($1, $2, $3, $4, $5, $6)
-         RETURNING *`,
+        `INSERT INTO orders(id, order_number, customer_id, title, status, price)
+VALUES($1, $2, $3, $4, $5, $6)
+RETURNING * `,
         [orderId, orderNumber, userId, 'Test Order', status, 100.00]
     );
 
@@ -111,9 +112,9 @@ Given('{string} has placed bid on order {string}', async function (driverId, ord
     const token = this.authWorld.tokens[driverId];
 
     await request(app)
-        .post(`/api/orders/${orderId}/bid`)
+        .post(`/ api / orders / ${ orderId }/bid`)
         .set('Cookie', `token=${token}`)
-        .send({ bid_price: 50.00 });
+    .send({ bid_price: 50.00 });
 });
 
 // ============ WHEN STEPS (API) ============
@@ -217,3 +218,6 @@ Then('access should be granted with status {int}', function (statusCode) {
 });
 
 module.exports = { AuthorizationWorld };
+
+
+

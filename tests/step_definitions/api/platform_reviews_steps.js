@@ -1,7 +1,7 @@
 const { Given, When, Then } = require('@cucumber/cucumber');
 const { expect } = require('chai');
 const request = require('supertest');
-const app = require('../../server');
+const app = require('../../../backend/server');
 const pool = require('../../config/db');
 const bcrypt = require('bcryptjs');
 
@@ -159,3 +159,6 @@ When('I flag the review as {string}', async function (reason) {
 Then('the review flag count should increase by {int}', function (count) {
     expect(this.world.response.body).to.have.property('flag_count');
 });
+
+
+

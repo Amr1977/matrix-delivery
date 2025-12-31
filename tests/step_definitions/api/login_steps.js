@@ -57,3 +57,6 @@ Then('I should receive a {int} status code', function (statusCode) {
 Then('the response error should contain {string}', function (errorMessage) {
     expect(response.body.error).to.include(errorMessage);
 });
+
+
+

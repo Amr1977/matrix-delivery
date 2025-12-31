@@ -341,3 +341,6 @@ Then('I should see the order card with verified customer badge in bidding view',
   await verifiedBadge.waitFor({ state: 'visible', timeout: 5000 });
   expect(await verifiedBadge.isVisible()).to.be.true;
 });
+
+
+

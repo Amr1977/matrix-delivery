@@ -166,3 +166,6 @@ Then('the driver dashboard should display correctly', async function() {
   const driverElements = await this.page.locator('button:has-text("Update Location"), button:has-text("Active Orders"), button:has-text("Available Bids")').all();
   expect(driverElements.length).to.be.greaterThan(0);
 });
+
+
+

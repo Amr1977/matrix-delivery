@@ -37,9 +37,13 @@ module.exports = {
     // Security tests
     'security': {
         requireModule: ['ts-node/register'],
-        require: ['tests/step_definitions/api/**/*.{ts,js}', 'tests/support/**/*.{ts,js}'],
+        require: [
+            'tests/step_definitions/api/**/*.{ts,js}',
+            'tests/step_definitions/ui/**/*.{ts,js}',
+            'tests/support/**/*.{ts,js}'
+        ],
         paths: ['tests/features/backend/authorization-security.feature'],
         format: ['progress-bar', 'html:tests/reports/security-report.html'],
-        tags: '@security'
+        tags: '@api and @security'
     }
 };
