@@ -26,16 +26,33 @@ Before({ tags: '@api' }, async function () {
 });
 
 After({ tags: '@api' }, async function () {
-    // Cleanup test data
+    // Cleanup test data in correct order (foreign keys)
     try {
-        // Delete test orders
-        for (const orderId of Object.keys(this.authWorld.testOrders)) {
-            await pool.query('DELETE FROM orders WHERE id = $1', [orderId]);
+        const orderIds = Object.keys(this.authWorld.testOrders);
+        const userIds = Object.keys(this.authWorld.testUsers);
+
+        // Delete bids first (references orders)
+        if (orderIds.length > 0) {
+            await pool.query(
+                `DELETE FROM bids WHERE order_id = ANY($1)`,
+                [orderIds]
+            );
         }
 
-        // Delete test users
-        for (const userId of Object.keys(this.authWorld.testUsers)) {
-            await pool.query('DELETE FROM users WHERE id = $1', [userId]);
+        // Delete orders (references users)
+        if (orderIds.length > 0) {
+            await pool.query(
+                `DELETE FROM orders WHERE id = ANY($1)`,
+                [orderIds]
+            );
+        }
+
+        // Finally delete users
+        if (userIds.length > 0) {
+            await pool.query(
+                `DELETE FROM users WHERE id = ANY($1)`,
+                [userIds]
+            );
         }
     } catch (error) {
         console.warn('Cleanup error:', error.message);
@@ -55,9 +72,10 @@ Given('test users exist:', async function (dataTable) {
         const hashedPassword = await bcrypt.hash('SecurePass123!', 10);
 
         const result = await pool.query(
-            `INSERT INTO users(id, name, email, phone, password_hash, primary_role, granted_roles, is_verified)
-VALUES($1, $2, $3, $4, $5, $6, $7, $8)
-RETURNING * `,
+            `INSERT INTO users (id, name, email, phone, password_hash, primary_role, granted_roles, is_verified)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+             ON CONFLICT (id) DO NOTHING
+             RETURNING *`,
             [
                 user.userId,
                 `Test ${user.role}`,
@@ -70,7 +88,14 @@ RETURNING * `,
             ]
         );
 
-        this.authWorld.testUsers[user.userId] = result.rows[0];
+        // If user already existed, fetch it
+        if (result.rows.length === 0) {
+            const existing = await pool.query('SELECT * FROM users WHERE id = $1', [user.userId]);
+            this.authWorld.testUsers[user.userId] = existing.rows[0];
+        } else {
+            this.authWorld.testUsers[user.userId] = result.rows[0];
+        }
+
         this.authWorld.tokens[user.userId] = createTestToken(user.userId, user.role);
     }
 });
