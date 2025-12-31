@@ -55,13 +55,12 @@ When('{string} tries to update profile for {string}', async function (actorId, t
 
 // ============ THEN STEPS (UI) ============
 
-Then('access should be denied with status {int}', async function (statusCode) {
-    // UI implementation - check for error message in UI
-    // expect(this.uiAuthWorld.errorMessage).to.include('Access Denied');
+// Note: Shared steps like "access should be denied" are defined in API steps
+// Only UI-specific assertions should be here to avoid duplication
 
-    // Placeholder for now
-    console.log(`UI Test: Would verify access denied (status ${statusCode})`);
-});
+// Then('access should be denied with status {int}', async function (statusCode) {
+//   Defined in API steps - reused across both API and UI tests
+// });
 
 Then('user should see {string} message', async function (message) {
     // UI implementation

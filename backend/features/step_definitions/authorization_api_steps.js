@@ -71,33 +71,36 @@ Given('test users exist:', async function (dataTable) {
 });
 
 Given('{string} has an order {string}', async function (userId, orderId) {
+    const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const result = await pool.query(
-        `INSERT INTO orders (id, customer_id, title, status, price)
-         VALUES ($1, $2, $3, $4, $5)
+        `INSERT INTO orders (id, order_number, customer_id, title, status, price)
+         VALUES ($1, $2, $3, $4, $5, $6)
          RETURNING *`,
-        [orderId, userId, 'Test Order', 'pending', 100.00]
+        [orderId, orderNumber, userId, 'Test Order', 'pending', 100.00]
     );
 
     this.authWorld.testOrders[orderId] = result.rows[0];
 });
 
 Given('{string} has order {string} assigned to {string}', async function (customerId, orderId, driverId) {
+    const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const result = await pool.query(
-        `INSERT INTO orders (id, customer_id, assigned_driver_user_id, title, status, price)
-         VALUES ($1, $2, $3, $4, $5, $6)
+        `INSERT INTO orders (id, order_number, customer_id, assigned_driver_user_id, title, status, price)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
          RETURNING *`,
-        [orderId, customerId, driverId, 'Test Assigned Order', 'accepted', 100.00]
+        [orderId, orderNumber, customerId, driverId, 'Test Assigned Order', 'accepted', 100.00]
     );
 
     this.authWorld.testOrders[orderId] = result.rows[0];
 });
 
 Given('{string} has order {string} with status {string}', async function (userId, orderId, status) {
+    const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const result = await pool.query(
-        `INSERT INTO orders (id, customer_id, title, status, price)
-         VALUES ($1, $2, $3, $4, $5)
+        `INSERT INTO orders (id, order_number, customer_id, title, status, price)
+         VALUES ($1, $2, $3, $4, $5, $6)
          RETURNING *`,
-        [orderId, userId, 'Test Order', status, 100.00]
+        [orderId, orderNumber, userId, 'Test Order', status, 100.00]
     );
 
     this.authWorld.testOrders[orderId] = result.rows[0];
@@ -162,6 +165,15 @@ When('{string} tries to bid on order {string}', async function (driverId, orderI
         .post(`/api/orders/${orderId}/bids`)
         .set('Cookie', `token=${token}`)
         .send({ bid_price: 50.00 });
+});
+
+When('{string} tries to access {string} for {string}', async function (actorId, path, targetId) {
+    const token = this.authWorld.tokens[actorId];
+
+    this.authWorld.response = await request(app)
+        .get(path)
+        .set('Cookie', `token=${token}`)
+        .query({ userId: targetId });
 });
 
 // ============ THEN STEPS (API) ============
