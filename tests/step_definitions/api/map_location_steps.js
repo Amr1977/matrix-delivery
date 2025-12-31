@@ -611,3 +611,6 @@ Then('location search should work with Arabic input', async function () {
   const resultsCount = await page.$$eval('[data-testid="search-result"]', els => els.length);
   expect(resultsCount).to.be.greaterThan(0);
 });
+
+
+

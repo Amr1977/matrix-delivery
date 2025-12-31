@@ -112,3 +112,6 @@ Given('vendor {string} in city {string} with items {string} and {string} and {st
   const found = (vlist.items || []).find(v => v.name === vendorName);
   if (found) this.vendor.id = found.id;
 });
+
+
+

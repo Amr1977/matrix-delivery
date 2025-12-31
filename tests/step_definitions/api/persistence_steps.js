@@ -66,3 +66,6 @@ When('I reload the page for persistence', async function () {
     await this.page.reload();
     await this.page.waitForLoadState('networkidle');
 });
+
+
+

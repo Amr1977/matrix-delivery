@@ -1,7 +1,7 @@
 const { Given, When, Then, Before, After } = require('@cucumber/cucumber');
 const request = require('supertest');
 const { expect } = require('chai');
-const app = require('../../server');
+const app = require('../../../backend/server');
 const pool = require('../../config/db');
 const bcrypt = require('bcryptjs');
 
@@ -406,3 +406,6 @@ Then('the error should indicate token expired', function () {
 });
 
 module.exports = { AuthWorld };
+
+
+
