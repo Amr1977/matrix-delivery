@@ -250,21 +250,6 @@ const verifyAdmin = async (req, res, next) => {
   }
 };
 
-// Define IS_TEST for middleware use (consistent with app.js)
-const IS_TEST = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing';
-
-/**
- * Test bypass middleware
- * Allows bypassing token verification in test environment with special headers
- */
-const verifyTokenOrTestBypass = (req, res, next) => {
-  if (IS_TEST && req.headers['x-test-admin'] === '1') {
-    req.user = { role: 'admin', userId: req.headers['x-test-user-id'] };
-    return next();
-  }
-  return verifyToken(req, res, next);
-};
-
 /**
  * Vendor authorization middleware
  * Checks if user is admin or owns the vendor resource
@@ -294,6 +279,5 @@ module.exports = {
   verifyBalanceOwnership,
   requireAdmin,
   verifyAdmin,
-  verifyTokenOrTestBypass,
   authorizeVendorManage
 };

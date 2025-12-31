@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const {
-    verifyTokenOrTestBypass,
+    verifyToken,
     requireAdmin: isAdmin,
     requireRole,
     authorizeVendorManage
@@ -44,7 +44,7 @@ router.get('/', async (req, res, next) => {
  * POST /api/vendors
  * Create a new vendor (Admin only)
  */
-router.post('/', verifyTokenOrTestBypass, isAdmin, async (req, res, next) => {
+router.post('/', verifyToken, isAdmin, async (req, res, next) => {
     try {
         const { name, description, phone, address, city, country, latitude, longitude, logo_url, owner_user_id } = req.body;
         if (!name || !city || !country) {
@@ -67,7 +67,7 @@ router.post('/', verifyTokenOrTestBypass, isAdmin, async (req, res, next) => {
  * POST /api/vendors/self
  * Create own vendor profile (Vendor only)
  */
-router.post('/self', verifyTokenOrTestBypass, isVendor, async (req, res, next) => {
+router.post('/self', verifyToken, isVendor, async (req, res, next) => {
     try {
         const owner = req.user.userId;
         const existing = await pool.query('SELECT * FROM vendors WHERE owner_user_id = $1', [owner]);
@@ -91,7 +91,7 @@ router.post('/self', verifyTokenOrTestBypass, isVendor, async (req, res, next) =
  * GET /api/vendors/self
  * Get own vendor profile (Vendor only)
  */
-router.get('/self', verifyTokenOrTestBypass, isVendor, async (req, res, next) => {
+router.get('/self', verifyToken, isVendor, async (req, res, next) => {
     try {
         const result = await pool.query('SELECT * FROM vendors WHERE owner_user_id = $1', [req.user.userId]);
         if (result.rows.length === 0) {
@@ -114,7 +114,7 @@ router.get('/self', verifyTokenOrTestBypass, isVendor, async (req, res, next) =>
  * PUT /api/vendors/self
  * Update own vendor profile (Vendor only)
  */
-router.put('/self', verifyTokenOrTestBypass, isVendor, async (req, res, next) => {
+router.put('/self', verifyToken, isVendor, async (req, res, next) => {
     try {
         let vendorId;
         const result = await pool.query('SELECT id FROM vendors WHERE owner_user_id = $1', [req.user.userId]);
@@ -169,7 +169,7 @@ router.get('/:id', async (req, res, next) => {
  * PUT /api/vendors/:id
  * Update vendor (Admin or Owner)
  */
-router.put('/:id', verifyTokenOrTestBypass, authorizeVendorManage, async (req, res, next) => {
+router.put('/:id', verifyToken, authorizeVendorManage, async (req, res, next) => {
     try {
         const fields = ['name', 'description', 'phone', 'address', 'city', 'country', 'latitude', 'longitude', 'logo_url', 'is_active'];
         const updates = [];
@@ -198,7 +198,7 @@ router.put('/:id', verifyTokenOrTestBypass, authorizeVendorManage, async (req, r
  * DELETE /api/vendors/:id
  * Deactivate vendor (Admin or Owner)
  */
-router.delete('/:id', verifyTokenOrTestBypass, authorizeVendorManage, async (req, res, next) => {
+router.delete('/:id', verifyToken, authorizeVendorManage, async (req, res, next) => {
     try {
         await pool.query(`UPDATE vendors SET is_active = false WHERE id = $1`, [req.params.id]);
         res.json({ message: 'Vendor deactivated' });
@@ -224,7 +224,7 @@ router.get('/:id/items', async (req, res, next) => {
  * POST /api/vendors/:id/items
  * Create vendor item
  */
-router.post('/:id/items', verifyTokenOrTestBypass, authorizeVendorManage, async (req, res, next) => {
+router.post('/:id/items', verifyToken, authorizeVendorManage, async (req, res, next) => {
     try {
         const { item_name, description, price, image_url, category, stock_qty } = req.body;
         if (!item_name || price === undefined) {
@@ -247,7 +247,7 @@ router.post('/:id/items', verifyTokenOrTestBypass, authorizeVendorManage, async 
  * PUT /api/vendors/:id/items/:itemId
  * Update vendor item
  */
-router.put('/:id/items/:itemId', verifyTokenOrTestBypass, authorizeVendorManage, async (req, res, next) => {
+router.put('/:id/items/:itemId', verifyToken, authorizeVendorManage, async (req, res, next) => {
     try {
         const fields = ['item_name', 'description', 'price', 'image_url', 'category', 'stock_qty', 'is_active'];
         const updates = [];
@@ -276,7 +276,7 @@ router.put('/:id/items/:itemId', verifyTokenOrTestBypass, authorizeVendorManage,
  * DELETE /api/vendors/:id/items/:itemId
  * Deactivate vendor item
  */
-router.delete('/:id/items/:itemId', verifyTokenOrTestBypass, authorizeVendorManage, async (req, res, next) => {
+router.delete('/:id/items/:itemId', verifyToken, authorizeVendorManage, async (req, res, next) => {
     try {
         await pool.query(`UPDATE vendor_items SET is_active = false WHERE id = $1`, [req.params.itemId]);
         res.json({ message: 'Item deactivated' });
@@ -302,7 +302,7 @@ router.get('/:id/categories', async (req, res, next) => {
  * POST /api/vendors/:id/categories
  * Create vendor category
  */
-router.post('/:id/categories', verifyTokenOrTestBypass, authorizeVendorManage, async (req, res, next) => {
+router.post('/:id/categories', verifyToken, authorizeVendorManage, async (req, res, next) => {
     try {
         const { name } = req.body;
         if (!name) {
@@ -322,7 +322,7 @@ router.post('/:id/categories', verifyTokenOrTestBypass, authorizeVendorManage, a
  * PUT /api/vendors/:id/categories/:categoryId
  * Update vendor category
  */
-router.put('/:id/categories/:categoryId', verifyTokenOrTestBypass, authorizeVendorManage, async (req, res, next) => {
+router.put('/:id/categories/:categoryId', verifyToken, authorizeVendorManage, async (req, res, next) => {
     try {
         const { name } = req.body;
         if (!name) {
@@ -342,7 +342,7 @@ router.put('/:id/categories/:categoryId', verifyTokenOrTestBypass, authorizeVend
  * DELETE /api/vendors/:id/categories/:categoryId
  * Delete vendor category
  */
-router.delete('/:id/categories/:categoryId', verifyTokenOrTestBypass, authorizeVendorManage, async (req, res, next) => {
+router.delete('/:id/categories/:categoryId', verifyToken, authorizeVendorManage, async (req, res, next) => {
     try {
         await pool.query(`DELETE FROM vendor_categories WHERE id = $1`, [req.params.categoryId]);
         res.json({ message: 'Category deleted' });
