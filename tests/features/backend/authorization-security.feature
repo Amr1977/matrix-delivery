@@ -22,6 +22,12 @@ Feature: Authorization Security
     Then access should be denied with status 403
 
   @api @security
+  Scenario: Customer can access their own order
+    Given "customer-1" has an order "order-own-1"
+    When "customer-1" tries to access order "order-own-1"
+    Then access should be granted with status 200
+
+  @api @security
   Scenario: User can only update own profile
     When "customer-1" tries to update their own profile
     Then access should be granted with status 200

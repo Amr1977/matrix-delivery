@@ -83,6 +83,49 @@ router.get('/', verifyToken, async (req, res) => {
   }
 });
 
+// Get single order by ID (with ownership check)
+router.get('/:orderId', verifyToken, async (req, res) => {
+  try {
+    const { orderId } = req.params;
+
+    // 1. Fetch the order
+    const order = await orderService.getOrderById(orderId);
+
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    // 2. Check Ownership (Customer, Assigned Driver, or Admin)
+    const userId = req.user.userId;
+    const userRole = req.user.primary_role || req.user.role;
+    const userRoles = req.user.granted_roles || req.user.roles || [];
+    const isAdmin = userRole === 'admin' || (Array.isArray(userRoles) && userRoles.includes('admin'));
+
+    const isCustomer = order.customer_id === userId;
+    const isAssignedDriver = order.assigned_driver_user_id === userId;
+
+    // Allow if: Admin, Customer (Owner), or Assigned Driver
+    if (!isAdmin && !isCustomer && !isAssignedDriver) {
+      logger.security('IDOR attempt blocked: User tried to access order they do not own', {
+        userId,
+        orderId,
+        userRole,
+        category: 'security'
+      });
+      return res.status(403).json({ error: 'Access denied: You are not authorized to view this order' });
+    }
+
+    res.json(order);
+  } catch (error) {
+    logger.error(`Get order error: ${error.message}`, {
+      userId: req.user.userId,
+      orderId: req.params.orderId,
+      category: 'error'
+    });
+    res.status(500).json({ error: error.message || 'Failed to fetch order' });
+  }
+});
+
 // Create new order
 router.post('/', verifyToken, orderCreationRateLimit, async (req, res, next) => {
   try {
