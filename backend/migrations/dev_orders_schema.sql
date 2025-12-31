@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict Wq0yXRj8yRqmC0x4Gb3yDbNHczDUOG9jFXO8OWfYNWCXHi4c38QK6ctGJVP32D1
+
 
 -- Dumped from database version 15.14
 -- Dumped by pg_dump version 15.14
@@ -12,7 +12,7 @@ SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
-SELECT pg_catalog.set_config('search_path', '', false);
+-- SELECT pg_catalog.set_config('search_path', '', false);
 SET check_function_bodies = false;
 SET xmloption = content;
 SET client_min_messages = warning;
@@ -26,7 +26,7 @@ SET default_table_access_method = heap;
 -- Name: orders; Type: TABLE; Schema: public; Owner: postgres
 --
 
-CREATE TABLE public.orders (
+CREATE TABLE IF NOT EXISTS public.orders (
     id character varying(255) NOT NULL,
     customer_id character varying(255),
     driver_id character varying(255),
@@ -82,64 +82,35 @@ ALTER TABLE public.orders OWNER TO postgres;
 -- Name: orders orders_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.orders
-    ADD CONSTRAINT orders_pkey PRIMARY KEY (id);
+-- PK constraint skipped to avoid conflict
+-- ALTER TABLE ONLY public.orders
+--     ADD CONSTRAINT orders_pkey PRIMARY KEY (id);
 
 
 --
 -- Name: idx_orders_assigned_driver_user_id; Type: INDEX; Schema: public; Owner: postgres
 --
 
-CREATE INDEX idx_orders_assigned_driver_user_id ON public.orders USING btree (assigned_driver_user_id);
-
-
---
--- Name: idx_orders_completed_at; Type: INDEX; Schema: public; Owner: postgres
---
-
-CREATE INDEX idx_orders_completed_at ON public.orders USING btree (completed_at DESC);
-
-
---
--- Name: idx_orders_created_at; Type: INDEX; Schema: public; Owner: postgres
---
-
-CREATE INDEX idx_orders_created_at ON public.orders USING btree (created_at DESC);
-
-
---
--- Name: idx_orders_customer_id; Type: INDEX; Schema: public; Owner: postgres
---
-
-CREATE INDEX idx_orders_customer_id ON public.orders USING btree (customer_id);
-
-
---
--- Name: idx_orders_order_number; Type: INDEX; Schema: public; Owner: postgres
---
-
-CREATE INDEX idx_orders_order_number ON public.orders USING btree (order_number);
-
-
---
--- Name: idx_orders_status; Type: INDEX; Schema: public; Owner: postgres
---
-
-CREATE INDEX idx_orders_status ON public.orders USING btree (status);
-
+CREATE INDEX IF NOT EXISTS idx_orders_assigned_driver_user_id ON public.orders USING btree (assigned_driver_user_id);
+CREATE INDEX IF NOT EXISTS idx_orders_completed_at ON public.orders USING btree (completed_at DESC);
+CREATE INDEX IF NOT EXISTS idx_orders_created_at ON public.orders USING btree (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_orders_customer_id ON public.orders USING btree (customer_id);
+CREATE INDEX IF NOT EXISTS idx_orders_order_number ON public.orders USING btree (order_number);
+CREATE INDEX IF NOT EXISTS idx_orders_status ON public.orders USING btree (status);
 
 --
 -- Name: orders orders_assigned_driver_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
+ALTER TABLE ONLY public.orders DROP CONSTRAINT IF EXISTS orders_assigned_driver_user_id_fkey;
 ALTER TABLE ONLY public.orders
     ADD CONSTRAINT orders_assigned_driver_user_id_fkey FOREIGN KEY (assigned_driver_user_id) REFERENCES public.users(id);
-
 
 --
 -- Name: orders orders_customer_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
+ALTER TABLE ONLY public.orders DROP CONSTRAINT IF EXISTS orders_customer_id_fkey;
 ALTER TABLE ONLY public.orders
     ADD CONSTRAINT orders_customer_id_fkey FOREIGN KEY (customer_id) REFERENCES public.users(id);
 
@@ -148,6 +119,7 @@ ALTER TABLE ONLY public.orders
 -- Name: orders orders_driver_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
+ALTER TABLE ONLY public.orders DROP CONSTRAINT IF EXISTS orders_driver_id_fkey;
 ALTER TABLE ONLY public.orders
     ADD CONSTRAINT orders_driver_id_fkey FOREIGN KEY (driver_id) REFERENCES public.users(id);
 
@@ -156,5 +128,5 @@ ALTER TABLE ONLY public.orders
 -- PostgreSQL database dump complete
 --
 
-\unrestrict Wq0yXRj8yRqmC0x4Gb3yDbNHczDUOG9jFXO8OWfYNWCXHi4c38QK6ctGJVP32D1
+
 

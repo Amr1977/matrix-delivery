@@ -42,6 +42,111 @@ class OrderService {
   }
 
   /**
+   * Get single order by ID
+   */
+  async getOrderById(orderId) {
+    const query = `
+      SELECT
+        o.*,
+        o.pickup_contact_name as "pickupContactName",
+        o.pickup_contact_phone as "pickupContactPhone",
+        o.dropoff_contact_name as "dropoffContactName",
+        o.dropoff_contact_phone as "dropoffContactPhone",
+        json_build_object(
+          'userId', d.id,
+          'name', d.name,
+          'rating', d.rating,
+          'completedDeliveries', d.completed_deliveries
+        ) as assignedDriver,
+        json_agg(
+          json_build_object(
+            'userId', b.user_id,
+            'driverName', u.name,
+            'bidPrice', b.bid_price,
+            'estimatedPickupTime', b.estimated_pickup_time,
+            'estimatedDeliveryTime', b.estimated_delivery_time,
+            'message', b.message,
+            'driverRating', u.rating,
+            'driverCompletedDeliveries', u.completed_deliveries,
+            'driverIsVerified', u.is_verified,
+            'driverProfilePicture', u.profile_picture_url,
+            'driverLocation', json_build_object('lat', b.driver_location_lat, 'lng', b.driver_location_lng)
+          )
+        ) FILTER(WHERE b.id IS NOT NULL) as bids,
+        CASE
+          WHEN o.assigned_driver_user_id IS NOT NULL THEN
+            (SELECT json_build_object(
+              'userId', ab.user_id,
+              'driverName', au.name,
+              'bidPrice', ab.bid_price,
+              'estimatedPickupTime', ab.estimated_pickup_time,
+              'estimatedDeliveryTime', ab.estimated_delivery_time,
+              'message', ab.message,
+              'driverRating', au.rating,
+              'driverCompletedDeliveries', au.completed_deliveries,
+              'driverIsVerified', au.is_verified
+            )
+            FROM bids ab
+            LEFT JOIN users au ON ab.user_id = au.id
+            WHERE ab.order_id = o.id AND ab.user_id = o.assigned_driver_user_id)
+          ELSE NULL
+        END as acceptedBid
+      FROM orders o
+      LEFT JOIN users d ON o.assigned_driver_user_id = d.id
+      LEFT JOIN bids b ON o.id = b.order_id
+      LEFT JOIN users u ON b.user_id = u.id
+      WHERE o.id = $1
+      GROUP BY o.id, d.id, d.name, d.rating, d.completed_deliveries
+    `;
+
+    const result = await pool.query(query, [orderId]);
+
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    const order = result.rows[0];
+
+    return {
+      _id: order.id,
+      id: order.id,
+      title: order.title,
+      description: order.description,
+      pickupAddress: order.pickup_address,
+      deliveryAddress: order.delivery_address,
+      packageDescription: order.package_description,
+      packageWeight: order.package_weight,
+      estimatedValue: order.estimated_value,
+      specialInstructions: order.special_instructions,
+      price: parseFloat(order.price),
+      status: order.status,
+      orderNumber: order.order_number,
+      createdAt: order.created_at,
+      assignedDriver: order.assigneddriver,
+      assigned_driver_user_id: order.assigned_driver_user_id,
+      customer_id: order.customer_id,
+      bids: order.bids || [],
+      acceptedBid: order.acceptedbid,
+      pickupContactName: order.pickupContactName,
+      pickupContactPhone: order.pickupContactPhone,
+      dropoffContactName: order.dropoffContactName,
+      dropoffContactPhone: order.dropoffContactPhone,
+      pickupLocation: order.pickup_coordinates ? {
+        coordinates: {
+          lat: parseFloat(order.pickup_coordinates.lat || order.from_lat),
+          lng: parseFloat(order.pickup_coordinates.lng || order.from_lng)
+        }
+      } : { coordinates: { lat: parseFloat(order.from_lat), lng: parseFloat(order.from_lng) } },
+      dropoffLocation: order.delivery_coordinates ? {
+        coordinates: {
+          lat: parseFloat(order.delivery_coordinates.lat || order.to_lat),
+          lng: parseFloat(order.delivery_coordinates.lng || order.to_lng)
+        }
+      } : { coordinates: { lat: parseFloat(order.to_lat), lng: parseFloat(order.to_lng) } }
+    };
+  }
+
+  /**
    * Get orders for a user based on their primary_role
    */
   async getOrders(userId, userRole, filters = {}) {
