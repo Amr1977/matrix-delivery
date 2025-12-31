@@ -1,174 +1,102 @@
+const rateLimit = require('express-rate-limit');
+const { RedisStore } = require('rate-limit-redis');
+const redisClient = require('../config/redis');
 const logger = require('../config/logger');
 
-// In-memory store for rate limiting (use Redis in production)
-const rateLimitStore = new Map();
+const isTest = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing';
 
 /**
- * Rate limiting middleware
+ * Create a rate limiter middleware
+ * @param {Object} options Options for express-rate-limit
+ * @param {string} prefix Key prefix for Redis
  */
-const rateLimit = (options = {}) => {
-  const {
-    windowMs = 15 * 60 * 1000, // 15 minutes default
-    maxRequests = 100, // 100 requests per window
-    message = 'Too many requests, please try again later',
-    skipSuccessfulRequests = false,
-    skipFailedRequests = false
-  } = options;
+const createLimiter = (options, prefix = 'rl:') => {
+  // If in test environment, bypass rate limiting
+  if (isTest) {
+    return (req, res, next) => next();
+  }
 
-  // TODO use FingerprintJS, ip can be fake!!
-  return (req, res, next) => {
-    const key = req.ip || req.connection.remoteAddress;
-    const now = Date.now();
-    const windowStart = now - windowMs;
-
-    // Skip rate limiting in test/development environment
-    if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing' || process.env.NODE_ENV === 'development') {
-      return next();
-    }
-
-    // Initialize or get existing requests for this key
-    if (!rateLimitStore.has(key)) {
-      rateLimitStore.set(key, []);
-    }
-
-    const requests = rateLimitStore.get(key);
-
-    // Remove old requests outside the window
-    const validRequests = requests.filter(time => time > windowStart);
-
-    // Check if limit exceeded
-    if (validRequests.length >= maxRequests) {
+  const limitOptions = {
+    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+    keyGenerator: (req) => {
+      // Support FingerprintJS or similar device fingerprinting
+      // Fallback to IP address if header is missing
+      return req.headers['x-device-fingerprint'] || req.ip;
+    },
+    handler: (req, res, next, options) => {
       logger.security('Rate limit exceeded', {
-        key,
-        requestCount: validRequests.length,
-        maxRequests,
-        windowMs,
+        ip: req.ip,
+        fingerprint: req.headers['x-device-fingerprint'] || 'none',
         path: req.path,
-        method: req.method,
-        ip: req.ip || req.connection.remoteAddress,
+        limit: options.limit,
+        windowMs: options.windowMs,
         category: 'security'
       });
-
-      return res.status(429).json({
-        error: message,
-        retryAfter: Math.ceil((validRequests[0] + windowMs - now) / 1000)
+      res.status(options.statusCode).json({
+        error: options.message
       });
-    }
-
-    // Add current request timestamp
-    validRequests.push(now);
-    rateLimitStore.set(key, validRequests);
-
-    // Track response to potentially remove from count
-    const originalSend = res.send;
-    res.send = function (data) {
-      // If configured to skip successful/failed requests
-      if ((skipSuccessfulRequests && res.statusCode < 400) ||
-        (skipFailedRequests && res.statusCode >= 400)) {
-        // Remove this request from the count
-        const currentRequests = rateLimitStore.get(key) || [];
-        const index = currentRequests.indexOf(now);
-        if (index > -1) {
-          currentRequests.splice(index, 1);
-          rateLimitStore.set(key, currentRequests);
-        }
-      }
-
-      originalSend.call(this, data);
-    };
-
-    next();
+    },
+    ...options
   };
+
+  // Use Redis store if client is available
+  if (redisClient) {
+    limitOptions.store = new RedisStore({
+      sendCommand: (...args) => redisClient.call(...args),
+      prefix: prefix
+    });
+  }
+
+  return rateLimit(limitOptions);
 };
 
-/**
- * Stricter rate limiting for authentication endpoints
- */
-const authRateLimit = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  maxRequests: 5, // 5 attempts per 15 minutes
-  message: 'Too many authentication attempts, please try again later',
-  skipSuccessfulRequests: true, // Don't count successful logins against limit
-  skipFailedRequests: false
-});
+// General API Rate Limit
+// 100 requests per 15 minutes
+const apiRateLimit = createLimiter({
+  windowMs: 15 * 60 * 1000,
+  limit: 100, // Changed from max to limit (v7)
+  message: 'Too many requests, please try again later'
+}, 'rl:api:');
 
-/**
- * Rate limiting for API endpoints
- */
-const apiRateLimit = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  maxRequests: 100, // 100 requests per 15 minutes
-  message: 'API rate limit exceeded, please try again later'
-});
+// Auth Rate Limit (Stricter)
+// 10 attempts per 15 minutes
+const authRateLimit = createLimiter({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  message: 'Too many login attempts, please try again later',
+  skipSuccessfulRequests: true
+}, 'rl:auth:');
 
-/**
- * Stricter rate limiting for order creation
- */
-const orderCreationRateLimit = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  maxRequests: 10, // 10 orders per hour
+// Order Creation Rate Limit
+// 20 orders per hour
+const orderCreationRateLimit = createLimiter({
+  windowMs: 60 * 60 * 1000,
+  limit: 20,
   message: 'Order creation limit exceeded, please try again later'
-});
+}, 'rl:order:');
 
-/**
- * Rate limiting for file uploads
- */
-const uploadRateLimit = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  maxRequests: 20, // 20 uploads per hour
+// File Upload Rate Limit
+// 20 uploads per hour
+const uploadRateLimit = createLimiter({
+  windowMs: 60 * 60 * 1000,
+  limit: 20,
   message: 'Upload limit exceeded, please try again later'
-});
+}, 'rl:upload:');
 
-/**
- * Clean up old entries from rate limit store (call periodically)
- */
-const cleanupRateLimitStore = () => {
-  const now = Date.now();
-  const maxAge = 60 * 60 * 1000; // 1 hour
 
-  for (const [key, requests] of rateLimitStore.entries()) {
-    const validRequests = requests.filter(time => now - time < maxAge);
-    if (validRequests.length === 0) {
-      rateLimitStore.delete(key);
-    } else {
-      rateLimitStore.set(key, validRequests);
-    }
-  }
-};
-
-let cleanupInterval;
-
-/**
- * Start the cleanup interval
- */
-const startCleanup = () => {
-  if (!cleanupInterval) {
-    cleanupInterval = setInterval(cleanupRateLimitStore, 30 * 60 * 1000);
-  }
-};
-
-/**
- * Stop the cleanup interval
- */
-const stopCleanup = () => {
-  if (cleanupInterval) {
-    clearInterval(cleanupInterval);
-    cleanupInterval = null;
-  }
-};
-
-// Start cleanup ONLY if not in test environment and not required as a module (e.g. by tests)
-// Actually, safer to just let server.js start it explicitly.
-// But valid legacy behavior might expect it to run.
-// Let's stick to explicit start. server.js will call it.
+// Dummy functions for backward compatibility if needed, 
+// though cleanup is handled by Redis or express-rate-limit automatically
+const startCleanup = () => { };
+const stopCleanup = () => { };
 
 module.exports = {
-  rateLimit,
-  authRateLimit,
+  rateLimit: (opts) => createLimiter(opts, 'rl:custom:'), // Legacy wrapper support
   apiRateLimit,
+  authRateLimit,
   orderCreationRateLimit,
   uploadRateLimit,
-  cleanupRateLimitStore,
   startCleanup,
   stopCleanup
 };
+
