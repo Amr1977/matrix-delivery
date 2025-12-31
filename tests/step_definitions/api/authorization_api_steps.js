@@ -167,7 +167,6 @@ When('{string} tries to cancel order {string}', async function (userId, orderId)
         .post(`/api/admin/orders/${orderId}/cancel`)
         .set('Cookie', `token=${token}`);
 });
-});
 
 When('{string} tries to bid on order {string}', async function (driverId, orderId) {
     const token = this.authWorld.tokens[driverId];
