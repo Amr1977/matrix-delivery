@@ -2,6 +2,8 @@
 -- Matches production database schema
 
 -- Drop existing tables
+DROP TABLE IF EXISTS email_verification_tokens CASCADE;
+DROP TABLE IF EXISTS password_reset_tokens CASCADE;
 DROP TABLE IF EXISTS balance_holds CASCADE;
 DROP TABLE IF EXISTS balance_transactions CASCADE;
 DROP TABLE IF EXISTS user_balances CASCADE;
@@ -37,6 +39,26 @@ CREATE TABLE users (
     service_area_zone VARCHAR(100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create email_verification_tokens table
+CREATE TABLE email_verification_tokens (
+    id VARCHAR(255) PRIMARY KEY,
+    user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    token VARCHAR(255) UNIQUE NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    used BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create password_reset_tokens table
+CREATE TABLE password_reset_tokens (
+    id VARCHAR(255) PRIMARY KEY,
+    user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    token VARCHAR(255) UNIQUE NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    used BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Create orders table
