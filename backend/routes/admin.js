@@ -495,6 +495,68 @@ router.post('/users/:id/unsuspend', verifyAdmin, async (req, res) => {
   }
 });
 
+// ============ ADMIN ORDER MANAGEMENT ============
+
+// Cancel order (admin only)
+router.post('/orders/:orderId/cancel', verifyAdmin, async (req, res) => {
+  try {
+    const { orderId } = req.params;
+
+    // Check if order exists
+    const orderResult = await pool.query(
+      'SELECT id, status, customer_id FROM orders WHERE id = $1',
+      [orderId]
+    );
+
+    if (orderResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    const order = orderResult.rows[0];
+
+    // Only allow cancellation of certain statuses
+    const cancellableStatuses = ['pending_bids', 'accepted'];
+    if (!cancellableStatuses.includes(order.status)) {
+      return res.status(400).json({
+        error: `Cannot cancel order with status '${order.status}'`
+      });
+    }
+
+    // Update order status to cancelled
+    await pool.query(
+      `UPDATE orders SET status = 'cancelled', cancelled_at = NOW() WHERE id = $1`,
+      [orderId]
+    );
+
+    // Log admin action
+    await logAdminAction(req.user.userId, 'cancel_order', { orderId, previousStatus: order.status });
+
+    // Notify customer
+    try {
+      await createNotification(
+        order.customer_id,
+        orderId,
+        'order_cancelled',
+        'Order Cancelled',
+        'Your order has been cancelled by an administrator'
+      );
+    } catch (notifyError) {
+      logger.error('Failed to send cancellation notification', { error: notifyError.message });
+    }
+
+    res.json({ message: 'Order cancelled successfully' });
+  } catch (error) {
+    logger.error(`Admin cancel order error: ${error.message}`, {
+      orderId: req.params.orderId,
+      userId: req.user?.userId,
+      category: 'error'
+    });
+    res.status(500).json({ error: error.message || 'Failed to cancel order' });
+  }
+});
+
+// ============ ADMIN USER MANAGEMENT ============
+
 // Delete user
 router.delete('/users/:id', verifyAdmin, async (req, res) => {
   const client = await pool.connect();

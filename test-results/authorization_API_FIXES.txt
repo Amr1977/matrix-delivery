@@ -1,0 +1,988 @@
+[dotenv@17.2.3] injecting env (0) from .env.testing -- tip: ΓÜÖ∩╕Å  enable debug logging with { debug: true }
+Γ£à Loaded .env.testing for testing
+2025-12-31 18:53:49 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m≡ƒöº Environment Configuration:[1m[32m[22m[39m
+2025-12-31 18:53:49 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   NODE_ENV: testing[1m[32m[22m[39m
+2025-12-31 18:53:49 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   IS_TEST: true[1m[32m[22m[39m
+2025-12-31 18:53:49 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   DB_HOST: localhost[1m[32m[22m[39m
+2025-12-31 18:53:49 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   DB_PORT: 5432[1m[32m[22m[39m
+2025-12-31 18:53:49 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   DB_USER: postgres[1m[32m[22m[39m
+2025-12-31 18:53:49 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   DB_NAME: matrix_delivery_test[1m[32m[22m[39m
+2025-12-31 18:53:49 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   DB_NAME_TEST: matrix_delivery_test[1m[32m[22m[39m
+2025-12-31 18:53:49 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m≡ƒöî Connecting to database: matrix_delivery_test (Test Mode: true)[1m[32m[22m[39m
+Γ£à Security configuration validated
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ≡ƒöä add secrets lifecycle management: https://dotenvx.com/ops
+[dotenv@17.2.3] injecting env (0) from .env.testing -- tip: ≡ƒôí add observability to secrets: https://dotenvx.com/ops
+.PostGIS detected in browse routes
+..≡ƒ¢á∩╕Å ORDER SERVICE - RECEIVED ORDER CREATION REQUEST
+≡ƒ¢á∩╕Å ORDER SERVICE - RAW ORDER DATA RECEIVED: {
+  "title": "Test Order",
+  "price": 100,
+  "description": "Authorization test order",
+  "pickupLocation": {
+    "coordinates": {
+      "lat": 30.0444,
+      "lng": 31.2357
+    }
+  },
+  "dropoffLocation": {
+    "coordinates": {
+      "lat": 30.0626,
+      "lng": 31.2497
+    }
+  },
+  "pickupAddress": {
+    "personName": "John Doe",
+    "street": "123 Test St",
+    "buildingNumber": "10",
+    "floor": "1",
+    "apartmentNumber": "1A",
+    "area": "Zamalek",
+    "city": "Cairo",
+    "country": "Egypt"
+  },
+  "dropoffAddress": {
+    "personName": "Jane Smith",
+    "street": "456 Delivery Ave",
+    "buildingNumber": "20",
+    "floor": "2",
+    "apartmentNumber": "2B",
+    "area": "Maadi",
+    "city": "Cairo",
+    "country": "Egypt"
+  }
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - CUSTOMER ID: customer-1
+≡ƒ¢á∩╕Å ORDER SERVICE - RECEIVED DATA STRUCTURE: {
+  hasTitle: true,
+  hasPrice: true,
+  hasPickupAddress: true,
+  hasDropoffAddress: true,
+  showManualEntry: undefined,
+  hasPickupLocation: true,
+  hasDropoffLocation: true
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - VALIDATION PASSED
+≡ƒ¢á∩╕Å ORDER SERVICE - ORDER DATA STRUCTURE ANALYSIS: {
+  hasOrderData: false,
+  hasShowManualEntry: false,
+  hasPickupAddress: true,
+  hasDropoffAddress: true,
+  hasPickupLocation: true,
+  hasDropoffLocation: true
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - EXTRACTED ALL FIELDS: {
+  title: 'Test Order',
+  price: 100,
+  description: 'Authorization test order',
+  package_description: undefined,
+  special_instructions: undefined
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - BUILT ADDRESSES: {
+  pickupAddress: '123 Test St ,  Floor 1,  Zamalek,  Cairo,  Egypt ',
+  deliveryAddress: '456 Delivery Ave ,  Floor 2,  Maadi,  Cairo,  Egypt '
+}
+≡ƒöì EXECUTING ORDER INSERT: INSERT INTO orders(
+  id, customer_id, title, description, pickup_address, delivery_address,
+  from_lat, from_lng, to_lat, to_lng, from_coordinates, to_coordinates,
+  pickup_coordinates, delivery_coordinates, package_description, package_weight,
+  estimated_value, special_instructions, price, status, order_number,
+  pickup_contact_name, pickup_contact_phone, dropoff_contact_name, dropoff_contact_phone,
+  created_at, customer_name, estimated_delivery_date
+) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, NOW(), $26, $27)
+RETURNING * 
+2025-12-31 18:53:57 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mORDER: Order created successfully[1m[32m[22m[39m
+{
+  "orderId": "17672000374282jxgukao2",
+  "orderNumber": "ORD - 1767200037428 ",
+  "customerId": "customer-1",
+  "price": "100.00",
+  "category": "order"
+}
+.2025-12-31 18:53:57 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: GET /api/orders/order-123[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/orders/order-123",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-31 18:53:57 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": "customer-2",
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-31 18:53:57 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[31/Dec/2025:16:53:57",
+  "ip": "/api/orders/order-123",
+  "userAgent": "404",
+  "category": "http"
+}
+2025-12-31 18:53:57 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: GET /api/orders/order-123 404[1m[33m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/orders/order-123",
+  "statusCode": 404,
+  "duration": "32ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+Cleanup error: update or delete on table "users" violates foreign key constraint "orders_customer_id_fkey" on table "orders"
+.F....2025-12-31 18:53:58 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: PUT /api/users/me/profile[1m[35m[22m[39m
+{
+  "method": "PUT",
+  "url": "/api/users/me/profile",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-31 18:53:58 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": "customer-1",
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-31 18:53:58 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mUser updated profile[1m[32m[22m[39m
+{
+  "userId": "customer-1",
+  "category": "user"
+}
+2025-12-31 18:53:58 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[31/Dec/2025:16:53:58",
+  "ip": "/api/users/me/profile",
+  "userAgent": "200",
+  "category": "http"
+}
+2025-12-31 18:53:58 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: PUT /api/users/me/profile 200[1m[35m[22m[39m
+{
+  "method": "PUT",
+  "url": "/api/users/me/profile",
+  "statusCode": 200,
+  "duration": "11ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+Cleanup error: update or delete on table "users" violates foreign key constraint "orders_customer_id_fkey" on table "orders"
+......≡ƒ¢á∩╕Å ORDER SERVICE - RECEIVED ORDER CREATION REQUEST
+≡ƒ¢á∩╕Å ORDER SERVICE - RAW ORDER DATA RECEIVED: {
+  "title": "Test Assigned Order",
+  "price": 100,
+  "pickupLocation": {
+    "coordinates": {
+      "lat": 30.0444,
+      "lng": 31.2357
+    }
+  },
+  "dropoffLocation": {
+    "coordinates": {
+      "lat": 30.0626,
+      "lng": 31.2497
+    }
+  },
+  "pickupAddress": {
+    "personName": "John Doe",
+    "street": "123 Test St",
+    "city": "Cairo",
+    "country": "Egypt",
+    "area": "Zamalek",
+    "buildingNumber": "10"
+  },
+  "dropoffAddress": {
+    "personName": "Jane Smith",
+    "street": "456 Delivery Ave",
+    "city": "Cairo",
+    "country": "Egypt",
+    "area": "Maadi",
+    "buildingNumber": "20"
+  }
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - CUSTOMER ID: customer-1
+≡ƒ¢á∩╕Å ORDER SERVICE - RECEIVED DATA STRUCTURE: {
+  hasTitle: true,
+  hasPrice: true,
+  hasPickupAddress: true,
+  hasDropoffAddress: true,
+  showManualEntry: undefined,
+  hasPickupLocation: true,
+  hasDropoffLocation: true
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - VALIDATION PASSED
+≡ƒ¢á∩╕Å ORDER SERVICE - ORDER DATA STRUCTURE ANALYSIS: {
+  hasOrderData: false,
+  hasShowManualEntry: false,
+  hasPickupAddress: true,
+  hasDropoffAddress: true,
+  hasPickupLocation: true,
+  hasDropoffLocation: true
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - EXTRACTED ALL FIELDS: {
+  title: 'Test Assigned Order',
+  price: 100,
+  description: undefined,
+  package_description: undefined,
+  special_instructions: undefined
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - BUILT ADDRESSES: {
+  pickupAddress: '123 Test St ,  ,  Zamalek,  Cairo,  Egypt ',
+  deliveryAddress: '456 Delivery Ave ,  ,  Maadi,  Cairo,  Egypt '
+}
+≡ƒöì EXECUTING ORDER INSERT: INSERT INTO orders(
+  id, customer_id, title, description, pickup_address, delivery_address,
+  from_lat, from_lng, to_lat, to_lng, from_coordinates, to_coordinates,
+  pickup_coordinates, delivery_coordinates, package_description, package_weight,
+  estimated_value, special_instructions, price, status, order_number,
+  pickup_contact_name, pickup_contact_phone, dropoff_contact_name, dropoff_contact_phone,
+  created_at, customer_name, estimated_delivery_date
+) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, NOW(), $26, $27)
+RETURNING * 
+2025-12-31 18:53:59 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mORDER: Order created successfully[1m[32m[22m[39m
+{
+  "orderId": "1767200039494lldxoao9k",
+  "orderNumber": "ORD - 1767200039494 ",
+  "customerId": "customer-1",
+  "price": "100.00",
+  "category": "order"
+}
+.2025-12-31 18:53:59 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/orders/order-888/bid[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/orders/order-888/bid",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-31 18:53:59 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": "driver-2",
+  "role": "driver",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-31 18:53:59 [[31m[1m[31m[1merror[1m[31m[22m[39m]: [31m[1m[31m[1mBid placement error: Order not found[1m[31m[22m[39m
+{
+  "orderId": "order-888",
+  "userId": "driver-2",
+  "category": "error"
+}
+2025-12-31 18:53:59 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[31/Dec/2025:16:53:59",
+  "ip": "/api/orders/order-888/bid",
+  "userAgent": "400",
+  "category": "http"
+}
+2025-12-31 18:53:59 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/orders/order-888/bid 400[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/orders/order-888/bid",
+  "statusCode": 400,
+  "duration": "8ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+Cleanup error: update or delete on table "users" violates foreign key constraint "orders_customer_id_fkey" on table "orders"
+......2025-12-31 18:54:00 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: GET /api/admin/users[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/admin/users",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-31 18:54:00 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mSECURITY: Non-admin user attempted admin access[1m[33m[22m[39m
+{
+  "userId": "customer-1",
+  "ip": "::ffff:127.0.0.1",
+  "path": "/users",
+  "category": "security"
+}
+2025-12-31 18:54:00 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[31/Dec/2025:16:54:00",
+  "ip": "/api/admin/users",
+  "userAgent": "403",
+  "category": "http"
+}
+2025-12-31 18:54:00 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: GET /api/admin/users 403[1m[33m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/admin/users",
+  "statusCode": 403,
+  "duration": "8ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+Cleanup error: update or delete on table "users" violates foreign key constraint "orders_customer_id_fkey" on table "orders"
+......2025-12-31 18:54:01 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: GET /api/admin/stats[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/admin/stats",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-31 18:54:01 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mSECURITY: Non-admin user attempted admin access[1m[33m[22m[39m
+{
+  "userId": "customer-1",
+  "ip": "::ffff:127.0.0.1",
+  "path": "/stats",
+  "category": "security"
+}
+2025-12-31 18:54:01 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[31/Dec/2025:16:54:01",
+  "ip": "/api/admin/stats",
+  "userAgent": "403",
+  "category": "http"
+}
+2025-12-31 18:54:01 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: GET /api/admin/stats 403[1m[33m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/admin/stats",
+  "statusCode": 403,
+  "duration": "5ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+Cleanup error: update or delete on table "users" violates foreign key constraint "orders_customer_id_fkey" on table "orders"
+......2025-12-31 18:54:01 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: GET /api/admin/users/customer-2[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/admin/users/customer-2",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-31 18:54:01 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mSECURITY: Non-admin user attempted admin access[1m[33m[22m[39m
+{
+  "userId": "customer-1",
+  "ip": "::ffff:127.0.0.1",
+  "path": "/users/customer-2",
+  "category": "security"
+}
+2025-12-31 18:54:01 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[31/Dec/2025:16:54:01",
+  "ip": "/api/admin/users/customer-2",
+  "userAgent": "403",
+  "category": "http"
+}
+2025-12-31 18:54:01 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: GET /api/admin/users/customer-2 403[1m[33m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/admin/users/customer-2",
+  "statusCode": 403,
+  "duration": "6ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+Cleanup error: update or delete on table "users" violates foreign key constraint "orders_customer_id_fkey" on table "orders"
+......≡ƒ¢á∩╕Å ORDER SERVICE - RECEIVED ORDER CREATION REQUEST
+≡ƒ¢á∩╕Å ORDER SERVICE - RAW ORDER DATA RECEIVED: {
+  "title": "Test Assigned Order",
+  "price": 100,
+  "pickupLocation": {
+    "coordinates": {
+      "lat": 30.0444,
+      "lng": 31.2357
+    }
+  },
+  "dropoffLocation": {
+    "coordinates": {
+      "lat": 30.0626,
+      "lng": 31.2497
+    }
+  },
+  "pickupAddress": {
+    "personName": "John Doe",
+    "street": "123 Test St",
+    "city": "Cairo",
+    "country": "Egypt",
+    "area": "Zamalek",
+    "buildingNumber": "10"
+  },
+  "dropoffAddress": {
+    "personName": "Jane Smith",
+    "street": "456 Delivery Ave",
+    "city": "Cairo",
+    "country": "Egypt",
+    "area": "Maadi",
+    "buildingNumber": "20"
+  }
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - CUSTOMER ID: customer-1
+≡ƒ¢á∩╕Å ORDER SERVICE - RECEIVED DATA STRUCTURE: {
+  hasTitle: true,
+  hasPrice: true,
+  hasPickupAddress: true,
+  hasDropoffAddress: true,
+  showManualEntry: undefined,
+  hasPickupLocation: true,
+  hasDropoffLocation: true
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - VALIDATION PASSED
+≡ƒ¢á∩╕Å ORDER SERVICE - ORDER DATA STRUCTURE ANALYSIS: {
+  hasOrderData: false,
+  hasShowManualEntry: false,
+  hasPickupAddress: true,
+  hasDropoffAddress: true,
+  hasPickupLocation: true,
+  hasDropoffLocation: true
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - EXTRACTED ALL FIELDS: {
+  title: 'Test Assigned Order',
+  price: 100,
+  description: undefined,
+  package_description: undefined,
+  special_instructions: undefined
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - BUILT ADDRESSES: {
+  pickupAddress: '123 Test St ,  ,  Zamalek,  Cairo,  Egypt ',
+  deliveryAddress: '456 Delivery Ave ,  ,  Maadi,  Cairo,  Egypt '
+}
+≡ƒöì EXECUTING ORDER INSERT: INSERT INTO orders(
+  id, customer_id, title, description, pickup_address, delivery_address,
+  from_lat, from_lng, to_lat, to_lng, from_coordinates, to_coordinates,
+  pickup_coordinates, delivery_coordinates, package_description, package_weight,
+  estimated_value, special_instructions, price, status, order_number,
+  pickup_contact_name, pickup_contact_phone, dropoff_contact_name, dropoff_contact_phone,
+  created_at, customer_name, estimated_delivery_date
+) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, NOW(), $26, $27)
+RETURNING * 
+2025-12-31 18:54:02 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mORDER: Order created successfully[1m[32m[22m[39m
+{
+  "orderId": "1767200042609jef2i056d",
+  "orderNumber": "ORD - 1767200042609 ",
+  "customerId": "customer-1",
+  "price": "100.00",
+  "category": "order"
+}
+.2025-12-31 18:54:02 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: PATCH /api/orders/order-456/status[1m[35m[22m[39m
+{
+  "method": "PATCH",
+  "url": "/api/orders/order-456/status",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-31 18:54:02 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": "driver-2",
+  "role": "driver",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-31 18:54:02 [[31m[1m[31m[1merror[1m[31m[22m[39m]: [31m[1m[31m[1mOrder status update error (PATCH): Order not found[1m[31m[22m[39m
+{
+  "orderId": "order-456",
+  "status": "picked_up",
+  "userId": "driver-2",
+  "category": "error"
+}
+2025-12-31 18:54:02 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[31/Dec/2025:16:54:02",
+  "ip": "/api/orders/order-456/status",
+  "userAgent": "404",
+  "category": "http"
+}
+2025-12-31 18:54:02 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: PATCH /api/orders/order-456/status 404[1m[33m[22m[39m
+{
+  "method": "PATCH",
+  "url": "/api/orders/order-456/status",
+  "statusCode": 404,
+  "duration": "6ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+Cleanup error: update or delete on table "users" violates foreign key constraint "orders_customer_id_fkey" on table "orders"
+.F....≡ƒ¢á∩╕Å ORDER SERVICE - RECEIVED ORDER CREATION REQUEST
+≡ƒ¢á∩╕Å ORDER SERVICE - RAW ORDER DATA RECEIVED: {
+  "title": "Test Order",
+  "price": 100,
+  "description": "Authorization test order",
+  "pickupLocation": {
+    "coordinates": {
+      "lat": 30.0444,
+      "lng": 31.2357
+    }
+  },
+  "dropoffLocation": {
+    "coordinates": {
+      "lat": 30.0626,
+      "lng": 31.2497
+    }
+  },
+  "pickupAddress": {
+    "personName": "John Doe",
+    "street": "123 Test St",
+    "buildingNumber": "10",
+    "floor": "1",
+    "apartmentNumber": "1A",
+    "area": "Zamalek",
+    "city": "Cairo",
+    "country": "Egypt"
+  },
+  "dropoffAddress": {
+    "personName": "Jane Smith",
+    "street": "456 Delivery Ave",
+    "buildingNumber": "20",
+    "floor": "2",
+    "apartmentNumber": "2B",
+    "area": "Maadi",
+    "city": "Cairo",
+    "country": "Egypt"
+  }
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - CUSTOMER ID: customer-1
+≡ƒ¢á∩╕Å ORDER SERVICE - RECEIVED DATA STRUCTURE: {
+  hasTitle: true,
+  hasPrice: true,
+  hasPickupAddress: true,
+  hasDropoffAddress: true,
+  showManualEntry: undefined,
+  hasPickupLocation: true,
+  hasDropoffLocation: true
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - VALIDATION PASSED
+≡ƒ¢á∩╕Å ORDER SERVICE - ORDER DATA STRUCTURE ANALYSIS: {
+  hasOrderData: false,
+  hasShowManualEntry: false,
+  hasPickupAddress: true,
+  hasDropoffAddress: true,
+  hasPickupLocation: true,
+  hasDropoffLocation: true
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - EXTRACTED ALL FIELDS: {
+  title: 'Test Order',
+  price: 100,
+  description: 'Authorization test order',
+  package_description: undefined,
+  special_instructions: undefined
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - BUILT ADDRESSES: {
+  pickupAddress: '123 Test St ,  Floor 1,  Zamalek,  Cairo,  Egypt ',
+  deliveryAddress: '456 Delivery Ave ,  Floor 2,  Maadi,  Cairo,  Egypt '
+}
+≡ƒöì EXECUTING ORDER INSERT: INSERT INTO orders(
+  id, customer_id, title, description, pickup_address, delivery_address,
+  from_lat, from_lng, to_lat, to_lng, from_coordinates, to_coordinates,
+  pickup_coordinates, delivery_coordinates, package_description, package_weight,
+  estimated_value, special_instructions, price, status, order_number,
+  pickup_contact_name, pickup_contact_phone, dropoff_contact_name, dropoff_contact_phone,
+  created_at, customer_name, estimated_delivery_date
+) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, NOW(), $26, $27)
+RETURNING * 
+2025-12-31 18:54:03 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mORDER: Order created successfully[1m[32m[22m[39m
+{
+  "orderId": "1767200043364mp8xbzeek",
+  "orderNumber": "ORD - 1767200043364 ",
+  "customerId": "customer-1",
+  "price": "100.00",
+  "category": "order"
+}
+.2025-12-31 18:54:03 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: GET /api/admin/users[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/admin/users",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-31 18:54:03 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Admin access granted[1m[32m[22m[39m
+{
+  "adminId": "admin-1",
+  "email": "admin@test.com",
+  "path": "/users",
+  "category": "authentication"
+}
+2025-12-31 18:54:03 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[31/Dec/2025:16:54:03",
+  "ip": "/api/admin/users",
+  "userAgent": "200",
+  "category": "http"
+}
+2025-12-31 18:54:03 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: GET /api/admin/users 200[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/admin/users",
+  "statusCode": 200,
+  "duration": "13ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+Cleanup error: update or delete on table "users" violates foreign key constraint "orders_customer_id_fkey" on table "orders"
+......≡ƒ¢á∩╕Å ORDER SERVICE - RECEIVED ORDER CREATION REQUEST
+≡ƒ¢á∩╕Å ORDER SERVICE - RAW ORDER DATA RECEIVED: {
+  "title": "Test Order",
+  "price": 100,
+  "pickupLocation": {
+    "coordinates": {
+      "lat": 30.0444,
+      "lng": 31.2357
+    }
+  },
+  "dropoffLocation": {
+    "coordinates": {
+      "lat": 30.0626,
+      "lng": 31.2497
+    }
+  },
+  "pickupAddress": {
+    "personName": "John Doe",
+    "street": "123 Test St",
+    "city": "Cairo",
+    "country": "Egypt",
+    "area": "Zamalek"
+  },
+  "dropoffAddress": {
+    "personName": "Jane Smith",
+    "street": "456 Delivery Ave",
+    "city": "Cairo",
+    "country": "Egypt",
+    "area": "Maadi"
+  }
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - CUSTOMER ID: customer-1
+≡ƒ¢á∩╕Å ORDER SERVICE - RECEIVED DATA STRUCTURE: {
+  hasTitle: true,
+  hasPrice: true,
+  hasPickupAddress: true,
+  hasDropoffAddress: true,
+  showManualEntry: undefined,
+  hasPickupLocation: true,
+  hasDropoffLocation: true
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - VALIDATION PASSED
+≡ƒ¢á∩╕Å ORDER SERVICE - ORDER DATA STRUCTURE ANALYSIS: {
+  hasOrderData: false,
+  hasShowManualEntry: false,
+  hasPickupAddress: true,
+  hasDropoffAddress: true,
+  hasPickupLocation: true,
+  hasDropoffLocation: true
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - EXTRACTED ALL FIELDS: {
+  title: 'Test Order',
+  price: 100,
+  description: undefined,
+  package_description: undefined,
+  special_instructions: undefined
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - BUILT ADDRESSES: {
+  pickupAddress: '123 Test St ,  ,  Zamalek,  Cairo,  Egypt ',
+  deliveryAddress: '456 Delivery Ave ,  ,  Maadi,  Cairo,  Egypt '
+}
+≡ƒöì EXECUTING ORDER INSERT: INSERT INTO orders(
+  id, customer_id, title, description, pickup_address, delivery_address,
+  from_lat, from_lng, to_lat, to_lng, from_coordinates, to_coordinates,
+  pickup_coordinates, delivery_coordinates, package_description, package_weight,
+  estimated_value, special_instructions, price, status, order_number,
+  pickup_contact_name, pickup_contact_phone, dropoff_contact_name, dropoff_contact_phone,
+  created_at, customer_name, estimated_delivery_date
+) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, NOW(), $26, $27)
+RETURNING * 
+2025-12-31 18:54:04 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mORDER: Order created successfully[1m[32m[22m[39m
+{
+  "orderId": "1767200044652xb8jigfk7",
+  "orderNumber": "ORD - 1767200044652 ",
+  "customerId": "customer-1",
+  "price": "100.00",
+  "category": "order"
+}
+.2025-12-31 18:54:04 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/admin/orders/order-999/cancel[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/admin/orders/order-999/cancel",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-31 18:54:04 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Admin access granted[1m[32m[22m[39m
+{
+  "adminId": "admin-1",
+  "email": "admin@test.com",
+  "path": "/orders/order-999/cancel",
+  "category": "authentication"
+}
+2025-12-31 18:54:04 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[31/Dec/2025:16:54:04",
+  "ip": "/api/admin/orders/order-999/cancel",
+  "userAgent": "404",
+  "category": "http"
+}
+2025-12-31 18:54:04 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/admin/orders/order-999/cancel 404[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/admin/orders/order-999/cancel",
+  "statusCode": 404,
+  "duration": "8ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+Cleanup error: update or delete on table "users" violates foreign key constraint "orders_customer_id_fkey" on table "orders"
+.F....≡ƒ¢á∩╕Å ORDER SERVICE - RECEIVED ORDER CREATION REQUEST
+≡ƒ¢á∩╕Å ORDER SERVICE - RAW ORDER DATA RECEIVED: {
+  "title": "Test Order",
+  "price": 100,
+  "pickupLocation": {
+    "coordinates": {
+      "lat": 30.0444,
+      "lng": 31.2357
+    }
+  },
+  "dropoffLocation": {
+    "coordinates": {
+      "lat": 30.0626,
+      "lng": 31.2497
+    }
+  },
+  "pickupAddress": {
+    "personName": "John Doe",
+    "street": "123 Test St",
+    "city": "Cairo",
+    "country": "Egypt",
+    "area": "Zamalek"
+  },
+  "dropoffAddress": {
+    "personName": "Jane Smith",
+    "street": "456 Delivery Ave",
+    "city": "Cairo",
+    "country": "Egypt",
+    "area": "Maadi"
+  }
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - CUSTOMER ID: customer-1
+≡ƒ¢á∩╕Å ORDER SERVICE - RECEIVED DATA STRUCTURE: {
+  hasTitle: true,
+  hasPrice: true,
+  hasPickupAddress: true,
+  hasDropoffAddress: true,
+  showManualEntry: undefined,
+  hasPickupLocation: true,
+  hasDropoffLocation: true
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - VALIDATION PASSED
+≡ƒ¢á∩╕Å ORDER SERVICE - ORDER DATA STRUCTURE ANALYSIS: {
+  hasOrderData: false,
+  hasShowManualEntry: false,
+  hasPickupAddress: true,
+  hasDropoffAddress: true,
+  hasPickupLocation: true,
+  hasDropoffLocation: true
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - EXTRACTED ALL FIELDS: {
+  title: 'Test Order',
+  price: 100,
+  description: undefined,
+  package_description: undefined,
+  special_instructions: undefined
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - BUILT ADDRESSES: {
+  pickupAddress: '123 Test St ,  ,  Zamalek,  Cairo,  Egypt ',
+  deliveryAddress: '456 Delivery Ave ,  ,  Maadi,  Cairo,  Egypt '
+}
+≡ƒöì EXECUTING ORDER INSERT: INSERT INTO orders(
+  id, customer_id, title, description, pickup_address, delivery_address,
+  from_lat, from_lng, to_lat, to_lng, from_coordinates, to_coordinates,
+  pickup_coordinates, delivery_coordinates, package_description, package_weight,
+  estimated_value, special_instructions, price, status, order_number,
+  pickup_contact_name, pickup_contact_phone, dropoff_contact_name, dropoff_contact_phone,
+  created_at, customer_name, estimated_delivery_date
+) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, NOW(), $26, $27)
+RETURNING * 
+2025-12-31 18:54:05 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mORDER: Order created successfully[1m[32m[22m[39m
+{
+  "orderId": "1767200045397e3iphl6fe",
+  "orderNumber": "ORD - 1767200045397 ",
+  "customerId": "customer-1",
+  "price": "100.00",
+  "category": "order"
+}
+.2025-12-31 18:54:05 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /%20api%20/%20orders%20/%20order-555/bid[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/%20api%20/%20orders%20/%20order-555/bid",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-31 18:54:05 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1m404 Not Found: POST /%20api%20/%20orders%20/%20order-555/bid[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/%20api%20/%20orders%20/%20order-555/bid",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-31 18:54:05 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[31/Dec/2025:16:54:05",
+  "ip": "/%20api%20/%20orders%20/%20order-555/bid",
+  "userAgent": "404",
+  "category": "http"
+}
+2025-12-31 18:54:05 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /%20api%20/%20orders%20/%20order-555/bid 404[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/%20api%20/%20orders%20/%20order-555/bid",
+  "statusCode": 404,
+  "duration": "5ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+.2025-12-31 18:54:05 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/orders/order-555/accept-bid[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/orders/order-555/accept-bid",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-31 18:54:05 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": "customer-1",
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-31 18:54:05 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[31/Dec/2025:16:54:05",
+  "ip": "/api/orders/order-555/accept-bid",
+  "userAgent": "400",
+  "category": "http"
+}
+2025-12-31 18:54:05 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/orders/order-555/accept-bid 400[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/orders/order-555/accept-bid",
+  "statusCode": 400,
+  "duration": "4ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+Cleanup error: update or delete on table "users" violates foreign key constraint "orders_customer_id_fkey" on table "orders"
+.F.
+
+Failures:
+
+1) Scenario: User cannot access another user's order details # features\backend\authorization-security.feature:19
+   ΓêÜ Before # step_definitions\api\authorization_api_steps.js:24
+   ΓêÜ Given the system is running # step_definitions\api\authorization_api_steps.js:64
+   ΓêÜ And test users exist: # step_definitions\api\authorization_api_steps.js:70
+       | userId     | email              | role     |
+       | admin-1    | admin@test.com     | admin    |
+       | customer-1 | customer1@test.com | customer |
+       | customer-2 | customer2@test.com | customer |
+       | driver-1   | driver1@test.com   | driver   |
+       | driver-2   | driver2@test.com   | driver   |
+   ΓêÜ Given "customer-1" has an order "order-123" # step_definitions\api\authorization_api_steps.js:103
+   ΓêÜ When "customer-2" tries to access order "order-123" # step_definitions\api\authorization_api_steps.js:236
+   ├ù Then access should be denied with status 403 # step_definitions\api\authorization_api_steps.js:325
+       AssertionError
+           + expected - actual
+
+           -404
+           +403
+
+           at World.<anonymous> (D:\matrix-delivery\tests\step_definitions\api\authorization_api_steps.js:326:47)
+   ΓêÜ After # step_definitions\api\authorization_api_steps.js:28
+
+2) Scenario: Only assigned driver can update order status # features\backend\authorization-security.feature:55
+   ΓêÜ Before # step_definitions\api\authorization_api_steps.js:24
+   ΓêÜ Given the system is running # step_definitions\api\authorization_api_steps.js:64
+   ΓêÜ And test users exist: # step_definitions\api\authorization_api_steps.js:70
+       | userId     | email              | role     |
+       | admin-1    | admin@test.com     | admin    |
+       | customer-1 | customer1@test.com | customer |
+       | customer-2 | customer2@test.com | customer |
+       | driver-1   | driver1@test.com   | driver   |
+       | driver-2   | driver2@test.com   | driver   |
+   ΓêÜ Given "customer-1" has order "order-456" assigned to "driver-1" # step_definitions\api\authorization_api_steps.js:146
+   ΓêÜ When "driver-2" tries to update status of order "order-456" to "picked_up" # step_definitions\api\authorization_api_steps.js:269
+   ├ù Then access should be denied with status 403 # step_definitions\api\authorization_api_steps.js:325
+       AssertionError
+           + expected - actual
+
+           -404
+           +403
+
+           at World.<anonymous> (D:\matrix-delivery\tests\step_definitions\api\authorization_api_steps.js:326:47)
+   ΓêÜ After # step_definitions\api\authorization_api_steps.js:28
+
+3) Scenario: Users can only cancel their own orders (via admin route) # features\backend\authorization-security.feature:69
+   ΓêÜ Before # step_definitions\api\authorization_api_steps.js:24
+   ΓêÜ Given the system is running # step_definitions\api\authorization_api_steps.js:64
+   ΓêÜ And test users exist: # step_definitions\api\authorization_api_steps.js:70
+       | userId     | email              | role     |
+       | admin-1    | admin@test.com     | admin    |
+       | customer-1 | customer1@test.com | customer |
+       | customer-2 | customer2@test.com | customer |
+       | driver-1   | driver1@test.com   | driver   |
+       | driver-2   | driver2@test.com   | driver   |
+   ΓêÜ Given "customer-1" has order "order-999" with status "pending_bids" # step_definitions\api\authorization_api_steps.js:188
+   ΓêÜ When "admin-1" tries to cancel order "order-999" # step_definitions\api\authorization_api_steps.js:278
+   ├ù Then access should be granted with status 200 # step_definitions\api\authorization_api_steps.js:330
+       AssertionError
+           + expected - actual
+
+           -404
+           +200
+
+           at World.<anonymous> (D:\matrix-delivery\tests\step_definitions\api\authorization_api_steps.js:331:47)
+   ΓêÜ After # step_definitions\api\authorization_api_steps.js:28
+
+4) Scenario: Customer can accept bid on their own order # features\backend\authorization-security.feature:75
+   ΓêÜ Before # step_definitions\api\authorization_api_steps.js:24
+   ΓêÜ Given the system is running # step_definitions\api\authorization_api_steps.js:64
+   ΓêÜ And test users exist: # step_definitions\api\authorization_api_steps.js:70
+       | userId     | email              | role     |
+       | admin-1    | admin@test.com     | admin    |
+       | customer-1 | customer1@test.com | customer |
+       | customer-2 | customer2@test.com | customer |
+       | driver-1   | driver1@test.com   | driver   |
+       | driver-2   | driver2@test.com   | driver   |
+   ΓêÜ Given "customer-1" has order "order-555" with status "pending_bids" # step_definitions\api\authorization_api_steps.js:188
+   ΓêÜ And "driver-1" has placed bid on order "order-555" # step_definitions\api\authorization_api_steps.js:224
+   ΓêÜ When "customer-1" tries to accept bid on order "order-555" # step_definitions\api\authorization_api_steps.js:304
+   ├ù Then access should be granted with status 200 # step_definitions\api\authorization_api_steps.js:330
+       AssertionError
+           + expected - actual
+
+           -400
+           +200
+
+           at World.<anonymous> (D:\matrix-delivery\tests\step_definitions\api\authorization_api_steps.js:331:47)
+   ΓêÜ After # step_definitions\api\authorization_api_steps.js:28
+
+10 scenarios (4 failed, 6 passed)
+47 steps (4 failed, 43 passed)
+0m09.004s (executing steps: 0m08.807s)
