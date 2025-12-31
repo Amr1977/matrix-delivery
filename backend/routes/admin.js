@@ -236,7 +236,7 @@ router.get('/users', verifyAdmin, async (req, res) => {
 
     queryParams.push(parseInt(limit), offset);
     const usersResult = await pool.query(
-      `SELECT u.id, u.name, u.email, u.phone, u.primary_role, u.vehicle_type,
+      `SELECT u.id, u.name, u.email, u.phone, u.primary_role, u.granted_roles, u.vehicle_type,
         u.rating, u.completed_deliveries, u.is_verified, u.is_available,
         u.country, u.city, u.area, u.created_at,
         (SELECT COUNT(*) FROM orders WHERE customer_id = u.id OR assigned_driver_user_id = u.id) as total_orders,
@@ -253,10 +253,11 @@ router.get('/users', verifyAdmin, async (req, res) => {
       email: user.email,
       phone: user.phone,
       primary_role: user.primary_role,
+      granted_roles: user.granted_roles || [user.primary_role],
       vehicleType: user.vehicle_type,
       rating: parseFloat(user.rating),
       completedDeliveries: user.completed_deliveries,
-      isVerified: user.is_verified,
+      is_verified: user.is_verified,
       isAvailable: user.is_available,
       country: user.country,
       city: user.city,
@@ -492,6 +493,98 @@ router.post('/users/:id/unsuspend', verifyAdmin, async (req, res) => {
   } catch (error) {
     console.error('Unsuspend user error:', error);
     res.status(500).json({ error: 'Failed to unsuspend user' });
+  }
+});
+
+// Update user granted_roles (add/remove roles)
+router.post('/users/:id/granted_roles', verifyAdmin, async (req, res) => {
+  try {
+    const { add = [], remove = [] } = req.body;
+    const userId = req.params.id;
+
+    // Get current user
+    const userResult = await pool.query(
+      'SELECT id, name, email, primary_role, granted_roles FROM users WHERE id = $1',
+      [userId]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const user = userResult.rows[0];
+    let currentRoles = user.granted_roles || [user.primary_role];
+
+    // Ensure it's an array
+    if (!Array.isArray(currentRoles)) {
+      currentRoles = [currentRoles];
+    }
+
+    // Add new roles
+    for (const role of add) {
+      if (!currentRoles.includes(role)) {
+        currentRoles.push(role);
+      }
+    }
+
+    // Remove roles (but never remove primary_role)
+    for (const role of remove) {
+      if (role !== user.primary_role) {
+        currentRoles = currentRoles.filter(r => r !== role);
+      }
+    }
+
+    // Update user
+    const result = await pool.query(
+      'UPDATE users SET granted_roles = $1 WHERE id = $2 RETURNING *',
+      [currentRoles, userId]
+    );
+
+    const updatedUser = result.rows[0];
+
+    // Notify user about role change
+    if (add.includes('admin')) {
+      await createNotification(
+        userId,
+        null,
+        'role_granted',
+        'Admin Access Granted',
+        'You have been granted admin access to the platform.'
+      );
+    }
+
+    if (add.includes('support')) {
+      await createNotification(
+        userId,
+        null,
+        'role_granted',
+        'Support Role Granted',
+        'You have been granted support role access.'
+      );
+    }
+
+    console.log(`🔐 Admin ${req.admin.name} updated roles for user ${user.email}: added [${add.join(', ')}], removed [${remove.join(', ')}]`);
+    await logAdminAction(req.admin.id, 'UPDATE_USER_ROLES', 'user', userId, {
+      userName: user.name,
+      userEmail: user.email,
+      rolesAdded: add,
+      rolesRemoved: remove,
+      newRoles: currentRoles,
+      ip: req.ip
+    });
+
+    res.json({
+      message: 'User roles updated successfully',
+      user: {
+        id: updatedUser.id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        granted_roles: updatedUser.granted_roles
+      }
+    });
+  } catch (error) {
+    console.error('Update user roles error:', error);
+    res.status(500).json({ error: 'Failed to update user roles' });
   }
 });
 

@@ -622,7 +622,8 @@ export const MainApp = () => {
         fetchOrders();
       }
     }
-  }, [token, currentUser, driverLocation]); // eslint-disable-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, currentUser]); // Removed driverLocation - it causes excessive refetches
 
   // Start location tracking when driver enters bidding view
   useEffect(() => {
@@ -1056,22 +1057,27 @@ export const MainApp = () => {
     const startTime = Date.now();
 
     try {
-      const data = await AuthApi.register({
+      await AuthApi.register({
         ...authForm,
         primary_role: authForm.primary_role, // Backend expects primary_role
         recaptchaToken
       });
 
+      // Verify cookie is set by making a request that uses it.
+      // This ensures the browser has processed the Set-Cookie header
+      // before we trigger socket connections and other authenticated requests.
+      const userData = await AuthApi.getCurrentUser();
+
       const duration = Date.now() - startTime;
       // Token is now set in httpOnly cookie by server, no need to store in localStorage
       setToken('authenticated'); // Just a flag to indicate user is logged in
-      setCurrentUser(data.user);
+      setCurrentUser(userData);
       setAuthForm({ name: '', email: '', password: '', phone: '', primary_role: 'customer', vehicle_type: '', country: '', city: '', area: '' });
       setError('');
 
       logger.user('Registration successful', {
-        userId: data.user.id,
-        primary_role: data.user.primary_role,
+        userId: userData.id,
+        primary_role: userData.primary_role,
         duration: `${duration}ms`
       });
     } catch (err) {
@@ -1096,16 +1102,22 @@ export const MainApp = () => {
 
     setLoading(true);
     try {
-      const data = await AuthApi.login({
+      await AuthApi.login({
         email: authForm.email,
         password: authForm.password,
         recaptchaToken
       });
+
+      // Verify cookie is set by making a request that uses it.
+      // This ensures the browser has processed the Set-Cookie header
+      // before we trigger socket connections and other authenticated requests.
+      const userData = await AuthApi.getCurrentUser();
+
       // Token is now set in httpOnly cookie by server, no need to store in localStorage
       setToken('authenticated'); // Just a flag to indicate user is logged in
-      setCurrentUser(data.user);
-      if (data.user.id) logger.setUserId(data.user.id);
-      setAvailableRoles(data.user.granted_roles || (data.user.primary_role ? [data.user.primary_role] : []));
+      setCurrentUser(userData);
+      if (userData.id) logger.setUserId(userData.id);
+      setAvailableRoles(userData.granted_roles || (userData.primary_role ? [userData.primary_role] : []));
       setAuthForm({ name: '', email: '', password: '', phone: '', primary_role: 'customer', vehicle_type: '' });
       setError('');
     } catch (err) {

@@ -7,7 +7,7 @@
   "license": "MIT",
   "scripts": {
     "start": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" node server.js",
-    "predev": "wsl sudo service redis-server start || echo 'Redis start skipped (Not WSL)'",
+    "predev": "redis-server --daemonize yes 2>/dev/null || wsl sudo service redis-server start 2>/dev/null || echo 'Redis start skipped'",
     "dev": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" nodemon server.js",
     "prod": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=production node server.js",
     "test": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" jest --coverage --testPathPattern=\"tests/(unit|integration/(auth|health))\" --maxWorkers=50%",
