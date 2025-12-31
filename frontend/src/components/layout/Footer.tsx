@@ -25,18 +25,24 @@ interface FooterStats {
     systemLoad: { rpm: number; status: string };
 }
 
-const Footer: React.FC<FooterProps> = () => {
+const Footer: React.FC<FooterProps> = ({ footerStats }) => {
     const version = (typeof process !== 'undefined' && process.env && process.env.REACT_APP_VERSION) || '1.0.0';
     const commit = gitInfo.commit;
     const date = new Date(gitInfo.date).toLocaleDateString();
     const time = new Date(gitInfo.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-    const [stats, setStats] = useState<FooterStats | null>(null);
+    const [stats, setStats] = useState<FooterStats | null>(footerStats || null);
 
     useEffect(() => {
+        // If footerStats is provided via prop, use it and skip fetching
+        if (footerStats) {
+            setStats(footerStats);
+            return;
+        }
+
+        // Only fetch if no footerStats prop is provided
         const fetchStats = async () => {
             try {
-                // Use relative URL - adjust if API is on different domain
                 const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
                 const response = await fetch(`${apiUrl}/stats/footer`);
                 if (response.ok) {
@@ -49,10 +55,10 @@ const Footer: React.FC<FooterProps> = () => {
         };
 
         fetchStats();
-        // Poll every 30 seconds
+        // Poll every 30 seconds only if not using prop
         const interval = setInterval(fetchStats, 30000);
         return () => clearInterval(interval);
-    }, []);
+    }, [footerStats]);
 
     const StatItem = ({ label, value, icon: Icon }: any) => (
         <div style={{ display: 'flex', alignItems: 'center', margin: '0 12px', fontSize: '0.75rem', fontFamily: 'monospace' }}>
