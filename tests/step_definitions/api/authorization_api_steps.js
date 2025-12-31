@@ -1,3 +1,6 @@
+// Load environment variables FIRST before importing server
+require('dotenv').config({ path: '.env.testing' });
+
 const { Given, When, Then, Before, After } = require('@cucumber/cucumber');
 const request = require('supertest');
 const { expect } = require('chai');
