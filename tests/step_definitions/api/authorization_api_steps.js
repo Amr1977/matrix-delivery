@@ -1,5 +1,6 @@
 // Load environment variables FIRST before importing server
-require('dotenv').config({ path: '.env.testing' });
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../../../.env.testing') });
 
 const { Given, When, Then, Before, After } = require('@cucumber/cucumber');
 const request = require('supertest');
@@ -76,10 +77,10 @@ RETURNING * `,
 Given('{string} has an order {string}', async function (userId, orderId) {
     const orderNumber = `ORD - ${Date.now()} -${Math.random().toString(36).substr(2, 9)} `;
     const result = await pool.query(
-        `INSERT INTO orders(id, order_number, customer_id, title, status, price)
-VALUES($1, $2, $3, $4, $5, $6)
-RETURNING * `,
-        [orderId, orderNumber, userId, 'Test Order', 'pending', 100.00]
+        `INSERT INTO orders (id, order_number, customer_id, title, status, price, pickup_address, delivery_address, from_lat, from_lng, to_lat, to_lng)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+         RETURNING *`,
+        [orderId, orderNumber, userId, 'Test Order', 'pending', 100.00, '123 Test St', '456 Delivery Ave', 30.0444, 31.2357, 30.0626, 31.2497]
     );
 
     this.authWorld.testOrders[orderId] = result.rows[0];
@@ -88,10 +89,10 @@ RETURNING * `,
 Given('{string} has order {string} assigned to {string}', async function (customerId, orderId, driverId) {
     const orderNumber = `ORD - ${Date.now()} -${Math.random().toString(36).substr(2, 9)} `;
     const result = await pool.query(
-        `INSERT INTO orders(id, order_number, customer_id, assigned_driver_user_id, title, status, price)
-VALUES($1, $2, $3, $4, $5, $6, $7)
-RETURNING * `,
-        [orderId, orderNumber, customerId, driverId, 'Test Assigned Order', 'accepted', 100.00]
+        `INSERT INTO orders (id, order_number, customer_id, assigned_driver_user_id, title, status, price, pickup_address, delivery_address, from_lat, from_lng, to_lat, to_lng)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+         RETURNING *`,
+        [orderId, orderNumber, customerId, driverId, 'Test Assigned Order', 'accepted', 100.00, '123 Test St', '456 Delivery Ave', 30.0444, 31.2357, 30.0626, 31.2497]
     );
 
     this.authWorld.testOrders[orderId] = result.rows[0];
@@ -100,10 +101,10 @@ RETURNING * `,
 Given('{string} has order {string} with status {string}', async function (userId, orderId, status) {
     const orderNumber = `ORD - ${Date.now()} -${Math.random().toString(36).substr(2, 9)} `;
     const result = await pool.query(
-        `INSERT INTO orders(id, order_number, customer_id, title, status, price)
-VALUES($1, $2, $3, $4, $5, $6)
-RETURNING * `,
-        [orderId, orderNumber, userId, 'Test Order', status, 100.00]
+        `INSERT INTO orders (id, order_number, customer_id, title, status, price, pickup_address, delivery_address, from_lat, from_lng, to_lat, to_lng)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+         RETURNING *`,
+        [orderId, orderNumber, userId, 'Test Order', status, 100.00, '123 Test St', '456 Delivery Ave', 30.0444, 31.2357, 30.0626, 31.2497]
     );
 
     this.authWorld.testOrders[orderId] = result.rows[0];
