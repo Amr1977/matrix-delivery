@@ -1,9 +1,13 @@
 const { Given, When, Then, Before, After } = require('@cucumber/cucumber');
 const request = require('supertest');
 const { expect } = require('chai');
+const crypto = require('crypto');
 const app = require('../../../backend/server');
-const pool = require('../../config/db');
+const pool = require('../../../backend/config/db');
 const bcrypt = require('bcryptjs');
+
+// Helper to generate unique IDs
+const generateId = () => `${Date.now()}${crypto.randomBytes(4).toString('hex')}`;
 
 // Note: For BDD tests, we use the actual server with test database
 
@@ -62,9 +66,9 @@ Given('there is a user with email {string}', async function (email) {
 
     try {
         await pool.query(
-            `INSERT INTO users (name, email, phone, password_hash, primary_role, is_verified)
-             VALUES ($1, $2, $3, $4, $5, $6)`,
-            ['Existing User', email, '+1234567890', hashedPassword, 'customer', true]
+            `INSERT INTO users (id, name, email, phone, password_hash, primary_role, is_verified)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            [generateId(), 'Existing User', email, '+1234567890', hashedPassword, 'customer', true]
         );
         this.world.testUsers.push(email);
     } catch (error) {
@@ -78,10 +82,10 @@ Given('there is a registered user:', async function (dataTable) {
 
     try {
         const result = await pool.query(
-            `INSERT INTO users (name, email, phone, password_hash, primary_role, is_verified)
-             VALUES ($1, $2, $3, $4, $5, $6)
+            `INSERT INTO users (id, name, email, phone, password_hash, primary_role, is_verified)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)
              RETURNING *`,
-            ['Test User', data.email, '+1234567890', hashedPassword, 'customer', true]
+            [generateId(), 'Test User', data.email, '+1234567890', hashedPassword, 'customer', true]
         );
 
         this.world.setLoginData({
@@ -99,9 +103,9 @@ Given('there is a registered user with email {string}', async function (email) {
 
     try {
         await pool.query(
-            `INSERT INTO users (name, email, phone, password_hash, primary_role, is_verified)
-             VALUES ($1, $2, $3, $4, $5, $6)`,
-            ['Test User', email, '+1234567890', hashedPassword, 'customer', true]
+            `INSERT INTO users (id, name, email, phone, password_hash, primary_role, is_verified)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            [generateId(), 'Test User', email, '+1234567890', hashedPassword, 'customer', true]
         );
         this.world.testUsers.push(email);
         this.world.setLoginData({ email });
@@ -116,9 +120,9 @@ Given('I am logged in as a user', async function () {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     await pool.query(
-        `INSERT INTO users (name, email, phone, password_hash, primary_role, is_verified)
-         VALUES ($1, $2, $3, $4, $5, $6)`,
-        ['Logged In User', email, '+1234567890', hashedPassword, 'customer', true]
+        `INSERT INTO users (id, name, email, phone, password_hash, primary_role, is_verified)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [generateId(), 'Logged In User', email, '+1234567890', hashedPassword, 'customer', true]
     );
     this.world.testUsers.push(email);
 
@@ -140,9 +144,9 @@ Given('I have a valid password reset token', async function () {
     const hashedPassword = await bcrypt.hash('OldPass123!', 10);
 
     await pool.query(
-        `INSERT INTO users (name, email, phone, password_hash, primary_role, is_verified)
-         VALUES ($1, $2, $3, $4, $5, $6)`,
-        ['Reset User', email, '+1234567890', hashedPassword, 'customer', true]
+        `INSERT INTO users (id, name, email, phone, password_hash, primary_role, is_verified)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [generateId(), 'Reset User', email, '+1234567890', hashedPassword, 'customer', true]
     );
     this.world.testUsers.push(email);
 
@@ -367,9 +371,13 @@ Then('my session should be terminated', function () {
     expect(this.world.response.status).to.equal(200);
 });
 
-Then('subsequent requests should require re-authentication', function () {
-    // Simplified - would test actual request in real implementation
-    expect(this.world.response.status).to.equal(200);
+Then('subsequent requests should require re-authentication', async function () {
+    const response = await request(app)
+        .get('/api/auth/me')
+        .set('Authorization', `Bearer ${this.world.token}`);
+
+    expect(response.status).to.equal(401);
+    expect(response.body.error).to.include('revoked');
 });
 
 Then('I should receive a success response', function () {
