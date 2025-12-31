@@ -125,6 +125,14 @@ router.post('/:orderId/bid', verifyToken, async (req, res) => {
       userId: req.user.userId,
       category: 'error'
     });
+
+    // Return 400 for business logic errors (order not available, already bid, etc.)
+    if (error.message.includes('not available for bidding') ||
+      error.message.includes('already placed a bid') ||
+      error.message === 'Order not found') {
+      return res.status(400).json({ error: error.message });
+    }
+
     res.status(500).json({ error: error.message || 'Failed to place bid' });
   }
 });
@@ -183,7 +191,7 @@ router.post('/:orderId/accept-bid', verifyToken, async (req, res) => {
       return res.status(403).json({ error: 'Only customers can accept bids' });
     }
 
-    const driverId = req.body.userId;
+    const driverId = req.body.driverId || req.body.userId;
     if (!driverId) {
       return res.status(400).json({ error: 'Invalid driver ID' });
     }
@@ -196,7 +204,64 @@ router.post('/:orderId/accept-bid', verifyToken, async (req, res) => {
       userId: req.user.userId,
       category: 'error'
     });
+
+    // Return 400 for business logic/validation errors
+    if (error.message.includes('not available for bid acceptance') ||
+      error.message.includes('Unauthorized') ||
+      error.message.includes('not found') ||
+      error.message.includes('Bid not found') ||
+      error.message.includes('cannot accept')) {
+      return res.status(400).json({ error: error.message });
+    }
+
     res.status(500).json({ error: error.message || 'Failed to accept bid' });
+  }
+});
+
+// Update order status via PATCH (explicit status update)
+router.patch('/:orderId/status', verifyToken, async (req, res) => {
+  try {
+    const { status } = req.body;
+    if (!status) {
+      return res.status(400).json({ error: 'Status is required' });
+    }
+
+    // Map status to action for orderService
+    const actionMap = {
+      'picked_up': 'pickup',
+      'in_transit': 'in-transit',
+      'delivered': 'complete',
+      'delivered_pending': 'complete'
+    };
+
+    const action = actionMap[status] || status;
+    const result = await orderService.updateOrderStatus(req.params.orderId, req.user.userId, action);
+    res.json(result);
+  } catch (error) {
+    logger.error(`Order status update error (PATCH): ${error.message}`, {
+      orderId: req.params.orderId,
+      status: req.body.status,
+      userId: req.user.userId,
+      category: 'error'
+    });
+
+    // Return 404 for not found errors
+    if (error.message === 'Order not found') {
+      return res.status(404).json({ error: error.message });
+    }
+
+    // Return 403 for authorization errors
+    if (error.message.includes('Only assigned driver') ||
+      error.message.includes('Only customer can confirm')) {
+      return res.status(403).json({ error: error.message });
+    }
+
+    // Return 400 for validation errors
+    if (error.message.includes('Order must be in') || error.message.includes('Invalid action')) {
+      return res.status(400).json({ error: error.message });
+    }
+
+    res.status(500).json({ error: error.message || 'Failed to update order status' });
   }
 });
 
@@ -228,8 +293,19 @@ router.post('/:orderId/:action', verifyToken, async (req, res) => {
       category: 'error'
     });
 
+    // Return 404 for not found errors
+    if (error.message === 'Order not found') {
+      return res.status(404).json({ error: error.message });
+    }
+
+    // Return 403 for authorization errors
+    if (error.message.includes('Only assigned driver') ||
+      error.message.includes('Only customer can confirm')) {
+      return res.status(403).json({ error: error.message });
+    }
+
     // Return 400 for validation errors
-    if (error.message.includes('Order must be in') || error.message.includes('Invalid action') || error.message.includes('Only assigned driver')) {
+    if (error.message.includes('Order must be in') || error.message.includes('Invalid action')) {
       return res.status(400).json({ error: error.message });
     }
 

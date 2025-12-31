@@ -166,8 +166,19 @@ app.get('/api/orders/:id', verifyToken, async (req, res) => {
 
     const order = result.rows[0];
 
-    if (order.customer_id !== req.user.userId && order.assigned_driver_user_id !== req.user.userId &&
-      !order.bids.some(bid => bid.userId === req.user.userId) && order.status !== 'pending_bids') {
+    // Authorization check
+    const isOwner = order.customer_id === req.user.userId;
+    const isAssignedDriver = order.assigned_driver_user_id === req.user.userId;
+    const hasBid = order.bids.some(bid => bid.userId === req.user.userId);
+    const isDriver = (req.user.primary_role || req.user.role) === 'driver';
+
+    // Allow access if:
+    // 1. User is the owner (customer)
+    // 2. User is the assigned driver
+    // 3. User has placed a bid on this order
+    // 4. Order is open for bidding (pending_bids) AND user is a driver
+    if (!isOwner && !isAssignedDriver && !hasBid &&
+      !(order.status === 'pending_bids' && isDriver)) {
       return res.status(403).json({ error: 'Unauthorized to view this order' });
     }
 
