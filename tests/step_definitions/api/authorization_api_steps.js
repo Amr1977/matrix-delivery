@@ -1,4 +1,3 @@
-```javascript
 const { Given, When, Then, Before, After } = require('@cucumber/cucumber');
 const request = require('supertest');
 const { expect } = require('chai');
@@ -7,7 +6,7 @@ const pool = require('../../../backend/config/db');
 const bcrypt = require('bcryptjs');
 const { createTestToken } = require('../../utils/testAuth');
 
-// World for authorization tests
+//World for authorization tests
 class AuthorizationWorld {
     constructor() {
         this.response = null;
@@ -56,7 +55,7 @@ VALUES($1, $2, $3, $4, $5, $6, $7, $8)
 RETURNING * `,
             [
                 user.userId,
-                `Test ${ user.role } `,
+                `Test ${user.role} `,
                 user.email,
                 '+1234567890',
                 hashedPassword,
@@ -72,7 +71,7 @@ RETURNING * `,
 });
 
 Given('{string} has an order {string}', async function (userId, orderId) {
-    const orderNumber = `ORD - ${ Date.now() } -${ Math.random().toString(36).substr(2, 9) } `;
+    const orderNumber = `ORD - ${Date.now()} -${Math.random().toString(36).substr(2, 9)} `;
     const result = await pool.query(
         `INSERT INTO orders(id, order_number, customer_id, title, status, price)
 VALUES($1, $2, $3, $4, $5, $6)
@@ -84,7 +83,7 @@ RETURNING * `,
 });
 
 Given('{string} has order {string} assigned to {string}', async function (customerId, orderId, driverId) {
-    const orderNumber = `ORD - ${ Date.now() } -${ Math.random().toString(36).substr(2, 9) } `;
+    const orderNumber = `ORD - ${Date.now()} -${Math.random().toString(36).substr(2, 9)} `;
     const result = await pool.query(
         `INSERT INTO orders(id, order_number, customer_id, assigned_driver_user_id, title, status, price)
 VALUES($1, $2, $3, $4, $5, $6, $7)
@@ -96,7 +95,7 @@ RETURNING * `,
 });
 
 Given('{string} has order {string} with status {string}', async function (userId, orderId, status) {
-    const orderNumber = `ORD - ${ Date.now() } -${ Math.random().toString(36).substr(2, 9) } `;
+    const orderNumber = `ORD - ${Date.now()} -${Math.random().toString(36).substr(2, 9)} `;
     const result = await pool.query(
         `INSERT INTO orders(id, order_number, customer_id, title, status, price)
 VALUES($1, $2, $3, $4, $5, $6)
@@ -112,9 +111,9 @@ Given('{string} has placed bid on order {string}', async function (driverId, ord
     const token = this.authWorld.tokens[driverId];
 
     await request(app)
-        .post(`/ api / orders / ${ orderId }/bid`)
+        .post(`/ api / orders / ${orderId}/bid`)
         .set('Cookie', `token=${token}`)
-    .send({ bid_price: 50.00 });
+        .send({ bid_price: 50.00 });
 });
 
 // ============ WHEN STEPS (API) ============
