@@ -1,14 +1,29 @@
 // API utility with logging
 import logger from './logger';
+import { getDeviceFingerprint } from './utils/fingerprint';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 class ApiClient {
   constructor() {
     this.baseURL = API_BASE_URL;
+    this.fingerprint = null;
+    // Initialize fingerprint in background
+    getDeviceFingerprint().then(fp => {
+      this.fingerprint = fp;
+    });
   }
 
   async request(method, endpoint, data = null, options = {}) {
+    // Ensure we have a fingerprint if possible (but don't block too long)
+    if (!this.fingerprint) {
+      try {
+        this.fingerprint = await getDeviceFingerprint();
+      } catch (e) {
+        // Ignore error, continue without fingerprint
+      }
+    }
+
     const startTime = Date.now();
     const url = `${this.baseURL}${endpoint}`;
 
@@ -20,13 +35,19 @@ class ApiClient {
     });
 
     try {
+      const headers = {
+        'Content-Type': 'application/json',
+        ...options.headers
+      };
+
+      if (this.fingerprint) {
+        headers['x-device-fingerprint'] = this.fingerprint;
+      }
+
       const config = {
         method,
         credentials: 'include', // Include cookies for session-based auth
-        headers: {
-          'Content-Type': 'application/json',
-          ...options.headers
-        },
+        headers,
         ...options
       };
 
