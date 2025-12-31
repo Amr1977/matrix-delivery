@@ -266,7 +266,7 @@ describe('POST /api/auth/login', () => {
                 .post('/api/auth/login')
                 .send(loginData);
 
-            expect(res.status).toBe(500);
+            expect(res.status).toBe(500); // Database errors should return 500
         });
     });
 });

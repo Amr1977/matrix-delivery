@@ -159,7 +159,7 @@ describe('POST /api/auth/register', () => {
                 .post('/api/auth/register')
                 .send(invalidEmailData);
 
-            expect(res.status).toBe(500); // authService throws error
+            expect(res.status).toBe(400); // Validation errors return 400 Bad Request
             expect(res.body.error).toBeDefined();
         });
 
@@ -182,7 +182,7 @@ describe('POST /api/auth/register', () => {
                 .post('/api/auth/register')
                 .send(weakPasswordData);
 
-            expect(res.status).toBe(500); // authService throws error
+            expect(res.status).toBe(400); // Validation errors return 400 Bad Request
             expect(res.body.error).toBeDefined();
         });
 
@@ -205,7 +205,7 @@ describe('POST /api/auth/register', () => {
                 .post('/api/auth/register')
                 .send(invalidRoleData);
 
-            expect(res.status).toBe(500); // authService throws error
+            expect(res.status).toBe(400); // Validation errors return 400 Bad Request
             expect(res.body.error).toBeDefined();
         });
 
