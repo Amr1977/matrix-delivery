@@ -1,0 +1,502 @@
+[dotenv@17.2.3] injecting env (0) from .env.testing -- tip: ≡ƒöæ add access controls to secrets: https://dotenvx.com/ops
+Γ£à Loaded .env.testing for testing
+2025-12-31 18:19:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m≡ƒöº Environment Configuration:[1m[32m[22m[39m
+2025-12-31 18:19:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   NODE_ENV: testing[1m[32m[22m[39m
+2025-12-31 18:19:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   IS_TEST: true[1m[32m[22m[39m
+2025-12-31 18:19:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   DB_HOST: localhost[1m[32m[22m[39m
+2025-12-31 18:19:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   DB_PORT: 5432[1m[32m[22m[39m
+2025-12-31 18:19:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   DB_USER: postgres[1m[32m[22m[39m
+2025-12-31 18:19:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   DB_NAME: matrix_delivery_test[1m[32m[22m[39m
+2025-12-31 18:19:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   DB_NAME_TEST: matrix_delivery_test[1m[32m[22m[39m
+2025-12-31 18:19:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m≡ƒöî Connecting to database: matrix_delivery_test (Test Mode: true)[1m[32m[22m[39m
+Γ£à Security configuration validated
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ΓÜÖ∩╕Å  enable debug logging with { debug: true }
+[dotenv@17.2.3] injecting env (0) from .env.testing -- tip: ΓÜÖ∩╕Å  enable debug logging with { debug: true }
+.PostGIS detected in browse routes
+..≡ƒ¢á∩╕Å ORDER SERVICE - RECEIVED ORDER CREATION REQUEST
+≡ƒ¢á∩╕Å ORDER SERVICE - RAW ORDER DATA RECEIVED: {
+  "title": "Test Order",
+  "price": 100,
+  "pickup_address": "123 Test St",
+  "delivery_address": "456 Delivery Ave",
+  "from_lat": 30.0444,
+  "from_lng": 31.2357,
+  "to_lat": 30.0626,
+  "to_lng": 31.2497,
+  "from_name": "John Doe",
+  "to_name": "Jane Smith"
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - CUSTOMER ID: customer-1
+≡ƒ¢á∩╕Å ORDER SERVICE - RECEIVED DATA STRUCTURE: {
+  hasTitle: true,
+  hasPrice: true,
+  hasPickupAddress: false,
+  hasDropoffAddress: false,
+  showManualEntry: undefined,
+  hasPickupLocation: false,
+  hasDropoffLocation: false
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - VALIDATION PASSED
+≡ƒ¢á∩╕Å ORDER SERVICE - ORDER DATA STRUCTURE ANALYSIS: {
+  hasOrderData: false,
+  hasShowManualEntry: false,
+  hasPickupAddress: false,
+  hasDropoffAddress: false,
+  hasPickupLocation: false,
+  hasDropoffLocation: false
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - EXTRACTED ALL FIELDS: {
+  title: 'Test Order',
+  price: 100,
+  description: undefined,
+  package_description: undefined,
+  special_instructions: undefined
+}
+F--....2025-12-31 18:19:59 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: PUT /api/users/me/profile[1m[35m[22m[39m
+{
+  "method": "PUT",
+  "url": "/api/users/me/profile",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-31 18:19:59 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": "customer-1",
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2025-12-31 18:19:59 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mUser updated profile[1m[32m[22m[39m
+{
+  "userId": "customer-1",
+  "category": "user"
+}
+2025-12-31 18:19:59 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[31/Dec/2025:16:19:59",
+  "ip": "/api/users/me/profile",
+  "userAgent": "200",
+  "category": "http"
+}
+2025-12-31 18:19:59 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: PUT /api/users/me/profile 200[1m[35m[22m[39m
+{
+  "method": "PUT",
+  "url": "/api/users/me/profile",
+  "statusCode": 200,
+  "duration": "50ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+......≡ƒ¢á∩╕Å ORDER SERVICE - RECEIVED ORDER CREATION REQUEST
+≡ƒ¢á∩╕Å ORDER SERVICE - RAW ORDER DATA RECEIVED: {
+  "title": "Test Assigned Order",
+  "price": 100,
+  "pickup_address": "123 Test St",
+  "delivery_address": "456 Delivery Ave",
+  "from_lat": 30.0444,
+  "from_lng": 31.2357,
+  "to_lat": 30.0626,
+  "to_lng": 31.2497,
+  "from_name": "John Doe",
+  "to_name": "Jane Smith"
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - CUSTOMER ID: customer-1
+≡ƒ¢á∩╕Å ORDER SERVICE - RECEIVED DATA STRUCTURE: {
+  hasTitle: true,
+  hasPrice: true,
+  hasPickupAddress: false,
+  hasDropoffAddress: false,
+  showManualEntry: undefined,
+  hasPickupLocation: false,
+  hasDropoffLocation: false
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - VALIDATION PASSED
+≡ƒ¢á∩╕Å ORDER SERVICE - ORDER DATA STRUCTURE ANALYSIS: {
+  hasOrderData: false,
+  hasShowManualEntry: false,
+  hasPickupAddress: false,
+  hasDropoffAddress: false,
+  hasPickupLocation: false,
+  hasDropoffLocation: false
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - EXTRACTED ALL FIELDS: {
+  title: 'Test Assigned Order',
+  price: 100,
+  description: undefined,
+  package_description: undefined,
+  special_instructions: undefined
+}
+F--....2025-12-31 18:20:01 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: GET /api/admin/users[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/admin/users",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-31 18:20:01 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mSECURITY: Non-admin user attempted admin access[1m[33m[22m[39m
+{
+  "userId": "customer-1",
+  "ip": "::ffff:127.0.0.1",
+  "path": "/users",
+  "category": "security"
+}
+2025-12-31 18:20:01 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[31/Dec/2025:16:20:01",
+  "ip": "/api/admin/users",
+  "userAgent": "403",
+  "category": "http"
+}
+2025-12-31 18:20:01 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: GET /api/admin/users 403[1m[33m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/admin/users",
+  "statusCode": 403,
+  "duration": "11ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+......2025-12-31 18:20:01 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: GET /api/admin/stats[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/admin/stats",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-31 18:20:01 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mSECURITY: Non-admin user attempted admin access[1m[33m[22m[39m
+{
+  "userId": "customer-1",
+  "ip": "::ffff:127.0.0.1",
+  "path": "/stats",
+  "category": "security"
+}
+2025-12-31 18:20:01 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[31/Dec/2025:16:20:01",
+  "ip": "/api/admin/stats",
+  "userAgent": "403",
+  "category": "http"
+}
+2025-12-31 18:20:01 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: GET /api/admin/stats 403[1m[33m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/admin/stats",
+  "statusCode": 403,
+  "duration": "7ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+......2025-12-31 18:20:02 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: GET /api/admin/users/customer-2[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/admin/users/customer-2",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2025-12-31 18:20:02 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mSECURITY: Non-admin user attempted admin access[1m[33m[22m[39m
+{
+  "userId": "customer-1",
+  "ip": "::ffff:127.0.0.1",
+  "path": "/users/customer-2",
+  "category": "security"
+}
+2025-12-31 18:20:02 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[31/Dec/2025:16:20:02",
+  "ip": "/api/admin/users/customer-2",
+  "userAgent": "403",
+  "category": "http"
+}
+2025-12-31 18:20:02 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: GET /api/admin/users/customer-2 403[1m[33m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/admin/users/customer-2",
+  "statusCode": 403,
+  "duration": "7ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+......≡ƒ¢á∩╕Å ORDER SERVICE - RECEIVED ORDER CREATION REQUEST
+≡ƒ¢á∩╕Å ORDER SERVICE - RAW ORDER DATA RECEIVED: {
+  "title": "Test Assigned Order",
+  "price": 100,
+  "pickup_address": "123 Test St",
+  "delivery_address": "456 Delivery Ave",
+  "from_lat": 30.0444,
+  "from_lng": 31.2357,
+  "to_lat": 30.0626,
+  "to_lng": 31.2497,
+  "from_name": "John Doe",
+  "to_name": "Jane Smith"
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - CUSTOMER ID: customer-1
+≡ƒ¢á∩╕Å ORDER SERVICE - RECEIVED DATA STRUCTURE: {
+  hasTitle: true,
+  hasPrice: true,
+  hasPickupAddress: false,
+  hasDropoffAddress: false,
+  showManualEntry: undefined,
+  hasPickupLocation: false,
+  hasDropoffLocation: false
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - VALIDATION PASSED
+≡ƒ¢á∩╕Å ORDER SERVICE - ORDER DATA STRUCTURE ANALYSIS: {
+  hasOrderData: false,
+  hasShowManualEntry: false,
+  hasPickupAddress: false,
+  hasDropoffAddress: false,
+  hasPickupLocation: false,
+  hasDropoffLocation: false
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - EXTRACTED ALL FIELDS: {
+  title: 'Test Assigned Order',
+  price: 100,
+  description: undefined,
+  package_description: undefined,
+  special_instructions: undefined
+}
+F--....≡ƒ¢á∩╕Å ORDER SERVICE - RECEIVED ORDER CREATION REQUEST
+≡ƒ¢á∩╕Å ORDER SERVICE - RAW ORDER DATA RECEIVED: {
+  "title": "Test Order",
+  "price": 100,
+  "pickup_address": "123 Test St",
+  "delivery_address": "456 Delivery Ave",
+  "from_lat": 30.0444,
+  "from_lng": 31.2357,
+  "to_lat": 30.0626,
+  "to_lng": 31.2497,
+  "from_name": "John Doe",
+  "to_name": "Jane Smith"
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - CUSTOMER ID: customer-1
+≡ƒ¢á∩╕Å ORDER SERVICE - RECEIVED DATA STRUCTURE: {
+  hasTitle: true,
+  hasPrice: true,
+  hasPickupAddress: false,
+  hasDropoffAddress: false,
+  showManualEntry: undefined,
+  hasPickupLocation: false,
+  hasDropoffLocation: false
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - VALIDATION PASSED
+≡ƒ¢á∩╕Å ORDER SERVICE - ORDER DATA STRUCTURE ANALYSIS: {
+  hasOrderData: false,
+  hasShowManualEntry: false,
+  hasPickupAddress: false,
+  hasDropoffAddress: false,
+  hasPickupLocation: false,
+  hasDropoffLocation: false
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - EXTRACTED ALL FIELDS: {
+  title: 'Test Order',
+  price: 100,
+  description: undefined,
+  package_description: undefined,
+  special_instructions: undefined
+}
+F--....≡ƒ¢á∩╕Å ORDER SERVICE - RECEIVED ORDER CREATION REQUEST
+≡ƒ¢á∩╕Å ORDER SERVICE - RAW ORDER DATA RECEIVED: {
+  "title": "Test Order",
+  "price": 100,
+  "pickup_address": "123 Test St",
+  "delivery_address": "456 Delivery Ave",
+  "from_lat": 30.0444,
+  "from_lng": 31.2357,
+  "to_lat": 30.0626,
+  "to_lng": 31.2497,
+  "from_name": "John Doe",
+  "to_name": "Jane Smith"
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - CUSTOMER ID: customer-1
+≡ƒ¢á∩╕Å ORDER SERVICE - RECEIVED DATA STRUCTURE: {
+  hasTitle: true,
+  hasPrice: true,
+  hasPickupAddress: false,
+  hasDropoffAddress: false,
+  showManualEntry: undefined,
+  hasPickupLocation: false,
+  hasDropoffLocation: false
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - VALIDATION PASSED
+≡ƒ¢á∩╕Å ORDER SERVICE - ORDER DATA STRUCTURE ANALYSIS: {
+  hasOrderData: false,
+  hasShowManualEntry: false,
+  hasPickupAddress: false,
+  hasDropoffAddress: false,
+  hasPickupLocation: false,
+  hasDropoffLocation: false
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - EXTRACTED ALL FIELDS: {
+  title: 'Test Order',
+  price: 100,
+  description: undefined,
+  package_description: undefined,
+  special_instructions: undefined
+}
+F--....≡ƒ¢á∩╕Å ORDER SERVICE - RECEIVED ORDER CREATION REQUEST
+≡ƒ¢á∩╕Å ORDER SERVICE - RAW ORDER DATA RECEIVED: {
+  "title": "Test Order",
+  "price": 100,
+  "pickup_address": "123 Test St",
+  "delivery_address": "456 Delivery Ave",
+  "from_lat": 30.0444,
+  "from_lng": 31.2357,
+  "to_lat": 30.0626,
+  "to_lng": 31.2497,
+  "from_name": "John Doe",
+  "to_name": "Jane Smith"
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - CUSTOMER ID: customer-1
+≡ƒ¢á∩╕Å ORDER SERVICE - RECEIVED DATA STRUCTURE: {
+  hasTitle: true,
+  hasPrice: true,
+  hasPickupAddress: false,
+  hasDropoffAddress: false,
+  showManualEntry: undefined,
+  hasPickupLocation: false,
+  hasDropoffLocation: false
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - VALIDATION PASSED
+≡ƒ¢á∩╕Å ORDER SERVICE - ORDER DATA STRUCTURE ANALYSIS: {
+  hasOrderData: false,
+  hasShowManualEntry: false,
+  hasPickupAddress: false,
+  hasDropoffAddress: false,
+  hasPickupLocation: false,
+  hasDropoffLocation: false
+}
+≡ƒ¢á∩╕Å ORDER SERVICE - EXTRACTED ALL FIELDS: {
+  title: 'Test Order',
+  price: 100,
+  description: undefined,
+  package_description: undefined,
+  special_instructions: undefined
+}
+F---.
+
+Failures:
+
+1) Scenario: User cannot access another user's order details # features\backend\authorization-security.feature:19
+   ΓêÜ Before # step_definitions\api\authorization_api_steps.js:24
+   ΓêÜ Given the system is running # step_definitions\api\authorization_api_steps.js:47
+   ΓêÜ And test users exist: # step_definitions\api\authorization_api_steps.js:53
+       | userId     | email              | role     |
+       | admin-1    | admin@test.com     | admin    |
+       | customer-1 | customer1@test.com | customer |
+       | customer-2 | customer2@test.com | customer |
+       | driver-1   | driver1@test.com   | driver   |
+       | driver-2   | driver2@test.com   | driver   |
+   ├ù Given "customer-1" has an order "order-123" # step_definitions\api\authorization_api_steps.js:78
+       Error: Please set pickup and delivery locations on the map or fill address fields (minimum country and city) to generate coordinates.
+           at OrderService.createOrder (D:\matrix-delivery\backend\services\orderService.js:556:13)
+           at World.<anonymous> (D:\matrix-delivery\tests\step_definitions\api\authorization_api_steps.js:93:38)
+   - When "customer-2" tries to access order "order-123" # step_definitions\api\authorization_api_steps.js:168
+   - Then access should be denied with status 403 # step_definitions\api\authorization_api_steps.js:257
+   ΓêÜ After # step_definitions\api\authorization_api_steps.js:28
+
+2) Scenario: Driver cannot bid on order assigned to another driver # features\backend\authorization-security.feature:30
+   ΓêÜ Before # step_definitions\api\authorization_api_steps.js:24
+   ΓêÜ Given the system is running # step_definitions\api\authorization_api_steps.js:47
+   ΓêÜ And test users exist: # step_definitions\api\authorization_api_steps.js:53
+       | userId     | email              | role     |
+       | admin-1    | admin@test.com     | admin    |
+       | customer-1 | customer1@test.com | customer |
+       | customer-2 | customer2@test.com | customer |
+       | driver-1   | driver1@test.com   | driver   |
+       | driver-2   | driver2@test.com   | driver   |
+   ├ù Given "customer-1" has order "order-888" assigned to "driver-1" # step_definitions\api\authorization_api_steps.js:102
+       Error: Please set pickup and delivery locations on the map or fill address fields (minimum country and city) to generate coordinates.
+           at OrderService.createOrder (D:\matrix-delivery\backend\services\orderService.js:556:13)
+           at World.<anonymous> (D:\matrix-delivery\tests\step_definitions\api\authorization_api_steps.js:117:38)
+   - When "driver-2" tries to bid on order "order-888" # step_definitions\api\authorization_api_steps.js:218
+   - Then access should be denied with status 400 # step_definitions\api\authorization_api_steps.js:257
+   ΓêÜ After # step_definitions\api\authorization_api_steps.js:28
+
+3) Scenario: Only assigned driver can update order status # features\backend\authorization-security.feature:55
+   ΓêÜ Before # step_definitions\api\authorization_api_steps.js:24
+   ΓêÜ Given the system is running # step_definitions\api\authorization_api_steps.js:47
+   ΓêÜ And test users exist: # step_definitions\api\authorization_api_steps.js:53
+       | userId     | email              | role     |
+       | admin-1    | admin@test.com     | admin    |
+       | customer-1 | customer1@test.com | customer |
+       | customer-2 | customer2@test.com | customer |
+       | driver-1   | driver1@test.com   | driver   |
+       | driver-2   | driver2@test.com   | driver   |
+   ├ù Given "customer-1" has order "order-456" assigned to "driver-1" # step_definitions\api\authorization_api_steps.js:102
+       Error: Please set pickup and delivery locations on the map or fill address fields (minimum country and city) to generate coordinates.
+           at OrderService.createOrder (D:\matrix-delivery\backend\services\orderService.js:556:13)
+           at World.<anonymous> (D:\matrix-delivery\tests\step_definitions\api\authorization_api_steps.js:117:38)
+   - When "driver-2" tries to update status of order "order-456" to "picked_up" # step_definitions\api\authorization_api_steps.js:201
+   - Then access should be denied with status 403 # step_definitions\api\authorization_api_steps.js:257
+   ΓêÜ After # step_definitions\api\authorization_api_steps.js:28
+
+4) Scenario: Admin can access all user resources # features\backend\authorization-security.feature:61
+   ΓêÜ Before # step_definitions\api\authorization_api_steps.js:24
+   ΓêÜ Given the system is running # step_definitions\api\authorization_api_steps.js:47
+   ΓêÜ And test users exist: # step_definitions\api\authorization_api_steps.js:53
+       | userId     | email              | role     |
+       | admin-1    | admin@test.com     | admin    |
+       | customer-1 | customer1@test.com | customer |
+       | customer-2 | customer2@test.com | customer |
+       | driver-1   | driver1@test.com   | driver   |
+       | driver-2   | driver2@test.com   | driver   |
+   ├ù Given "customer-1" has an order "order-789" # step_definitions\api\authorization_api_steps.js:78
+       Error: Please set pickup and delivery locations on the map or fill address fields (minimum country and city) to generate coordinates.
+           at OrderService.createOrder (D:\matrix-delivery\backend\services\orderService.js:556:13)
+           at World.<anonymous> (D:\matrix-delivery\tests\step_definitions\api\authorization_api_steps.js:93:38)
+   - When "admin-1" tries to access "/api/admin/users" # step_definitions\api\authorization_api_steps.js:193
+   - Then access should be granted with status 200 # step_definitions\api\authorization_api_steps.js:262
+   ΓêÜ After # step_definitions\api\authorization_api_steps.js:28
+
+5) Scenario: Users can only cancel their own orders (via admin route) # features\backend\authorization-security.feature:69
+   ΓêÜ Before # step_definitions\api\authorization_api_steps.js:24
+   ΓêÜ Given the system is running # step_definitions\api\authorization_api_steps.js:47
+   ΓêÜ And test users exist: # step_definitions\api\authorization_api_steps.js:53
+       | userId     | email              | role     |
+       | admin-1    | admin@test.com     | admin    |
+       | customer-1 | customer1@test.com | customer |
+       | customer-2 | customer2@test.com | customer |
+       | driver-1   | driver1@test.com   | driver   |
+       | driver-2   | driver2@test.com   | driver   |
+   ├ù Given "customer-1" has order "order-999" with status "pending_bids" # step_definitions\api\authorization_api_steps.js:131
+       Error: Please set pickup and delivery locations on the map or fill address fields (minimum country and city) to generate coordinates.
+           at OrderService.createOrder (D:\matrix-delivery\backend\services\orderService.js:556:13)
+           at World.<anonymous> (D:\matrix-delivery\tests\step_definitions\api\authorization_api_steps.js:146:38)
+   - When "admin-1" tries to cancel order "order-999" # step_definitions\api\authorization_api_steps.js:210
+   - Then access should be granted with status 200 # step_definitions\api\authorization_api_steps.js:262
+   ΓêÜ After # step_definitions\api\authorization_api_steps.js:28
+
+6) Scenario: Customer can accept bid on their own order # features\backend\authorization-security.feature:75
+   ΓêÜ Before # step_definitions\api\authorization_api_steps.js:24
+   ΓêÜ Given the system is running # step_definitions\api\authorization_api_steps.js:47
+   ΓêÜ And test users exist: # step_definitions\api\authorization_api_steps.js:53
+       | userId     | email              | role     |
+       | admin-1    | admin@test.com     | admin    |
+       | customer-1 | customer1@test.com | customer |
+       | customer-2 | customer2@test.com | customer |
+       | driver-1   | driver1@test.com   | driver   |
+       | driver-2   | driver2@test.com   | driver   |
+   ├ù Given "customer-1" has order "order-555" with status "pending_bids" # step_definitions\api\authorization_api_steps.js:131
+       Error: Please set pickup and delivery locations on the map or fill address fields (minimum country and city) to generate coordinates.
+           at OrderService.createOrder (D:\matrix-delivery\backend\services\orderService.js:556:13)
+           at World.<anonymous> (D:\matrix-delivery\tests\step_definitions\api\authorization_api_steps.js:146:38)
+   - And "driver-1" has placed bid on order "order-555" # step_definitions\api\authorization_api_steps.js:156
+   - When "customer-1" tries to accept bid on order "order-555" # step_definitions\api\authorization_api_steps.js:236
+   - Then access should be granted with status 200 # step_definitions\api\authorization_api_steps.js:262
+   ΓêÜ After # step_definitions\api\authorization_api_steps.js:28
+
+10 scenarios (6 failed, 4 passed)
+47 steps (6 failed, 13 skipped, 28 passed)
+0m09.129s (executing steps: 0m08.795s)
