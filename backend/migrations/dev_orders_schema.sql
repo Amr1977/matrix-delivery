@@ -76,7 +76,8 @@ CREATE TABLE IF NOT EXISTS public.orders (
 );
 
 
-ALTER TABLE public.orders OWNER TO postgres;
+-- OWNER statement removed (requires superuser privileges)
+-- ALTER TABLE public.orders OWNER TO postgres;
 
 --
 -- Name: orders orders_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
