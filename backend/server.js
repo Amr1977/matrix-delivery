@@ -1,3 +1,12 @@
+const dotenv = require('dotenv');
+
+// Load environment FIRST
+if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing') {
+  dotenv.config({ path: '.env.testing' });
+} else {
+  dotenv.config();
+}
+
 const app = require('./app');
 //TODO use https ⚠️
 const http = require('http');
@@ -7,14 +16,6 @@ const pool = require('./config/db');
 const { getNotificationService } = require('./services/notificationService');
 const configureSocket = require('./config/socket');
 const { startCleanup, stopCleanup } = require('./middleware/rateLimit');
-const dotenv = require('dotenv');
-
-// Load environment (consistent behavior with original server.js)
-if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing') {
-  dotenv.config({ path: '.env.testing' });
-} else {
-  dotenv.config();
-}
 
 const IS_TEST = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing';
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';

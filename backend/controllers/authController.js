@@ -292,12 +292,20 @@ const login = async (req, res) => {
     }
 };
 
-const logout = (req, res) => {
+const logout = async (req, res) => {
     const clientIP = req.ip || req.connection.remoteAddress;
+
+    // Get token to blacklist (from cookie or header)
+    const token = req.cookies.token || req.headers.authorization?.replace('Bearer ', '');
+
+    if (token) {
+        await authService.blacklistToken(token);
+    }
 
     logger.auth('User logged out', {
         ip: clientIP,
         userId: req.user?.userId,
+        tokenRevoked: !!token,
         category: 'auth'
     });
 
