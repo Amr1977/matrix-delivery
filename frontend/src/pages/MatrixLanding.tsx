@@ -93,7 +93,7 @@ const MatrixLanding: React.FC = () => {
                     {/* Mobile Menu Button */}
                     <button
                         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                        className="md:hidden text-[#A0AEC0] hover:text-[#00FF41] transition-colors"
+                        className="md:hidden text-[#A0AEC0] hover:text-[#00FF41] transition-colors p-2 -mr-2 flex-shrink-0 w-10 h-10 flex items-center justify-center border-0 bg-transparent outline-none focus:outline-none"
                         aria-label="Toggle menu"
                     >
                         {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}

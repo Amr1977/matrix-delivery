@@ -28,7 +28,7 @@ const allowedOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
   : [
     'http://localhost:3000',
-    'http://192.168.1.200:3000',
+    'http://192.168.1.2:3000',
     'https://matrix.oldantique50.com',
     'https://matrix-delivery.web.app'
   ];
