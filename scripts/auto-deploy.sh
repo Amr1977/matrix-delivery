@@ -38,7 +38,22 @@ fi
 while true; do
     # Load Environment Variables (for FIREBASE_TOKEN)
     if [ -f .env ]; then
-        export $(grep -v '^#' .env | xargs)
+        # Read .env line by line to handle edge cases better than xargs
+        while IFS= read -r line || [ -n "$line" ]; do
+            # Skip comments and empty lines
+            if [[ "$line" =~ ^# ]] || [[ -z "$line" ]]; then continue; fi
+            # Remove carriage return (CRLF support)
+            line=$(echo "$line" | tr -d '\r')
+            # Export the variable
+            export "$line"
+        done < .env
+    fi
+
+    # Debug: Check if Token is loaded (masked)
+    if [ -n "$FIREBASE_TOKEN" ]; then
+        log "🔑 FIREBASE_TOKEN found (starts with: ${FIREBASE_TOKEN:0:4}...)"
+    else
+        log "⚠️ FIREBASE_TOKEN is missing or empty"
     fi
 
     # Fetch latest changes without merging
