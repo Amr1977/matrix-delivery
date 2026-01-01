@@ -229,6 +229,49 @@ describe('Cookie-Based Authentication Integration Tests', () => {
             expect(clearCookie![0]).toContain('Expires=Thu, 01 Jan 1970 00:00:00 GMT');
         });
 
+        it('should allow login after logout (no stale token)', async () => {
+            // Step 1: Login to get initial cookie
+            const loginResponse1 = await request(app)
+                .post('/api/auth/login')
+                .send({
+                    email: 'test@auth.com',
+                    password: 'password123'
+                });
+
+            expect(loginResponse1.status).toBe(200);
+            const cookie1 = loginResponse1.headers['set-cookie']![0].split(';')[0];
+
+            // Step 2: Logout (this blacklists the token in Redis)
+            const logoutResponse = await request(app)
+                .post('/api/auth/logout')
+                .set('Cookie', cookie1);
+
+            expect(logoutResponse.status).toBe(200);
+
+            // Step 3: Login again
+            const loginResponse2 = await request(app)
+                .post('/api/auth/login')
+                .send({
+                    email: 'test@auth.com',
+                    password: 'password123'
+                });
+
+            expect(loginResponse2.status).toBe(200);
+            const cookie2 = loginResponse2.headers['set-cookie']![0].split(';')[0];
+
+            // Verify we got a different token (not the blacklisted one)
+            expect(cookie2).not.toBe(cookie1);
+
+            // Step 4: Use the new cookie to access a protected endpoint
+            // This is the key test - the new cookie should work, not be rejected as "revoked"
+            const meResponse = await request(app)
+                .get('/api/auth/me')
+                .set('Cookie', cookie2);
+
+            expect(meResponse.status).toBe(200);
+            expect(meResponse.body.email).toBe('test@auth.com');
+        });
+
 
     });
 
