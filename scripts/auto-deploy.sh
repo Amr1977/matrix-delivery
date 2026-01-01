@@ -155,7 +155,7 @@ while true; do
         fi
     else
         # Heartbeat log (optional: uncomment to verify service is alive in logs)
-        # log "No changes ($LOCAL). Waiting..."
+        log "No changes ($LOCAL). Waiting..."
         :
     fi
 
