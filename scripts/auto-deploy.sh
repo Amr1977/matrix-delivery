@@ -57,7 +57,9 @@ while true; do
     fi
 
     # Fetch latest changes without merging
-    git fetch origin $BRANCH > /dev/null 2>&1
+    if ! git fetch origin $BRANCH > /dev/null 2>&1; then
+        log "⚠️ Git fetch failed. Check network, remote URL, or credentials."
+    fi
 
     # Get commit hashes
     LOCAL=$(git rev-parse HEAD)
