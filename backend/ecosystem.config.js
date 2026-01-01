@@ -61,23 +61,18 @@ module.exports = {
     listen_timeout: 30000
   },
   {
-    name: 'apache-deploy',
-    script: '../scripts/deploy-apache-websocket.js',
+    name: 'auto-deploy',
+    script: '../scripts/auto-deploy.sh',
     cwd: __dirname,
+    interpreter: '/bin/bash',
     instances: 1,
     exec_mode: 'fork',
-    autorestart: false, // One-time execution
-    max_restarts: 0,
-    error_file: './logs/apache-deploy-error.log',
-    out_file: './logs/apache-deploy-out.log',
+    autorestart: true,
+    max_restarts: 5,
+    restart_delay: 10000,
+    error_file: './logs/auto-deploy-error.log',
+    out_file: './logs/auto-deploy-out.log',
     log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
     merge_logs: true
   }]
-  // Frontend is NOT managed by PM2 in production
-  // For development: run `npm start` in the frontend directory
-  // For production: frontend is deployed to Firebase Hosting
-
-  // Apache Deployment:
-  // Run with: pm2 start ecosystem.config.js --only apache-deploy
-  // Or: cd /root/matrix-delivery && sudo pm2 start backend/ecosystem.config.js --only apache-deploy
 };

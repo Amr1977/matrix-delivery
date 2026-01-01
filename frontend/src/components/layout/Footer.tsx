@@ -89,14 +89,14 @@ const Footer: React.FC<FooterProps> = ({ footerStats }) => {
                     borderBottom: '1px solid #003300',
                     paddingBottom: '1rem'
                 }}>
-                    <StatItem icon={Truck} label="Online Drivers" value={`${stats.drivers.online}/${stats.drivers.total}`} />
-                    <StatItem icon={Users} label="Online Customers" value={`${stats.customers.online}/${stats.customers.total}`} />
-                    <StatItem icon={Users} label="Online Support" value={`${stats.support.online}/${stats.support.total}`} />
-                    <StatItem icon={Users} label="Online Admins" value={`${stats.admins.online}/${stats.admins.total}`} />
-                    <StatItem icon={ShoppingBag} label="Orders Today" value={stats.ordersCompletedToday} />
-                    <StatItem icon={Activity} label="Active Orders" value={stats.activeOrders} />
-                    <StatItem icon={Globe} label="Countries" value={stats.countriesReached} />
-                    <StatItem icon={BarChart2} label="System Load" value={`${stats.systemLoad.status} (${stats.systemLoad.rpm} rpm)`} />
+                    <StatItem icon={Truck} label="Online Drivers" value={`${stats.drivers?.online ?? 0}/${stats.drivers?.total ?? 0}`} />
+                    <StatItem icon={Users} label="Online Customers" value={`${stats.customers?.online ?? 0}/${stats.customers?.total ?? 0}`} />
+                    {stats.support && <StatItem icon={Users} label="Online Support" value={`${stats.support.online}/${stats.support.total}`} />}
+                    {stats.admins && <StatItem icon={Users} label="Online Admins" value={`${stats.admins.online}/${stats.admins.total}`} />}
+                    <StatItem icon={ShoppingBag} label="Orders Today" value={stats.ordersCompletedToday ?? 0} />
+                    <StatItem icon={Activity} label="Active Orders" value={stats.activeOrders ?? 0} />
+                    <StatItem icon={Globe} label="Countries" value={stats.countriesReached ?? 0} />
+                    {stats.systemLoad && <StatItem icon={BarChart2} label="System Load" value={`${stats.systemLoad.status} (${stats.systemLoad.rpm} rpm)`} />}
                 </div>
             )}
             <div style={{ maxWidth: '80rem', margin: '0 auto' }}>
