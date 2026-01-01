@@ -3,7 +3,9 @@ import { Package, Truck, Zap, Shield, Users, Play, Star, Map as MapIcon, Globe, 
 import { useNavigate } from 'react-router-dom';
 
 interface Stats {
-    activeCouriers: number;
+    totalCouriers: number;
+    totalClients: number;
+    totalVendors: number;
     totalDeliveries: number;
     uptime: string;
 }
@@ -27,9 +29,11 @@ const MatrixLanding: React.FC = () => {
     const navigate = useNavigate();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [stats, setStats] = useState<Stats>({
-        activeCouriers: 0,
+        totalCouriers: 0,
+        totalClients: 0,
+        totalVendors: 0,
         totalDeliveries: 0,
-        uptime: '99.9%'
+        uptime: '0m'
     });
 
     useEffect(() => {
@@ -40,18 +44,21 @@ const MatrixLanding: React.FC = () => {
                 if (response.ok) {
                     const data = await response.json();
                     setStats({
-                        activeCouriers: data.drivers?.total || 156, // Fallback to mock if 0 (for demo)
-                        totalDeliveries: data.ordersCompletedToday ? data.ordersCompletedToday + 12000 : 12450, // Mock base + today's
-                        uptime: '99.9%'
+                        totalCouriers: data.drivers?.total || 0,
+                        totalClients: data.customers?.total || 0,
+                        totalVendors: data.vendors?.total || 0,
+                        totalDeliveries: data.totalDeliveriesLifetime || 0,
+                        uptime: data.uptime || '0m'
                     });
                 }
             } catch (error) {
                 console.warn('Failed to fetch landing stats, using defaults');
-                // Keep defaults
                 setStats({
-                    activeCouriers: 156,
-                    totalDeliveries: 12450,
-                    uptime: '99.9%'
+                    totalCouriers: 0,
+                    totalClients: 0,
+                    totalVendors: 0,
+                    totalDeliveries: 0,
+                    uptime: '0m'
                 });
             }
         };
@@ -183,21 +190,40 @@ const MatrixLanding: React.FC = () => {
                         <h2 className="text-2xl font-bold text-white">Live Matrix Statistics</h2>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+                        {/* 1. Registered Couriers */}
                         <div className="bg-[#131820] p-6 rounded-xl border border-[#2A3142] hover:border-[#00FF41] transition-colors">
-                            <p className="text-[#A0AEC0] text-sm mb-1">Active Couriers</p>
-                            <p className="text-4xl font-mono text-white font-bold">{stats.activeCouriers}</p>
-                            <p className="text-[#00FF41] text-xs mt-2 flex items-center gap-1"><TrendingUp className="w-3 h-3" /> +12% this hour</p>
+                            <p className="text-[#A0AEC0] text-sm mb-1">Registered Couriers</p>
+                            <p className="text-3xl font-mono text-white font-bold">{stats.totalCouriers}</p>
+                            <p className="text-[#00FF41] text-xs mt-2 flex items-center gap-1"><Shield className="w-3 h-3" /> Licensed</p>
                         </div>
+
+                        {/* 2. Registered Clients */}
+                        <div className="bg-[#131820] p-6 rounded-xl border border-[#2A3142] hover:border-[#F0F0FF] transition-colors">
+                            <p className="text-[#A0AEC0] text-sm mb-1">Registered Clients</p>
+                            <p className="text-3xl font-mono text-white font-bold">{stats.totalClients}</p>
+                            <p className="text-[#F0F0FF] text-xs mt-2 flex items-center gap-1"><Users className="w-3 h-3" /> Growing</p>
+                        </div>
+
+                        {/* 3. Registered Vendors */}
+                        <div className="bg-[#131820] p-6 rounded-xl border border-[#2A3142] hover:border-[#FFB800] transition-colors">
+                            <p className="text-[#A0AEC0] text-sm mb-1">Registered Vendors</p>
+                            <p className="text-3xl font-mono text-white font-bold">{stats.totalVendors}</p>
+                            <p className="text-[#FFB800] text-xs mt-2 flex items-center gap-1"><Package className="w-3 h-3" /> Partners</p>
+                        </div>
+
+                        {/* 4. Total Deliveries */}
                         <div className="bg-[#131820] p-6 rounded-xl border border-[#2A3142] hover:border-[#00F0FF] transition-colors">
                             <p className="text-[#A0AEC0] text-sm mb-1">Total Deliveries</p>
-                            <p className="text-4xl font-mono text-white font-bold">{stats.totalDeliveries.toLocaleString()}</p>
-                            <p className="text-[#00F0FF] text-xs mt-2">Global Network</p>
+                            <p className="text-3xl font-mono text-white font-bold">{stats.totalDeliveries.toLocaleString()}</p>
+                            <p className="text-[#00F0FF] text-xs mt-2 flex items-center gap-1"><Truck className="w-3 h-3" /> Lifetime</p>
                         </div>
+
+                        {/* 5. System Uptime */}
                         <div className="bg-[#131820] p-6 rounded-xl border border-[#2A3142] hover:border-[#B026FF] transition-colors">
                             <p className="text-[#A0AEC0] text-sm mb-1">System Uptime</p>
-                            <p className="text-4xl font-mono text-white font-bold">{stats.uptime}</p>
-                            <p className="text-[#B026FF] text-xs mt-2">Decentralized Servers</p>
+                            <p className="text-3xl font-mono text-white font-bold">{stats.uptime}</p>
+                            <p className="text-[#B026FF] text-xs mt-2 flex items-center gap-1"><Activity className="w-3 h-3" /> Online</p>
                         </div>
                     </div>
                 </div>
