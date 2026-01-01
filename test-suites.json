@@ -1,0 +1,95 @@
+[
+    {
+        "id": "critical_path",
+        "name": "🚑 Critical Path",
+        "description": "Essential system flows (Login -> Order -> Delivery)",
+        "features": [
+            "tests/features/frontend/full_order_flow.feature",
+            "tests/features/backend/login.feature"
+        ]
+    },
+    {
+        "id": "auth",
+        "name": "🔐 Authentication",
+        "description": "Login, Registration, Password Reset, and Security",
+        "features": [
+            "tests/features/backend/authentication.feature",
+            "tests/features/backend/authorization-security.feature",
+            "tests/features/backend/login.feature",
+            "tests/features/backend/login_initial_state.feature",
+            "tests/features/frontend/auth_persistence.feature"
+        ]
+    },
+    {
+        "id": "payments",
+        "name": "💰 Payments & Financials",
+        "description": "Wallet, Deposits, Withdrawals, Crypto, and Commissions",
+        "features": [
+            "tests/features/backend/payment-commission.feature",
+            "tests/features/backend/payment-edge-cases.feature",
+            "tests/features/backend/payment-errors.feature",
+            "tests/features/backend/payment-methods.feature",
+            "tests/features/backend/paymob-integration.feature",
+            "tests/features/backend/crypto-payments.feature",
+            "tests/features/backend/revenue-tracking.feature",
+            "tests/features/frontend/balance-dashboard.feature",
+            "tests/features/frontend/balance-deposit.feature",
+            "tests/features/frontend/balance-statement.feature",
+            "tests/features/frontend/balance-transaction-history.feature",
+            "tests/features/frontend/balance-withdrawal.feature",
+            "tests/features/frontend/cod-commission.feature",
+            "tests/features/frontend/payment_system.feature"
+        ]
+    },
+    {
+        "id": "orders",
+        "name": "📦 Orders & Logistics",
+        "description": "Order creation, management, and fulfillment",
+        "features": [
+            "tests/features/frontend/order_creation.feature",
+            "tests/features/frontend/order_management.feature",
+            "tests/features/frontend/full_order_flow.feature",
+            "tests/features/frontend/customer_browsing.feature"
+        ]
+    },
+    {
+        "id": "maps",
+        "name": "🗺️ Maps & Drivers",
+        "description": "Location picking, Driver tracking, and Bidding",
+        "features": [
+            "tests/features/frontend/driver_bidding.feature",
+            "tests/features/frontend/driver_location.feature",
+            "tests/features/frontend/driver_location_filtering.feature",
+            "tests/features/frontend/driver_operations.feature",
+            "tests/features/frontend/driver_status.feature",
+            "tests/features/frontend/live_tracking.feature",
+            "tests/features/frontend/map_location_picker.feature",
+            "tests/features/frontend/enhanced-map-location-picker.feature",
+            "tests/features/frontend/advanced_map_location_picker.feature"
+        ]
+    },
+    {
+        "id": "admin",
+        "name": "🛡️ Admin & Management",
+        "description": "Admin dashboards, User management, and Vendor management",
+        "features": [
+            "tests/features/backend/admin-dashboard.feature",
+            "tests/features/backend/admin-order-management.feature",
+            "tests/features/backend/admin-user-management.feature",
+            "tests/features/frontend/user_management.feature",
+            "tests/features/frontend/vendors.feature",
+            "tests/features/frontend/vendor_self_management.feature"
+        ]
+    },
+    {
+        "id": "reviews",
+        "name": "⭐ Reviews",
+        "description": "Platform rating and review systems",
+        "features": [
+            "tests/features/backend/platform_reviews.feature",
+            "tests/features/frontend/reviews_system.feature",
+            "tests/features/frontend/matrix_landing_reviews.feature",
+            "tests/features/frontend/review_test.feature"
+        ]
+    }
+]
