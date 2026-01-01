@@ -47,8 +47,12 @@
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
+    "plugins": [
+      "security"
+    ],
     "extends": [
-      "react-app"
+      "react-app",
+      "plugin:security/recommended-legacy"
     ],
     "rules": {
       "no-unused-vars": "warn",
@@ -75,6 +79,7 @@
     "@types/react-dom": "^19.2.3",
     "autoprefixer": "^10.4.22",
     "cross-env": "^10.1.0",
+    "eslint-plugin-security": "^3.0.1",
     "firebase-tools": "^15.1.0",
     "identity-obj-proxy": "^3.0.0",
     "jest-environment-jsdom": "^29.0.0",

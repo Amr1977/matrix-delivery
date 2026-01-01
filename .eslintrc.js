@@ -4,8 +4,12 @@ module.exports = {
     node: true,
     es2021: true,
   },
+  plugins: [
+    'security',
+  ],
   extends: [
     'eslint:recommended',
+    'plugin:security/recommended-legacy',
   ],
   parserOptions: {
     ecmaVersion: 'latest',
@@ -24,9 +28,6 @@ module.exports = {
     'build/',
     'dist/',
     'coverage/',
-    '*.test.js',
-    '*.spec.js',
-    'tests/',
     '*.config.js',
   ],
 };
