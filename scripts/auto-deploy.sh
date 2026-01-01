@@ -6,18 +6,33 @@ PROJECT_DIR="$(pwd)"
 BRANCH="master"
 CHECK_INTERVAL=60 # Seconds
 
-echo "---------------------------------------------------"
-echo "Starting Auto-Deploy Service"
-echo "Monitoring branch: $BRANCH"
-echo "Project Directory: $PROJECT_DIR"
-echo "Check Interval: ${CHECK_INTERVAL}s"
-echo "---------------------------------------------------"
+# Helper function for timestamped logs
+log() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+}
+
+# Helper function to execute commands with timestamped output
+exec_cmd() {
+    # Disable progress bars for cleaner logs (especially npm)
+    export CI=true 
+    "$@" 2>&1 | while IFS= read -r line; do
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] $line"
+    done
+    return ${PIPESTATUS[0]} # Return the exit status of the command
+}
+
+log "---------------------------------------------------"
+log "Starting Auto-Deploy Service"
+log "Monitoring branch: $BRANCH"
+log "Project Directory: $PROJECT_DIR"
+log "Check Interval: ${CHECK_INTERVAL}s"
+log "---------------------------------------------------"
 
 # Go to project root (assuming we are in scripts/ or run from root)
 if [[ "$(basename "$PROJECT_DIR")" == "scripts" ]]; then
     cd ..
     PROJECT_DIR="$(pwd)"
-    echo "Corrected Project Directory: $PROJECT_DIR"
+    log "Corrected Project Directory: $PROJECT_DIR"
 fi
 
 while true; do
@@ -34,58 +49,59 @@ while true; do
     REMOTE=$(git rev-parse origin/$BRANCH)
 
     if [ "$LOCAL" != "$REMOTE" ]; then
-        echo "[$(date)] New changes detected ($REMOTE). Deploying..."
+        log "New changes detected ($REMOTE). Deploying..."
 
         # 1. Reset and Pull
         # WARNING: This discards local changes (needed because npm audit fix modifies lockfiles)
+        log "Resetting and pulling changes..."
         git reset --hard HEAD
         git pull origin $BRANCH
         
         if [ $? -ne 0 ]; then
-            echo "[$(date)] ❌ Git pull failed! Retrying next loop."
+            log "❌ Git pull failed! Retrying next loop."
         else
-            echo "[$(date)] ✅ Git pull successful."
+            log "✅ Git pull successful."
 
             # ---------------------------
             # 2. Backend Deployment
             # ---------------------------
-            echo "[$(date)] 🔧 Starting Backend Deployment..."
+            log "🔧 Starting Backend Deployment..."
             cd backend || exit
             
-            echo "[$(date)] Installing backend dependencies..."
-            npm install
+            log "Installing backend dependencies..."
+            exec_cmd npm install --no-progress
             
-            echo "[$(date)] Running security audit (backend)..."
-            npm audit fix
-
+            log "Running security audit (backend)..."
+            exec_cmd npm audit fix --force
+            
             if [ $? -ne 0 ]; then
-                 echo "[$(date)] ⚠️ Backend npm issues. Proceeding carefully..."
+                 log "⚠️ Backend npm issues. Proceeding carefully..."
             fi
             
             cd .. # Return to root
 
             # Reload Services (Zero Downtime)
-            echo "[$(date)] Reloading backend via PM2..."
-            pm2 reload all
+            log "Reloading backend via PM2..."
+            exec_cmd pm2 reload all
 
             # ---------------------------
             # 3. Frontend Deployment
             # ---------------------------
             if [ -z "$FIREBASE_TOKEN" ]; then
-                echo "[$(date)] ⚠️ skipping Frontend Deploy: FIREBASE_TOKEN not set in .env"
+                log "⚠️ skipping Frontend Deploy: FIREBASE_TOKEN not set in .env"
             else
-                echo "[$(date)] 🎨 Starting Frontend Deployment..."
+                log "🎨 Starting Frontend Deployment..."
                 cd frontend || exit
 
-                echo "[$(date)] Installing frontend dependencies..."
-                npm install
+                log "Installing frontend dependencies..."
+                exec_cmd npm install --no-progress
                 
-                echo "[$(date)] Running security audit (frontend)..."
-                npm audit fix
+                log "Running security audit (frontend)..."
+                exec_cmd npm audit fix --force
 
                 # Build Process (Custom for 1GB VPS)
                 # We replicate 'npm run build:prod' steps but override memory limit
-                echo "[$(date)] Building Frontend (Limit: 768MB)..."
+                log "Building Frontend (Limit: 768MB)..."
                 
                 # Step A: Generate Git Info
                 node scripts/generate-git-info.js
@@ -101,28 +117,28 @@ while true; do
                 export REACT_APP_ENV=production
                 export DISABLE_ESLINT_PLUGIN=true
                 
-                npm run build
+                exec_cmd npm run build
                 
                 if [ $? -ne 0 ]; then
-                    echo "[$(date)] ❌ Frontend Build Failed! Skipping deploy."
+                    log "❌ Frontend Build Failed! Skipping deploy."
                 else
-                    echo "[$(date)] ✅ Build Successful. Deploying to Firebase..."
-                    npx firebase-tools deploy --only hosting --token "$FIREBASE_TOKEN"
+                    log "✅ Build Successful. Deploying to Firebase..."
+                    exec_cmd npx firebase-tools deploy --only hosting --token "$FIREBASE_TOKEN"
                     
                     if [ $? -eq 0 ]; then
-                        echo "[$(date)] 🚀 Firebase Deployment Complete."
+                        log "🚀 Firebase Deployment Complete."
                     else
-                        echo "[$(date)] ❌ Firebase Deployment Failed."
+                        log "❌ Firebase Deployment Failed."
                     fi
                 fi
                 cd .. # Return to root
             fi
             
-            echo "[$(date)] 🎉 Full Deployment Sequence Finished."
+            log "🎉 Full Deployment Sequence Finished."
         fi
     else
-        # No changes - silent or debug log
-        # echo "[$(date)] No changes."
+        # Heartbeat log (optional: uncomment to verify service is alive in logs)
+        # log "No changes ($LOCAL). Waiting..."
         :
     fi
 
