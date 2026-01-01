@@ -110,6 +110,10 @@ const configureExpress = (app) => {
     // ============================================================================
     // RATE LIMITING
     // ============================================================================
+
+    // Trust proxy (Critical for secure cookies behind Nginx/Cloudflare)
+    app.set('trust proxy', 1);
+
     app.use('/api', apiRateLimit);
 
     return corsOptions; // Return options in case needed elsewhere

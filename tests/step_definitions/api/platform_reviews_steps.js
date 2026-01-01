@@ -2,7 +2,7 @@ const { Given, When, Then } = require('@cucumber/cucumber');
 const { expect } = require('chai');
 const request = require('supertest');
 const app = require('../../../backend/server');
-const pool = require('../../config/db');
+const pool = require('../../../backend/config/db');
 const bcrypt = require('bcryptjs');
 
 // Helper to get or create a review ID

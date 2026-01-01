@@ -1,6 +1,6 @@
 import { Given, When, Then, DataTable } from '@cucumber/cucumber';
 import { expect } from 'chai';
-import { PAYMENT_CONFIG, calculateCommission } from '../../config/paymentConfig';
+import { PAYMENT_CONFIG, calculateCommission } from '../../../backend/config/paymentConfig';
 
 // Type definitions
 interface OrderData {

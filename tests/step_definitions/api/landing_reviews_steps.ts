@@ -16,7 +16,7 @@ let userId: string;
 // Helper to clear DB
 After(async () => {
     // Clean up reviews and users created during tests
-    await pool.query('DELETE FROM reviews WHERE content LIKE \'%test%\' OR content = \'The system delivers freedom!\'');
+    await pool.query('DELETE FROM platform_reviews WHERE content LIKE \'%test%\' OR content = \'The system delivers freedom!\'');
     await pool.query('DELETE FROM users WHERE email LIKE \'%@test.com\'');
 });
 
@@ -75,7 +75,7 @@ Given('there are existing reviews with upvotes', async function () {
     const uId = userRes.rows[0].id;
 
     await pool.query(`
-        INSERT INTO reviews (user_id, rating, content, upvotes, is_approved)
+        INSERT INTO platform_reviews (user_id, rating, content, upvotes, is_approved)
         VALUES 
         ($1, 5, 'Great Review 1', 10, true),
         ($1, 4, 'Great Review 2', 5, true)
@@ -98,7 +98,7 @@ Given('there are existing reviews with different upvotes', async function () {
     // B: 10 upvotes, very Old (should be 2nd)
     // C: 10 upvotes, Newer (should be 3rd)
     await pool.query(`
-        INSERT INTO reviews (user_id, rating, content, upvotes, is_approved, created_at)
+        INSERT INTO platform_reviews (user_id, rating, content, upvotes, is_approved, created_at)
         VALUES 
         ($1, 5, 'Review A (20 votes)', 20, true, NOW() - INTERVAL '3 DAYS'),
         ($1, 5, 'Review B (10 votes Old)', 10, true, NOW() - INTERVAL '2 DAYS'),
@@ -120,7 +120,7 @@ Given('there is a review by {string}', async function (userName: string) {
         uId = uRes.rows[0].id;
     }
 
-    await pool.query(`INSERT INTO reviews (user_id, rating, content) VALUES ($1, 5, 'Review by ${userName}')`, [uId]);
+    await pool.query(`INSERT INTO platform_reviews (user_id, rating, content) VALUES ($1, 5, 'Review by ${userName}')`, [uId]);
 });
 
 Given('there is a review by {string} with comment {string}', async function (userName: string, comment: string) {
@@ -135,7 +135,7 @@ Given('there is a review by {string} with comment {string}', async function (use
     } else {
         uId = uRes.rows[0].id;
     }
-    await pool.query(`INSERT INTO reviews (user_id, rating, content) VALUES ($1, 5, $2)`, [uId, comment]);
+    await pool.query(`INSERT INTO platform_reviews (user_id, rating, content) VALUES ($1, 5, $2)`, [uId, comment]);
 });
 
 Given('there is a review by {string} with {int} existing flags', async function (userName: string, flagCount: number) {
@@ -149,7 +149,7 @@ Given('there is a review by {string} with {int} existing flags', async function 
     } else {
         uId = uRes.rows[0].id;
     }
-    await pool.query(`INSERT INTO reviews (user_id, rating, content, flag_count, is_approved) VALUES ($1, 3, 'Flagged Content', $2, true)`, [uId, flagCount]);
+    await pool.query(`INSERT INTO platform_reviews (user_id, rating, content, flag_count, is_approved) VALUES ($1, 3, 'Flagged Content', $2, true)`, [uId, flagCount]);
 });
 
 // --- WHEN STEPS ---
@@ -173,7 +173,7 @@ When('I upvote the review by {string}', async function (userName: string) {
     // Find review ID
     const email = `${userName.toLowerCase()}@test.com`;
     const rRes = await pool.query(`
-        SELECT r.id FROM reviews r JOIN users u ON r.user_id = u.id WHERE u.email = $1 LIMIT 1
+        SELECT r.id FROM platform_reviews r JOIN users u ON r.user_id = u.id WHERE u.email = $1 LIMIT 1
     `, [email]);
     const reviewId = rRes.rows[0].id;
 
@@ -185,7 +185,7 @@ When('I upvote the review by {string}', async function (userName: string) {
 When('I report the review by {string}', async function (userName: string) {
     const email = `${userName.toLowerCase()}@test.com`;
     const rRes = await pool.query(`
-        SELECT r.id FROM reviews r JOIN users u ON r.user_id = u.id WHERE u.email = $1 LIMIT 1
+        SELECT r.id FROM platform_reviews r JOIN users u ON r.user_id = u.id WHERE u.email = $1 LIMIT 1
     `, [email]);
     const reviewId = rRes.rows[0].id;
 

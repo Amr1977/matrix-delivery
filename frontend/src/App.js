@@ -48,6 +48,7 @@ import CreateOrderPage from './pages/CreateOrderPage';
 import { AuthApi, OrdersApi, NotificationsApi, UsersApi } from './services/api';
 
 import { RouterProvider, createBrowserRouter, Navigate } from 'react-router-dom';
+import GlobalError from './components/GlobalError';
 
 // Location data state and API functions
 export const MainApp = () => {
@@ -2821,18 +2822,22 @@ const router = createBrowserRouter([
   {
     path: '/',
     element: <MatrixLanding />,
+    errorElement: <GlobalError />,
   },
   {
     path: '/app',
     element: <MainApp />,
+    errorElement: <GlobalError />,
   },
   {
     path: '/login',
     element: <MainApp />,
+    errorElement: <GlobalError />,
   },
   {
     path: '/register',
     element: <MainApp />,
+    errorElement: <GlobalError />,
   },
   {
     path: '/landing', // Keep for backward compatibility/explicit access

@@ -10,8 +10,8 @@ module.exports = {
         ],
         format: [
             'progress-bar',
-            'html:tests/reports/cucumber-report.html',
-            'json:tests/reports/cucumber-report.json'
+            'html:reports/cucumber-report.html',
+            'json:reports/cucumber-report.json'
         ],
         formatOptions: {
             snippetInterface: 'async-await'

@@ -12,6 +12,9 @@ DROP TABLE IF EXISTS payments CASCADE;
 DROP TABLE IF EXISTS reviews CASCADE;
 DROP TABLE IF EXISTS bids CASCADE;
 DROP TABLE IF EXISTS email_verification_tokens CASCADE;
+DROP TABLE IF EXISTS platform_review_flags CASCADE;
+DROP TABLE IF EXISTS platform_review_votes CASCADE;
+DROP TABLE IF EXISTS platform_reviews CASCADE;
 DROP TABLE IF EXISTS password_reset_tokens CASCADE;
 DROP TABLE IF EXISTS orders CASCADE;
 DROP TABLE IF EXISTS crypto_transactions CASCADE;
@@ -299,3 +302,46 @@ CREATE INDEX idx_balance_tx_type ON balance_transactions(type);
 CREATE INDEX idx_balance_tx_status ON balance_transactions(status);
 CREATE INDEX idx_balance_tx_order ON balance_transactions(order_id);
 CREATE INDEX idx_balance_tx_created ON balance_transactions(created_at DESC);
+
+-- Platform Reviews table
+CREATE TABLE platform_reviews (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    content TEXT,
+    professionalism_rating INTEGER CHECK (professionalism_rating >= 1 AND professionalism_rating <= 5),
+    communication_rating INTEGER CHECK (communication_rating >= 1 AND communication_rating <= 5),
+    timeliness_rating INTEGER CHECK (timeliness_rating >= 1 AND timeliness_rating <= 5),
+    package_condition_rating INTEGER CHECK (package_condition_rating >= 1 AND package_condition_rating <= 5),
+    upvotes INTEGER DEFAULT 0,
+    flag_count INTEGER DEFAULT 0,
+    is_approved BOOLEAN DEFAULT TRUE, 
+    is_featured BOOLEAN DEFAULT FALSE,
+    github_issue_link VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Platform Review Votes table
+CREATE TABLE platform_review_votes (
+    review_id UUID NOT NULL REFERENCES platform_reviews(id) ON DELETE CASCADE,
+    user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    PRIMARY KEY (review_id, user_id)
+);
+
+-- Platform Review Flags table
+CREATE TABLE platform_review_flags (
+    review_id UUID NOT NULL REFERENCES platform_reviews(id) ON DELETE CASCADE,
+    user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    reason VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    PRIMARY KEY (review_id, user_id)
+);
+
+-- Create indexes for platform reviews
+CREATE INDEX idx_platform_reviews_user_id ON platform_reviews(user_id);
+CREATE INDEX idx_platform_reviews_created_at ON platform_reviews(created_at);
+CREATE INDEX idx_platform_reviews_upvotes ON platform_reviews(upvotes DESC);
+CREATE INDEX idx_platform_reviews_is_approved ON platform_reviews(is_approved);
+CREATE INDEX idx_platform_reviews_flag_count ON platform_reviews(flag_count);

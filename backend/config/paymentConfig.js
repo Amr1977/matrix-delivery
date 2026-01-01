@@ -69,4 +69,21 @@ const PAYMENT_CONFIG = {
     },
 };
 
-module.exports = { PAYMENT_CONFIG };
+/**
+ * Calculate platform commission
+ * @param {number} amount - Order amount
+ * @param {number} rate - Optional custom commission rate (defaults to PAYMENT_CONFIG.COMMISSION_RATE)
+ * @returns {Object} Object with commission and payout amounts
+ */
+const calculateCommission = (amount, rate = PAYMENT_CONFIG.COMMISSION_RATE) => {
+    const commission = amount * rate;
+    const payout = amount - commission;
+
+    return {
+        commission: parseFloat(commission.toFixed(2)),
+        payout: parseFloat(payout.toFixed(2)),
+        rate,
+    };
+};
+
+module.exports = { PAYMENT_CONFIG, calculateCommission };

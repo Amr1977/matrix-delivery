@@ -1,7 +1,7 @@
 const { Given, When, Then } = require('@cucumber/cucumber');
 const request = require('supertest');
 const { expect } = require('chai');
-const app = require('../../app');
+const app = require('../../../backend/app');
 
 let response;
 

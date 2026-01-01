@@ -1,7 +1,7 @@
 const { Given, When, Then, Before, After } = require('@cucumber/cucumber');
 const request = require('supertest');
 const { expect } = require('chai');
-const app = require('../../app'); // Adjust path to app.js relative to this file
+const app = require('../../../backend/app'); // Adjust path to app.js relative to this file
 let server;
 let response;
 
