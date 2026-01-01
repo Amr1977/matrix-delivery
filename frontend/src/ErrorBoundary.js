@@ -24,56 +24,114 @@ class ErrorBoundary extends React.Component {
 
   render() {
     if (this.state.hasError) {
-      // You can render any custom fallback UI
       return (
         <div style={{
+          minHeight: '100vh',
+          background: '#000000',
+          color: '#00FF00',
+          fontFamily: "'Consolas', 'Monaco', 'Courier New', monospace",
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
           padding: '2rem',
-          margin: '2rem',
-          border: '1px solid #EF4444',
-          borderRadius: '0.5rem',
-          backgroundColor: '#FEF2F2',
-          textAlign: 'center'
+          textAlign: 'center',
+          overflow: 'hidden',
+          position: 'relative'
         }}>
-          <h2 style={{ color: '#DC2626', marginBottom: '1rem' }}>
-            🚨 Something went wrong
-          </h2>
-          <p style={{ color: '#7F1D1D', marginBottom: '1rem' }}>
-            We're sorry, but something unexpected happened. Our team has been notified.
-          </p>
-          <button
-            onClick={() => window.location.reload()}
-            style={{
-              background: '#DC2626',
-              color: 'white',
-              border: 'none',
-              padding: '0.75rem 1.5rem',
-              borderRadius: '0.375rem',
-              cursor: 'pointer',
-              fontWeight: '600'
-            }}
-          >
-            Reload Page
-          </button>
-          {process.env.NODE_ENV === 'development' && (
-            <details style={{ marginTop: '1rem', textAlign: 'left' }}>
-              <summary style={{ cursor: 'pointer', color: '#7F1D1D' }}>
-                Error Details (Development Only)
-              </summary>
-              <pre style={{
-                background: '#FEE2E2',
-                padding: '1rem',
+          {/* Matrix Background Effect */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "url('https://upload.wikimedia.org/wikipedia/commons/c/c0/Digital_rain_animation_medium_letters_shine.gif')",
+            opacity: 0.1,
+            pointerEvents: 'none',
+            backgroundSize: 'cover'
+          }} />
+
+          <div className="card" style={{
+            maxWidth: '600px',
+            width: '100%',
+            zIndex: 10,
+            border: '2px solid #D32F2F', // Red border for error
+            boxShadow: '0 0 30px rgba(220, 38, 38, 0.4)',
+            background: 'linear-gradient(135deg, #1a0505 0%, #2a0a0a 100%)', // Dark red tint
+            padding: '2rem',
+            borderRadius: '1rem'
+          }}>
+            <div style={{
+              fontSize: '4rem',
+              marginBottom: '1rem',
+              // Simple pulse animation fallback if CSS not loaded
+              animation: 'matrix-pulse 2s infinite'
+            }}>
+              ⚠️
+            </div>
+
+            <h2 style={{
+              fontSize: '2rem',
+              fontWeight: 'bold',
+              color: '#EF4444',
+              marginBottom: '1rem',
+              textShadow: '0 0 10px rgba(239, 68, 68, 0.6)'
+            }}>
+              CRITICAL ERROR
+            </h2>
+
+            <p style={{
+              fontSize: '1.25rem',
+              color: '#FECACA',
+              marginBottom: '2rem'
+            }}>
+              The system has encountered an unrecoverable exception.
+            </p>
+
+            <button
+              onClick={() => window.location.reload()}
+              style={{
+                background: '#DC2626',
+                color: 'white',
+                border: 'none',
+                padding: '0.75rem 1.5rem',
                 borderRadius: '0.375rem',
-                marginTop: '0.5rem',
-                fontSize: '0.75rem',
-                overflow: 'auto',
-                color: '#991B1B'
-              }}>
-                {this.state.error && this.state.error.toString()}
-                <br />
-                {this.state.errorInfo?.componentStack || 'No component stack available'}
-              </pre>
-            </details>
-          )}
+                cursor: 'pointer',
+                fontWeight: '600',
+                fontSize: '1rem',
+                boxShadow: '0 0 10px rgba(220, 38, 38, 0.4)',
+                fontFamily: 'inherit'
+              }}
+            >
+              ↻ REBOOT SYSTEM
+            </button>
+
+            {process.env.NODE_ENV === 'development' && (
+              <details style={{ marginTop: '2rem', textAlign: 'left', width: '100%' }}>
+                <summary style={{ cursor: 'pointer', color: '#F87171', marginBottom: '0.5rem' }}>
+                  Debug Trace
+                </summary>
+                <div style={{
+                  background: 'rgba(0, 0, 0, 0.8)',
+                  padding: '1rem',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.75rem',
+                  overflow: 'auto',
+                  maxHeight: '300px',
+                  color: '#FCA5A5',
+                  border: '1px solid #7F1D1D'
+                }}>
+                  <p style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>
+                    {this.state.error && this.state.error.toString()}
+                  </p>
+                  <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
+                    {this.state.errorInfo?.componentStack || 'No component stack available'}
+                  </pre>
+                </div>
+              </details>
+            )}
+          </div>
         </div>
       );
     }

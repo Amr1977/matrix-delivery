@@ -1,7 +1,7 @@
 import { AfterAll, BeforeAll, After } from '@cucumber/cucumber';
 // @ts-ignore
 import pool from '../../backend/config/db';
-import '../step_definitions/backend/landing_reviews_steps'; // Force load steps
+import '../step_definitions/api/landing_reviews_steps'; // Force load steps
 
 // Sanity check before tests
 BeforeAll(async function () {
