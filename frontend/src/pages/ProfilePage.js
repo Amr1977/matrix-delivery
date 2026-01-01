@@ -362,7 +362,9 @@ const ProfilePage = ({
                                             style={{ width: '100%', padding: '10px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'white' }}
                                         >
                                             <option value="">Select</option>
-                                            <option value="bike">Bike</option>
+                                            <option value="walker">Walker</option>
+                                            <option value="bicycle">Bicycle</option>
+                                            <option value="bike">Bike (Motorcycle)</option>
                                             <option value="car">Car</option>
                                             <option value="van">Van</option>
                                             <option value="truck">Truck</option>
