@@ -28,9 +28,9 @@ const NOMINATIM_REVERSE_URL_BASE = 'https://nominatim.openstreetmap.org/reverse?
 // Fix Leaflet default icon issue
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+  iconRetinaUrl: '/markers/marker-icon-2x.png',
+  iconUrl: '/markers/marker-icon.png',
+  shadowUrl: '/markers/marker-shadow.png',
 });
 
 // Custom icons for different tracking states

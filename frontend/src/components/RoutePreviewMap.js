@@ -7,9 +7,9 @@ import { ClickableMap } from './FullscreenMapModal';
 // Fix Leaflet default icon issue
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+  iconRetinaUrl: '/markers/marker-icon-2x.png',
+  iconUrl: '/markers/marker-icon.png',
+  shadowUrl: '/markers/marker-shadow.png',
 });
 
 // ============ ROUTE PREVIEW MAP COMPONENT ============
@@ -160,7 +160,7 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, loading, 
                 <Marker
                   position={[pickup.lat, pickup.lng]}
                   icon={L.icon({
-                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+                    iconUrl: '/markers/marker-icon-2x-green.png',
                     iconSize: [25, 41],
                     iconAnchor: [12, 41]
                   })}
@@ -170,7 +170,7 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, loading, 
                 <Marker
                   position={[dropoff.lat, dropoff.lng]}
                   icon={L.icon({
-                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                    iconUrl: '/markers/marker-icon-2x-red.png',
                     iconSize: [25, 41],
                     iconAnchor: [12, 41]
                   })}
@@ -215,35 +215,12 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, loading, 
                 {driverLocation && Number.isFinite(driverLocation.latitude) && Number.isFinite(driverLocation.longitude) && (
                   <Marker
                     position={[driverLocation.latitude, driverLocation.longitude]}
-                    icon={L.divIcon({
-                      html: `
-                      <div style="position: relative; width: 42px; height: 42px;">
-                        <div style="
-                          position: absolute; inset: 0;
-                          background: #3B82F6;
-                          border: 3px solid white;
-                          border-radius: 50%;
-                          box-shadow: 0 8px 16px rgba(0,0,0,0.4);
-                        "></div>
-                        <div style="
-                          position: absolute; inset: 0;
-                          border-radius: 50%;
-                          animation: pulseRing 1.8s ease-out infinite;
-                          box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.6);
-                        "></div>
-                        <style>
-                        @keyframes pulseRing {
-                          0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.6); }
-                          70% { box-shadow: 0 0 0 18px rgba(59, 130, 246, 0); }
-                          100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
-                        }
-                        </style>
-                      </div>
-                    `,
-                      className: '',
-                      iconSize: [42, 42],
-                      iconAnchor: [21, 21],
-                      popupAnchor: [0, -21]
+                    icon={L.icon({
+                      iconUrl: '/markers/user-location.svg',
+                      iconSize: [60, 60],
+                      iconAnchor: [30, 30],
+                      popupAnchor: [0, -30],
+                      className: ''
                     })}
                     zIndexOffset={1000}
                   >

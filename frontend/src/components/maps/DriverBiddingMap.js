@@ -7,9 +7,9 @@ import api from '../../api';
 // Fix default icon issue
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+  iconRetinaUrl: '/markers/marker-icon-2x.png',
+  iconUrl: '/markers/marker-icon.png',
+  shadowUrl: '/markers/marker-shadow.png',
 });
 
 // Custom markers with unique styling
@@ -23,42 +23,12 @@ const createCustomIcon = (iconType, color) => {
   const size = 60;
 
   if (iconType === 'driver') {
-    return L.divIcon({
-      html: `
-        <div style="position: relative; width: ${size}px; height: ${size}px;">
-          <div style="
-            position: absolute; inset: 0;
-            background: #3B82F6;
-            border: 4px solid white;
-            border-radius: 50%;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 26px;
-          ">
-            ${icons[iconType]}
-          </div>
-          <div style="
-            position: absolute; inset: 0;
-            border-radius: 50%;
-            animation: pulseRing 1.8s ease-out infinite;
-            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.6);
-            z-index: -1;
-          "></div>
-        </div>
-        <style>
-          @keyframes pulseRing {
-            0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.6); }
-            70% { box-shadow: 0 0 0 20px rgba(59, 130, 246, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
-          }
-        </style>
-      `,
-      className: '',
-      iconSize: [size, size],
-      iconAnchor: [Math.floor(size / 2), size],
-      popupAnchor: [0, -size]
+    return L.icon({
+      iconUrl: '/markers/user-location.svg',
+      iconSize: [60, 60],
+      iconAnchor: [30, 30],
+      popupAnchor: [0, -30],
+      className: ''
     });
   }
 
