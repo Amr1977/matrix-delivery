@@ -487,6 +487,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
                         <button
                             onClick={onLogout}
                             className="btn-danger"
+                            data-testid="logout-menu-btn"
                             style={{ width: '100%', marginTop: '1rem' }}
                         >
                             {t('auth.logout')}
