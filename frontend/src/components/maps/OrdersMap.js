@@ -4,42 +4,18 @@ import L from 'leaflet';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png'
+  iconRetinaUrl: '/markers/marker-icon-2x.png',
+  iconUrl: '/markers/marker-icon.png',
+  shadowUrl: '/markers/marker-shadow.png'
 });
 
 const createPulseIcon = () => {
-  const size = 42;
-  return L.divIcon({
-    html: `
-      <div style="position: relative; width: ${size}px; height: ${size}px;">
-        <div style="
-          position: absolute; inset: 0;
-          background: #4F46E5;
-          border: 3px solid white;
-          border-radius: 50%;
-          box-shadow: 0 8px 16px rgba(0,0,0,0.4);
-        "></div>
-        <div style="
-          position: absolute; inset: 0;
-          border-radius: 50%;
-          animation: pulseRing 1.8s ease-out infinite;
-          box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.6);
-        "></div>
-        <style>
-        @keyframes pulseRing {
-          0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.6); }
-          70% { box-shadow: 0 0 0 18px rgba(79, 70, 229, 0); }
-          100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
-        }
-        </style>
-      </div>
-    `,
-    className: '',
-    iconSize: [size, size],
-    iconAnchor: [Math.floor(size / 2), Math.floor(size / 2)],
-    popupAnchor: [0, -size]
+  return L.icon({
+    iconUrl: '/markers/user-location.svg',
+    iconSize: [60, 60],
+    iconAnchor: [30, 30],
+    popupAnchor: [0, -30],
+    className: ''
   });
 };
 
@@ -138,7 +114,7 @@ const OrdersMap = ({
                 key={order._id}
                 position={[pickup.lat, pickup.lng]}
                 icon={L.icon({
-                  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+                  iconUrl: '/markers/marker-icon-2x-green.png',
                   iconSize: [25, 41],
                   iconAnchor: [12, 41]
                 })}
