@@ -1,5 +1,13 @@
 if (Test-Path "frontend") { cd frontend }
 npm i
 npm audit fix
-npm run build:prod
+
+# Build with restricted memory (768MB) to prevent OOM
+node scripts/generate-git-info.js
+Copy-Item .env.production .env -Force
+$env:NODE_OPTIONS = "--max-old-space-size=1024"
+$env:REACT_APP_ENV = "production"
+$env:DISABLE_ESLINT_PLUGIN = "true"
+npm run build
+
 firebase deploy --only hosting
