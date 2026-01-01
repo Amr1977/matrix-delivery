@@ -33,6 +33,7 @@ const LoginForm = ({ onSubmit, onForgotPassword, loading, error, t }) => {
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <input
           type="text"
+          data-testid="email-input"
           placeholder={t('auth.email')}
           value={formData.email}
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -41,6 +42,7 @@ const LoginForm = ({ onSubmit, onForgotPassword, loading, error, t }) => {
         <div style={{ position: 'relative' }}>
           <input
             type={showPassword ? 'text' : 'password'}
+            data-testid="password-input"
             placeholder={t('auth.password')}
             value={formData.password}
             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -64,6 +66,7 @@ const LoginForm = ({ onSubmit, onForgotPassword, loading, error, t }) => {
         )}
         <button
           type="submit"
+          data-testid="login-submit-btn"
           disabled={loading}
           style={{ width: '100%', background: '#4F46E5', color: 'white', padding: '0.5rem', borderRadius: '0.5rem', fontWeight: '600', border: 'none', cursor: 'pointer', opacity: loading ? 0.5 : 1 }}
         >

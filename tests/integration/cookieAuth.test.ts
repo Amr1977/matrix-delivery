@@ -6,8 +6,8 @@
  */
 
 import request from 'supertest';
-import app from '../../server';
-import pool from '../../config/db';
+import app from '../../backend/server';
+import pool from '../../backend/config/db';
 import bcrypt from 'bcryptjs';
 
 describe('Cookie-Based Authentication Integration Tests', () => {

@@ -116,6 +116,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                             className={`hamburger-btn ${isSideMenuOpen ? 'open' : ''}`}
                             onClick={() => setIsSideMenuOpen(!isSideMenuOpen)}
                             aria-label="Toggle menu"
+                            data-testid="hamburger-btn"
                             style={{
                                 background: 'none',
                                 border: 'none',
