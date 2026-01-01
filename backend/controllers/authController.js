@@ -170,6 +170,13 @@ const register = async (req, res) => {
         const token = result.token;
         const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
+        res.clearCookie('token', {
+            httpOnly: true,
+            secure: IS_PRODUCTION,
+            sameSite: IS_PRODUCTION ? 'none' : 'lax',
+            path: '/'
+        });
+
         res.cookie('token', token, {
             httpOnly: true,
             secure: IS_PRODUCTION,
@@ -257,8 +264,14 @@ const login = async (req, res) => {
             path: '/'
         };
 
-        // console.log('🍪 Setting cookie with options:', cookieOptions);
-        // console.log('🍪 Token length:', token.length);
+        // Clear any existing cookie first to prevent stale token issues
+        res.clearCookie('token', {
+            httpOnly: true,
+            secure: IS_PRODUCTION,
+            sameSite: IS_PRODUCTION ? 'none' : 'lax',
+            path: '/'
+        });
+
         res.cookie('token', token, cookieOptions);
 
         // Remove token from response body for security
