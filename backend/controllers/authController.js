@@ -169,18 +169,17 @@ const register = async (req, res) => {
         // Set httpOnly cookie for security
         const token = result.token;
         const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+        const isSecure = req.secure || (req.get('x-forwarded-proto') === 'https');
 
-        res.clearCookie('token', {
-            httpOnly: true,
-            secure: IS_PRODUCTION,
-            sameSite: IS_PRODUCTION ? 'none' : 'lax',
-            path: '/'
-        });
+        const useSecureCookie = IS_PRODUCTION && isSecure;
+
+        // Clear existing
+        res.clearCookie('token', { path: '/' });
 
         res.cookie('token', token, {
             httpOnly: true,
-            secure: IS_PRODUCTION,
-            sameSite: IS_PRODUCTION ? 'none' : 'lax', // 'none' for cross-site in production
+            secure: useSecureCookie,
+            sameSite: useSecureCookie ? 'none' : 'lax',
             maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
             path: '/'
         });
@@ -255,20 +254,33 @@ const login = async (req, res) => {
         // Set httpOnly cookie for security
         const token = result.token;
         const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+        const isSecure = req.secure || (req.get('x-forwarded-proto') === 'https');
+
+        // Only use Secure/SameSite=None if we are actually on a secure connection
+        // This allows testing production builds on localhost (HTTP)
+        const useSecureCookie = IS_PRODUCTION && isSecure;
 
         const cookieOptions = {
             httpOnly: true,
-            secure: IS_PRODUCTION,
-            sameSite: IS_PRODUCTION ? 'none' : 'lax', // 'none' for cross-site in production
+            secure: useSecureCookie,
+            sameSite: useSecureCookie ? 'none' : 'lax', // 'none' requires secure
             maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
             path: '/'
         };
 
-        // Clear any existing cookie first to prevent stale token issues
+        // Clear any existing cookie first
+        // We attempt to clear with both configurations to be safe
         res.clearCookie('token', {
             httpOnly: true,
-            secure: IS_PRODUCTION,
-            sameSite: IS_PRODUCTION ? 'none' : 'lax',
+            secure: true,
+            sameSite: 'none',
+            path: '/'
+        });
+
+        res.clearCookie('token', {
+            httpOnly: true,
+            secure: false,
+            sameSite: 'lax',
             path: '/'
         });
 
@@ -323,10 +335,19 @@ const logout = async (req, res) => {
     });
 
     const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+
+    // Clear with both possible configurations to ensure removal
     res.clearCookie('token', {
         httpOnly: true,
-        secure: IS_PRODUCTION,
-        sameSite: IS_PRODUCTION ? 'none' : 'lax', // Match cookie settings
+        secure: true,
+        sameSite: 'none',
+        path: '/'
+    });
+
+    res.clearCookie('token', {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'lax',
         path: '/'
     });
 
@@ -365,12 +386,14 @@ const refresh = async (req, res) => {
         );
 
         const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+        const isSecure = req.secure || (req.get('x-forwarded-proto') === 'https');
+        const useSecureCookie = IS_PRODUCTION && isSecure;
 
         // Set new token in cookie
         res.cookie('token', newToken, {
             httpOnly: true,
-            secure: IS_PRODUCTION,
-            sameSite: IS_PRODUCTION ? 'none' : 'lax',
+            secure: useSecureCookie,
+            sameSite: useSecureCookie ? 'none' : 'lax',
             maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
             path: '/'
         });
