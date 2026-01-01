@@ -84,3 +84,16 @@ Feature: User Authentication
     When I try to reset my password
     Then I should receive an authentication error response
     And the error should indicate token expired
+
+  @stale-token-fix
+  Scenario: Login after logout uses fresh token
+    Given there is a registered user:
+      | email    | fresh@example.com |
+      | password | SecurePass123!    |
+    When I login with correct credentials
+    Then I should receive a successful login response
+    When I logout
+    Then my session should be terminated
+    When I login with correct credentials
+    Then I should receive a successful login response
+    And I should be able to access protected endpoints

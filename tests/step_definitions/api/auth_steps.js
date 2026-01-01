@@ -126,12 +126,20 @@ Given('I am logged in as a user', async function () {
     );
     this.world.testUsers.push(email);
 
-    // Login to get token
+    // Login to get cookie
     const response = await request(app)
         .post('/api/auth/login')
         .send({ email, password });
 
-    this.world.token = response.body.token;
+    // Store cookie for subsequent requests
+    const cookies = response.headers['set-cookie'];
+    if (cookies && cookies.length > 0) {
+        const tokenCookie = cookies.find(c => c.startsWith('token='));
+        if (tokenCookie) {
+            this.world.token = tokenCookie.split(';')[0].replace('token=', '');
+        }
+    }
+    this.world.loginData = { email, password };
 });
 
 Given('my token is about to expire', function () {
@@ -411,6 +419,25 @@ Then('I should be able to login with the new password', async function () {
 
 Then('the error should indicate token expired', function () {
     expect(this.world.response.body.error).to.match(/expired|invalid token/i);
+});
+
+Then('I should be able to access protected endpoints', async function () {
+    // Extract cookie from login response
+    const cookies = this.world.response.headers['set-cookie'];
+    expect(cookies).to.be.an('array');
+
+    const tokenCookie = cookies.find(c => c.startsWith('token='));
+    expect(tokenCookie).to.exist;
+
+    const cookieValue = tokenCookie.split(';')[0];
+
+    // Try to access /auth/me with the new cookie
+    const meResponse = await request(app)
+        .get('/api/auth/me')
+        .set('Cookie', cookieValue);
+
+    expect(meResponse.status).to.equal(200);
+    expect(meResponse.body).to.have.property('email');
 });
 
 module.exports = { AuthWorld };

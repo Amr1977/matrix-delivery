@@ -19,3 +19,13 @@ Feature: Authentication Persistence
     When I reload the page for persistence
     Then I verify successful persistence login
     And I check dashboard for persistence
+
+  @stale-token-fix @regression
+  Scenario: Customer can login again after logging out
+    Given I visit the login page for persistence test
+    And I perform a customer login for persistence check
+    Then I verify successful persistence login
+    When I click the logout button for persistence test
+    Then I should see the login page for persistence test
+    When I perform a customer login for persistence check
+    Then I verify successful persistence login
