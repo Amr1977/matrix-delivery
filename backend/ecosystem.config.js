@@ -8,11 +8,11 @@ module.exports = {
     instances: os.platform() === 'win32' ? 1 : 2, // 1 instance on Windows (fork), 2 on Linux (cluster)
     exec_mode: os.platform() === 'win32' ? 'fork' : 'cluster',
     env: {
-      NODE_ENV: 'development',
+      NODE_ENV: 'production',
       PORT: 5000,
       ENV_FILE: '.env'
     },
-    env_develop: {
+    env_development: {
       NODE_ENV: 'development',
       PORT: 5000,
       ENV_FILE: '.env'
