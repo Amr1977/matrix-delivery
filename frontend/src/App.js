@@ -160,21 +160,13 @@ export const MainApp = () => {
         quality -= 0.1;
         dataUrl = canvas.toDataURL('image/jpeg', quality);
       }
-      // Try uploading as data URL first
-      try {
-        const d = await UsersApi.updateProfilePicture({ imageDataUrl: dataUrl });
-        setProfileData(prev => ({ ...prev, profile_picture_url: d.profilePictureUrl }));
-        setCurrentUser(prev => prev ? { ...prev, profile_picture_url: d.profilePictureUrl } : null);
-        return;
-      } catch (err) {
-        // If data URL fails, try FormData
-        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', quality));
-        const form = new FormData();
-        form.append('file', blob, (file.name || 'profile') + '.jpg');
-        const d = await UsersApi.updateProfilePicture(form);
-        setProfileData(prev => ({ ...prev, profile_picture_url: d.profilePictureUrl }));
-        setCurrentUser(prev => prev ? { ...prev, profile_picture_url: d.profilePictureUrl } : null);
-      }
+      // Upload using FormData (file-based storage)
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', quality));
+      const form = new FormData();
+      form.append('file', blob, (file.name || 'profile') + '.jpg');
+      const d = await UsersApi.updateProfilePicture(form);
+      setProfileData(prev => ({ ...prev, profile_picture_url: d.profilePictureUrl }));
+      setCurrentUser(prev => prev ? { ...prev, profile_picture_url: d.profilePictureUrl } : null);
     } catch (err) {
       setError(err.message || 'Failed to upload picture');
     }

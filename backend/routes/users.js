@@ -274,27 +274,54 @@ router.put('/me/profile', verifyToken, async (req, res, next) => {
 
 /**
  * POST /api/users/me/profile-picture
- * Upload profile picture (base64)
+ * Upload profile picture (multipart/form-data)
+ * Security: Uses multer for file handling, sharp for sanitization
  */
-router.post('/me/profile-picture', verifyToken, async (req, res, next) => {
-    try {
-        const { imageDataUrl } = req.body || {};
-        logger.info(`📸 Profile picture upload - User ID: ${req.user.userId}`);
-        logger.info(`📸 Image data length: ${imageDataUrl?.length || 0}`);
+router.post('/me/profile-picture', verifyToken, (req, res, next) => {
+    const fileUploadService = require('../services/fileUploadService');
+    const uploadMiddleware = fileUploadService.createUploadMiddleware('image');
 
-        if (!imageDataUrl || typeof imageDataUrl !== 'string' || !imageDataUrl.startsWith('data:image/')) {
-            logger.error('❌ Invalid image data');
-            return res.status(400).json({ error: 'Invalid image data' });
+    uploadMiddleware(req, res, async (err) => {
+        if (err) {
+            logger.error('Profile picture upload error', {
+                error: err.message,
+                userId: req.user.userId,
+                category: 'file-upload'
+            });
+            return res.status(400).json({ error: err.message || 'Failed to upload profile picture' });
         }
 
-        const result = await pool.query('UPDATE users SET profile_picture_url = $1 WHERE id = $2 RETURNING profile_picture_url', [imageDataUrl, req.user.userId]);
-        logger.info(`✅ Profile picture saved to DB: ${result.rows[0]?.profile_picture_url?.substring(0, 50)}...`);
+        if (!req.file) {
+            return res.status(400).json({ error: 'No file provided' });
+        }
 
-        logger.info('User updated profile picture', { userId: req.user.userId, category: 'user' });
-        res.json({ profilePictureUrl: result.rows[0].profile_picture_url });
-    } catch (error) {
-        next(error);
-    }
+        try {
+            // Process image (generates thumbnail, sanitizes via sharp)
+            const uploadResult = await fileUploadService.uploadImage(req.file, `avatar-${req.user.userId}`);
+
+            // Update database with the URL path (not Base64)
+            const result = await pool.query(
+                'UPDATE users SET profile_picture_url = $1 WHERE id = $2 RETURNING profile_picture_url',
+                [uploadResult.mediaUrl, req.user.userId]
+            );
+
+            logger.info('User updated profile picture', {
+                userId: req.user.userId,
+                filename: req.file.filename,
+                size: req.file.size,
+                category: 'user'
+            });
+
+            res.json({ profilePictureUrl: result.rows[0].profile_picture_url });
+        } catch (error) {
+            logger.error('Profile picture processing error', {
+                error: error.message,
+                userId: req.user.userId,
+                category: 'file-upload'
+            });
+            next(error);
+        }
+    });
 });
 
 /**
