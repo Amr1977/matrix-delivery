@@ -156,7 +156,8 @@ router.post('/', verifyToken, orderCreationRateLimit, async (req, res, next) => 
 // Place bid on order
 router.post('/:orderId/bid', verifyToken, async (req, res) => {
   try {
-    if ((req.user.primary_role || req.user.primary_role) !== 'driver') {
+    const userRole = req.user.primary_role;
+    if (userRole !== 'driver') {
       return res.status(400).json({ error: 'Only drivers can place bids' });
     }
 
