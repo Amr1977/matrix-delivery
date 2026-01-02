@@ -1,11 +1,11 @@
 const request = require('supertest');
-const { logAdminAction } = require('../../../services/adminService');
+const { logAdminAction } = require('../../../backend/services/adminService');
 
 // Mock dependencies before importing app
-jest.mock('../../../config/db');
-jest.mock('../../../services/adminService');
-jest.mock('../../../services/notificationService.ts');
-jest.mock('../../../middleware/auth', () => ({
+jest.mock('../../../backend/config/db');
+jest.mock('../../../backend/services/adminService');
+jest.mock('../../../backend/services/notificationService.ts');
+jest.mock('../../../backend/middleware/auth', () => ({
     verifyToken: (req, res, next) => {
         req.user = { userId: 'test-user', primary_role: 'admin' };
         next();
@@ -33,8 +33,8 @@ afterAll(() => {
 });
 
 // Import app after mocks
-const app = require('../../../server');
-const pool = require('../../../config/db');
+const app = require('../../../backend/server');
+const pool = require('../../../backend/config/db');
 
 describe('Admin Routes - System Health', () => {
     let mockQuery;
