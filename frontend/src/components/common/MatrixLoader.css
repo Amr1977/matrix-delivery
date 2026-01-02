@@ -41,7 +41,7 @@
 .matrix-column {
     display: flex;
     flex-direction: column;
-    animation: matrix-fall 2s linear infinite;
+    animation: loader-fall 2s linear infinite;
 }
 
 .matrix-char {
@@ -51,7 +51,7 @@
         0 0 5px #10B981,
         0 0 10px #10B981,
         0 0 20px #10B981;
-    animation: matrix-glow 0.5s ease-in-out infinite alternate;
+    animation: loader-glow 0.5s ease-in-out infinite alternate;
 }
 
 .matrix-char:first-child {
@@ -62,7 +62,7 @@
         0 0 30px #10B981;
 }
 
-@keyframes matrix-fall {
+@keyframes loader-fall {
     0% {
         transform: translateY(-100%);
     }
@@ -72,7 +72,7 @@
     }
 }
 
-@keyframes matrix-glow {
+@keyframes loader-glow {
     0% {
         opacity: 0.7;
     }
@@ -93,7 +93,7 @@
     border-top-color: #10B981;
     border-right-color: rgba(16, 185, 129, 0.5);
     border-radius: 50%;
-    animation: matrix-spin 1s linear infinite;
+    animation: loader-spin 1s linear infinite;
 }
 
 .matrix-loader-spinner::before {
@@ -106,10 +106,10 @@
     border: 2px solid transparent;
     border-top-color: rgba(16, 185, 129, 0.7);
     border-radius: 50%;
-    animation: matrix-spin 0.8s linear infinite reverse;
+    animation: loader-spin 0.8s linear infinite reverse;
 }
 
-@keyframes matrix-spin {
+@keyframes loader-spin {
     0% {
         transform: translate(-50%, -50%) rotate(0deg);
     }
@@ -129,10 +129,10 @@
     text-shadow:
         0 0 10px #10B981,
         0 0 20px rgba(16, 185, 129, 0.5);
-    animation: matrix-pulse 1.5s ease-in-out infinite;
+    animation: loader-pulse 1.5s ease-in-out infinite;
 }
 
-@keyframes matrix-pulse {
+@keyframes loader-pulse {
 
     0%,
     100% {
@@ -159,17 +159,17 @@
     left: 2px;
     text-shadow: -2px 0 #ff0000;
     clip-path: inset(0 100% 0 0);
-    animation: glitch-1 2s infinite linear alternate-reverse;
+    animation: loader-glitch-1 2s infinite linear alternate-reverse;
 }
 
 .matrix-loader-message::after {
     left: -2px;
     text-shadow: 2px 0 #00ffff;
     clip-path: inset(0 0 0 100%);
-    animation: glitch-2 2s infinite linear alternate-reverse;
+    animation: loader-glitch-2 2s infinite linear alternate-reverse;
 }
 
-@keyframes glitch-1 {
+@keyframes loader-glitch-1 {
     0% {
         clip-path: inset(20% 0 60% 0);
     }
@@ -195,7 +195,7 @@
     }
 }
 
-@keyframes glitch-2 {
+@keyframes loader-glitch-2 {
     0% {
         clip-path: inset(60% 0 20% 0);
     }
