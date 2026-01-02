@@ -81,6 +81,25 @@ if (require.main === module) {
   // Start rate limit cleanup only when running the server directly
   startCleanup();
 
+  // Start cache cleanup to prevent memory leaks
+  const { startCacheCleanup } = require('./utils/cache');
+  startCacheCleanup();
+  logger.info('✅ Cache cleanup scheduled (every 5 minutes)');
+
+  // Schedule driver location cleanup every 6 hours
+  const { cleanupOldLocations } = require('./services/driverLocationService');
+  const locationCleanupInterval = setInterval(async () => {
+    try {
+      const count = await cleanupOldLocations();
+      if (count > 0) {
+        logger.info(`Driver location cleanup: removed ${count} records`);
+      }
+    } catch (err) {
+      logger.error('Driver location cleanup error:', err.message);
+    }
+  }, 6 * 60 * 60 * 1000);
+  locationCleanupInterval.unref();
+
   server = httpServer.listen(PORT, '0.0.0.0', () => {
     console.log('');
     console.log('╔════════════════════════════════════════════════════╗');
@@ -105,6 +124,22 @@ if (require.main === module) {
 process.on('SIGINT', async () => {
   console.log('\n🛑 Shutting down server...');
   stopCleanup();
+
+  // Stop activity tracker interval and flush pending updates
+  try {
+    const { activityTracker } = require('./services/activityTracker.ts');
+    activityTracker.stopPeriodicCommit();
+    await activityTracker.flush();
+    console.log('✅ Activity tracker stopped');
+  } catch (err) {
+    console.error('Activity tracker shutdown error:', err.message);
+  }
+
+  // Stop cache cleanup
+  const { stopCacheCleanup } = require('./utils/cache');
+  stopCacheCleanup();
+  console.log('✅ Cache cleanup stopped');
+
   if (server) {
     server.close(async () => {
       await pool.end();
