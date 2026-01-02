@@ -64,8 +64,8 @@ const SystemHealthDashboard: React.FC = () => {
 
     const fetchHistory = useCallback(async () => {
         try {
-            const response = await api.get<HistoryResponse>(`/api/admin/health/history?hours=${timeRange}`);
-            setHistory(response.data.history);
+            const response = await api.get(`/api/admin/health/history?hours=${timeRange}`);
+            setHistory((response.data as HistoryResponse).history);
         } catch (err: any) {
             console.error('Failed to fetch history:', err);
         }
