@@ -1,5 +1,4 @@
 import helmet from 'helmet';
-import csrf from 'csurf';
 import cookieParser from 'cookie-parser';
 import type { Request, Response, NextFunction, RequestHandler } from 'express';
 
@@ -47,16 +46,6 @@ export const helmetConfig = helmet({
     hidePoweredBy: true
 });
 
-/**
- * CSRF protection middleware
- */
-export const csrfProtection = csrf({
-    cookie: {
-        httpOnly: true,
-        secure: IS_PRODUCTION,
-        sameSite: 'strict'
-    }
-});
 
 /**
  * Cookie parser middleware (required for CSRF)
@@ -190,7 +179,6 @@ export const validateSecurityConfig = (): void => {
 
 export default {
     helmetConfig,
-    csrfProtection,
     cookieParserMiddleware,
     httpsRedirect,
     strictCorsConfig,

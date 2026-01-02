@@ -14,7 +14,8 @@
         "forceConsistentCasingInFileNames": true,
         "noEmit": true,
         "types": [
-            "node"
+            "node",
+            "jest"
         ]
     },
     "include": [

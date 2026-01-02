@@ -5,8 +5,8 @@
 
 import request from 'supertest';
 import { Pool } from 'pg';
-import app from '../../server';
-import { generateToken } from '../../utils/auth';
+import app from '../../../backend/server';
+import { generateToken } from '../../../backend/utils/auth';
 import { ethers } from 'ethers';
 
 describe('Crypto Payments Integration', () => {
