@@ -159,11 +159,15 @@ while true; do
         MEM_USED=$(free -m | awk '/Mem:/ {print $3}')
         MEM_PCT=$(free -m | awk '/Mem:/ {printf "%.0f", $3/$2*100}')
         MEM_FREE=$(free -m | awk '/Mem:/ {print $7}')  # Available memory
-        PM2_STATUS=$(pm2 jlist 2>/dev/null | jq -r '.[0].pm2_env.status // "unknown"' 2>/dev/null || echo "unknown")
-        PM2_MEM=$(pm2 jlist 2>/dev/null | jq -r '.[0].monit.memory // 0' 2>/dev/null | awk '{printf "%.0f", $1/1024/1024}')
+        
+        # Get status of all PM2 processes (format: "name:status" for each)
+        PM2_INFO=$(pm2 jlist 2>/dev/null | jq -r '.[] | "\(.name):\(.pm2_env.status)"' 2>/dev/null | tr '\n' ' ' || echo "unknown")
+        # Get total memory of all PM2 processes
+        PM2_MEM_TOTAL=$(pm2 jlist 2>/dev/null | jq -r '[.[].monit.memory // 0] | add' 2>/dev/null | awk '{printf "%.0f", $1/1024/1024}')
+        
         UPTIME_STR=$(uptime -p 2>/dev/null | sed 's/up //' || echo "N/A")
         
-        log "⏳ No changes | Mem: ${MEM_PCT}% (${MEM_FREE}MB avail) | Backend: ${PM2_STATUS} (${PM2_MEM}MB) | Up: ${UPTIME_STR}"
+        log "⏳ No changes | Mem: ${MEM_PCT}% (${MEM_FREE}MB avail) | PM2: ${PM2_INFO}(${PM2_MEM_TOTAL}MB total) | Up: ${UPTIME_STR}"
     fi
 
     # Wait before next check
