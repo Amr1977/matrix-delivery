@@ -28,6 +28,7 @@ import RefundPolicy from './components/legal/RefundPolicy';
 import DriverAgreement from './components/legal/DriverAgreement';
 import LoadingSpinner from './components/LoadingSpinner';
 import CookiePolicy from './components/legal/CookiePolicy';
+import MatrixLoader from './components/common/MatrixLoader';
 import CryptoTest from './pages/CryptoTest';
 import useDriver from './hooks/useDriver';
 import GeolocationStatus from './components/ui/GeolocationStatus';
@@ -133,9 +134,11 @@ export const MainApp = () => {
   const [historyOrders, setHistoryOrders] = useState([]);
   const [historyPagination, setHistoryPagination] = useState(null);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [uploadingProfilePicture, setUploadingProfilePicture] = useState(false);
 
   const optimizeAndUploadProfilePicture = async (file) => {
     if (!file || !token) return;
+    setUploadingProfilePicture(true);
     try {
       const imgUrl = URL.createObjectURL(file);
       const img = new Image();
@@ -169,6 +172,8 @@ export const MainApp = () => {
       setCurrentUser(prev => prev ? { ...prev, profile_picture_url: d.profilePictureUrl } : null);
     } catch (err) {
       setError(err.message || 'Failed to upload picture');
+    } finally {
+      setUploadingProfilePicture(false);
     }
   };
 
@@ -1963,6 +1968,9 @@ export const MainApp = () => {
       unreadCount={unreadCount}
       footerStats={footerStats}
     >
+
+      {/* Matrix-styled loader for profile picture upload */}
+      {uploadingProfilePicture && <MatrixLoader message="Uploading..." />}
 
       <SettingsModal
         isOpen={showSettings}
