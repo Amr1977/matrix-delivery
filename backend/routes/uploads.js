@@ -8,6 +8,14 @@ const logger = require('../config/logger');
 
 const router = express.Router();
 
+// Middleware to allow cross-origin access to uploaded files
+// This overrides the global Cross-Origin-Resource-Policy: same-origin header
+router.use((req, res, next) => {
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    next();
+});
+
 // Serve static files from uploads directory
 router.use('/images', express.static(path.join(__dirname, '..', 'uploads', 'images')));
 router.use('/videos', express.static(path.join(__dirname, '..', 'uploads', 'videos')));
