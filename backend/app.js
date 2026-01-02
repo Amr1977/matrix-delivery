@@ -97,6 +97,9 @@ app.use('/api/auth', require('./routes/auth'));
 // Load admin endpoints
 app.use('/api/admin', require('./routes/admin'));
 
+// Load uploads/media endpoints (static file serving for profile pictures, etc.)
+app.use('/uploads', require('./routes/uploads'));
+
 // Load API v1 routes (skip in test mode due to TS issues)
 if (!IS_TEST) {
   const v1Routes = require('./routes/v1');
