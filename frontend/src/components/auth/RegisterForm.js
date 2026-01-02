@@ -43,6 +43,7 @@ const RegisterForm = ({ onSubmit, loading, error, t, countries }) => {
       <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1F2937' }}>{t('auth.createAccount')}</h2>
       <input
         type="text"
+        data-testid="name-input"
         placeholder={t('auth.fullName')}
         value={formData.name}
         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -50,6 +51,7 @@ const RegisterForm = ({ onSubmit, loading, error, t, countries }) => {
       />
       <input
         type="email"
+        data-testid="email-input"
         placeholder={t('auth.email')}
         value={formData.email}
         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -57,6 +59,7 @@ const RegisterForm = ({ onSubmit, loading, error, t, countries }) => {
       />
       <input
         type="tel"
+        data-testid="phone-input"
         placeholder={t('auth.phoneNumber')}
         value={formData.phone}
         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
@@ -65,6 +68,7 @@ const RegisterForm = ({ onSubmit, loading, error, t, countries }) => {
       <div style={{ position: 'relative' }}>
         <input
           type={showPassword ? 'text' : 'password'}
+          data-testid="password-input"
           placeholder={t('auth.password')}
           value={formData.password}
           onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -79,6 +83,7 @@ const RegisterForm = ({ onSubmit, loading, error, t, countries }) => {
       </div>
       <select
         value={formData.primary_role}
+        data-testid="role-select"
         onChange={(e) => setFormData({ ...formData, primary_role: e.target.value, vehicle_type: e.target.value === 'customer' ? '' : formData.vehicle_type })}
         style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
       >
@@ -88,6 +93,7 @@ const RegisterForm = ({ onSubmit, loading, error, t, countries }) => {
       {formData.primary_role === 'driver' && (
         <select
           value={formData.vehicle_type}
+          data-testid="vehicle-select"
           onChange={(e) => setFormData({ ...formData, vehicle_type: e.target.value })}
           style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
         >
@@ -105,6 +111,7 @@ const RegisterForm = ({ onSubmit, loading, error, t, countries }) => {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
         <input
           type="text"
+          data-testid="country-input"
           placeholder={t('orders.selectCountry')}
           value={formData.country}
           onChange={(e) => setFormData({ ...formData, country: e.target.value })}
@@ -112,6 +119,7 @@ const RegisterForm = ({ onSubmit, loading, error, t, countries }) => {
         />
         <input
           type="text"
+          data-testid="city-input"
           placeholder={t('orders.city')}
           value={formData.city}
           onChange={(e) => setFormData({ ...formData, city: e.target.value })}
@@ -120,6 +128,7 @@ const RegisterForm = ({ onSubmit, loading, error, t, countries }) => {
       </div>
       <input
         type="text"
+        data-testid="area-input"
         placeholder={t('orders.area')}
         value={formData.area}
         onChange={(e) => setFormData({ ...formData, area: e.target.value })}
@@ -135,6 +144,7 @@ const RegisterForm = ({ onSubmit, loading, error, t, countries }) => {
       )}
       <button
         onClick={handleSubmit}
+        data-testid="register-submit-btn"
         disabled={loading}
         style={{ width: '100%', background: '#4F46E5', color: 'white', padding: '0.5rem', borderRadius: '0.5rem', fontWeight: '600', border: 'none', cursor: 'pointer', opacity: loading ? 0.5 : 1 }}
       >
