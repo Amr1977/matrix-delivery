@@ -56,7 +56,8 @@ const createLimiter = (options, prefix = 'rl:') => {
 const apiRateLimit = createLimiter({
   windowMs: 15 * 60 * 1000,
   limit: 300, // Increased from 100 to 300 to prevent 429s during normal use
-  message: 'Too many requests, please try again later'
+  message: 'Too many requests, please try again later',
+  skip: (req) => req.url.includes('/maps/') // Skip map tiles which are heavy on requests
 }, 'rl:api:');
 
 // Auth Rate Limit (Stricter)

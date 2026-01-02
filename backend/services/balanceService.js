@@ -151,32 +151,60 @@ class BalanceService {
     }
 
     async createTransaction(client, data) {
-        // Generates ID and Inserts
         const txId = crypto.randomUUID();
-        // Assume implementation...
-        return {
-            transactionId: txId,
-            ...data,
-            createdAt: new Date()
-        };
-        // REAL IMPLEMENTATION NEEDED FOR HISTORY
-        // I'll skip full implementation for now and just focus on credit/deduct logic that affects balance
-        // WAIT, `creditEarnings` and `deductCommission` relies on this.
-        // I MUST implement the INSERT into transactions table.
-
         const query = `
            INSERT INTO balance_transactions (
-             user_id, type, amount, currency, balance_before, balance_after, 
+             user_id, transaction_id, type, amount, currency, balance_before, balance_after, 
              status, description, order_id, created_at
-           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
-           RETURNING id, transaction_id_uuid
+           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
+           RETURNING id, transaction_id
          `;
         const res = await client.query(query, [
-            data.userId, data.type, data.amount, data.currency,
+            data.userId, txId, data.type, data.amount, data.currency,
             data.balanceBefore, data.balanceAfter, data.status,
             data.description, data.orderId
         ]);
-        return { ...data, transactionId: res.rows[0]?.transaction_id_uuid || 'generated' };
+        return { ...data, transactionId: res.rows[0]?.transaction_id || txId };
+    }
+
+    async deposit(dto) {
+        const client = await this.pool.connect();
+        try {
+            await client.query('BEGIN');
+            const balance = await this.getBalanceForUpdate(client, dto.userId);
+            const balanceBefore = balance.availableBalance;
+            const balanceAfter = balanceBefore + dto.amount;
+
+            await this.createTransaction(client, {
+                userId: dto.userId,
+                type: TransactionType.DEPOSIT,
+                amount: dto.amount,
+                currency: dto.currency || balance.currency,
+                balanceBefore,
+                balanceAfter,
+                status: TransactionStatus.COMPLETED,
+                description: dto.description || 'Deposit',
+            });
+
+            await client.query(
+                `UPDATE user_balances
+                 SET available_balance = available_balance + $1,
+                     lifetime_deposits = lifetime_deposits + $1,
+                     total_transactions = total_transactions + 1,
+                     last_transaction_at = CURRENT_TIMESTAMP
+                 WHERE user_id = $2`,
+                [dto.amount, dto.userId]
+            );
+
+            await client.query('COMMIT');
+            return this.getBalance(dto.userId);
+        } catch (error) {
+            await client.query('ROLLBACK');
+            logger.error('Deposit failed', error);
+            throw error;
+        } finally {
+            client.release();
+        }
     }
 
     async creditEarnings(dto) {
@@ -452,7 +480,7 @@ class BalanceService {
         } catch (error) {
             logger.error('Error checking canAcceptOrders', error);
             // Fail safe?
-            return { canAccept: false, reason: "Error checking balance" };
+            return { canAccept: false, reason: 'Error checking balance' };
         }
     }
 }

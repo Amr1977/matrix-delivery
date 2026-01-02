@@ -7,9 +7,13 @@
  * @module tests/integration/codCommission.test
  */
 
+/* eslint-disable */
+const dotenv = require('dotenv');
+dotenv.config({ path: './backend/.env.testing' });
+
 import { Pool } from 'pg';
-import { BalanceService } from '../../services/balanceService';
-import { PAYMENT_CONFIG } from '../../config/paymentConfig';
+import { BalanceService } from '../../backend/services/balanceService';
+import { PAYMENT_CONFIG } from '../../backend/config/paymentConfig';
 
 describe('COD Commission Integration Tests', () => {
     let pool: Pool;
@@ -59,7 +63,7 @@ describe('COD Commission Integration Tests', () => {
             await pool.query('DELETE FROM balance_holds WHERE user_id IN ($1, $2)', [testCustomerId, testDriverId]);
             await pool.query('DELETE FROM balance_transactions WHERE user_id IN ($1, $2)', [testCustomerId, testDriverId]);
             await pool.query('DELETE FROM payments WHERE payer_id = $1 OR payee_id = $2', [testCustomerId, testDriverId]);
-            await pool.query('DELETE FROM orders WHERE customer_id = $1 OR driver_id = $2', [testCustomerId, testDriverId]);
+            await pool.query('DELETE FROM orders WHERE customer_id = $1 OR assigned_driver_user_id = $2', [testCustomerId, testDriverId]);
             await pool.query('DELETE FROM user_balances WHERE user_id IN ($1, $2)', [testCustomerId, testDriverId]);
             await pool.query(`DELETE FROM users WHERE email LIKE 'cod.%@test.com'`);
         } catch (error) {
@@ -74,7 +78,7 @@ describe('COD Commission Integration Tests', () => {
         await pool.query('DELETE FROM balance_holds WHERE user_id IN ($1, $2)', [testCustomerId, testDriverId]);
         await pool.query('DELETE FROM balance_transactions WHERE user_id IN ($1, $2)', [testCustomerId, testDriverId]);
         await pool.query('DELETE FROM payments WHERE payer_id = $1 OR payee_id = $2', [testCustomerId, testDriverId]);
-        await pool.query('DELETE FROM orders WHERE customer_id = $1 OR driver_id = $2', [testCustomerId, testDriverId]);
+        await pool.query('DELETE FROM orders WHERE customer_id = $1 OR assigned_driver_user_id = $2', [testCustomerId, testDriverId]);
 
         await pool.query(
             `UPDATE user_balances 
@@ -99,13 +103,8 @@ describe('COD Commission Integration Tests', () => {
             // 1. Create order
             const orderId = `order-${Date.now()}-${Math.random()}`;
             const orderResult = await pool.query(
-                `INSERT INTO orders (
-                    id,
-                    customer_id, 
-                    driver_id, 
-                    total_amount,
-                    status
-                ) VALUES ($1, $2, $3, 100, 'delivered')
+                `INSERT INTO orders (id, customer_id, assigned_driver_user_id, price, status, order_number, title, description, pickup_address, delivery_address, from_lat, from_lng, to_lat, to_lng, customer_name)
+                 VALUES ($1::text, $2, $3, 100, 'delivered', 'ON-' || $1::text, 'Test Order', 'Test Description', '{"address": "Pickup"}', '{"address": "Delivery"}', 30.0, 31.0, 30.1, 31.1, 'Test Customer')
                 RETURNING id`,
                 [orderId, testCustomerId, testDriverId]
             );
@@ -126,14 +125,14 @@ describe('COD Commission Integration Tests', () => {
                 commission
             );
 
-            expect(commissionResult.balance.availableBalance).toBe(-15);
+            expect(commissionResult.availableBalance).toBe(-15);
 
             // 4. Record payment
             await pool.query(
                 `INSERT INTO payments (
                     id, order_id, amount, currency, payment_method, status,
                     payer_id, payee_id, platform_fee, driver_earnings
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+                ) VALUES ($1::text, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
                 [
                     `PAY-${Date.now()}`,
                     orderId,
@@ -174,13 +173,8 @@ describe('COD Commission Integration Tests', () => {
             // Create and complete order
             const orderId = `order-${Date.now()}-${Math.random()}`;
             const orderResult = await pool.query(
-                `INSERT INTO orders (
-                    id,
-                    customer_id, 
-                    driver_id, 
-                    total_amount,
-                    status
-                ) VALUES ($1, $2, $3, 100, 'delivered')
+                `INSERT INTO orders (id, customer_id, assigned_driver_user_id, price, status, order_number, title, description, pickup_address, delivery_address, from_lat, from_lng, to_lat, to_lng, customer_name)
+                 VALUES ($1::text, $2, $3, 100, 'delivered', 'ON-' || $1::text, 'Test Order', 'Test Description', '{"address": "Pickup"}', '{"address": "Delivery"}', 30.0, 31.0, 30.1, 31.1, 'Test Customer')
                 RETURNING id`,
                 [orderId, testCustomerId, testDriverId]
             );
@@ -210,13 +204,8 @@ describe('COD Commission Integration Tests', () => {
             // Order with 100 EGP (15 EGP commission)
             const orderId = `order-${Date.now()}-${Math.random()}`;
             const orderResult = await pool.query(
-                `INSERT INTO orders (
-                    id,
-                    customer_id, 
-                    driver_id, 
-                    total_amount,
-                    status
-                ) VALUES ($1, $2, $3, 100, 'delivered')
+                `INSERT INTO orders (id, customer_id, assigned_driver_user_id, price, status, order_number, title, description, pickup_address, delivery_address, from_lat, from_lng, to_lat, to_lng, customer_name)
+                 VALUES ($1::text, $2, $3, 100, 'delivered', 'ON-' || $1::text, 'Test Order', 'Test Description', '{"address": "Pickup"}', '{"address": "Delivery"}', 30.0, 31.0, 30.1, 31.1, 'Test Customer')
                 RETURNING id`,
                 [orderId, testCustomerId, testDriverId]
             );
@@ -232,14 +221,8 @@ describe('COD Commission Integration Tests', () => {
             for (let i = 0; i < 5; i++) {
                 const orderId = `order-${Date.now()}-${Math.random()}`;
                 const orderResult = await pool.query(
-                    `INSERT INTO orders (
-                        id,
-                        customer_id, 
-                        driver_id, 
-                        total_amount,
-                        status
-                    ) VALUES ($1, $2, $3, 100, 'delivered')
-                    RETURNING id`,
+                    `INSERT INTO orders (id, customer_id, assigned_driver_user_id, price, status, order_number, title, description, pickup_address, delivery_address, from_lat, from_lng, to_lat, to_lng, customer_name)
+                     VALUES ($1::text, $2, $3, 100, 'delivered', 'ON-' || $1::text, 'Test Order', 'Test Description', '{"address": "Pickup"}', '{"address": "Delivery"}', 30.0, 31.0, 30.1, 31.1, 'Test Customer') RETURNING id`,
                     [orderId, testCustomerId, testDriverId]
                 );
 
@@ -255,14 +238,8 @@ describe('COD Commission Integration Tests', () => {
             for (let i = 0; i < 10; i++) {
                 const orderId = `order-${Date.now()}-${Math.random()}`;
                 const orderResult = await pool.query(
-                    `INSERT INTO orders (
-                        id,
-                        customer_id, 
-                        driver_id, 
-                        total_amount,
-                        status
-                    ) VALUES ($1, $2, $3, 100, 'delivered')
-                    RETURNING id`,
+                    `INSERT INTO orders (id, customer_id, assigned_driver_user_id, price, status, order_number, title, description, pickup_address, delivery_address, from_lat, from_lng, to_lat, to_lng, customer_name)
+                     VALUES ($1::text, $2, $3, 100, 'delivered', 'ON-' || $1::text, 'Test Order', 'Test Description', '{"address": "Pickup"}', '{"address": "Delivery"}', 30.0, 31.0, 30.1, 31.1, 'Test Customer') RETURNING id`,
                     [orderId, testCustomerId, testDriverId]
                 );
 
@@ -287,14 +264,8 @@ describe('COD Commission Integration Tests', () => {
             for (let i = 0; i < 13; i++) {
                 const orderId = `order-${Date.now()}-${Math.random()}`;
                 const orderResult = await pool.query(
-                    `INSERT INTO orders (
-                        id,
-                        customer_id, 
-                        driver_id, 
-                        total_amount,
-                        status
-                    ) VALUES ($1, $2, $3, 100, 'delivered')
-                    RETURNING id`,
+                    `INSERT INTO orders (id, customer_id, assigned_driver_user_id, price, status, order_number, title, description, pickup_address, delivery_address, from_lat, from_lng, to_lat, to_lng, customer_name)
+                     VALUES ($1::text, $2, $3, 100, 'delivered', 'ON-' || $1::text, 'Test Order', 'Test Description', '{"address": "Pickup"}', '{"address": "Delivery"}', 30.0, 31.0, 30.1, 31.1, 'Test Customer') RETURNING id`,
                     [orderId, testCustomerId, testDriverId]
                 );
 
@@ -314,13 +285,8 @@ describe('COD Commission Integration Tests', () => {
             // One more order to reach -200
             const orderId = `order-${Date.now()}-${Math.random()}`;
             const orderResult = await pool.query(
-                `INSERT INTO orders (
-                    id,
-                    customer_id, 
-                    driver_id, 
-                    total_amount,
-                    status
-                ) VALUES ($1, $2, $3, 66.67, 'delivered')
+                `INSERT INTO orders (id, customer_id, assigned_driver_user_id, price, status, order_number, title, description, pickup_address, delivery_address, from_lat, from_lng, to_lat, to_lng, customer_name)
+                 VALUES ($1::text, $2, $3, 66.67, 'delivered', 'ON-' || $1::text, 'Test Order', 'Test Description', '{"address": "Pickup"}', '{"address": "Delivery"}', 30.0, 31.0, 30.1, 31.1, 'Test Customer')
                 RETURNING id`,
                 [orderId, testCustomerId, testDriverId]
             );
@@ -340,14 +306,8 @@ describe('COD Commission Integration Tests', () => {
             for (let i = 0; i < 17; i++) {
                 const orderId = `order-${Date.now()}-${Math.random()}`;
                 const orderResult = await pool.query(
-                    `INSERT INTO orders (
-                        id,
-                        customer_id, 
-                        driver_id, 
-                        total_amount,
-                        status
-                    ) VALUES ($1, $2, $3, 100, 'delivered')
-                    RETURNING id`,
+                    `INSERT INTO orders (id, customer_id, assigned_driver_user_id, price, status, order_number, title, description, pickup_address, delivery_address, from_lat, from_lng, to_lat, to_lng, customer_name)
+                     VALUES ($1::text, $2, $3, 100, 'delivered', 'ON-' || $1::text, 'Test Order', 'Test Description', '{"address": "Pickup"}', '{"address": "Delivery"}', 30.0, 31.0, 30.1, 31.1, 'Test Customer') RETURNING id`,
                     [orderId, testCustomerId, testDriverId]
                 );
 
@@ -366,14 +326,8 @@ describe('COD Commission Integration Tests', () => {
             for (let i = 0; i < 20; i++) {
                 const orderId = `order-${Date.now()}-${Math.random()}`;
                 const orderResult = await pool.query(
-                    `INSERT INTO orders (
-                        id,
-                        customer_id, 
-                        driver_id, 
-                        total_amount,
-                        status
-                    ) VALUES ($1, $2, $3, 100, 'delivered')
-                    RETURNING id`,
+                    `INSERT INTO orders (id, customer_id, assigned_driver_user_id, price, status, order_number, title, description, pickup_address, delivery_address, from_lat, from_lng, to_lat, to_lng, customer_name)
+                     VALUES ($1::text, $2, $3, 100, 'delivered', 'ON-' || $1::text, 'Test Order', 'Test Description', '{"address": "Pickup"}', '{"address": "Delivery"}', 30.0, 31.0, 30.1, 31.1, 'Test Customer') RETURNING id`,
                     [orderId, testCustomerId, testDriverId]
                 );
 
@@ -402,14 +356,8 @@ describe('COD Commission Integration Tests', () => {
             for (let i = 0; i < 15; i++) {
                 const orderId = `order-${Date.now()}-${Math.random()}`;
                 const orderResult = await pool.query(
-                    `INSERT INTO orders (
-                        id,
-                        customer_id, 
-                        driver_id, 
-                        total_amount,
-                        status
-                    ) VALUES ($1, $2, $3, 100, 'delivered')
-                    RETURNING id`,
+                    `INSERT INTO orders (id, customer_id, assigned_driver_user_id, price, status, order_number, title, description, pickup_address, delivery_address, from_lat, from_lng, to_lat, to_lng, customer_name)
+                     VALUES ($1::text, $2, $3, 100, 'delivered', 'ON-' || $1::text, 'Test Order', 'Test Description', '{"address": "Pickup"}', '{"address": "Delivery"}', 30.0, 31.0, 30.1, 31.1, 'Test Customer') RETURNING id`,
                     [orderId, testCustomerId, testDriverId]
                 );
 
@@ -440,14 +388,8 @@ describe('COD Commission Integration Tests', () => {
             for (let i = 0; i < 7; i++) {
                 const orderId = `order-${Date.now()}-${Math.random()}`;
                 const orderResult = await pool.query(
-                    `INSERT INTO orders (
-                        id,
-                        customer_id, 
-                        driver_id, 
-                        total_amount,
-                        status
-                    ) VALUES ($1, $2, $3, 100, 'delivered')
-                    RETURNING id`,
+                    `INSERT INTO orders (id, customer_id, assigned_driver_user_id, price, status, order_number, title, description, pickup_address, delivery_address, from_lat, from_lng, to_lat, to_lng, customer_name)
+                     VALUES ($1::text, $2, $3, 100, 'delivered', 'ON-' || $1::text, 'Test Order', 'Test Description', '{"address": "Pickup"}', '{"address": "Delivery"}', 30.0, 31.0, 30.1, 31.1, 'Test Customer') RETURNING id`,
                     [orderId, testCustomerId, testDriverId]
                 );
 
@@ -479,13 +421,8 @@ describe('COD Commission Integration Tests', () => {
         it('should handle very small commission amounts', async () => {
             const orderId = `order-${Date.now()}-${Math.random()}`;
             const orderResult = await pool.query(
-                `INSERT INTO orders (
-                    id,
-                    customer_id, 
-                    driver_id, 
-                    total_amount,
-                    status
-                ) VALUES ($1, $2, $3, 10, 'delivered')
+                `INSERT INTO orders (id, customer_id, assigned_driver_user_id, price, status, order_number, title, description, pickup_address, delivery_address, from_lat, from_lng, to_lat, to_lng, customer_name)
+                 VALUES ($1::text, $2, $3, 10, 'delivered', 'ON-' || $1::text, 'Test Order', 'Test Description', '{"address": "Pickup"}', '{"address": "Delivery"}', 30.0, 31.0, 30.1, 31.1, 'Test Customer')
                 RETURNING id`,
                 [orderId, testCustomerId, testDriverId]
             );
@@ -499,13 +436,8 @@ describe('COD Commission Integration Tests', () => {
         it('should handle large commission amounts', async () => {
             const orderId = `order-${Date.now()}-${Math.random()}`;
             const orderResult = await pool.query(
-                `INSERT INTO orders (
-                    id,
-                    customer_id, 
-                    driver_id, 
-                    total_amount,
-                    status
-                ) VALUES ($1, $2, $3, 1000, 'delivered')
+                `INSERT INTO orders (id, customer_id, assigned_driver_user_id, price, status, order_number, title, description, pickup_address, delivery_address, from_lat, from_lng, to_lat, to_lng, customer_name)
+                 VALUES ($1::text, $2, $3, 1000, 'delivered', 'ON-' || $1::text, 'Test Order', 'Test Description', '{"address": "Pickup"}', '{"address": "Delivery"}', 30.0, 31.0, 30.1, 31.1, 'Test Customer')
                 RETURNING id`,
                 [orderId, testCustomerId, testDriverId]
             );
@@ -529,21 +461,21 @@ describe('COD Commission Integration Tests', () => {
 
             const order1Id = `order-${Date.now()}-1`;
             const order1 = await pool.query(
-                `INSERT INTO orders (id, customer_id, driver_id, total_amount, status)
-                 VALUES ($1, $2, $3, 100, 'delivered') RETURNING id`,
+                `INSERT INTO orders(id, customer_id, assigned_driver_user_id, price, status, order_number, title, description, pickup_address, delivery_address, from_lat, from_lng, to_lat, to_lng, customer_name)
+                     VALUES ($1::text, $2, $3, 100, 'delivered', 'ON-' || $1::text, 'Test Order', 'Test Description', '{"address": "Pickup"}', '{"address": "Delivery"}', 30.0, 31.0, 30.1, 31.1, 'Test Customer') RETURNING id`,
                 [order1Id, testCustomerId, testDriverId]
             );
             await balanceService.deductCommission(testDriverId, order1.rows[0].id, 15);
 
             const order2Id = `order-${Date.now()}-2`;
             const order2 = await pool.query(
-                `INSERT INTO orders (id, customer_id, driver_id, total_amount, status)
-                 VALUES ($1, $2, $3, 100, 'delivered') RETURNING id`,
+                `INSERT INTO orders(id, customer_id, assigned_driver_user_id, price, status, order_number, title, description, pickup_address, delivery_address, from_lat, from_lng, to_lat, to_lng, customer_name)
+                     VALUES ($1::text, $2, $3, 100, 'delivered', 'ON-' || $1::text, 'Test Order', 'Test Description', '{"address": "Pickup"}', '{"address": "Delivery"}', 30.0, 31.0, 30.1, 31.1, 'Test Customer') RETURNING id`,
                 [order2Id, testCustomerId, testDriverId]
             );
             await balanceService.deductCommission(testDriverId, order2.rows[0].id, 15);
 
-            const transactions = await balanceService.getTransactionHistory({
+            const { transactions } = await balanceService.getTransactionHistory({
                 userId: testDriverId
             });
 
@@ -573,8 +505,8 @@ describe('COD Commission Integration Tests', () => {
             for (const amount of orderAmounts) {
                 const orderId = `order-${Date.now()}-${Math.random()}`;
                 const orderResult = await pool.query(
-                    `INSERT INTO orders (id, customer_id, driver_id, total_amount, status)
-                     VALUES ($1, $2, $3, $4, 'delivered') RETURNING id`,
+                    `INSERT INTO orders(id, customer_id, assigned_driver_user_id, price, status, order_number, title, description, pickup_address, delivery_address, from_lat, from_lng, to_lat, to_lng, customer_name)
+                     VALUES ($1::text, $2, $3, $4, 'delivered', 'ON-' || $1::text, 'Test Order', 'Test Description', '{"address": "Pickup"}', '{"address": "Delivery"}', 30.0, 31.0, 30.1, 31.1, 'Test Customer') RETURNING id`,
                     [orderId, testCustomerId, testDriverId, amount]
                 );
 
@@ -599,8 +531,8 @@ describe('COD Commission Integration Tests', () => {
             for (let i = 0; i < 14; i++) {
                 const orderId = `order-${Date.now()}-${Math.random()}`;
                 const orderResult = await pool.query(
-                    `INSERT INTO orders (id, customer_id, driver_id, total_amount, status)
-                     VALUES ($1, $2, $3, 100, 'delivered') RETURNING id`,
+                    `INSERT INTO orders (id, customer_id, assigned_driver_user_id, price, status, order_number, title, description, pickup_address, delivery_address, from_lat, from_lng, to_lat, to_lng, customer_name)
+                     VALUES ($1::text, $2, $3, 100, 'delivered', 'ON-' || $1::text, 'Test Order', 'Test Description', '{"address": "Pickup"}', '{"address": "Delivery"}', 30.0, 31.0, 30.1, 31.1, 'Test Customer') RETURNING id`,
                     [orderId, testCustomerId, testDriverId]
                 );
                 await balanceService.deductCommission(testDriverId, orderResult.rows[0].id, 15);
@@ -629,8 +561,8 @@ describe('COD Commission Integration Tests', () => {
             for (let i = 0; i < 3; i++) {
                 const orderId = `order-${Date.now()}-${Math.random()}`;
                 const orderResult = await pool.query(
-                    `INSERT INTO orders (id, customer_id, driver_id, total_amount, status)
-                     VALUES ($1, $2, $3, 100, 'delivered') RETURNING id`,
+                    `INSERT INTO orders (id, customer_id, assigned_driver_user_id, price, status, order_number, title, description, pickup_address, delivery_address, from_lat, from_lng, to_lat, to_lng, customer_name)
+                     VALUES ($1::text, $2, $3, 100, 'delivered', 'ON-' || $1::text, 'Test Order', 'Test Description', '{"address": "Pickup"}', '{"address": "Delivery"}', 30.0, 31.0, 30.1, 31.1, 'Test Customer') RETURNING id`,
                     [orderId, testCustomerId, testDriverId]
                 );
                 await balanceService.deductCommission(testDriverId, orderResult.rows[0].id, 15);

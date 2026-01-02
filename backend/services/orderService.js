@@ -38,7 +38,7 @@ class OrderService {
    */
   sanitizeString(str, maxLength = 1000) {
     if (typeof str !== 'string') return '';
-    return str.trim().substring(0, maxLength).replace(/[<>\"'&]/g, '');
+    return str.trim().substring(0, maxLength).replace(/[<>"'&]/g, '');
   }
 
   /**
@@ -637,6 +637,10 @@ END as acceptedBid
     if (!orderData.pickupLocation?.coordinates || !orderData.dropoffLocation?.coordinates) {
       throw new Error('Please set pickup and delivery locations on the map or fill address fields (minimum country and city) to generate coordinates.');
     }
+
+    // Set coordinates for DB (Format: "lat,lng")
+    fromCoordinates = `${orderData.pickupLocation.coordinates.lat},${orderData.pickupLocation.coordinates.lng}`;
+    toCoordinates = `${orderData.dropoffLocation.coordinates.lat},${orderData.dropoffLocation.coordinates.lng}`;
 
     // Build addresses from manual entry data if available
     const pa = orderData.pickupAddress;
