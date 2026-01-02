@@ -154,9 +154,16 @@ while true; do
             log "🎉 Full Deployment Sequence Finished."
         fi
     else
-        # Heartbeat log (optional: uncomment to verify service is alive in logs)
-        log "No changes ($LOCAL). Waiting..."
-        :
+        # Heartbeat with system health stats
+        MEM_TOTAL=$(free -m | awk '/Mem:/ {print $2}')
+        MEM_USED=$(free -m | awk '/Mem:/ {print $3}')
+        MEM_PCT=$(free -m | awk '/Mem:/ {printf "%.0f", $3/$2*100}')
+        MEM_FREE=$(free -m | awk '/Mem:/ {print $7}')  # Available memory
+        PM2_STATUS=$(pm2 jlist 2>/dev/null | jq -r '.[0].pm2_env.status // "unknown"' 2>/dev/null || echo "unknown")
+        PM2_MEM=$(pm2 jlist 2>/dev/null | jq -r '.[0].monit.memory // 0' 2>/dev/null | awk '{printf "%.0f", $1/1024/1024}')
+        UPTIME_STR=$(uptime -p 2>/dev/null | sed 's/up //' || echo "N/A")
+        
+        log "⏳ No changes | Mem: ${MEM_PCT}% (${MEM_FREE}MB avail) | Backend: ${PM2_STATUS} (${PM2_MEM}MB) | Up: ${UPTIME_STR}"
     fi
 
     # Wait before next check
