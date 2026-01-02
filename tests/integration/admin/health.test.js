@@ -173,7 +173,7 @@ describe('Admin Routes - System Health', () => {
             expect(response.body.hours).toBe(72);
             // Verify query utilized the hours parameter
             const queryCall = mockQuery.mock.calls[0];
-            expect(queryCall[0]).toContain(`INTERVAL \'72 hours\'`); // Check SQL string construction
+            expect(queryCall[0]).toContain(`INTERVAL '72 hours'`); // Check SQL string construction
         });
     });
 });
