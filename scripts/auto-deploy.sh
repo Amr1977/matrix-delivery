@@ -104,7 +104,9 @@ while true; do
 
             # Reload Services (Zero Downtime)
             log "Reloading backend via PM2..."
-            exec_cmd pm2 reload all
+            # CRITICAL: Do NOT run 'pm2 reload all' if this script is managed by PM2!
+            # It will kill itself. Reload specific app only.
+            exec_cmd pm2 reload matrix-delivery-backend || exec_cmd pm2 reload all
 
             # ---------------------------
             # 3. Frontend Deployment
