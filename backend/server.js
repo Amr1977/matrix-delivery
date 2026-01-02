@@ -11,6 +11,8 @@ const app = require('./app');
 //TODO use https ⚠️
 const http = require('http');
 const socketIo = require('socket.io');
+const { createAdapter } = require('@socket.io/redis-adapter');
+const Redis = require('ioredis');
 const logger = require('./config/logger');
 const pool = require('./config/db');
 const { getNotificationService } = require('./services/notificationService');
@@ -54,6 +56,46 @@ const io = socketIo(httpServer, {
   allowEIO3: true, // Support older Socket.IO clients
   path: '/socket.io/'
 });
+
+// ============================================================================
+// SOCKET.IO REDIS ADAPTER FOR PM2 CLUSTER MODE
+// This enables session sharing across multiple PM2 instances
+// ============================================================================
+if (process.env.REDIS_URL && !IS_TEST) {
+  try {
+    // Create pub/sub clients for Socket.IO adapter
+    // These are separate from the main Redis client used for caching/blacklist
+    const pubClient = new Redis(process.env.REDIS_URL, {
+      maxRetriesPerRequest: 3,
+      enableReadyCheck: false,
+      lazyConnect: true
+    });
+    const subClient = pubClient.duplicate();
+
+    // Connect both clients
+    Promise.all([pubClient.connect(), subClient.connect()])
+      .then(() => {
+        io.adapter(createAdapter(pubClient, subClient));
+        logger.info('✅ Socket.IO Redis adapter connected - cluster mode enabled');
+      })
+      .catch((err) => {
+        logger.error('❌ Socket.IO Redis adapter connection failed:', err.message);
+        logger.warn('⚠️ Falling back to in-memory adapter (single instance only)');
+      });
+
+    // Handle adapter client errors
+    pubClient.on('error', (err) => {
+      logger.error('Socket.IO Redis pub client error:', err.message);
+    });
+    subClient.on('error', (err) => {
+      logger.error('Socket.IO Redis sub client error:', err.message);
+    });
+  } catch (err) {
+    logger.error('❌ Failed to setup Socket.IO Redis adapter:', err.message);
+  }
+} else if (!IS_TEST) {
+  logger.info('ℹ️ Socket.IO using in-memory adapter (single instance mode)');
+}
 
 // Configure Socket.IO
 // Configure Socket.IO
