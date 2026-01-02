@@ -5,7 +5,11 @@
         "moduleResolution": "node",
         "esModuleInterop": true,
         "allowJs": true,
-        "noImplicitAny": false
+        "noImplicitAny": false,
+        "types": [
+            "node",
+            "jest"
+        ]
     },
     "ts-node": {
         "transpileOnly": true,

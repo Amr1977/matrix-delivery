@@ -597,33 +597,26 @@ END as acceptedBid
    * Create a new order
    */
   async createOrder(orderData, customerId, customerName) {
-    console.log('🛠️ ORDER SERVICE - RECEIVED ORDER CREATION REQUEST');
-    console.log('🛠️ ORDER SERVICE - RAW ORDER DATA RECEIVED:', JSON.stringify(orderData, null, 2));
-    console.log('🛠️ ORDER SERVICE - CUSTOMER ID:', customerId);
+    if (process.env.LOG_LEVEL === 'debug') {
+      logger.debug('Order creation request', {
+        customerId,
+        hasTitle: !!orderData.title,
+        hasPrice: !!orderData.price,
+        category: 'order_creation'
+      });
+    }
 
-    // Extract main order details for validation - directly from root level (fixed structure)
+    // Extract main order details for validation
     let title = orderData.title;
     let price = parseFloat(orderData.price);
-    console.log('🛠️ ORDER SERVICE - RECEIVED DATA STRUCTURE:', {
-      hasTitle: !!orderData.title,
-      hasPrice: !!orderData.price,
-      hasPickupAddress: !!orderData.pickupAddress,
-      hasDropoffAddress: !!orderData.dropoffAddress,
-      showManualEntry: orderData.showManualEntry,
-      hasPickupLocation: !!orderData.pickupLocation,
-      hasDropoffLocation: !!orderData.dropoffLocation
-    });
 
     // Basic validation for title and price
     if (!title || !title.trim()) {
-      console.log('🛠️ ORDER SERVICE - THROWING: Order title is required');
       throw new Error('Order title is required');
     }
     if (!price || parseFloat(price) <= 0) {
-      console.log('🛠️ ORDER SERVICE - THROWING: Order price must be greater than 0');
       throw new Error('Order price must be greater than 0');
     }
-    console.log('🛠️ ORDER SERVICE - VALIDATION PASSED');
 
     const orderId = this.generateId();
     const orderNumber = `ORD - ${Date.now()} `;
@@ -631,27 +624,14 @@ END as acceptedBid
     let description, pickupLocation, dropoffLocation, package_description, package_weight, estimated_value, special_instructions;
     let pickupAddress, deliveryAddress, fromCoordinates, toCoordinates;
 
-    console.log('🛠️ ORDER SERVICE - ORDER DATA STRUCTURE ANALYSIS:', {
-      hasOrderData: !!orderData.orderData,
-      hasShowManualEntry: orderData.showManualEntry !== undefined,
-      hasPickupAddress: !!orderData.pickupAddress,
-      hasDropoffAddress: !!orderData.dropoffAddress,
-      hasPickupLocation: !!orderData.pickupLocation,
-      hasDropoffLocation: !!orderData.dropoffLocation
-    });
-
     // Extract additional order fields directly from root level (fixed structure)
     description = orderData.description;
     package_description = orderData.package_description;
     package_weight = orderData.package_weight ? parseFloat(orderData.package_weight) : null;
     estimated_value = orderData.estimated_value ? parseFloat(orderData.estimated_value) : null;
-    estimated_value = orderData.estimated_value ? parseFloat(orderData.estimated_value) : null;
+    // Remove duplicate estimated_value assignment if present
     special_instructions = orderData.special_instructions;
     const estimated_delivery_date = orderData.estimated_delivery_date;
-
-    console.log('🛠️ ORDER SERVICE - EXTRACTED ALL FIELDS:', {
-      title, price, description, package_description, special_instructions
-    });
 
     // Validate that coordinates are set (primary requirement)
     if (!orderData.pickupLocation?.coordinates || !orderData.dropoffLocation?.coordinates) {
@@ -680,12 +660,6 @@ END as acceptedBid
     const dropoffContactName = da?.personName || null;
     const dropoffContactPhone = da?.personPhone || null;
 
-    console.log('🛠️ ORDER SERVICE - BUILT ADDRESSES:', { pickupAddress, deliveryAddress });
-
-    // Set coordinates from map location (guaranteed to exist from validation above)
-    fromCoordinates = `${orderData.pickupLocation.coordinates.lat},${orderData.pickupLocation.coordinates.lng} `;
-    toCoordinates = `${orderData.dropoffLocation.coordinates.lat},${orderData.dropoffLocation.coordinates.lng} `;
-
     const queryText = `INSERT INTO orders(
   id, customer_id, title, description, pickup_address, delivery_address,
   from_lat, from_lng, to_lat, to_lng, from_coordinates, to_coordinates,
@@ -695,8 +669,6 @@ END as acceptedBid
   created_at, customer_name, estimated_delivery_date
 ) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, NOW(), $26, $27)
 RETURNING * `;
-
-    console.log('🔍 EXECUTING ORDER INSERT:', queryText);
 
     const result = await pool.query(queryText,
       [
