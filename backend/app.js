@@ -132,6 +132,9 @@ app.use('/api/heartbeat', heartbeatAuth, heartbeatRouter);
 // Load health check
 app.use('/api/health', require('./routes/health'));
 
+// Load system health monitoring (admin only)
+app.use('/api/admin/health', require('./routes/systemHealth'));
+
 let HAS_POSTGIS = false;
 
 const JWT_SECRET = process.env.JWT_SECRET;
