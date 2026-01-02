@@ -31,18 +31,16 @@ class AuthService {
    * Generate JWT token
    */
   generateToken(user) {
-    const primaryRole = user.primary_role;
-    const grantedRoles = user.granted_roles || (primaryRole ? [primaryRole] : []);
+    const primary_role = user.primary_role;
+    const granted_roles = user.granted_roles || (primary_role ? [primary_role] : []);
 
     return jwt.sign(
       {
         userId: user.id,
         email: user.email,
         name: user.name,
-        primary_role: primaryRole, // Backward compatibility
-        primary_role: primaryRole,
-        granted_roles: grantedRoles, // Backward compatibility
-        granted_roles: grantedRoles
+        primary_role: primary_role,
+        granted_roles: granted_roles // Standardize on snake_case for token consistency
       },
       JWT_SECRET,
       {
@@ -229,7 +227,7 @@ class AuthService {
     // Initialize user balance
     try {
       await pool.query(
-        "INSERT INTO user_balances (user_id, currency, available_balance, pending_balance, held_balance) VALUES ($1, 'EGP', 0, 0, 0) ON CONFLICT (user_id) DO NOTHING",
+        'INSERT INTO user_balances (user_id, currency, available_balance, pending_balance, held_balance) VALUES ($1, \'EGP\', 0, 0, 0) ON CONFLICT (user_id) DO NOTHING',
         [user.id]
       );
       logger.info(`Initialized balance for new user ${user.id}`);
@@ -328,8 +326,7 @@ class AuthService {
       name: user.name,
       email: user.email,
       phone: user.phone,
-      primary_role: user.primary_role || user.primary_role,
-      primary_role: user.primary_role || user.primary_role,
+      primary_role: user.primary_role,
       granted_roles: user.granted_roles || (user.primary_role ? [user.primary_role] : []),
       language: user.language,
       theme: user.theme,
@@ -338,8 +335,8 @@ class AuthService {
       service_area_zone: user.service_area_zone,
       profile_picture_url: user.profile_picture_url,
       rating: parseFloat(user.rating),
-      completed_deliveries: user.completed_deliveries,
-      completedDeliveries: user.completed_deliveries,
+      completed_deliveries: user.completed_deliveries, // Standardize on snake_case
+      completedDeliveries: user.completed_deliveries, // camelCase for frontend compat
       is_verified: user.is_verified,
       country: user.country,
       city: user.city,

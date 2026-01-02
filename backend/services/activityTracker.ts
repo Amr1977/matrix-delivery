@@ -67,7 +67,10 @@ class ActivityTracker {
      */
     public async commitToDatabase(): Promise<void> {
         if (!this.pool) {
-            console.error('❌ ActivityTracker: Database pool not initialized');
+            // Pool not ready yet, keep in cache and retry later once initialized
+            if (process.env.LOG_LEVEL === 'debug') {
+                console.debug('⚠️ ActivityTracker: Database pool not initialized (skipping commit)');
+            }
             return;
         }
 
