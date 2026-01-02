@@ -145,10 +145,15 @@ function Deploy-Backend {
         ssh -p $VPS_PORT "${VPS_USER}@${VPS_HOST}" "cd $VPS_PATH && git pull origin master"
         Write-Success "Code pulled"
         
-        # Install dependencies
+        # Install dependencies (include devDependencies for tsc)
         Write-Info "Installing dependencies..."
-        ssh -p $VPS_PORT "${VPS_USER}@${VPS_HOST}" "cd $VPS_PATH/backend && npm ci --production"
+        ssh -p $VPS_PORT "${VPS_USER}@${VPS_HOST}" "cd $VPS_PATH/backend && npm ci"
         Write-Success "Dependencies installed"
+
+        # Compile TypeScript
+        Write-Info "Compiling Backend TypeScript..."
+        ssh -p $VPS_PORT "${VPS_USER}@${VPS_HOST}" "cd $VPS_PATH/backend && npx tsc --outDir ."
+        Write-Success "Backend compiled"
         
         # Reload PM2
         Write-Info "Reloading PM2 services..."
