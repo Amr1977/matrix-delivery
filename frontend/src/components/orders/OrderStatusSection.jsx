@@ -36,7 +36,12 @@ const OrderStatusSection = ({
                         {order.bids.map((bid, index) => {
                             // Helper function to get avatar
                             const getDriverAvatar = () => {
+                                const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
                                 if (bid.driverProfilePicture) {
+                                    // Handle relative paths (e.g. /uploads/...)
+                                    if (bid.driverProfilePicture.startsWith('/')) {
+                                        return `${API_URL.replace('/api', '')}${bid.driverProfilePicture}`;
+                                    }
                                     return bid.driverProfilePicture;
                                 }
                                 return bid.driverGender === 'female'
