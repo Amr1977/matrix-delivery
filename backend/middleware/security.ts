@@ -30,6 +30,8 @@ export const helmetConfig = helmet({
             upgradeInsecureRequests: IS_PRODUCTION ? [] : null
         }
     },
+    // Allow cross-origin loading of images/media (for Firebase frontend loading from API)
+    crossOriginResourcePolicy: { policy: "cross-origin" },
     strictTransportSecurity: {
         maxAge: 31536000, // 1 year
         includeSubDomains: true,
