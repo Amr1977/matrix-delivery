@@ -100,7 +100,7 @@ const ProfilePage = ({
                     <div style={{ position: 'relative' }}>
                         <div style={{ width: '100px', height: '100px', borderRadius: '50%', overflow: 'hidden', border: '4px solid var(--matrix-bright-green, #10B981)', background: '#1F2937' }}>
                             {profileData.profile_picture_url ? (
-                                <img src={profileData.profile_picture_url} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                <img src={profileData.profile_picture_url.startsWith('/') ? `${API_URL.replace('/api', '')}${profileData.profile_picture_url}` : profileData.profile_picture_url} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             ) : (
                                 <img
                                     src={profileData.gender === 'female'
