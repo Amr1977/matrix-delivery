@@ -38,6 +38,10 @@ const OrdersMap = ({
   onSelectOrder,
   theme = 'dark'
 }) => {
+  // Get API base URL from environment, strip /api suffix for tile endpoint
+  const API_BASE = (process.env.REACT_APP_API_URL || 'http://localhost:5000/api').replace('/api', '');
+  const tileUrl = `${API_BASE}/api/maps/tiles/{z}/{x}/{y}.png`;
+
   // Check for fake location first (development/testing feature)
   const getActiveLocation = () => {
     try {
@@ -57,8 +61,6 @@ const OrdersMap = ({
   const activeLocation = getActiveLocation();
   const hasDriver = activeLocation && Number.isFinite(activeLocation.latitude) && Number.isFinite(activeLocation.longitude);
   const center = hasDriver ? [activeLocation.latitude, activeLocation.longitude] : [30.0444, 31.2357];
-
-  const tileUrl = "http://localhost:5000/api/maps/tiles/{z}/{x}/{y}.png";
 
   const zoom = hasDriver ? 15 : 13;
 
