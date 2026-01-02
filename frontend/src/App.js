@@ -1376,6 +1376,7 @@ export const MainApp = () => {
         setShowSettings(true);
         break;
       case 'admin':
+      case 'admin_panel':
         setShowAdminPanel(true);
         break;
       case 'earnings':
@@ -2711,7 +2712,9 @@ export const MainApp = () => {
 
       {
         showAdminPanel && (currentUser?.primary_role === 'admin' || availableRoles.includes('admin')) && (
-          <AdminPanel onClose={() => setShowAdminPanel(false)} />
+          <div style={{ position: 'fixed', inset: 0, background: 'var(--matrix-bg, #0a0a0a)', zIndex: 2000, overflowY: 'auto' }}>
+            <AdminPanel onClose={() => setShowAdminPanel(false)} />
+          </div>
         )
       }
 
