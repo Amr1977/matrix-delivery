@@ -5,8 +5,8 @@ module.exports = {
     name: 'matrix-delivery-backend',
     script: './server.js',
     cwd: __dirname,
-    instances: os.platform() === 'win32' ? 1 : 2, // 1 instance on Windows (fork), 2 on Linux (cluster)
-    exec_mode: os.platform() === 'win32' ? 'fork' : 'cluster',
+    instances: 2, // Using cluster mode with Redis adapter for session sharing
+    exec_mode: 'cluster', // Cluster mode enabled - Redis adapter handles sticky sessions
     env: {
       NODE_ENV: 'production',
       PORT: 5000,
