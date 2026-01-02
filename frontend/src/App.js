@@ -656,7 +656,7 @@ export const MainApp = () => {
     // Don't send token in auth - use httpOnly cookie instead
     const socket = io(apiUrl, {
       withCredentials: true, // CRITICAL: Send cookies with Socket.IO requests
-      transports: ['polling', 'websocket'],
+      transports: ['websocket'], // CRITICAL: Use WebSocket only to avoid PM2 cluster sticky session issues
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
