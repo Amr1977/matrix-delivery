@@ -17,6 +17,36 @@ jest.mock('../../../backend/middleware/auth', () => ({
     requireRole: () => (req, res, next) => next(),
     requireAdmin: (req, res, next) => next()
 }));
+jest.mock('../../../backend/database/startup.js', () => ({
+    initDatabase: jest.fn(),
+    createAdminTables: jest.fn()
+}));
+jest.mock('../../../backend/services/socketService.ts', () => ({
+    initializeSocket: jest.fn(),
+    io: { emit: jest.fn() }
+}), { virtual: true });
+jest.mock('../../../backend/services/activityTracker.ts', () => ({
+    activityTracker: {
+        initialize: jest.fn(),
+        trackActivity: jest.fn(),
+        startPeriodicCommit: jest.fn()
+    }
+}), { virtual: true });
+jest.mock('../../../backend/migrationRunner.ts', () => ({
+    runMigrationsOnStartup: jest.fn().mockResolvedValue({ applied: 0, skipped: 0 })
+}), { virtual: true });
+jest.mock('../../../backend/database/init.ts', () => ({
+    initializeDatabase: jest.fn().mockResolvedValue({ success: true, errors: [] })
+}), { virtual: true });
+jest.mock('../../../backend/routes/vendors', () => {
+    const mockRouter = () => { };
+    mockRouter.get = jest.fn();
+    mockRouter.post = jest.fn();
+    mockRouter.put = jest.fn();
+    mockRouter.delete = jest.fn();
+    mockRouter.use = jest.fn();
+    return mockRouter;
+}, { virtual: true });
 
 // Mock process.memoryUsage for consistent results
 const originalMemoryUsage = process.memoryUsage;

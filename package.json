@@ -55,6 +55,10 @@
       "<rootDir>/tests/**/*.test.js",
       "<rootDir>/tests/**/*.spec.js"
     ],
+    "transform": {
+      "^.+\\.(ts|tsx)$": "ts-jest",
+      "^.+\\.(js|jsx)$": "babel-jest"
+    },
     "collectCoverageFrom": [
       "**/*.{js,jsx}",
       "!**/node_modules/**",
@@ -80,6 +84,7 @@
     "@cucumber/cucumber": "^12.2.0",
     "@playwright/test": "^1.56.1",
     "@types/bcryptjs": "^2.4.6",
+    "@types/jest": "^30.0.0",
     "@types/node": "^25.0.3",
     "axios": "^1.13.2",
     "bcryptjs": "^3.0.3",
