@@ -466,20 +466,17 @@ END as acceptedBid
       `;
     }
 
-    console.log('🔍 EXECUTING QUERY:');
-    console.log('User primary_role:', userRole);
-    console.log('Query:', query);
-    console.log('Params:', params);
-    console.log('Location conditions applied:', !!locationConditions);
-    if (userRole === 'driver') {
-      console.log('Driver location from params:', { lng: params[1], lat: params[2] });
-      console.log('Using PostGIS:', usePostGIS);
+    // Debug logging - only in debug mode to avoid memory overhead in production
+    if (process.env.LOG_LEVEL === 'debug') {
+      logger.debug('Executing orders query', {
+        userRole,
+        paramsCount: params.length,
+        hasLocationConditions: !!locationConditions,
+        category: 'orders'
+      });
     }
-    console.log('Filter object:', filters);
 
     const result = await pool.query(query, params);
-
-    console.log('📊 Query returned', result.rows.length, 'orders');
 
     let ordersToReturn = result.rows;
 

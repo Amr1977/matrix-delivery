@@ -13,9 +13,16 @@ if (process.env.REDIS_URL) {
     });
 
     redisClient = new Redis(process.env.REDIS_URL, {
-        maxRetriesPerRequest: null,
+        maxRetriesPerRequest: 3,  // Limit retries per request to prevent indefinite queueing
         enableReadyCheck: false,
+        // Limit command queue to prevent memory buildup during outages
+        maxLoadingRetryTime: 10000,
         retryStrategy(times) {
+            // Stop retrying after 20 attempts (~40 seconds)
+            if (times > 20) {
+                logger.error('Redis: max reconnection attempts reached, giving up');
+                return null; // Stop retrying
+            }
             const delay = Math.min(times * 50, 2000);
             return delay;
         },

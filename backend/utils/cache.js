@@ -4,6 +4,11 @@
 
 const { LOCATION_CACHE_TTLS } = require('../config/constants');
 
+// Cache configuration - prevent unbounded memory growth
+const MAX_CACHE_ENTRIES_PER_BUCKET = 500;
+const CLEANUP_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+let cleanupIntervalId = null;
+
 // In-memory cache structure
 const locationMemoryCache = {
     countries: { data: null, expiresAt: 0 },
@@ -115,6 +120,64 @@ const persistCache = async (pool, cacheKey, payload, ttlMs) => {
     }
 };
 
+/**
+ * Cleanup expired entries and enforce size limits
+ * Prevents unbounded memory growth in location caches
+ * @returns {number} Number of entries cleaned
+ */
+const cleanupCache = () => {
+    const now = Date.now();
+    let cleaned = 0;
+
+    const buckets = [
+        locationMemoryCache.cities,
+        locationMemoryCache.areas,
+        locationMemoryCache.streets
+    ];
+
+    for (const bucket of buckets) {
+        // Remove expired entries
+        for (const [key, entry] of bucket) {
+            if (entry.expiresAt <= now) {
+                bucket.delete(key);
+                cleaned++;
+            }
+        }
+
+        // Enforce max size (evict oldest entries if over limit)
+        while (bucket.size > MAX_CACHE_ENTRIES_PER_BUCKET) {
+            const firstKey = bucket.keys().next().value;
+            bucket.delete(firstKey);
+            cleaned++;
+        }
+    }
+
+    return cleaned;
+};
+
+/**
+ * Start periodic cache cleanup
+ * Should be called on server startup
+ */
+const startCacheCleanup = () => {
+    if (cleanupIntervalId) return;
+    cleanupIntervalId = setInterval(cleanupCache, CLEANUP_INTERVAL_MS);
+    // Prevent interval from keeping process alive during shutdown
+    if (cleanupIntervalId.unref) {
+        cleanupIntervalId.unref();
+    }
+};
+
+/**
+ * Stop cache cleanup (for graceful shutdown)
+ */
+const stopCacheCleanup = () => {
+    if (cleanupIntervalId) {
+        clearInterval(cleanupIntervalId);
+        cleanupIntervalId = null;
+    }
+};
+
 module.exports = {
     locationMemoryCache,
     getCountriesFromCache,
@@ -122,5 +185,8 @@ module.exports = {
     getListFromMemory,
     setListInMemory,
     getPersistedCache,
-    persistCache
+    persistCache,
+    cleanupCache,
+    startCacheCleanup,
+    stopCacheCleanup
 };
