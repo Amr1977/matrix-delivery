@@ -53,7 +53,10 @@
     "testTimeout": 30000,
     "testMatch": [
       "<rootDir>/tests/**/*.test.js",
-      "<rootDir>/tests/**/*.spec.js"
+      "<rootDir>/tests/**/*.start.js",
+      "<rootDir>/tests/**/*.spec.js",
+      "<rootDir>/tests/**/*.test.ts",
+      "<rootDir>/tests/**/*.spec.ts"
     ],
     "transform": {
       "^.+\\.(ts|tsx)$": "ts-jest",
