@@ -52,10 +52,10 @@ const createLimiter = (options, prefix = 'rl:') => {
 };
 
 // General API Rate Limit
-// 100 requests per 15 minutes
+// 300 requests per 15 minutes (approx 1 req every 3 seconds)
 const apiRateLimit = createLimiter({
   windowMs: 15 * 60 * 1000,
-  limit: 100, // Changed from max to limit (v7)
+  limit: 300, // Increased from 100 to 300 to prevent 429s during normal use
   message: 'Too many requests, please try again later'
 }, 'rl:api:');
 

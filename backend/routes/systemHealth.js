@@ -52,6 +52,20 @@ const getSystemMetrics = () => {
         let pm2Processes = [];
 
         try {
+            // Check if pm2 is installed first to avoid ugly errors in dev
+            try {
+                execSync('pm2 -v', { stdio: 'ignore' });
+            } catch (ignore) {
+                // PM2 not installed, return empty
+                return {
+                    memoryPercent,
+                    memoryUsedMb,
+                    memoryAvailableMb,
+                    pm2TotalMemoryMb: 0,
+                    pm2Processes: []
+                };
+            }
+
             const pm2Output = execSync('pm2 jlist', { encoding: 'utf8', timeout: 5000 });
             const pm2Data = JSON.parse(pm2Output);
             pm2Processes = pm2Data.map(p => ({
@@ -62,7 +76,7 @@ const getSystemMetrics = () => {
             }));
             pm2TotalMemoryMb = pm2Processes.reduce((sum, p) => sum + p.memory_mb, 0);
         } catch (e) {
-            logger.warn('Could not get PM2 info:', e.message);
+            // Silent fail for PM2 issues
         }
 
         return {
