@@ -95,6 +95,11 @@ while true; do
                  log "⚠️ Backend npm issues. Proceeding carefully..."
             fi
             
+            log "Compiling Backend TypeScript..."
+            # Force output to current directory to ensure node server.js picks up changes
+            # (Overrides tsconfig.json outDir: ./dist)
+            exec_cmd npx tsc --outDir .
+            
             cd .. # Return to root
 
             # Reload Services (Zero Downtime)
