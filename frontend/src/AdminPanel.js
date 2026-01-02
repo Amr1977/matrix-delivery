@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import usePageVisibility from './hooks/usePageVisibility';
 import LogsViewer from './components/admin/LogsViewer';
+import SystemHealthDashboard from './components/admin/SystemHealthDashboard';
 
 const AdminPanel = ({ onClose }) => {
   const API_URL = process.env.REACT_APP_API_URL;
@@ -42,7 +43,7 @@ const AdminPanel = ({ onClose }) => {
       const roleParam = filterRole === 'all' ? '' : filterRole;
       const [statsRes, usersRes, ordersRes, verifiedCountRes] = await Promise.all([
         fetch(`${API_URL}/admin/stats?range=${dateRange}`, { credentials: 'include' }),
-        fetch(`${API_URL}/admin/users?page=${usersPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchQuery)}${roleParam ? '&primary_role=' + roleParam : '' }`, { credentials: 'include' }),
+        fetch(`${API_URL}/admin/users?page=${usersPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchQuery)}${roleParam ? '&primary_role=' + roleParam : ''}`, { credentials: 'include' }),
         fetch(`${API_URL}/admin/orders?page=${ordersPage}&limit=${itemsPerPage}`, { credentials: 'include' }),
         fetch(`${API_URL}/admin/users?page=1&limit=1&status=verified`, { credentials: 'include' })
       ]);
@@ -291,6 +292,7 @@ const AdminPanel = ({ onClose }) => {
         }}>
           {[
             { id: 'overview', label: '📊 Overview', icon: '📊' },
+            { id: 'health', label: '🏥 Health', icon: '🏥' },
             { id: 'users', label: '👥 Users', icon: '👥' },
             { id: 'orders', label: '📦 Orders', icon: '📦' },
             { id: 'analytics', label: '📈 Analytics', icon: '📈' },
@@ -474,6 +476,12 @@ const AdminPanel = ({ onClose }) => {
                 </BarChart>
               </ResponsiveContainer>
             </div>
+          </div>
+        )}
+
+        {activeTab === 'health' && (
+          <div style={{ marginTop: '2rem' }}>
+            <SystemHealthDashboard />
           </div>
         )}
 
