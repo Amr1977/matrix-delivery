@@ -1,4 +1,5 @@
 const express = require('express');
+const os = require('os');
 const router = express.Router();
 const { execSync } = require('child_process');
 const pool = require('../config/db');
@@ -24,6 +25,7 @@ const getSystemMetrics = () => {
         let memoryAvailableMb = 0;
 
         try {
+            // Try free -m first (Linux)
             const memInfo = execSync('free -m', { encoding: 'utf8', timeout: 5000 });
             const lines = memInfo.split('\n');
             const memLine = lines.find(l => l.startsWith('Mem:'));
@@ -35,7 +37,14 @@ const getSystemMetrics = () => {
                 memoryPercent = Math.round((memoryUsedMb / total) * 100 * 100) / 100;
             }
         } catch (e) {
-            logger.warn('Could not get memory info:', e.message);
+            // Fallback to os module (Windows/Mac)
+            const total = os.totalmem();
+            const free = os.freemem();
+            const used = total - free;
+
+            memoryUsedMb = Math.round(used / 1024 / 1024);
+            memoryAvailableMb = Math.round(free / 1024 / 1024);
+            memoryPercent = Math.round((used / total) * 100 * 100) / 100;
         }
 
         // PM2 stats
