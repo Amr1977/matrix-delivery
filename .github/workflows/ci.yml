@@ -89,3 +89,36 @@ jobs:
         run: npm run test:frontend:ci
         env:
           CI: true
+
+  ui-smoke-tests:
+    name: UI Smoke Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: |
+          npm ci
+          cd frontend && npm ci
+
+      - name: Install Playwright Browsers
+        run: |
+          cd frontend
+          npx playwright install --with-deps chromium
+
+      - name: Build Frontend
+        run: |
+          cd frontend
+          npm run build
+
+      - name: Run UI Smoke Tests
+        run: |
+          cd frontend
+          npx playwright test
+        env:
+          BASE_URL: http://localhost:3000
+          CI: true
