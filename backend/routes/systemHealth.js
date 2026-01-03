@@ -127,6 +127,14 @@ const storeHealthSnapshot = async () => {
  * Start the health collector
  */
 const startCollector = () => {
+    // Optimization: In PM2 Cluster Mode, only run on Instance 0
+    // This prevents 4x DB writes and execSync calls every minute
+    const instanceId = process.env.NODE_APP_INSTANCE;
+    if (instanceId && instanceId !== '0') {
+        // logger.info(`Health collector skipped on instance ${instanceId}`);
+        return;
+    }
+
     if (collectorInterval) return;
 
     // Collect immediately, then every minute
@@ -134,22 +142,13 @@ const startCollector = () => {
     collectorInterval = setInterval(storeHealthSnapshot, COLLECTION_INTERVAL_MS);
     collectorInterval.unref();
 
-    logger.info('✅ System health collector started (every 60s)');
+    logger.info(`✅ System health collector started (Instance: ${instanceId || 'Single'})`);
 };
 
-/**
- * Stop the health collector
- */
-const stopCollector = () => {
-    if (collectorInterval) {
-        clearInterval(collectorInterval);
-        collectorInterval = null;
-    }
-};
+// ... (stopCollector remains unchanged)
 
 // Start collector when this module is loaded
-// DISABLED to prevent resource exhaustion on 1GB VPS
-// startCollector();
+startCollector();
 
 // ============================================
 // API ROUTES
