@@ -9,7 +9,7 @@ import {
     ResponsiveContainer,
     Legend
 } from 'recharts';
-import { Activity, Cpu, HardDrive, Clock, RefreshCw } from 'lucide-react';
+import { Activity, Cpu, HardDrive, Clock, RefreshCw, Database } from 'lucide-react';
 import { Card } from '../design-system/Card';
 import { Button } from '../design-system/Button';
 import api from '../../api';
@@ -28,6 +28,8 @@ interface HealthMetrics {
     uptime: string;
     timestamp: string;
     cpuLoad?: number;
+    dbStatus?: 'connected' | 'disconnected' | 'unknown';
+    dbLatency?: number;
 }
 
 interface HistoryPoint {
@@ -187,6 +189,25 @@ const SystemHealthDashboard: React.FC = () => {
                         </div>
                     </Card>
 
+
+
+                    <Card className={`border-${currentMetrics.dbStatus === 'connected' ? 'green' : 'red'}-500/30`}>
+                        <div className="flex items-start justify-between">
+                            <div>
+                                <p className="text-matrix-secondary text-sm">Database</p>
+                                <p className={`text-2xl font-bold ${currentMetrics.dbStatus === 'connected' ? 'text-green-400' : 'text-red-500'}`}>
+                                    {currentMetrics.dbStatus === 'connected' ? 'Connected' : 'Error'}
+                                </p>
+                                <p className="text-sm text-matrix-secondary">
+                                    Latency: {currentMetrics.dbLatency}ms
+                                </p>
+                            </div>
+                            <div className={`p-2 bg-${currentMetrics.dbStatus === 'connected' ? 'green' : 'red'}-500/10 rounded-lg`}>
+                                <Database className={`w-6 h-6 text-${currentMetrics.dbStatus === 'connected' ? 'green' : 'red'}-400`} />
+                            </div>
+                        </div>
+                    </Card>
+
                     <Card className="border-purple-500/30">
                         <div className="flex items-start justify-between">
                             <div>
@@ -215,23 +236,25 @@ const SystemHealthDashboard: React.FC = () => {
                     </Card>
 
                     {/* CPU Load Card */}
-                    {currentMetrics.cpuLoad !== undefined && (
-                        <Card className="border-orange-500/30">
-                            <div className="flex items-start justify-between">
-                                <div>
-                                    <p className="text-matrix-secondary text-sm">CPU Load (1m)</p>
-                                    <p className="text-2xl font-bold text-white">{currentMetrics.cpuLoad.toFixed(2)}</p>
-                                    <p className="text-sm text-matrix-secondary">
-                                        System Load Avg
-                                    </p>
+                    {
+                        currentMetrics.cpuLoad !== undefined && (
+                            <Card className="border-orange-500/30">
+                                <div className="flex items-start justify-between">
+                                    <div>
+                                        <p className="text-matrix-secondary text-sm">CPU Load (1m)</p>
+                                        <p className="text-2xl font-bold text-white">{currentMetrics.cpuLoad.toFixed(2)}</p>
+                                        <p className="text-sm text-matrix-secondary">
+                                            System Load Avg
+                                        </p>
+                                    </div>
+                                    <div className="p-2 bg-orange-500/10 rounded-lg">
+                                        <Activity className="w-6 h-6 text-orange-400" />
+                                    </div>
                                 </div>
-                                <div className="p-2 bg-orange-500/10 rounded-lg">
-                                    <Activity className="w-6 h-6 text-orange-400" />
-                                </div>
-                            </div>
-                        </Card>
-                    )}
-                </div>
+                            </Card>
+                        )
+                    }
+                </div >
             )}
 
             {/* Memory Chart */}
@@ -356,36 +379,38 @@ const SystemHealthDashboard: React.FC = () => {
             </Card>
 
             {/* PM2 Processes Table */}
-            {currentMetrics && currentMetrics.pm2Processes.length > 0 && (
-                <Card>
-                    <h3 className="text-white text-lg font-semibold mb-4">PM2 Processes</h3>
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead>
-                                <tr className="text-left text-matrix-secondary text-sm border-b border-matrix-border">
-                                    <th className="pb-3">Name</th>
-                                    <th className="pb-3">Status</th>
-                                    <th className="pb-3">Memory</th>
-                                    <th className="pb-3">Restarts</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {currentMetrics.pm2Processes.map((proc, i) => (
-                                    <tr key={i} className="border-b border-matrix-border/50">
-                                        <td className="py-3 text-white font-mono">{proc.name}</td>
-                                        <td className={`py-3 font-semibold ${getStatusColor(proc.status)}`}>
-                                            {proc.status}
-                                        </td>
-                                        <td className="py-3 text-white">{proc.memory_mb} MB</td>
-                                        <td className="py-3 text-matrix-secondary">{proc.restarts}</td>
+            {
+                currentMetrics && currentMetrics.pm2Processes.length > 0 && (
+                    <Card>
+                        <h3 className="text-white text-lg font-semibold mb-4">PM2 Processes</h3>
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead>
+                                    <tr className="text-left text-matrix-secondary text-sm border-b border-matrix-border">
+                                        <th className="pb-3">Name</th>
+                                        <th className="pb-3">Status</th>
+                                        <th className="pb-3">Memory</th>
+                                        <th className="pb-3">Restarts</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </Card>
-            )}
-        </div>
+                                </thead>
+                                <tbody>
+                                    {currentMetrics.pm2Processes.map((proc, i) => (
+                                        <tr key={i} className="border-b border-matrix-border/50">
+                                            <td className="py-3 text-white font-mono">{proc.name}</td>
+                                            <td className={`py-3 font-semibold ${getStatusColor(proc.status)}`}>
+                                                {proc.status}
+                                            </td>
+                                            <td className="py-3 text-white">{proc.memory_mb} MB</td>
+                                            <td className="py-3 text-matrix-secondary">{proc.restarts}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </Card>
+                )
+            }
+        </div >
     );
 };
 
