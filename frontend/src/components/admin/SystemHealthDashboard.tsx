@@ -27,6 +27,7 @@ interface HealthMetrics {
     }>;
     uptime: string;
     timestamp: string;
+    cpuLoad?: number;
 }
 
 interface HistoryPoint {
@@ -35,6 +36,7 @@ interface HistoryPoint {
     memoryUsedMb: number;
     memoryAvailableMb: number;
     pm2TotalMemoryMb: number;
+    cpuLoad?: number;
 }
 
 interface HistoryResponse {
@@ -211,6 +213,24 @@ const SystemHealthDashboard: React.FC = () => {
                             </div>
                         </div>
                     </Card>
+
+                    {/* CPU Load Card */}
+                    {currentMetrics.cpuLoad !== undefined && (
+                        <Card className="border-orange-500/30">
+                            <div className="flex items-start justify-between">
+                                <div>
+                                    <p className="text-matrix-secondary text-sm">CPU Load (1m)</p>
+                                    <p className="text-2xl font-bold text-white">{currentMetrics.cpuLoad.toFixed(2)}</p>
+                                    <p className="text-sm text-matrix-secondary">
+                                        System Load Avg
+                                    </p>
+                                </div>
+                                <div className="p-2 bg-orange-500/10 rounded-lg">
+                                    <Activity className="w-6 h-6 text-orange-400" />
+                                </div>
+                            </div>
+                        </Card>
+                    )}
                 </div>
             )}
 
@@ -287,6 +307,46 @@ const SystemHealthDashboard: React.FC = () => {
                                 dataKey="pm2TotalMemoryMb"
                                 name="PM2 Total (MB)"
                                 stroke="#00F0FF"
+                                strokeWidth={2}
+                                dot={false}
+                            />
+                        </LineChart>
+                    </ResponsiveContainer>
+                </div>
+            </Card>
+
+            {/* CPU Load Chart */}
+            <Card>
+                <h3 className="text-white text-lg font-semibold mb-4">CPU Load History</h3>
+                <div className="h-72">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={history}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                            <XAxis
+                                dataKey="timestamp"
+                                tickFormatter={timeRange === 24 ? formatTime : formatDate}
+                                stroke="#666"
+                                tick={{ fill: '#888', fontSize: 12 }}
+                            />
+                            <YAxis
+                                stroke="#666"
+                                tick={{ fill: '#888', fontSize: 12 }}
+                                domain={[0, 'auto']}
+                            />
+                            <Tooltip
+                                contentStyle={{
+                                    backgroundColor: '#1a1a2e',
+                                    border: '1px solid #333',
+                                    borderRadius: '8px'
+                                }}
+                                labelFormatter={(label) => new Date(label).toLocaleString()}
+                            />
+                            <Legend />
+                            <Line
+                                type="monotone"
+                                dataKey="cpuLoad"
+                                name="CPU Load"
+                                stroke="#FB923C" // Orange-400
                                 strokeWidth={2}
                                 dot={false}
                             />

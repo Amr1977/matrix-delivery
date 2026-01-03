@@ -52,7 +52,7 @@ Changed the command to `pm2 reload matrix-delivery-backend`, targeting only the 
    **Resolution**:
 
 - Allowed `admin` role to place bids for testing.
-- Fixed the typo to check `primary_role || role`.
+- Fixed the typo to check `primary_role`.
   **Status**: ✅ FIXED
 
 ### 5. WebSocket Connection Refused
