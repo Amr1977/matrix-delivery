@@ -183,7 +183,7 @@ When('the driver marks the order as "delivered"', async function () {
     }
 });
 
-Then('the order status should be {string}', async function (expectedStatus) {
+Then('the lifecycle order status should be {string}', async function (expectedStatus) {
     const res = await request(app)
         .get(`/api/orders/${orderId}`)
         .set('Authorization', `Bearer ${customerToken}`);
