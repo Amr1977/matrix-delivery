@@ -4,6 +4,7 @@
  */
 
 const request = require('supertest');
+const app = require('../backend/app');
 const { Pool } = require('pg');
 const jwt = require('jsonwebtoken');
 

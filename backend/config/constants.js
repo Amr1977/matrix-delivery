@@ -51,6 +51,7 @@ const ORDER_STATUS = {
     PICKED_UP: 'picked_up',
     IN_TRANSIT: 'in_transit',
     DELIVERED: 'delivered',
+    DELIVERED_PENDING: 'delivered_pending',
     CANCELLED: 'cancelled'
 };
 

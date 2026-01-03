@@ -5,7 +5,7 @@
   "scripts": {
     "test": "npm run test:backend",
     "test:all": "npm run test:backend && npm run test:frontend:ci && npm run test:e2e",
-    "test:backend": "cd backend && npm test",
+    "test:backend": "jest tests/unit --verbose",
     "test:frontend": "cd frontend && npm test -- --watchAll=false --passWithNoTests",
     "test:frontend:ci": "cd frontend && CI=true npm test -- --coverage --passWithNoTests",
     "test:api": "jest tests/map-location-api-tests.js --verbose --testTimeout=30000",

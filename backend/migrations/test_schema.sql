@@ -39,6 +39,7 @@ CREATE TABLE users (
     is_verified BOOLEAN DEFAULT FALSE,
     verified_at TIMESTAMP,
     is_available BOOLEAN DEFAULT TRUE,
+    profile_picture_url VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -110,7 +111,14 @@ CREATE TABLE orders (
     accepted_at TIMESTAMP,
     picked_up_at TIMESTAMP,
     delivered_at TIMESTAMP,
-    cancelled_at TIMESTAMP
+    completed_at TIMESTAMP,
+    cancelled_at TIMESTAMP,
+    pickup_contact_name VARCHAR(255),
+    pickup_contact_phone VARCHAR(50),
+    dropoff_contact_name VARCHAR(255),
+    dropoff_contact_phone VARCHAR(50),
+    from_coordinates VARCHAR(255),
+    to_coordinates VARCHAR(255)
 );
 
 -- Password reset tokens table
