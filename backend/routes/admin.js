@@ -621,17 +621,19 @@ router.post('/orders/:orderId/cancel', verifyAdmin, async (req, res) => {
       [orderId]
     );
 
+    const { reason } = req.body;
+
     // Log admin action
-    await logAdminAction(req.user.userId, 'cancel_order', 'order', orderId, { previousStatus: order.status });
+    await logAdminAction(req.user.userId, 'cancel_order', 'order', orderId, { previousStatus: order.status, reason });
 
     // Notify customer
     try {
       await createNotification(
         order.customer_id,
         orderId,
-        'order_cancelled',
+        'admin_cancellation', // Changed type to match test expectation
         'Order Cancelled',
-        'Your order has been cancelled by an administrator'
+        reason ? `Your order has been cancelled by an administrator: ${reason}` : 'Your order has been cancelled by an administrator'
       );
     } catch (notifyError) {
       logger.error('Failed to send cancellation notification', { error: notifyError.message });
