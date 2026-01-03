@@ -56,6 +56,9 @@ while true; do
         log "⚠️ FIREBASE_TOKEN is missing or empty"
     fi
 
+    # Capture current script hash for self-update check
+    INITIAL_SCRIPT_HASH=$(git hash-object scripts/auto-deploy.sh)
+
     # Fetch latest changes without merging
     if ! git fetch origin $BRANCH > /dev/null 2>&1; then
         log "⚠️ Git fetch failed. Check network, remote URL, or credentials."
@@ -159,6 +162,16 @@ while true; do
             fi
             
             log "🎉 Full Deployment Sequence Finished."
+            
+            # Check for self-update
+            # We use git hash-object to compare the script file on disk vs what it was before validation
+            # Note: We are in root here
+            NEW_SCRIPT_HASH=$(git hash-object scripts/auto-deploy.sh)
+            
+            if [ "$INITIAL_SCRIPT_HASH" != "$NEW_SCRIPT_HASH" ]; then
+                log "🔄 Auto-deploy script updated. Exiting to allow PM2 to restart..."
+                exit 0
+            fi
         fi
     else
         # Heartbeat with system health stats
