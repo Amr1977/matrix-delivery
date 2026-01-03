@@ -527,7 +527,7 @@ describe('Map Location Picker API Tests', () => {
         .send(orderData)
         .expect(201);
 
-      expect(response.body).toHaveProperty('_id');
+      expect(response.body).toHaveProperty('id');
       expect(response.body.title).toBe(orderData.title);
       expect(response.body.price).toBe(orderData.price);
       expect(response.body.estimatedDistanceKm).toBe(routeInfo.distance_km);
@@ -675,7 +675,7 @@ describe('Map Location Picker API Tests', () => {
         })
         .expect(201);
 
-      const orderId = createResponse.body._id;
+      const orderId = createResponse.body.id;
 
       // Retrieve the order
       const getResponse = await request(app)
@@ -683,7 +683,7 @@ describe('Map Location Picker API Tests', () => {
         .set('Authorization', `Bearer ${testUserToken}`)
         .expect(200);
 
-      const foundOrder = getResponse.body.find(order => order._id === orderId);
+      const foundOrder = getResponse.body.find(order => order.id === orderId);
       expect(foundOrder).toBeDefined();
       expect(foundOrder.pickupCoordinates).toEqual({ lat: 30.0131, lng: 31.2089 });
       expect(foundOrder.deliveryCoordinates).toEqual({ lat: 30.0444, lng: 31.2357 });

@@ -419,7 +419,7 @@ Given('there is a completed order', async function () {
 
   expect(orderResponse.ok).to.be.true;
   const orderData = await orderResponse.json();
-  this.testData.lastOrderId = orderData._id;
+  this.testData.lastOrderId = orderData.id;
 
   // Create a driver and assign to the order
   if (this.testData.driver && this.testData.driver.token) {

@@ -211,7 +211,16 @@ Given('{string} has created an order {string} priced at {string}', async functio
 Given('the order status is {string}', async function (expectedStatus) {
     const orderTitle = Object.keys(this.testData.orders)[0];
     const order = this.testData.orders[orderTitle];
-    expect(order.status).to.equal(expectedStatus);
+
+    // Fetch fresh status from API
+    const customer = Object.values(this.testData.users).find(u => u.primary_role === 'customer');
+    const response = await fetch(`${this.apiUrl}/orders/${order.id}`, {
+        headers: { 'Authorization': `Bearer ${customer.token}` }
+    });
+    const updatedOrder = await response.json();
+    this.testData.orders[orderTitle] = updatedOrder; // Update local cache
+
+    expect(updatedOrder.status).to.equal(expectedStatus);
 });
 
 When('{string} cancels the order {string}', async function (userName, orderTitle) {
@@ -361,7 +370,15 @@ Given('the order is assigned to {string}', async function (driverName) {
     const order = this.testData.orders[orderTitle];
     const driver = this.testData.users[driverName];
 
-    expect(order.assigned_driver_user_id || order.assignedDriver).to.equal(driver.id);
+    // Fetch fresh order details
+    const customer = Object.values(this.testData.users).find(u => u.primary_role === 'customer');
+    const response = await fetch(`${this.apiUrl}/orders/${order.id}`, {
+        headers: { 'Authorization': `Bearer ${customer.token}` }
+    });
+    const updatedOrder = await response.json();
+    this.testData.orders[orderTitle] = updatedOrder;
+
+    expect(updatedOrder.assigned_driver_user_id || updatedOrder.assignedDriver).to.equal(driver.id);
 });
 
 When('{string} withdraws from order {string}', async function (driverName, orderTitle) {

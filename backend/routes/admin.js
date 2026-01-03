@@ -622,7 +622,7 @@ router.post('/orders/:orderId/cancel', verifyAdmin, async (req, res) => {
     );
 
     // Log admin action
-    await logAdminAction(req.user.userId, 'cancel_order', { orderId, previousStatus: order.status });
+    await logAdminAction(req.user.userId, 'cancel_order', 'order', orderId, { previousStatus: order.status });
 
     // Notify customer
     try {

@@ -2,12 +2,12 @@ const { Given, When, Then } = require('@cucumber/cucumber');
 const { expect } = require('chai');
 
 // UI Verification Steps
-Given('I am on the Matrix Delivery homepage', async function() {
+Given('I am on the Matrix Delivery homepage', async function () {
   await this.page.goto(this.baseUrl);
   await this.page.waitForLoadState('networkidle');
 });
 
-Then('I should see the version footer with text {string}', async function(expectedText) {
+Then('I should see the version footer with text {string}', async function (expectedText) {
   const footer = this.page.locator('footer');
   await footer.waitFor({ state: 'visible', timeout: 5000 });
 
@@ -15,7 +15,7 @@ Then('I should see the version footer with text {string}', async function(expect
   expect(footerText).to.include(expectedText);
 });
 
-Then('the footer should contain commit hash {string}', async function(commitHash) {
+Then('the footer should contain commit hash {string}', async function (commitHash) {
   const footer = this.page.locator('footer');
   await footer.waitFor({ state: 'visible', timeout: 5000 });
 
@@ -23,7 +23,7 @@ Then('the footer should contain commit hash {string}', async function(commitHash
   expect(footerText).to.include(commitHash);
 });
 
-Then('the footer should display today\'s date', async function() {
+Then('the footer should display today\'s date', async function () {
   const footer = this.page.locator('footer');
   await footer.waitFor({ state: 'visible', timeout: 5000 });
 
@@ -34,7 +34,7 @@ Then('the footer should display today\'s date', async function() {
   expect(footerText).to.include(today);
 });
 
-Then('I should be redirected to the dashboard', async function() {
+Then('I should be redirected to the dashboard', async function () {
   // Check if we're redirected to the dashboard (authentication components disappear)
   await this.page.waitForSelector('button:has-text("Logout")', { timeout: 10000 });
   const logoutButton = await this.page.locator('button:has-text("Logout")');
@@ -42,7 +42,7 @@ Then('I should be redirected to the dashboard', async function() {
 });
 
 // Verification UI Steps
-When('I login as the customer', async function() {
+When('I login as the customer', async function () {
   await this.page.goto(this.baseUrl);
   await this.page.waitForLoadState('networkidle');
 
@@ -56,7 +56,7 @@ When('I login as the customer', async function() {
   await this.page.waitForSelector('button:has-text("Logout")', { timeout: 10000 });
 });
 
-When('I login as the driver', async function() {
+When('I login as the driver', async function () {
   await this.page.goto(this.baseUrl);
   await this.page.waitForLoadState('networkidle');
 
@@ -70,29 +70,29 @@ When('I login as the driver', async function() {
   await this.page.waitForSelector('button:has-text("Logout")', { timeout: 10000 });
 });
 
-Then('I should see the verify button in the header', async function() {
+Then('I should see the verify button in the header', async function () {
   const verifyButton = this.page.locator('button:has-text("📱 Verify")');
   await verifyButton.waitFor({ state: 'visible', timeout: 5000 });
   expect(await verifyButton.isVisible()).to.be.true;
 });
 
-Then('I should not see the verified badge in the header', async function() {
+Then('I should not see the verified badge in the header', async function () {
   const verifiedBadge = this.page.locator('span:has-text("✓ Verified")');
   expect(await verifiedBadge.isVisible()).to.be.false;
 });
 
-Then('I should see the verified badge in the header', async function() {
+Then('I should see the verified badge in the header', async function () {
   const verifiedBadge = this.page.locator('span:has-text("✓ Verified")');
   await verifiedBadge.waitFor({ state: 'visible', timeout: 5000 });
   expect(await verifiedBadge.isVisible()).to.be.true;
 });
 
-Then('I should not see the verify button in the header', async function() {
+Then('I should not see the verify button in the header', async function () {
   const verifyButton = this.page.locator('button:has-text("📱 Verify")');
   expect(await verifyButton.isVisible()).to.be.false;
 });
 
-When('the customer account is verified via API', async function() {
+When('the customer account is verified via API', async function () {
   if (!this.testData.customer || !this.testData.customer.email) {
     throw new Error('Customer test data not available');
   }
@@ -108,7 +108,7 @@ When('the customer account is verified via API', async function() {
   expect(verifyData.success).to.be.true;
 });
 
-When('the driver account is verified via API', async function() {
+When('the driver account is verified via API', async function () {
   if (!this.testData.driver || !this.testData.driver.email) {
     throw new Error('Driver test data not available');
   }
@@ -124,12 +124,12 @@ When('the driver account is verified via API', async function() {
   expect(verifyData.success).to.be.true;
 });
 
-When('I refresh the page', async function() {
+When('I refresh the page', async function () {
   await this.page.reload();
   await this.page.waitForLoadState('networkidle');
 });
 
-Given('the driver has created an order', async function() {
+Given('the driver has created an order', async function () {
   if (!this.testData.driver || !this.testData.driver.token) {
     throw new Error('Driver test data not available');
   }
@@ -175,10 +175,10 @@ Given('the driver has created an order', async function() {
 
   expect(orderResponse.ok).to.be.true;
   const orderData = await orderResponse.json();
-  this.testData.lastOrderId = orderData._id;
+  this.testData.lastOrderId = orderData.id;
 });
 
-Given('the customer has created an order', async function() {
+Given('the customer has created an order', async function () {
   if (!this.testData.customer || !this.testData.customer.token) {
     throw new Error('Customer test data not available');
   }
@@ -224,10 +224,10 @@ Given('the customer has created an order', async function() {
 
   expect(orderResponse.ok).to.be.true;
   const orderData = await orderResponse.json();
-  this.testData.lastOrderId = orderData._id;
+  this.testData.lastOrderId = orderData.id;
 });
 
-When('I place a bid on the order', async function() {
+When('I place a bid on the order', async function () {
   if (!this.testData.lastOrderId) {
     throw new Error('No order available to bid on');
   }
@@ -244,7 +244,7 @@ When('I place a bid on the order', async function() {
   await this.page.waitForTimeout(2000);
 });
 
-Then('I should see the order card with unverified customer badge', async function() {
+Then('I should see the order card with unverified customer badge', async function () {
   // Look for order card that doesn't have verified badge
   const orderCard = this.page.locator('[class*="order"]').first();
   await orderCard.waitFor({ state: 'visible', timeout: 5000 });
@@ -254,7 +254,7 @@ Then('I should see the order card with unverified customer badge', async functio
   expect(await verifiedBadge.isVisible()).to.be.false;
 });
 
-Then('I should see the order card with verified customer badge', async function() {
+Then('I should see the order card with verified customer badge', async function () {
   // Look for order card that has verified badge
   const orderCard = this.page.locator('[class*="order"]').first();
   await orderCard.waitFor({ state: 'visible', timeout: 5000 });
@@ -265,7 +265,7 @@ Then('I should see the order card with verified customer badge', async function(
   expect(await verifiedBadge.isVisible()).to.be.true;
 });
 
-Then('I should see the bid card with unverified driver badge', async function() {
+Then('I should see the bid card with unverified driver badge', async function () {
   // Look for bid card that doesn't have verified badge
   const bidCard = this.page.locator('[class*="bid"]').or(this.page.locator('div').filter({ hasText: '$' })).first();
   await bidCard.waitFor({ state: 'visible', timeout: 5000 });
@@ -275,7 +275,7 @@ Then('I should see the bid card with unverified driver badge', async function() 
   expect(await verifiedBadge.isVisible()).to.be.false;
 });
 
-Then('I should see the bid card with verified driver badge', async function() {
+Then('I should see the bid card with verified driver badge', async function () {
   // Look for bid card that has verified badge
   const bidCard = this.page.locator('[class*="bid"]').or(this.page.locator('div').filter({ hasText: '$' })).first();
   await bidCard.waitFor({ state: 'visible', timeout: 5000 });
@@ -286,7 +286,7 @@ Then('I should see the bid card with verified driver badge', async function() {
   expect(await verifiedBadge.isVisible()).to.be.true;
 });
 
-When('I place a bid on the order as the driver via API', async function() {
+When('I place a bid on the order as the driver via API', async function () {
   if (!this.testData.lastOrderId || !this.testData.driver || !this.testData.driver.token) {
     throw new Error('Order or driver data not available');
   }
@@ -308,20 +308,20 @@ When('I place a bid on the order as the driver via API', async function() {
   expect(bidResponse.ok).to.be.true;
 });
 
-When('I click the verify button in the header', async function() {
+When('I click the verify button in the header', async function () {
   const verifyButton = this.page.locator('button:has-text("📱 Verify")');
   await verifyButton.waitFor({ state: 'visible', timeout: 5000 });
   await verifyButton.click();
 });
 
-Then('I should be redirected to WhatsApp', async function() {
+Then('I should be redirected to WhatsApp', async function () {
   // Check if WhatsApp URL is opened (this might be tricky to test directly)
   // For now, we'll just check that the button was clicked and some action occurred
   await this.page.waitForTimeout(1000);
   // In a real test environment, you might need to mock or check for new window/tab
 });
 
-Then('I should see the order card with unverified customer badge in bidding view', async function() {
+Then('I should see the order card with unverified customer badge in bidding view', async function () {
   // In bidding view, look for order cards
   const orderCard = this.page.locator('h2:has-text("Available Bids")').locator('..').locator('[class*="order"]').first();
   await orderCard.waitFor({ state: 'visible', timeout: 5000 });
@@ -331,7 +331,7 @@ Then('I should see the order card with unverified customer badge in bidding view
   expect(await verifiedBadge.isVisible()).to.be.false;
 });
 
-Then('I should see the order card with verified customer badge in bidding view', async function() {
+Then('I should see the order card with verified customer badge in bidding view', async function () {
   // In bidding view, look for order cards
   const orderCard = this.page.locator('h2:has-text("Available Bids")').locator('..').locator('[class*="order"]').first();
   await orderCard.waitFor({ state: 'visible', timeout: 5000 });

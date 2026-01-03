@@ -90,7 +90,7 @@ export interface Bid {
 }
 
 export interface Order {
-    _id: string;
+    id: string;
     orderId?: string;
     title: string;
     description?: string;

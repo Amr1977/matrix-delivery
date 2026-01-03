@@ -2,7 +2,7 @@ const { Given, When, Then } = require('@cucumber/cucumber');
 const { expect } = require('chai');
 
 // Tests specifically for distance calculation and filtering
-Given('there is a customer order at coordinates {string}, {string}', async function(lat, lng) {
+Given('there is a customer order at coordinates {string}, {string}', async function (lat, lng) {
   const latitude = parseFloat(lat);
   const longitude = parseFloat(lng);
 
@@ -26,7 +26,7 @@ Given('there is a customer order at coordinates {string}, {string}', async funct
   expect(orderResponse.ok).to.be.true;
 });
 
-Given('the driver is at coordinates {string}, {string}', async function(lat, lng) {
+Given('the driver is at coordinates {string}, {string}', async function (lat, lng) {
   const latitude = parseFloat(lat);
   const longitude = parseFloat(lng);
 
@@ -41,7 +41,7 @@ Given('the driver is at coordinates {string}, {string}', async function(lat, lng
   expect(response.ok).to.be.true;
 });
 
-Then('the order distance should be approximately {string} km', async function(expectedDistance) {
+Then('the order distance should be approximately {string} km', async function (expectedDistance) {
   const expected = parseFloat(expectedDistance);
 
   // This would require mocking or a separate API endpoint to check distances
@@ -54,7 +54,7 @@ Then('the order distance should be approximately {string} km', async function(ex
 
     if (response.ok) {
       const orders = await response.json();
-      const relevantOrder = orders.find(order => order._id === orderId);
+      const relevantOrder = orders.find(order => order.id === orderId);
 
       if (relevantOrder && typeof relevantOrder.distance === 'number') {
         // Allow for small numerical differences in distance calculations
@@ -64,7 +64,7 @@ Then('the order distance should be approximately {string} km', async function(ex
   }
 });
 
-Then('orders within 5km should be visible', async function() {
+Then('orders within 5km should be visible', async function () {
   const orders = await this.page.locator('[class*="card"]').all();
   // Should have at least some orders (assuming test setup created them)
   expect(orders.length).to.be.at.least(0);
@@ -84,7 +84,7 @@ Then('orders within 5km should be visible', async function() {
   }
 });
 
-Then('orders beyond 5km should be hidden', async function() {
+Then('orders beyond 5km should be hidden', async function () {
   const distanceIndicators = await this.page.locator('text =~ km away').all();
 
   // If we have distance indicators, check they are all under 5km
@@ -99,7 +99,7 @@ Then('orders beyond 5km should be hidden', async function() {
 });
 
 // Geolocation testing
-When('location services are mocked to return coordinates {string}, {string}', async function(lat, lng) {
+When('location services are mocked to return coordinates {string}, {string}', async function (lat, lng) {
   const latitude = parseFloat(lat);
   const longitude = parseFloat(lng);
 
@@ -123,7 +123,7 @@ When('location services are mocked to return coordinates {string}, {string}', as
   this.testData.mockLocation = { latitude, longitude };
 });
 
-When('location services are mocked to fail', async function() {
+When('location services are mocked to fail', async function () {
   await this.page.addScriptTag({
     content: `
       navigator.geolocation.getCurrentPosition = function(successCallback, errorCallback) {
@@ -138,7 +138,7 @@ When('location services are mocked to fail', async function() {
   });
 });
 
-Then('the driver interface should show location-based features', async function() {
+Then('the driver interface should show location-based features', async function () {
   // Check that location button is visible
   const locationButton = await this.page.locator('button:has-text("Update Location")').or(
     this.page.locator('button:has-text("📍")')
@@ -158,7 +158,7 @@ Then('the driver interface should show location-based features', async function(
 });
 
 // General driver interface tests
-Then('the driver dashboard should display correctly', async function() {
+Then('the driver dashboard should display correctly', async function () {
   // Check for main UI elements
   await this.page.waitForSelector('text="Matrix Delivery"', { timeout: 5000 });
 

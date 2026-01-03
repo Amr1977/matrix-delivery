@@ -228,6 +228,36 @@ router.delete('/:orderId/bid', verifyToken, async (req, res) => {
   }
 });
 
+// Withdraw from accepted order (Driver)
+router.post('/:orderId/withdraw', verifyToken, async (req, res) => {
+  try {
+    if ((req.user.primary_role || req.user.primary_role) !== 'driver') {
+      return res.status(403).json({ error: 'Only drivers can withdraw from orders' });
+    }
+
+    const result = await orderService.withdrawOrder(req.params.orderId, req.user.userId);
+    res.json(result);
+  } catch (error) {
+    logger.error(`Order withdrawal error: ${error.message}`, {
+      orderId: req.params.orderId,
+      userId: req.user.userId,
+      category: 'error'
+    });
+
+    if (error.message === 'Order not found') {
+      return res.status(404).json({ error: error.message });
+    }
+    if (error.message.includes('Unauthorized') || error.message.includes('Only assigned driver')) {
+      return res.status(403).json({ error: error.message });
+    }
+    if (error.message.includes('Cannot withdraw')) {
+      return res.status(400).json({ error: error.message });
+    }
+
+    res.status(500).json({ error: error.message || 'Failed to withdraw from order' });
+  }
+});
+
 // Accept bid
 router.post('/:orderId/accept-bid', verifyToken, async (req, res) => {
   try {

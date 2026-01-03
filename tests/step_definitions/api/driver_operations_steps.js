@@ -114,7 +114,7 @@ Then('my bid should be submitted successfully', async function () {
       });
       if (ordersRes.ok) {
         const orders = await ordersRes.json();
-        const order = orders.find(o => o._id === this.testData.orderId || o.orderNumber === this.testData.orderId);
+        const order = orders.find(o => o.id === this.testData.orderId || o.orderNumber === this.testData.orderId);
         if (order && order.bids && order.bids.length > 0) {
           successFound = true;
         }
@@ -195,7 +195,7 @@ Then('the order status should change to {string}', async function (expectedStatu
 
     if (ordersRes.ok) {
       const orders = await ordersRes.json();
-      const order = orders.find(o => o._id === this.testData.orderId || o.orderNumber === this.testData.orderId);
+      const order = orders.find(o => o.id === this.testData.orderId || o.orderNumber === this.testData.orderId);
       if (order) {
         expect(order.status).to.equal(expectedStatus);
         return;
@@ -231,7 +231,7 @@ Then('{string} should be assigned to the order', async function (driverName) {
 
     if (ordersRes.ok) {
       const orders = await ordersRes.json();
-      const order = orders.find(o => o._id === this.testData.orderId || o.orderNumber === this.testData.orderId);
+      const order = orders.find(o => o.id === this.testData.orderId || o.orderNumber === this.testData.orderId);
       if (order && order.assignedDriver) {
         // In real implementation, would check driver name
         expect(order.assignedDriver.name).to.include(driverName);
@@ -345,7 +345,7 @@ Then('payment should be processed', async function () {
 
     if (ordersRes.ok) {
       const orders = await ordersRes.json();
-      const order = orders.find(o => o._id === this.testData.orderId || o.orderNumber === this.testData.orderId);
+      const order = orders.find(o => o.id === this.testData.orderId || o.orderNumber === this.testData.orderId);
       if (order) {
         expect(order.status).to.equal('delivered');
         // Could also check payment status if implemented

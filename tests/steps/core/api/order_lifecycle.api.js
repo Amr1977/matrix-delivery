@@ -142,7 +142,7 @@ class ApiAdapter extends OrderLifecycleAdapter {
 
     async placeBid(driver, orderTitle, amount) {
         const token = this.users[driver].token;
-        const orderId = this.currentOrder._id || this.currentOrder.id; // handle valid _id/id mapping
+        const orderId = this.currentOrder.id;
 
         const res = await request(app)
             .post(`/api/orders/${orderId}/bid`)
@@ -156,14 +156,14 @@ class ApiAdapter extends OrderLifecycleAdapter {
 
     async checkBidExists(customer, driverName, amount) {
         const token = this.users[customer].token;
-        const orderId = this.currentOrder._id || this.currentOrder.id;
+        const orderId = this.currentOrder.id;
         const res = await request(app)
             .get(`/api/orders`) // Customer fetches their orders
             .set('Authorization', `Bearer ${token}`);
 
         // Filter to find the current order
         const orders = res.body;
-        const myOrder = orders.find(o => o._id === orderId || o.id === orderId);
+        const myOrder = orders.find(o => o.id === orderId);
 
         if (!myOrder) return false;
 
@@ -173,13 +173,13 @@ class ApiAdapter extends OrderLifecycleAdapter {
 
     async acceptBid(customer, driverName) {
         const token = this.users[customer].token;
-        const orderId = this.currentOrder._id || this.currentOrder.id;
+        const orderId = this.currentOrder.id;
 
         const res1 = await request(app)
             .get(`/api/orders`)
             .set('Authorization', `Bearer ${token}`);
 
-        const myOrder = res1.body.find(o => o._id === orderId || o.id === orderId);
+        const myOrder = res1.body.find(o => o.id === orderId);
         const bids = myOrder.bids || [];
         if (bids.length === 0) throw new Error("No bids found to accept");
         const bid = bids[0];
@@ -195,7 +195,7 @@ class ApiAdapter extends OrderLifecycleAdapter {
     }
 
     async getOrderStatus() {
-        const orderId = this.currentOrder._id || this.currentOrder.id;
+        const orderId = this.currentOrder.id;
         const res = await pool.query('SELECT status FROM orders WHERE id = $1', [orderId]);
         // Map DB status to Feature status if specific mapping needed
         const status = res.rows[0].status;
@@ -213,7 +213,7 @@ class ApiAdapter extends OrderLifecycleAdapter {
 
     async markOrderPickedUp(driver) {
         const token = this.users[driver].token;
-        const orderId = this.currentOrder._id || this.currentOrder.id;
+        const orderId = this.currentOrder.id;
 
         // First, mark as picked up
         let res = await request(app)
@@ -234,7 +234,7 @@ class ApiAdapter extends OrderLifecycleAdapter {
 
     async markOrderDelivered(driver) {
         const token = this.users[driver].token;
-        const orderId = this.currentOrder._id || this.currentOrder.id;
+        const orderId = this.currentOrder.id;
 
         const res = await request(app)
             .post(`/api/orders/${orderId}/complete`)

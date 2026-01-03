@@ -121,7 +121,7 @@ const OrderBiddingSection = ({
                 <button
                     onClick={() => {
                         const s = computeBidSuggestions(order);
-                        setBidInput({ ...bidInput, [order._id]: s.recommendedBid.toFixed(2) });
+                        setBidInput({ ...bidInput, [order.id]: s.recommendedBid.toFixed(2) });
                     }}
                     style={{ padding: '0.5rem 1rem', background: '#10B981', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600' }}
                 >
@@ -181,13 +181,13 @@ const OrderBiddingSection = ({
 
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                     <button
-                        onClick={() => openReviewModal(order._id, 'view_customer_reviews')}
+                        onClick={() => openReviewModal(order.id, 'view_customer_reviews')}
                         style={{ padding: '0.25rem 0.75rem', background: '#3B82F6', color: 'white', borderRadius: '0.25rem', border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: '500' }}
                     >
                         📝 View Reviews ({order.customerReviewCount || 0})
                     </button>
                     <button
-                        onClick={() => openReviewModal(order._id, 'view_customer_given_reviews')}
+                        onClick={() => openReviewModal(order.id, 'view_customer_given_reviews')}
                         style={{ padding: '0.25rem 0.75rem', background: '#6366F1', color: 'white', borderRadius: '0.25rem', border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: '500' }}
                     >
                         ⭐ Reviews Given ({order.customerGivenReviewCount || 0})
@@ -216,8 +216,8 @@ const OrderBiddingSection = ({
                 <input
                     type="number"
                     placeholder={t('driver.bidAmount')}
-                    value={bidInput[order._id] || ''}
-                    onChange={(e) => setBidInput({ ...bidInput, [order._id]: e.target.value })}
+                    value={bidInput[order.id] || ''}
+                    onChange={(e) => setBidInput({ ...bidInput, [order.id]: e.target.value })}
                     style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
                     step="0.01"
                 />
@@ -230,8 +230,8 @@ const OrderBiddingSection = ({
                 <input
                     type="datetime-local"
                     placeholder={t('orders.pickupTime')}
-                    value={bidDetails[order._id]?.pickupTime || ''}
-                    onChange={(e) => setBidDetails({ ...bidDetails, [order._id]: { ...bidDetails[order._id], pickupTime: e.target.value } })}
+                    value={bidDetails[order.id]?.pickupTime || ''}
+                    onChange={(e) => setBidDetails({ ...bidDetails, [order.id]: { ...bidDetails[order.id], pickupTime: e.target.value } })}
                     style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
                 />
             </div>
@@ -241,12 +241,12 @@ const OrderBiddingSection = ({
                 <input
                     type="text"
                     placeholder={t('orders.messageOptional')}
-                    value={bidDetails[order._id]?.message || ''}
-                    onChange={(e) => setBidDetails({ ...bidDetails, [order._id]: { ...bidDetails[order._id], message: e.target.value } })}
+                    value={bidDetails[order.id]?.message || ''}
+                    onChange={(e) => setBidDetails({ ...bidDetails, [order.id]: { ...bidDetails[order.id], message: e.target.value } })}
                     style={{ flex: 1, padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
                 />
                 <button
-                    onClick={() => handleBidOnOrder(order._id)}
+                    onClick={() => handleBidOnOrder(order.id)}
                     disabled={loadingStates.placeBid}
                     style={{ padding: '0.5rem 1rem', background: '#4F46E5', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: loadingStates.placeBid ? 'not-allowed' : 'pointer', fontWeight: '600', opacity: loadingStates.placeBid ? 0.5 : 1 }}
                 >
@@ -255,14 +255,14 @@ const OrderBiddingSection = ({
                 {order.bids?.some(b => b.userId === currentUser?.id) && (
                     <>
                         <button
-                            onClick={() => handleModifyBid(order._id)}
+                            onClick={() => handleModifyBid(order.id)}
                             disabled={loadingStates.placeBid}
                             style={{ padding: '0.5rem 1rem', background: '#F59E0B', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: loadingStates.placeBid ? 'not-allowed' : 'pointer', fontWeight: '600', opacity: loadingStates.placeBid ? 0.5 : 1 }}
                         >
                             Modify Bid
                         </button>
                         <button
-                            onClick={() => handleWithdrawBid(order._id)}
+                            onClick={() => handleWithdrawBid(order.id)}
                             disabled={loadingStates.placeBid}
                             style={{ padding: '0.5rem 1rem', background: '#EF4444', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: loadingStates.placeBid ? 'not-allowed' : 'pointer', fontWeight: '600', opacity: loadingStates.placeBid ? 0.5 : 1 }}
                         >

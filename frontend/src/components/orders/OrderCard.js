@@ -37,7 +37,7 @@ const OrderCard = ({
 
   // Always log order data to debug
   window.console.log('🎯 OrderCard Rendered:', {
-    orderId: order._id,
+    orderId: order.id,
     orderNumber: order.orderNumber,
     status: order.status,
     userRole: currentUser?.primary_role,
@@ -52,7 +52,7 @@ const OrderCard = ({
 
   const handleBidSubmit = (e) => {
     e.preventDefault();
-    if (bidInput[order._id]) {
+    if (bidInput[order.id]) {
       // Refresh location before submitting
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
@@ -61,31 +61,31 @@ const OrderCard = ({
               lat: position.coords.latitude,
               lng: position.coords.longitude
             };
-            onBid(order._id, {
-              bidPrice: bidInput[order._id],
-              estimatedPickupTime: bidDetails[order._id]?.pickupTime,
-              estimatedDeliveryTime: bidDetails[order._id]?.deliveryTime,
-              message: bidDetails[order._id]?.message,
+            onBid(order.id, {
+              bidPrice: bidInput[order.id],
+              estimatedPickupTime: bidDetails[order.id]?.pickupTime,
+              estimatedDeliveryTime: bidDetails[order.id]?.deliveryTime,
+              message: bidDetails[order.id]?.message,
               location: location
             });
           },
           () => {
             // Fallback if location fails (submit without location)
-            onBid(order._id, {
-              bidPrice: bidInput[order._id],
-              estimatedPickupTime: bidDetails[order._id]?.pickupTime,
-              estimatedDeliveryTime: bidDetails[order._id]?.deliveryTime,
-              message: bidDetails[order._id]?.message
+            onBid(order.id, {
+              bidPrice: bidInput[order.id],
+              estimatedPickupTime: bidDetails[order.id]?.pickupTime,
+              estimatedDeliveryTime: bidDetails[order.id]?.deliveryTime,
+              message: bidDetails[order.id]?.message
             });
           },
           { enableHighAccuracy: true, timeout: 5000 }
         );
       } else {
-        onBid(order._id, {
-          bidPrice: bidInput[order._id],
-          estimatedPickupTime: bidDetails[order._id]?.pickupTime,
-          estimatedDeliveryTime: bidDetails[order._id]?.deliveryTime,
-          message: bidDetails[order._id]?.message
+        onBid(order.id, {
+          bidPrice: bidInput[order.id],
+          estimatedPickupTime: bidDetails[order.id]?.pickupTime,
+          estimatedDeliveryTime: bidDetails[order.id]?.deliveryTime,
+          message: bidDetails[order.id]?.message
         });
       }
     }
@@ -177,7 +177,7 @@ const OrderCard = ({
           {(() => {
             const debugInfo = {
               mapType: 'Customer Order Card - Pending Bids',
-              orderId: order._id,
+              orderId: order.id,
               orderNumber: order.orderNumber,
               hasRoutePolyline: !!order.routePolyline,
               polylineLength: order.routePolyline?.length || 0,
@@ -448,7 +448,7 @@ const OrderCard = ({
             <>
               {currentUser?.primary_role === 'customer' && !order.reviewStatus?.reviews.toDriver && (
                 <button
-                  onClick={() => onOpenReviewModal(order._id, 'customer_to_driver')}
+                  onClick={() => onOpenReviewModal(order.id, 'customer_to_driver')}
                   className="btn-success"
                   style={{ textShadow: '0 0 5px rgba(0, 0, 0, 0.5)' }}
                 >
@@ -457,7 +457,7 @@ const OrderCard = ({
               )}
               {currentUser?.primary_role === 'driver' && order.assignedDriver?.userId === currentUser?.id && !order.reviewStatus?.reviews.toCustomer && (
                 <button
-                  onClick={() => onOpenReviewModal(order._id, 'driver_to_customer')}
+                  onClick={() => onOpenReviewModal(order.id, 'driver_to_customer')}
                   className="btn-success"
                   style={{ textShadow: '0 0 5px rgba(0, 0, 0, 0.5)' }}
                 >
@@ -466,7 +466,7 @@ const OrderCard = ({
               )}
               {!order.reviewStatus?.reviews.toPlatform && (
                 <button
-                  onClick={() => onOpenReviewModal(order._id, `${currentUser?.primary_role}_to_platform`)}
+                  onClick={() => onOpenReviewModal(order.id, `${currentUser?.primary_role}_to_platform`)}
                   style={{
                     background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 50%, #6366F1 100%)',
                     color: '#FFFFFF',
@@ -495,7 +495,7 @@ const OrderCard = ({
                 </button>
               )}
               <button
-                onClick={() => onViewReviews(order._id)}
+                onClick={() => onViewReviews(order.id)}
                 className="btn-warning"
               >
                 📝 View Reviews
@@ -505,7 +505,7 @@ const OrderCard = ({
 
           {currentUser?.primary_role === 'customer' && order.status === 'pending_bids' && order.customerId === currentUser?.id && typeof onDeleteOrder === 'function' && (
             <button
-              onClick={() => onDeleteOrder(order._id)}
+              onClick={() => onDeleteOrder(order.id)}
               disabled={loadingStates?.deleteOrder}
               className="btn-danger"
               style={{ minHeight: '44px', textShadow: '0 0 5px rgba(0, 0, 0, 0.5)', opacity: loadingStates?.deleteOrder ? 0.5 : 1 }}
@@ -561,7 +561,7 @@ const OrderCard = ({
                   )}
                   {!order.customerIsVerified && (
                     <button
-                      onClick={() => window.open(`https://wa.me/${process.env.REACT_APP_WHATSAPP_ADMIN_NUMBER}?text=${encodeURIComponent(`Hello, I would like to verify my account for order ${order.orderNumber || order._id}. My user ID is: ${currentUser?.id}`)}`, '_blank')}
+                      onClick={() => window.open(`https://wa.me/${process.env.REACT_APP_WHATSAPP_ADMIN_NUMBER}?text=${encodeURIComponent(`Hello, I would like to verify my account for order ${order.orderNumber || order.id}. My user ID is: ${currentUser?.id}`)}`, '_blank')}
                       style={{
                         background: 'linear-gradient(135deg, #25D366 0%, #10B981 50%, #25D366 100%)',
                         color: '#FFFFFF',
@@ -699,8 +699,8 @@ const OrderCard = ({
               <input
                 type="number"
                 placeholder="Bid Amount"
-                value={bidInput[order._id] || ''}
-                onChange={(e) => setBidInput({ ...bidInput, [order._id]: e.target.value })}
+                value={bidInput[order.id] || ''}
+                onChange={(e) => setBidInput({ ...bidInput, [order.id]: e.target.value })}
                 className="form-control"
                 style={{
                   padding: '0.5rem',
@@ -715,8 +715,8 @@ const OrderCard = ({
               <input
                 type="datetime-local"
                 placeholder="Pickup Time"
-                value={bidDetails[order._id]?.pickupTime || ''}
-                onChange={(e) => setBidDetails({ ...bidDetails, [order._id]: { ...bidDetails[order._id], pickupTime: e.target.value } })}
+                value={bidDetails[order.id]?.pickupTime || ''}
+                onChange={(e) => setBidDetails({ ...bidDetails, [order.id]: { ...bidDetails[order.id], pickupTime: e.target.value } })}
                 style={{
                   padding: '0.5rem',
                   border: '2px solid var(--matrix-border)',
@@ -731,8 +731,8 @@ const OrderCard = ({
               <input
                 type="text"
                 placeholder="Message (optional)"
-                value={bidDetails[order._id]?.message || ''}
-                onChange={(e) => setBidDetails({ ...bidDetails, [order._id]: { ...bidDetails[order._id], message: e.target.value } })}
+                value={bidDetails[order.id]?.message || ''}
+                onChange={(e) => setBidDetails({ ...bidDetails, [order.id]: { ...bidDetails[order.id], message: e.target.value } })}
                 style={{
                   flex: 1,
                   padding: '0.5rem',
@@ -873,7 +873,7 @@ const OrderCard = ({
                     </div>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                       <button
-                        onClick={() => onAcceptBid(order._id, bid.userId)}
+                        onClick={() => onAcceptBid(order.id, bid.userId)}
                         disabled={loadingStates.acceptBid}
                         className="btn-success"
                         style={{
@@ -967,7 +967,7 @@ const OrderCard = ({
           }}>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button
-                onClick={() => onUpdateStatus(order._id, 'pickup')}
+                onClick={() => onUpdateStatus(order.id, 'pickup')}
                 disabled={loadingStates.pickupOrder}
                 className="btn-success"
                 style={{
@@ -1003,7 +1003,7 @@ const OrderCard = ({
           }}>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button
-                onClick={() => onUpdateStatus(order._id, 'in-transit')}
+                onClick={() => onUpdateStatus(order.id, 'in-transit')}
                 disabled={loadingStates.updateInTransit}
                 style={{
                   flex: 1,
@@ -1048,7 +1048,7 @@ const OrderCard = ({
           }}>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button
-                onClick={() => onUpdateStatus(order._id, 'complete')}
+                onClick={() => onUpdateStatus(order.id, 'complete')}
                 disabled={loadingStates.completeOrder}
                 className="btn-success"
                 style={{

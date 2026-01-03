@@ -58,7 +58,7 @@ async function main() {
         // 3. Customer Creates Order
         console.log('Creating Order...');
         const orderData = {
-            _id: 'order1',
+            id: 'order1',
             title: 'title',
             price: 10,
             orderNumber: 'ORD-001',

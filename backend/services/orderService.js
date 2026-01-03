@@ -108,7 +108,6 @@ class OrderService {
     const order = result.rows[0];
 
     return {
-      _id: order.id,
       id: order.id,
       title: order.title,
       description: order.description,
@@ -560,7 +559,7 @@ END as acceptedBid
     }
 
     return ordersToReturn.map(order => ({
-      _id: order.id,
+      id: order.id,
       title: order.title,
       description: order.description,
       pickupAddress: order.pickup_address,
@@ -717,7 +716,6 @@ RETURNING * `;
     });
 
     return {
-      _id: order.id,
       id: order.id,
       title: order.title,
       description: order.description,
@@ -879,6 +877,70 @@ RETURNING * `;
 
       await client.query('COMMIT');
       return { success: true };
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * Driver withdraws from an accepted order
+   */
+  async withdrawOrder(orderId, driverId) {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      // Check order status
+      const orderCheck = await client.query(
+        'SELECT status, assigned_driver_user_id, title, customer_id FROM orders WHERE id = $1',
+        [orderId]
+      );
+
+      if (orderCheck.rows.length === 0) {
+        throw new Error('Order not found');
+      }
+
+      const order = orderCheck.rows[0];
+
+      if (order.assigned_driver_user_id !== driverId) {
+        throw new Error('Unauthorized');
+      }
+
+      if (order.status !== 'accepted') {
+        throw new Error(`Cannot withdraw from order in ${order.status} status`);
+      }
+
+      // Reset order to pending_bids
+      await client.query(
+        'UPDATE orders SET status = $1, assigned_driver_user_id = NULL, assigned_driver_name = NULL, assigned_driver_bid_price = NULL, accepted_at = NULL WHERE id = $2',
+        ['pending_bids', orderId]
+      );
+
+      logger.order('Driver withdrew from order', {
+        orderId,
+        driverId,
+        category: 'order'
+      });
+
+      // Notify customer
+      try {
+        const { createNotification } = require('./notificationService');
+        await createNotification(
+          order.customer_id,
+          orderId,
+          'driver_withdrawal',
+          'Driver Withdrew',
+          `Driver has withdrawn from order "${order.title}". The order is back to pending bids.`
+        );
+      } catch (notifyError) {
+        logger.error('Failed to send withdrawal notification', notifyError);
+      }
+
+      await client.query('COMMIT');
+      return { message: 'Withdrawal successful' };
     } catch (error) {
       await client.query('ROLLBACK');
       throw error;

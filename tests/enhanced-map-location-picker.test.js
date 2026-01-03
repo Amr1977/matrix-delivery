@@ -443,7 +443,7 @@ describe('Enhanced Map Location Picker Integration Tests', () => {
         .expect(201);
 
       // Verify international flag is set (would be handled by backend logic)
-      expect(response.body).toHaveProperty('_id');
+      expect(response.body).toHaveProperty('id');
       expect(response.body).toHaveProperty('status');
     });
 
@@ -557,7 +557,7 @@ describe('Enhanced Map Location Picker Integration Tests', () => {
         .send(orderData)
         .expect(201);
 
-      const orderId = createResponse.body._id;
+      const orderId = createResponse.body.id;
 
       // Retrieve the specific order
       const getResponse = await request(app)
@@ -592,7 +592,7 @@ describe('Enhanced Map Location Picker Integration Tests', () => {
       // Each order should have the standard fields
       if (listResponse.body.length > 0) {
         const order = listResponse.body[0];
-        expect(order).toHaveProperty('_id');
+        expect(order).toHaveProperty('id');
         expect(order).toHaveProperty('title');
         expect(order).toHaveProperty('from');
         expect(order).toHaveProperty('to');
@@ -760,7 +760,7 @@ describe('Enhanced Map Location Picker Integration Tests', () => {
       // All should succeed
       results.forEach(response => {
         expect(response.status).toBe(201);
-        expect(response.body).toHaveProperty('_id');
+        expect(response.body).toHaveProperty('id');
         expect(response.body).toHaveProperty('pickupLocation');
         expect(response.body).toHaveProperty('dropoffLocation');
       });

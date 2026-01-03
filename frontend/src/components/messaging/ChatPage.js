@@ -114,7 +114,7 @@ const ChatPage = () => {
 
                 // Debug: Log order structure to identify correct field names
                 console.log('Order structure for chat:', {
-                    orderId: order._id,
+                    orderId: order.id,
                     customerId: order.customerId,
                     assignedDriver: order.assignedDriver,
                     assignedDriverUserId: order.assignedDriverUserId,
