@@ -181,9 +181,24 @@ router.get('/current', verifyToken, async (req, res) => {
             uptimeStr = execSync('uptime -p', { encoding: 'utf8', timeout: 5000 }).trim().replace('up ', '');
         } catch (e) { /* ignore */ }
 
+        // Check DB Connectivity
+        let dbStatus = 'unknown';
+        let dbLatency = 0;
+        try {
+            const start = Date.now();
+            await pool.query('SELECT 1');
+            dbLatency = Date.now() - start;
+            dbStatus = 'connected';
+        } catch (dbErr) {
+            logger.error('Health Check DB Error:', dbErr);
+            dbStatus = 'disconnected';
+        }
+
         res.json({
             ...metrics,
             uptime: uptimeStr,
+            dbStatus,
+            dbLatency,
             timestamp: new Date().toISOString()
         });
     } catch (error) {
