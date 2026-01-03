@@ -150,7 +150,15 @@ const startCollector = () => {
     logger.info(`✅ System health collector started (Instance: ${instanceId || 'Single'})`);
 };
 
-// ... (stopCollector remains unchanged)
+/**
+ * Stop the health collector
+ */
+const stopCollector = () => {
+    if (collectorInterval) {
+        clearInterval(collectorInterval);
+        collectorInterval = null;
+    }
+};
 
 // Start collector when this module is loaded
 startCollector();
