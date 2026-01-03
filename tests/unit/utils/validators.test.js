@@ -2,7 +2,7 @@
  * Unit tests for validators utility module
  */
 
-const { validateEmail, validatePassword, validatePhone, validateRole } = require('../../../utils/validators');
+const { validateEmail, validatePassword, validatePhone, validateRole } = require('../../../backend/utils/validators');
 
 describe('Validators Utility', () => {
     describe('validateEmail', () => {

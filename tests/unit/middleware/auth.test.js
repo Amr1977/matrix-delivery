@@ -1,9 +1,9 @@
 const jwt = require('jsonwebtoken');
 
 // Mock dependencies
-jest.mock('../../../config/db');
+jest.mock('../../../backend/config/db');
 
-const pool = require('../../../config/db');
+const pool = require('../../../backend/config/db');
 
 describe('Authentication Middleware', () => {
     const JWT_SECRET = 'test-secret-key-for-testing-only';

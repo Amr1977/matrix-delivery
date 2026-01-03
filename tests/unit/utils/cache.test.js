@@ -10,7 +10,7 @@ const {
     setListInMemory,
     getPersistedCache,
     persistCache
-} = require('../../../utils/cache');
+} = require('../../../backend/utils/cache');
 
 describe('Cache Utility', () => {
     beforeEach(() => {

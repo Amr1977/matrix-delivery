@@ -1,5 +1,5 @@
 const { Pool } = require('pg');
-const { NotificationService, initializeNotificationService, getNotificationService, createNotification } = require('../../../services/notificationService.ts');
+const { NotificationService, initializeNotificationService, getNotificationService, createNotification } = require('../../../backend/services/notificationService.ts');
 
 // Mock Socket.IO
 const mockIo = {
@@ -224,9 +224,8 @@ describe('NotificationService', () => {
         });
 
         it('should throw error if getNotificationService called before initialization', () => {
-            // Reset the singleton by requiring a fresh copy
             jest.resetModules();
-            const { getNotificationService: freshGet } = require('../../../services/notificationService.ts');
+            const { getNotificationService: freshGet } = require('../../../backend/services/notificationService.ts');
 
             expect(() => freshGet()).toThrow('NotificationService has not been initialized');
         });

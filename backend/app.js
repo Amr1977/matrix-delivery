@@ -424,7 +424,6 @@ app.post('/api/users/me/switch-primary_role', verifyToken, async (req, res) => {
     const newToken = jwt.sign(
       {
         userId: req.user.userId,
-        primary_role: newRole,  // Keep 'primary_role' for backward compatibility
         primary_role: newRole,
         granted_roles: user.granted_roles
       },
@@ -1145,7 +1144,7 @@ app.get('/api/locations/countries', async (req, res) => {
 
     // Database cache (locations table) - only use if we have a reasonable number of countries (>50)
     const dbResult = await pool.query(
-      "SELECT DISTINCT country FROM locations WHERE country IS NOT NULL AND country <> '' ORDER BY country"
+      'SELECT DISTINCT country FROM locations WHERE country IS NOT NULL AND country <> \'\' ORDER BY country'
     );
     if (dbResult.rows.length > 50) {
       const dbCountries = dbResult.rows.map(row => row.country).filter(Boolean);
@@ -1201,7 +1200,7 @@ app.post('/api/locations/cache/clear', async (req, res) => {
     locationMemoryCache.streets.clear();
 
     // Clear persistent cache
-    await pool.query("DELETE FROM cache WHERE key LIKE 'locations:%'");
+    await pool.query('DELETE FROM cache WHERE key LIKE \'locations:%\'');
 
     console.log('✅ Location caches cleared successfully');
     res.json({ message: 'Caches cleared successfully' });
@@ -1231,7 +1230,7 @@ app.get('/api/locations/countries/:country/cities', async (req, res) => {
     }
 
     // Database cache first
-    const dbQueryBase = "SELECT DISTINCT city FROM locations WHERE country = $1 AND city <> ''";
+    const dbQueryBase = 'SELECT DISTINCT city FROM locations WHERE country = $1 AND city <> \'\'';
     const dbQuery = searchTerm
       ? `${dbQueryBase} AND city ILIKE $2 ORDER BY city LIMIT $3`
       : `${dbQueryBase} ORDER BY city LIMIT $2`;
@@ -1325,7 +1324,7 @@ app.get('/api/locations/countries/:country/cities/:city/areas', async (req, res)
       return respond(cached);
     }
 
-    const dbQueryBase = "SELECT DISTINCT area FROM locations WHERE country = $1 AND city = $2 AND area <> ''";
+    const dbQueryBase = 'SELECT DISTINCT area FROM locations WHERE country = $1 AND city = $2 AND area <> \'\'';
     const dbQuery = searchTerm
       ? `${dbQueryBase} AND area ILIKE $3 ORDER BY area LIMIT $4`
       : `${dbQueryBase} ORDER BY area LIMIT $3`;
@@ -1419,7 +1418,7 @@ app.get('/api/locations/countries/:country/cities/:city/areas/:area/streets', as
       return respond(cached);
     }
 
-    const dbQueryBase = "SELECT DISTINCT street FROM locations WHERE country = $1 AND city = $2 AND area = $3 AND street <> ''";
+    const dbQueryBase = 'SELECT DISTINCT street FROM locations WHERE country = $1 AND city = $2 AND area = $3 AND street <> \'\'';
     const dbQuery = searchTerm
       ? `${dbQueryBase} AND street ILIKE $4 ORDER BY street LIMIT $5`
       : `${dbQueryBase} ORDER BY street LIMIT $4`;
@@ -1517,19 +1516,17 @@ app.get('/api/locations/search', async (req, res) => {
   try {
     const { q, country, city, limit = 10 } = req.query;
 
-    if (!q || q.length < 2) {
-      return res.status(400).json({ error: 'Search query must be at least 2 characters' });
+    if (!q || q.length < 2 || q.length > 200) {
+      return res.status(400).json({ error: 'Search query must be between 2 and 200 characters' });
     }
 
     // Build Nominatim query
-    let nominatimQuery = `q=${encodeURIComponent(q)}&format=json&addressdetails=1&limit=${Math.min(parseInt(limit), 50)}&dedupe=1`;
+    // Append city and country to q to avoid Nominatim parameter issues
+    let finalQuery = q;
+    if (city) finalQuery += `, ${city}`;
+    if (country) finalQuery += `, ${country}`;
 
-    if (country) {
-      nominatimQuery += `&country=${encodeURIComponent(country)}`;
-    }
-    if (city) {
-      nominatimQuery += `&city=${encodeURIComponent(city)}`;
-    }
+    let nominatimQuery = `q=${encodeURIComponent(finalQuery)}&format=json&addressdetails=1&limit=${Math.min(parseInt(limit), 50)}&dedupe=1`;
 
     const nominatimUrl = `https://nominatim.openstreetmap.org/search?${nominatimQuery}`;
 
@@ -1551,6 +1548,10 @@ app.get('/api/locations/search', async (req, res) => {
     const results = data.map(item => ({
       placeId: item.place_id,
       displayName: item.display_name,
+      coordinates: {
+        lat: parseFloat(item.lat),
+        lng: parseFloat(item.lon)
+      },
       lat: parseFloat(item.lat),
       lng: parseFloat(item.lon),
       type: item.type,
@@ -1714,7 +1715,7 @@ const verifyAdmin = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, JWT_SECRET);
-    console.log('🔐 verifyAdmin - Token decoded:', { userId: decoded.userId, primary_role: decoded.primary_role, primary_role: decoded.primary_role });
+    console.log('🔐 verifyAdmin - Token decoded:', { userId: decoded.userId, primary_role: decoded.primary_role });
 
     // Check if user is admin
     const userResult = await pool.query(
@@ -3043,7 +3044,7 @@ app.get('/api/admin/reports/revenue', verifyAdmin, async (req, res) => {
         dateFormat = 'YYYY-MM-DD';
     }
 
-    let whereConditions = ["status = 'delivered'", "assigned_driver_bid_price IS NOT NULL"];
+    let whereConditions = ['status = \'delivered\'', 'assigned_driver_bid_price IS NOT NULL'];
     let queryParams = [];
     let paramCount = 1;
 

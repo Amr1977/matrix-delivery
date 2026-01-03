@@ -86,4 +86,56 @@ const calculateCommission = (amount, rate = PAYMENT_CONFIG.COMMISSION_RATE) => {
     };
 };
 
-module.exports = { PAYMENT_CONFIG, calculateCommission };
+/**
+ * Calculate payment processing fee
+ * @param {number} amount - Transaction amount
+ * @param {string} method - Payment method (card, wallet, crypto, cod)
+ * @returns {number} Fee amount
+ */
+const calculatePaymentFee = (amount, method) => {
+    const methodKey = method.toUpperCase();
+    const feeRate = PAYMENT_CONFIG.FEES[methodKey] || 0;
+    const fee = amount * feeRate;
+    return parseFloat(fee.toFixed(2));
+};
+
+/**
+ * Calculate total amount including fees
+ * @param {number} amount - Base amount
+ * @param {string} method - Payment method
+ * @returns {number} Total amount
+ */
+const calculateTotalWithFees = (amount, method) => {
+    const fee = calculatePaymentFee(amount, method);
+    const total = amount + fee;
+    return parseFloat(total.toFixed(2));
+};
+
+/**
+ * Validate payment amount for method
+ * @param {number} amount - Transaction amount
+ * @param {string} method - Payment method
+ * @returns {Object} Validation result { valid: boolean, error: string }
+ */
+const validatePaymentAmount = (amount, method) => {
+    const methodKey = method.toUpperCase();
+    const config = PAYMENT_CONFIG.PAYMENT_METHODS[methodKey];
+
+    if (amount <= 0) {
+        return { valid: false, error: 'Amount must be greater than 0' };
+    }
+
+    if (config && amount < config.minAmount) {
+        return { valid: false, error: `Minimum amount is ${config.minAmount}` };
+    }
+
+    return { valid: true };
+};
+
+module.exports = {
+    PAYMENT_CONFIG,
+    calculateCommission,
+    calculatePaymentFee,
+    calculateTotalWithFees,
+    validatePaymentAmount
+};

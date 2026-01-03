@@ -239,8 +239,14 @@ module.exports = (app, pool, jwt) => {
     try {
       const { pickup, delivery } = req.body;
 
-      if (!pickup?.lat || !pickup?.lng || !delivery?.lat || !delivery?.lng) {
+      if (pickup?.lat === undefined || pickup?.lng === undefined || delivery?.lat === undefined || delivery?.lng === undefined) {
         return res.status(400).json({ error: 'Pickup and delivery coordinates are required' });
+      }
+
+      // Validate coordinates range
+      if (Math.abs(pickup.lat) > 90 || Math.abs(pickup.lng) > 180 ||
+        Math.abs(delivery.lat) > 90 || Math.abs(delivery.lng) > 180) {
+        return res.status(400).json({ error: 'Invalid coordinates' });
       }
 
       // Calculate straight-line distance
@@ -597,11 +603,11 @@ module.exports = (app, pool, jwt) => {
       const statusFilter = req.query.status; // Optional: 'delivered', 'cancelled', or both
 
       // Build status condition
-      let statusCondition = "o.status IN ('delivered', 'cancelled')";
+      let statusCondition = 'o.status IN (\'delivered\', \'cancelled\')';
       if (statusFilter === 'delivered') {
-        statusCondition = "o.status = 'delivered'";
+        statusCondition = 'o.status = \'delivered\'';
       } else if (statusFilter === 'cancelled') {
-        statusCondition = "o.status = 'cancelled'";
+        statusCondition = 'o.status = \'cancelled\'';
       }
 
       let query, params, countQuery, countParams;
