@@ -1374,7 +1374,7 @@ router.get('/reports/revenue', verifyAdmin, async (req, res) => {
         dateFormat = 'YYYY-MM-DD';
     }
 
-    let whereConditions = ["status = 'delivered'", "assigned_driver_bid_price IS NOT NULL"];
+    let whereConditions = ['status = \'delivered\'', 'assigned_driver_bid_price IS NOT NULL'];
     let queryParams = [];
     let paramCount = 1;
 

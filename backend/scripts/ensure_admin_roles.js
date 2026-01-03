@@ -11,7 +11,7 @@ const pool = new Pool({
 
 async function run() {
     try {
-        const res = await pool.query("SELECT * FROM users WHERE name = 'admin'");
+        const res = await pool.query('SELECT * FROM users WHERE name = \'admin\'');
         if (res.rows.length === 0) {
             console.log('Admin user not found, creating or skipping.');
             // Create if needed, but assuming it exists

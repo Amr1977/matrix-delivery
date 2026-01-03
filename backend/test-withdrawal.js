@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 
 // Generate test token
 const token = jwt.sign(
-    { userId: 1, primary_role: 'customer', primary_role: 'customer' },
+    { userId: 1, primary_role: 'customer' },
     process.env.JWT_SECRET,
     { expiresIn: '1h', issuer: 'matrix-delivery', audience: 'matrix-delivery-api' }
 );

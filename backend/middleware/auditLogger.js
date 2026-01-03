@@ -1,5 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
+'use strict';
+Object.defineProperty(exports, '__esModule', { value: true });
 exports.cleanupOldAuditLogs = exports.getUserAuditLogs = exports.logDataAccess = exports.logPaymentEvent = exports.logAuthEvent = exports.auditMiddleware = exports.auditLog = exports.initAuditLogger = void 0;
 // Database pool will be injected
 let pool;

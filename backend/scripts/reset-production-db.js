@@ -35,7 +35,7 @@ async function resetDatabase() {
     console.log(`   Database: ${dbName}`);
     console.log(`   User: ${config.user}\n`);
 
-    rl.question("Type 'YES I UNDERSTAND' to continue: ", async (answer) => {
+    rl.question('Type \'YES I UNDERSTAND\' to continue: ', async (answer) => {
         if (answer !== 'YES I UNDERSTAND') {
             console.log('❌ Aborted');
             rl.close();

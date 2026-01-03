@@ -17,27 +17,27 @@ const replacements = [
     {
         // Simple primary_role checks
         pattern: /if \(req\.user\.primary_role !== '([^']+)'\)/g,
-        replacement: "if ((req.user.primary_role || req.user.primary_role) !== '$1')"
+        replacement: 'if ((req.user.primary_role || req.user.primary_role) !== \'$1\')'
     },
     {
         // primary_role equality checks
         pattern: /if \(req\.user\.primary_role === '([^']+)'\)/g,
-        replacement: "if ((req.user.primary_role || req.user.primary_role) === '$1')"
+        replacement: 'if ((req.user.primary_role || req.user.primary_role) === \'$1\')'
     },
     {
         // primary_role in variables
         pattern: /const userRole = req\.user\.primary_role;/g,
-        replacement: "const userRole = req.user.primary_role || req.user.primary_role;"
+        replacement: 'const userRole = req.user.primary_role || req.user.primary_role;'
     },
     {
         // primary_role in objects
         pattern: /primary_role: req\.user\.primary_role,/g,
-        replacement: "primary_role: (req.user.primary_role || req.user.primary_role),"
+        replacement: 'primary_role: (req.user.primary_role || req.user.primary_role),'
     },
     {
         // primary_role in arrays/function calls
-        pattern: /req\.user\.primary_role(?=[,\)])/g,
-        replacement: "(req.user.primary_role || req.user.primary_role)"
+        pattern: /req\.user\.primary_role(?=[,)])/g,
+        replacement: '(req.user.primary_role || req.user.primary_role)'
     }
 ];
 

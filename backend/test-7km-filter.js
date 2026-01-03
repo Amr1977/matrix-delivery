@@ -22,7 +22,7 @@ orderService.cleanupTestOrders = async function () {
     user: process.env.DB_USER || 'postgres',
     password: process.env.DB_PASSWORD || '***REDACTED***'
   });
-  await dbPool.query("DELETE FROM orders WHERE order_number LIKE 'TEST-%'");
+  await dbPool.query('DELETE FROM orders WHERE order_number LIKE \'TEST-%\'');
   await dbPool.end();
   console.log('🧹 Cleaned up test orders');
 };

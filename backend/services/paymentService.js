@@ -551,7 +551,7 @@ class PaymentService {
 
       // Create PayPal order
       const request = new paypal.orders.OrdersCreateRequest();
-      request.prefer("return=representation");
+      request.prefer('return=representation');
       request.requestBody({
         intent: 'CAPTURE',
         purchase_units: [{

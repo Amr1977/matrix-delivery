@@ -1,0 +1,9 @@
+node_modules
+build
+dist
+frontend/build
+frontend/node_modules
+constants.js
+coverage
+backend/node_modules
+android

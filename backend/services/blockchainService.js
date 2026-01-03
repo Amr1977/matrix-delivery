@@ -3,33 +3,33 @@ const logger = require('../config/logger');
 
 // Contract ABI - Essential functions only
 const ESCROW_ABI = [
-    "function createOrder(string orderId, address token, uint256 amount) external",
-    "function acceptOrder(string orderId, address driver) external",
-    "function startDelivery(string orderId) external",
-    "function completeOrder(string orderId) external",
-    "function refundOrder(string orderId) external",
-    "function disputeOrder(string orderId) external",
-    "function cancelOrder(string orderId) external",
-    "function getOrder(string orderId) external view returns (tuple(string orderId, address customer, address driver, address token, uint256 amount, uint256 platformFee, uint256 driverAmount, uint8 status, uint256 createdAt, uint256 completedAt))",
-    "function getDriverEarnings(address driver) external view returns (uint256)",
-    "function supportedTokens(address token) external view returns (bool)",
-    "event OrderCreated(string indexed orderId, address indexed customer, uint256 amount, address token)",
-    "event OrderFunded(string indexed orderId, address indexed customer, uint256 amount)",
-    "event OrderAccepted(string indexed orderId, address indexed driver)",
-    "event DeliveryStarted(string indexed orderId)",
-    "event OrderCompleted(string indexed orderId, uint256 driverAmount, uint256 platformFee)",
-    "event OrderRefunded(string indexed orderId, uint256 amount)",
-    "event OrderDisputed(string indexed orderId, address indexed initiator)",
-    "event OrderCancelled(string indexed orderId)"
+    'function createOrder(string orderId, address token, uint256 amount) external',
+    'function acceptOrder(string orderId, address driver) external',
+    'function startDelivery(string orderId) external',
+    'function completeOrder(string orderId) external',
+    'function refundOrder(string orderId) external',
+    'function disputeOrder(string orderId) external',
+    'function cancelOrder(string orderId) external',
+    'function getOrder(string orderId) external view returns (tuple(string orderId, address customer, address driver, address token, uint256 amount, uint256 platformFee, uint256 driverAmount, uint8 status, uint256 createdAt, uint256 completedAt))',
+    'function getDriverEarnings(address driver) external view returns (uint256)',
+    'function supportedTokens(address token) external view returns (bool)',
+    'event OrderCreated(string indexed orderId, address indexed customer, uint256 amount, address token)',
+    'event OrderFunded(string indexed orderId, address indexed customer, uint256 amount)',
+    'event OrderAccepted(string indexed orderId, address indexed driver)',
+    'event DeliveryStarted(string indexed orderId)',
+    'event OrderCompleted(string indexed orderId, uint256 driverAmount, uint256 platformFee)',
+    'event OrderRefunded(string indexed orderId, uint256 amount)',
+    'event OrderDisputed(string indexed orderId, address indexed initiator)',
+    'event OrderCancelled(string indexed orderId)'
 ];
 
 const ERC20_ABI = [
-    "function balanceOf(address owner) view returns (uint256)",
-    "function decimals() view returns (uint8)",
-    "function symbol() view returns (string)",
-    "function transfer(address to, uint amount) returns (bool)",
-    "function approve(address spender, uint256 amount) returns (bool)",
-    "function allowance(address owner, address spender) view returns (uint256)"
+    'function balanceOf(address owner) view returns (uint256)',
+    'function decimals() view returns (uint8)',
+    'function symbol() view returns (string)',
+    'function transfer(address to, uint amount) returns (bool)',
+    'function approve(address spender, uint256 amount) returns (bool)',
+    'function allowance(address owner, address spender) view returns (uint256)'
 ];
 
 /**
