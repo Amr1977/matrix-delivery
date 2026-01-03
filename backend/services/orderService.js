@@ -1192,6 +1192,14 @@ RETURNING * `;
         targetUserId = order.assigned_driver_user_id;
         title = 'Order Completed 🎉';
         message = `Customer confirmed delivery for "${order.title}". Great job!`;
+      } else if (normalizedAction === 'cancel') {
+        // Order Cancelled
+        // If driver was assigned, notify driver
+        if (order.assigned_driver_user_id) {
+          targetUserId = order.assigned_driver_user_id;
+          title = 'Order Cancelled ❌';
+          message = `Order "${order.title}" has been cancelled by the customer.`;
+        }
       }
 
       if (title && targetUserId) {

@@ -1,0 +1,3364 @@
+[dotenv@17.2.3] injecting env (0) from .env.testing -- tip: ≡ƒöæ add access controls to secrets: https://dotenvx.com/ops
+[dotenv@17.2.3] injecting env (0) from .env.testing -- tip: ≡ƒöÉ encrypt with Dotenvx: https://dotenvx.com
+Γ£à Loaded .env.testing for testing
+2026-01-03 19:54:36 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m≡ƒöº Environment Configuration:[1m[32m[22m[39m
+2026-01-03 19:54:36 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   NODE_ENV: testing[1m[32m[22m[39m
+2026-01-03 19:54:36 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   IS_TEST: true[1m[32m[22m[39m
+2026-01-03 19:54:36 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   DB_HOST: localhost[1m[32m[22m[39m
+2026-01-03 19:54:36 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   DB_PORT: 5432[1m[32m[22m[39m
+2026-01-03 19:54:36 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   DB_USER: postgres[1m[32m[22m[39m
+2026-01-03 19:54:36 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   DB_NAME: matrix_delivery_test[1m[32m[22m[39m
+2026-01-03 19:54:36 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m   DB_NAME_TEST: matrix_delivery_test[1m[32m[22m[39m
+2026-01-03 19:54:36 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1m≡ƒöî Connecting to database: matrix_delivery_test (Test Mode: true)[1m[32m[22m[39m
+Γ£à Security configuration validated
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ΓÜÖ∩╕Å  write to custom object with { processEnv: myObject }
+'free' is not recognized as an internal or external command,
+operable program or batch file.
+2026-01-03 19:54:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mΓ£à System health collector started (Instance: Single)[1m[32m[22m[39m
+Γ£à Loading Step Definitions file: landing_reviews_steps.ts
+Cannot use 'progress-bar' formatter for output to 'stdout' as not a TTY. Switching to 'progress' formatter.
+PostGIS detected in browse routes
+≡ƒÜÇ Starting Backend BDD Tests...
+   ≡ƒöä Starting backend server...
+≡ƒÜÇ Starting backend server...
+Backend error: 'free' is not recognized as an internal or external command,
+operable program or batch file.
+
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started successfully
+
+≡ƒÄ¼ Starting test suite...
+
+   Γ£à Backend server started
+   Γ£à Servers already running (using existing instance)
+...   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Uploaded images have correct CORS headers
+.UUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Path traversal attacks are blocked
+.UUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: URL-encoded path traversal is blocked
+.UUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Profile picture upload requires authentication
+.UUU..........   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Profile picture upload accepts valid images
+.UUUUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Uploaded profile pictures are accessible
+.UUUUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: View dashboard with default date range
+.UUUUUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: View dashboard with custom date range
+.UUUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: View dashboard with different time ranges
+.UUUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: View dashboard with different time ranges
+.UUUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: View dashboard with different time ranges
+.UUUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: View dashboard with different time ranges
+.UUUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Unauthorized access attempt
+.UUUUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Non-admin user access attempt
+.UUUUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+...
+Γû╢∩╕Å  Running: Admin action logging
+.UUUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Dashboard with user growth data
+.UUUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Dashboard with revenue breakdown
+.UUUUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: View all orders with pagination
+.UUUUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+'free' is not recognized as an internal or external command,
+operable program or batch file.
+.
+Γû╢∩╕Å  Running: Filter orders by status
+.UU-UU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Search orders by order number
+.UUUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: View detailed order information
+.UUUUUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Cancel an order
+.UUU-AUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Cancel order with refund
+.UUUUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: View order location history
+.UUUUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Monitor active orders
+.UUUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Generate order report
+.UUUUUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: List all users with pagination
+.UUUUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Search users by name
+.UUUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Filter users by primary_role
+.UUUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Verify a user account
+.UUUUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Suspend a user account
+.UUUUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+Backend error: 'free' is not recognized as an internal or external command,
+operable program or batch file.
+
+.
+Γû╢∩╕Å  Running: Unsuspend a user account
+.UUUUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Delete user without active orders
+.UUUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Prevent deletion of user with active orders
+.UUUUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: View detailed user information
+.UUUUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Bulk user operations
+.UUUUUU.............   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Admin views current system health
+.AAAAA...............   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Admin views health history
+.AAAA............   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Successful user registration
+..2026-01-03 19:56:27 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/auth/register[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/register",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2026-01-03 19:56:27 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Registration attempt[1m[32m[22m[39m
+{
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2026-01-03 19:56:27 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mInitialized balance for new user 1767462987934z6h2545ny[1m[32m[22m[39m
+2026-01-03 19:56:27 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: User registered successfully[1m[32m[22m[39m
+{
+  "userId": "1767462987934z6h2545ny",
+  "email": "john@example.com",
+  "primary_role": "customer",
+  "category": "authentication"
+}
+2026-01-03 19:56:28 [[31m[1m[31m[1merror[1m[31m[22m[39m]: [31m[1m[31m[1mEmail service initialization failed: nodemailer.createTransporter is not a function[1m[31m[22m[39m
+{
+  "category": "email",
+  "error": "nodemailer.createTransporter is not a function"
+}
+2026-01-03 19:56:28 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mEmail verification would be sent[1m[32m[22m[39m
+{
+  "category": "email",
+  "to": "john@example.com",
+  "verificationUrl": "http://localhost:3000/verify-email?token=17674629880020stqsp6mr"
+}
+2026-01-03 19:56:28 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mVerification email sent to new user[1m[32m[22m[39m
+{
+  "userId": "1767462987934z6h2545ny",
+  "email": "john@example.com",
+  "category": "auth"
+}
+2026-01-03 19:56:28 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mPERF: Registration completed[1m[32m[22m[39m
+{
+  "userId": "1767462987934z6h2545ny",
+  "duration": "603ms",
+  "category": "performance"
+}
+2026-01-03 19:56:28 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[03/Jan/2026:17:56:28",
+  "ip": "/api/auth/register",
+  "userAgent": "201",
+  "category": "http"
+}
+2026-01-03 19:56:28 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/auth/register 201[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/register",
+  "statusCode": 201,
+  "duration": "620ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+..F--   Γ¥î FAILED: Successful user registration
+2026-01-03 19:56:28 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mNo admin users found to notify about new registration[1m[33m[22m[39m
+{
+  "category": "notification"
+}
+   ≡ƒô╕ Screenshot saved: D:\matrix-delivery\reports\screenshots\successful_user_registration_1767462988072.png
+Cleanup error: update or delete on table "users" violates foreign key constraint "email_verification_tokens_user_id_fkey" on table "email_verification_tokens"
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.F----   Γ¥î FAILED: Registration with existing email
+   ΓÜá∩╕Å  Failed to capture screenshot: page.screenshot: Target page, context or browser has been closed
+Call log:
+  - taking page screenshot
+  - waiting for fonts to load...
+  - fonts loaded
+
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Registration with invalid email
+.2026-01-03 19:56:39 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/auth/register[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/register",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2026-01-03 19:56:39 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Registration attempt[1m[32m[22m[39m
+{
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2026-01-03 19:56:39 [[31m[1m[31m[1merror[1m[31m[22m[39m]: [31m[1m[31m[1mRegistration error: Invalid email format[1m[31m[22m[39m
+{
+  "stack": "Error: Invalid email format\n    at AuthService.registerUser (D:\\matrix-delivery\\backend\\services\\authService.js:150:19)\n    at register (D:\\matrix-delivery\\backend\\controllers\\authController.js:107:42)\n    at Layer.handle [as handle_request] (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at next (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\route.js:149:13)\n    at limitOptions.standardHeaders (D:\\matrix-delivery\\backend\\middleware\\rateLimit.js:16:32)\n    at Layer.handle [as handle_request] (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at next (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\route.js:149:13)\n    at Route.dispatch (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\route.js:119:3)\n    at Layer.handle [as handle_request] (D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at D:\\matrix-delivery\\backend\\node_modules\\express\\lib\\router\\index.js:284:15",
+  "ip": "::ffff:127.0.0.1",
+  "duration": "2ms",
+  "category": "error"
+}
+2026-01-03 19:56:39 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[03/Jan/2026:17:56:39",
+  "ip": "/api/auth/register",
+  "userAgent": "400",
+  "category": "http"
+}
+2026-01-03 19:56:39 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/auth/register 400[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/register",
+  "statusCode": 400,
+  "duration": "25ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+...   Γ£à PASSED: Registration with invalid email
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Registration with weak password
+.2026-01-03 19:56:42 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/auth/register[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/register",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2026-01-03 19:56:42 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Registration attempt[1m[32m[22m[39m
+{
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2026-01-03 19:56:42 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[03/Jan/2026:17:56:42",
+  "ip": "/api/auth/register",
+  "userAgent": "400",
+  "category": "http"
+}
+2026-01-03 19:56:42 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/auth/register 400[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/register",
+  "statusCode": 400,
+  "duration": "5ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+...   Γ£à PASSED: Registration with weak password
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Successful login
+..2026-01-03 19:56:44 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/auth/login[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2026-01-03 19:56:44 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Login attempt[1m[32m[22m[39m
+{
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2026-01-03 19:56:44 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: User logged in successfully[1m[32m[22m[39m
+{
+  "userId": "17674630044895229a755",
+  "email": "test@example.com",
+  "primary_role": "customer",
+  "category": "authentication"
+}
+2026-01-03 19:56:44 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mPERF: Login completed[1m[32m[22m[39m
+{
+  "userId": "17674630044895229a755",
+  "duration": "211ms",
+  "category": "performance"
+}
+2026-01-03 19:56:44 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[03/Jan/2026:17:56:44",
+  "ip": "/api/auth/login",
+  "userAgent": "200",
+  "category": "http"
+}
+2026-01-03 19:56:44 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/auth/login 200[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "statusCode": 200,
+  "duration": "217ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+..F-   Γ¥î FAILED: Successful login
+   ≡ƒô╕ Screenshot saved: D:\matrix-delivery\reports\screenshots\successful_login_1767463004730.png
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Login with incorrect password
+..2026-01-03 19:56:46 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/auth/login[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2026-01-03 19:56:46 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Login attempt[1m[32m[22m[39m
+{
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+'free' is not recognized as an internal or external command,
+operable program or batch file.
+2026-01-03 19:56:49 [[31m[1m[31m[1merror[1m[31m[22m[39m]: [31m[1m[31m[1mLogin error: Invalid email or password[1m[31m[22m[39m
+{
+  "stack": "Error: Invalid email or password\n    at AuthService.authenticateUser (D:\\matrix-delivery\\backend\\services\\authService.js:136:19)\n    at runNextTicks (node:internal/process/task_queues:65:5)\n    at processImmediate (node:internal/timers:453:9)\n    at process.topLevelDomainCallback (node:domain:161:15)\n    at process.callbackTrampoline (node:internal/async_hooks:128:24)\n    at async AuthService.loginUser (D:\\matrix-delivery\\backend\\services\\authService.js:191:22)\n    at async login (D:\\matrix-delivery\\backend\\controllers\\authController.js:205:24)",
+  "ip": "::ffff:127.0.0.1",
+  "duration": "2887ms",
+  "category": "error"
+}
+2026-01-03 19:56:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[03/Jan/2026:17:56:49",
+  "ip": "/api/auth/login",
+  "userAgent": "401",
+  "category": "http"
+}
+2026-01-03 19:56:49 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/auth/login 401[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "statusCode": 401,
+  "duration": "2896ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+...   Γ£à PASSED: Login with incorrect password
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Login with non-existent email
+.2026-01-03 19:56:52 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/auth/login[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2026-01-03 19:56:52 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Login attempt[1m[32m[22m[39m
+{
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2026-01-03 19:56:52 [[31m[1m[31m[1merror[1m[31m[22m[39m]: [31m[1m[31m[1mLogin error: Invalid email or password[1m[31m[22m[39m
+{
+  "stack": "Error: Invalid email or password\n    at AuthService.authenticateUser (D:\\matrix-delivery\\backend\\services\\authService.js:132:19)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async AuthService.loginUser (D:\\matrix-delivery\\backend\\services\\authService.js:191:22)\n    at async login (D:\\matrix-delivery\\backend\\controllers\\authController.js:205:24)",
+  "ip": "::ffff:127.0.0.1",
+  "duration": "2ms",
+  "category": "error"
+}
+2026-01-03 19:56:52 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[03/Jan/2026:17:56:52",
+  "ip": "/api/auth/login",
+  "userAgent": "401",
+  "category": "http"
+}
+2026-01-03 19:56:52 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/auth/login 401[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "statusCode": 401,
+  "duration": "7ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+...   Γ£à PASSED: Login with non-existent email
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Token refresh
+.2026-01-03 19:57:03 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/auth/login[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2026-01-03 19:57:03 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Login attempt[1m[32m[22m[39m
+{
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2026-01-03 19:57:03 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: User logged in successfully[1m[32m[22m[39m
+{
+  "userId": "1767463023781d7a65f16",
+  "email": "loggedin1767463023544@example.com",
+  "primary_role": "customer",
+  "category": "authentication"
+}
+2026-01-03 19:57:03 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mPERF: Login completed[1m[32m[22m[39m
+{
+  "userId": "1767463023781d7a65f16",
+  "duration": "183ms",
+  "category": "performance"
+}
+2026-01-03 19:57:03 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[03/Jan/2026:17:57:03",
+  "ip": "/api/auth/login",
+  "userAgent": "200",
+  "category": "http"
+}
+2026-01-03 19:57:03 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/auth/login 200[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "statusCode": 200,
+  "duration": "186ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+..2026-01-03 19:57:03 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/auth/refresh[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/refresh",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2026-01-03 19:57:03 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token refresh attempt[1m[32m[22m[39m
+{
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2026-01-03 19:57:03 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[03/Jan/2026:17:57:03",
+  "ip": "/api/auth/refresh",
+  "userAgent": "401",
+  "category": "http"
+}
+2026-01-03 19:57:03 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/auth/refresh 401[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/refresh",
+  "statusCode": 401,
+  "duration": "5ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+.F-   Γ¥î FAILED: Token refresh
+   ≡ƒô╕ Screenshot saved: D:\matrix-delivery\reports\screenshots\token_refresh_1767463024008.png
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Logout
+.2026-01-03 19:57:05 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/auth/login[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2026-01-03 19:57:05 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Login attempt[1m[32m[22m[39m
+{
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+Backend error: 'free' is not recognized as an internal or external command,
+operable program or batch file.
+
+2026-01-03 19:57:05 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: User logged in successfully[1m[32m[22m[39m
+{
+  "userId": "1767463025451b62a14ac",
+  "email": "loggedin1767463025229@example.com",
+  "primary_role": "customer",
+  "category": "authentication"
+}
+2026-01-03 19:57:05 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mPERF: Login completed[1m[32m[22m[39m
+{
+  "userId": "1767463025451b62a14ac",
+  "duration": "291ms",
+  "category": "performance"
+}
+2026-01-03 19:57:05 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[03/Jan/2026:17:57:05",
+  "ip": "/api/auth/login",
+  "userAgent": "200",
+  "category": "http"
+}
+2026-01-03 19:57:05 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/auth/login 200[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "statusCode": 200,
+  "duration": "300ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+.A--..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Password reset request
+..2026-01-03 19:57:09 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/auth/forgot-password[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/forgot-password",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2026-01-03 19:57:09 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Password reset request[1m[32m[22m[39m
+{
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2026-01-03 19:57:09 [[31m[1m[31m[1merror[1m[31m[22m[39m]: [31m[1m[31m[1mEmail service initialization failed: nodemailer.createTransporter is not a function[1m[31m[22m[39m
+{
+  "category": "email",
+  "error": "nodemailer.createTransporter is not a function"
+}
+2026-01-03 19:57:09 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mPassword reset email would be sent[1m[32m[22m[39m
+{
+  "category": "email",
+  "to": "forgot@example.com",
+  "resetUrl": "http://localhost:3000/reset-password?token=17674630296363t2rliw2q"
+}
+2026-01-03 19:57:09 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mPERF: Password reset email sent[1m[32m[22m[39m
+{
+  "userId": "17674630296191ea888df",
+  "duration": "11ms",
+  "category": "performance"
+}
+2026-01-03 19:57:09 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[03/Jan/2026:17:57:09",
+  "ip": "/api/auth/forgot-password",
+  "userAgent": "200",
+  "category": "http"
+}
+2026-01-03 19:57:09 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/auth/forgot-password 200[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/forgot-password",
+  "statusCode": 200,
+  "duration": "16ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+....   Γ£à PASSED: Password reset request
+Cleanup error: update or delete on table "users" violates foreign key constraint "password_reset_tokens_user_id_fkey" on table "password_reset_tokens"
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Password reset with valid token
+.2026-01-03 19:57:13 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/auth/forgot-password[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/forgot-password",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2026-01-03 19:57:13 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Password reset request[1m[32m[22m[39m
+{
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2026-01-03 19:57:13 [[31m[1m[31m[1merror[1m[31m[22m[39m]: [31m[1m[31m[1mEmail service initialization failed: nodemailer.createTransporter is not a function[1m[31m[22m[39m
+{
+  "category": "email",
+  "error": "nodemailer.createTransporter is not a function"
+}
+2026-01-03 19:57:13 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mPassword reset email would be sent[1m[32m[22m[39m
+{
+  "category": "email",
+  "to": "reset1767463032210@example.com",
+  "resetUrl": "http://localhost:3000/reset-password?token=1767463033024uo99ycsql"
+}
+2026-01-03 19:57:13 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mPERF: Password reset email sent[1m[32m[22m[39m
+{
+  "userId": "1767463032623d3520139",
+  "duration": "16ms",
+  "category": "performance"
+}
+2026-01-03 19:57:13 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[03/Jan/2026:17:57:13",
+  "ip": "/api/auth/forgot-password",
+  "userAgent": "200",
+  "category": "http"
+}
+2026-01-03 19:57:13 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/auth/forgot-password 200[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/forgot-password",
+  "statusCode": 200,
+  "duration": "19ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+.2026-01-03 19:57:13 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/auth/reset-password[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/reset-password",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2026-01-03 19:57:13 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Password reset attempt[1m[32m[22m[39m
+{
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2026-01-03 19:57:13 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[03/Jan/2026:17:57:13",
+  "ip": "/api/auth/reset-password",
+  "userAgent": "400",
+  "category": "http"
+}
+2026-01-03 19:57:13 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/auth/reset-password 400[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/reset-password",
+  "statusCode": 400,
+  "duration": "4ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+.F-   Γ¥î FAILED: Password reset with valid token
+   ≡ƒô╕ Screenshot saved: D:\matrix-delivery\reports\screenshots\password_reset_with_valid_token_1767463033059.png
+Cleanup error: update or delete on table "users" violates foreign key constraint "password_reset_tokens_user_id_fkey" on table "password_reset_tokens"
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Password reset with expired token
+..2026-01-03 19:57:19 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/auth/reset-password[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/reset-password",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2026-01-03 19:57:19 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Password reset attempt[1m[32m[22m[39m
+{
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2026-01-03 19:57:19 [[31m[1m[31m[1merror[1m[31m[22m[39m]: [31m[1m[31m[1mReset password error: Invalid or expired reset token[1m[31m[22m[39m
+{
+  "error": "Error: Invalid or expired reset token\n    at AuthService.resetPassword (D:\\matrix-delivery\\backend\\services\\authService.js:359:19)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async resetPassword (D:\\matrix-delivery\\backend\\controllers\\authController.js:524:9)",
+  "ip": "::ffff:127.0.0.1",
+  "duration": "144ms",
+  "category": "error"
+}
+2026-01-03 19:57:19 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[03/Jan/2026:17:57:19",
+  "ip": "/api/auth/reset-password",
+  "userAgent": "400",
+  "category": "http"
+}
+2026-01-03 19:57:19 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/auth/reset-password 400[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/reset-password",
+  "statusCode": 400,
+  "duration": "150ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+...   Γ£à PASSED: Password reset with expired token
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Login after logout uses fresh token
+..2026-01-03 19:57:21 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/auth/login[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2026-01-03 19:57:21 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Login attempt[1m[32m[22m[39m
+{
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2026-01-03 19:57:21 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: User logged in successfully[1m[32m[22m[39m
+{
+  "userId": "1767463041293f0ec8b38",
+  "email": "fresh@example.com",
+  "primary_role": "customer",
+  "category": "authentication"
+}
+2026-01-03 19:57:21 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mPERF: Login completed[1m[32m[22m[39m
+{
+  "userId": "1767463041293f0ec8b38",
+  "duration": "194ms",
+  "category": "performance"
+}
+2026-01-03 19:57:21 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[03/Jan/2026:17:57:21",
+  "ip": "/api/auth/login",
+  "userAgent": "200",
+  "category": "http"
+}
+2026-01-03 19:57:21 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/auth/login 200[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "statusCode": 200,
+  "duration": "197ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+..A----............   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: User cannot access another user's order details
+...2026-01-03 19:57:24 [[36m[36mdebug[36m[39m]: [36m[36mOrder creation request[36m[39m
+{
+  "customerId": "customer-1",
+  "hasTitle": true,
+  "hasPrice": true,
+  "category": "order_creation"
+}
+2026-01-03 19:57:24 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mORDER: Order created successfully[1m[32m[22m[39m
+{
+  "orderId": "1767463044136p0y092r3l",
+  "orderNumber": "ORD - 1767463044136 ",
+  "customerId": "customer-1",
+  "price": "100.00",
+  "category": "order"
+}
+.A-.............   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Customer can access their own order
+...2026-01-03 19:57:27 [[36m[36mdebug[36m[39m]: [36m[36mOrder creation request[36m[39m
+{
+  "customerId": "customer-1",
+  "hasTitle": true,
+  "hasPrice": true,
+  "category": "order_creation"
+}
+2026-01-03 19:57:27 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mORDER: Order created successfully[1m[32m[22m[39m
+{
+  "orderId": "17674630470519y1uqp25q",
+  "orderNumber": "ORD - 1767463047051 ",
+  "customerId": "customer-1",
+  "price": "100.00",
+  "category": "order"
+}
+.A-.............   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: User can only update own profile
+...2026-01-03 19:57:29 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: PUT /api/users/me/profile[1m[35m[22m[39m
+{
+  "method": "PUT",
+  "url": "/api/users/me/profile",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2026-01-03 19:57:29 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": "customer-1",
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2026-01-03 19:57:29 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mUser updated profile[1m[32m[22m[39m
+{
+  "userId": "customer-1",
+  "category": "user"
+}
+2026-01-03 19:57:29 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[03/Jan/2026:17:57:29",
+  "ip": "/api/users/me/profile",
+  "userAgent": "200",
+  "category": "http"
+}
+2026-01-03 19:57:29 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: PUT /api/users/me/profile 200[1m[35m[22m[39m
+{
+  "method": "PUT",
+  "url": "/api/users/me/profile",
+  "statusCode": 200,
+  "duration": "19ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+..   Γ£à PASSED: User can only update own profile
+.............   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Driver cannot bid on order assigned to another driver
+...2026-01-03 19:57:32 [[36m[36mdebug[36m[39m]: [36m[36mOrder creation request[36m[39m
+{
+  "customerId": "customer-1",
+  "hasTitle": true,
+  "hasPrice": true,
+  "category": "order_creation"
+}
+2026-01-03 19:57:32 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mORDER: Order created successfully[1m[32m[22m[39m
+{
+  "orderId": "1767463052074ozw4ont7s",
+  "orderNumber": "ORD - 1767463052074 ",
+  "customerId": "customer-1",
+  "price": "100.00",
+  "category": "order"
+}
+.2026-01-03 19:57:32 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/orders/order-888/bid[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/orders/order-888/bid",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2026-01-03 19:57:32 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": "driver-2",
+  "role": "driver",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2026-01-03 19:57:32 [[31m[1m[31m[1merror[1m[31m[22m[39m]: [31m[1m[31m[1mBid placement error: Order is not available for bidding[1m[31m[22m[39m
+{
+  "orderId": "order-888",
+  "userId": "driver-2",
+  "category": "error"
+}
+2026-01-03 19:57:32 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[03/Jan/2026:17:57:32",
+  "ip": "/api/orders/order-888/bid",
+  "userAgent": "400",
+  "category": "http"
+}
+2026-01-03 19:57:32 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/orders/order-888/bid 400[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/orders/order-888/bid",
+  "statusCode": 400,
+  "duration": "10ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+..   Γ£à PASSED: Driver cannot bid on order assigned to another driver
+.............   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Non-admin cannot access admin user list
+...2026-01-03 19:57:34 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: GET /api/admin/users[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/admin/users",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2026-01-03 19:57:34 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mSECURITY: Non-admin user attempted admin access[1m[33m[22m[39m
+{
+  "userId": "customer-1",
+  "ip": "::ffff:127.0.0.1",
+  "path": "/users",
+  "category": "security"
+}
+2026-01-03 19:57:34 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[03/Jan/2026:17:57:34",
+  "ip": "/api/admin/users",
+  "userAgent": "403",
+  "category": "http"
+}
+2026-01-03 19:57:34 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: GET /api/admin/users 403[1m[33m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/admin/users",
+  "statusCode": 403,
+  "duration": "7ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+..   Γ£à PASSED: Non-admin cannot access admin user list
+.............   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Non-admin cannot access admin dashboard
+...2026-01-03 19:57:36 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: GET /api/admin/stats[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/admin/stats",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2026-01-03 19:57:36 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mSECURITY: Non-admin user attempted admin access[1m[33m[22m[39m
+{
+  "userId": "customer-1",
+  "ip": "::ffff:127.0.0.1",
+  "path": "/stats",
+  "category": "security"
+}
+2026-01-03 19:57:36 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[03/Jan/2026:17:57:36",
+  "ip": "/api/admin/stats",
+  "userAgent": "403",
+  "category": "http"
+}
+2026-01-03 19:57:36 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: GET /api/admin/stats 403[1m[33m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/admin/stats",
+  "statusCode": 403,
+  "duration": "7ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+..   Γ£à PASSED: Non-admin cannot access admin dashboard
+.............   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Non-admin cannot view user details
+...2026-01-03 19:57:38 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: GET /api/admin/users/customer-2[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/admin/users/customer-2",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2026-01-03 19:57:38 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mSECURITY: Non-admin user attempted admin access[1m[33m[22m[39m
+{
+  "userId": "customer-1",
+  "ip": "::ffff:127.0.0.1",
+  "path": "/users/customer-2",
+  "category": "security"
+}
+2026-01-03 19:57:38 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[03/Jan/2026:17:57:38",
+  "ip": "/api/admin/users/customer-2",
+  "userAgent": "403",
+  "category": "http"
+}
+2026-01-03 19:57:38 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: GET /api/admin/users/customer-2 403[1m[33m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/admin/users/customer-2",
+  "statusCode": 403,
+  "duration": "7ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+..   Γ£à PASSED: Non-admin cannot view user details
+.............   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Only assigned driver can update order status
+...2026-01-03 19:57:41 [[36m[36mdebug[36m[39m]: [36m[36mOrder creation request[36m[39m
+{
+  "customerId": "customer-1",
+  "hasTitle": true,
+  "hasPrice": true,
+  "category": "order_creation"
+}
+2026-01-03 19:57:41 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mORDER: Order created successfully[1m[32m[22m[39m
+{
+  "orderId": "176746306175008b6qvpz5",
+  "orderNumber": "ORD - 1767463061750 ",
+  "customerId": "customer-1",
+  "price": "100.00",
+  "category": "order"
+}
+.2026-01-03 19:57:41 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: PATCH /api/orders/order-456/status[1m[35m[22m[39m
+{
+  "method": "PATCH",
+  "url": "/api/orders/order-456/status",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2026-01-03 19:57:41 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": "driver-2",
+  "role": "driver",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2026-01-03 19:57:41 [[31m[1m[31m[1merror[1m[31m[22m[39m]: [31m[1m[31m[1mOrder status update error (PATCH): Only assigned driver can perform this action[1m[31m[22m[39m
+{
+  "orderId": "order-456",
+  "status": "picked_up",
+  "userId": "driver-2",
+  "category": "error"
+}
+2026-01-03 19:57:41 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[03/Jan/2026:17:57:41",
+  "ip": "/api/orders/order-456/status",
+  "userAgent": "403",
+  "category": "http"
+}
+2026-01-03 19:57:41 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: PATCH /api/orders/order-456/status 403[1m[33m[22m[39m
+{
+  "method": "PATCH",
+  "url": "/api/orders/order-456/status",
+  "statusCode": 403,
+  "duration": "11ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+..   Γ£à PASSED: Only assigned driver can update order status
+.............   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Admin can access all user resources
+...2026-01-03 19:57:44 [[36m[36mdebug[36m[39m]: [36m[36mOrder creation request[36m[39m
+{
+  "customerId": "customer-1",
+  "hasTitle": true,
+  "hasPrice": true,
+  "category": "order_creation"
+}
+2026-01-03 19:57:44 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mORDER: Order created successfully[1m[32m[22m[39m
+{
+  "orderId": "1767463064310k3gqy50no",
+  "orderNumber": "ORD - 1767463064310 ",
+  "customerId": "customer-1",
+  "price": "100.00",
+  "category": "order"
+}
+.2026-01-03 19:57:44 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: GET /api/admin/users[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/admin/users",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2026-01-03 19:57:44 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Admin access granted[1m[32m[22m[39m
+{
+  "adminId": "admin-1",
+  "email": "admin@test.com",
+  "path": "/users",
+  "category": "authentication"
+}
+2026-01-03 19:57:44 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[03/Jan/2026:17:57:44",
+  "ip": "/api/admin/users",
+  "userAgent": "200",
+  "category": "http"
+}
+2026-01-03 19:57:44 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: GET /api/admin/users 200[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/admin/users",
+  "statusCode": 200,
+  "duration": "27ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+..   Γ£à PASSED: Admin can access all user resources
+.............   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Users can only cancel their own orders (via admin route)
+'free' is not recognized as an internal or external command,
+operable program or batch file.
+...2026-01-03 19:57:49 [[36m[36mdebug[36m[39m]: [36m[36mOrder creation request[36m[39m
+{
+  "customerId": "customer-1",
+  "hasTitle": true,
+  "hasPrice": true,
+  "category": "order_creation"
+}
+2026-01-03 19:57:49 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mORDER: Order created successfully[1m[32m[22m[39m
+{
+  "orderId": "17674630694096dewhrs8a",
+  "orderNumber": "ORD - 1767463069409 ",
+  "customerId": "customer-1",
+  "price": "100.00",
+  "category": "order"
+}
+.2026-01-03 19:57:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/admin/orders/order-999/cancel[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/admin/orders/order-999/cancel",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2026-01-03 19:57:49 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Admin access granted[1m[32m[22m[39m
+{
+  "adminId": "admin-1",
+  "email": "admin@test.com",
+  "path": "/orders/order-999/cancel",
+  "category": "authentication"
+}
+2026-01-03 19:57:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[03/Jan/2026:17:57:49",
+  "ip": "/api/admin/orders/order-999/cancel",
+  "userAgent": "200",
+  "category": "http"
+}
+2026-01-03 19:57:49 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/admin/orders/order-999/cancel 200[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/admin/orders/order-999/cancel",
+  "statusCode": 200,
+  "duration": "180ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+..   Γ£à PASSED: Users can only cancel their own orders (via admin route)
+.............   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Customer can accept bid on their own order
+...2026-01-03 19:57:51 [[36m[36mdebug[36m[39m]: [36m[36mOrder creation request[36m[39m
+{
+  "customerId": "customer-1",
+  "hasTitle": true,
+  "hasPrice": true,
+  "category": "order_creation"
+}
+2026-01-03 19:57:51 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mORDER: Order created successfully[1m[32m[22m[39m
+{
+  "orderId": "17674630719133n0dr0pyg",
+  "orderNumber": "ORD - 1767463071913 ",
+  "customerId": "customer-1",
+  "price": "100.00",
+  "category": "order"
+}
+.2026-01-03 19:57:51 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/orders/order-555/bid[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/orders/order-555/bid",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2026-01-03 19:57:51 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": "driver-1",
+  "role": "driver",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2026-01-03 19:57:51 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mORDER: Bid placed successfully[1m[32m[22m[39m
+{
+  "bidId": 35,
+  "orderId": "order-555",
+  "driverId": "driver-1",
+  "category": "order"
+}
+2026-01-03 19:57:51 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[03/Jan/2026:17:57:51",
+  "ip": "/api/orders/order-555/bid",
+  "userAgent": "200",
+  "category": "http"
+}
+2026-01-03 19:57:51 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/orders/order-555/bid 200[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/orders/order-555/bid",
+  "statusCode": 200,
+  "duration": "19ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+.2026-01-03 19:57:51 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/orders/order-555/accept-bid[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/orders/order-555/accept-bid",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2026-01-03 19:57:51 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": "customer-1",
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2026-01-03 19:57:51 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mORDER: Bid accepted successfully[1m[32m[22m[39m
+{
+  "orderId": "order-555",
+  "customerId": "customer-1",
+  "driverId": "driver-1",
+  "driverBalance": 0,
+  "category": "order"
+}
+2026-01-03 19:57:51 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[03/Jan/2026:17:57:51",
+  "ip": "/api/orders/order-555/accept-bid",
+  "userAgent": "200",
+  "category": "http"
+}
+2026-01-03 19:57:51 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/orders/order-555/accept-bid 200[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/orders/order-555/accept-bid",
+  "statusCode": 200,
+  "duration": "27ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+..   Γ£à PASSED: Customer can accept bid on their own order
+............   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Unauthorized user sees proper error message
+..F--   Γ¥î FAILED: Unauthorized user sees proper error message
+   ≡ƒô╕ Screenshot saved: D:\matrix-delivery\reports\screenshots\unauthorized_user_sees_proper_error_message_1767463073219.png
+...........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Pay with USDC
+...........   Γ£à PASSED: Pay with USDC
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Pay with USDT
+.........   Γ£à PASSED: Pay with USDT
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Complete delivery and release payment
+..........   Γ£à PASSED: Complete delivery and release payment
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Cancel order and refund customer
+.........   Γ£à PASSED: Cancel order and refund customer
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Handle disputed delivery
+.........   Γ£à PASSED: Handle disputed delivery
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Verify commission rate in smart contract
+........   Γ£à PASSED: Verify commission rate in smart contract
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+Backend error: 'free' is not recognized as an internal or external command,
+operable program or batch file.
+
+.
+Γû╢∩╕Å  Running: Handle insufficient crypto balance
+.........   Γ£à PASSED: Handle insufficient crypto balance
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Handle unsupported token
+.........   Γ£à PASSED: Handle unsupported token
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Gas fee handling
+.........   Γ£à PASSED: Gas fee handling
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Driver sees orders within their maximum distance preference
+...A-----..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Driver does not see orders outside their maximum distance
+...A-----..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Driver without location sees only assigned orders
+...A--U--..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Driver with remote area preference sees remote orders
+...A----..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Driver without remote area preference does not see remote orders
+...A----..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Attempting to login with incorrect password
+.2026-01-03 19:58:21 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/auth/register[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/register",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2026-01-03 19:58:21 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Registration attempt[1m[32m[22m[39m
+{
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2026-01-03 19:58:21 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mInitialized balance for new user 1767463101494uk0ty436g[1m[32m[22m[39m
+2026-01-03 19:58:21 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: User registered successfully[1m[32m[22m[39m
+{
+  "userId": "1767463101494uk0ty436g",
+  "email": "1767462889176_test_bdd@example.com",
+  "primary_role": "customer",
+  "category": "authentication"
+}
+2026-01-03 19:58:21 [[31m[1m[31m[1merror[1m[31m[22m[39m]: [31m[1m[31m[1mEmail service initialization failed: nodemailer.createTransporter is not a function[1m[31m[22m[39m
+{
+  "category": "email",
+  "error": "nodemailer.createTransporter is not a function"
+}
+2026-01-03 19:58:21 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mEmail verification would be sent[1m[32m[22m[39m
+{
+  "category": "email",
+  "to": "1767462889176_test_bdd@example.com",
+  "verificationUrl": "http://localhost:3000/verify-email?token=1767463101538lcdwl3eel"
+}
+2026-01-03 19:58:21 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mVerification email sent to new user[1m[32m[22m[39m
+{
+  "userId": "1767463101494uk0ty436g",
+  "email": "1767462889176_test_bdd@example.com",
+  "category": "auth"
+}
+2026-01-03 19:58:21 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mPERF: Registration completed[1m[32m[22m[39m
+{
+  "userId": "1767463101494uk0ty436g",
+  "duration": "283ms",
+  "category": "performance"
+}
+2026-01-03 19:58:21 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[03/Jan/2026:17:58:21",
+  "ip": "/api/auth/register",
+  "userAgent": "201",
+  "category": "http"
+}
+2026-01-03 19:58:21 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/auth/register 201[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/register",
+  "statusCode": 201,
+  "duration": "286ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+.2026-01-03 19:58:21 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/auth/login[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2026-01-03 19:58:21 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Login attempt[1m[32m[22m[39m
+{
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2026-01-03 19:58:21 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mNo admin users found to notify about new registration[1m[33m[22m[39m
+{
+  "category": "notification"
+}
+2026-01-03 19:58:21 [[31m[1m[31m[1merror[1m[31m[22m[39m]: [31m[1m[31m[1mLogin error: Invalid email or password[1m[31m[22m[39m
+{
+  "stack": "Error: Invalid email or password\n    at AuthService.authenticateUser (D:\\matrix-delivery\\backend\\services\\authService.js:136:19)\n    at runNextTicks (node:internal/process/task_queues:65:5)\n    at processImmediate (node:internal/timers:453:9)\n    at process.topLevelDomainCallback (node:domain:161:15)\n    at process.callbackTrampoline (node:internal/async_hooks:128:24)\n    at async AuthService.loginUser (D:\\matrix-delivery\\backend\\services\\authService.js:191:22)\n    at async login (D:\\matrix-delivery\\backend\\controllers\\authController.js:205:24)",
+  "ip": "::ffff:127.0.0.1",
+  "duration": "336ms",
+  "category": "error"
+}
+2026-01-03 19:58:21 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[03/Jan/2026:17:58:21",
+  "ip": "/api/auth/login",
+  "userAgent": "401",
+  "category": "http"
+}
+2026-01-03 19:58:21 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: POST /api/auth/login 401[1m[33m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "statusCode": 401,
+  "duration": "340ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+...   Γ£à PASSED: Attempting to login with incorrect password
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Navigating to login page for the first time
+..2026-01-03 19:58:23 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: GET /api/auth/me[1m[35m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/auth/me",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2026-01-03 19:58:23 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mSECURITY: Access attempt without token[1m[33m[22m[39m
+{
+  "ip": "::ffff:127.0.0.1",
+  "path": "/me",
+  "method": "GET",
+  "category": "security"
+}
+2026-01-03 19:58:23 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[03/Jan/2026:17:58:23",
+  "ip": "/api/auth/me",
+  "userAgent": "401",
+  "category": "http"
+}
+2026-01-03 19:58:23 [[33m[1m[33m[1mwarn[1m[33m[22m[39m]: [33m[1m[33m[1mRESPONSE: GET /api/auth/me 401[1m[33m[22m[39m
+{
+  "method": "GET",
+  "url": "/api/auth/me",
+  "statusCode": 401,
+  "duration": "4ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+...   Γ£à PASSED: Navigating to login page for the first time
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+...   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Customer cancels order after accepting a bid
+.....2026-01-03 19:58:25 [[36m[36mdebug[36m[39m]: [36m[36mOrder creation request[36m[39m
+{
+  "customerId": "user-Alice",
+  "hasTitle": true,
+  "hasPrice": true,
+  "category": "order_creation"
+}
+2026-01-03 19:58:25 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mORDER: Order created successfully[1m[32m[22m[39m
+{
+  "orderId": "1767463105013u6huqdgni",
+  "orderNumber": "ORD - 1767463105013 ",
+  "customerId": "user-Alice",
+  "price": "100.00",
+  "category": "order"
+}
+.2026-01-03 19:58:25 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mORDER: Bid placed successfully[1m[32m[22m[39m
+{
+  "bidId": 36,
+  "orderId": "1767463105013u6huqdgni",
+  "driverId": "user-Bob",
+  "bidPrice": 90,
+  "category": "order"
+}
+.2026-01-03 19:58:25 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mORDER: Bid accepted successfully[1m[32m[22m[39m
+{
+  "orderId": "1767463105013u6huqdgni",
+  "customerId": "user-Alice",
+  "driverId": "user-Bob",
+  "driverBalance": 0,
+  "category": "order"
+}
+.2026-01-03 19:58:25 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/orders/1767463105013u6huqdgni/cancel[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/orders/1767463105013u6huqdgni/cancel",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2026-01-03 19:58:25 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Token verified successfully[1m[32m[22m[39m
+{
+  "userId": "user-Alice",
+  "role": "customer",
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2026-01-03 19:58:25 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mORDER: Order status updated successfully[1m[32m[22m[39m
+{
+  "orderId": "1767463105013u6huqdgni",
+  "action": "cancel",
+  "newStatus": "cancelled",
+  "userId": "user-Alice",
+  "category": "order"
+}
+2026-01-03 19:58:25 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[03/Jan/2026:17:58:25",
+  "ip": "/api/orders/1767463105013u6huqdgni/cancel",
+  "userAgent": "200",
+  "category": "http"
+}
+2026-01-03 19:58:25 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/orders/1767463105013u6huqdgni/cancel 200[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/orders/1767463105013u6huqdgni/cancel",
+  "statusCode": 200,
+  "duration": "15ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+..F   Γ¥î FAILED: Customer cancels order after accepting a bid
+   ≡ƒô╕ Screenshot saved: D:\matrix-delivery\reports\screenshots\customer_cancels_order_after_accepting_a_bid_1767463105227.png
+...........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+...   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Driver cannot withdraw from an in-transit order
+.....2026-01-03 19:58:28 [[36m[36mdebug[36m[39m]: [36m[36mOrder creation request[36m[39m
+{
+  "customerId": "user-Alice",
+  "hasTitle": true,
+  "hasPrice": true,
+  "category": "order_creation"
+}
+2026-01-03 19:58:28 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mORDER: Order created successfully[1m[32m[22m[39m
+{
+  "orderId": "1767463108293ssnkt4z20",
+  "orderNumber": "ORD - 1767463108293 ",
+  "customerId": "user-Alice",
+  "price": "80.00",
+  "category": "order"
+}
+.2026-01-03 19:58:28 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mORDER: Bid placed successfully[1m[32m[22m[39m
+{
+  "bidId": 37,
+  "orderId": "1767463108293ssnkt4z20",
+  "driverId": "user-Bob",
+  "bidPrice": 50,
+  "category": "order"
+}
+F-----   Γ¥î FAILED: Driver cannot withdraw from an in-transit order
+   ≡ƒô╕ Screenshot saved: D:\matrix-delivery\reports\screenshots\driver_cannot_withdraw_from_an_in_transit_order_1767463108324.png
+...........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Full Order Lifecycle Commission Verification
+.AA---------AA..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Calculate commission for different order amounts
+.A------..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Calculate commission for different order amounts
+.A------..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Calculate commission for different order amounts
+.A------..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Calculate commission for different order amounts
+.A------..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Calculate commission for different order amounts
+.A------..........   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Calculate commission with custom rate
+.A------..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+'free' is not recognized as an internal or external command,
+operable program or batch file.
+.
+Γû╢∩╕Å  Running: Commission calculation maintains financial integrity
+.A----..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Handle very small payment amount
+...UU-..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Handle minimum digital payment amount
+.UUUU-..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Handle very large payment amount
+.U-UUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Handle decimal rounding correctly
+...UUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Handle concurrent payment processing
+.UUUUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Handle payment in different currencies
+.UUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.FUUUUU   Γ¥î FAILED: Handle payment method switching
+   ΓÜá∩╕Å  Failed to capture screenshot: page.screenshot: Protocol error (Page.captureScreenshot): Unable to capture screenshot
+Call log:
+  - taking page screenshot
+  - waiting for fonts to load...
+  - fonts loaded
+
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+F-UUUUU   Γ¥î FAILED: Handle partial refunds
+   ΓÜá∩╕Å  Failed to capture screenshot: Cannot read properties of undefined (reading 'screenshot')
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+'free' is not recognized as an internal or external command,
+operable program or batch file.
+Backend error: 'free' is not recognized as an internal or external command,
+operable program or batch file.
+
+'free' is not recognized as an internal or external command,
+operable program or batch file.
+Backend error: 'free' is not recognized as an internal or external command,
+operable program or batch file.
+
+'free' is not recognized as an internal or external command,
+operable program or batch file.
+Backend error: 'free' is not recognized as an internal or external command,
+operable program or batch file.
+
+F----U   Γ¥î FAILED: Reject invalid payment amounts
+   ΓÜá∩╕Å  Failed to capture screenshot: Cannot read properties of undefined (reading 'screenshot')
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Reject invalid payment amounts
+....U..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Reject invalid payment amounts
+....U..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Reject invalid payment amounts
+....U..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Reject payment below minimum amount
+.....   Γ£à PASSED: Reject payment below minimum amount
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Handle payment gateway timeout
+......   Γ£à PASSED: Handle payment gateway timeout
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Handle insufficient funds
+......   Γ£à PASSED: Handle insufficient funds
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Handle network failure during payment
+......   Γ£à PASSED: Handle network failure during payment
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Validate payment method availability
+...A-..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Handle duplicate payment attempts
+......   Γ£à PASSED: Handle duplicate payment attempts
+..........   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Process payment with different methods
+.........   Γ£à PASSED: Process payment with different methods
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Process payment with different methods
+.........   Γ£à PASSED: Process payment with different methods
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+...
+Γû╢∩╕Å  Running: Process payment with different methods
+.........   Γ£à PASSED: Process payment with different methods
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Process payment with different methods
+.........   Γ£à PASSED: Process payment with different methods
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Process payment with different methods
+.........   Γ£à PASSED: Process payment with different methods
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+...
+Γû╢∩╕Å  Running: Process payment with different methods
+.........   Γ£à PASSED: Process payment with different methods
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: All payment methods use consistent commission rate
+...U---..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Stripe card payment
+......UU--..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: PayPal payment
+......UU--..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Paymob card payment
+......UU-..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Paymob mobile wallet payment
+......U--..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Crypto payment (USDC/USDT)
+....U-U---..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Cash on Delivery (COD)
+.....UU--..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Pay with credit/debit card via Paymob
+.UU--UUUUU-U-..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Pay with Vodafone Cash via Paymob
+.UU--UUUU--..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+'free' is not recognized as an internal or external command,
+operable program or batch file.
+.
+Γû╢∩╕Å  Running: Pay with Orange Cash via Paymob
+.UU-UUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Pay with Etisalat Cash via Paymob
+.UU-UUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Pay at kiosk via Paymob
+.UU-UUUUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Paymob webhook verification
+.UUUUUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Paymob payment failure
+.UUUUUU--..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Paymob sandbox testing
+.UUUUUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: User submits a valid review
+.2026-01-03 20:02:56 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/auth/login[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2026-01-03 20:02:56 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Login attempt[1m[32m[22m[39m
+{
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2026-01-03 20:02:57 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: User logged in successfully[1m[32m[22m[39m
+{
+  "userId": "reviewer-1767463376952",
+  "email": "reviewer_1767463376767_550@test.com",
+  "primary_role": "customer",
+  "category": "authentication"
+}
+2026-01-03 20:02:57 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mPERF: Login completed[1m[32m[22m[39m
+{
+  "userId": "reviewer-1767463376952",
+  "duration": "178ms",
+  "category": "performance"
+}
+2026-01-03 20:02:57 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[03/Jan/2026:18:02:57",
+  "ip": "/api/auth/login",
+  "userAgent": "200",
+  "category": "http"
+}
+2026-01-03 20:02:57 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/auth/login 200[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "statusCode": 200,
+  "duration": "187ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+Authentication Error: Error: Authentication failed: No token in cookies
+    at CustomWorld.<anonymous> (D:\matrix-delivery\tests\step_definitions\api\platform_reviews_steps.js:46:19)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async wrapPromiseWithTimeout (D:\matrix-delivery\node_modules\@cucumber\cucumber\src\time.ts:55:10)
+    at async Object.run (D:\matrix-delivery\node_modules\@cucumber\cucumber\src\user_code_runner.ts:86:16)
+    at async Object.run (D:\matrix-delivery\node_modules\@cucumber\cucumber\src\runtime\step_runner.ts:58:20)
+    at async TestCaseRunner.invokeStep (D:\matrix-delivery\node_modules\@cucumber\cucumber\src\runtime\test_case_runner.ts:140:12)
+    at async TestCaseRunner.runStep (D:\matrix-delivery\node_modules\@cucumber\cucumber\src\runtime\test_case_runner.ts:359:20)
+    at async D:\matrix-delivery\node_modules\@cucumber\cucumber\src\runtime\test_case_runner.ts:248:34
+    at async TestCaseRunner.aroundTestStep (D:\matrix-delivery\node_modules\@cucumber\cucumber\src\runtime\test_case_runner.ts:173:28)
+    at async TestCaseRunner.runAttempt (D:\matrix-delivery\node_modules\@cucumber\cucumber\src\runtime\test_case_runner.ts:225:7)
+F--UU   Γ¥î FAILED: User submits a valid review
+   ≡ƒô╕ Screenshot saved: D:\matrix-delivery\reports\screenshots\user_submits_a_valid_review_1767463377178.png
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: User submits an invalid review
+.2026-01-03 20:02:58 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/auth/login[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2026-01-03 20:02:58 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Login attempt[1m[32m[22m[39m
+{
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2026-01-03 20:02:59 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: User logged in successfully[1m[32m[22m[39m
+{
+  "userId": "reviewer-1767463378933",
+  "email": "reviewer_1767463378776_870@test.com",
+  "primary_role": "customer",
+  "category": "authentication"
+}
+2026-01-03 20:02:59 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mPERF: Login completed[1m[32m[22m[39m
+{
+  "userId": "reviewer-1767463378933",
+  "duration": "151ms",
+  "category": "performance"
+}
+2026-01-03 20:02:59 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[03/Jan/2026:18:02:59",
+  "ip": "/api/auth/login",
+  "userAgent": "200",
+  "category": "http"
+}
+2026-01-03 20:02:59 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/auth/login 200[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "statusCode": 200,
+  "duration": "154ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+Authentication Error: Error: Authentication failed: No token in cookies
+    at CustomWorld.<anonymous> (D:\matrix-delivery\tests\step_definitions\api\platform_reviews_steps.js:46:19)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async wrapPromiseWithTimeout (D:\matrix-delivery\node_modules\@cucumber\cucumber\src\time.ts:55:10)
+    at async Object.run (D:\matrix-delivery\node_modules\@cucumber\cucumber\src\user_code_runner.ts:86:16)
+    at async Object.run (D:\matrix-delivery\node_modules\@cucumber\cucumber\src\runtime\step_runner.ts:58:20)
+    at async TestCaseRunner.invokeStep (D:\matrix-delivery\node_modules\@cucumber\cucumber\src\runtime\test_case_runner.ts:140:12)
+    at async TestCaseRunner.runStep (D:\matrix-delivery\node_modules\@cucumber\cucumber\src\runtime\test_case_runner.ts:359:20)
+    at async D:\matrix-delivery\node_modules\@cucumber\cucumber\src\runtime\test_case_runner.ts:248:34
+    at async TestCaseRunner.aroundTestStep (D:\matrix-delivery\node_modules\@cucumber\cucumber\src\runtime\test_case_runner.ts:173:28)
+    at async TestCaseRunner.runAttempt (D:\matrix-delivery\node_modules\@cucumber\cucumber\src\runtime\test_case_runner.ts:225:7)
+F-U-   Γ¥î FAILED: User submits an invalid review
+   ≡ƒô╕ Screenshot saved: D:\matrix-delivery\reports\screenshots\user_submits_an_invalid_review_1767463379100.png
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: User views reviews
+.2026-01-03 20:03:01 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/auth/login[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2026-01-03 20:03:01 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Login attempt[1m[32m[22m[39m
+{
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2026-01-03 20:03:01 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: User logged in successfully[1m[32m[22m[39m
+{
+  "userId": "reviewer-1767463381538",
+  "email": "reviewer_1767463381276_673@test.com",
+  "primary_role": "customer",
+  "category": "authentication"
+}
+2026-01-03 20:03:01 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mPERF: Login completed[1m[32m[22m[39m
+{
+  "userId": "reviewer-1767463381538",
+  "duration": "145ms",
+  "category": "performance"
+}
+2026-01-03 20:03:01 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[03/Jan/2026:18:03:01",
+  "ip": "/api/auth/login",
+  "userAgent": "200",
+  "category": "http"
+}
+2026-01-03 20:03:01 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/auth/login 200[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "statusCode": 200,
+  "duration": "148ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+Authentication Error: Error: Authentication failed: No token in cookies
+    at CustomWorld.<anonymous> (D:\matrix-delivery\tests\step_definitions\api\platform_reviews_steps.js:46:19)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async wrapPromiseWithTimeout (D:\matrix-delivery\node_modules\@cucumber\cucumber\src\time.ts:55:10)
+    at async Object.run (D:\matrix-delivery\node_modules\@cucumber\cucumber\src\user_code_runner.ts:86:16)
+    at async Object.run (D:\matrix-delivery\node_modules\@cucumber\cucumber\src\runtime\step_runner.ts:58:20)
+    at async TestCaseRunner.invokeStep (D:\matrix-delivery\node_modules\@cucumber\cucumber\src\runtime\test_case_runner.ts:140:12)
+    at async TestCaseRunner.runStep (D:\matrix-delivery\node_modules\@cucumber\cucumber\src\runtime\test_case_runner.ts:359:20)
+    at async D:\matrix-delivery\node_modules\@cucumber\cucumber\src\runtime\test_case_runner.ts:248:34
+    at async TestCaseRunner.aroundTestStep (D:\matrix-delivery\node_modules\@cucumber\cucumber\src\runtime\test_case_runner.ts:173:28)
+    at async TestCaseRunner.runAttempt (D:\matrix-delivery\node_modules\@cucumber\cucumber\src\runtime\test_case_runner.ts:225:7)
+F--U--   Γ¥î FAILED: User views reviews
+   ≡ƒô╕ Screenshot saved: D:\matrix-delivery\reports\screenshots\user_views_reviews_1767463381704.png
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: User votes on a review
+.2026-01-03 20:03:03 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/auth/login[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2026-01-03 20:03:03 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Login attempt[1m[32m[22m[39m
+{
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2026-01-03 20:03:03 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: User logged in successfully[1m[32m[22m[39m
+{
+  "userId": "reviewer-1767463383506",
+  "email": "reviewer_1767463383327_877@test.com",
+  "primary_role": "customer",
+  "category": "authentication"
+}
+2026-01-03 20:03:03 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mPERF: Login completed[1m[32m[22m[39m
+{
+  "userId": "reviewer-1767463383506",
+  "duration": "147ms",
+  "category": "performance"
+}
+2026-01-03 20:03:03 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[03/Jan/2026:18:03:03",
+  "ip": "/api/auth/login",
+  "userAgent": "200",
+  "category": "http"
+}
+2026-01-03 20:03:03 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/auth/login 200[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "statusCode": 200,
+  "duration": "152ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+Authentication Error: Error: Authentication failed: No token in cookies
+    at CustomWorld.<anonymous> (D:\matrix-delivery\tests\step_definitions\api\platform_reviews_steps.js:46:19)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async wrapPromiseWithTimeout (D:\matrix-delivery\node_modules\@cucumber\cucumber\src\time.ts:55:10)
+    at async Object.run (D:\matrix-delivery\node_modules\@cucumber\cucumber\src\user_code_runner.ts:86:16)
+    at async Object.run (D:\matrix-delivery\node_modules\@cucumber\cucumber\src\runtime\step_runner.ts:58:20)
+    at async TestCaseRunner.invokeStep (D:\matrix-delivery\node_modules\@cucumber\cucumber\src\runtime\test_case_runner.ts:140:12)
+    at async TestCaseRunner.runStep (D:\matrix-delivery\node_modules\@cucumber\cucumber\src\runtime\test_case_runner.ts:359:20)
+    at async D:\matrix-delivery\node_modules\@cucumber\cucumber\src\runtime\test_case_runner.ts:248:34
+    at async TestCaseRunner.aroundTestStep (D:\matrix-delivery\node_modules\@cucumber\cucumber\src\runtime\test_case_runner.ts:173:28)
+    at async TestCaseRunner.runAttempt (D:\matrix-delivery\node_modules\@cucumber\cucumber\src\runtime\test_case_runner.ts:225:7)
+F---U-   Γ¥î FAILED: User votes on a review
+   ≡ƒô╕ Screenshot saved: D:\matrix-delivery\reports\screenshots\user_votes_on_a_review_1767463383672.png
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+Backend error: 'free' is not recognized as an internal or external command,
+operable program or batch file.
+
+.
+Γû╢∩╕Å  Running: User flags a review
+.2026-01-03 20:03:05 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mREQUEST: POST /api/auth/login[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+2026-01-03 20:03:05 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: Login attempt[1m[32m[22m[39m
+{
+  "ip": "::ffff:127.0.0.1",
+  "category": "authentication"
+}
+2026-01-03 20:03:06 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mAUTH: User logged in successfully[1m[32m[22m[39m
+{
+  "userId": "reviewer-1767463385923",
+  "email": "reviewer_1767463385707_478@test.com",
+  "primary_role": "customer",
+  "category": "authentication"
+}
+2026-01-03 20:03:06 [[32m[1m[32m[1minfo[1m[32m[22m[39m]: [32m[1m[32m[1mPERF: Login completed[1m[32m[22m[39m
+{
+  "userId": "reviewer-1767463385923",
+  "duration": "232ms",
+  "category": "performance"
+}
+2026-01-03 20:03:06 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mHTTP_REQUEST[1m[35m[22m[39m
+{
+  "method": "::ffff:127.0.0.1",
+  "url": "-",
+  "status": null,
+  "responseTime": "[03/Jan/2026:18:03:06",
+  "ip": "/api/auth/login",
+  "userAgent": "200",
+  "category": "http"
+}
+2026-01-03 20:03:06 [[35m[1m[35m[1mhttp[1m[35m[22m[39m]: [35m[1m[35m[1mRESPONSE: POST /api/auth/login 200[1m[35m[22m[39m
+{
+  "method": "POST",
+  "url": "/api/auth/login",
+  "statusCode": 200,
+  "duration": "237ms",
+  "ip": "::ffff:127.0.0.1",
+  "category": "http"
+}
+Authentication Error: Error: Authentication failed: No token in cookies
+    at CustomWorld.<anonymous> (D:\matrix-delivery\tests\step_definitions\api\platform_reviews_steps.js:46:19)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async wrapPromiseWithTimeout (D:\matrix-delivery\node_modules\@cucumber\cucumber\src\time.ts:55:10)
+    at async Object.run (D:\matrix-delivery\node_modules\@cucumber\cucumber\src\user_code_runner.ts:86:16)
+    at async Object.run (D:\matrix-delivery\node_modules\@cucumber\cucumber\src\runtime\step_runner.ts:58:20)
+    at async TestCaseRunner.invokeStep (D:\matrix-delivery\node_modules\@cucumber\cucumber\src\runtime\test_case_runner.ts:140:12)
+    at async TestCaseRunner.runStep (D:\matrix-delivery\node_modules\@cucumber\cucumber\src\runtime\test_case_runner.ts:359:20)
+    at async D:\matrix-delivery\node_modules\@cucumber\cucumber\src\runtime\test_case_runner.ts:248:34
+    at async TestCaseRunner.aroundTestStep (D:\matrix-delivery\node_modules\@cucumber\cucumber\src\runtime\test_case_runner.ts:173:28)
+    at async TestCaseRunner.runAttempt (D:\matrix-delivery\node_modules\@cucumber\cucumber\src\runtime\test_case_runner.ts:225:7)
+F---U-   Γ¥î FAILED: User flags a review
+   ≡ƒô╕ Screenshot saved: D:\matrix-delivery\reports\screenshots\user_flags_a_review_1767463386175.png
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Record revenue for completed payment
+..........   Γ£à PASSED: Record revenue for completed payment
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Track revenue by payment method
+......   Γ£à PASSED: Track revenue by payment method
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Track revenue by payment method
+......   Γ£à PASSED: Track revenue by payment method
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Track revenue by payment method
+......   Γ£à PASSED: Track revenue by payment method
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Track revenue by payment method
+......   Γ£à PASSED: Track revenue by payment method
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Track revenue by payment method
+......   Γ£à PASSED: Track revenue by payment method
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Calculate daily revenue
+.......   Γ£à PASSED: Calculate daily revenue
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Calculate weekly revenue
+......   Γ£à PASSED: Calculate weekly revenue
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Revenue record prevents duplicates
+........   Γ£à PASSED: Revenue record prevents duplicates
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Revenue reporting by date range
+........   Γ£à PASSED: Revenue reporting by date range
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Customer creates order, driver bids, customer accepts, driver delivers
+....UUUUU-UU-U-U..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.FAUU-UUU   Γ¥î FAILED: Map initializes with user's current location
+   ≡ƒô╕ Screenshot saved: D:\matrix-delivery\reports\screenshots\map_initializes_with_user_s_current_location_1767463407832.png
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+'free' is not recognized as an internal or external command,
+operable program or batch file.
+Backend error: 'free' is not recognized as an internal or external command,
+operable program or batch file.
+
+'free' is not recognized as an internal or external command,
+operable program or batch file.
+The system cannot execute the specified program.
+Backend error: 'free' is not recognized as an internal or external command,
+operable program or batch file.
+
+'free' is not recognized as an internal or external command,
+operable program or batch file.
+Backend error: 'free' is not recognized as an internal or external command,
+operable program or batch file.
+
+F-AUUUUUUUU   Γ¥î FAILED: Click on map to select pickup location
+   ΓÜá∩╕Å  Failed to capture screenshot: Cannot read properties of undefined (reading 'screenshot')
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Click on map to select delivery location with route calculation
+.AUUUUUU-U..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Paste Google Maps link for location selection
+.AUUUUUUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Use current location button
+.AUUUAUUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.
+Γû╢∩╕Å  Running: Route preview with vehicle time estimates
+.AUUUUUUUUU..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+F-AUUUUUU   Γ¥î FAILED: Remote area warning for delivery locations
+   ΓÜá∩╕Å  Failed to capture screenshot: Cannot read properties of undefined (reading 'screenshot')
+..........   Γ£à Backend server started
+   Γ£à Backend server started
+   Γ£à Backend server started
+User testcustomer@example.com may already exist
+   Γ£à Backend server started
+User testdriver@example.com may already exist
+..   Γ£à Backend server started
+.FAUUUUUU   Γ¥î FAILED: International order detection
