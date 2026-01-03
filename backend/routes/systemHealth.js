@@ -148,7 +148,8 @@ const stopCollector = () => {
 };
 
 // Start collector when this module is loaded
-startCollector();
+// DISABLED to prevent resource exhaustion on 1GB VPS
+// startCollector();
 
 // ============================================
 // API ROUTES

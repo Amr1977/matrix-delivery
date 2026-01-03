@@ -31,9 +31,9 @@ const dbConfig = {
     database: IS_TEST ? (process.env.DB_NAME_TEST || 'matrix_delivery_test') : (process.env.DB_NAME || 'matrix_delivery'),
     user: process.env.DB_USER || 'postgres',
     password: process.env.DB_PASSWORD || 'postgres',
-    max: 20,
+    max: 10, // Reduced from 20 to safe guard 1GB VPS in cluster mode
     idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 10000, // Increased from 2000ms to 10000ms
+    connectionTimeoutMillis: 30000, // Increased to 30s to handle high load/swap spikes
 };
 
 // Log which database we are connecting to
