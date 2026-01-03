@@ -174,7 +174,7 @@ async function testOrderCreation() {
     const result3 = await response3.json();
     console.log('   Response status:', response3.status);
 
-    if (response3.ok && result3._id) {
+    if (response3.ok && result3.id) {
       console.log('   ✅ Order created successfully!');
       console.log('   📦 Order number:', result3.orderNumber);
       console.log('   📝 Title:', result3.title);

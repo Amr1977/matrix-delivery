@@ -42,7 +42,7 @@ const useOrders = (token: string | null) => {
             setLoading(true);
             const updatedOrder = await OrdersApi.placeBid(orderId, bidData);
             setOrders(prev => prev.map(order =>
-                order._id === orderId ? updatedOrder : order
+                order.id === orderId ? updatedOrder : order
             ));
             return updatedOrder;
         } catch (err: any) {
@@ -59,7 +59,7 @@ const useOrders = (token: string | null) => {
             setLoading(true);
             const updatedOrder = await OrdersApi.acceptBid(orderId, { userId });
             setOrders(prev => prev.map(order =>
-                order._id === orderId ? updatedOrder : order
+                order.id === orderId ? updatedOrder : order
             ));
             return updatedOrder;
         } catch (err: any) {
@@ -76,7 +76,7 @@ const useOrders = (token: string | null) => {
             setLoading(true);
             const updatedOrder = await OrdersApi.updateStatus(orderId, action);
             setOrders(prev => prev.map(order =>
-                order._id === orderId ? { ...order, status: updatedOrder.status } : order
+                order.id === orderId ? { ...order, status: updatedOrder.status } : order
             ));
             return updatedOrder;
         } catch (err: any) {

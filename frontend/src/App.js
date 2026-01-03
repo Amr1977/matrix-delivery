@@ -854,14 +854,14 @@ export const MainApp = () => {
 
       if (type === 'view_customer_reviews') {
         // Get customer reviews received
-        const order = orders.find(o => o._id === orderId);
+        const order = orders.find(o => o.id === orderId);
         if (order) {
           userId = order.customerId;
           endpoint = `/users/${userId}/reviews/received`;
         }
       } else if (type === 'view_customer_given_reviews') {
         // Get customer reviews given
-        const order = orders.find(o => o._id === orderId);
+        const order = orders.find(o => o.id === orderId);
         if (order) {
           userId = order.customerId;
           endpoint = `/users/${userId}/reviews/given`;
@@ -874,7 +874,7 @@ export const MainApp = () => {
           endpoint = `/users/${userId}/reviews/received`;
         } else {
           // For assigned orders, use the assigned driver's userId
-          const order = orders.find(o => o._id === orderId);
+          const order = orders.find(o => o.id === orderId);
           if (order && order.assignedDriver) {
             userId = order.assignedDriver.userId;
             endpoint = `/users/${userId}/reviews/received`;
@@ -888,7 +888,7 @@ export const MainApp = () => {
           endpoint = `/users/${userId}/reviews/given`;
         } else {
           // For assigned orders, use the assigned driver's userId
-          const order = orders.find(o => o._id === orderId);
+          const order = orders.find(o => o.id === orderId);
           if (order && order.assignedDriver) {
             userId = order.assignedDriver.userId;
             endpoint = `/users/${userId}/reviews/given`;
@@ -1521,7 +1521,7 @@ export const MainApp = () => {
             const activeOrders = orders.filter(o => o.assignedDriver?.userId === currentUser.id && ['accepted', 'picked_up', 'in_transit'].includes(o.status));
             if (activeOrders.length > 0) {
               await Promise.all(activeOrders.map(o => (
-                fetch(`${API_URL}/orders/${o._id}/location`, {
+                fetch(`${API_URL}/orders/${o.id}/location`, {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json'
@@ -1896,7 +1896,7 @@ export const MainApp = () => {
                 <button onClick={() => setShowLiveTracking(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
               </div>
               <div style={{ padding: '1.5rem' }}>
-                <LiveTrackingMapView orderId={selectedOrder?._id || selectedOrder?.id || selectedOrder?.orderNumber} t={t} />
+                <LiveTrackingMapView orderId={selectedOrder?.id || selectedOrder?.id || selectedOrder?.orderNumber} t={t} />
                 <button onClick={() => setShowLiveTracking(false)} style={{ width: '100%', marginTop: '1rem', padding: '0.75rem', background: '#F3F4F6', color: '#374151', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600' }}>{t('common.close')}</button>
               </div>
             </div>
@@ -2304,7 +2304,7 @@ export const MainApp = () => {
                 <button onClick={() => setShowLiveTracking(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
               </div>
               <div style={{ padding: '1.5rem' }}>
-                <LiveTrackingMapView orderId={selectedOrder?._id || selectedOrder?.id || selectedOrder?.orderNumber} t={t} />
+                <LiveTrackingMapView orderId={selectedOrder?.id || selectedOrder?.id || selectedOrder?.orderNumber} t={t} />
                 <button onClick={() => setShowLiveTracking(false)} style={{ width: '100%', marginTop: '1rem', padding: '0.75rem', background: '#F3F4F6', color: '#374151', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600' }}>{t('common.close')}</button>
               </div>
             </div>
@@ -2316,7 +2316,7 @@ export const MainApp = () => {
             <div style={{ background: 'white', borderRadius: '0.5rem', width: '95%', maxWidth: '64rem', maxHeight: '90vh', overflow: 'auto' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1rem', borderBottom: '1px solid #E5E7EB' }}>
                 <div>
-                  <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '700' }}>{selectedOrderForMap.title || `Order #${selectedOrderForMap.orderNumber || selectedOrderForMap._id}`}</h2>
+                  <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '700' }}>{selectedOrderForMap.title || `Order #${selectedOrderForMap.orderNumber || selectedOrderForMap.id}`}</h2>
                   <p style={{ margin: 0, fontSize: '0.875rem', color: '#6B7280' }}>Price offered: ${Number(selectedOrderForMap.price || 0).toFixed(2)}</p>
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -2639,7 +2639,7 @@ export const MainApp = () => {
 
                   return (
                     <ActiveOrderCard
-                      key={order._id}
+                      key={order.id}
                       order={order}
                       currentUser={currentUser}
                       driverLocation={driverLocation}

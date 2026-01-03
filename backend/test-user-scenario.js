@@ -71,7 +71,7 @@ async function testUserScenario() {
 
                 const distanceKm = Number(result.rows[0].distance_km).toFixed(2);
                 const withinRange = Number(result.rows[0].distance_km) <= 7 ? '✅ WITHIN 7km' : '❌ OUTSIDE 7km';
-                console.log(`  - ${order.orderNumber || order._id}: ${distanceKm} km ${withinRange}`);
+                console.log(`  - ${order.orderNumber || order.id}: ${distanceKm} km ${withinRange}`);
                 console.log(`    Pickup: ${order.pickupAddress}`);
             }
         }

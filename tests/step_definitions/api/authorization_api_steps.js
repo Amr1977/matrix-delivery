@@ -137,7 +137,7 @@ Given('{string} has an order {string}', async function (userId, orderId) {
     const order = await orderService.createOrder(orderData, userId, this.authWorld.testUsers[userId].name);
 
     // Update the order ID to match expected test ID
-    await pool.query('UPDATE orders SET id = $1 WHERE id = $2', [orderId, order._id]);
+    await pool.query('UPDATE orders SET id = $1 WHERE id = $2', [orderId, order.id]);
     order.id = orderId;
 
     this.authWorld.testOrders[orderId] = order;
@@ -176,7 +176,7 @@ Given('{string} has order {string} assigned to {string}', async function (custom
     // Assign to driver and update status
     await pool.query(
         `UPDATE orders SET assigned_driver_user_id = $1, status = 'accepted', id = $2 WHERE id = $3`,
-        [driverId, orderId, order._id]
+        [driverId, orderId, order.id]
     );
     order.id = orderId;
     order.assigned_driver_user_id = driverId;
@@ -214,7 +214,7 @@ Given('{string} has order {string} with status {string}', async function (userId
     const order = await orderService.createOrder(orderData, userId, this.authWorld.testUsers[userId].name);
 
     // Update status and ID
-    await pool.query('UPDATE orders SET status = $1, id = $2 WHERE id = $3', [status, orderId, order._id]);
+    await pool.query('UPDATE orders SET status = $1, id = $2 WHERE id = $3', [status, orderId, order.id]);
     order.id = orderId;
     order.status = status;
 

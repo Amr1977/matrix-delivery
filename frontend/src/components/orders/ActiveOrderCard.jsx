@@ -83,7 +83,7 @@ const ActiveOrderCard = ({
     };
 
     return (
-        <div key={order._id} className="order-card">
+        <div key={order.id} className="order-card">
             {/* Header: Title, Order Number, Status Badge */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
                 <div>
@@ -171,7 +171,7 @@ const ActiveOrderCard = ({
                         <>
                             {currentUser?.primary_role === 'customer' && !reviewStatus?.reviews.toDriver && (
                                 <button
-                                    onClick={() => openReviewModal(order._id, 'customer_to_driver')}
+                                    onClick={() => openReviewModal(order.id, 'customer_to_driver')}
                                     style={{ padding: '0.5rem 1rem', background: '#10B981', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
                                 >
                                     ⭐ {t('reviews.reviewDriver')}
@@ -179,7 +179,7 @@ const ActiveOrderCard = ({
                             )}
                             {currentUser?.primary_role === 'driver' && order.assignedDriver?.userId === currentUser?.id && !reviewStatus?.reviews.toCustomer && (
                                 <button
-                                    onClick={() => openReviewModal(order._id, 'driver_to_customer')}
+                                    onClick={() => openReviewModal(order.id, 'driver_to_customer')}
                                     style={{ padding: '0.5rem 1rem', background: '#10B981', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
                                 >
                                     ⭐ {t('reviews.reviewCustomer')}
@@ -187,14 +187,14 @@ const ActiveOrderCard = ({
                             )}
                             {!reviewStatus?.reviews.toPlatform && (
                                 <button
-                                    onClick={() => openReviewModal(order._id, `${currentUser?.primary_role}_to_platform`)}
+                                    onClick={() => openReviewModal(order.id, `${currentUser?.primary_role}_to_platform`)}
                                     style={{ padding: '0.5rem 1rem', background: '#6366F1', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
                                 >
                                     🌟 {t('reviews.reviewPlatform')}
                                 </button>
                             )}
                             <button
-                                onClick={() => fetchOrderReviews(order._id)}
+                                onClick={() => fetchOrderReviews(order.id)}
                                 style={{ padding: '0.5rem 1rem', background: '#F59E0B', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
                             >
                                 📝 {t('orders.viewReviews')}
@@ -205,7 +205,7 @@ const ActiveOrderCard = ({
                     {/* Delete Order Button (Customer, Pending Bids) */}
                     {currentUser?.primary_role === 'customer' && order.status === 'pending_bids' && order.customerId === currentUser?.id && (
                         <button
-                            onClick={() => handleDeleteOrder(order._id)}
+                            onClick={() => handleDeleteOrder(order.id)}
                             disabled={loadingStates.deleteOrder}
                             style={{ padding: '0.5rem 1rem', background: '#EF4444', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: loadingStates.deleteOrder ? 'not-allowed' : 'pointer', fontSize: '0.875rem', fontWeight: '600', opacity: loadingStates.deleteOrder ? 0.5 : 1 }}
                         >
@@ -224,7 +224,7 @@ const ActiveOrderCard = ({
                     {/* Chat Button (Active Orders) */}
                     {(order.status === 'accepted' || order.status === 'picked_up' || order.status === 'in_transit') && (
                         <button
-                            onClick={() => navigate(`/chat/${order._id}`)}
+                            onClick={() => navigate(`/chat/${order.id}`)}
                             style={{ padding: '0.5rem 1rem', background: '#8B5CF6', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
                             title="Chat with driver/customer"
                         >

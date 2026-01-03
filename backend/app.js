@@ -189,7 +189,7 @@ app.get('/api/orders/:id', verifyToken, async (req, res) => {
     }
 
     res.json({
-      _id: order.id, orderNumber: order.order_number, title: order.title, description: order.description,
+      id: order.id, orderNumber: order.order_number, title: order.title, description: order.description,
       pickupAddress: order.pickup_address, deliveryAddress: order.delivery_address,
       from: { lat: parseFloat(order.from_lat), lng: parseFloat(order.from_lng), name: order.from_name },
       to: { lat: parseFloat(order.to_lat), lng: parseFloat(order.to_lng), name: order.to_name },

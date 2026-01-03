@@ -44,7 +44,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
 
     // Persist dismissal per-user in localStorage
     useEffect(() => {
-        const uid = (currentUser as any)?.id || (currentUser as any)?._id || (currentUser as any)?.email || 'anon';
+        const uid = (currentUser as any)?.id || (currentUser as any)?.email || 'anon';
         const key = `dismiss_verif_${uid}`;
         try {
             const v = localStorage.getItem(key);
@@ -67,7 +67,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
     };
 
     const handleDismiss = () => {
-        const uid = (currentUser as any)?.id || (currentUser as any)?._id || (currentUser as any)?.email || 'anon';
+        const uid = (currentUser as any)?.id || (currentUser as any)?.email || 'anon';
         const key = `dismiss_verif_${uid}`;
         try { localStorage.setItem(key, '1'); } catch (e) { /* ignore */ }
         setDismissed(true);

@@ -123,11 +123,11 @@ const LiveTrackingMap = ({ orderId, t, compact = false, theme = 'dark', isDriver
         try {
           const ordersList = await api.get('/orders');
           const match = Array.isArray(ordersList)
-            ? ordersList.find(o => o._id === orderId || o.orderNumber === orderId)
+            ? ordersList.find(o => o.id === orderId || o.orderNumber === orderId)
             : null;
           if (match) {
-            setOrderMeta({ _id: match._id, status: match.status });
-            idToUse = match._id || orderId;
+            setOrderMeta({ id: match.id, status: match.status });
+            idToUse = match.id || orderId;
             if (match.status === 'pending_bids') {
               setError('Tracking is unavailable until a bid is accepted');
               setLoading(false);
@@ -141,7 +141,7 @@ const LiveTrackingMap = ({ orderId, t, compact = false, theme = 'dark', isDriver
           setLoading(false);
           return;
         }
-        idToUse = orderMeta._id || orderId;
+        idToUse = orderMeta.id || orderId;
       }
 
       let detailsResponse;
@@ -158,8 +158,8 @@ const LiveTrackingMap = ({ orderId, t, compact = false, theme = 'dark', isDriver
           const match = Array.isArray(ordersList)
             ? ordersList.find(o => o.orderNumber === orderId)
             : null;
-          if (match && match._id) {
-            detailsResponse = await api.get(`/orders/${match._id}/tracking`);
+          if (match && match.id) {
+            detailsResponse = await api.get(`/orders/${match.id}/tracking`);
           } else {
             throw primaryErr;
           }

@@ -190,7 +190,7 @@ Given('a driver has placed a bid on a customer order', async function () {
   this.testData.biddableOrder = orderDataResponse;
 
   // Place a bid using the driver account via API
-  const bidResponse = await fetch(`${this.apiUrl}/orders/${orderDataResponse._id}/bid`, {
+  const bidResponse = await fetch(`${this.apiUrl}/orders/${orderDataResponse.id}/bid`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -207,7 +207,7 @@ Given('a driver has an accepted order assigned to them', async function () {
   await this.Given('a driver has placed a bid on a customer order');
 
   // Accept the bid as customer via API
-  const acceptResponse = await fetch(`${this.apiUrl}/orders/${this.testData.biddableOrder._id}/accept-bid`, {
+  const acceptResponse = await fetch(`${this.apiUrl}/orders/${this.testData.biddableOrder.id}/accept-bid`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -230,7 +230,7 @@ Given('multiple drivers have placed bids on the same order', async function () {
   for (const driver of this.testData.additionalDrivers) {
     const bidPrice = Math.floor(Math.random() * 20) + 20; // Random bid between 20-40
 
-    const bidResponse = await fetch(`${this.apiUrl}/orders/${this.testData.openOrders[0]._id}/bid`, {
+    const bidResponse = await fetch(`${this.apiUrl}/orders/${this.testData.openOrders[0].id}/bid`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -424,7 +424,7 @@ Given('a driver has placed multiple bids', async function () {
   for (const order of this.testData.openOrders.slice(0, 2)) {
     const bidPrice = Math.floor(Math.random() * 10) + 20; // 20-30 range
 
-    const bidResponse = await fetch(`${this.apiUrl}/orders/${order._id}/bid`, {
+    const bidResponse = await fetch(`${this.apiUrl}/orders/${order.id}/bid`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -436,7 +436,7 @@ Given('a driver has placed multiple bids', async function () {
     if (bidResponse.ok) {
       const bidData = await bidResponse.json();
       this.testData.driverBids.push({
-        order: order._id,
+        order: order.id,
         bid: bidData,
         status: 'active'
       });

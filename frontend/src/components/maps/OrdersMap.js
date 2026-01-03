@@ -113,7 +113,7 @@ const OrdersMap = ({
             if (!pickup || !Number.isFinite(pickup.lat) || !Number.isFinite(pickup.lng)) return null;
             return (
               <Marker
-                key={order._id}
+                key={order.id}
                 position={[pickup.lat, pickup.lng]}
                 icon={L.icon({
                   iconUrl: '/markers/marker-icon-2x-green.png',

@@ -251,7 +251,7 @@ const OrderStatusSection = ({
                                     {/* Action Buttons */}
                                     <div className="btn-group" style={{ display: 'flex', gap: 'var(--spacing-sm)', flexWrap: 'wrap' }}>
                                         <button
-                                            onClick={() => handleAcceptBid(order._id, bid.userId)}
+                                            onClick={() => handleAcceptBid(order.id, bid.userId)}
                                             disabled={loadingStates.acceptBid}
                                             className="btn-success"
                                             style={{ flex: '1 1 auto', minWidth: '120px' }}
@@ -259,14 +259,14 @@ const OrderStatusSection = ({
                                             {loadingStates.acceptBid ? t('orders.acceptingBid') : t('orders.acceptBid')}
                                         </button>
                                         <button
-                                            onClick={() => openReviewModal(order._id, 'view_driver_reviews', bid)}
+                                            onClick={() => openReviewModal(order.id, 'view_driver_reviews', bid)}
                                             className="btn"
                                             style={{ flex: '0 1 auto' }}
                                         >
                                             📝 Customer Reviews ({bid.driverReviewCount || 0})
                                         </button>
                                         <button
-                                            onClick={() => openReviewModal(order._id, 'view_driver_given_reviews', bid)}
+                                            onClick={() => openReviewModal(order.id, 'view_driver_given_reviews', bid)}
                                             className="btn"
                                             style={{ flex: '0 1 auto' }}
                                         >
@@ -306,7 +306,7 @@ const OrderStatusSection = ({
                 <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                         <button
-                            onClick={() => handlePickupOrder(order._id)}
+                            onClick={() => handlePickupOrder(order.id)}
                             disabled={loadingStates.pickupOrder}
                             style={{ flex: 1, padding: '0.75rem', background: '#10B981', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: loadingStates.pickupOrder ? 'not-allowed' : 'pointer', fontWeight: '600', opacity: loadingStates.pickupOrder ? 0.5 : 1 }}
                         >
@@ -321,7 +321,7 @@ const OrderStatusSection = ({
                 <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                         <button
-                            onClick={() => handleInTransit(order._id)}
+                            onClick={() => handleInTransit(order.id)}
                             disabled={loadingStates.updateInTransit}
                             style={{ flex: 1, padding: '0.75rem', background: '#F59E0B', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: loadingStates.updateInTransit ? 'not-allowed' : 'pointer', fontWeight: '600', opacity: loadingStates.updateInTransit ? 0.5 : 1 }}
                         >
@@ -336,7 +336,7 @@ const OrderStatusSection = ({
                 <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                         <button
-                            onClick={() => handleCompleteOrder(order._id)}
+                            onClick={() => handleCompleteOrder(order.id)}
                             disabled={loadingStates.completeOrder}
                             style={{ flex: 1, padding: '0.75rem', background: '#10B981', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: loadingStates.completeOrder ? 'not-allowed' : 'pointer', fontWeight: '600', opacity: loadingStates.completeOrder ? 0.5 : 1 }}
                         >
@@ -391,7 +391,7 @@ const OrderStatusSection = ({
                             </div>
                             <div style={{ display: 'flex', gap: '0.5rem' }}>
                                 <button
-                                    onClick={() => handleConfirmDelivery(order._id)}
+                                    onClick={() => handleConfirmDelivery(order.id)}
                                     // disabled={loadingStates.confirmDelivery} // Add this if you track it
                                     style={{ flex: 1, padding: '0.75rem', background: '#10B981', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600' }}
                                 >

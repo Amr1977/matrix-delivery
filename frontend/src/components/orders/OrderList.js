@@ -60,7 +60,7 @@ const OrderList = ({
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       {displayOrders.map((order) => (
         <OrderCard
-          key={order._id}
+          key={order.id}
           order={order}
           currentUser={currentUser}
           onViewTracking={onViewTracking}

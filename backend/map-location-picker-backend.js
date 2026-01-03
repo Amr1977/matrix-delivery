@@ -533,7 +533,7 @@ module.exports = (app, pool, jwt) => {
       const result = await pool.query(query, params);
 
       const orders = result.rows.map(order => ({
-        _id: order.id,
+        id: order.id,
         orderNumber: order.order_number,
         title: order.title,
         description: order.description,
@@ -727,7 +727,7 @@ module.exports = (app, pool, jwt) => {
       const result = await pool.query(query, params);
 
       const orders = result.rows.map(order => ({
-        _id: order.id,
+        id: order.id,
         orderNumber: order.order_number,
         title: order.title,
         description: order.description,
@@ -901,7 +901,7 @@ module.exports = (app, pool, jwt) => {
       ]);
 
       const orders = orderResult.rows.map(order => ({
-        _id: order.id,
+        id: order.id,
         orderNumber: order.order_number,
         title: order.title,
         description: order.description,

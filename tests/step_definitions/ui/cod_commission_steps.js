@@ -59,7 +59,7 @@ async function createAndCompleteOrder(context, baseUrl, driverToken, customerTok
     });
     expect(createRes.ok()).to.be.true;
     const order = await createRes.json();
-    const orderId = order._id || order.id;
+    const orderId = order.id;
 
     // 2. Accept Order (Driver)
     // Assuming backend logic allows direct accept for simplicity in test

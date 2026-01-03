@@ -59,7 +59,7 @@ async function testAPIEndpoint() {
         } else {
             console.log('📋 Orders returned:');
             orders.forEach(order => {
-                console.log(`  - ${order.orderNumber || order._id}`);
+                console.log(`  - ${order.orderNumber || order.id}`);
                 console.log(`    Status: ${order.status}`);
                 console.log(`    Pickup: ${order.pickupAddress}`);
                 if (order.from) {

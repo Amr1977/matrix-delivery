@@ -167,7 +167,7 @@ describe('App Track Order Button UI Functionality', () => {
         Promise.resolve({
           ok: true,
           json: () => Promise.resolve([{
-            _id: 'order1',
+            id: 'order1',
             orderNumber: 'ORD-001',
             status: 'accepted', // Changed from 'accepted' to check if that's causing issues
             title: 'Test Order',
@@ -203,7 +203,7 @@ describe('App Track Order Button UI Functionality', () => {
         Promise.resolve({
           ok: true,
           json: () => Promise.resolve([{
-            _id: 'order1',
+            id: 'order1',
             orderNumber: 'ORD-001',
             status: 'accepted',
             title: 'Test Order',
@@ -364,7 +364,7 @@ describe('App Track Order Button UI Functionality', () => {
     const { LiveTrackingMap } = require('./App');
 
     const mockOrder = {
-      _id: 'order1',
+      id: 'order1',
       orderNumber: 'ORD-001',
       from: { lat: 40.7589, lng: -73.9851 },
       to: { lat: 40.7505, lng: -73.9934 },

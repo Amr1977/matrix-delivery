@@ -178,7 +178,7 @@ When('I have active orders assigned', async function () {
         const order = await createOrderRes.json();
 
         // Place a bid as driver
-        const bidRes = await fetch(`${this.apiUrl}/orders/${order._id}/bid`, {
+        const bidRes = await fetch(`${this.apiUrl}/orders/${order.id}/bid`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -189,7 +189,7 @@ When('I have active orders assigned', async function () {
 
         if (bidRes.ok) {
           // Accept the bid as customer
-          const acceptRes = await fetch(`${this.apiUrl}/orders/${order._id}/accept-bid`, {
+          const acceptRes = await fetch(`${this.apiUrl}/orders/${order.id}/accept-bid`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -199,7 +199,7 @@ When('I have active orders assigned', async function () {
           });
 
           if (acceptRes.ok) {
-            this.testData.activeOrderId = order._id;
+            this.testData.activeOrderId = order.id;
             return;
           }
         }

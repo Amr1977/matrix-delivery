@@ -42,7 +42,7 @@ const AsyncOrderMap = ({ order, currentUser, driverLocation, theme = 'dark', ...
         }
 
         return () => observer.disconnect();
-    }, [shouldFetch, hasFetched, order._id]);
+    }, [shouldFetch, hasFetched, order.id]);
 
     // Calculate bidding route when driver location is available
     // Use a ref to track the last calculated location to prevent excessive recalculations
@@ -204,7 +204,7 @@ const AsyncOrderMap = ({ order, currentUser, driverLocation, theme = 'dark', ...
         try {
             setLoadingRoute(true);
             // Use the tracking endpoint which returns location history
-            const response = await api.get(`/orders/${order._id}/tracking`);
+            const response = await api.get(`/orders/${order.id}/tracking`);
 
             // Store current driver location if available
             if (response && response.currentLocation) {
@@ -279,7 +279,7 @@ const AsyncOrderMap = ({ order, currentUser, driverLocation, theme = 'dark', ...
                     actualRoutePolyline: actualRoute // Pass the fetched actual route
                 }}
                 compact={true}
-                mapTitle={`Order #${order.orderNumber || order._id}${isBiddingView ? ' (Bidding)' : ''}`}
+                mapTitle={`Order #${order.orderNumber || order.id}${isBiddingView ? ' (Bidding)' : ''}`}
                 theme={theme}
                 {...props}
             />

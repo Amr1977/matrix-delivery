@@ -133,7 +133,7 @@ Given('the driver has accepted an order worth {float} EGP', async function (amou
         throw new Error(`Order Creation Failed: ${createRes.status}`);
     }
 
-    orderId = createRes.body._id;
+    orderId = createRes.body.id;
 
     // 2. Bid
     const bidRes = await request(app)

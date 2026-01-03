@@ -261,19 +261,19 @@ class DBSeeder {
       },
       'picked_up': async () => {
         if (!driver) throw new Error('Driver required for pickup');
-        await this.pickupOrder(order._id, driver);
+        await this.pickupOrder(order.id, driver);
       },
       'in_transit': async () => {
         if (!driver) throw new Error('Driver required for transit');
-        await this.markInTransit(order._id, driver);
+        await this.markInTransit(order.id, driver);
       },
       'delivered': async () => {
         if (!driver) throw new Error('Driver required for delivery');
-        await this.deliverOrder(order._id, driver);
+        await this.deliverOrder(order.id, driver);
       },
       'cancelled': async () => {
         if (!driver) throw new Error('Driver required for cancellation');
-        await this.cancelOrder(order._id, driver);
+        await this.cancelOrder(order.id, driver);
       }
     };
 
@@ -285,7 +285,7 @@ class DBSeeder {
 
   async placeBidAndAccept(order, driver) {
     // Place a bid
-    await fetch(`${this.apiUrl}/orders/${order._id}/bid`, {
+    await fetch(`${this.apiUrl}/orders/${order.id}/bid`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -298,7 +298,7 @@ class DBSeeder {
     });
 
     // Accept the bid
-    const bidsResponse = await fetch(`${this.apiUrl}/orders/${order._id}`, {
+    const bidsResponse = await fetch(`${this.apiUrl}/orders/${order.id}`, {
       headers: {
         'Authorization': `Bearer ${order.customer.token}`
       }
@@ -308,7 +308,7 @@ class DBSeeder {
       const orderData = await bidsResponse.json();
       if (orderData.bids && orderData.bids.length > 0) {
         const firstBid = orderData.bids[0];
-        await fetch(`${this.apiUrl}/orders/${order._id}/accept-bid`, {
+        await fetch(`${this.apiUrl}/orders/${order.id}/accept-bid`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -484,7 +484,7 @@ class DBSeeder {
     for (const order of deliveredOrders.slice(0, 3)) { // Create reviews for first 3 delivered orders
       if (order.driver) {
         // Customer reviews driver
-        await fetch(`${this.apiUrl}/orders/${order._id}/review`, {
+        await fetch(`${this.apiUrl}/orders/${order.id}/review`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -502,7 +502,7 @@ class DBSeeder {
         });
 
         // Driver reviews customer
-        await fetch(`${this.apiUrl}/orders/${order._id}/review`, {
+        await fetch(`${this.apiUrl}/orders/${order.id}/review`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

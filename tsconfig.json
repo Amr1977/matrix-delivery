@@ -20,6 +20,9 @@
         "backend/scripts",
         "backend/tests",
         "backend/features",
-        "backend/debug-init.js"
+        "backend/debug-init.js",
+        "frontend/build",
+        "tests",
+        "dist"
     ]
 }

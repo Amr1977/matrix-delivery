@@ -101,7 +101,7 @@ Given('the driver has started tracking', async function () {
 
     // Check tracking status
     const trackingResponse = await axios.get(
-      `${API_URL}/drivers/tracking/${currentOrder._id}/status`,
+      `${API_URL}/drivers/tracking/${currentOrder.id}/status`,
       { headers }
     );
 
