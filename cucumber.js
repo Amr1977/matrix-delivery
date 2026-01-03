@@ -5,6 +5,8 @@ module.exports = {
     require: [
       'tests/step_definitions/backend/**/*.js',
       'tests/step_definitions/backend/**/*.ts',
+      'tests/step_definitions/api/**/*.js',
+      'tests/step_definitions/api/**/*.ts',
       'tests/support/backend_hooks.ts'
     ],
     format: [

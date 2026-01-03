@@ -8,6 +8,7 @@ Feature: Order Cancellation
     Given the platform is ready
     And a customer "Alice" exists
     And a driver "Bob" exists
+    And a registered admin user exists
 
   # Customer Cancellation Scenarios
   @customer @cancel

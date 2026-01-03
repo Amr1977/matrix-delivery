@@ -17,15 +17,32 @@ let userId: string;
 After(async () => {
     // Clean up reviews and users created during tests
     await pool.query('DELETE FROM platform_reviews WHERE content LIKE \'%test%\' OR content = \'The system delivers freedom!\'');
-    await pool.query('DELETE FROM users WHERE email LIKE \'%@test.com\'');
-});
 
-// Close pool after all tests
-AfterAll(async () => {
-    if (pool) {
-        await pool.end();
+    const cleanUsersQuery = 'SELECT id FROM users WHERE email LIKE \'%@test.com\'';
+    const usersRes = await pool.query(cleanUsersQuery);
+    if (usersRes.rows.length > 0) {
+        // Cascade delete manually if no cascading FKs
+        // Delete Reviews (already done mostly but ensure by user_id)
+        await pool.query('DELETE FROM platform_reviews WHERE user_id IN (SELECT id FROM users WHERE email LIKE \'%@test.com\')');
+        // Delete Bids (by driver or for orders by customer)
+        await pool.query('DELETE FROM bids WHERE user_id IN (SELECT id FROM users WHERE email LIKE \'%@test.com\')');
+        await pool.query('DELETE FROM bids WHERE order_id IN (SELECT id FROM orders WHERE customer_id IN (SELECT id FROM users WHERE email LIKE \'%@test.com\'))');
+        // Delete Orders
+        await pool.query('DELETE FROM orders WHERE customer_id IN (SELECT id FROM users WHERE email LIKE \'%@test.com\')');
+        // Delete Balance Transactions
+        await pool.query('DELETE FROM balance_transactions WHERE user_id IN (SELECT id FROM users WHERE email LIKE \'%@test.com\')');
+        // Delete Balances
+        await pool.query('DELETE FROM user_balances WHERE user_id IN (SELECT id FROM users WHERE email LIKE \'%@test.com\')');
+        // Delete Tokens (password reset, email verif)
+        await pool.query('DELETE FROM password_reset_tokens WHERE user_id IN (SELECT id FROM users WHERE email LIKE \'%@test.com\')');
+        await pool.query('DELETE FROM email_verification_tokens WHERE user_id IN (SELECT id FROM users WHERE email LIKE \'%@test.com\')');
+
+        // Finally delete users
+        await pool.query('DELETE FROM users WHERE email LIKE \'%@test.com\'');
     }
 });
+
+// AfterAll hook for pool closure removed to prevent double closure (handled in backend_hooks.ts)
 
 // --- GO GIVEN STEPS ---
 

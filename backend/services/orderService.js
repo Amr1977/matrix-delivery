@@ -718,6 +718,7 @@ RETURNING * `;
 
     return {
       _id: order.id,
+      id: order.id,
       title: order.title,
       description: order.description,
       pickupAddress: order.pickup_address,
@@ -979,8 +980,10 @@ RETURNING * `;
       'in_transit': 'in-transit',
       'in-transit': 'in-transit',
       'delivered': 'complete', // Handle frontend 'delivered' action
-      'complete': 'complete', // عك يعك عكا !!! صلح العك دة!!!
-      'confirm_delivery': 'confirm_delivery' // NEW: Customer confirms delivery
+      'complete': 'complete',
+      'confirm_delivery': 'confirm_delivery', // Customer confirms delivery
+      'cancel': 'cancel', // Customer/Admin cancels order
+      'cancelled': 'cancel' // Alternative name for cancel action
     };
 
     const normalizedAction = actionAlias[action];
@@ -1002,9 +1005,10 @@ RETURNING * `;
     const order = orderCheck.rows[0];
 
     // Validate permissions and actions
-    if (normalizedAction === 'confirm_delivery') {
+    if (normalizedAction === 'confirm_delivery' || normalizedAction === 'cancel') {
+      // Customer actions
       if (order.customer_id !== userId) {
-        throw new Error('Only customer can confirm delivery');
+        throw new Error(`Only customer can ${normalizedAction === 'cancel' ? 'cancel' : 'confirm delivery'}`);
       }
     } else {
       // Driver actions
@@ -1020,7 +1024,9 @@ RETURNING * `;
       // Driver marks as complete -> pending confirmation
       complete: { from: ['in_transit', 'in-transit', 'picked_up'], to: 'delivered_pending' },
       // Customer confirms -> delivered
-      confirm_delivery: { from: ['delivered_pending'], to: 'delivered' }
+      confirm_delivery: { from: ['delivered_pending'], to: 'delivered' },
+      // Customer cancels order (before pickup)
+      cancel: { from: ['pending_bids', 'accepted'], to: 'cancelled' }
     };
 
     const transition = statusMap[normalizedAction];
@@ -1042,7 +1048,8 @@ RETURNING * `;
       pickup: 'picked_up_at = NOW()',
       // complete (driver) -> no timestamp update yet, or maybe 'arrived_at'? 
       complete: 'delivered_at = NOW()', // We can set it tentatively, or wait for confirm. Let's set it now.
-      confirm_delivery: 'completed_at = NOW()' // Maybe a new field? Or just leave delivered_at.
+      confirm_delivery: 'completed_at = NOW()', // Maybe a new field? Or just leave delivered_at.
+      cancel: 'cancelled_at = NOW()' // Record when order was cancelled
     };
 
     if (updateFields[normalizedAction]) {
