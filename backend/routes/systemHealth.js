@@ -76,15 +76,19 @@ const getSystemMetrics = () => {
             }));
             pm2TotalMemoryMb = pm2Processes.reduce((sum, p) => sum + p.memory_mb, 0);
         } catch (e) {
-            // Silent fail for PM2 issues
+            // SIlent fail for PM2
         }
+
+        // CPU Load (1 min average)
+        const cpuLoad = os.loadavg()[0];
 
         return {
             memoryPercent,
             memoryUsedMb,
             memoryAvailableMb,
             pm2TotalMemoryMb,
-            pm2Processes
+            pm2Processes,
+            cpuLoad
         };
     } catch (error) {
         logger.error('Error collecting system metrics:', error);
@@ -102,14 +106,15 @@ const storeHealthSnapshot = async () => {
     try {
         await pool.query(`
             INSERT INTO system_health_logs 
-            (memory_percent, memory_used_mb, memory_available_mb, pm2_total_memory_mb, pm2_processes)
-            VALUES ($1, $2, $3, $4, $5)
+            (memory_percent, memory_used_mb, memory_available_mb, pm2_total_memory_mb, pm2_processes, cpu_load)
+            VALUES ($1, $2, $3, $4, $5, $6)
         `, [
             metrics.memoryPercent,
             metrics.memoryUsedMb,
             metrics.memoryAvailableMb,
             metrics.pm2TotalMemoryMb,
-            JSON.stringify(metrics.pm2Processes)
+            JSON.stringify(metrics.pm2Processes),
+            metrics.cpuLoad
         ]);
 
         // Cleanup old data (older than 3 days)
@@ -208,7 +213,8 @@ router.get('/history', verifyToken, async (req, res) => {
                 memory_used_mb,
                 memory_available_mb,
                 pm2_total_memory_mb,
-                pm2_processes
+                pm2_processes,
+                cpu_load
             FROM system_health_logs
             WHERE timestamp > NOW() - INTERVAL '${hours} hours'
             ORDER BY timestamp ASC
