@@ -132,7 +132,7 @@ const sanitizeInput = (fields = []) => {
           // Basic sanitization - remove potentially harmful characters
           req.body[field] = req.body[field]
             .trim()
-            .replace(/[<>\"'&]/g, '')
+            .replace(/[<>"'&]/g, '')
             .substring(0, 1000); // Limit length
         }
       });

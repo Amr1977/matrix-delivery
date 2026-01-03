@@ -49,7 +49,7 @@ const io = socketIo(httpServer, {
         callback(null, true); // Allow anyway for now, but log it
       }
     },
-    methods: ["GET", "POST"],
+    methods: ['GET', 'POST'],
     credentials: true
   },
   transports: ['polling', 'websocket'],

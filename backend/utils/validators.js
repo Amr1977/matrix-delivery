@@ -32,7 +32,7 @@ const validatePassword = (password) => {
 const validatePhone = (phone) => {
     const sanitized = sanitizeString(phone, 50);
     // Basic phone validation - can be enhanced
-    return /^[\d\s\-\+\(\)]+$/.test(sanitized) && sanitized.length >= 10;
+    return /^[\d\s\-+()]+$/.test(sanitized) && sanitized.length >= 10;
 };
 
 /**

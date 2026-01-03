@@ -15,9 +15,9 @@ router.get('/', async (req, res) => {
     try {
         const usersResult = await pool.query('SELECT COUNT(*) as count FROM users');
         const ordersResult = await pool.query('SELECT COUNT(*) as count FROM orders');
-        const openOrdersResult = await pool.query("SELECT COUNT(*) as count FROM orders WHERE status = 'pending_bids'");
-        const acceptedOrdersResult = await pool.query("SELECT COUNT(*) as count FROM orders WHERE status = 'accepted'");
-        const completedOrdersResult = await pool.query("SELECT COUNT(*) as count FROM orders WHERE status = 'delivered'");
+        const openOrdersResult = await pool.query('SELECT COUNT(*) as count FROM orders WHERE status = \'pending_bids\'');
+        const acceptedOrdersResult = await pool.query('SELECT COUNT(*) as count FROM orders WHERE status = \'accepted\'');
+        const completedOrdersResult = await pool.query('SELECT COUNT(*) as count FROM orders WHERE status = \'delivered\'');
 
         res.json({
             status: 'healthy',

@@ -40,7 +40,6 @@ app.post('/api/users/me/switch-primary_role', verifyToken, async (req, res) => {
             {
                 userId: req.user.userId,
                 primary_role: newRole,  // Keep 'primary_role' for backward compatibility
-                primary_role: newRole,
                 granted_roles: user.granted_roles
             },
             JWT_SECRET,

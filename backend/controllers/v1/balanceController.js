@@ -165,7 +165,7 @@ class BalanceController {
             }
             return sendError(res, 500, error.message || 'Failed to retrieve transaction history');
         }
-    }
+    };
 }
 
 module.exports = { BalanceController };

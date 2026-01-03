@@ -50,7 +50,7 @@ const notifyAdminsOfNewUser = async (userId, userName, userRole) => {
     try {
         // Query all admin users
         const adminResult = await pool.query(
-            "SELECT id FROM users WHERE primary_role = 'admin' OR (granted_roles IS NOT NULL AND 'admin' = ANY(granted_roles))"
+            'SELECT id FROM users WHERE primary_role = \'admin\' OR (granted_roles IS NOT NULL AND \'admin\' = ANY(granted_roles))'
         );
 
         if (adminResult.rows.length === 0) {

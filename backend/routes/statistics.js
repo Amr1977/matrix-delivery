@@ -22,15 +22,15 @@ router.get('/footer', async (req, res) => {
 
     // 2. Registered Users (Total Counts)
     // Vendors
-    const totalVendorsResult = await pool.query("SELECT COUNT(*) as count FROM users WHERE 'vendor' = ANY(granted_roles)");
+    const totalVendorsResult = await pool.query('SELECT COUNT(*) as count FROM users WHERE \'vendor\' = ANY(granted_roles)');
     const totalVendors = parseInt(totalVendorsResult.rows[0].count);
 
     // Drivers
-    const totalDriversResult = await pool.query("SELECT COUNT(*) as count FROM users WHERE 'driver' = ANY(granted_roles)");
+    const totalDriversResult = await pool.query('SELECT COUNT(*) as count FROM users WHERE \'driver\' = ANY(granted_roles)');
     const totalDrivers = parseInt(totalDriversResult.rows[0].count);
 
     // Customers
-    const totalCustomersResult = await pool.query("SELECT COUNT(*) as count FROM users WHERE 'customer' = ANY(granted_roles)");
+    const totalCustomersResult = await pool.query('SELECT COUNT(*) as count FROM users WHERE \'customer\' = ANY(granted_roles)');
     const totalCustomers = parseInt(totalCustomersResult.rows[0].count);
 
     stats.vendors = { total: totalVendors };

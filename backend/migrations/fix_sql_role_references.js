@@ -17,7 +17,7 @@ let changeCount = 0;
 const pattern1 = /WHERE\s+primary_role\s*=\s*'([^']+)'/gi;
 const matches1 = content.match(pattern1);
 if (matches1) {
-    content = content.replace(pattern1, "WHERE primary_role = '$1'");
+    content = content.replace(pattern1, 'WHERE primary_role = \'$1\'');
     changeCount += matches1.length;
     console.log(`✅ Fixed ${matches1.length} WHERE primary_role = clauses`);
 }

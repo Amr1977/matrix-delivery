@@ -8,7 +8,7 @@ async function check() {
         await initDatabase(pool);
         console.log('Init success.');
 
-        const res = await pool.query("SELECT to_regclass('public.platform_reviews') as exists");
+        const res = await pool.query('SELECT to_regclass(\'public.platform_reviews\') as exists');
         console.log('Table exists:', res.rows[0].exists);
 
         await pool.end();

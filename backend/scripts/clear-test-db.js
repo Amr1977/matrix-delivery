@@ -14,7 +14,7 @@ async function clearTestDatabase() {
         // Clear user_wallets first due to FK constraint
         await client.query('DELETE FROM user_wallets');
         // Clear users with matching email pattern from tests or seed
-        await client.query("DELETE FROM users WHERE email LIKE '%@test.com'");
+        await client.query('DELETE FROM users WHERE email LIKE \'%@test.com\'');
 
         await client.query('COMMIT');
         console.log('✅ Cleared test data successfully');

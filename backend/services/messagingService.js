@@ -22,7 +22,7 @@ class MessagingService {
   sanitizeContent(content) {
     if (typeof content !== 'string') return '';
     // Basic sanitization - remove potentially harmful content
-    return content.trim().substring(0, 1000).replace(/[<>\"'&]/g, '');
+    return content.trim().substring(0, 1000).replace(/[<>"'&]/g, '');
   }
 
   /**
