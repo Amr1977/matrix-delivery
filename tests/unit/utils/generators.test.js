@@ -2,7 +2,7 @@
  * Unit tests for generators utility module
  */
 
-const { generateId, generateOrderNumber } = require('../../../utils/generators');
+const { generateId, generateOrderNumber } = require('../../../backend/utils/generators');
 
 describe('Generators Utility', () => {
     describe('generateId', () => {

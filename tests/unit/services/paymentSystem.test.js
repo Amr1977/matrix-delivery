@@ -2,7 +2,7 @@ const { expect } = require('chai');
 const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');
-const { PAYMENT_CONFIG, calculateCommission } = require('../../../config/paymentConfig');
+const { PAYMENT_CONFIG, calculateCommission } = require('../../../backend/config/paymentConfig');
 
 // Load test data from external YAML files
 const testDataPath = path.join(__dirname, 'fixtures', 'payment-test-data.yaml');

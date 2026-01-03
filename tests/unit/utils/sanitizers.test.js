@@ -2,7 +2,7 @@
  * Unit tests for sanitizers utility module
  */
 
-const { sanitizeString, sanitizeHtml, sanitizeNumeric } = require('../../../utils/sanitizers');
+const { sanitizeString, sanitizeHtml, sanitizeNumeric } = require('../../../backend/utils/sanitizers');
 
 describe('Sanitizers Utility', () => {
     describe('sanitizeString', () => {
@@ -24,7 +24,7 @@ describe('Sanitizers Utility', () => {
             const input = 'Hello "World" & \'Friends\'';
             const result = sanitizeString(input);
             expect(result).not.toContain('"');
-            expect(result).not.toContain("'");
+            expect(result).not.toContain('\'');
             expect(result).not.toContain('&');
             expect(result).toBe('Hello World  Friends');
         });

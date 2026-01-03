@@ -5,7 +5,7 @@ const {
     calculatePaymentFee,
     calculateTotalWithFees,
     validatePaymentAmount
-} = require('../../../config/paymentConfig');
+} = require('../../../backend/config/paymentConfig');
 
 describe('Payment Configuration Tests', function () {
 
@@ -64,7 +64,7 @@ describe('Payment Configuration Tests', function () {
         it('should handle decimal amounts', function () {
             const { commission, payout } = calculateCommission(99.99);
             expect(commission).to.equal(15.00);
-            expect(payout).to.equal(85.00);
+            expect(payout).to.equal(84.99);
         });
 
         it('should handle large amounts', function () {

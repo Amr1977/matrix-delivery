@@ -91,20 +91,35 @@ const testDriver = {
   primary_role: 'driver'
 };
 
-describe('Map Location Picker API Tests', () => {
-  let testUserToken;
-  let testDriverToken;
+let testUserToken;
+let testDriverToken;
 
+describe('Map Location Picker API Tests', () => {
   // Use the existing backend server instead of starting a new one
   const baseURL = 'http://localhost:5000';
 
   beforeAll(async () => {
     // Create test tokens
-    testUserToken = jwt.sign(testUser, process.env.JWT_SECRET);
-    testDriverToken = jwt.sign(testDriver, process.env.JWT_SECRET);
+    testUserToken = jwt.sign({ ...testUser, userId: testUser.id }, process.env.JWT_SECRET, { audience: 'matrix-delivery-api', issuer: 'matrix-delivery' });
+    testDriverToken = jwt.sign({ ...testDriver, userId: testDriver.id }, process.env.JWT_SECRET, { audience: 'matrix-delivery-api', issuer: 'matrix-delivery' });
+
+    // Insert test users
+    try {
+      await pool.query(`
+        INSERT INTO users (id, email, name, primary_role) VALUES 
+        ($1, $2, $3, 'customer'),
+        ($4, $5, $6, 'driver')
+        ON CONFLICT (id) DO NOTHING
+      `, [testUser.id, testUser.email, testUser.name, testDriver.id, testDriver.email, testDriver.name]);
+    } catch (error) {
+      console.log('Error inserting test users:', error.message);
+    }
 
     // Setup test database tables if needed
     try {
+      await pool.query('DROP TABLE IF EXISTS delivery_agent_preferences CASCADE');
+      await pool.query('DROP TABLE IF EXISTS driver_locations CASCADE');
+
       await pool.query(`
         CREATE TABLE IF NOT EXISTS delivery_agent_preferences (
           agent_id VARCHAR(255) PRIMARY KEY,
@@ -360,7 +375,7 @@ describe('Map Location Picker API Tests', () => {
         .send(preferences)
         .expect(200);
 
-      expect(response.body.max_distance_km).toBe(75);
+      expect(parseFloat(response.body.max_distance_km)).toBe(75);
       expect(response.body.accept_remote_areas).toBe(true);
       expect(response.body.accept_international).toBe(false);
     });

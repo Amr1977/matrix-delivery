@@ -1,15 +1,15 @@
-const { initDatabase, createAdminTables } = require('../../../database/startup');
+const { initDatabase, createAdminTables } = require('../../../backend/database/startup');
 
 // Mock dependencies
-jest.mock('../../../config/logger');
-jest.mock('../../../database/init.ts');
-jest.mock('../../../middleware/auditLogger');
-jest.mock('../../../services/activityTracker.ts');
-jest.mock('../../../migrationRunner.ts');
+jest.mock('../../../backend/config/logger');
+jest.mock('../../../backend/database/init.ts');
+jest.mock('../../../backend/middleware/auditLogger');
+jest.mock('../../../backend/services/activityTracker.ts');
+jest.mock('../../../backend/migrationRunner.ts');
 
-const logger = require('../../../config/logger');
-const { initializeDatabase } = require('../../../database/init.ts');
-const { initAuditLogger } = require('../../../middleware/auditLogger');
+const logger = require('../../../backend/config/logger');
+const { initializeDatabase } = require('../../../backend/database/init.ts');
+const { initAuditLogger } = require('../../../backend/middleware/auditLogger');
 
 describe('Database Startup Module', () => {
     let mockPool;
@@ -127,7 +127,7 @@ describe('Database Startup Module', () => {
     describe('initDatabase', () => {
         beforeEach(() => {
             // Mock activity tracker
-            jest.mock('../../../services/activityTracker.ts', () => ({
+            jest.mock('../../../backend/services/activityTracker.ts', () => ({
                 activityTracker: {
                     initialize: jest.fn(),
                     startPeriodicCommit: jest.fn()
@@ -135,7 +135,7 @@ describe('Database Startup Module', () => {
             }));
 
             // Mock migration runner
-            jest.mock('../../../migrationRunner.ts', () => ({
+            jest.mock('../../../backend/migrationRunner.ts', () => ({
                 runMigrationsOnStartup: jest.fn().mockResolvedValue({
                     applied: 5,
                     skipped: 10
@@ -212,7 +212,7 @@ describe('Database Startup Module', () => {
 
             mockPool.query.mockResolvedValue({ rows: [] });
 
-            const { runMigrationsOnStartup } = require('../../../migrationRunner.ts');
+            const { runMigrationsOnStartup } = require('../../../backend/migrationRunner.ts');
             runMigrationsOnStartup.mockRejectedValue(new Error('Migration failed'));
 
             // Should not throw in development
@@ -229,7 +229,7 @@ describe('Database Startup Module', () => {
         it('should log migration results', async () => {
             mockPool.query.mockResolvedValue({ rows: [] });
 
-            const { runMigrationsOnStartup } = require('../../../migrationRunner.ts');
+            const { runMigrationsOnStartup } = require('../../../backend/migrationRunner.ts');
             runMigrationsOnStartup.mockResolvedValue({
                 applied: 3,
                 skipped: 7

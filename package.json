@@ -8,7 +8,7 @@
     "test:backend": "jest tests/unit --verbose",
     "test:frontend": "cd frontend && npm test -- --watchAll=false --passWithNoTests",
     "test:frontend:ci": "cd frontend && CI=true npm test -- --coverage --passWithNoTests",
-    "test:api": "jest tests/map-location-api-tests.js --verbose --testTimeout=30000",
+    "test:api": "jest tests/map-location-api.test.js --verbose --testTimeout=30000",
     "test:e2e": "cross-env NODE_ENV=testing cucumber-js -c tests/cucumber.config.js",
     "test:bdd:api": "cross-env NODE_ENV=testing TEST_MODE=api cucumber-js --profile core",
     "test:bdd:e2e": "cross-env NODE_ENV=testing TEST_MODE=e2e cucumber-js --profile core",
