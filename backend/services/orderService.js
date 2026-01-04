@@ -1083,9 +1083,11 @@ RETURNING * `;
       throw new Error(`Invalid action: ${action}`);
     }
 
-    // Check order ownership/assignment
+    // Check order ownership/assignment (including escrow fields)
     const orderCheck = await pool.query(
-      'SELECT customer_id, assigned_driver_user_id, status, title, price FROM orders WHERE id = $1',
+      `SELECT customer_id, assigned_driver_user_id, status, title, price, 
+              escrow_amount, escrow_status, upfront_payment, driver_distance_traveled_km 
+       FROM orders WHERE id = $1`,
       [orderId]
     );
 
@@ -1149,45 +1151,114 @@ RETURNING * `;
 
     await pool.query(query, params);
 
+    // ✅ ESCROW: Handle cancel action - forfeit with compensation
+    if (normalizedAction === 'cancel') {
+      const escrowAmount = parseFloat(order.escrow_amount) || 0;
+      if (escrowAmount > 0 && order.escrow_status === 'held' && order.assigned_driver_user_id) {
+        // Calculate driver compensation based on distance traveled
+        const distanceTraveled = parseFloat(order.driver_distance_traveled_km) || 0;
+        const baseFee = 10; // Base compensation in EGP
+        const perKmRate = 3; // Per km rate in EGP
+        let driverCompensation = 0;
+
+        if (distanceTraveled > 0) {
+          driverCompensation = baseFee + (distanceTraveled * perKmRate);
+        }
+        // Cap compensation at escrow amount
+        driverCompensation = Math.min(driverCompensation, escrowAmount);
+
+        try {
+          if (driverCompensation > 0) {
+            // Forfeit with compensation
+            await balanceService.forfeitHold(
+              order.customer_id,
+              orderId,
+              escrowAmount,
+              driverCompensation,
+              order.assigned_driver_user_id
+            );
+            logger.info('Escrow forfeited with driver compensation', {
+              orderId,
+              escrowAmount,
+              driverCompensation,
+              customerRefund: escrowAmount - driverCompensation,
+              distanceTraveled
+            });
+          } else {
+            // Full refund - no compensation
+            await balanceService.releaseHold(order.customer_id, orderId, escrowAmount);
+            logger.info('Escrow fully refunded (no driver travel)', { orderId, escrowAmount });
+          }
+
+          // Update escrow status
+          await pool.query(
+            'UPDATE orders SET escrow_status = $1, cancellation_fee = $2, cancelled_by = $3 WHERE id = $4',
+            ['forfeited', driverCompensation, 'customer', orderId]
+          );
+        } catch (escrowError) {
+          logger.error('Failed to forfeit escrow on cancel', { orderId, error: escrowError.message });
+        }
+      } else if (escrowAmount > 0 && order.escrow_status === 'held') {
+        // No driver assigned - full refund
+        try {
+          await balanceService.releaseHold(order.customer_id, orderId, escrowAmount);
+          await pool.query(
+            'UPDATE orders SET escrow_status = $1, cancelled_by = $2 WHERE id = $3',
+            ['released', 'customer', orderId]
+          );
+          logger.info('Escrow refunded (no driver assigned)', { orderId, escrowAmount });
+        } catch (escrowError) {
+          logger.error('Failed to refund escrow on cancel', { orderId, error: escrowError.message });
+        }
+      }
+    }
+
     //TODO How about completed orders count for customer user!!
-    // If order is confirmed by customer, update driver stats AND deduct commission
+    // If order is confirmed by customer, update driver stats, release escrow, handle commission
     if (normalizedAction === 'confirm_delivery') {
       await pool.query(
         'UPDATE users SET completed_deliveries = completed_deliveries + 1 WHERE id = $1',
         [order.assigned_driver_user_id]
       );
 
-      // Deduct Commission
-      const commission = (parseFloat(order.price) || 0) * PAYMENT_CONFIG.COMMISSION_RATE;
-      if (commission > 0) {
+      // ✅ ESCROW: Release held funds to driver with commission deduction
+      const escrowAmount = parseFloat(order.escrow_amount) || 0;
+      if (escrowAmount > 0 && order.escrow_status === 'held') {
+        // Calculate commission: 10% platform + 5% Takaful = 15%
+        const deliveryFee = parseFloat(order.price) || 0;
+        const platformCommission = deliveryFee * 0.10; // 10%
+        const takafulContribution = deliveryFee * 0.05; // 5%
+
         try {
-          await balanceService.deductCommission(order.assigned_driver_user_id, orderId, commission);
-          logger.info(`Commission of ${commission} deducted for order ${orderId}`);
-          let driver_balance = await balanceService.getBalance(order.assigned_driver_user_id);
-          logger.info(`Driver Balance: ` + JSON.stringify(driver_balance));
-        } catch (commError) {
-          logger.error('Failed to deduct commission', { orderId, error: commError.message });
-          // We do NOT treat this as a failure of the API call, but we log it critical.
-          // In real world, we might want to retry.
+          await balanceService.releaseHold(
+            order.customer_id,
+            orderId,
+            escrowAmount,
+            {
+              destinationUserId: order.assigned_driver_user_id,
+              platformCommission,
+              takafulContribution
+            }
+          );
+
+          // Update escrow status on order
+          await pool.query(
+            'UPDATE orders SET escrow_status = $1 WHERE id = $2',
+            ['released', orderId]
+          );
+
+          logger.info('Escrow released on delivery confirmation', {
+            orderId,
+            escrowAmount,
+            platformCommission,
+            takafulContribution,
+            driverNet: escrowAmount - platformCommission - takafulContribution
+          });
+        } catch (escrowError) {
+          logger.error('Failed to release escrow', { orderId, error: escrowError.message });
+          // Continue - don't block order completion
         }
       }
-
-      // Credit driver (Earnings)
-      // Usually, for COD, driver keeps cash (Price). Earning = Price - Commission.
-      // But we track "Wallet Balance".
-      // If COD: Driver gets Cash (+Price). Wallet Balance should decrease by Commission (-Commission).
-      // So `deductCommission` does exactly that.
-      // If Online Payment: Driver gets nothing locally. Wallet Balance should increase by (Price - Commission).
-      // We assume COD for now or simplicity. 
-      // If we supported Online Payment, we'd need to know payment method.
-      // Let's assume COD implies: Driver holds cash (Debt).
-      // Wait, `deductCommission` reduces balance.
-      // If user starts with 0. 
-      // Order 100. Commission 15.
-      // Driver collects 100 Cash.
-      // Wallet = 0 - 15 = -15.
-      // Driver has 100 Cash + (-15 Wallet). Net +85. Correct.
-      // Eventually Driver pays platform 15 to reset wallet.
     }
 
     logger.order('Order status updated successfully', {
