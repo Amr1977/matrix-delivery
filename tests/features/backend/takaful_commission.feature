@@ -14,7 +14,7 @@ Feature: Takaful Commission System
   # Commission Deduction
   # ========================================
 
-  @commission_deduction
+  @commission_deduction @TAK-001
   Scenario: Commission deducted on order completion
     Given an order with delivery fee 100 EGP
     And the order is completed successfully
@@ -23,7 +23,7 @@ Feature: Takaful Commission System
     And Takaful contribution should be 5 EGP
     And driver should receive 85 EGP
 
-  @commission_deduction
+  @commission_deduction @TAK-002
   Scenario: Commission breakdown shown to driver
     Given an order with delivery fee 200 EGP is completed
     When driver views their earnings
@@ -38,7 +38,7 @@ Feature: Takaful Commission System
   # Takaful Fund Contributions
   # ========================================
 
-  @takaful_contribution
+  @takaful_contribution @TAK-003
   Scenario: Takaful contribution added to fund
     Given the Takaful fund has balance 10000 EGP
     And an order with delivery fee 100 EGP is completed
@@ -46,7 +46,7 @@ Feature: Takaful Commission System
     Then the Takaful fund should increase by 5 EGP
     And a contribution record should be created for the driver
 
-  @takaful_contribution
+  @takaful_contribution @TAK-004
   Scenario: Driver sees total Takaful contributions
     Given driver "takaful_driver" has completed 20 orders
     And total Takaful contributions are 100 EGP
@@ -57,7 +57,7 @@ Feature: Takaful Commission System
   # Emergency Transfer Funding
   # ========================================
 
-  @emergency_funding
+  @emergency_funding @TAK-005
   Scenario: Emergency transfer bonus paid from Takaful fund
     Given an emergency transfer occurs
     And the emergency bonus is 12 EGP (20% of 60 EGP)
