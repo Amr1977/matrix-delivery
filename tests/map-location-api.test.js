@@ -93,11 +93,23 @@ const testDriver = {
 
 let testUserToken;
 let testDriverToken;
+const serverManager = require('./utils/serverManager');
 
 describe('Map Location Picker API Tests', () => {
-  // Use in-process app via supertest (no external server needed)
+  // Use serverManager to start backend server for tests
+  const baseURL = 'http://localhost:5000';
 
   beforeAll(async () => {
+    // Start backend server if not already running
+    try {
+      const response = await fetch('http://localhost:5000/api/health');
+      if (!response.ok) throw new Error('Not running');
+      console.log('Backend already running');
+    } catch (e) {
+      console.log('Starting backend server via serverManager...');
+      await serverManager.startBackend();
+    }
+
     // Create test tokens
     testUserToken = jwt.sign({ ...testUser, userId: testUser.id }, process.env.JWT_SECRET, { audience: 'matrix-delivery-api', issuer: 'matrix-delivery' });
     testDriverToken = jwt.sign({ ...testDriver, userId: testDriver.id }, process.env.JWT_SECRET, { audience: 'matrix-delivery-api', issuer: 'matrix-delivery' });
@@ -105,9 +117,9 @@ describe('Map Location Picker API Tests', () => {
     // Insert test users
     try {
       await pool.query(`
-        INSERT INTO users (id, email, name, primary_role) VALUES 
-        ($1, $2, $3, 'customer'),
-        ($4, $5, $6, 'driver')
+        INSERT INTO users (id, email, name, primary_role, password_hash) VALUES 
+        ($1, $2, $3, 'customer', 'test_hash'),
+        ($4, $5, $6, 'driver', 'test_hash')
         ON CONFLICT (id) DO NOTHING
       `, [testUser.id, testUser.email, testUser.name, testDriver.id, testDriver.email, testDriver.name]);
 
@@ -150,14 +162,15 @@ describe('Map Location Picker API Tests', () => {
   });
 
   afterAll(async () => {
+    await serverManager.stop();
     await pool.end();
   });
 
   describe('Reverse Geocoding API', () => {
     test('should successfully reverse geocode valid coordinates', async () => {
-      const response = await request(app)
-        .get('/api/locations/reverse-geocode?lat=30.0131&lng=31.2089')
-        .expect(200);
+      const url = `${baseURL}/api/locations/reverse-geocode?lat=30.0131&lng=31.2089`;
+      const response = await fetch(url);
+      expect(response.status).toBe(200);
 
       const data = await response.json();
       expect(data).toHaveProperty('coordinates');
