@@ -7,7 +7,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const { EmergencyTransferService } = require('../services/emergencyTransferService');
-const { authenticateToken } = require('../middleware/auth');
+const { verifyToken } = require('../middleware/auth');
 const logger = require('../config/logger');
 
 const emergencyService = new EmergencyTransferService(pool);
@@ -20,7 +20,7 @@ const emergencyService = new EmergencyTransferService(pool);
  * POST /api/emergency/trigger
  * Trigger emergency transfer for current order
  */
-router.post('/trigger', authenticateToken, async (req, res) => {
+router.post('/trigger', verifyToken, async (req, res) => {
     try {
         const { orderId, reason, location, distanceTraveled } = req.body;
 
@@ -50,7 +50,7 @@ router.post('/trigger', authenticateToken, async (req, res) => {
  * GET /api/emergency/available
  * Get available emergency transfers for driver
  */
-router.get('/available', authenticateToken, async (req, res) => {
+router.get('/available', verifyToken, async (req, res) => {
     try {
         // Get driver's cash
         const driverResult = await pool.query(
@@ -81,7 +81,7 @@ router.get('/available', authenticateToken, async (req, res) => {
  * POST /api/emergency/:id/accept
  * Accept an emergency transfer (FCFS)
  */
-router.post('/:id/accept', authenticateToken, async (req, res) => {
+router.post('/:id/accept', verifyToken, async (req, res) => {
     try {
         const { location } = req.body;
 
@@ -106,7 +106,7 @@ router.post('/:id/accept', authenticateToken, async (req, res) => {
  * POST /api/emergency/:id/confirm-handoff
  * Confirm package handoff
  */
-router.post('/:id/confirm-handoff', authenticateToken, async (req, res) => {
+router.post('/:id/confirm-handoff', verifyToken, async (req, res) => {
     try {
         const { location } = req.body;
 
@@ -133,7 +133,7 @@ router.post('/:id/confirm-handoff', authenticateToken, async (req, res) => {
  * GET /api/emergency/:id
  * Get transfer details
  */
-router.get('/:id', authenticateToken, async (req, res) => {
+router.get('/:id', verifyToken, async (req, res) => {
     try {
         const transfer = await emergencyService.getTransferById(parseInt(req.params.id));
 
@@ -163,7 +163,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
  * GET /api/emergency/admin/pending
  * Get all pending/escalated transfers (admin)
  */
-router.get('/admin/pending', authenticateToken, async (req, res) => {
+router.get('/admin/pending', verifyToken, async (req, res) => {
     try {
         if (!req.user.roles?.includes('admin')) {
             return res.status(403).json({ error: 'Admin access required' });
@@ -192,7 +192,7 @@ router.get('/admin/pending', authenticateToken, async (req, res) => {
  * POST /api/emergency/admin/check-timeouts
  * Manually trigger timeout check (admin)
  */
-router.post('/admin/check-timeouts', authenticateToken, async (req, res) => {
+router.post('/admin/check-timeouts', verifyToken, async (req, res) => {
     try {
         if (!req.user.roles?.includes('admin')) {
             return res.status(403).json({ error: 'Admin access required' });

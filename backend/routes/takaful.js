@@ -7,7 +7,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const { TakafulService } = require('../services/takafulService');
-const { authenticateToken } = require('../middleware/auth');
+const { verifyToken } = require('../middleware/auth');
 const logger = require('../config/logger');
 
 const takafulService = new TakafulService(pool);
@@ -20,7 +20,7 @@ const takafulService = new TakafulService(pool);
  * GET /api/takaful/summary
  * Get courier's Takaful summary (contributions, claims, loans)
  */
-router.get('/summary', authenticateToken, async (req, res) => {
+router.get('/summary', verifyToken, async (req, res) => {
     try {
         const summary = await takafulService.getCourierSummary(req.user.id);
         res.json(summary);
@@ -34,7 +34,7 @@ router.get('/summary', authenticateToken, async (req, res) => {
  * GET /api/takaful/contributions
  * Get courier's contribution history
  */
-router.get('/contributions', authenticateToken, async (req, res) => {
+router.get('/contributions', verifyToken, async (req, res) => {
     try {
         const contributions = await takafulService.getCourierContributions(req.user.id);
         res.json(contributions);
@@ -48,7 +48,7 @@ router.get('/contributions', authenticateToken, async (req, res) => {
  * POST /api/takaful/claims
  * Submit a new claim
  */
-router.post('/claims', authenticateToken, async (req, res) => {
+router.post('/claims', verifyToken, async (req, res) => {
     try {
         const { claimType, amount, description, evidenceUrls, eventDate, beneficiaryName } = req.body;
 
@@ -81,7 +81,7 @@ router.post('/claims', authenticateToken, async (req, res) => {
  * GET /api/takaful/claims
  * Get courier's claims history
  */
-router.get('/claims', authenticateToken, async (req, res) => {
+router.get('/claims', verifyToken, async (req, res) => {
     try {
         const result = await pool.query(
             `SELECT * FROM takaful_claims WHERE courier_id = $1 ORDER BY created_at DESC`,
@@ -98,7 +98,7 @@ router.get('/claims', authenticateToken, async (req, res) => {
  * POST /api/takaful/loans
  * Request a new loan
  */
-router.post('/loans', authenticateToken, async (req, res) => {
+router.post('/loans', verifyToken, async (req, res) => {
     try {
         const { amount, purpose, loanType } = req.body;
 
@@ -128,7 +128,7 @@ router.post('/loans', authenticateToken, async (req, res) => {
  * GET /api/takaful/loans
  * Get courier's loan history
  */
-router.get('/loans', authenticateToken, async (req, res) => {
+router.get('/loans', verifyToken, async (req, res) => {
     try {
         const result = await pool.query(
             `SELECT * FROM takaful_loans WHERE courier_id = $1 ORDER BY created_at DESC`,
@@ -149,7 +149,7 @@ router.get('/loans', authenticateToken, async (req, res) => {
  * GET /api/takaful/fund
  * Get Takaful fund balance (admin only)
  */
-router.get('/fund', authenticateToken, async (req, res) => {
+router.get('/fund', verifyToken, async (req, res) => {
     try {
         // Check admin role
         if (!req.user.roles?.includes('admin')) {
@@ -168,7 +168,7 @@ router.get('/fund', authenticateToken, async (req, res) => {
  * POST /api/takaful/claims/:id/approve
  * Approve a claim (admin only)
  */
-router.post('/claims/:id/approve', authenticateToken, async (req, res) => {
+router.post('/claims/:id/approve', verifyToken, async (req, res) => {
     try {
         if (!req.user.roles?.includes('admin')) {
             return res.status(403).json({ error: 'Admin access required' });
@@ -189,7 +189,7 @@ router.post('/claims/:id/approve', authenticateToken, async (req, res) => {
  * POST /api/takaful/claims/:id/reject
  * Reject a claim (admin only)
  */
-router.post('/claims/:id/reject', authenticateToken, async (req, res) => {
+router.post('/claims/:id/reject', verifyToken, async (req, res) => {
     try {
         if (!req.user.roles?.includes('admin')) {
             return res.status(403).json({ error: 'Admin access required' });
@@ -215,7 +215,7 @@ router.post('/claims/:id/reject', authenticateToken, async (req, res) => {
  * POST /api/takaful/gold-price
  * Set daily gold price (admin only)
  */
-router.post('/gold-price', authenticateToken, async (req, res) => {
+router.post('/gold-price', verifyToken, async (req, res) => {
     try {
         if (!req.user.roles?.includes('admin')) {
             return res.status(403).json({ error: 'Admin access required' });
@@ -241,7 +241,7 @@ router.post('/gold-price', authenticateToken, async (req, res) => {
  * GET /api/takaful/gold-price
  * Get current gold price
  */
-router.get('/gold-price', authenticateToken, async (req, res) => {
+router.get('/gold-price', verifyToken, async (req, res) => {
     try {
         const price = await takafulService.getCurrentGoldPrice();
         res.json({ pricePerGram: price, currency: 'EGP', karat: 24 });
