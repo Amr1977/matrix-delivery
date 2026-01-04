@@ -141,6 +141,9 @@ app.use('/api/admin/health', require('./routes/systemHealth'));
 // Load Takaful cooperative insurance routes
 app.use('/api/takaful', require('./routes/takaful'));
 
+// Load emergency transfer routes
+app.use('/api/emergency', require('./routes/emergency'));
+
 let HAS_POSTGIS = false;
 
 const JWT_SECRET = process.env.JWT_SECRET;
