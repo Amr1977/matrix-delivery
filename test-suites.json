@@ -42,6 +42,17 @@
         ]
     },
     {
+        "id": "escrow_takaful",
+        "name": "🔒 Escrow & Takaful",
+        "description": "Order escrow, Takaful insurance, and emergency transfers",
+        "features": [
+            "tests/features/backend/order_escrow.feature",
+            "tests/features/backend/takaful_commission.feature",
+            "tests/features/backend/takaful_benefits.feature",
+            "tests/features/backend/emergency_transfer.feature"
+        ]
+    },
+    {
         "id": "orders",
         "name": "📦 Orders & Logistics",
         "description": "Order creation, management, and fulfillment",
