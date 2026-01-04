@@ -607,7 +607,8 @@ END as acceptedBid
 
     // Extract main order details for validation
     let title = orderData.title;
-    let price = parseFloat(orderData.price);
+    let price = parseFloat(orderData.price); // This is the estimated delivery fee
+    const upfrontPayment = parseFloat(orderData.upfront_payment) || 0; // Default 0
 
     // Basic validation for title and price
     if (!title || !title.trim()) {
@@ -615,6 +616,12 @@ END as acceptedBid
     }
     if (!price || parseFloat(price) <= 0) {
       throw new Error('Order price must be greater than 0');
+    }
+
+    // ✅ ESCROW: Check customer balance before order creation
+    const balanceCheck = await balanceService.checkOrderBalance(customerId, upfrontPayment, price);
+    if (!balanceCheck.canCreate) {
+      throw new Error(`Insufficient balance. Required: ${balanceCheck.requiredBalance} EGP, Available: ${balanceCheck.availableBalance} EGP. Please top up ${balanceCheck.shortfall} EGP.`);
     }
 
     const orderId = this.generateId();
@@ -955,7 +962,7 @@ RETURNING * `;
   async acceptBid(orderId, customerId, driverId) {
     // Check if order belongs to customer and is in correct state
     const orderCheck = await pool.query(
-      'SELECT customer_id, status, title, order_number FROM orders WHERE id = $1',
+      'SELECT customer_id, status, title, order_number, upfront_payment FROM orders WHERE id = $1',
       [orderId]
     );
 
@@ -982,6 +989,9 @@ RETURNING * `;
       throw new Error('Bid not found');
     }
 
+    const bidPrice = parseFloat(bidCheck.rows[0].bid_price);
+    const upfrontPayment = parseFloat(order.upfront_payment) || 0;
+
 
     // ✅ Check if driver can accept orders (debt check)
     const driverStatus = await balanceService.canAcceptOrders(driverId);
@@ -999,11 +1009,30 @@ RETURNING * `;
       );
     }
 
+    // ✅ ESCROW: Hold customer funds (upfront + bid price)
+    const holdAmount = upfrontPayment + bidPrice;
+    try {
+      await balanceService.holdFunds(customerId, orderId, holdAmount);
+      logger.info('Escrow hold applied', { orderId, customerId, holdAmount });
+    } catch (holdError) {
+      logger.error('Failed to hold funds for order', { orderId, customerId, holdAmount, error: holdError.message });
+      throw new Error(`Cannot accept bid: ${holdError.message}`);
+    }
 
-    // Update order with accepted bid
+
+    // Update order with accepted bid and escrow info
     await pool.query(
-      'UPDATE orders SET status = $1, assigned_driver_user_id = $2, assigned_driver_name = (SELECT driver_name FROM bids WHERE order_id = $3 AND user_id = $4), assigned_driver_bid_price = (SELECT bid_price FROM bids WHERE order_id = $3 AND user_id = $5), price = (SELECT bid_price FROM bids WHERE order_id = $3 AND user_id = $6), accepted_at = NOW() WHERE id = $3',
-      ['accepted', driverId, orderId, driverId, driverId, driverId]
+      `UPDATE orders SET 
+        status = $1, 
+        assigned_driver_user_id = $2, 
+        assigned_driver_name = (SELECT driver_name FROM bids WHERE order_id = $3 AND user_id = $4), 
+        assigned_driver_bid_price = (SELECT bid_price FROM bids WHERE order_id = $3 AND user_id = $5), 
+        price = (SELECT bid_price FROM bids WHERE order_id = $3 AND user_id = $6),
+        escrow_amount = $7,
+        escrow_status = 'held',
+        accepted_at = NOW() 
+      WHERE id = $3`,
+      ['accepted', driverId, orderId, driverId, driverId, driverId, holdAmount]
     );
 
     logger.order('Bid accepted successfully', {
