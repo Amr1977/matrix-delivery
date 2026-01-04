@@ -746,15 +746,30 @@ class BalanceService {
      * @returns {Promise<Object>} Result with canCreate and details
      */
     async checkOrderBalance(userId, upfrontPayment, estimatedFee) {
-        const balance = await this.getBalance(userId);
         const requiredBalance = upfrontPayment + estimatedFee;
 
-        return {
-            canCreate: balance.availableBalance >= requiredBalance,
-            availableBalance: balance.availableBalance,
-            requiredBalance,
-            shortfall: Math.max(0, requiredBalance - balance.availableBalance)
-        };
+        try {
+            const balance = await this.getBalance(userId);
+            return {
+                canCreate: balance.availableBalance >= requiredBalance,
+                availableBalance: balance.availableBalance,
+                requiredBalance,
+                shortfall: Math.max(0, requiredBalance - balance.availableBalance)
+            };
+        } catch (error) {
+            // If user doesn't exist (FK error), treat as insufficient balance
+            if (error.code === '23503' || error.message.includes('foreign key')) {
+                logger.warn('Balance check failed - user may not exist', { userId, error: error.message });
+                return {
+                    canCreate: false,
+                    availableBalance: 0,
+                    requiredBalance,
+                    shortfall: requiredBalance,
+                    error: 'User not found'
+                };
+            }
+            throw error;
+        }
     }
 }
 
