@@ -7,8 +7,10 @@ const logger = require('../config/logger');
 
 // Import BalanceService (JavaScript)
 const { BalanceService } = require('./balanceService.js');
+const { TakafulService } = require('./takafulService.js');
 const { PAYMENT_CONFIG } = require('../config/paymentConfig.js');
 const balanceService = new BalanceService(pool);
+const takafulService = new TakafulService(pool);
 
 // Environment is already loaded by server.js or jest.setup.js
 // No need to call dotenv.config() here
@@ -1254,6 +1256,18 @@ RETURNING * `;
             takafulContribution,
             driverNet: escrowAmount - platformCommission - takafulContribution
           });
+
+          // ✅ TAKAFUL: Record contribution to fund
+          try {
+            await takafulService.recordContribution(
+              order.assigned_driver_user_id,
+              orderId,
+              deliveryFee
+            );
+          } catch (takafulError) {
+            logger.error('Failed to record Takaful contribution', { orderId, error: takafulError.message });
+            // Non-blocking - contribution tracking failure shouldn't block order
+          }
         } catch (escrowError) {
           logger.error('Failed to release escrow', { orderId, error: escrowError.message });
           // Continue - don't block order completion
