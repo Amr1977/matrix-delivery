@@ -14,7 +14,7 @@ Feature: Emergency Order Transfer
   # Emergency Trigger
   # ========================================
 
-  @emergency_trigger
+  @emergency_trigger @EMT-001
   Scenario: Driver triggers emergency transfer
     Given "original_driver" has an order in "picked_up" status
     And the order has 100 EGP upfront payment
@@ -23,7 +23,7 @@ Feature: Emergency Order Transfer
     And the driver's GPS location should be captured
     And a transfer record should be created
 
-  @emergency_trigger
+  @emergency_trigger @EMT-002
   Scenario: Cannot trigger emergency before pickup
     Given "original_driver" has an order in "accepted" status
     When "original_driver" tries to trigger emergency
@@ -33,7 +33,7 @@ Feature: Emergency Order Transfer
   # Courier Notification & Filtering
   # ========================================
 
-  @emergency_notification
+  @emergency_notification @EMT-003
   Scenario: Nearby couriers filtered by cash and distance
     Given an emergency transfer with 100 EGP upfront
     And "new_driver" has 200 EGP available cash and is 2 km away
@@ -44,7 +44,7 @@ Feature: Emergency Order Transfer
     And "poor_driver" should NOT receive notification
     And "far_driver" should NOT receive notification
 
-  @emergency_notification
+  @emergency_notification @EMT-004
   Scenario: Emergency order shows on top of order list
     Given an emergency transfer exists
     And "new_driver" has been notified
@@ -56,7 +56,7 @@ Feature: Emergency Order Transfer
   # First-Come-First-Served Acceptance
   # ========================================
 
-  @fcfs_acceptance
+  @fcfs_acceptance @EMT-005
   Scenario: First courier to accept gets the transfer
     Given an emergency transfer exists
     And "new_driver" and "another_driver" are both eligible
@@ -64,7 +64,7 @@ Feature: Emergency Order Transfer
     Then "new_driver" should be assigned to the transfer
     And "another_driver" should see "Already accepted by another courier"
 
-  @fcfs_acceptance
+  @fcfs_acceptance @EMT-006
   Scenario: Cannot accept without sufficient cash
     Given an emergency transfer with 150 EGP upfront
     And "new_driver" has only 100 EGP available cash
@@ -75,7 +75,7 @@ Feature: Emergency Order Transfer
   # Handoff Process
   # ========================================
 
-  @handoff
+  @handoff @EMT-007
   Scenario: Both couriers confirm handoff
     Given "new_driver" has accepted an emergency transfer
     And they have met at the original driver's location
@@ -84,7 +84,7 @@ Feature: Emergency Order Transfer
     And "original_driver" should receive distance compensation
     And "new_driver" should continue with the delivery
 
-  @handoff
+  @handoff @EMT-008
   Scenario: Upfront payment exchanged at handoff
     Given an emergency transfer with 100 EGP upfront
     And "new_driver" has accepted
@@ -96,7 +96,7 @@ Feature: Emergency Order Transfer
   # Timeout & Escalation
   # ========================================
 
-  @timeout
+  @timeout @EMT-009
   Scenario: Admin escalation after 30 minutes
     Given an emergency transfer was created 30 minutes ago
     And no courier has accepted
@@ -108,7 +108,7 @@ Feature: Emergency Order Transfer
   # Fee Calculation
   # ========================================
 
-  @emergency_fees
+  @emergency_fees @EMT-010
   Scenario: New courier receives original fee plus bonus
     Given an emergency transfer with original delivery fee 50 EGP
     And emergency bonus is 20%
@@ -116,7 +116,7 @@ Feature: Emergency Order Transfer
     Then "new_driver" should receive 60 EGP (50 + 10 bonus)
     And the 10 EGP bonus should be paid from Takaful fund
 
-  @emergency_fees
+  @emergency_fees @EMT-011
   Scenario: Original courier receives distance compensation
     Given an emergency transfer
     And "original_driver" traveled 3 km before the emergency

@@ -12,13 +12,13 @@ Feature: Courier Cash Registry
   # Cash Registration
   # ========================================
 
-  @cash_registration
+  @cash_registration @CCR-001
   Scenario: Driver sets available cash in profile
     Given driver "cash_driver" has no cash registered
     When driver updates available cash to 500 EGP
     Then driver's available cash should be 500 EGP
 
-  @cash_registration
+  @cash_registration @CCR-002
   Scenario: Driver updates available cash
     Given driver "cash_driver" has 200 EGP available cash
     When driver updates available cash to 350 EGP
@@ -28,7 +28,7 @@ Feature: Courier Cash Registry
   # Order Filtering
   # ========================================
 
-  @cash_filtering
+  @cash_filtering @CCR-003
   Scenario: Orders filtered by courier cash capacity
     Given driver "cash_driver" has 100 EGP available cash
     And these orders exist:
@@ -40,7 +40,7 @@ Feature: Courier Cash Registry
     Then driver should see Order A and Order B
     And driver should NOT see Order C
 
-  @cash_filtering
+  @cash_filtering @CCR-004
   Scenario: Orders also filtered by distance
     Given driver "cash_driver" has 200 EGP available cash
     And driver is located in Maadi
@@ -52,7 +52,7 @@ Feature: Courier Cash Registry
     Then driver should see Order A
     And driver should NOT see Order B
 
-  @cash_filtering
+  @cash_filtering @CCR-005
   Scenario: Zero upfront orders visible to all
     Given driver "cash_driver" has 0 EGP available cash
     And an order exists with 0 EGP upfront payment
