@@ -111,6 +111,14 @@ describe('Map Location Picker API Tests', () => {
         ($4, $5, $6, 'driver')
         ON CONFLICT (id) DO NOTHING
       `, [testUser.id, testUser.email, testUser.name, testDriver.id, testDriver.email, testDriver.name]);
+
+      // Seed user_balances for escrow support (required for order creation)
+      await pool.query(`
+        INSERT INTO user_balances (user_id, available_balance, pending_balance, held_balance, total_balance, currency)
+        VALUES ($1, 10000, 0, 0, 10000, 'EGP'),
+               ($2, 10000, 0, 0, 10000, 'EGP')
+        ON CONFLICT (user_id) DO UPDATE SET available_balance = 10000, total_balance = 10000
+      `, [testUser.id, testDriver.id]);
     } catch (error) {
       console.log('Error inserting test users:', error.message);
     }
