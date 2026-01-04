@@ -5,7 +5,9 @@
         "description": "Essential system flows (Login -> Order -> Delivery)",
         "features": [
             "tests/features/frontend/full_order_flow.feature",
-            "tests/features/backend/login.feature"
+            "tests/features/backend/login.feature",
+            "tests/features/frontend/matrix_delivery.feature",
+            "tests/features/core/order_lifecycle.feature"
         ]
     },
     {
@@ -32,13 +34,16 @@
             "tests/features/backend/paymob-integration.feature",
             "tests/features/backend/crypto-payments.feature",
             "tests/features/backend/revenue-tracking.feature",
+            "tests/features/backend/order_lifecycle_commission.feature",
+            "tests/features/backend/courier_cash_registry.feature",
             "tests/features/frontend/balance-dashboard.feature",
             "tests/features/frontend/balance-deposit.feature",
             "tests/features/frontend/balance-statement.feature",
             "tests/features/frontend/balance-transaction-history.feature",
             "tests/features/frontend/balance-withdrawal.feature",
             "tests/features/frontend/cod-commission.feature",
-            "tests/features/frontend/payment_system.feature"
+            "tests/features/frontend/payment_system.feature",
+            "tests/features/frontend/promotions_and_rewards.feature"
         ]
     },
     {
@@ -49,7 +54,8 @@
             "tests/features/backend/order_escrow.feature",
             "tests/features/backend/takaful_commission.feature",
             "tests/features/backend/takaful_benefits.feature",
-            "tests/features/backend/emergency_transfer.feature"
+            "tests/features/backend/emergency_transfer.feature",
+            "tests/features/backend/order_cancellation.feature"
         ]
     },
     {
@@ -60,7 +66,8 @@
             "tests/features/frontend/order_creation.feature",
             "tests/features/frontend/order_management.feature",
             "tests/features/frontend/full_order_flow.feature",
-            "tests/features/frontend/customer_browsing.feature"
+            "tests/features/frontend/customer_browsing.feature",
+            "tests/features/core/order_lifecycle.feature"
         ]
     },
     {
@@ -76,7 +83,8 @@
             "tests/features/frontend/live_tracking.feature",
             "tests/features/frontend/map_location_picker.feature",
             "tests/features/frontend/enhanced-map-location-picker.feature",
-            "tests/features/frontend/advanced_map_location_picker.feature"
+            "tests/features/frontend/advanced_map_location_picker.feature",
+            "tests/features/backend/driver_order_discovery.feature"
         ]
     },
     {
@@ -87,6 +95,7 @@
             "tests/features/backend/admin-dashboard.feature",
             "tests/features/backend/admin-order-management.feature",
             "tests/features/backend/admin-user-management.feature",
+            "tests/features/backend/admin_system_health.feature",
             "tests/features/frontend/user_management.feature",
             "tests/features/frontend/vendors.feature",
             "tests/features/frontend/vendor_self_management.feature"
@@ -101,6 +110,14 @@
             "tests/features/frontend/reviews_system.feature",
             "tests/features/frontend/matrix_landing_reviews.feature",
             "tests/features/frontend/review_test.feature"
+        ]
+    },
+    {
+        "id": "api",
+        "name": "🔧 API Tests",
+        "description": "API-level feature tests",
+        "features": [
+            "tests/features/api/profile_picture.feature"
         ]
     }
 ]
