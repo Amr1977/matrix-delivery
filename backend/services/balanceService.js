@@ -483,6 +483,279 @@ class BalanceService {
             return { canAccept: false, reason: 'Error checking balance' };
         }
     }
+
+    // ============================================
+    // ESCROW METHODS - Order Balance Hold System
+    // ============================================
+
+    /**
+     * Hold funds from customer's available balance for an order
+     * Called when bid is accepted
+     * @param {string} userId - Customer user ID
+     * @param {string} orderId - Order ID
+     * @param {number} amount - Amount to hold (upfront + delivery_fee)
+     * @returns {Promise<Object>} Updated balance
+     */
+    async holdFunds(userId, orderId, amount) {
+        const client = await this.pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            // Get current balance with lock
+            const balance = await this.getBalanceForUpdate(client, userId);
+
+            if (balance.availableBalance < amount) {
+                throw new Error(`Insufficient balance. Required: ${amount}, Available: ${balance.availableBalance}`);
+            }
+
+            // Move from available to held
+            await client.query(`
+                UPDATE user_balances 
+                SET available_balance = available_balance - $1,
+                    held_balance = held_balance + $1,
+                    updated_at = NOW()
+                WHERE user_id = $2
+            `, [amount, userId]);
+
+            // Create transaction record
+            await this.createTransaction(client, {
+                userId,
+                type: 'ORDER_HOLD',
+                amount: -amount,
+                orderId,
+                description: `Escrow hold for order #${orderId}`
+            });
+
+            await client.query('COMMIT');
+
+            logger.info('Funds held for order', { userId, orderId, amount });
+            return await this.getBalance(userId);
+        } catch (error) {
+            await client.query('ROLLBACK');
+            logger.error('Error holding funds', { userId, orderId, amount, error: error.message });
+            throw error;
+        } finally {
+            client.release();
+        }
+    }
+
+    /**
+     * Release held funds back to customer (order cancelled with no penalty)
+     * Or release to complete order (funds go to driver)
+     * @param {string} userId - Customer user ID
+     * @param {string} orderId - Order ID
+     * @param {number} amount - Amount to release
+     * @param {Object} options - Options
+     * @param {string} [options.destinationUserId] - If specified, transfer to this user (driver)
+     * @param {number} [options.platformCommission] - Platform commission to deduct
+     * @param {number} [options.takafulContribution] - Takaful contribution to deduct
+     * @returns {Promise<Object>} Updated balance
+     */
+    async releaseHold(userId, orderId, amount, options = {}) {
+        const client = await this.pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            // Verify held balance
+            const balance = await this.getBalanceForUpdate(client, userId);
+            if (balance.heldBalance < amount) {
+                throw new Error(`Insufficient held balance. Required: ${amount}, Held: ${balance.heldBalance}`);
+            }
+
+            // Remove from held balance
+            await client.query(`
+                UPDATE user_balances 
+                SET held_balance = held_balance - $1,
+                    updated_at = NOW()
+                WHERE user_id = $2
+            `, [amount, userId]);
+
+            if (options.destinationUserId) {
+                // Order completed - transfer to driver (minus commission)
+                let driverAmount = amount;
+
+                if (options.platformCommission) {
+                    driverAmount -= options.platformCommission;
+                }
+                if (options.takafulContribution) {
+                    driverAmount -= options.takafulContribution;
+                }
+
+                // Credit driver balance
+                await client.query(`
+                    UPDATE user_balances 
+                    SET available_balance = available_balance + $1,
+                        lifetime_earnings = lifetime_earnings + $1,
+                        updated_at = NOW()
+                    WHERE user_id = $2
+                `, [driverAmount, options.destinationUserId]);
+
+                // Create driver earning transaction
+                await this.createTransaction(client, {
+                    userId: options.destinationUserId,
+                    type: 'ORDER_EARNING',
+                    amount: driverAmount,
+                    orderId,
+                    description: `Earnings from order #${orderId}`
+                });
+
+                // Create customer release transaction
+                await this.createTransaction(client, {
+                    userId,
+                    type: 'ORDER_COMPLETE',
+                    amount: -amount,
+                    orderId,
+                    description: `Order #${orderId} completed`
+                });
+            } else {
+                // Refund to customer (cancelled order)
+                await client.query(`
+                    UPDATE user_balances 
+                    SET available_balance = available_balance + $1,
+                        updated_at = NOW()
+                    WHERE user_id = $2
+                `, [amount, userId]);
+
+                await this.createTransaction(client, {
+                    userId,
+                    type: 'ORDER_REFUND',
+                    amount: amount,
+                    orderId,
+                    description: `Refund for cancelled order #${orderId}`
+                });
+            }
+
+            await client.query('COMMIT');
+
+            logger.info('Hold released', { userId, orderId, amount, destination: options.destinationUserId });
+            return await this.getBalance(userId);
+        } catch (error) {
+            await client.query('ROLLBACK');
+            logger.error('Error releasing hold', { userId, orderId, amount, error: error.message });
+            throw error;
+        } finally {
+            client.release();
+        }
+    }
+
+    /**
+     * Forfeit held funds - used when cancellation requires compensation
+     * @param {string} customerId - Customer user ID
+     * @param {string} orderId - Order ID
+     * @param {number} totalHeld - Total amount held
+     * @param {number} penaltyAmount - Amount to pay driver
+     * @param {string} driverId - Driver user ID to receive compensation
+     * @returns {Promise<Object>} Result with customer and driver balances
+     */
+    async forfeitHold(customerId, orderId, totalHeld, penaltyAmount, driverId) {
+        const client = await this.pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            // Verify held balance
+            const customerBalance = await this.getBalanceForUpdate(client, customerId);
+            if (customerBalance.heldBalance < totalHeld) {
+                throw new Error(`Insufficient held balance for forfeit`);
+            }
+
+            // Remove from customer held
+            await client.query(`
+                UPDATE user_balances 
+                SET held_balance = held_balance - $1,
+                    updated_at = NOW()
+                WHERE user_id = $2
+            `, [totalHeld, customerId]);
+
+            // Return remainder to customer
+            const refundAmount = totalHeld - penaltyAmount;
+            if (refundAmount > 0) {
+                await client.query(`
+                    UPDATE user_balances 
+                    SET available_balance = available_balance + $1,
+                        updated_at = NOW()
+                    WHERE user_id = $2
+                `, [refundAmount, customerId]);
+
+                await this.createTransaction(client, {
+                    userId: customerId,
+                    type: 'ORDER_REFUND',
+                    amount: refundAmount,
+                    orderId,
+                    description: `Partial refund for cancelled order #${orderId}`
+                });
+            }
+
+            // Pay penalty to driver
+            if (penaltyAmount > 0) {
+                await client.query(`
+                    UPDATE user_balances 
+                    SET available_balance = available_balance + $1,
+                        lifetime_earnings = lifetime_earnings + $1,
+                        updated_at = NOW()
+                    WHERE user_id = $2
+                `, [penaltyAmount, driverId]);
+
+                await this.createTransaction(client, {
+                    userId: driverId,
+                    type: 'CANCELLATION_COMPENSATION',
+                    amount: penaltyAmount,
+                    orderId,
+                    description: `Compensation for cancelled order #${orderId}`
+                });
+
+                await this.createTransaction(client, {
+                    userId: customerId,
+                    type: 'CANCELLATION_FEE',
+                    amount: -penaltyAmount,
+                    orderId,
+                    description: `Cancellation fee for order #${orderId}`
+                });
+            }
+
+            await client.query('COMMIT');
+
+            logger.info('Hold forfeited', {
+                customerId,
+                orderId,
+                totalHeld,
+                penaltyAmount,
+                refundAmount,
+                driverId
+            });
+
+            return {
+                customerBalance: await this.getBalance(customerId),
+                driverBalance: await this.getBalance(driverId),
+                penaltyAmount,
+                refundAmount
+            };
+        } catch (error) {
+            await client.query('ROLLBACK');
+            logger.error('Error forfeiting hold', { customerId, orderId, error: error.message });
+            throw error;
+        } finally {
+            client.release();
+        }
+    }
+
+    /**
+     * Check if customer has sufficient balance for order
+     * @param {string} userId - Customer user ID
+     * @param {number} upfrontPayment - Upfront payment amount
+     * @param {number} estimatedFee - Estimated delivery fee
+     * @returns {Promise<Object>} Result with canCreate and details
+     */
+    async checkOrderBalance(userId, upfrontPayment, estimatedFee) {
+        const balance = await this.getBalance(userId);
+        const requiredBalance = upfrontPayment + estimatedFee;
+
+        return {
+            canCreate: balance.availableBalance >= requiredBalance,
+            availableBalance: balance.availableBalance,
+            requiredBalance,
+            shortfall: Math.max(0, requiredBalance - balance.availableBalance)
+        };
+    }
 }
 
 module.exports = { BalanceService };
