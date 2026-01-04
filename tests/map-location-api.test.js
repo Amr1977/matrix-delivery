@@ -95,8 +95,7 @@ let testUserToken;
 let testDriverToken;
 
 describe('Map Location Picker API Tests', () => {
-  // Use the existing backend server instead of starting a new one
-  const baseURL = 'http://localhost:5000';
+  // Use in-process app via supertest (no external server needed)
 
   beforeAll(async () => {
     // Create test tokens
@@ -156,11 +155,9 @@ describe('Map Location Picker API Tests', () => {
 
   describe('Reverse Geocoding API', () => {
     test('should successfully reverse geocode valid coordinates', async () => {
-      const url = `${baseURL}/api/locations/reverse-geocode?lat=30.0131&lng=31.2089`;
-      const options = { method: 'GET' };
-
-      const response = await fetch(url, options);
-      expect(response.status).toBe(200);
+      const response = await request(app)
+        .get('/api/locations/reverse-geocode?lat=30.0131&lng=31.2089')
+        .expect(200);
 
       const data = await response.json();
       expect(data).toHaveProperty('coordinates');
