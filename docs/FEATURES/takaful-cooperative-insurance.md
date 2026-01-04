@@ -82,7 +82,9 @@ A cooperative fund ensures that all couriers are protected while maintaining fai
 
 ## Takaful Benefits
 
-### 1. Health Insurance (تأمين صحي)
+### Category A: Health & Wellness (الصحة و العافية)
+
+#### 1. Health Insurance (تأمين صحي)
 
 | Coverage | Description |
 |----------|-------------|
@@ -91,7 +93,27 @@ A cooperative fund ensures that all couriers are protected while maintaining fai
 | Hospitalization | In-patient care coverage |
 | Medications | Prescription drug coverage |
 
-### 2. Pension Fund (معاشات)
+#### 2. Gym Memberships (اشتراكات جيم)
+
+| Feature | Description |
+|---------|-------------|
+| Partner Gyms | Discounted/free memberships |
+| Fitness Classes | Access to group workouts |
+| Health Monitoring | Regular health checkups |
+
+#### 3. Self-Defense Courses (دورات دفاع عن النفس)
+
+| Feature | Description |
+|---------|-------------|
+| Certified Training | Professional self-defense courses |
+| Personal Safety | Protection during night deliveries |
+| Situational Awareness | Threat recognition training |
+
+---
+
+### Category B: Financial Security (الأمان المالي)
+
+#### 4. Pension Fund (معاشات)
 
 | Feature | Description |
 |---------|-------------|
@@ -99,16 +121,93 @@ A cooperative fund ensures that all couriers are protected while maintaining fai
 | Retirement Payout | Available after X years of service |
 | Disability Pension | If courier cannot work |
 
-### 3. Interest-Free Loans (قروض حسنة)
+#### 5. Interest-Free Loans (قروض حسنة)
+
+> **Gold-Indexed System**: Loans are calculated and repaid in equivalent grams of 24-karat gold to protect against inflation.
 
 | Feature | Description |
 |---------|-------------|
 | Emergency Loans | Quick access in hardship |
 | Vehicle Loans | For purchasing/repairing vehicles |
 | Personal Loans | Family emergencies |
-| Repayment | Deducted from future earnings |
+| **Loan Value** | Converted to grams of 24k gold |
+| **Repayment** | In gold-equivalent EGP at time of payment |
 
-### 4. Equipment Insurance (تأمين معدات)
+**Example:**
+```
+Loan: 10,000 EGP when gold = 2,000 EGP/gram
+      = 5 grams of 24k gold
+
+Repayment after 6 months when gold = 2,200 EGP/gram:
+      = 5 grams × 2,200 = 11,000 EGP
+
+This protects the fund from inflation while
+providing fair, interest-free financing.
+```
+
+#### 6. Educational Grants & Loans (منح و قروض تعليمية)
+
+| Type | Description |
+|------|-------------|
+| Educational Grants | Financial aid for courier's education |
+| Children Education | Support for courier's children schooling |
+| Skill Development | Professional certification courses |
+| Loan Option | Gold-indexed educational loans |
+
+---
+
+### Category C: Life Events (مناسبات الحياة)
+
+#### 7. Marriage Bonus (مكافأة زواج)
+
+| Feature | Description |
+|---------|-------------|
+| Cash Gift | One-time payment on marriage |
+| Eligibility | Active courier for 6+ months |
+| Amount | Based on contribution history |
+
+#### 8. Newborn Bonus (مكافأة مولود)
+
+| Feature | Description |
+|---------|-------------|
+| Baby Gift | Cash payment on child birth |
+| Supplies Support | Baby essentials package |
+| Eligibility | Active courier for 6+ months |
+
+#### 9. Death Compensation (تعويضات وفيات)
+
+| Coverage | Description |
+|----------|-------------|
+| Courier Death | Payment to family |
+| Funeral Expenses | Coverage for burial costs |
+| Family Support | Ongoing support for dependents |
+
+---
+
+### Category D: Professional Development (التطوير المهني)
+
+#### 10. Professional Driving Courses (دورات قيادة احترافية معتمدة)
+
+| Feature | Description |
+|---------|-------------|
+| Certified Training | Road safety & defensive driving |
+| License Upgrades | Support for license categories |
+| Traffic Law | Understanding regulations |
+
+#### 11. Vehicle Maintenance Training (دورات تعليم صيانة مركبات)
+
+| Vehicle Type | Training Covers |
+|--------------|-----------------|
+| Motorcycle (موتوسيكل) | Basic repairs, maintenance |
+| Tricycle (تروسيكل) | Specialized 3-wheeler care |
+| Car (سيارة) | Automotive fundamentals |
+| All Vehicles | General mechanical skills |
+
+---
+
+### Category E: Vehicle & Equipment (المركبات و المعدات)
+
+#### 12. Equipment Insurance (تأمين معدات)
 
 | Coverage | Description |
 |---------|-------------|
@@ -117,7 +216,7 @@ A cooperative fund ensures that all couriers are protected while maintaining fai
 | GPS Devices | Tracker replacements |
 | Partner Merchants | Discounts at approved vendors |
 
-### 5. Approved Mechanics (ميكانيكية معتمدين)
+#### 13. Approved Mechanics (ميكانيكية معتمدين)
 
 | Feature | Description |
 |---------|-------------|
@@ -126,7 +225,7 @@ A cooperative fund ensures that all couriers are protected while maintaining fai
 | Quality Guarantee | Work backed by platform |
 | Priority Service | Faster turnaround for couriers |
 
-### 6. Mobile Mechanic Service (خدمة الميكانيكي المتنقل)
+#### 14. Mobile Mechanic Service (خدمة الميكانيكي المتنقل)
 
 | Feature | Description |
 |---------|-------------|
@@ -135,7 +234,7 @@ A cooperative fund ensures that all couriers are protected while maintaining fai
 | 24/7 Availability | Emergency support any time |
 | Response Time | Target: 30 minutes |
 
-### 7. Emergency Tricycle Service (خدمة تروسيكل الطوارئ)
+#### 15. Emergency Tricycle Service (خدمة تروسيكل الطوارئ)
 
 | Feature | Description |
 |---------|-------------|
@@ -274,21 +373,34 @@ CREATE INDEX idx_takaful_claims_courier ON takaful_claims(courier_id);
 CREATE INDEX idx_takaful_claims_status ON takaful_claims(status);
 ```
 
-### Interest-Free Loans
+### Interest-Free Loans (Gold-Indexed)
 
 ```sql
+-- Gold price tracking
+CREATE TABLE gold_prices (
+  id SERIAL PRIMARY KEY,
+  price_per_gram DECIMAL(10,2) NOT NULL,  -- 24k gold in EGP
+  recorded_at DATE UNIQUE DEFAULT CURRENT_DATE,
+  source TEXT  -- 'central_bank', 'market', 'manual'
+);
+
 CREATE TABLE takaful_loans (
   id SERIAL PRIMARY KEY,
   courier_id TEXT REFERENCES users(id),
   
-  -- Loan Details
-  principal DECIMAL(10,2) NOT NULL,
-  remaining_balance DECIMAL(10,2),
-  monthly_deduction DECIMAL(10,2),
+  -- Loan Details (Gold-Indexed)
+  principal_egp DECIMAL(10,2) NOT NULL,       -- Original amount in EGP
+  principal_gold_grams DECIMAL(10,4) NOT NULL, -- Converted to 24k gold grams
+  gold_price_at_loan DECIMAL(10,2) NOT NULL,   -- Gold price when loan taken
+  
+  remaining_gold_grams DECIMAL(10,4),          -- Balance in gold grams
+  monthly_deduction_gold DECIMAL(10,4),        -- Monthly payment in gold grams
+  
   purpose TEXT,
+  loan_type TEXT, -- 'emergency', 'vehicle', 'educational', 'personal'
   
   -- Status
-  status TEXT DEFAULT 'active',
+  status TEXT DEFAULT 'pending',
     -- 'pending', 'active', 'paid', 'defaulted'
   approved_by TEXT,
   approved_at TIMESTAMPTZ,
@@ -298,15 +410,73 @@ CREATE TABLE takaful_loans (
   completed_at TIMESTAMPTZ
 );
 
--- Track loan repayments
+-- Track loan repayments (in current gold price)
 CREATE TABLE takaful_loan_payments (
   id SERIAL PRIMARY KEY,
   loan_id INTEGER REFERENCES takaful_loans(id),
   order_id TEXT REFERENCES orders(id),
-  amount DECIMAL(10,2),
-  balance_after DECIMAL(10,2),
+  
+  -- Payment in gold equivalent
+  gold_grams_paid DECIMAL(10,4),
+  gold_price_at_payment DECIMAL(10,2),
+  egp_amount DECIMAL(10,2),  -- Actual EGP = gold_grams × current_price
+  
+  remaining_gold_grams DECIMAL(10,4),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+```
+
+### Benefit Claims
+
+```sql
+CREATE TABLE takaful_claims (
+  id SERIAL PRIMARY KEY,
+  courier_id TEXT REFERENCES users(id),
+  
+  -- Claim Type (expanded)
+  claim_type TEXT NOT NULL,
+    -- Health & Wellness
+    -- 'health', 'gym', 'self_defense'
+    -- 
+    -- Financial
+    -- 'loan', 'educational_grant', 'educational_loan'
+    --
+    -- Life Events  
+    -- 'marriage_bonus', 'newborn_bonus', 'death_compensation'
+    --
+    -- Professional Development
+    -- 'driving_course', 'maintenance_training'
+    --
+    -- Vehicle & Equipment
+    -- 'mechanic', 'mobile_mechanic', 'tricycle', 'equipment'
+    -- 
+    -- Emergency
+    -- 'emergency_transfer'
+  
+  -- Details
+  amount DECIMAL(10,2) NOT NULL,
+  description TEXT,
+  evidence_urls TEXT[],  -- Photos, receipts, certificates
+  
+  -- For life events
+  event_date DATE,
+  beneficiary_name TEXT,
+  
+  -- Processing
+  status TEXT DEFAULT 'pending',
+    -- 'pending', 'approved', 'paid', 'rejected'
+  reviewed_by TEXT,
+  reviewed_at TIMESTAMPTZ,
+  rejection_reason TEXT,
+  
+  -- Timestamps
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  paid_at TIMESTAMPTZ
+);
+
+CREATE INDEX idx_takaful_claims_courier ON takaful_claims(courier_id);
+CREATE INDEX idx_takaful_claims_status ON takaful_claims(status);
+CREATE INDEX idx_takaful_claims_type ON takaful_claims(claim_type);
 ```
 
 ---
