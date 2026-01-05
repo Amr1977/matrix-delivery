@@ -1,4 +1,6 @@
 const { Client } = require('pg');
+const fs = require('fs');
+const path = require('path');
 require('dotenv').config({ path: '.env.testing' });
 
 const DB_CONFIG = {
@@ -56,7 +58,7 @@ async function setupTestDb() {
           id VARCHAR(255) PRIMARY KEY,
           name VARCHAR(255),
           email VARCHAR(255) UNIQUE NOT NULL,
-          password VARCHAR(255) NOT NULL,
+          password_hash VARCHAR(255) NOT NULL,
           phone VARCHAR(50),
           primary_role VARCHAR(50) NOT NULL,
           granted_roles TEXT[],
@@ -336,7 +338,34 @@ async function setupTestDb() {
     `;
 
         await dbClient.query(schema);
-        console.log('✅ Schema schema created successfully');
+        console.log('✅ Base schema created successfully');
+
+        // Run all SQL migrations from migrations folder
+        console.log('🔄 Running migrations...');
+        const migrationsDir = path.join(__dirname, 'migrations');
+
+        // Get all .sql files and sort them to run in order
+        const migrationFiles = fs.readdirSync(migrationsDir)
+            .filter(f => f.endsWith('.sql') && !f.includes('test_schema'))
+            .sort();
+
+        let migrationsRun = 0;
+        for (const file of migrationFiles) {
+            try {
+                const sql = fs.readFileSync(path.join(migrationsDir, file), 'utf8');
+                await dbClient.query(sql);
+                migrationsRun++;
+                console.log(`   ✅ Applied: ${file}`);
+            } catch (err) {
+                // Ignore errors for IF NOT EXISTS / IF EXISTS statements
+                if (!err.message.includes('already exists') &&
+                    !err.message.includes('does not exist') &&
+                    !err.message.includes('duplicate key')) {
+                    console.warn(`   ⚠️  Warning in ${file}: ${err.message.split('\n')[0]}`);
+                }
+            }
+        }
+        console.log(`✅ Ran ${migrationsRun} migrations`);
 
     } catch (err) {
         console.error('❌ Error applying schema:', err);
@@ -344,6 +373,8 @@ async function setupTestDb() {
     } finally {
         await dbClient.end();
     }
+
+    console.log('🎉 Test database setup complete!');
 }
 
 setupTestDb();

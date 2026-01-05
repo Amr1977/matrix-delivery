@@ -31,10 +31,12 @@ class ServerManager {
       });
 
       let output = '';
+      let hasResolved = false;
 
       this.backendProcess.stdout.on('data', (data) => {
         output += data.toString();
-        if (output.includes('Server running')) {
+        if (!hasResolved && output.includes('Server running')) {
+          hasResolved = true;
           console.log('   ✅ Backend server started');
           resolve();
         }
@@ -49,9 +51,8 @@ class ServerManager {
         reject(error);
       });
 
-      // Timeout after 60 seconds
       setTimeout(() => {
-        if (!output.includes('Server running')) {
+        if (!hasResolved && !output.includes('Server running')) {
           reject(new Error('Backend server did not start in time. Output: ' + output.slice(-500)));
         }
       }, 60000);
@@ -81,11 +82,13 @@ class ServerManager {
       });
 
       let output = '';
+      let hasResolved = false;
 
       this.frontendProcess.stdout.on('data', (data) => {
         output += data.toString();
-        console.log('Frontend stdout:', data.toString().trim());
-        if (output.includes('webpack compiled') || output.includes('Compiled successfully') || output.includes('Local:') || output.includes('On Your Network:')) {
+        // console.log('Frontend stdout:', data.toString().trim()); 
+        if (!hasResolved && (output.includes('webpack compiled') || output.includes('Compiled successfully') || output.includes('Local:'))) {
+          hasResolved = true;
           console.log('   ✅ Frontend server started');
           resolve();
         }
@@ -93,11 +96,11 @@ class ServerManager {
 
       this.frontendProcess.stderr.on('data', (data) => {
         const msg = data.toString();
-        console.log('Frontend stderr:', msg.trim());
-        // React dev server sends some messages to stderr that aren't errors
+        // console.log('Frontend stderr:', msg.trim());
         if (!msg.includes('webpack compiled')) {
           output += msg;
-          if (output.includes('Compiled successfully') || output.includes('Local:') || output.includes('On Your Network:')) {
+          if (!hasResolved && (output.includes('Compiled successfully') || output.includes('Local:'))) {
+            hasResolved = true;
             console.log('   ✅ Frontend server started');
             resolve();
           }
@@ -109,10 +112,9 @@ class ServerManager {
         reject(error);
       });
 
-      // Timeout after 120 seconds (React takes much longer to start)
       setTimeout(() => {
-        if (!output.includes('webpack compiled') && !output.includes('Compiled successfully')) {
-          reject(new Error('Frontend server did not start in time'));
+        if (!hasResolved) {
+          reject(new Error('Frontend server did not start in time: ' + output.slice(-200)));
         }
       }, 120000);
     });
@@ -122,46 +124,29 @@ class ServerManager {
     console.log('\n🛑 Stopping servers...');
 
     const killProcess = (process, name) => {
-      return new Promise(async (resolve) => {
-        if (process && !process.killed) {
-          console.log(`   Stopping ${name}...`);
+      return new Promise((resolve) => {
+        if (!process) {
+          resolve();
+          return;
+        }
 
-          try {
-            // On Windows, use taskkill to ensure process and children are killed
-            if (process.pid) {
-              const taskkill = spawn('taskkill', ['/pid', process.pid, '/f', '/t'], {
-                shell: true,
-                stdio: 'pipe'
-              });
+        console.log(`   Stopping ${name}...`);
 
-              // Wait for taskkill to complete
-              await new Promise((taskkillResolve) => {
-                taskkill.on('close', taskkillResolve);
-                taskkill.on('error', taskkillResolve);
-                setTimeout(taskkillResolve, 3000); // 3 second timeout
-              });
-            }
-
-            // Try graceful shutdown first
-            process.kill('SIGTERM');
-
-            // Wait a bit for graceful shutdown
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            // Force kill if still running
-            if (!process.killed) {
-              process.kill('SIGKILL');
-              await new Promise(resolve => setTimeout(resolve, 1000));
-            }
-          } catch (error) {
-            console.log(`   Warning: Error stopping ${name}:`, error.message);
+        try {
+          if (process.pid) {
+            // Windows specific kill
+            spawn('taskkill', ['/pid', process.pid, '/f', '/t'], {
+              shell: true,
+              stdio: 'ignore'
+            });
           }
+        } catch (e) {
+          // Ignore error if process already dead
         }
         resolve();
       });
     };
 
-    // Stop both processes in parallel
     await Promise.all([
       killProcess(this.frontendProcess, 'frontend'),
       killProcess(this.backendProcess, 'backend')
@@ -170,39 +155,14 @@ class ServerManager {
     this.frontendProcess = null;
     this.backendProcess = null;
 
-    // Additional cleanup: kill any remaining processes on our ports
+    // Cleanup ports
     try {
-      const killPort = (port) => {
-        return new Promise((resolve) => {
-          const netstat = spawn('netstat', ['-ano'], { shell: true, stdio: 'pipe' });
-          let output = '';
-
-          netstat.stdout.on('data', (data) => {
-            output += data.toString();
-          });
-
-          netstat.on('close', () => {
-            const lines = output.split('\n');
-            const portLines = lines.filter(line => line.includes(`:${port}`) && line.includes('LISTENING'));
-
-            portLines.forEach(line => {
-              const parts = line.trim().split(/\s+/);
-              const pid = parts[parts.length - 1];
-              if (pid && !isNaN(pid)) {
-                spawn('taskkill', ['/pid', pid, '/f'], { shell: true, stdio: 'pipe' });
-              }
-            });
-            resolve();
-          });
-        });
-      };
-
-      await Promise.all([
-        killPort(3000),
-        killPort(5000)
-      ]);
-    } catch (error) {
-      console.log('   Warning: Error cleaning up ports:', error.message);
+      const killPort = (port) => new Promise(resolve => {
+        spawn('npx', ['kill-port', port], { shell: true, stdio: 'ignore' }).on('close', resolve);
+      });
+      await Promise.all([killPort(3000), killPort(5000)]);
+    } catch (e) {
+      // ignore
     }
 
     console.log('   ✅ All servers stopped\n');

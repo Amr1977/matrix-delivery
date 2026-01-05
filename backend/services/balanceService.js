@@ -518,10 +518,16 @@ class BalanceService {
             `, [amount, userId]);
 
             // Create transaction record
+            const balanceBefore = balance.availableBalance;
+            const balanceAfter = balance.availableBalance - amount;
             await this.createTransaction(client, {
                 userId,
                 type: 'ORDER_HOLD',
                 amount: -amount,
+                currency: balance.currency || DEFAULT_CURRENCY,
+                balanceBefore,
+                balanceAfter,
+                status: TransactionStatus.COMPLETED,
                 orderId,
                 description: `Escrow hold for order #${orderId}`
             });
@@ -591,10 +597,15 @@ class BalanceService {
                 `, [driverAmount, options.destinationUserId]);
 
                 // Create driver earning transaction
+                const driverBalance = await this.getBalanceForUpdate(client, options.destinationUserId);
                 await this.createTransaction(client, {
                     userId: options.destinationUserId,
                     type: 'ORDER_EARNING',
                     amount: driverAmount,
+                    currency: driverBalance.currency || DEFAULT_CURRENCY,
+                    balanceBefore: driverBalance.availableBalance,
+                    balanceAfter: driverBalance.availableBalance + driverAmount,
+                    status: TransactionStatus.COMPLETED,
                     orderId,
                     description: `Earnings from order #${orderId}`
                 });
@@ -604,6 +615,10 @@ class BalanceService {
                     userId,
                     type: 'ORDER_COMPLETE',
                     amount: -amount,
+                    currency: balance.currency || DEFAULT_CURRENCY,
+                    balanceBefore: balance.heldBalance,
+                    balanceAfter: balance.heldBalance - amount,
+                    status: TransactionStatus.COMPLETED,
                     orderId,
                     description: `Order #${orderId} completed`
                 });
@@ -620,6 +635,10 @@ class BalanceService {
                     userId,
                     type: 'ORDER_REFUND',
                     amount: amount,
+                    currency: balance.currency || DEFAULT_CURRENCY,
+                    balanceBefore: balance.availableBalance,
+                    balanceAfter: balance.availableBalance + amount,
+                    status: TransactionStatus.COMPLETED,
                     orderId,
                     description: `Refund for cancelled order #${orderId}`
                 });
@@ -680,6 +699,10 @@ class BalanceService {
                     userId: customerId,
                     type: 'ORDER_REFUND',
                     amount: refundAmount,
+                    currency: customerBalance.currency || DEFAULT_CURRENCY,
+                    balanceBefore: customerBalance.availableBalance,
+                    balanceAfter: customerBalance.availableBalance + refundAmount,
+                    status: TransactionStatus.COMPLETED,
                     orderId,
                     description: `Partial refund for cancelled order #${orderId}`
                 });
@@ -695,10 +718,15 @@ class BalanceService {
                     WHERE user_id = $2
                 `, [penaltyAmount, driverId]);
 
+                const driverBalance = await this.getBalanceForUpdate(client, driverId);
                 await this.createTransaction(client, {
                     userId: driverId,
                     type: 'CANCELLATION_COMPENSATION',
                     amount: penaltyAmount,
+                    currency: driverBalance.currency || DEFAULT_CURRENCY,
+                    balanceBefore: driverBalance.availableBalance,
+                    balanceAfter: driverBalance.availableBalance + penaltyAmount,
+                    status: TransactionStatus.COMPLETED,
                     orderId,
                     description: `Compensation for cancelled order #${orderId}`
                 });
@@ -707,6 +735,10 @@ class BalanceService {
                     userId: customerId,
                     type: 'CANCELLATION_FEE',
                     amount: -penaltyAmount,
+                    currency: customerBalance.currency || DEFAULT_CURRENCY,
+                    balanceBefore: customerBalance.availableBalance + refundAmount,
+                    balanceAfter: customerBalance.availableBalance + refundAmount - penaltyAmount,
+                    status: TransactionStatus.COMPLETED,
                     orderId,
                     description: `Cancellation fee for order #${orderId}`
                 });
