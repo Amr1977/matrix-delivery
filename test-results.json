@@ -1,1 +1,241 @@
-[]
+[
+  {
+    "description": "  As a system stakeholder\n  I want to verify the complete order lifecycle (Create -> Bid -> Accept -> Deliver)\n  So that I can ensure business value is delivered regardless of the interface (API or UI)",
+    "elements": [
+      {
+        "description": "",
+        "id": "core-order-lifecycle;customer-creates-order,-driver-bids,-customer-accepts,-driver-delivers",
+        "keyword": "Scenario",
+        "line": 13,
+        "name": "Customer creates order, driver bids, customer accepts, driver delivers",
+        "steps": [
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 8,
+            "name": "the platform is ready",
+            "match": {
+              "location": "tests\\steps\\core\\step_definitions.js:6"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 235433999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 9,
+            "name": "a customer \"Alice\" exists",
+            "match": {
+              "location": "tests\\steps\\core\\step_definitions.js:11"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1233402699
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 10,
+            "name": "a driver \"Bob\" exists",
+            "match": {
+              "location": "tests\\steps\\core\\step_definitions.js:15"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1095554299
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 15,
+            "name": "\"Alice\" publishes an order for \"Urgent Documents\" priced at \"50.00\"",
+            "match": {
+              "location": "tests\\steps\\core\\step_definitions.js:19"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 702703999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 16,
+            "name": "the order \"Urgent Documents\" should be available in the marketplace",
+            "match": {
+              "location": "tests\\steps\\core\\step_definitions.js:23"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 273578599
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 19,
+            "name": "\"Bob\" places a bid of \"45.00\" on order \"Urgent Documents\"",
+            "match": {
+              "location": "tests\\steps\\core\\step_definitions.js:28"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 70540299
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 20,
+            "name": "\"Alice\" should see a bid of \"45.00\" from \"Bob\"",
+            "match": {
+              "location": "tests\\steps\\core\\step_definitions.js:32"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 47153500
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 23,
+            "name": "\"Alice\" accepts the bid from \"Bob\"",
+            "match": {
+              "location": "tests\\steps\\core\\step_definitions.js:37"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 177609599
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 24,
+            "name": "the order status should be \"ACCEPTED\"",
+            "match": {
+              "location": "tests\\steps\\core\\step_definitions.js:41"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 3274400
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 25,
+            "name": "\"Bob\" should see the order in their \"Accepted\" list",
+            "match": {
+              "location": "tests\\steps\\core\\step_definitions.js:46"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 916400
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 28,
+            "name": "\"Bob\" picks up the order",
+            "match": {
+              "location": "tests\\steps\\core\\step_definitions.js:51"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 172737300
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 29,
+            "name": "the order status should be \"IN_TRANSIT\"",
+            "match": {
+              "location": "tests\\steps\\core\\step_definitions.js:41"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 2063799
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 31,
+            "name": "\"Bob\" delivers the order",
+            "match": {
+              "location": "tests\\steps\\core\\step_definitions.js:55"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 126421999
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Then ",
+            "line": 32,
+            "name": "the order status should be \"DELIVERED\"",
+            "match": {
+              "location": "tests\\steps\\core\\step_definitions.js:41"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 1820700
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 33,
+            "name": "\"Bob\" wallet should be credited with \"45.00\" less commission",
+            "match": {
+              "location": "tests\\steps\\core\\step_definitions.js:59"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 691500
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@core",
+            "line": 1
+          },
+          {
+            "name": "@order_lifecycle",
+            "line": 1
+          },
+          {
+            "name": "@happy_path",
+            "line": 12
+          }
+        ],
+        "type": "scenario"
+      }
+    ],
+    "id": "core-order-lifecycle",
+    "line": 2,
+    "keyword": "Feature",
+    "name": "Core Order Lifecycle",
+    "tags": [
+      {
+        "name": "@core",
+        "line": 1
+      },
+      {
+        "name": "@order_lifecycle",
+        "line": 1
+      }
+    ],
+    "uri": "tests\\features\\core\\order_lifecycle.feature"
+  }
+]

@@ -3,6 +3,10 @@ import { AfterAll, BeforeAll, Before, setDefaultTimeout } from '@cucumber/cucumb
 import pool from '../../backend/config/db';
 // @ts-ignore
 import serverManager from '../utils/serverManager';
+// @ts-ignore
+import { cleanTestUsers } from './dbCleanup';
+// @ts-ignore  
+import { TEST_RUN_ID, generateUniqueEmail, generateTestUser } from './testDataFactory';
 import '../step_definitions/api/landing_reviews_steps'; // Force load steps
 
 // Set default timeout to 180 seconds (server startup can take time)
@@ -28,6 +32,13 @@ let serverStartedByUs = false;
 // Start server before all tests
 BeforeAll(async function () {
     console.log('🚀 Starting Backend BDD Tests...');
+
+    // Clean up stale test data from previous runs
+    try {
+        await cleanTestUsers();
+    } catch (e) {
+        console.log('   ⚠️  Pre-test cleanup skipped (DB may not be ready yet)');
+    }
 
     // Check if server is already running
     const serverAlreadyRunning = await checkServerHealth();
@@ -56,6 +67,12 @@ Before(async function () {
     this.testData = this.testData || {};
     this.testData.users = this.testData.users || {};
     this.testData.orders = this.testData.orders || {};
+
+    // Bind test data factory helpers to scenario context
+    this.testRunId = TEST_RUN_ID;
+    this.generateUniqueEmail = generateUniqueEmail;
+    this.generateTestUser = generateTestUser;
+    this.createdUserIds = []; // Track users for cleanup
 });
 
 // Close DB pool and stop server after all tests
