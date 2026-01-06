@@ -154,7 +154,8 @@ async function setupTestDb() {
           accepted_at TIMESTAMP,
           picked_up_at TIMESTAMP,
           delivered_at TIMESTAMP,
-          cancelled_at TIMESTAMP
+          cancelled_at TIMESTAMP,
+          completed_at TIMESTAMP
       );
 
       -- Password reset tokens table
@@ -201,6 +202,17 @@ async function setupTestDb() {
           reviewee_id VARCHAR(255) REFERENCES users(id),
           rating INTEGER CHECK (rating >= 1 AND rating <= 5),
           comment TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+
+      -- Locations table
+      CREATE TABLE IF NOT EXISTS locations (
+          id SERIAL PRIMARY KEY,
+          country VARCHAR(100),
+          city VARCHAR(100),
+          area VARCHAR(100),
+          street VARCHAR(255),
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 

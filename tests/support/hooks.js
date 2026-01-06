@@ -129,7 +129,7 @@ Before(async function ({ pickle }) {
   console.log('[DEBUG] Before Hook Started for scenario:', pickle.name);
   // Launch browser for each scenario
   this.browser = await chromium.launch({
-    headless: process.env.HEADLESS !== 'false',
+    headless: process.env.HEADLESS === 'true', // Default to headed browser until tests are stable
     slowMo: parseInt(process.env.SLOWMO || '0'),
     args: ['--no-sandbox', '--disable-setuid-sandbox']
   });

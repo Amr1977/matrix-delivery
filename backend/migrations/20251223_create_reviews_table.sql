@@ -3,6 +3,9 @@ DROP TABLE IF EXISTS reviews CASCADE;
 CREATE TABLE IF NOT EXISTS reviews (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    order_id VARCHAR(255) REFERENCES orders(id) ON DELETE CASCADE,
+    reviewer_id VARCHAR(255) REFERENCES users(id) ON DELETE SET NULL,
+    reviewee_id VARCHAR(255) REFERENCES users(id) ON DELETE SET NULL,
     rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
     content TEXT,
     professionalism_rating INTEGER CHECK (professionalism_rating >= 1 AND professionalism_rating <= 5),

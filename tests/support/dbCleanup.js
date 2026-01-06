@@ -41,9 +41,37 @@ async function cleanTestUsers() {
         // 5. Clean bids (depends on orders and users)
         await pool.query(`
             DELETE FROM bids 
-            WHERE driver_id IN (SELECT id FROM users WHERE email LIKE '%@test.com')
+            WHERE user_id IN (SELECT id FROM users WHERE email LIKE '%@test.com')
                OR order_id IN (SELECT id FROM orders WHERE customer_id IN (SELECT id FROM users WHERE email LIKE '%@test.com'))
         `);
+
+        // 5.1 Clean Takaful data (depends on orders and users) - Fix for NOT NULL constraint on order_id
+        try {
+            // Delete contributions linked to test users' orders
+            await pool.query(`
+                DELETE FROM takaful_contributions 
+                WHERE order_id IN (SELECT id FROM orders WHERE customer_id IN (SELECT id FROM users WHERE email LIKE '%@test.com'))
+                   OR courier_id IN (SELECT id FROM users WHERE email LIKE '%@test.com')
+            `);
+
+            // Delete claims linked to test users
+            await pool.query(`
+                DELETE FROM takaful_claims 
+                WHERE courier_id IN (SELECT id FROM users WHERE email LIKE '%@test.com')
+            `);
+
+            // Delete loans linked to test users
+            await pool.query(`
+                DELETE FROM takaful_loan_payments 
+                WHERE loan_id IN (SELECT id FROM takaful_loans WHERE courier_id IN (SELECT id FROM users WHERE email LIKE '%@test.com'))
+            `);
+            await pool.query(`
+                DELETE FROM takaful_loans 
+                WHERE courier_id IN (SELECT id FROM users WHERE email LIKE '%@test.com')
+            `);
+        } catch (e) {
+            // Tables might not exist in all environments
+        }
 
         // 6. Clean payments
         await pool.query('DELETE FROM payments WHERE order_id IN (SELECT id FROM orders WHERE customer_id IN (SELECT id FROM users WHERE email LIKE \'%@test.com\'))');
@@ -57,7 +85,7 @@ async function cleanTestUsers() {
 
         // 8. Clean orders
         await pool.query('DELETE FROM orders WHERE customer_id IN (SELECT id FROM users WHERE email LIKE \'%@test.com\')');
-        await pool.query('DELETE FROM orders WHERE driver_id IN (SELECT id FROM users WHERE email LIKE \'%@test.com\')');
+        await pool.query('DELETE FROM orders WHERE assigned_driver_user_id IN (SELECT id FROM users WHERE email LIKE \'%@test.com\')');
 
         // 9. Finally, delete the test users
         const result = await pool.query('DELETE FROM users WHERE email LIKE \'%@test.com\' RETURNING id');

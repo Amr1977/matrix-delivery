@@ -70,6 +70,10 @@ When('{string} delivers the order', async function (driver) {
     await this.adapter.markOrderDelivered(null, driver);
 });
 
+When('{string} confirms the delivery', async function (customer) {
+    await this.adapter.confirmOrderDelivery(null, customer);
+});
+
 Then('{string} wallet should be credited with {string} less commission', async function (user, amount) {
     if (this.adapter.verifyWalletBalance) {
         await this.adapter.verifyWalletBalance(user, parseFloat(amount));
