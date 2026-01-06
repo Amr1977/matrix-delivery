@@ -34,3 +34,4 @@ Feature: Core Order Lifecycle
     When "Alice" confirms the delivery
     Then the order status should be "DELIVERED"
     And "Bob" wallet should be credited with "45.00" less commission
+    And "Alice" wallet should be "955.00"

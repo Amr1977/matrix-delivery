@@ -14,7 +14,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 16087717099
+              "duration": 11798068400
             }
           },
           {
@@ -27,7 +27,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 2532753400
+              "duration": 7086197299
             }
           },
           {
@@ -40,7 +40,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 19431045500
+              "duration": 19567470199
             }
           },
           {
@@ -53,7 +53,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 18469222899
+              "duration": 17030346399
             }
           },
           {
@@ -66,7 +66,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 32446464199
+              "duration": 32572684300
             }
           },
           {
@@ -79,7 +79,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 2372162899
+              "duration": 2385490500
             }
           },
           {
@@ -92,7 +92,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 35935962799
+              "duration": 31967992100
             }
           },
           {
@@ -105,7 +105,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 15056172900
+              "duration": 14862950299
             }
           },
           {
@@ -118,7 +118,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 17189476099
+              "duration": 14241431099
             }
           },
           {
@@ -131,7 +131,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 252280799
+              "duration": 139715300
             }
           },
           {
@@ -144,7 +144,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 38007190900
+              "duration": 31271570899
             }
           },
           {
@@ -157,7 +157,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 8289644200
+              "duration": 8971625899
             }
           },
           {
@@ -170,7 +170,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 201975700
+              "duration": 266539300
             }
           },
           {
@@ -183,7 +183,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 4691634900
+              "duration": 7883230999
             }
           },
           {
@@ -196,7 +196,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 39763600
+              "duration": 487187399
             }
           },
           {
@@ -209,7 +209,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 14345161100
+              "duration": 21453861300
             }
           },
           {
@@ -222,7 +222,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 272779500
+              "duration": 222824699
             }
           },
           {
@@ -235,7 +235,20 @@
             },
             "result": {
               "status": "passed",
-              "duration": 12911637199
+              "duration": 15360182700
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "And ",
+            "line": 37,
+            "name": "\"Alice\" wallet should be \"955.00\"",
+            "match": {
+              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:83"
+            },
+            "result": {
+              "status": "passed",
+              "duration": 15601936999
             }
           },
           {
@@ -243,7 +256,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 1154895499
+              "duration": 2767943499
             }
           }
         ],

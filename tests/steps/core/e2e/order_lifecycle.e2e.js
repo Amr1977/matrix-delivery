@@ -593,11 +593,13 @@ class E2eAdapter extends OrderLifecycleAdapter {
 
         console.log(`[DEBUG] Wallet balance for ${userName}: ${actualAmount} (Raw: ${balanceText})`);
 
-        // Initial setup adds 1000 EGP. 
-        // Order price 45.00. Commission 10% (platform) + maybe 5% (takaful).
-        // Driver gets: 45 - (4.5 + 2.25) = 38.25 using default rates.
-        // Balance should be > 1000 + 30 approx.
-        expect(actualAmount).toBeGreaterThan(1000);
+        if (userName === 'Alice') {
+            expect(actualAmount).toBeCloseTo(expectedAmount, 2);
+        } else {
+            expect(actualAmount).toBeGreaterThan(1000);
+        }
+
+
 
         return true;
     }
@@ -654,7 +656,11 @@ class E2eAdapter extends OrderLifecycleAdapter {
 
         const confirmBtn = customerCard.locator('[data-testid^="confirm-delivery-btn-"]').first();
         await expect(confirmBtn).toBeVisible({ timeout: 10000 });
-        await confirmBtn.evaluate(el => el.click());
+        // Use standard click to ensure actionability
+        await confirmBtn.click();
+
+        // Wait for the button to disappear or status to change
+        await expect(confirmBtn).not.toBeVisible({ timeout: 10000 });
         await this.page.waitForTimeout(2000);
     }
 }
