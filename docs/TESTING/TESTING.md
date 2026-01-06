@@ -44,11 +44,13 @@ This document outlines the comprehensive testing strategy implemented to ensure 
 ### Pre-commit Hooks
 
 **`pre-commit`** (`.git/hooks/pre-commit`)
+
 - Triggers comprehensive test suite before every commit
 - **Blocks commits** if tests fail or coverage is below threshold
 - Ensures no broken code enters the repository
 
 **`pre-push`** (`.git/hooks/pre-push`)
+
 - Triggers comprehensive testing before pushes to master/main/production branches
 - **Blocks direct master pushes** without passing tests
 - Enforces quality standards for production deployments
@@ -56,6 +58,7 @@ This document outlines the comprehensive testing strategy implemented to ensure 
 ### CI/CD Integration
 
 **GitHub Actions** (`.github/workflows/deploy-backend.yml`)
+
 - Runs full test suite on every push to master/main
 - **Blocks deployment** if tests don't meet minimum pass rate (85%)
 - Uploads test results as artifacts for review
@@ -108,7 +111,7 @@ NODE_ENV=test
 ### API Tests (`tests/map-location-api-tests.js`)
 
 ```javascript
-describe('Map Location Picker API Tests', () => {
+describe("Map Location Picker API Tests", () => {
   // 20+ test suites covering:
   // - Reverse geocoding for various locations
   // - Google Maps URL parsing
@@ -116,12 +119,12 @@ describe('Map Location Picker API Tests', () => {
   // - Driver preferences management
   // - Enhanced order creation with location data
   // - Error handling and edge cases
-})
+});
 ```
 
 ### E2E Tests (`tests/features/map_location_picker.feature`)
 
-```gherkin
+`````gherkin
 Feature: Map Location Picker
   @smoke @map-location-picker
   Scenario: Successfully reverse geocode coordinates on map click
@@ -134,7 +137,12 @@ Feature: Map Location Picker
     # - Edge cases and error conditions
     # - Performance and accessibility
     # - Mobile and localization testing
-```
+
+3. **Core Order Lifecycle** (`tests/features/core/order_lifecycle.feature`)
+   - Complete verification of the delivery flow (Create -> Bid -> Accept -> Deliver)
+   - Verifies Wallet/Escrow balance updates (Platform + Takaful commission)
+   - Validates status transitions (`DELIVERED_PENDING` -> `DELIVERED`)
+   - **Command**: `npm run test:bdd:e2e -- --tags "@order_lifecycle"````
 
 ### Test Runner (`scripts/run-tests.js`)
 
@@ -154,9 +162,10 @@ A comprehensive test orchestrator that:
    # Run tests during development
    npm run test:api     # Quick API feedback
    npm run test:smoke   # Basic checks
-   ```
+`````
 
 2. **Before Commit**
+
    ```bash
    # Pre-commit hook runs automatically
    npm run test:pre-commit  # Comprehensive validation
@@ -202,29 +211,34 @@ A comprehensive test orchestrator that:
 ## Performance Testing
 
 ### Build Performance
+
 ```bash
 # Tests build times remain within acceptable limits
 npm run build  # Must complete in < 5 minutes
 ```
 
 ### API Performance
+
 ```javascript
 // Response times monitored in API tests
 expect(responseTime).toBeLessThan(2000); // 2 second limit
 ```
 
 ### Memory Usage
+
 - Automated monitoring for memory leaks
 - Baseline performance comparisons
 
 ## Security Testing
 
 ### Vulnerability Scanning
+
 ```bash
 npm audit --audit-level high  # High severity only
 ```
 
 ### Code Security
+
 - ESLint security plugins
 - Dependency vulnerability monitoring
 - Input validation testing
@@ -232,6 +246,7 @@ npm audit --audit-level high  # High severity only
 ## Accessibility Testing
 
 ### Automated Accessibility
+
 ```gherkin
 Then all interactive elements should have proper ARIA labels
 And keyboard navigation should be supported
@@ -239,6 +254,7 @@ And color contrast should meet accessibility standards
 ```
 
 ### Manual Accessibility Review
+
 - Screen reader compatibility
 - Keyboard-only navigation
 - Mobile accessibility check
@@ -246,17 +262,20 @@ And color contrast should meet accessibility standards
 ## Reporting and Monitoring
 
 ### Test Reports
+
 - **Console Output**: Real-time colored output during test runs
 - **File Reports**: `test-report-YYYY-MM-DD.txt` detailed reports
 - **CI Artifacts**: Uploaded test results and coverage reports
 
 ### Metrics Tracked
+
 - Test pass rates
 - Build times
 - Deployment success rates
 - Most failing tests
 
 ### Alerting
+
 - Slack notifications for test failures
 - Email alerts for deployment blocks
 - Dashboard monitoring for test trends
@@ -290,12 +309,14 @@ And color contrast should meet accessibility standards
 ### Common Issues
 
 **Tests Timeout**
+
 ```bash
 # Increase timeout for slow tests
 jest.setTimeout(30000);
 ```
 
 **Database Connection Issues**
+
 ```bash
 # Check database is running
 pg_isready -h localhost -p 5432
@@ -305,6 +326,7 @@ npm run pretest
 ```
 
 **Flaky Tests**
+
 - Use `waitFor` functions for async operations
 - Add retry logic for network-dependent tests
 - Use proper selectors for UI elements
@@ -322,6 +344,7 @@ jest --testNamePattern="specific test name" --verbose
 ## Conclusion
 
 This comprehensive testing strategy ensures:
+
 - **Reliable deployments** with enforced quality gates
 - **No direct master pushes** without proper testing
 - **Coverage of critical paths** including the new map location picker
