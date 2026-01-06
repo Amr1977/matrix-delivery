@@ -9,6 +9,7 @@ This guide provides step-by-step instructions for manually testing the COD commi
 ## ⚙️ Prerequisites
 
 Before starting tests, ensure:
+
 - ✅ Backend server is running
 - ✅ Frontend is deployed/running
 - ✅ Test database is accessible
@@ -23,9 +24,10 @@ Before starting tests, ensure:
 
 ### Test 1: Basic COD Order with Commission Deduction
 
-**Objective:** Verify 15% commission is deducted from driver balance on COD order completion.
+**Objective:** Verify 15% deduction (10% Platform + 5% Takaful) from driver balance on COD order completion.
 
 **Steps:**
+
 1. **Setup:**
    - Login as driver
    - Note current balance (e.g., 500 EGP)
@@ -65,6 +67,7 @@ Before starting tests, ensure:
 **Objective:** Verify driver balance can go negative when commission exceeds available balance.
 
 **Steps:**
+
 1. **Setup:**
    - Login as driver
    - If balance is high, withdraw funds to leave only 10 EGP
@@ -92,6 +95,7 @@ Before starting tests, ensure:
 **Objective:** Verify warning notification appears when balance falls below -150 EGP.
 
 **Steps:**
+
 1. **Setup:**
    - Set driver balance to -140 EGP (use admin tools or complete multiple orders)
 
@@ -116,6 +120,7 @@ Before starting tests, ensure:
 **Objective:** Verify driver is blocked from accepting orders at -200 EGP debt.
 
 **Steps:**
+
 1. **Setup:**
    - Set driver balance to exactly -200 EGP
 
@@ -142,6 +147,7 @@ Before starting tests, ensure:
 **Objective:** Verify driver with debt > -200 EGP cannot accept orders.
 
 **Steps:**
+
 1. **Setup:**
    - Set driver balance to -250 EGP (or any value < -200)
 
@@ -164,6 +170,7 @@ Before starting tests, ensure:
 **Objective:** Verify driver can deposit funds to clear debt and resume accepting orders.
 
 **Steps:**
+
 1. **Setup:**
    - Driver balance at -250 EGP (blocked)
    - Verify driver cannot accept orders
@@ -189,6 +196,7 @@ Before starting tests, ensure:
 **Objective:** Verify debt accumulates correctly from multiple COD orders.
 
 **Steps:**
+
 1. **Setup:**
    - Driver balance: 0 EGP
 
@@ -216,6 +224,7 @@ Before starting tests, ensure:
 **Objective:** Test a realistic driver workday with mixed balance states.
 
 **Steps:**
+
 1. **Morning - Starting Balance:**
    - Driver starts with 50 EGP
 
@@ -240,6 +249,7 @@ Before starting tests, ensure:
 **Objective:** Verify blocking happens at EXACTLY -200 EGP (not -201).
 
 **Steps:**
+
 1. **Setup:**
    - Driver balance: 0 EGP
 
@@ -264,6 +274,7 @@ Before starting tests, ensure:
 **Objective:** Verify all UI elements display correctly.
 
 **Steps:**
+
 1. **Complete COD Order:**
    - Complete at least one COD order
 
@@ -288,6 +299,7 @@ Before starting tests, ensure:
 After completing all tests, verify:
 
 ### Backend
+
 - [ ] Commission calculated correctly (15%)
 - [ ] Balance can go negative
 - [ ] Debt tracked in database
@@ -296,6 +308,7 @@ After completing all tests, verify:
 - [ ] All transactions logged
 
 ### Frontend
+
 - [ ] Earnings summary displays
 - [ ] Commission shown separately
 - [ ] Debt indicator appears
@@ -305,6 +318,7 @@ After completing all tests, verify:
 - [ ] All amounts formatted correctly
 
 ### Business Logic
+
 - [ ] Drivers keep 85% of COD orders
 - [ ] Platform collects 15% commission
 - [ ] Drivers blocked at -200 EGP debt
@@ -317,28 +331,36 @@ After completing all tests, verify:
 ## 🐛 Common Issues & Troubleshooting
 
 ### Issue: Commission not deducted
+
 **Check:**
+
 - Payment method is "COD"
 - Order status is "delivered"
 - Payment confirmation completed
 - Backend logs for errors
 
 ### Issue: Driver not blocked at -200 EGP
+
 **Check:**
+
 - Balance is exactly ≤ -200 (not -199)
 - `canAcceptOrders()` being called
 - Frontend checking balance correctly
 - Cache cleared
 
 ### Issue: Warning not showing
+
 **Check:**
+
 - Balance is < -150 EGP
 - Dashboard refreshed
 - Component rendering correctly
 - CSS loaded
 
 ### Issue: Earnings not displaying
+
 **Check:**
+
 - Driver has completed COD orders
 - API endpoint `/api/payments/earnings` working
 - Data fetched successfully
@@ -349,6 +371,7 @@ After completing all tests, verify:
 ## 📊 Test Data Reference
 
 ### Sample Balances for Testing
+
 - **Positive:** 500 EGP (normal operation)
 - **Low:** 10 EGP (will create debt)
 - **Warning:** -175 EGP (warning threshold)
@@ -356,18 +379,20 @@ After completing all tests, verify:
 - **Blocked:** -250 EGP (cannot work)
 
 ### Sample Order Amounts
+
 - **Small:** 50 EGP (commission: 7.50 EGP)
 - **Medium:** 100 EGP (commission: 15 EGP)
 - **Large:** 200 EGP (commission: 30 EGP)
 
 ### Expected Commission Calculations
+
 | Order Amount | Commission (15%) | Driver Keeps (85%) |
-|--------------|------------------|-------------------|
-| 50 EGP       | 7.50 EGP        | 42.50 EGP        |
-| 100 EGP      | 15 EGP          | 85 EGP           |
-| 150 EGP      | 22.50 EGP       | 127.50 EGP       |
-| 200 EGP      | 30 EGP          | 170 EGP          |
-| 500 EGP      | 75 EGP          | 425 EGP          |
+| ------------ | ---------------- | ------------------ |
+| 50 EGP       | 7.50 EGP         | 42.50 EGP          |
+| 100 EGP      | 15 EGP           | 85 EGP             |
+| 150 EGP      | 22.50 EGP        | 127.50 EGP         |
+| 200 EGP      | 30 EGP           | 170 EGP            |
+| 500 EGP      | 75 EGP           | 425 EGP            |
 
 ---
 
@@ -375,21 +400,25 @@ After completing all tests, verify:
 
 After completing all tests:
 
-**Tester Name:** ___________________  
-**Date:** ___________________  
+**Tester Name:** ********\_\_\_********  
+**Date:** ********\_\_\_********  
 **Environment:** [ ] Development [ ] Staging [ ] Production  
-**Overall Status:** [ ] Pass [ ] Fail  
+**Overall Status:** [ ] Pass [ ] Fail
 
 **Notes:**
-_________________________________________________________________
-_________________________________________________________________
-_________________________________________________________________
+
+---
+
+---
+
+---
 
 ---
 
 ## 📞 Support
 
 If you encounter issues during testing:
+
 - Check backend logs: `pm2 logs backend`
 - Check browser console for frontend errors
 - Verify database state: `SELECT * FROM user_balances WHERE user_id = [driver_id]`
