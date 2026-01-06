@@ -9,6 +9,7 @@
 **WE DON'T WANT OUR APP HACKED! Every line of code, every API endpoint, every database query MUST be security-first.**
 
 ### Security Mindset
+
 - **Assume all input is malicious** until proven otherwise
 - **Never trust the client** - always validate on the server
 - **Defense in depth** - multiple layers of security
@@ -20,22 +21,24 @@
 ### 🛡️ Authentication & Authorization
 
 #### 1. JWT Token Security
+
 ```javascript
 // ✅ GOOD: Secure token generation
 const token = jwt.sign(
-  { userId, role },  // NEVER include passwords or secrets
-  process.env.JWT_SECRET,  // MUST be strong (256-bit minimum)
-  { 
-    expiresIn: '7d',  // Always set expiration
-    algorithm: 'HS256'  // Explicitly specify algorithm
-  }
+  { userId, role }, // NEVER include passwords or secrets
+  process.env.JWT_SECRET, // MUST be strong (256-bit minimum)
+  {
+    expiresIn: "7d", // Always set expiration
+    algorithm: "HS256", // Explicitly specify algorithm
+  },
 );
 
 // ❌ BAD: Weak or missing security
-const token = jwt.sign({ userId, password }, 'weak-secret');
+const token = jwt.sign({ userId, password }, "weak-secret");
 ```
 
 **Token Best Practices:**
+
 - ✅ Store in httpOnly cookies (frontend can't access)
 - ✅ Set secure: true in production (HTTPS only)
 - ✅ Set sameSite: 'strict' or 'lax' (CSRF protection)
@@ -44,15 +47,17 @@ const token = jwt.sign({ userId, password }, 'weak-secret');
 - ❌ NEVER include sensitive data in tokens
 
 #### 2. Password Security
+
 ```javascript
 // ✅ GOOD: Bcrypt with salt rounds ≥ 10
 const hashedPassword = await bcrypt.hash(password, 12);
 
 // ❌ BAD: Plain text or weak hashing
-const hashedPassword = crypto.createHash('md5').update(password).digest('hex');
+const hashedPassword = crypto.createHash("md5").update(password).digest("hex");
 ```
 
 **Password Best Practices:**
+
 - ✅ Minimum 8 characters, complexity requirements
 - ✅ Use bcrypt with cost factor ≥ 10
 - ✅ Rate limit login attempts (prevent brute force)
@@ -62,23 +67,25 @@ const hashedPassword = crypto.createHash('md5').update(password).digest('hex');
 - ❌ NEVER store passwords in plain text
 
 #### 3. Authorization Checks
+
 ```javascript
 // ✅ GOOD: Verify ownership before operations
-router.get('/balance/:userId/transactions', verifyToken, async (req, res) => {
+router.get("/balance/:userId/transactions", verifyToken, async (req, res) => {
   // Check if user owns this resource OR is admin
-  if (req.params.userId !== req.user.userId && req.user.role !== 'admin') {
-    return res.status(403).json({ error: 'Unauthorized' });
+  if (req.params.userId !== req.user.userId && req.user.role !== "admin") {
+    return res.status(403).json({ error: "Unauthorized" });
   }
   // Proceed with operation
 });
 
 // ❌ BAD: Trusting client-provided data
-router.get('/balance/:userId/transactions', async (req, res) => {
+router.get("/balance/:userId/transactions", async (req, res) => {
   // No auth check - anyone can access anyone's data!
 });
 ```
 
 **Authorization Best Practices:**
+
 - ✅ Verify every request (even GET requests)
 - ✅ Check resource ownership, not just authentication
 - ✅ Use middleware for consistent checks
@@ -91,45 +98,47 @@ router.get('/balance/:userId/transactions', async (req, res) => {
 ### 💉 SQL Injection Prevention
 
 #### 1. Parameterized Queries (ALWAYS)
+
 ```javascript
 // ✅ GOOD: Parameterized query
 const result = await pool.query(
-  'SELECT * FROM users WHERE email = $1 AND status = $2',
-  [email, status]  // Values are escaped automatically
+  "SELECT * FROM users WHERE email = $1 AND status = $2",
+  [email, status], // Values are escaped automatically
 );
 
 // ❌ BAD: String concatenation
 const result = await pool.query(
-  `SELECT * FROM users WHERE email = '${email}'`  // SQL INJECTION!
+  `SELECT * FROM users WHERE email = '${email}'`, // SQL INJECTION!
 );
 ```
 
 #### 2. ORM/Query Builder
+
 ```javascript
 // ✅ GOOD: Use query builders or ORMs
-const users = await knex('users')
-  .where({ email })
-  .select('*');
+const users = await knex("users").where({ email }).select("*");
 
 // ❌ BAD: Raw SQL with interpolation
 const users = await db.raw(`SELECT * FROM users WHERE email = '${email}'`);
 ```
 
 #### 3. Dynamic Query Building
+
 ```javascript
 // ✅ GOOD: Whitelist validation for dynamic fields
-const allowedSortFields = ['created_at', 'amount', 'type'];
-const sortBy = allowedSortFields.includes(req.query.sortBy) 
-  ? req.query.sortBy 
-  : 'created_at';  // Safe default
+const allowedSortFields = ["created_at", "amount", "type"];
+const sortBy = allowedSortFields.includes(req.query.sortBy)
+  ? req.query.sortBy
+  : "created_at"; // Safe default
 
 const query = `SELECT * FROM transactions ORDER BY ${sortBy} DESC`;
 
 // ❌ BAD: Direct use of user input
-const query = `SELECT * FROM transactions ORDER BY ${req.query.sortBy} DESC`;  // Injection!
+const query = `SELECT * FROM transactions ORDER BY ${req.query.sortBy} DESC`; // Injection!
 ```
 
 **SQL Injection Best Practices:**
+
 - ✅ ALWAYS use parameterized queries ($1, $2, etc.)
 - ✅ Whitelist user input for ORDER BY, column names
 - ✅ Validate and sanitize ALL user inputs
@@ -143,54 +152,61 @@ const query = `SELECT * FROM transactions ORDER BY ${req.query.sortBy} DESC`;  /
 ### 🔐 Input Validation & Sanitization
 
 #### 1. Comprehensive Validation
+
 ```javascript
 // ✅ GOOD: Multiple layers of validation
 const validateTransactionQuery = (req, res, next) => {
   const { limit, offset, type, sortBy } = req.query;
-  
+
   // Validate types
   if (limit && !Number.isInteger(Number(limit))) {
-    return res.status(400).json({ error: 'Invalid limit' });
+    return res.status(400).json({ error: "Invalid limit" });
   }
-  
+
   // Validate ranges
   const sanitizedLimit = Math.min(Math.max(parseInt(limit) || 20, 1), 100);
-  
+
   // Whitelist validation
-  const allowedTypes = ['deposit', 'withdrawal', 'earnings'];
+  const allowedTypes = ["deposit", "withdrawal", "earnings"];
   if (type && !allowedTypes.includes(type)) {
-    return res.status(400).json({ error: 'Invalid transaction type' });
+    return res.status(400).json({ error: "Invalid transaction type" });
   }
-  
+
   req.sanitized = { limit: sanitizedLimit, type };
   next();
 };
 
 // ❌ BAD: No validation
-router.get('/transactions', (req, res) => {
-  const limit = req.query.limit;  // Could be anything!
+router.get("/transactions", (req, res) => {
+  const limit = req.query.limit; // Could be anything!
 });
 ```
 
 #### 2. Sanitization Libraries
+
 ```javascript
 // ✅ GOOD: Use validation libraries
-const { body, validationResult } = require('express-validator');
+const { body, validationResult } = require("express-validator");
 
-router.post('/orders', [
-  body('email').isEmail().normalizeEmail(),
-  body('amount').isFloat({ min: 0.01, max: 10000 }),
-  body('description').trim().escape(),
-], (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-  // Proceed with validated data
-});
+router.post(
+  "/orders",
+  [
+    body("email").isEmail().normalizeEmail(),
+    body("amount").isFloat({ min: 0.01, max: 10000 }),
+    body("description").trim().escape(),
+  ],
+  (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    // Proceed with validated data
+  },
+);
 ```
 
 **Input Validation Best Practices:**
+
 - ✅ Validate type, format, range, and length
 - ✅ Use whitelist validation (allow known good)
 - ✅ Sanitize HTML/special characters
@@ -205,80 +221,87 @@ router.post('/orders', [
 ### 🌐 Web Security Headers
 
 #### 1. Security Middleware (MANDATORY)
+
 ```javascript
 // ✅ GOOD: Helmet.js for security headers
-const helmet = require('helmet');
+const helmet = require("helmet");
 
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],  // Minimize unsafe-inline
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", 'data:', 'https:'],
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"], // Minimize unsafe-inline
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", "data:", "https:"],
+      },
     },
-  },
-  hsts: {
-    maxAge: 31536000,  // 1 year
-    includeSubDomains: true,
-    preload: true
-  },
-  frameguard: { action: 'deny' },  // Prevent clickjacking
-  noSniff: true,  // Prevent MIME sniffing
-  xssFilter: true,  // XSS protection
-}));
+    hsts: {
+      maxAge: 31536000, // 1 year
+      includeSubDomains: true,
+      preload: true,
+    },
+    frameguard: { action: "deny" }, // Prevent clickjacking
+    noSniff: true, // Prevent MIME sniffing
+    xssFilter: true, // XSS protection
+  }),
+);
 ```
 
 #### 2. CORS Configuration
+
 ```javascript
 // ✅ GOOD: Strict CORS policy
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
-    ? 'https://matrix-delivery.com'  // Specific origin
-    : 'http://localhost:3000',
-  credentials: true,  // Allow cookies
+  origin:
+    process.env.NODE_ENV === "production"
+      ? "https://matrix-delivery.com" // Specific origin
+      : "http://localhost:3000",
+  credentials: true, // Allow cookies
   optionsSuccessStatus: 200,
-  maxAge: 86400  // 24 hours
+  maxAge: 86400, // 24 hours
 };
 
 app.use(cors(corsOptions));
 
 // ❌ BAD: Permissive CORS
-app.use(cors({ origin: '*' }));  // Anyone can access!
+app.use(cors({ origin: "*" })); // Anyone can access!
 ```
 
 #### 3. Rate Limiting
+
 ```javascript
 // ✅ GOOD: Rate limiting on sensitive endpoints
-const rateLimit = require('express-rate-limit');
+const rateLimit = require("express-rate-limit");
 
 const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,  // 15 minutes
-  max: 5,  // 5 attempts
-  message: 'Too many login attempts, please try again later',
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // 5 attempts
+  message: "Too many login attempts, please try again later",
   standardHeaders: true,
   legacyHeaders: false,
 });
 
-app.post('/api/auth/login', loginLimiter, loginHandler);
+app.post("/api/auth/login", loginLimiter, loginHandler);
 
 // API-wide rate limiting
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,  // 100 requests per 15 minutes
+  max: 100, // 100 requests per 15 minutes
 });
 
-app.use('/api/', apiLimiter);
+app.use("/api/", apiLimiter);
 ```
 
 **Web Security Best Practices:**
+
 - ✅ Use Helmet.js for security headers
 - ✅ Implement strict CSP (Content Security Policy)
 - ✅ Enable HSTS (HTTP Strict Transport Security)
 - ✅ Set restrictive CORS policies
 - ✅ Implement rate limiting on all endpoints
 - ✅ Use HTTPS only in production (no HTTP)
-- ❌ NEVER allow permissive CORS (origin: '*')
+- ❌ NEVER allow permissive CORS (origin: '\*')
 - ❌ NEVER skip rate limiting on auth endpoints
 
 ---
@@ -286,6 +309,7 @@ app.use('/api/', apiLimiter);
 ### 🔍 Error Handling & Logging
 
 #### 1. Secure Error Messages
+
 ```javascript
 // ✅ GOOD: Generic error messages to clients
 try {
@@ -301,7 +325,7 @@ try {
 
 // ❌ BAD: Exposing sensitive information
 catch (error) {
-  return res.status(500).json({ 
+  return res.status(500).json({
     error: error.message,  // May expose DB structure
     stack: error.stack     // Exposes code structure!
   });
@@ -309,21 +333,23 @@ catch (error) {
 ```
 
 #### 2. Sensitive Data Logging
+
 ```javascript
 // ✅ GOOD: Sanitize logs
-logger.info('Login attempt', {
-  email,  // OK to log email
+logger.info("Login attempt", {
+  email, // OK to log email
   ip: req.ip,
-  userAgent: req.headers['user-agent']
+  userAgent: req.headers["user-agent"],
   // NO password, token, or credit card info!
 });
 
 // ❌ BAD: Logging sensitive data
-logger.debug('Login data', { email, password });  // NEVER log passwords!
-logger.info('Payment', { cardNumber: req.body.cardNumber });  // NEVER log PII!
+logger.debug("Login data", { email, password }); // NEVER log passwords!
+logger.info("Payment", { cardNumber: req.body.cardNumber }); // NEVER log PII!
 ```
 
 **Error Handling Best Practices:**
+
 - ✅ Log detailed errors server-side
 - ✅ Return generic errors to clients
 - ✅ Use different error codes (don't leak info)
@@ -338,22 +364,24 @@ logger.info('Payment', { cardNumber: req.body.cardNumber });  // NEVER log PII!
 ### 💳 Sensitive Data Protection
 
 #### 1. Environment Variables
+
 ```javascript
 // ✅ GOOD: Use environment variables
-const JWT_SECRET = process.env.JWT_SECRET;  // Must be 256-bit minimum
+const JWT_SECRET = process.env.JWT_SECRET; // Must be 256-bit minimum
 const DB_PASSWORD = process.env.DB_PASSWORD;
 
 // Validate on startup
 if (!JWT_SECRET || JWT_SECRET.length < 32) {
-  throw new Error('JWT_SECRET must be set and at least 32 characters');
+  throw new Error("JWT_SECRET must be set and at least 32 characters");
 }
 
 // ❌ BAD: Hardcoded secrets
-const JWT_SECRET = 'my-secret-key';  // Committed to Git!
-const API_KEY = 'sk_live_abc123';  // Exposed in code!
+const JWT_SECRET = "my-secret-key"; // Committed to Git!
+const API_KEY = "sk_live_abc123"; // Exposed in code!
 ```
 
 #### 2. .env File Security
+
 ```bash
 # ✅ GOOD: Strong secrets, properly configured
 JWT_SECRET=a3d8f7b2c9e1d6f4a8b3c7e2f9d1a6b4c8e3f7a2d9b6c1e4f8a3d7b2c9e1f6a4
@@ -370,20 +398,25 @@ DB_PASSWORD=password
 ```
 
 #### 3. Encryption for Stored Data
+
 ```javascript
 // ✅ GOOD: Encrypt sensitive data at rest
-const crypto = require('crypto');
+const crypto = require("crypto");
 
-const algorithm = 'aes-256-gcm';
-const key = Buffer.from(process.env.ENCRYPTION_KEY, 'hex');
+const algorithm = "aes-256-gcm";
+const key = Buffer.from(process.env.ENCRYPTION_KEY, "hex");
 
 function encrypt(text) {
   const iv = crypto.randomBytes(16);
   const cipher = crypto.createCipheriv(algorithm, key, iv);
-  let encrypted = cipher.update(text, 'utf8', 'hex');
-  encrypted += cipher.final('hex');
+  let encrypted = cipher.update(text, "utf8", "hex");
+  encrypted += cipher.final("hex");
   const authTag = cipher.getAuthTag();
-  return { encrypted, iv: iv.toString('hex'), authTag: authTag.toString('hex') };
+  return {
+    encrypted,
+    iv: iv.toString("hex"),
+    authTag: authTag.toString("hex"),
+  };
 }
 
 // Store credit card tokens encrypted
@@ -391,6 +424,7 @@ const encryptedCard = encrypt(cardToken);
 ```
 
 **Sensitive Data Best Practices:**
+
 - ✅ Use .env files for secrets (never commit)
 - ✅ Encrypt sensitive data at rest
 - ✅ Use strong encryption (AES-256)
@@ -406,65 +440,68 @@ const encryptedCard = encrypt(cardToken);
 ### 🧪 Security Testing
 
 #### 1. Security Test Checklist
+
 **EVERY feature MUST pass these security tests:**
 
 ```javascript
 // Authentication Tests
-describe('Security: Authentication', () => {
-  it('rejects requests without valid token', async () => {
+describe("Security: Authentication", () => {
+  it("rejects requests without valid token", async () => {
     const response = await request(app)
-      .get('/api/balance/123/transactions')
+      .get("/api/balance/123/transactions")
       .expect(401);
   });
-  
-  it('rejects expired tokens', async () => {
+
+  it("rejects expired tokens", async () => {
     const expiredToken = generateExpiredToken();
     const response = await request(app)
-      .get('/api/orders')
-      .set('Authorization', `Bearer ${expiredToken}`)
+      .get("/api/orders")
+      .set("Authorization", `Bearer ${expiredToken}`)
       .expect(401);
   });
 });
 
 // Authorization Tests
-describe('Security: Authorization', () => {
-  it('prevents users from accessing other users data', async () => {
-    const user1Token = await loginUser('user1');
+describe("Security: Authorization", () => {
+  it("prevents users from accessing other users data", async () => {
+    const user1Token = await loginUser("user1");
     const response = await request(app)
-      .get('/api/balance/user2/transactions')
-      .set('Authorization', `Bearer ${user1Token}`)
-      .expect(403);  // Forbidden
+      .get("/api/balance/user2/transactions")
+      .set("Authorization", `Bearer ${user1Token}`)
+      .expect(403); // Forbidden
   });
 });
 
 // SQL Injection Tests
-describe('Security: SQL Injection', () => {
-  it('sanitizes malicious SQL in query params', async () => {
+describe("Security: SQL Injection", () => {
+  it("sanitizes malicious SQL in query params", async () => {
     const maliciousInput = "'; DROP TABLE users; --";
     const response = await request(app)
       .get(`/api/transactions?type=${maliciousInput}`)
-      .set('Authorization', `Bearer ${token}`)
-      .expect(400);  // Bad request, not executed
+      .set("Authorization", `Bearer ${token}`)
+      .expect(400); // Bad request, not executed
   });
 });
 
 // XSS Tests
-describe('Security: XSS Prevention', () => {
-  it('escapes HTML in user input', async () => {
+describe("Security: XSS Prevention", () => {
+  it("escapes HTML in user input", async () => {
     const xssPayload = '<script>alert("XSS")</script>';
     const response = await request(app)
-      .post('/api/orders')
+      .post("/api/orders")
       .send({ description: xssPayload })
-      .set('Authorization', `Bearer ${token}`)
+      .set("Authorization", `Bearer ${token}`)
       .expect(201);
-    
-    expect(response.body.description).not.toContain('<script>');
+
+    expect(response.body.description).not.toContain("<script>");
   });
 });
 ```
 
 #### 2. Penetration Testing Checklist
+
 **Manually test these before production:**
+
 - [ ] SQL injection on all input fields
 - [ ] XSS attempts in text fields
 - [ ] CSRF token validation
@@ -483,6 +520,7 @@ describe('Security: XSS Prevention', () => {
 **Before ANY code goes to production:**
 
 #### Authentication & Authorization
+
 - [ ] All endpoints have authentication
 - [ ] Resource ownership verified
 - [ ] JWT tokens are httpOnly cookies
@@ -491,6 +529,7 @@ describe('Security: XSS Prevention', () => {
 - [ ] No hardcoded credentials
 
 #### Input Validation
+
 - [ ] All user inputs validated
 - [ ] Whitelist validation for enums/options
 - [ ] SQL queries use parameterized statements
@@ -499,6 +538,7 @@ describe('Security: XSS Prevention', () => {
 - [ ] Email addresses validated and sanitized
 
 #### Error Handling
+
 - [ ] Generic error messages to clients
 - [ ] Detailed errors logged server-side
 - [ ] No stack traces exposed
@@ -506,6 +546,7 @@ describe('Security: XSS Prevention', () => {
 - [ ] No database errors exposed to clients
 
 #### Security Headers
+
 - [ ] Helmet.js configured
 - [ ] CORS properly restricted
 - [ ] CSP (Content Security Policy) enabled
@@ -514,6 +555,7 @@ describe('Security: XSS Prevention', () => {
 - [ ] Rate limiting strict on auth endpoints
 
 #### Sensitive Data
+
 - [ ] No secrets in code
 - [ ] .env files in .gitignore
 - [ ] Secrets are strong (≥ 256-bit)
@@ -522,6 +564,7 @@ describe('Security: XSS Prevention', () => {
 - [ ] PII encrypted at rest
 
 #### Testing
+
 - [ ] Auth/AuthZ tests passing
 - [ ] SQL injection tests passing
 - [ ] XSS prevention tests passing
@@ -555,8 +598,8 @@ describe('Security: XSS Prevention', () => {
 
 ## 🏗️ Architecture & Code Quality
 
-
 ### Clean Code Principles (MANDATORY)
+
 **ALL code MUST follow these principles:**
 
 1. **Single Responsibility Principle (SRP)**
@@ -594,6 +637,7 @@ describe('Security: XSS Prevention', () => {
    - **Pure Functions**: Minimize side effects when possible
 
 **Clean Code Example:**
+
 ```typescript
 // ❌ BAD: Unclear, complex, no error handling
 function p(d) {
@@ -613,7 +657,7 @@ function p(d) {
  */
 function calculateOrderTotal(orderItems: OrderItem[]): number {
   if (!Array.isArray(orderItems) || orderItems.length === 0) {
-    throw new Error('Invalid order items provided');
+    throw new Error("Invalid order items provided");
   }
 
   const ZERO_TOTAL = 0;
@@ -635,6 +679,7 @@ function calculateOrderTotal(orderItems: OrderItem[]): number {
 #### 1. Inline Comments (REQUIRED)
 
 **Add comments explaining:**
+
 - ✅ **Why** something is done (not just what)
 - ✅ Complex algorithms or business logic
 - ✅ Non-obvious decisions or workarounds
@@ -643,6 +688,7 @@ function calculateOrderTotal(orderItems: OrderItem[]): number {
 - ✅ Edge cases being handled
 
 **Comment Guidelines:**
+
 ```typescript
 // ❌ BAD: Stating the obvious
 // Increment counter
@@ -653,63 +699,69 @@ counter++;
 failedLoginAttempts++;
 
 // ❌ BAD: No comments on complex logic
-const result = data.filter(x => x.status === 'active')
-  .map(x => ({ ...x, total: x.price * x.qty }))
+const result = data
+  .filter((x) => x.status === "active")
+  .map((x) => ({ ...x, total: x.price * x.qty }))
   .reduce((sum, x) => sum + x.total, 0);
 
 // ✅ GOOD: Breaking down complex logic with comments
 // Filter to only include active items (exclude cancelled/deleted)
-const activeItems = orderItems.filter(item => item.status === 'active');
+const activeItems = orderItems.filter((item) => item.status === "active");
 
 // Calculate total for each item (price × quantity)
-const itemsWithTotals = activeItems.map(item => ({
+const itemsWithTotals = activeItems.map((item) => ({
   ...item,
-  total: item.price * item.quantity
+  total: item.price * item.quantity,
 }));
 
 // Sum all item totals to get order total
 const orderTotal = itemsWithTotals.reduce(
-  (sum, item) => sum + item.total, 
-  0  // Start with 0 as initial value
+  (sum, item) => sum + item.total,
+  0, // Start with 0 as initial value
 );
 ```
 
 #### 2. JSDoc/TSDoc Comments (MANDATORY for all functions)
 
 **Every function/method MUST have:**
+
 ```typescript
 /**
  * Brief description of what the function does
- * 
+ *
  * Detailed explanation if needed. This helps beginners understand
  * the purpose and context of this function.
- * 
+ *
  * @param paramName - Description of parameter
  * @param anotherParam - Description, including valid values
  * @returns Description of return value
  * @throws Description of errors that can be thrown
- * 
+ *
  * @example
  * // Show how to use the function
  * const result = myFunction('example', 123);
  */
-async function myFunction(paramName: string, anotherParam: number): Promise<Result> {
+async function myFunction(
+  paramName: string,
+  anotherParam: number,
+): Promise<Result> {
   // Implementation
 }
 ```
 
 **Real Example:**
+
 ```typescript
 /**
  * Retrieves transaction history for a user with pagination and filtering
- * 
+ *
  * This function fetches balance transactions from the database with support for
  * advanced filtering (type, status, date range) and pagination. It's designed to
  * handle large transaction histories efficiently using database indexes.
- * 
+ *
  * Security: Validates all inputs to prevent SQL injection and enforces maximum
  * page size to prevent resource exhaustion attacks.
- * 
+ *
  * @param options - Query options for filtering and pagination
  * @param options.userId - User ID to fetch transactions for (validated against JWT token)
  * @param options.limit - Number of items per page (1-100, default: 20)
@@ -718,17 +770,17 @@ async function myFunction(paramName: string, anotherParam: number): Promise<Resu
  * @param options.status - Filter by status ('completed', 'pending', etc.)
  * @param options.startDate - Filter transactions after this date
  * @param options.endDate - Filter transactions before this date
- * 
+ *
  * @returns Object containing transactions array and pagination metadata
  * @throws Error if userId is missing or database query fails
- * 
+ *
  * @example
  * // Get first page of all transactions
- * const result = await getTransactionHistory({ 
- *   userId: '123', 
- *   limit: 20 
+ * const result = await getTransactionHistory({
+ *   userId: '123',
+ *   limit: 20
  * });
- * 
+ *
  * @example
  * // Get completed deposits in December 2025
  * const result = await getTransactionHistory({
@@ -739,7 +791,9 @@ async function myFunction(paramName: string, anotherParam: number): Promise<Resu
  *   endDate: new Date('2025-12-31')
  * });
  */
-async function getTransactionHistory(options: TransactionQueryOptions): Promise<TransactionResult> {
+async function getTransactionHistory(
+  options: TransactionQueryOptions,
+): Promise<TransactionResult> {
   // Implementation with inline comments explaining each step
 }
 ```
@@ -747,61 +801,69 @@ async function getTransactionHistory(options: TransactionQueryOptions): Promise<
 #### 3. File-Level Documentation (MANDATORY)
 
 **Every file MUST start with a header comment:**
+
 ```typescript
 /**
  * Balance Service
- * 
+ *
  * This service handles all balance-related operations for users including:
  * - Credit/debit operations
  * - Transaction history
  * - Balance holds and releases
  * - Commission deductions
- * 
+ *
  * Security considerations:
  * - All database queries use parameterized statements (SQL injection prevention)
  * - Balance operations use database transactions to ensure consistency
  * - Negative balance checks prevent unauthorized withdrawals
- * 
+ *
  * For beginners:
  * A "service" in this codebase contains business logic. It's called by
  * controllers/routes but doesn't directly handle HTTP requests.
- * 
+ *
  * @module services/balanceService
  * @see {@link controllers/v1/balanceController} for HTTP endpoints
  * @see {@link types/balance} for type definitions
  */
 
-import pool from '../config/db';
+import pool from "../config/db";
 // ... rest of file
 ```
 
 #### 4. README Files for Each Module (RECOMMENDED)
 
 For complex modules, add a `README.md`:
+
 ```markdown
 # Balance System
 
 ## Overview
+
 The balance system manages user account balances for the Matrix Delivery platform.
 
 ## For Beginners
+
 Think of balances like a digital wallet. Users can:
+
 - Receive money (deposits, earnings)
 - Spend money (withdrawals, commissions)
 - View transaction history
 
 ## Architecture
+
 - `balanceService.ts` - Core business logic
 - `balanceController.ts` - HTTP endpoint handlers
 - `balance.ts` - Route definitions
 - `types/balance.ts` - TypeScript types
 
 ## Key Concepts
+
 - **Available Balance**: Money user can spend right now
 - **Held Balance**: Money temporarily locked (e.g., pending orders)
 - **Pending Balance**: Money not yet cleared
 
 ## Security
+
 All operations require authentication and authorization checks.
 See [Security Documentation](../DOCS/security.md) for details.
 ```
@@ -835,48 +897,63 @@ See [Security Documentation](../DOCS/security.md) for details.
    - Rationale for chosen approach
 
 **Documentation Template:**
-```markdown
+
+````markdown
 # Feature Name - Implementation
 
 ## Overview
+
 Brief description for beginners
 
 ## Background/Context
+
 Why this was needed
 
 ## Implementation Details
+
 ### Architecture
+
 How it's structured
 
 ### Key Components
+
 - Component 1: Purpose and location
 - Component 2: Purpose and location
 
 ### Flow Diagram
+
 [Include mermaid diagram or image]
 
 ### Code Examples
+
 ```typescript
 // Beginner-friendly examples
 ```
+````
 
 ## Security Measures
+
 Detailed security considerations
 
 ## API Reference
+
 Endpoint documentation with examples
 
 ## Testing
+
 - Unit tests location
 - Integration tests location
 - BDD scenarios
 
 ## For Beginners
+
 Explanation in simple terms
 
 ## Future Improvements
+
 What could be enhanced
-```
+
+````
 
 ---
 
@@ -889,7 +966,7 @@ What could be enhanced
 1. **ALWAYS Use TypeScript for New Code:**
    - ✅ All new components (`.tsx`)
    - ✅ All new services (`.ts`)
-   - ✅ All new utilities (`.ts`)  
+   - ✅ All new utilities (`.ts`)
    - ✅ All new hooks (`.ts`)
    - ✅ All new routes/controllers (`.ts`)
    - ✅ Type definitions in `types/` directory
@@ -929,9 +1006,10 @@ function processData(data: unknown): ProcessedOrder {
   }
   return processValidatedData(data);
 }
-```
+````
 
 **2. Strict TypeScript Configuration**
+
 ```json
 // tsconfig.json - MANDATORY settings
 {
@@ -948,6 +1026,7 @@ function processData(data: unknown): ProcessedOrder {
 ```
 
 **3. Define Interfaces for All Data Structures**
+
 ```typescript
 // ✅ GOOD: Well-defined interfaces
 interface User {
@@ -958,7 +1037,7 @@ interface User {
   createdAt: Date;
 }
 
-type UserRole = 'customer' | 'driver' | 'admin';
+type UserRole = "customer" | "driver" | "admin";
 
 interface TransactionQueryOptions {
   userId: string;
@@ -974,22 +1053,23 @@ interface TransactionQueryOptions {
 ```
 
 **4. Use Type Guards for Runtime Validation**
+
 ```typescript
 // ✅ GOOD: Type guards for validation
 function isUser(obj: unknown): obj is User {
   return (
-    typeof obj === 'object' &&
+    typeof obj === "object" &&
     obj !== null &&
-    'id' in obj &&
-    'email' in obj &&
-    'role' in obj
+    "id" in obj &&
+    "email" in obj &&
+    "role" in obj
   );
 }
 
 // Usage
 function processUser(data: unknown) {
   if (!isUser(data)) {
-    throw new Error('Invalid user data');
+    throw new Error("Invalid user data");
   }
   // TypeScript now knows data is User type
   console.log(data.email);
@@ -997,6 +1077,7 @@ function processUser(data: unknown) {
 ```
 
 **5. Use Generics for Reusable Code**
+
 ```typescript
 // ✅ GOOD: Generic API response type
 interface ApiResponse<T> {
@@ -1014,9 +1095,11 @@ const ordersResponse: ApiResponse<Order[]> = await fetchOrders();
 ---
 
 ### TypeScript Preference
+
 **ALWAYS use TypeScript for new code:**
 
 ✅ **Use TypeScript for:**
+
 - All new components (`.tsx`)
 - All new services (`.ts`)
 - All new utilities (`.ts`)
@@ -1024,17 +1107,19 @@ const ordersResponse: ApiResponse<Order[]> = await fetchOrders();
 - Type definitions in `types/` directory
 
 ❌ **Only use JavaScript (.js) when:**
+
 - Modifying existing JavaScript files
 - Quick fixes to legacy code
 
 **TypeScript Standards:**
+
 ```typescript
 // ✅ GOOD: Proper typing
 interface UserData {
   id: string;
   name: string;
   email: string;
-  primary_role: 'customer' | 'driver' | 'admin';
+  primary_role: "customer" | "driver" | "admin";
 }
 
 const fetchUser = async (userId: string): Promise<UserData> => {
@@ -1050,6 +1135,7 @@ const fetchUser = async (userId: any): Promise<any> => {
 ### Refactoring Guidelines
 
 #### When to Refactor
+
 - File exceeds 300 lines
 - Function exceeds 50 lines
 - Duplicated code appears 3+ times
@@ -1057,6 +1143,7 @@ const fetchUser = async (userId: any): Promise<any> => {
 - Adding new features to large files
 
 #### How to Refactor
+
 1. **Extract Services**: Move business logic to `services/`
 2. **Extract Utilities**: Move helper functions to `utils/`
 3. **Extract Components**: Break down large components
@@ -1064,6 +1151,7 @@ const fetchUser = async (userId: any): Promise<any> => {
 5. **Extract Types**: Define interfaces/types in `types/`
 
 #### Example: Refactoring `server.js`
+
 ```javascript
 // ❌ BAD: Everything in server.js (6000+ lines)
 app.post('/api/orders', async (req, res) => {
@@ -1108,6 +1196,7 @@ export const createOrder = async (req: Request, res: Response) => {
    - No PR merged without tests
 
 3. **Test File Structure**
+
    ```
    backend/
      services/
@@ -1125,7 +1214,7 @@ export const createOrder = async (req: Request, res: Response) => {
            balance_steps.ts
          ui/                               # Frontend/UI steps
            balance_steps.tsx
-   
+
    frontend/
      components/
        TransactionList.tsx
@@ -1148,7 +1237,8 @@ export const createOrder = async (req: Request, res: Response) => {
 #### Concept: One Feature File, Two Test Layers
 
 The same `.feature` file is used for BOTH:
-1. **Integration tests** (backend API testing)  
+
+1. **Integration tests** (backend API testing)
 2. **UI tests** (frontend browser testing)
 
 This ensures behavior consistency across layers and catches integration issues early.
@@ -1156,6 +1246,7 @@ This ensures behavior consistency across layers and catches integration issues e
 #### Example Structure:
 
 **Shared Feature File:** `features/balance/transaction-history.feature`
+
 ```gherkin
 # This file is used by BOTH backend integration tests AND frontend UI tests
 Feature: Transaction History
@@ -1204,19 +1295,20 @@ Feature: Transaction History
 #### Integration Step Definitions (Backend/API)
 
 **File:** `features/step-definitions/integration/balance_steps.ts`
+
 ```typescript
-import { Given, When, Then } from '@cucumber/cucumber';
-import request from 'supertest';
-import app from '../../../app';
-import { expect } from 'chai';
+import { Given, When, Then } from "@cucumber/cucumber";
+import request from "supertest";
+import app from "../../../app";
+import { expect } from "chai";
 
 // Background steps
-Given('I am logged in as a {string} user', async function(role: string) {
+Given("I am logged in as a {string} user", async function (role: string) {
   this.user = await createTestUser({ role });
   this.token = await generateAuthToken(this.user);
 });
 
-Given('I have the following transactions:', async function(dataTable) {
+Given("I have the following transactions:", async function (dataTable) {
   const transactions = dataTable.hashes();
   for (const tx of transactions) {
     await createTransaction({
@@ -1224,47 +1316,56 @@ Given('I have the following transactions:', async function(dataTable) {
       type: tx.type,
       amount: parseFloat(tx.amount),
       status: tx.status,
-      createdAt: new Date(tx.created_at)
+      createdAt: new Date(tx.created_at),
     });
   }
 });
 
 // When steps (API calls)
-When('I request my transaction history with limit {int}', async function(limit: number) {
-  this.response = await request(app)
-    .get(`/api/v1/balance/${this.user.id}/transactions`)
-    .query({ limit })
-    .set('Authorization', `Bearer ${this.token}`)
-    .expect(200);
-});
+When(
+  "I request my transaction history with limit {int}",
+  async function (limit: number) {
+    this.response = await request(app)
+      .get(`/api/v1/balance/${this.user.id}/transactions`)
+      .query({ limit })
+      .set("Authorization", `Bearer ${this.token}`)
+      .expect(200);
+  },
+);
 
-When('I request transactions filtered by type {string}', async function(type: string) {
-  this.response = await request(app)
-    .get(`/api/v1/balance/${this.user.id}/transactions`)
-    .query({ type })
-    .set('Authorization', `Bearer ${this.token}`)
-    .expect(200);
-});
+When(
+  "I request transactions filtered by type {string}",
+  async function (type: string) {
+    this.response = await request(app)
+      .get(`/api/v1/balance/${this.user.id}/transactions`)
+      .query({ type })
+      .set("Authorization", `Bearer ${this.token}`)
+      .expect(200);
+  },
+);
 
-When('I try to access transactions for user {string}', async function(otherUserId: string) {
-  this.response = await request(app)
-    .get(`/api/v1/balance/${otherUserId}/transactions`)
-    .set('Authorization', `Bearer ${this.token}`)
-    .send();
-});
+When(
+  "I try to access transactions for user {string}",
+  async function (otherUserId: string) {
+    this.response = await request(app)
+      .get(`/api/v1/balance/${otherUserId}/transactions`)
+      .set("Authorization", `Bearer ${this.token}`)
+      .send();
+  },
+);
 
 // Then steps (API assertions)
-Then('I should see {int} transactions', function(count: number) {
+Then("I should see {int} transactions", function (count: number) {
   expect(this.response.body.data.transactions).to.have.lengthOf(count);
 });
 
-Then('the first transaction should be from {string}', function(date: string) {
+Then("the first transaction should be from {string}", function (date: string) {
   const firstTx = this.response.body.data.transactions[0];
-  const txDate = new Date(firstTx.createdAt).toISOString().split('T')[0];
+  const txDate = new Date(firstTx.createdAt).toISOString().split("T")[0];
   expect(txDate).to.equal(date);
 });
 
-Then('I should receive a 403 Forbidden error', function() {
+Then("I should receive a 403 Forbidden error", function () {
   expect(this.response.status).to.equal(403);
 });
 ```
@@ -1272,6 +1373,7 @@ Then('I should receive a 403 Forbidden error', function() {
 #### UI Step Definitions (Frontend/Browser)
 
 **File:** `features/step-definitions/ui/balance_steps.tsx`
+
 ```typescript
 import { Given, When, Then } from '@cucumber/cucumber';
 import { render, screen, waitFor } from '@testing-library/react';
@@ -1293,12 +1395,12 @@ Given('I have the following transactions:', function(dataTable) {
     status: tx.status,
     createdAt: new Date(tx.created_at)
   }));
-  
+
   // Mock API response
   this.mockTransactions = transactions;
   setupMockAPI('/api/v1/balance/*/transactions', {
     success: true,
-    data: { 
+    data: {
       transactions: this.mockTransactions,
       pagination: { total: transactions.length, hasMore: false }
     }
@@ -1313,7 +1415,7 @@ When('I request my transaction history with limit {int}', async function(limit: 
       <TransactionHistory limit={limit} />
     </AuthContext.Provider>
   );
-  
+
   // Wait for API call to complete
   await waitFor(() => {
     expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
@@ -1334,13 +1436,13 @@ When('I try to access transactions for user {string}', async function(otherUserI
     status: 403,
     body: { error: 'Unauthorized access' }
   });
-  
+
   render(
     <AuthContext.Provider value={this.authContext}>
       <TransactionHistory userId={otherUserId} />
     </AuthContext.Provider>
   );
-  
+
   await waitFor(() => screen.getByText(/unauthorized/i));
 });
 
@@ -1363,7 +1465,7 @@ Then('after loading completes I should see my transactions', async function() {
 });
 
 Then('I should see {string} in the first earnings row', async function(expectedText: string) {
-  const earningsRow = await screen.findByText(/earnings/i).then(el => 
+  const earningsRow = await screen.findByText(/earnings/i).then(el =>
     el.closest('tr')
   );
   expect(earningsRow).to.contain.text(expectedText);
@@ -1379,6 +1481,7 @@ Then('I should see {string} message', async function(message: string) {
 ### BDD Testing Best Practices
 
 #### 1. Tag Scenarios for Selective Running
+
 ```gherkin
 @integration      # Run with backend integration tests
 @ui              # Run with frontend UI tests
@@ -1388,6 +1491,7 @@ Then('I should see {string} message', async function(message: string) {
 ```
 
 **Run specific tests:**
+
 ```bash
 # Backend integration only
 npm run test:bdd -- --tags '@integration and not @ui'
@@ -1400,6 +1504,7 @@ npm run test:bdd:all -- --tags '@security'
 ```
 
 #### 2. Shared Feature Files Location
+
 ```
 /features/               # Root-level shared features
   auth/
@@ -1418,6 +1523,7 @@ npm run test:bdd:all -- --tags '@security'
 #### 3. Running BDD Tests
 
 **package.json scripts:**
+
 ```json
 {
   "scripts": {
@@ -1440,13 +1546,14 @@ npm run test:bdd:all -- --tags '@security'
    - Bug fixes: MUST include regression test
 
 3. **Test File Structure**
+
    ```
    backend/
      services/
        orderService.ts
        __tests__/
          orderService.test.ts
-   
+
    frontend/
      components/
        OrderCard.tsx
@@ -1457,21 +1564,24 @@ npm run test:bdd:all -- --tags '@security'
 ### Testing Standards
 
 #### Backend Tests (Jest + Supertest)
+
 ```typescript
 // services/__tests__/orderService.test.ts
-import { createOrder } from '../orderService';
+import { createOrder } from "../orderService";
 
-describe('OrderService', () => {
-  describe('createOrder', () => {
-    it('should create order with valid data', async () => {
-      const orderData = { /* ... */ };
+describe("OrderService", () => {
+  describe("createOrder", () => {
+    it("should create order with valid data", async () => {
+      const orderData = {
+        /* ... */
+      };
       const result = await createOrder(orderData);
-      
-      expect(result).toHaveProperty('id');
-      expect(result.status).toBe('pending_bids');
+
+      expect(result).toHaveProperty("id");
+      expect(result.status).toBe("pending_bids");
     });
 
-    it('should throw error for invalid data', async () => {
+    it("should throw error for invalid data", async () => {
       await expect(createOrder({})).rejects.toThrow();
     });
   });
@@ -1479,6 +1589,7 @@ describe('OrderService', () => {
 ```
 
 #### Frontend Tests (Jest + React Testing Library)
+
 ```typescript
 // components/__tests__/OrderCard.test.tsx
 import { render, screen, fireEvent } from '@testing-library/react';
@@ -1488,14 +1599,14 @@ describe('OrderCard', () => {
   it('renders order details correctly', () => {
     const order = { id: '1', title: 'Test Order' };
     render(<OrderCard order={order} />);
-    
+
     expect(screen.getByText('Test Order')).toBeInTheDocument();
   });
 
   it('calls onAccept when accept button clicked', () => {
     const onAccept = jest.fn();
     render(<OrderCard order={order} onAccept={onAccept} />);
-    
+
     fireEvent.click(screen.getByText('Accept'));
     expect(onAccept).toHaveBeenCalledWith(order.id);
   });
@@ -1503,33 +1614,33 @@ describe('OrderCard', () => {
 ```
 
 #### API Integration Tests
+
 ```typescript
 // routes/__tests__/orders.test.ts
-import request from 'supertest';
-import app from '../../app';
+import request from "supertest";
+import app from "../../app";
 
-describe('POST /api/orders', () => {
-  it('creates order with authenticated user', async () => {
+describe("POST /api/orders", () => {
+  it("creates order with authenticated user", async () => {
     const response = await request(app)
-      .post('/api/orders')
-      .set('Authorization', `Bearer ${token}`)
+      .post("/api/orders")
+      .set("Authorization", `Bearer ${token}`)
       .send(orderData)
       .expect(201);
 
-    expect(response.body).toHaveProperty('id');
+    expect(response.body).toHaveProperty("id");
   });
 
-  it('returns 401 for unauthenticated request', async () => {
-    await request(app)
-      .post('/api/orders')
-      .send(orderData)
-      .expect(401);
+  it("returns 401 for unauthenticated request", async () => {
+    await request(app).post("/api/orders").send(orderData).expect(401);
   });
 });
 ```
 
 ### Test Checklist
+
 Before submitting any code:
+
 - [ ] Unit tests for new functions/methods
 - [ ] Integration tests for API endpoints
 - [ ] Component tests for UI changes
@@ -1543,6 +1654,7 @@ Before submitting any code:
 ## 📁 Project Structure Best Practices
 
 ### Backend Structure
+
 ```
 backend/
 ├── routes/           # Route definitions (thin controllers)
@@ -1557,6 +1669,7 @@ backend/
 ```
 
 ### Frontend Structure
+
 ```
 frontend/src/
 ├── components/       # React components
@@ -1576,22 +1689,26 @@ frontend/src/
 ## 🎨 Design System & Theming
 
 ### Matrix Theme Requirements
+
 **ALL UI components MUST use the Matrix cyberpunk/hacker theme.**
 
 ### Primary Style Files
+
 1. **`frontend/src/MatrixTheme.css`** - Main Matrix theme
 2. **`frontend/src/Mobile.css`** - Mobile-first responsive design
 3. **`frontend/src/index.css`** - Base styles
 
 ### Matrix Color Palette (CSS Variables)
+
 ```css
 --matrix-black: #000000;
---matrix-bright-green: #30FF30;
---matrix-green: #00FF00;
---matrix-border: #00AA00;
+--matrix-bright-green: #30ff30;
+--matrix-green: #00ff00;
+--matrix-border: #00aa00;
 ```
 
 ### Visual Requirements
+
 - Dark backgrounds (`var(--matrix-black)`)
 - Green text (`var(--matrix-bright-green)`)
 - Glow effects (`text-shadow: var(--shadow-glow)`)
@@ -1603,6 +1720,7 @@ frontend/src/
 ## 🤖 Agent Autonomous Operation Rules
 
 ### Command Execution Principles
+
 **ALWAYS operate autonomously unless at a decision crossroad:**
 
 1. **Auto-Run Safe Commands**
@@ -1622,35 +1740,43 @@ frontend/src/
 ### Available Reusable Tools
 
 #### Log Analysis
+
 ```bash
 node scripts/analyze-logs.js
 ```
+
 **Use instead of**: `Get-Content`, `Select-String`, `grep`
 **Purpose**: Analyze backend logs for errors and patterns
 
 #### Test Execution
+
 ```bash
 node scripts/run-statistics-tests.js
 ```
+
 **Use instead of**: Manual `jest` commands
 **Purpose**: Run test suites with proper configuration
 
 #### Server Management
+
 ```bash
 node scripts/start-dev.js   # Start development servers
 node scripts/stop-dev.js    # Stop development servers
 ```
+
 **Use instead of**: Manual `npm start` commands
 
 ### Tool Creation Guidelines
 
 **Create a new Node.js script when:**
+
 1. A task will be repeated 2+ times
 2. Shell commands become multi-step or complex
 3. The operation needs error handling/formatting
 4. Environment-specific logic is required
 
 **Script Requirements:**
+
 - Place in `scripts/` directory
 - Use descriptive names (e.g., `analyze-logs.js`, not `script1.js`)
 - Add shebang: `#!/usr/bin/env node`
@@ -1661,6 +1787,7 @@ node scripts/stop-dev.js    # Stop development servers
 ### Decision Making
 
 **Act autonomously on:**
+
 - Bug fixes with clear solutions
 - Test creation for fixed bugs
 - Log analysis and reporting
@@ -1669,6 +1796,7 @@ node scripts/stop-dev.js    # Stop development servers
 - Documentation updates
 
 **Ask user only when:**
+
 - Multiple valid approaches exist (crossroads)
 - Business logic decisions needed
 - Destructive operations required
@@ -1699,6 +1827,7 @@ run_command("node scripts/analyze-logs.js", SafeToAutoRun: true)
 ## ✅ Code Review Checklist
 
 Before committing ANY code:
+
 - [ ] Follows Single Responsibility Principle
 - [ ] File is < 300 lines (refactor if not)
 - [ ] Uses TypeScript for new code
@@ -1712,3 +1841,50 @@ Before committing ANY code:
 - [ ] Comments for complex logic
 - [ ] No console.logs in production code
 
+---
+
+## 🤖 Agent Context & Handoff Protocols (MANDATORY)
+
+**To ensure seamless collaboration between different AI agents and sessions, strictly follow these rules:**
+
+### 1. Maintain Context Files (CRITICAL)
+
+At the end of **EVERY** session or significant task completion, you **MUST** update the following files in the brain/artifact directory:
+
+#### `activity_log.md`
+
+- **Purpose**: A chronological record of actions taken, issues encountered, and decisions made.
+- **Format**: Bulleted list with timestamps (or relative order).
+- **Content**:
+  - What started (User Request)
+  - What was investigated (Findings)
+  - What was changed (Files modified)
+  - What was fixed/verified (outcomes)
+  - Non-obvious blockers or environment quirks discovered.
+
+#### `context.md`
+
+- **Purpose**: A snapshot of the _current state_ of the project relative to the active task.
+- **Content**:
+  - **Current Goal**: What is the main objective right now?
+  - **Recent Changes**: Summary of code changes.
+  - **Active Issues**: What is currently broken or pending?
+  - **Next Steps**: Explicit instructions for the next agent/session.
+  - **Environment Notes**: Any transient states (e.g., "DB is currently dirty", "Server running on port 5000").
+
+### 2. Handoff Procedure
+
+Before finishing your turn or reporting "Task Complete":
+
+1.  **Read** the current `context.md` (if it exists) to see what came before.
+2.  **Update** `activity_log.md` with your contributions.
+3.  **Overwrite/Update** `context.md` with the _new_ state, removing resolved issues and adding new ones.
+4.  **Verify** that a future agent reading `context.md` has enough info to resume work immediately without re-investigating everything.
+
+### 3. Artifact Usage
+
+- **task.md**: Keep the checklist up-to-date. Mark items as `[x]` only when verified.
+- **implementation_plan.md**: Create/update this _before_ making complex changes.
+- **walkthrough.md**: Update this _after_ verification to prove success.
+
+**FAILURE TO UPDATE THESE FILES LEADS TO MEMORY LOSS AND WASTED EFFORT.**

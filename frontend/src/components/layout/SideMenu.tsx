@@ -79,6 +79,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
             <div
                 className={`mobile-menu-backdrop ${isOpen ? 'open' : ''}`}
                 onClick={onClose}
+                data-testid="menu-backdrop"
                 style={{
                     position: 'fixed',
                     top: 0,
@@ -96,6 +97,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
             {/* Drawer */}
             <nav
                 className={`mobile-menu ${isOpen ? 'open' : ''}`}
+                data-testid="side-menu-drawer"
                 style={{
                     position: 'fixed',
                     top: 0,
@@ -328,6 +330,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
 
                             <button
                                 onClick={() => { onNavigate('bidding'); onClose(); }}
+                                data-testid="bidding-menu-btn"
                                 style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', fontSize: '1rem', borderRadius: '0.5rem', marginBottom: '0.5rem', transition: 'background 0.2s' }}
                                 onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
                                 onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
@@ -337,6 +340,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
 
                             <button
                                 onClick={() => { onNavigate('map'); onClose(); }}
+                                data-testid="map-menu-btn"
                                 style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', fontSize: '1rem', borderRadius: '0.5rem', marginBottom: '0.5rem', transition: 'background 0.2s' }}
                                 onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
                                 onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
@@ -346,6 +350,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
 
                             <button
                                 onClick={() => { onNavigate('my_bids'); onClose(); }}
+                                data-testid="my-bids-menu-btn"
                                 style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', fontSize: '1rem', borderRadius: '0.5rem', marginBottom: '0.5rem', transition: 'background 0.2s' }}
                                 onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
                                 onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
@@ -355,6 +360,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
 
                             <button
                                 onClick={() => { onNavigate('location_settings'); onClose(); }}
+                                data-testid="location-menu-btn"
                                 style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', fontSize: '1rem', borderRadius: '0.5rem', marginBottom: '0.5rem', transition: 'background 0.2s' }}
                                 onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
                                 onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
@@ -364,6 +370,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
 
                             <button
                                 onClick={() => { onNavigate('history'); onClose(); }}
+                                data-testid="history-menu-btn"
                                 style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', fontSize: '1rem', borderRadius: '0.5rem', marginBottom: '0.5rem', transition: 'background 0.2s' }}
                                 onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
                                 onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
@@ -381,6 +388,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
                             </h4>
                             <button
                                 onClick={onToggleOnline}
+                                data-testid="toggle-online-btn"
                                 style={{
                                     width: '100%',
                                     padding: '0.75rem',
