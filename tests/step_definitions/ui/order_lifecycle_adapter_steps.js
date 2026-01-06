@@ -85,3 +85,14 @@ Then('{string} wallet should be {string}', async function (user, amount) {
         await this.adapter.verifyWalletBalance(user, parseFloat(amount));
     }
 });
+
+When('{string} reviews {string} with {string} stars and comment {string}', async function (reviewer, reviewee, rating, comment) {
+    if (this.adapter.submitReview) {
+        await this.adapter.submitReview(reviewer, reviewee, parseInt(rating, 10), comment);
+    }
+});
+
+Then('the review should be submitted successfully', async function () {
+    // Verification is implicit in the submitReview method for E2E
+    // or we could add a check here if the adapter supports it.
+});

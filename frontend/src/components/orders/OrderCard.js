@@ -124,7 +124,7 @@ const OrderCard = ({
   };
 
   return (
-    <div className="order-card" style={{ border: '5px solid red' }}>
+    <div className="order-card" style={{ border: '5px solid red' }} data-testid={`order-card-${order.id}`}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
         <div>
           <h3 style={{
@@ -482,6 +482,7 @@ const OrderCard = ({
                 <button
                   onClick={() => onOpenReviewModal(order.id, 'customer_to_driver')}
                   className="btn-success"
+                  data-testid="review-driver-btn"
                   style={{ textShadow: '0 0 5px rgba(0, 0, 0, 0.5)' }}
                 >
                   ⭐ {t('reviews.reviewDriver')}
@@ -491,6 +492,7 @@ const OrderCard = ({
                 <button
                   onClick={() => onOpenReviewModal(order.id, 'driver_to_customer')}
                   className="btn-success"
+                  data-testid="review-customer-btn"
                   style={{ textShadow: '0 0 5px rgba(0, 0, 0, 0.5)' }}
                 >
                   ⭐ {t('reviews.reviewCustomer')}
@@ -499,6 +501,7 @@ const OrderCard = ({
               {!order.reviewStatus?.reviews.toPlatform && (
                 <button
                   onClick={() => onOpenReviewModal(order.id, `${currentUser?.primary_role}_to_platform`)}
+                  data-testid="review-platform-btn"
                   style={{
                     background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 50%, #6366F1 100%)',
                     color: '#FFFFFF',
