@@ -14,6 +14,10 @@ Before(async function () {
     // Create browser context
     this.context = await this.browser.newContext({
         viewport: { width: 1280, height: 720 },
+        // Grant geolocation permission to prevent browser blocking on location requests
+        permissions: ['geolocation'],
+        // Provide a default geolocation (Cairo, Egypt - center of service area)
+        geolocation: { latitude: 30.0444, longitude: 31.2357 },
         // Add any auth tokens or localStorage here if needed
     });
 

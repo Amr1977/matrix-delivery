@@ -52,6 +52,17 @@ const OrderCard = ({
 
   const handleBidSubmit = (e) => {
     e.preventDefault();
+
+    // Check for Upfront Payment Balance
+    const requiredUpfront = order.upfront_payment || order.upfrontPayment;
+    if ((order.require_upfront_payment || order.requireUpfrontPayment) && requiredUpfront) {
+      const userBalance = Number(currentUser?.balance || 0);
+      if (userBalance < Number(requiredUpfront)) {
+        alert(`Insufficient Balance! You need ${formatCurrency(requiredUpfront)} in your wallet to bid on this order.`);
+        return;
+      }
+    }
+
     if (bidInput[order.id]) {
       // Refresh location before submitting
       if (navigator.geolocation) {
@@ -431,6 +442,27 @@ const OrderCard = ({
             </p>
           </div>
         )}
+        {(order.require_upfront_payment || order.requireUpfrontPayment) && (
+          <div style={{ gridColumn: '1 / -1', background: 'rgba(239, 68, 68, 0.2)', padding: '0.5rem', borderRadius: '0.25rem', border: '1px solid rgba(239, 68, 68, 0.5)' }}>
+            <p style={{
+              fontSize: '0.75rem',
+              fontWeight: '600',
+              color: '#EF4444',
+              marginBottom: '0.25rem',
+              fontFamily: 'Consolas, Monaco, Courier New, monospace'
+            }}>
+              ⚠️ Upfront Payment Required
+            </p>
+            <p style={{
+              fontSize: '0.875rem',
+              color: '#FCA5A5',
+              fontFamily: 'Consolas, Monaco, Courier New, monospace',
+              fontWeight: 'bold'
+            }}>
+              {formatCurrency(order.upfront_payment || order.upfrontPayment)}
+            </p>
+          </div>
+        )}
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
@@ -697,6 +729,7 @@ const OrderCard = ({
             </p>
             <form onSubmit={handleBidSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.5rem' }}>
               <input
+                data-testid={`bid-amount-input-${order.id}`}
                 type="number"
                 placeholder="Bid Amount"
                 value={bidInput[order.id] || ''}
@@ -744,6 +777,7 @@ const OrderCard = ({
                 }}
               />
               <button
+                data-testid={`place-bid-btn-${order.id}`}
                 type="submit"
                 disabled={loadingStates.placeBid}
                 style={{
@@ -873,6 +907,7 @@ const OrderCard = ({
                     </div>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                       <button
+                        data-testid={`accept-bid-btn-${order.id}-${bid.userId}`}
                         onClick={() => onAcceptBid(order.id, bid.userId)}
                         disabled={loadingStates.acceptBid}
                         className="btn-success"
@@ -967,6 +1002,7 @@ const OrderCard = ({
           }}>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button
+                data-testid={`pickup-order-btn-${order.id}`}
                 onClick={() => onUpdateStatus(order.id, 'pickup')}
                 disabled={loadingStates.pickupOrder}
                 className="btn-success"
@@ -1003,6 +1039,7 @@ const OrderCard = ({
           }}>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button
+                data-testid={`in-transit-order-btn-${order.id}`}
                 onClick={() => onUpdateStatus(order.id, 'in-transit')}
                 disabled={loadingStates.updateInTransit}
                 style={{
@@ -1048,6 +1085,7 @@ const OrderCard = ({
           }}>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button
+                data-testid={`complete-order-btn-${order.id}`}
                 onClick={() => onUpdateStatus(order.id, 'complete')}
                 disabled={loadingStates.completeOrder}
                 className="btn-success"

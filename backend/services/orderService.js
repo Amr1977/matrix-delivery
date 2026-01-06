@@ -678,8 +678,9 @@ END as acceptedBid
   pickup_coordinates, delivery_coordinates, package_description, package_weight,
   estimated_value, special_instructions, price, status, order_number,
   pickup_contact_name, pickup_contact_phone, dropoff_contact_name, dropoff_contact_phone,
-  created_at, customer_name, estimated_delivery_date
-) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, NOW(), $26, $27)
+  created_at, customer_name, estimated_delivery_date,
+  require_upfront_payment, upfront_payment
+) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, NOW(), $26, $27, $28, $29)
 RETURNING * `;
 
     const result = await pool.query(queryText,
@@ -710,7 +711,9 @@ RETURNING * `;
         this.sanitizeString(dropoffContactName, 255),
         this.sanitizeString(dropoffContactPhone, 50),
         this.sanitizeString(customerName, 255),
-        estimated_delivery_date || null
+        estimated_delivery_date || null,
+        !!orderData.require_upfront_payment, // $28
+        orderData.upfront_payment ? parseFloat(orderData.upfront_payment) : null // $29
       ]
     );
 

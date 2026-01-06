@@ -126,6 +126,7 @@ process.on('unhandledRejection', async (reason, promise) => {
 
 // Setup before each scenario
 Before(async function ({ pickle }) {
+  console.log('[DEBUG] Before Hook Started for scenario:', pickle.name);
   // Launch browser for each scenario
   this.browser = await chromium.launch({
     headless: process.env.HEADLESS !== 'false',
@@ -136,6 +137,10 @@ Before(async function ({ pickle }) {
   this.context = await this.browser.newContext({
     viewport: { width: 1280, height: 720 },
     acceptDownloads: true,
+    // Grant geolocation permission to prevent browser blocking on location requests
+    permissions: ['geolocation'],
+    // Provide a default geolocation (Cairo, Egypt - center of service area)
+    geolocation: { latitude: 30.0444, longitude: 31.2357 },
     recordVideo: process.env.VIDEO === 'true' ? {
       dir: path.join(__dirname, '../../reports/videos'),
       size: { width: 1280, height: 720 }
@@ -143,6 +148,7 @@ Before(async function ({ pickle }) {
   });
 
   this.page = await this.context.newPage();
+  console.log('[DEBUG] Page created successfully:', !!this.page);
 
   // Set base URLs
   this.baseUrl = 'http://localhost:3000';

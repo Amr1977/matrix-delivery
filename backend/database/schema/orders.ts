@@ -58,6 +58,8 @@ export const ordersSchema: TableSchema = {
   alterStatements: [
     'ALTER TABLE orders ADD COLUMN IF NOT EXISTS pickup_coordinates JSONB',
     'ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_coordinates JSONB',
+    'ALTER TABLE orders ADD COLUMN IF NOT EXISTS require_upfront_payment BOOLEAN DEFAULT false',
+    'ALTER TABLE orders ADD COLUMN IF NOT EXISTS upfront_payment DECIMAL(10,2)',
     'ALTER TABLE orders ADD COLUMN IF NOT EXISTS pickup_location_link TEXT',
     'ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_location_link TEXT',
     'ALTER TABLE orders ADD COLUMN IF NOT EXISTS estimated_distance_km DECIMAL(10,2)',

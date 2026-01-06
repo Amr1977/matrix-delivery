@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import useAuth from '../hooks/useAuth';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import OrderCreationForm from '../updated-order-creation-form';
 import { useI18n } from '../i18n/i18nContext';
@@ -7,10 +8,26 @@ import { OrdersApi } from '../services/api';
 const CreateOrderPage = () => {
     const navigate = useNavigate();
     const { t } = useI18n();
+    const { currentUser, loading: authLoading } = useAuth();
     const [loading, setLoading] = useState(false);
+
+    // Redirect if not logged in
+    useEffect(() => {
+        if (!authLoading && !currentUser) {
+            navigate('/login');
+        }
+    }, [currentUser, authLoading, navigate]);
 
     // In App.js, countries seems to be initialized as [], so we replicate that here.
     const countries = [];
+
+    // Show loading state while checking auth
+    if (authLoading) {
+        return <div style={{ padding: '2rem', textAlign: 'center' }}>{t('common.loading', 'Loading...')}</div>;
+    }
+
+    // Don't render content if not logged in (will redirect)
+    if (!currentUser) return null;
 
     const handlePublishOrder = async (orderData) => {
         // Validation logic ported from App.js

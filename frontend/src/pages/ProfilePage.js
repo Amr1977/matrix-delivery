@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import RoleSwitcher from '../components/RoleSwitcher';
+import { formatCurrency } from '../utils/formatters';
 
 const ProfilePage = ({
     profileData,
@@ -260,6 +261,31 @@ const ProfilePage = ({
                         )}
                     </div>
                 </div>
+
+
+                {/* Financials Card (Drivers Only) */}
+                {(profileData.primary_role === 'driver' || (profileData.granted_roles && profileData.granted_roles.includes('driver'))) && (
+                    <div className="card" style={{ padding: '20px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                        <h3 style={{ marginTop: 0, color: '#A7F3D0', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '10px' }}>💰 Financials</h3>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '15px' }}>
+                            <div style={{ padding: '15px', borderRadius: '10px', background: 'rgba(0,0,0,0.2)', textAlign: 'center' }}>
+                                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#10B981' }}>
+                                    {formatCurrency(profileData.balance || 0)}
+                                </div>
+                                <div style={{ fontSize: '13px', color: '#9CA3AF', marginTop: '5px' }}>Cash in Hand</div>
+                            </div>
+                            <div style={{ padding: '15px', borderRadius: '10px', background: 'rgba(0,0,0,0.2)', textAlign: 'center' }}>
+                                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#60A5FA' }}>
+                                    {profileData.commission_rate || 10}%
+                                </div>
+                                <div style={{ fontSize: '13px', color: '#9CA3AF', marginTop: '5px' }}>Platform Fee</div>
+                            </div>
+                        </div>
+                        <div style={{ marginTop: '15px', fontSize: '12px', color: '#6B7280', fontStyle: 'italic' }}>
+                            * You must have enough balance to cover upfront payments for cash orders.
+                        </div>
+                    </div>
+                )}
 
                 {/* Profile Details Form */}
                 <div className="card" style={{ padding: '20px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>

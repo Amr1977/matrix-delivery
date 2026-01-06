@@ -1,4 +1,4 @@
-@order_creation
+@order_creation @ui
 Feature: Order Creation E2E
   As a customer
   I want to create delivery orders through the UI

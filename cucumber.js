@@ -54,8 +54,9 @@ module.exports = {
 
   'core': {
     require: [
-      'tests/steps/core/step_definitions.js',
-      'tests/support/world.js'
+      'tests/step_definitions/ui/order_lifecycle_adapter_steps.js',
+      'tests/support/world.js',
+      'tests/support/hooks.js'
     ],
     format: ['summary', 'json:test-results.json'],
     paths: ['tests/features/core/**/*.feature']

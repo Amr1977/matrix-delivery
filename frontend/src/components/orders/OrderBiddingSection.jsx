@@ -214,6 +214,7 @@ const OrderBiddingSection = ({
             <p style={{ fontWeight: '600', marginBottom: '0.75rem', fontSize: '0.875rem' }}>{t('orders.placeYourBid')}</p>
             <div className="bid-inputs" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '0.5rem' }}>
                 <input
+                    data-testid={`bid-amount-input-${order.id}`}
                     type="number"
                     placeholder={t('driver.bidAmount')}
                     value={bidInput[order.id] || ''}
@@ -246,6 +247,7 @@ const OrderBiddingSection = ({
                     style={{ flex: 1, padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
                 />
                 <button
+                    data-testid={`place-bid-btn-${order.id}`}
                     onClick={() => handleBidOnOrder(order.id)}
                     disabled={loadingStates.placeBid}
                     style={{ padding: '0.5rem 1rem', background: '#4F46E5', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: loadingStates.placeBid ? 'not-allowed' : 'pointer', fontWeight: '600', opacity: loadingStates.placeBid ? 0.5 : 1 }}

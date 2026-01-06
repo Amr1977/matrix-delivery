@@ -140,11 +140,11 @@ class BalanceService {
                 [userId]
             );
             if (retry.rows.length === 0) throw new Error(`Balance not found for user ${userId}`);
-            return { ...retry.rows[0], availableBalance: parseFloat(retry.rows[0].available_balance) };
+            return { ...retry.rows[0], availableBalance: parseFloat(retry.rows[0].available_balance || 0) };
         }
         return {
             ...result.rows[0],
-            availableBalance: parseFloat(result.rows[0].available_balance),
+            availableBalance: parseFloat(result.rows[0].available_balance || 0),
             currency: result.rows[0].currency,
             isFrozen: result.rows[0].is_frozen
         };
@@ -161,7 +161,7 @@ class BalanceService {
          `;
         const res = await client.query(query, [
             data.userId, txId, data.type, data.amount, data.currency,
-            data.balanceBefore, data.balanceAfter, data.status,
+            data.balanceBefore ?? 0, data.balanceAfter ?? 0, data.status,
             data.description, data.orderId
         ]);
         return { ...data, transactionId: res.rows[0]?.transaction_id || txId };
