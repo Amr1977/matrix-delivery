@@ -101,10 +101,9 @@ app.use('/api/admin', require('./routes/admin'));
 app.use('/uploads', require('./routes/uploads'));
 
 // Load API v1 routes (skip in test mode due to TS issues)
-if (!IS_TEST) {
-  const v1Routes = require('./routes/v1');
-  app.use('/api/v1', v1Routes);
-}
+// Load API v1 routes
+const v1Routes = require('./routes/v1');
+app.use('/api/v1', v1Routes);
 
 app.use('/api/reviews', reviewsRouter);
 

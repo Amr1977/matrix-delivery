@@ -154,6 +154,7 @@ class OrderService {
     let query;
     let params = [];
     let locationConditions = '';
+    let usePostGIS = false;
 
     if (userRole === 'customer') {
       // Customers see their own orders
@@ -241,7 +242,7 @@ END as acceptedBid,
       // Reset location conditions for driver
       locationConditions = '';
       const filterParams = [];
-      let usePostGIS = false;
+      // usePostGIS initialized at function scope
 
       // Distance-based filtering - try PostGIS first, fallback to geolib
       if (filters.driverLat !== undefined && filters.driverLng !== undefined && !isNaN(filters.driverLat) && !isNaN(filters.driverLng)) {

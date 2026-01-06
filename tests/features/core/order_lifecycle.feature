@@ -22,12 +22,15 @@ Feature: Core Order Lifecycle
     # 3. Acceptance
     When "Alice" accepts the bid from "Bob"
     Then the order status should be "ACCEPTED"
-    And "Bob" should see the order in their "Accepted" list
+    And "Bob" should see the order in their "Active" list
 
     # 4. Fulfillment
     When "Bob" picks up the order
     Then the order status should be "IN_TRANSIT"
 
     When "Bob" delivers the order
+    Then the order status should be "DELIVERED_PENDING"
+
+    When "Alice" confirms the delivery
     Then the order status should be "DELIVERED"
     And "Bob" wallet should be credited with "45.00" less commission

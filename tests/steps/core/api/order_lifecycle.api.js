@@ -207,7 +207,7 @@ class ApiAdapter extends OrderLifecycleAdapter {
         if (status === 'accepted') return 'ACCEPTED';
         if (status === 'picked_up') return 'IN_TRANSIT';
         if (status === 'delivered') return 'DELIVERED';
-        if (status === 'delivered_pending') return 'DELIVERED'; // Pending customer confirmation = delivered from test perspective
+        if (status === 'delivered_pending') return 'DELIVERED_PENDING';
         if (status === 'in_transit') return 'IN_TRANSIT';
         return status.toUpperCase();
     }
@@ -245,6 +245,17 @@ class ApiAdapter extends OrderLifecycleAdapter {
             .send({});
 
         if (res.status >= 400) throw new Error(`Failed to deliver: ${JSON.stringify(res.body)}`);
+    }
+
+    async confirmOrderDelivery(orderId, customer) {
+        const agent = this.users[customer].agent;
+        const id = orderId || this.currentOrder.id;
+
+        const res = await agent
+            .post(`/api/orders/${id}/confirm_delivery`)
+            .send({});
+
+        if (res.status >= 400) throw new Error(`Failed to confirm delivery: ${JSON.stringify(res.body)}`);
     }
 
     async verifyWalletBalance(user, amount) {
