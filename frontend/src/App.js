@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useI18n } from './i18n/i18nContext';
 import LanguageSwitcher from './LanguageSwitcher';
 import AdminPanel from './AdminPanel';
@@ -62,7 +62,17 @@ export const MainApp = () => {
 
   // Fixed: LiveTrackingMap component moved outside DeliveryApp function for proper scoping
   // State variables
-  const [authState, setAuthState] = useState('login');
+  const location = useLocation();
+  const [authState, setAuthState] = useState(location.pathname === '/register' ? 'register' : 'login');
+
+  // Sync authState with URL changes
+  useEffect(() => {
+    if (location.pathname === '/register') {
+      setAuthState('register');
+    } else if (location.pathname === '/login') {
+      setAuthState('login');
+    }
+  }, [location.pathname]);
   const [token, setToken] = useState(null); // Remove localStorage - tokens are in httpOnly cookies
   const [authChecking, setAuthChecking] = useState(true); // Track initial auth check
   const [currentUser, setCurrentUser] = useState(null);
@@ -1713,6 +1723,7 @@ export const MainApp = () => {
                 <>
                   <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1F2937' }}>{t('auth.signIn')}</h2>
                   <input
+                    data-testid="email-input"
                     type="email"
                     placeholder={t('auth.email')}
                     value={authForm.email}
@@ -1721,6 +1732,7 @@ export const MainApp = () => {
                   />
                   <div style={{ position: 'relative', width: '100%' }}>
                     <input
+                      data-testid="password-input"
                       type={showPassword ? 'text' : 'password'}
                       placeholder={t('auth.password')}
                       value={authForm.password}
@@ -1749,6 +1761,7 @@ export const MainApp = () => {
                     </div>
                   )}
                   <button
+                    data-testid="login-submit-btn"
                     onClick={handleLogin}
                     disabled={loading}
                     style={{ width: '100%', background: '#4F46E5', color: 'white', padding: '0.5rem', borderRadius: '0.5rem', fontWeight: '600', border: 'none', cursor: 'pointer', opacity: loading ? 0.5 : 1 }}
@@ -1769,6 +1782,7 @@ export const MainApp = () => {
                 <>
                   <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1F2937' }}>{t('auth.createAccount')}</h2>
                   <input
+                    data-testid="name-input"
                     type="text"
                     placeholder={t('auth.fullName')}
                     value={authForm.name}
@@ -1776,6 +1790,7 @@ export const MainApp = () => {
                     style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
                   />
                   <input
+                    data-testid="email-input"
                     type="email"
                     placeholder={t('auth.email')}
                     value={authForm.email}
@@ -1783,6 +1798,7 @@ export const MainApp = () => {
                     style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
                   />
                   <input
+                    data-testid="phone-input"
                     type="tel"
                     placeholder={t('auth.phoneNumber')}
                     value={authForm.phone}
@@ -1791,6 +1807,7 @@ export const MainApp = () => {
                   />
                   <div style={{ position: 'relative', width: '100%' }}>
                     <input
+                      data-testid="password-input"
                       type={showPassword ? 'text' : 'password'}
                       placeholder={t('auth.password')}
                       value={authForm.password}
@@ -1811,6 +1828,7 @@ export const MainApp = () => {
                     </button>
                   </div>
                   <select
+                    data-testid="role-select"
                     value={authForm.primary_role}
                     onChange={(e) => setAuthForm({ ...authForm, primary_role: e.target.value })}
                     style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
@@ -1820,6 +1838,7 @@ export const MainApp = () => {
                   </select>
                   {authForm.primary_role === 'driver' && (
                     <select
+                      data-testid="vehicle-type-select"
                       value={authForm.vehicle_type}
                       onChange={(e) => setAuthForm({ ...authForm, vehicle_type: e.target.value })}
                       style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
@@ -1835,6 +1854,7 @@ export const MainApp = () => {
                   {/* Location Fields */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
                     <input
+                      data-testid="country-input"
                       type="text"
                       placeholder={t('orders.selectCountry')}
                       value={authForm.country}
@@ -1842,6 +1862,7 @@ export const MainApp = () => {
                       style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
                     />
                     <input
+                      data-testid="city-input"
                       type="text"
                       placeholder={t('orders.city')}
                       value={authForm.city}
@@ -1850,6 +1871,7 @@ export const MainApp = () => {
                     />
                   </div>
                   <input
+                    data-testid="area-input"
                     type="text"
                     placeholder={t('orders.area')}
                     value={authForm.area}
@@ -1865,6 +1887,7 @@ export const MainApp = () => {
                     </div>
                   )}
                   <button
+                    data-testid="register-submit-btn"
                     onClick={handleRegister}
                     disabled={loading}
                     style={{ width: '100%', background: '#4F46E5', color: 'white', padding: '0.5rem', borderRadius: '0.5rem', fontWeight: '600', border: 'none', cursor: 'pointer', opacity: loading ? 0.5 : 1 }}

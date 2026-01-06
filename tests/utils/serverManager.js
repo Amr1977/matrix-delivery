@@ -77,6 +77,8 @@ class ServerManager {
           HOST: 'localhost',
           BROWSER: 'none',
           REACT_APP_API_URL: `${this.backendUrl}/api`,
+          REACT_APP_RECAPTCHA_SITE_KEY: '',
+          REACT_APP_RECAPTCHA_SECRET_KEY: '',
           NODE_OPTIONS: '--max-old-space-size=4096'
         }
       });

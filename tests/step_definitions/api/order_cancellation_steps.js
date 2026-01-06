@@ -47,36 +47,39 @@ After({ tags: '@order_cancellation' }, async function () {
 
 // Steps
 
-Given('the platform is ready', function () {
-    // No-op, platform assumed ready
-});
+// COMMENTED: Conflicts with order_lifecycle_adapter_steps.js
+// Given('the platform is ready', function () {
+//     // No-op, platform assumed ready
+// });
 
-Given('a customer {string} exists', async function (name) {
-    const email = `${name.toLowerCase()}@test.com`;
-    // Create user
-    const result = await pool.query(
-        `INSERT INTO users (id, name, email, password_hash, primary_role, is_verified)
-         VALUES ($1, $2, $3, $4, $5, $6)
-         ON CONFLICT (email) DO UPDATE SET name = $2
-         RETURNING *`,
-        [`user-${name}`, name, email, await bcrypt.hash('password', 10), 'customer', true]
-    );
-    world.users[name] = result.rows[0];
-    world.tokens[name] = createTestToken(result.rows[0].id, 'customer');
-});
+// COMMENTED: Conflicts with order_lifecycle_adapter_steps.js
+// Given('a customer {string} exists', async function (name) {
+//     const email = `${name.toLowerCase()}@test.com`;
+//     // Create user
+//     const result = await pool.query(
+//         `INSERT INTO users (id, name, email, password_hash, primary_role, is_verified)
+//          VALUES ($1, $2, $3, $4, $5, $6)
+//          ON CONFLICT (email) DO UPDATE SET name = $2
+//          RETURNING *`,
+//         [`user-${name}`, name, email, await bcrypt.hash('password', 10), 'customer', true]
+//     );
+//     world.users[name] = result.rows[0];
+//     world.tokens[name] = createTestToken(result.rows[0].id, 'customer');
+// });
 
-Given('a driver {string} exists', async function (name) {
-    const email = `${name.toLowerCase()}@test.com`;
-    const result = await pool.query(
-        `INSERT INTO users (id, name, email, password_hash, primary_role, is_verified)
-         VALUES ($1, $2, $3, $4, $5, $6)
-         ON CONFLICT (email) DO UPDATE SET name = $2
-         RETURNING *`,
-        [`user-${name}`, name, email, await bcrypt.hash('password', 10), 'driver', true]
-    );
-    world.users[name] = result.rows[0];
-    world.tokens[name] = createTestToken(result.rows[0].id, 'driver');
-});
+// COMMENTED: Conflicts with order_lifecycle_adapter_steps.js
+// Given('a driver {string} exists', async function (name) {
+//     const email = `${name.toLowerCase()}@test.com`;
+//     const result = await pool.query(
+//         `INSERT INTO users (id, name, email, password_hash, primary_role, is_verified)
+//          VALUES ($1, $2, $3, $4, $5, $6)
+//          ON CONFLICT (email) DO UPDATE SET name = $2
+//          RETURNING *`,
+//         [`user-${name}`, name, email, await bcrypt.hash('password', 10), 'driver', true]
+//     );
+//     world.users[name] = result.rows[0];
+//     world.tokens[name] = createTestToken(result.rows[0].id, 'driver');
+// });
 
 Given('a driver {string} exists with location {string}', async function (name, location) {
     // For now, location logic is handled in discovery tests, simplified here
@@ -92,7 +95,7 @@ Given('a registered admin user exists', async function () {
          RETURNING *`,
         ['user-admin', 'Admin', 'admin@test.com', await bcrypt.hash('password', 10), 'admin', true]
     );
-    world.users['Admin'] = result.rows[0] || (await pool.query("SELECT * FROM users WHERE email='admin@test.com'")).rows[0];
+    world.users['Admin'] = result.rows[0] || (await pool.query('SELECT * FROM users WHERE email=\'admin@test.com\'')).rows[0];
     world.tokens['Admin'] = createTestToken(world.users['Admin'].id, 'admin');
 });
 
@@ -117,7 +120,7 @@ Given('the order status is {string}', async function (status) {
     // If we need to force update status for setup
     const lastOrder = Object.values(world.orders)[Object.values(world.orders).length - 1];
     if (status !== 'pending_bids') {
-        await pool.query("UPDATE orders SET status = $1 WHERE id = $2", [status, lastOrder.id]);
+        await pool.query('UPDATE orders SET status = $1 WHERE id = $2', [status, lastOrder.id]);
         lastOrder.status = status;
     }
 });
@@ -172,35 +175,36 @@ When('an admin cancels the order {string} with reason {string}', async function 
         .send({ cancellation_reason: reason });
 });
 
-Then('the order status should be {string}', async function (expectedStatus) {
-    expect(world.response.status).to.be.oneOf([200, 201]);
-
-    // Verify in DB
-    // We need to know which order. Assuming the last acted upon order.
-    // Or parse ID from response if available.
-    // Or use the cancelled order from context.
-
-    // Let's assume response might return the updated order or message.
-    // We check the DB directly for the order we cancelled.
-    // Which order? "Documents Delivery" or "Urgent Package".
-    // We can iterate all created orders and check.
-
-    // Better: check the order that was targeted in 'When'
-    // Since 'When' step doesn't store target, we rely on world.orders
-    // Check all orders in world.orders to see if the relevant one is cancelled.
-
-    for (const title in world.orders) {
-        const orderId = world.orders[title].id;
-        const res = await pool.query("SELECT status FROM orders WHERE id = $1", [orderId]);
-        if (res.rows[0].status === expectedStatus) {
-            return; // Found match
-        }
-    }
-
-    // If we are here, strict check on the last modified order
-    // Actually, let's just assert on the last order we worked with.
-    // Refine: Save `currentOrderId` in world in Given steps.
-});
+// COMMENTED: Conflicts with order_lifecycle_adapter_steps.js
+// Then('the order status should be {string}', async function (expectedStatus) {
+//     expect(world.response.status).to.be.oneOf([200, 201]);
+//
+//     // Verify in DB
+//     // We need to know which order. Assuming the last acted upon order.
+//     // Or parse ID from response if available.
+//     // Or use the cancelled order from context.
+//
+//     // Let's assume response might return the updated order or message.
+//     // We check the DB directly for the order we cancelled.
+//     // Which order? "Documents Delivery" or "Urgent Package".
+//     // We can iterate all created orders and check.
+//
+//     // Better: check the order that was targeted in 'When'
+//     // Since 'When' step doesn't store target, we rely on world.orders
+//     // Check all orders in world.orders to see if the relevant one is cancelled.
+//
+//     for (const title in world.orders) {
+//         const orderId = world.orders[title].id;
+//         const res = await pool.query("SELECT status FROM orders WHERE id = $1", [orderId]);
+//         if (res.rows[0].status === expectedStatus) {
+//             return; // Found match
+//         }
+//     }
+//
+//     // If we are here, strict check on the last modified order
+//     // Actually, let's just assert on the last order we worked with.
+//     // Refine: Save `currentOrderId` in world in Given steps.
+// });
 
 Then('no refunds should be processed', function () {
     // Current implementation doesn't handle payments yet, so this is trivially true or we check logs/db
@@ -211,7 +215,7 @@ Then('{string} should receive a cancellation notification', async function (user
     const user = world.users[userName];
     // Check notifications table
     const res = await pool.query(
-        "SELECT * FROM notifications WHERE user_id = $1 AND (type = 'order_cancelled' OR type = 'order_cancel')",
+        'SELECT * FROM notifications WHERE user_id = $1 AND (type = \'order_cancelled\' OR type = \'order_cancel\')',
         [user.id]
     );
     expect(res.rows.length).to.be.greaterThan(0);
@@ -220,7 +224,7 @@ Then('{string} should receive a cancellation notification', async function (user
 Then('{string} should receive a cancellation notification with the reason', async function (userName) {
     const user = world.users[userName];
     const res = await pool.query(
-        "SELECT * FROM notifications WHERE user_id = $1 AND type = 'admin_cancellation'",
+        'SELECT * FROM notifications WHERE user_id = $1 AND type = \'admin_cancellation\'',
         [user.id]
     );
     expect(res.rows.length).to.be.greaterThan(0);
@@ -240,7 +244,7 @@ When('{string} withdraws from order {string}', async function (driverName, order
 Then('{string} should receive a notification about the driver withdrawal', async function (customerName) {
     const user = world.users[customerName];
     const res = await pool.query(
-        "SELECT * FROM notifications WHERE user_id = $1 AND type = 'driver_withdrawal'",
+        'SELECT * FROM notifications WHERE user_id = $1 AND type = \'driver_withdrawal\'',
         [user.id]
     );
     expect(res.rows.length).to.be.greaterThan(0);
@@ -288,7 +292,7 @@ Then('the order status should still be {string}', async function (status) {
     // Check DB
     for (const title in world.orders) {
         const orderId = world.orders[title].id;
-        const res = await pool.query("SELECT status FROM orders WHERE id = $1", [orderId]);
+        const res = await pool.query('SELECT status FROM orders WHERE id = $1', [orderId]);
         // Logic check
     }
 });

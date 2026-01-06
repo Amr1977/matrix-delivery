@@ -112,6 +112,8 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
     package_description: '',
     package_weight: '',
     estimated_value: '',
+    require_upfront_payment: false,
+    upfront_payment: '', // Amount driver needs to pay
     special_instructions: '',
     estimated_delivery_date: ''
   });
@@ -162,6 +164,39 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // TEST MODE: Expose function for E2E tests to set coordinates
+  // Always expose on localhost to support E2E testing
+  useEffect(() => {
+    const isTestMode = process.env.NODE_ENV === 'test' ||
+      process.env.NODE_ENV === 'testing' ||
+      window.location.hostname === 'localhost';
+
+    if (isTestMode) {
+      window.setOrderCoordinates = (pickup, delivery) => {
+        console.log('🧪 TEST MODE: Setting coordinates via window.setOrderCoordinates');
+        if (pickup) {
+          setPickupLocation({
+            coordinates: pickup.coordinates || pickup,
+            displayName: pickup.displayName || `Test Pickup Location`,
+            locationLink: pickup.locationLink || ''
+          });
+        }
+        if (delivery) {
+          setDropoffLocation({
+            coordinates: delivery.coordinates || delivery,
+            displayName: delivery.displayName || `Test Delivery Location`,
+            locationLink: delivery.locationLink || ''
+          });
+        }
+      };
+
+      // Cleanup on unmount
+      return () => {
+        delete window.setOrderCoordinates;
+      };
+    }
   }, []);
 
   // Get user location on mount
@@ -374,6 +409,7 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
                   📝 {t('orders.title')} *
                 </label>
                 <input
+                  data-testid="order-title"
                   type="text"
                   value={orderData.title}
                   onChange={(e) => setOrderData({ ...orderData, title: e.target.value })}
@@ -406,6 +442,7 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
                   💰 {t('orders.price')} (USD) *
                 </label>
                 <input
+                  data-testid="order-price"
                   type="number"
                   value={orderData.price}
                   onChange={(e) => setOrderData({ ...orderData, price: e.target.value })}
@@ -440,6 +477,7 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
                   📄 {t('orders.description')}
                 </label>
                 <textarea
+                  data-testid="order-description"
                   value={orderData.description}
                   onChange={(e) => setOrderData({ ...orderData, description: e.target.value })}
                   placeholder="Brief description of the delivery..."
@@ -661,6 +699,71 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
                     outline: 'none'
                   }}
                 />
+              </div>
+
+              <div style={{ gridColumn: '1 / -1' }}>
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
+                  <input
+                    data-testid="require-upfront-payment"
+                    type="checkbox"
+                    id="require_upfront_payment"
+                    checked={orderData.require_upfront_payment}
+                    onChange={(e) => setOrderData({ ...orderData, require_upfront_payment: e.target.checked })}
+                    style={{
+                      marginRight: '0.5rem',
+                      width: '1.25rem',
+                      height: '1.25rem',
+                      cursor: 'pointer',
+                      accentColor: '#00AA00'
+                    }}
+                  />
+                  <label htmlFor="require_upfront_payment" style={{
+                    fontSize: '0.875rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    color: '#30FF30',
+                    textShadow: '0 0 5px #30FF30'
+                  }}>
+                    💸 {t('orders.requireUpfrontPayment')} (Driver pays at pickup)
+                  </label>
+                </div>
+
+                {orderData.require_upfront_payment && (
+                  <div style={{ marginLeft: '1.75rem', marginBottom: '1rem' }}>
+                    <label style={{
+                      display: 'block',
+                      fontSize: '0.75rem',
+                      fontWeight: '600',
+                      marginBottom: '0.5rem',
+                      color: '#30FF30',
+                      textShadow: '0 0 5px #30FF30'
+                    }}>
+                      💵 {t('orders.upfrontAmount')} (USD) *
+                    </label>
+                    <input
+                      data-testid="upfront-payment-amount"
+                      type="number"
+                      value={orderData.upfront_payment}
+                      onChange={(e) => setOrderData({ ...orderData, upfront_payment: e.target.value })}
+                      placeholder="e.g., 50"
+                      min="0"
+                      step="0.01"
+                      required={orderData.require_upfront_payment}
+                      style={{
+                        width: '100%',
+                        height: '44px',
+                        background: 'rgba(0, 17, 0, 0.8)',
+                        color: '#30FF30',
+                        border: '2px solid #00AA00',
+                        borderRadius: '0.375rem',
+                        fontSize: '0.875rem',
+                        fontFamily: 'Consolas, Monaco, Courier New, monospace',
+                        padding: '0.375rem 0.5rem',
+                        outline: 'none'
+                      }}
+                    />
+                  </div>
+                )}
               </div>
 
               <div style={{ gridColumn: '1 / -1' }}>
@@ -2258,6 +2361,7 @@ const LocationEntryCombined = ({
               🌍 {t('orders.country')} *
             </label>
             <input
+              data-testid={`${locationType}-country`}
               type="text"
               value={addressData.country || ''}
               onChange={(e) => onAddressChange({ ...addressData, country: e.target.value })}
@@ -2290,6 +2394,7 @@ const LocationEntryCombined = ({
               🏙️ {t('orders.city')} *
             </label>
             <input
+              data-testid={`${locationType}-city`}
               type="text"
               value={addressData.city || ''}
               onChange={(e) => onAddressChange({ ...addressData, city: e.target.value })}
@@ -2322,6 +2427,7 @@ const LocationEntryCombined = ({
               🏘️ {t('orders.area')} *
             </label>
             <input
+              data-testid={`${locationType}-area`}
               type="text"
               value={addressData.area || ''}
               onChange={(e) => onAddressChange({ ...addressData, area: e.target.value })}
@@ -2354,6 +2460,7 @@ const LocationEntryCombined = ({
               🛣️ {t('orders.street')} *
             </label>
             <input
+              data-testid={`${locationType}-street`}
               type="text"
               value={addressData.street || ''}
               onChange={(e) => onAddressChange({ ...addressData, street: e.target.value })}
@@ -2387,6 +2494,7 @@ const LocationEntryCombined = ({
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '0.5rem' }}>
               <input
+                data-testid={`${locationType}-building`}
                 type="text"
                 value={addressData.building || ''}
                 onChange={(e) => onAddressChange({ ...addressData, building: e.target.value })}
@@ -2406,6 +2514,7 @@ const LocationEntryCombined = ({
                 required
               />
               <input
+                data-testid={`${locationType}-floor`}
                 type="text"
                 value={addressData.floor || ''}
                 onChange={(e) => onAddressChange({ ...addressData, floor: e.target.value })}
@@ -2424,6 +2533,7 @@ const LocationEntryCombined = ({
                 }}
               />
               <input
+                data-testid={`${locationType}-apartment`}
                 type="text"
                 value={addressData.apartment || ''}
                 onChange={(e) => onAddressChange({ ...addressData, apartment: e.target.value })}
@@ -2456,6 +2566,7 @@ const LocationEntryCombined = ({
               👤 {t('orders.contactName')} *
             </label>
             <input
+              data-testid={`${locationType}-contact-name`}
               type="text"
               value={addressData.personName || ''}
               onChange={(e) => onAddressChange({ ...addressData, personName: e.target.value })}
@@ -2487,6 +2598,7 @@ const LocationEntryCombined = ({
               ☎️ {t('orders.contactPhone')} *
             </label>
             <input
+              data-testid={`${locationType}-contact-phone`}
               type="tel"
               value={addressData.personPhone || ''}
               onChange={(e) => onAddressChange({ ...addressData, personPhone: e.target.value })}

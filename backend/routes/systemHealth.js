@@ -26,7 +26,7 @@ const getSystemMetrics = () => {
 
         try {
             // Try free -m first (Linux)
-            const memInfo = execSync('free -m', { encoding: 'utf8', timeout: 5000 });
+            const memInfo = execSync('free -m', { encoding: 'utf8', timeout: 5000, stdio: 'pipe' });
             const lines = memInfo.split('\n');
             const memLine = lines.find(l => l.startsWith('Mem:'));
             if (memLine) {
