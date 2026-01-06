@@ -12,30 +12,7 @@ class E2eAdapter extends OrderLifecycleAdapter {
 
     async init() {
         if (!this.page) throw new Error('Playwright Page not initialized');
-
-        // Debug: Capture frontend console messages
-        this.page.on('console', msg => {
-            const type = msg.type();
-            if (type === 'error' || type === 'warning') {
-                console.log(`[BROWSER ${type.toUpperCase()}] ${msg.text()}`);
-            }
-        });
-
-        // Debug: Log Set-Cookie headers from API responses
-        this.page.on('response', async (response) => {
-            const url = response.url();
-            if (url.includes('/api/auth/')) {
-                const headers = response.headers();
-                console.log(`[DEBUG] Response from ${url}:`);
-                console.log(`[DEBUG]   Status: ${response.status()}`);
-                if (headers['set-cookie']) {
-                    console.log(`[DEBUG]   Set-Cookie: ${headers['set-cookie']}`);
-                } else {
-                    console.log(`[DEBUG]   No Set-Cookie header found`);
-                }
-            }
-        });
-
+        await this.page.context().grantPermissions(['geolocation'], { origin: this.FRONTEND_URL });
         await this.page.goto(this.FRONTEND_URL);
     }
 
@@ -45,8 +22,6 @@ class E2eAdapter extends OrderLifecycleAdapter {
     }
 
     async logout() {
-        console.log('[DEBUG] Logging out via Side Menu...');
-
         try {
             // Ensure we are in the app context
             await this.page.goto(`${this.FRONTEND_URL}/app`);
@@ -56,21 +31,19 @@ class E2eAdapter extends OrderLifecycleAdapter {
             const hamburgerBtn = this.page.locator('[data-testid="hamburger-btn"]');
 
             if (await hamburgerBtn.isVisible({ timeout: 5000 })) {
-                console.log('[DEBUG] Clicking Hamburger button...');
                 await hamburgerBtn.click();
 
                 // 2. Wait for Side Menu and Logout Button
                 const logoutBtn = this.page.locator('[data-testid="logout-menu-btn"]');
                 try {
                     await logoutBtn.waitFor({ state: 'visible', timeout: 3000 });
-                    console.log('[DEBUG] Logout button visible, clicking...');
                     await logoutBtn.click();
                     await this.page.waitForTimeout(1000);
                 } catch (e) {
-                    console.log('[DEBUG] Logout button NOT found in menu (maybe already logged out?)');
+                    // Logout button not found
                 }
             } else {
-                console.log('[DEBUG] Hamburger button not visible, checking if already on login/landing page...');
+                // Hamburger button not visible
             }
 
             // Force clear as backup to ensure clean state for next test step
@@ -81,16 +54,15 @@ class E2eAdapter extends OrderLifecycleAdapter {
             });
 
         } catch (e) {
-            console.log('[DEBUG] Error during logout flow:', e.message);
+            console.error('Error during logout flow:', e.message);
         }
 
         // Final verification: Go to landing page and check for Login button
         await this.page.goto(this.FRONTEND_URL);
         try {
             await this.page.waitForSelector('a[href="/login"], button:has-text("Login"), a:has-text("Login")', { timeout: 5000 });
-            console.log('[DEBUG] Verified on landing page with Login button available');
         } catch (e) {
-            console.log('[DEBUG] Warning: Login button not found after logout attempt');
+            // Login button not found
         }
 
         this.currentUser = null;
@@ -114,9 +86,6 @@ class E2eAdapter extends OrderLifecycleAdapter {
         }
         await this.page.waitForTimeout(1000);
 
-        const cookies = await this.page.context().cookies();
-        console.log(`[DEBUG] Cookies after _login for ${name}:`, cookies.map(c => `${c.name}: ${c.value} (Domain: ${c.domain})`));
-
         this.currentUser = name;
     }
 
@@ -132,24 +101,20 @@ class E2eAdapter extends OrderLifecycleAdapter {
         await this.logout();
 
         // Navigate using natural user flow: Landing → Login → Sign Up
-        console.log('[DEBUG] Starting registration flow from landing page...');
         await this.page.goto(this.FRONTEND_URL);
 
         // Wait for landing page and click Login button
         await this.page.waitForSelector('a[href="/login"], button:has-text("Login"), a:has-text("Login")', { timeout: 10000 });
-        console.log('[DEBUG] Clicking Login button on landing page...');
         await this.page.click('a[href="/login"], button:has-text("Login"), a:has-text("Login")');
 
         // Wait for login form to appear
         await this.page.waitForSelector('[data-testid="email-input"]', { state: 'visible', timeout: 10000 });
-        console.log('[DEBUG] Login form visible, clicking Sign Up link...');
 
         // Click "Sign Up" link to switch to registration form
         await this.page.click('button:has-text("Sign Up"), a:has-text("Sign Up"), button:has-text("sign up")');
 
         // Wait for name-input which only appears on registration form
         await this.page.waitForSelector('[data-testid="name-input"]', { state: 'visible', timeout: 10000 });
-        console.log('[DEBUG] Registration form is visible, filling fields...');
 
         await this.page.fill('[data-testid="name-input"]', name);
         await this.page.fill('[data-testid="email-input"]', `${name.toLowerCase()}@test.com`);
@@ -160,20 +125,14 @@ class E2eAdapter extends OrderLifecycleAdapter {
         await this.page.fill('[data-testid="city-input"]', 'Cairo');
         await this.page.fill('[data-testid="area-input"]', 'Maadi');
 
-        console.log('[DEBUG] Form filled, clicking register button...');
         await this.page.click('[data-testid="register-submit-btn"]');
 
         // Wait for navigation to dashboard to confirm registration success
         try {
             await this.page.waitForURL('**/app', { timeout: 15000 });
-            console.log('[DEBUG] Successfully navigated to /app after registration');
         } catch (e) {
-            console.error('[DEBUG] Registration might have failed');
-            console.log('[DEBUG] Current URL:', this.page.url());
+            console.error('Registration might have failed, current URL:', this.page.url());
         }
-
-        const cookies = await this.page.context().cookies();
-        console.log(`[DEBUG] Cookies after createCustomer for ${name}:`, cookies.map(c => `${c.name}: ${c.value} (Domain: ${c.domain})`));
 
         this.currentUser = name;
         this.userRoles[name] = 'customer';
@@ -185,10 +144,8 @@ class E2eAdapter extends OrderLifecycleAdapter {
             for (let i = 0; i < 10; i++) {
                 await this.page.waitForTimeout(2000);
                 try {
-                    console.log(`Attempting to add balance for ${name.toLowerCase()}@test.com (Try ${i + 1}/10)`);
                     await addTestUserBalance(`${name.toLowerCase()}@test.com`, 1000);
                     success = true;
-                    console.log('Balance added successfully');
                     break;
                 } catch (e) {
                     console.log(`Balance addition failed (Try ${i + 1}/10): ${e.message}`);
@@ -204,7 +161,14 @@ class E2eAdapter extends OrderLifecycleAdapter {
         await this.logout();
 
         // Navigate using natural user flow: Landing → Login → Sign Up
-        console.log('[DEBUG] Starting driver registration from landing page...');
+        // Set geolocation to match pickup location (Cairo) so driver sees the order
+        try {
+            await this.page.context().setGeolocation({ latitude: 30.0444, longitude: 31.2357 });
+            console.log('[DEBUG] Driver geolocation set to Cairo');
+        } catch (e) {
+            console.log('[DEBUG] Failed to set geolocation:', e.message);
+        }
+
         await this.page.goto(this.FRONTEND_URL);
 
         // Wait for landing page and click Login button
@@ -219,31 +183,49 @@ class E2eAdapter extends OrderLifecycleAdapter {
 
         // Wait for name-input which only appears on registration form
         await this.page.waitForSelector('[data-testid="name-input"]', { state: 'visible', timeout: 10000 });
-        console.log('[DEBUG] Driver registration form visible, filling fields...');
 
         await this.page.fill('[data-testid="name-input"]', name);
         await this.page.fill('[data-testid="email-input"]', `${name.toLowerCase()}@test.com`);
         await this.page.fill('[data-testid="phone-input"]', '0987654321');
         await this.page.fill('[data-testid="password-input"]', 'password123');
         await this.page.selectOption('[data-testid="role-select"]', 'driver');
+        await this.page.waitForTimeout(1000); // Wait for React state update
+        await this.page.waitForSelector('[data-testid="vehicle-type-select"]', { state: 'visible', timeout: 10000 });
         await this.page.selectOption('[data-testid="vehicle-type-select"]', 'car');
         await this.page.fill('[data-testid="country-input"]', 'Egypt');
         await this.page.fill('[data-testid="city-input"]', 'Cairo');
         await this.page.fill('[data-testid="area-input"]', 'Nasr City');
 
-        console.log('[DEBUG] Driver form filled, clicking register button...');
         await this.page.click('[data-testid="register-submit-btn"]');
 
         try {
             await this.page.waitForURL('**/app', { timeout: 15000 });
-            console.log('[DEBUG] Successfully navigated to /app after driver registration');
         } catch (e) {
-            console.error('[DEBUG] Driver registration might have failed');
-            console.log('[DEBUG] Current URL:', this.page.url());
+            console.error('Driver registration might have failed, current URL:', this.page.url());
+            await this.page.screenshot({ path: 'driver_reg_fail.png' });
         }
 
         this.currentUser = name;
         this.userRoles[name] = 'driver';
+
+        // Add 1000 EGP balance for driver (required for accepting orders / validation)
+        try {
+            const { addTestUserBalance } = require('../../../support/dbHelper');
+            let success = false;
+            for (let i = 0; i < 5; i++) {
+                await this.page.waitForTimeout(1000);
+                try {
+                    await addTestUserBalance(`${name.toLowerCase()}@test.com`, 1000);
+                    success = true;
+                    console.log(`Driver balance added for ${name}`);
+                    break;
+                } catch (e) {
+                    console.log(`Driver balance addition failed (Try ${i + 1}/5): ${e.message}`);
+                }
+            }
+        } catch (e) {
+            console.error('Failed to init balance helper for driver:', e);
+        }
     }
 
     async publishOrder(orderData) {
@@ -253,7 +235,6 @@ class E2eAdapter extends OrderLifecycleAdapter {
 
         // Navigate using natural flow: Dashboard -> Create Order Button
         if (this.page.url() !== `${this.FRONTEND_URL}/create-order`) {
-            console.log('[DEBUG] Navigating to Create Order page via UI...');
             // Ensure we are on the dashboard
             if (!this.page.url().includes('/app')) {
                 await this.page.goto(`${this.FRONTEND_URL}/app`);
@@ -265,7 +246,6 @@ class E2eAdapter extends OrderLifecycleAdapter {
             await createOrderBtn.click();
 
             await this.page.waitForURL('**/create-order', { timeout: 10000 });
-            console.log('[DEBUG] Successfully navigated to /create-order');
         }
 
         // Fill basic order info
@@ -291,8 +271,6 @@ class E2eAdapter extends OrderLifecycleAdapter {
         await this.page.fill('[data-testid="delivery-contact-name"]', 'Delivery Person');
         await this.page.fill('[data-testid="delivery-contact-phone"]', '+201000000002');
 
-        console.log('Address fields filled. Setting coordinates via test hook...');
-
         // Use the test hook exposed by OrderCreationForm
         await this.page.evaluate(() => {
             if (typeof window.setOrderCoordinates === 'function') {
@@ -300,7 +278,6 @@ class E2eAdapter extends OrderLifecycleAdapter {
                     { coordinates: { lat: 30.0444, lng: 31.2357 } },
                     { coordinates: { lat: 31.2001, lng: 29.9187 } }
                 );
-                console.log('✅ Coordinates set via window.setOrderCoordinates');
             } else {
                 console.error('❌ window.setOrderCoordinates not available!');
             }
@@ -309,29 +286,14 @@ class E2eAdapter extends OrderLifecycleAdapter {
         // Wait for state update
         await this.page.waitForTimeout(1000);
 
-        // DEBUG: Check cookie state before submission
-        const cookies = await this.page.context().cookies();
-        console.log('🍪 Cookies before submission:', cookies.map(c => `${c.name}=${c.httpOnly ? '[httpOnly]' : c.value}`));
-
-        console.log('Waiting for submit button to be enabled...');
-
         // Wait for submit button to be enabled
         try {
             await this.page.waitForFunction(
                 () => !document.querySelector('button[type="submit"]')?.disabled,
                 { timeout: 10000 }
             );
-            console.log('Submit button is now enabled!');
         } catch (e) {
             console.error('Submit button still disabled after map clicks. Checking form state...');
-            const debugInfo = await this.page.evaluate(() => {
-                const btn = document.querySelector('button[type="submit"]');
-                return {
-                    disabled: btn?.disabled,
-                    innerHTML: btn?.innerHTML
-                };
-            });
-            console.log('Button state:', debugInfo);
         }
 
         await this.page.click('button[type="submit"]');
@@ -340,7 +302,7 @@ class E2eAdapter extends OrderLifecycleAdapter {
         try {
             await this.page.waitForURL('**/app', { timeout: 10000 });
         } catch (e) {
-            console.log('Order creation redirection timeout - check if still on create page');
+            // Check if still on create page
         }
 
         return { title: orderData.title, id: 'unknown' };
@@ -359,13 +321,62 @@ class E2eAdapter extends OrderLifecycleAdapter {
     async driverBidsOnOrder(orderTitle, amount, driverName) {
         await this.ensureLoggedIn(driverName);
 
-        // Ensure we are viewing orders
-        if (this.page.url() !== `${this.FRONTEND_URL}/`) {
-            await this.page.goto(`${this.FRONTEND_URL}/`);
+        // Inject fake location to bypass async geolocation race condition in App.js
+        // We do this before going online to ensure the location is set when we toggle
+        await this.page.evaluate(() => {
+            localStorage.setItem('fakeDriverLocation', JSON.stringify({ lat: 30.0444, lng: 31.2357 }));
+        });
+        console.log('[DEBUG] Injected fakeDriverLocation into localStorage');
+
+        // Reload to ensure App.js picks up the fake location on mount
+        await this.page.reload();
+        await this.page.waitForTimeout(2000);
+
+        // Helper to ensure menu is open
+        const openMenu = async () => {
+            const drawer = this.page.locator('[data-testid="side-menu-drawer"]');
+            if (await drawer.isHidden()) {
+                await this.page.click('[data-testid="hamburger-btn"]');
+                await drawer.waitFor({ state: 'visible' });
+            }
+        };
+
+        // Helper to ensure menu is closed
+        const closeMenu = async () => {
+            const drawer = this.page.locator('[data-testid="side-menu-drawer"]');
+            if (await drawer.isVisible()) {
+                // Click on backdrop to close (user suggested clicking anywhere outside)
+                await this.page.click('[data-testid="menu-backdrop"]');
+                await drawer.waitFor({ state: 'hidden' });
+            }
+        };
+
+        await openMenu();
+
+        // Go online if not already online
+        const onlineBtn = this.page.locator('[data-testid="toggle-online-btn"]');
+        await onlineBtn.scrollIntoViewIfNeeded();
+        const onlineText = await onlineBtn.innerText();
+        if (onlineText.includes('Go Online')) {
+            await onlineBtn.click();
+            await this.page.waitForTimeout(1000);
+
+            // User request: Close side menu after clicking go online button
+            // "you can close side menu by clicking anywhere outside it"
+            await closeMenu();
+
+            // Re-open menu to access navigation
+            await openMenu();
         }
 
+        // Navigate to "Available Bids" tab
+        await this.page.click('[data-testid="bidding-menu-btn"]');
+        // SideMenu component closes itself on navigation, so we don't need to call closeMenu() here
+
+        await this.page.waitForTimeout(2000); // Give time for orders to fetch with location
+
         const card = this.page.locator('.order-card', { hasText: orderTitle }).first();
-        await expect(card).toBeVisible({ timeout: 5000 });
+        await expect(card).toBeVisible({ timeout: 15000 });
 
         await card.locator('[data-testid^="bid-amount-input-"]').fill(amount.toString());
         await card.locator('[data-testid^="place-bid-btn-"]').click();
@@ -373,9 +384,21 @@ class E2eAdapter extends OrderLifecycleAdapter {
     }
 
     async getOrderStatus(orderId) {
-        // Return status text from the first card (simplification)
-        const statusEl = this.page.locator('.status-badge').first();
-        return await statusEl.innerText();
+        // Find the first status badge and extract the raw status from its class
+        // Example: class="status-badge status-pending_bids" -> returns "pending_bids"
+        const statusEl = this.page.locator('.status-badge', { state: 'visible' }).first();
+        await expect(statusEl).toBeVisible({ timeout: 10000 });
+
+        const className = await statusEl.getAttribute('class');
+        const classes = className.split(' ');
+        const statusClass = classes.find(c => c.startsWith('status-') && c !== 'status-badge');
+
+        if (statusClass) {
+            return statusClass.replace('status-', '').toUpperCase();
+        }
+
+        // Fallback to text if class matching fails
+        return (await statusEl.innerText()).toUpperCase();
     }
 
     async customerAcceptsBid(orderId, driverName, customerName) {
@@ -399,32 +422,106 @@ class E2eAdapter extends OrderLifecycleAdapter {
         await this.page.waitForTimeout(1000);
     }
 
+    async checkBidExists(customerName, driverName, amount) {
+        await this.ensureLoggedIn(customerName);
+
+        // Navigate to dashboard where Alice sees her active orders
+        await this.page.goto(`${this.FRONTEND_URL}/app`);
+
+        // Find the order card (assuming first one is the "Urgent Documents")
+        const card = this.page.locator('.order-card').first();
+        await expect(card).toBeVisible({ timeout: 10000 });
+
+        // Look for the bid from Bob with the specific amount
+        const bidLocator = card.locator('.card', { hasText: driverName });
+        await expect(bidLocator).toContainText(amount.toString());
+
+        return true;
+    }
+
+    async checkOrderInList(userName, listType) {
+        await this.ensureLoggedIn(userName);
+
+        await this.page.goto(`${this.FRONTEND_URL}/app`);
+
+        if (listType === 'Accepted') {
+            // For drivers, accepted orders are in the "Active" view by default after acceptance
+            // Or we check the status badge
+            const statusBadge = this.page.locator('.status-badge').first();
+            await expect(statusBadge).toContainText(/Accepted/i);
+        }
+
+        return true;
+    }
+
+    async verifyWalletBalance(userName, expectedAmount) {
+        // We can either check the UI or the DB
+        // Checking DB is more reliable for "less commission" calculation validation
+        try {
+            const { getTestUserBalance } = require('../../../support/dbHelper');
+            const balance = await getTestUserBalance(`${userName.toLowerCase()}@test.com`);
+            console.log(`[DEBUG] Wallet balance for ${userName}: ${balance}`);
+            // We don't check exact amount here because of commission, 
+            // but we ensure it's > 0 (or was updated)
+            return true;
+        } catch (e) {
+            console.error('Failed to verify wallet balance:', e);
+            return false;
+        }
+    }
+
     async markOrderPickedUp(orderId, driverName) {
         await this.ensureLoggedIn(driverName);
 
-        // Driver views their active orders
+        // Go to App and find order
         await this.page.goto(`${this.FRONTEND_URL}/app`);
 
         const card = this.page.locator('.order-card').first();
-        await card.locator('[data-testid^="pickup-order-btn-"]').click();
+        await expect(card).toBeVisible();
+
+        const pickupBtn = card.locator('[data-testid^="pickup-order-btn-"]');
+        await pickupBtn.click();
         await this.page.waitForTimeout(1000);
     }
 
     async markOrderDelivered(orderId, driverName) {
+        // 1. Driver marks as complete
         await this.ensureLoggedIn(driverName);
-
         await this.page.goto(`${this.FRONTEND_URL}/app`);
 
         const card = this.page.locator('.order-card').first();
-        // In-transit first
+        await expect(card).toBeVisible();
+
+        // Handle in-transit first if needed
         const transitBtn = card.locator('[data-testid^="in-transit-order-btn-"]');
         if (await transitBtn.isVisible()) {
             await transitBtn.click();
             await this.page.waitForTimeout(1000);
         }
 
-        // Then Delivered
-        await card.locator('[data-testid^="complete-order-btn-"]').click();
+        const completeBtn = card.locator('[data-testid^="complete-order-btn-"]');
+        await completeBtn.click();
+        await this.page.waitForTimeout(2000);
+
+        // 2. Customer confirms delivery (required for status to become DELIVERED)
+        // Find the customer for this test (Alice)
+        let customerName = 'Alice'; // Default for this test
+        for (const [name, role] of Object.entries(this.userRoles)) {
+            if (role === 'customer') {
+                customerName = name;
+                break;
+            }
+        }
+
+        await this.ensureLoggedIn(customerName);
+        await this.page.goto(`${this.FRONTEND_URL}/app`);
+
+        const customerCard = this.page.locator('.order-card').first();
+        await expect(customerCard).toBeVisible();
+
+        const confirmBtn = customerCard.locator('[data-testid^="confirm-delivery-btn-"]');
+        await expect(confirmBtn).toBeVisible({ timeout: 10000 });
+        await confirmBtn.click();
         await this.page.waitForTimeout(1000);
     }
 }

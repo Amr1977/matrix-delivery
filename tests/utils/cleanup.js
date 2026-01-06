@@ -36,14 +36,39 @@ async function cleanup() {
     ];
 
     for (const table of tables) {
-      await pool.query(`DELETE FROM ${table}`);
-      console.log(`   ✅ Cleared table: ${table}`);
+      try {
+        await pool.query(`DELETE FROM ${table}`);
+        console.log(`   ✅ Cleared table: ${table}`);
+      } catch (err) {
+        console.warn(`   ⚠️  Failed to clear table ${table}: ${err.message}`);
+      }
     }
 
     // Reset sequences
-    const sequences = ['bids_id_seq', 'notifications_id_seq', 'location_updates_id_seq', 'reviews_id_seq'];
-    for (const seq of sequences) {
-      await pool.query(`ALTER SEQUENCE ${seq} RESTART WITH 1`);
+    // Reset sequences
+    const sequences = [
+      { table: 'bids', column: 'id' },
+      { table: 'notifications', column: 'id' },
+      { table: 'location_updates', column: 'id' },
+      { table: 'reviews', column: 'id' }
+    ];
+
+    for (const { table, column } of sequences) {
+      try {
+        await pool.query(`
+          DO $$
+          DECLARE
+            seq_name text;
+          BEGIN
+            SELECT pg_get_serial_sequence('${table}', '${column}') INTO seq_name;
+            IF seq_name IS NOT NULL THEN
+              EXECUTE 'ALTER SEQUENCE ' || seq_name || ' RESTART WITH 1';
+            END IF;
+          END $$;
+        `);
+      } catch (err) {
+        console.warn(`   ⚠️  Could not reset sequence for ${table}.${column}: ${err.message}`);
+      }
     }
 
     console.log('   ✅ Reset sequences');

@@ -52,6 +52,9 @@ async function setupTestDb() {
 
         console.log('🔄 Creating schema...');
 
+        // Enable PostGIS
+        await dbClient.query('CREATE EXTENSION IF NOT EXISTS postgis');
+
         const schema = `
       -- Users table
       CREATE TABLE IF NOT EXISTS users (
@@ -71,6 +74,7 @@ async function setupTestDb() {
           is_verified BOOLEAN DEFAULT FALSE,
           verified_at TIMESTAMP,
           is_available BOOLEAN DEFAULT TRUE,
+          profile_picture_url VARCHAR(500),
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
@@ -136,6 +140,14 @@ async function setupTestDb() {
           crypto_token VARCHAR(255),
           crypto_amount DECIMAL(20, 6),
           total_price DECIMAL(10, 2),
+          from_coordinates TEXT,
+          to_coordinates TEXT,
+          pickup_contact_name VARCHAR(255),
+          pickup_contact_phone VARCHAR(50),
+          dropoff_contact_name VARCHAR(255),
+          dropoff_contact_phone VARCHAR(50),
+          require_upfront_payment BOOLEAN DEFAULT FALSE,
+          upfront_payment DECIMAL(10, 2),
           estimated_delivery_date TIMESTAMP,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP,
@@ -280,6 +292,17 @@ async function setupTestDb() {
           updated_at TIMESTAMP
       );
 
+      -- Location updates table
+      CREATE TABLE IF NOT EXISTS location_updates (
+          id SERIAL PRIMARY KEY,
+          order_id VARCHAR(255) NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+          driver_id VARCHAR(255) NOT NULL REFERENCES users(id),
+          latitude DECIMAL(10,8) NOT NULL,
+          longitude DECIMAL(11,8) NOT NULL,
+          status VARCHAR(50) NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
       -- User payment methods table
       CREATE TABLE IF NOT EXISTS user_payment_methods (
           id VARCHAR(255) PRIMARY KEY,
@@ -315,6 +338,18 @@ async function setupTestDb() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
+      -- User saved addresses table
+      CREATE TABLE IF NOT EXISTS user_saved_addresses (
+          id VARCHAR(255) PRIMARY KEY,
+          user_id VARCHAR(255) REFERENCES users(id) ON DELETE CASCADE,
+          label VARCHAR(255) NOT NULL,
+          address_data JSONB,
+          lat DECIMAL(10, 8),
+          lng DECIMAL(11, 8),
+          is_default BOOLEAN DEFAULT FALSE,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
       -- Create indexes
       CREATE INDEX IF NOT EXISTS idx_crypto_tx_user ON crypto_transactions(user_id);
       CREATE INDEX IF NOT EXISTS idx_crypto_tx_order ON crypto_transactions(order_id);
@@ -335,6 +370,11 @@ async function setupTestDb() {
       CREATE INDEX IF NOT EXISTS idx_balance_tx_status ON balance_transactions(status);
       CREATE INDEX IF NOT EXISTS idx_balance_tx_order ON balance_transactions(order_id);
       CREATE INDEX IF NOT EXISTS idx_balance_tx_created ON balance_transactions(created_at DESC);
+      
+      -- Location updates indexes
+      CREATE INDEX IF NOT EXISTS idx_location_updates_order_id ON location_updates(order_id);
+      CREATE INDEX IF NOT EXISTS idx_location_updates_driver_id ON location_updates(driver_id);
+      CREATE INDEX IF NOT EXISTS idx_location_updates_created_at ON location_updates(created_at DESC);
     `;
 
         await dbClient.query(schema);

@@ -353,3 +353,19 @@ CREATE INDEX idx_platform_reviews_created_at ON platform_reviews(created_at);
 CREATE INDEX idx_platform_reviews_upvotes ON platform_reviews(upvotes DESC);
 CREATE INDEX idx_platform_reviews_is_approved ON platform_reviews(is_approved);
 CREATE INDEX idx_platform_reviews_flag_count ON platform_reviews(flag_count);
+
+-- Location updates table
+CREATE TABLE location_updates (
+    id SERIAL PRIMARY KEY,
+    order_id VARCHAR(255) NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    driver_id VARCHAR(255) NOT NULL REFERENCES users(id),
+    latitude DECIMAL(10,8) NOT NULL,
+    longitude DECIMAL(11,8) NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Location updates indexes
+CREATE INDEX idx_location_updates_order_id ON location_updates(order_id);
+CREATE INDEX idx_location_updates_driver_id ON location_updates(driver_id);
+CREATE INDEX idx_location_updates_created_at ON location_updates(created_at DESC);

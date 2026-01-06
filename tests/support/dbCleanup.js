@@ -28,11 +28,15 @@ async function cleanTestUsers() {
         await pool.query('DELETE FROM crypto_transactions WHERE user_id IN (SELECT id FROM users WHERE email LIKE \'%@test.com\')');
 
         // 4. Clean reviews
-        await pool.query(`
-            DELETE FROM reviews 
-            WHERE reviewer_id IN (SELECT id FROM users WHERE email LIKE '%@test.com') 
-               OR reviewee_id IN (SELECT id FROM users WHERE email LIKE '%@test.com')
-        `);
+        try {
+            await pool.query(`
+                DELETE FROM reviews 
+                WHERE reviewer_id IN (SELECT id FROM users WHERE email LIKE '%@test.com') 
+                   OR reviewee_id IN (SELECT id FROM users WHERE email LIKE '%@test.com')
+            `);
+        } catch (e) {
+            // Table or columns may not exist
+        }
 
         // 5. Clean bids (depends on orders and users)
         await pool.query(`

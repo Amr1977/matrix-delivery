@@ -413,7 +413,7 @@ module.exports = (app, pool, jwt) => {
   );
 
   // Enhanced GET /api/orders with delivery agent filtering
-  app.get('/api/orders', verifyToken, async (req, res) => {
+  app.get('/api/orders-legacy', verifyToken, async (req, res) => {
     try {
       let query, params;
 

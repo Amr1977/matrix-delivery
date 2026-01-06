@@ -1082,6 +1082,7 @@ export const MainApp = () => {
       setCurrentUser(userData);
       setAuthForm({ name: '', email: '', password: '', phone: '', primary_role: 'customer', vehicle_type: '', country: '', city: '', area: '' });
       setError('');
+      navigate('/app');
 
       logger.user('Registration successful', {
         userId: userData.id,
@@ -1128,6 +1129,7 @@ export const MainApp = () => {
       setAvailableRoles(userData.granted_roles || (userData.primary_role ? [userData.primary_role] : []));
       setAuthForm({ name: '', email: '', password: '', phone: '', primary_role: 'customer', vehicle_type: '' });
       setError('');
+      navigate('/app');
     } catch (err) {
       setError(err.message);
     } finally {

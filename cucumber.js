@@ -59,6 +59,6 @@ module.exports = {
       'tests/support/hooks.js'
     ],
     format: ['summary', 'json:test-results.json'],
-    paths: ['tests/features/core/**/*.feature']
+    paths: ['tests/features/core/**/*.feature', 'tests/features/frontend/**/*.feature']
   }
 };
