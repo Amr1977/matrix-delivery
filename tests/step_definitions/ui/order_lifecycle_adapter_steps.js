@@ -79,3 +79,9 @@ Then('{string} wallet should be credited with {string} less commission', async f
         await this.adapter.verifyWalletBalance(user, parseFloat(amount));
     }
 });
+
+Then('{string} wallet should be {string}', async function (user, amount) {
+    if (this.adapter.verifyWalletBalance) {
+        await this.adapter.verifyWalletBalance(user, parseFloat(amount));
+    }
+});
