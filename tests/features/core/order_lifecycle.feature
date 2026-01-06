@@ -35,3 +35,10 @@ Feature: Core Order Lifecycle
     Then the order status should be "DELIVERED"
     And "Bob" wallet should be credited with "45.00" less commission
     And "Alice" wallet should be "955.00"
+
+    # 5. Reviews
+    When "Bob" reviews "Alice" with "5" stars and comment "Great customer, easy pickup."
+    Then the review should be submitted successfully
+
+    When "Alice" reviews "Bob" with "5" stars and comment "Excellent driver, very fast."
+    Then the review should be submitted successfully

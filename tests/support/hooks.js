@@ -148,7 +148,7 @@ Before(async function ({ pickle }) {
   });
 
   this.page = await this.context.newPage();
-  console.log('[DEBUG] Page created successfully:', !!this.page);
+  // console.log('[DEBUG] Page created successfully:', !!this.page);
 
   // Set base URLs
   this.baseUrl = 'http://localhost:3000';

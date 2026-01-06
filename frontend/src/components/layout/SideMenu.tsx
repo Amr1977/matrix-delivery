@@ -280,6 +280,16 @@ const SideMenu: React.FC<SideMenuProps> = ({
                         </button>
 
                         <button
+                            onClick={() => { onNavigate('history'); onClose(); }}
+                            data-testid="history-menu-btn"
+                            style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', fontSize: '1rem', borderRadius: '0.5rem', marginBottom: '0.5rem', transition: 'background 0.2s' }}
+                            onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
+                            onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+                        >
+                            📜 My History
+                        </button>
+
+                        <button
                             onClick={() => { onNavigate('settings'); onClose(); }}
                             style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', fontSize: '1rem', borderRadius: '0.5rem', marginBottom: '0.5rem', transition: 'background 0.2s' }}
                             onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
@@ -366,16 +376,6 @@ const SideMenu: React.FC<SideMenuProps> = ({
                                 onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
                             >
                                 📍 Location
-                            </button>
-
-                            <button
-                                onClick={() => { onNavigate('history'); onClose(); }}
-                                data-testid="history-menu-btn"
-                                style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', fontSize: '1rem', borderRadius: '0.5rem', marginBottom: '0.5rem', transition: 'background 0.2s' }}
-                                onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
-                                onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
-                            >
-                                📜 My History
                             </button>
                         </div>
                     )}

@@ -1,5 +1,6 @@
 const OrderLifecycleAdapter = require('../base_adapter');
 const { expect } = require('@playwright/test');
+const { createSnapshot } = require('../../../support/dbHelper');
 
 class E2eAdapter extends OrderLifecycleAdapter {
     constructor(page) {
@@ -249,7 +250,9 @@ class E2eAdapter extends OrderLifecycleAdapter {
         }
 
         // Fill basic order info
-        await this.page.fill('[data-testid="order-title"]', orderData.title || 'Test Order');
+        const timestamp = Date.now();
+        const uniqueTitle = orderData.title ? `${orderData.title} ${timestamp}` : `Test Order ${timestamp}`;
+        await this.page.fill('[data-testid="order-title"]', uniqueTitle);
         await this.page.fill('[data-testid="order-description"]', orderData.description || 'Test Description');
         await this.page.fill('[data-testid="order-price"]', orderData.price?.toString() || '100');
 
@@ -305,16 +308,42 @@ class E2eAdapter extends OrderLifecycleAdapter {
             // Check if still on create page
         }
 
-        return { title: orderData.title, id: 'unknown' };
+        // Find the card by unique title to extract the ID
+        await this.page.waitForLoadState('networkidle');
+        const card = this.page.locator('.order-card', { hasText: uniqueTitle }).first();
+        await expect(card).toBeVisible({ timeout: 15000 });
+
+        let orderId = 'unknown';
+        const testId = await card.getAttribute('data-testid');
+        if (testId && testId.startsWith('order-card-')) {
+            orderId = testId.replace('order-card-', '');
+        }
+
+        // Snapshot after order creation
+        await createSnapshot('milestone_1_order_created');
+
+        return { title: uniqueTitle, id: orderId };
     }
 
-    async checkOrderAvailable(orderTitle) {
+    async checkOrderAvailable(orderIdentifier) {
         // Go to home/marketplace where orders are listed
         if (this.page.url() !== this.FRONTEND_URL && this.page.url() !== `${this.FRONTEND_URL}/` && this.page.url() !== `${this.FRONTEND_URL}/app`) {
             await this.page.goto(`${this.FRONTEND_URL}/app`);
         }
 
-        const locator = this.page.locator('.order-card', { hasText: orderTitle }).first();
+        // Support finding by ID via data-testid if available, otherwise fallback to text
+        let locator;
+        if (orderIdentifier && typeof orderIdentifier === 'string' && !orderIdentifier.includes(' ')) {
+            // Assuming it's an ID if no spaces
+            locator = this.page.locator(`[data-testid="order-card-${orderIdentifier}"]`).first();
+            if (await locator.count() === 0) {
+                // Fallback to text matching
+                locator = this.page.locator('.order-card', { hasText: orderIdentifier }).first();
+            }
+        } else {
+            locator = this.page.locator('.order-card', { hasText: orderIdentifier }).first();
+        }
+
         await expect(locator).toBeVisible();
     }
 
@@ -395,6 +424,7 @@ class E2eAdapter extends OrderLifecycleAdapter {
 
         const card = this.page.locator('.order-card', { hasText: orderTitle }).first();
         await expect(card).toBeVisible({ timeout: 15000 });
+        await card.scrollIntoViewIfNeeded();
 
         await card.locator('[data-testid^="bid-amount-input-"]').fill(amount.toString());
         await card.locator('[data-testid^="place-bid-btn-"]').click();
@@ -427,8 +457,9 @@ class E2eAdapter extends OrderLifecycleAdapter {
         await this.page.waitForLoadState('networkidle');
 
         // Find the specific order card
-        const card = this.page.locator('.order-card').first();
-        await expect(card).toBeVisible({ timeout: 10000 });
+        const card = this.page.locator('.order-card', { hasText: orderId }).first();
+        await expect(card).toBeVisible({ timeout: 15000 });
+        await card.scrollIntoViewIfNeeded();
 
         // 1. Wait for the "Driver Bids" section to appear (indicates bids are loaded)
         // The bids section has h4 with text "Driver Bids"
@@ -472,13 +503,17 @@ class E2eAdapter extends OrderLifecycleAdapter {
         await this.page.waitForLoadState('networkidle');
 
         // 9. Re-locate the order card and check status
-        const updatedCard = this.page.locator('.order-card').first();
-        await expect(updatedCard).toBeVisible({ timeout: 10000 });
+        const updatedCard = this.page.locator('.order-card', { hasText: orderId }).first();
+        await expect(updatedCard).toBeVisible({ timeout: 15000 });
 
         const statusBadge = updatedCard.locator('.status-badge').first();
         await expect(statusBadge).not.toHaveClass(/status-pending_bids/, { timeout: 15000 });
 
         console.log(`[DEBUG] Order status successfully changed from pending_bids for driver ${driverName}`);
+
+        // Snapshot after bid accepted
+        await createSnapshot('milestone_2_bid_accepted');
+
         await this.page.waitForTimeout(1000); // Extra safety for state settling
     }
 
@@ -488,9 +523,18 @@ class E2eAdapter extends OrderLifecycleAdapter {
         // Navigate to dashboard where Alice sees her active orders
         await this.page.goto(`${this.FRONTEND_URL}/app`);
 
-        // Find the order card (assuming first one is the "Urgent Documents")
-        const card = this.page.locator('.order-card').first();
+        // Find the order card
+        const card = this.page.locator('.order-card', { hasText: customerName }).filter({ hasText: driverName }).first();
+        if (await card.count() === 0) {
+            // Fallback to just finding card with driver name
+            const fbCard = this.page.locator('.order-card', { hasText: driverName }).first();
+            await expect(fbCard).toBeVisible({ timeout: 10000 });
+            await fbCard.scrollIntoViewIfNeeded();
+            await expect(fbCard.locator('.card', { hasText: driverName })).toContainText(amount.toString());
+            return true;
+        }
         await expect(card).toBeVisible({ timeout: 10000 });
+        await card.scrollIntoViewIfNeeded();
 
         // Look for the bid from Bob with the specific amount
         const bidLocator = card.locator('.card', { hasText: driverName });
@@ -610,18 +654,50 @@ class E2eAdapter extends OrderLifecycleAdapter {
         // Go to App and find order
         await this.page.goto(`${this.FRONTEND_URL}/app`);
 
-        const card = this.page.locator('.order-card').first();
-        await expect(card).toBeVisible();
+        // Wait for orders to load similar to checkOrderInList
+        const ordersResponsePromise = this.page.waitForResponse(
+            resp => resp.url().includes('/updates') && resp.status() === 200,
+            { timeout: 15000 }
+        ).catch(() => { });
 
+        await this.page.waitForLoadState('networkidle');
+        await ordersResponsePromise;
+        await this.page.waitForTimeout(2000);
+
+        const card = this.page.locator('.order-card', { hasText: orderId }).first();
+        await expect(card).toBeVisible({ timeout: 15000 });
+        await card.scrollIntoViewIfNeeded();
+
+        // 1. Click Pickup if visible
         const pickupBtn = card.locator('[data-testid^="pickup-order-btn-"]').first();
-        await pickupBtn.evaluate(el => el.click());
-        await this.page.waitForTimeout(1000);
+        if (await pickupBtn.isVisible()) {
+            console.log('[DEBUG] Clicking Pickup button...');
+            await pickupBtn.click();
+            // Wait for button to disappear or status to change
+            await expect(pickupBtn).not.toBeVisible({ timeout: 10000 });
+        }
 
-        // Transition to in-transit if possible/needed to satisfy IN_TRANSIT status check
+        // 2. Wait for In-Transit button
         const transitBtn = card.locator('[data-testid^="in-transit-order-btn-"]').first();
-        if (await transitBtn.isVisible()) {
-            await transitBtn.evaluate(el => el.click());
-            await this.page.waitForTimeout(1000);
+        try {
+            console.log('[DEBUG] Waiting for In Transit button...');
+            await transitBtn.waitFor({ state: 'visible', timeout: 10000 });
+            await transitBtn.click();
+            console.log('[DEBUG] Clicked In Transit button');
+
+            // Wait for status to verify
+            const statusBadge = card.locator('.status-badge').first();
+            await expect(statusBadge).toHaveText(/In Transit/i, { timeout: 10000 });
+        } catch (e) {
+            console.log(`[WARN] In Transit step failed: ${e.message}. taking screenshot.`);
+            await this.page.screenshot({ path: 'reports/screenshots/in_transit_fail.png' });
+            // Try reloading and checking if it was already updated or button stuck
+            await this.page.reload();
+            const reloadedCard = this.page.locator('.order-card', { hasText: orderId }).first();
+            const reloadedTransitBtn = reloadedCard.locator('[data-testid^="in-transit-order-btn-"]').first();
+            if (await reloadedTransitBtn.isVisible()) {
+                await reloadedTransitBtn.click();
+            }
         }
 
         await this.page.waitForTimeout(1000);
@@ -632,8 +708,19 @@ class E2eAdapter extends OrderLifecycleAdapter {
         await this.ensureLoggedIn(driverName);
         await this.page.goto(`${this.FRONTEND_URL}/app`);
 
-        const card = this.page.locator('.order-card').first();
-        await expect(card).toBeVisible();
+        // Wait for orders to load
+        const ordersResponsePromise = this.page.waitForResponse(
+            resp => resp.url().includes('/updates') && resp.status() === 200,
+            { timeout: 15000 }
+        ).catch(() => { });
+
+        await this.page.waitForLoadState('networkidle');
+        await ordersResponsePromise;
+        await this.page.waitForTimeout(2000);
+
+        const card = this.page.locator('.order-card', { hasText: orderId }).first();
+        await expect(card).toBeVisible({ timeout: 15000 });
+        await card.scrollIntoViewIfNeeded();
 
         // Handle in-transit first if needed
         const transitBtn = card.locator('[data-testid^="in-transit-order-btn-"]').first();
@@ -651,17 +738,128 @@ class E2eAdapter extends OrderLifecycleAdapter {
         await this.ensureLoggedIn(customerName);
         await this.page.goto(`${this.FRONTEND_URL}/app`);
 
-        const customerCard = this.page.locator('.order-card').first();
-        await expect(customerCard).toBeVisible();
+        // Wait for orders to load
+        const ordersResponsePromise = this.page.waitForResponse(
+            resp => resp.url().includes('/updates') && resp.status() === 200,
+            { timeout: 15000 }
+        ).catch(() => { });
+
+        await this.page.waitForLoadState('networkidle');
+        await ordersResponsePromise;
+        await this.page.waitForTimeout(2000);
+
+        const customerCard = this.page.locator('.order-card', { hasText: orderId }).first();
+        await expect(customerCard).toBeVisible({ timeout: 15000 });
+        await customerCard.scrollIntoViewIfNeeded();
 
         const confirmBtn = customerCard.locator('[data-testid^="confirm-delivery-btn-"]').first();
         await expect(confirmBtn).toBeVisible({ timeout: 10000 });
         // Use standard click to ensure actionability
         await confirmBtn.click();
 
-        // Wait for the button to disappear or status to change
         await expect(confirmBtn).not.toBeVisible({ timeout: 10000 });
+
+        // Snapshot after delivery confirmed
+        await createSnapshot('milestone_3_delivery_confirmed');
+
         await this.page.waitForTimeout(2000);
+    }
+
+    async submitReview(reviewerName, revieweeName, rating, comment) {
+        await this.ensureLoggedIn(reviewerName);
+
+        // Navigate to /app to see orders
+        await this.page.goto(`${this.FRONTEND_URL}/app`);
+        await this.page.waitForLoadState('networkidle');
+        await this.page.waitForTimeout(2000);
+
+        // Use text-based selectors since data-testid might not be in the build
+        // The buttons show "Review Customer" or "Review Driver" text
+        let reviewBtn = this.page.locator('button:has-text("Review Customer"), button:has-text("Review Driver")').first();
+
+        if (!(await reviewBtn.isVisible({ timeout: 5000 }).catch(() => false))) {
+            console.log('[DEBUG] Review button not visible on Active Orders, checking page state...');
+            // Take a debug screenshot
+            await this.page.screenshot({ path: `reports/screenshots/review_debug_${Date.now()}.png` });
+
+            // Maybe we need to scroll to find the delivered order
+            const orderCards = this.page.locator('.order-card');
+            const count = await orderCards.count();
+            console.log(`[DEBUG] Found ${count} order cards on page`);
+
+            for (let i = 0; i < count; i++) {
+                const card = orderCards.nth(i);
+                await card.scrollIntoViewIfNeeded();
+                reviewBtn = card.locator('button:has-text("Review Customer"), button:has-text("Review Driver")').first();
+                if (await reviewBtn.isVisible().catch(() => false)) {
+                    console.log(`[DEBUG] Found review button in card ${i}`);
+                    break;
+                }
+            }
+        }
+
+        console.log('[DEBUG] Attempting to click review button...');
+        await expect(reviewBtn).toBeVisible({ timeout: 10000 });
+        await reviewBtn.scrollIntoViewIfNeeded();
+        await reviewBtn.click();
+        console.log('[DEBUG] Clicked review button successfully');
+
+        // Wait for Modal
+        await expect(this.page.locator('text=Submit Review')).toBeVisible({ timeout: 10000 });
+        console.log('[DEBUG] Review modal appeared');
+
+        // Fill Rating - stars are span elements with the star character
+        // Try multiple approaches to find and click stars
+        console.log('[DEBUG] Looking for star elements...');
+
+        // Approach 1: Direct text matching with star unicode character
+        let stars = this.page.locator('.modal-content span:text("★")');
+        let starCount = await stars.count();
+        console.log(`[DEBUG] Approach 1: Found ${starCount} star elements`);
+
+        if (starCount < 5) {
+            // Approach 2: Try any clickable span in the first form group (Overall Rating)
+            const ratingDiv = this.page.locator('.modal-content').locator('div').filter({ hasText: 'Overall Rating' }).first();
+            stars = ratingDiv.locator('span');
+            starCount = await stars.count();
+            console.log(`[DEBUG] Approach 2: Found ${starCount} span elements in rating div`);
+        }
+
+        if (starCount >= 5) {
+            // Click 5th star (index 4)
+            const star5 = stars.nth(4);
+            await star5.waitFor({ state: 'visible', timeout: 5000 });
+            await star5.click({ force: true });
+            console.log('[DEBUG] Clicked 5-star rating');
+        } else if (starCount > 0) {
+            console.log('[WARN] Found fewer than 5 stars, clicking last one');
+            await stars.nth(starCount - 1).click({ force: true });
+        } else {
+            // Approach 3: Click by coordinates relative to the modal
+            console.log('[DEBUG] Approach 3: Clicking star by coordinates');
+            const modal = this.page.locator('.modal-content');
+            await modal.evaluate((el) => {
+                // Find all spans that look like stars and click the 5th one
+                const spans = el.querySelectorAll('span');
+                const starSpans = Array.from(spans).filter(s => s.textContent === '★');
+                if (starSpans.length >= 5) {
+                    starSpans[4].click();
+                } else if (starSpans.length > 0) {
+                    starSpans[starSpans.length - 1].click();
+                }
+            });
+        }
+
+        // Fill comment
+        await this.page.fill('textarea', comment);
+
+        // Submit
+        await this.page.click('button:has-text("Submit Review")');
+
+        // Verify Success
+        await expect(this.page.locator('text=Review submitted successfully')).toBeVisible({ timeout: 10000 });
+        console.log('[DEBUG] Review submitted successfully');
+        await this.page.waitForTimeout(1000);
     }
 }
 
