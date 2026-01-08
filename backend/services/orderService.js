@@ -777,21 +777,8 @@ RETURNING * `;
       category: 'order'
     });
 
-    return {
-      id: order.id,
-      title: order.title,
-      description: order.description,
-      pickupAddress: order.pickup_address,
-      deliveryAddress: order.delivery_address,
-      packageDescription: order.package_description,
-      packageWeight: order.package_weight,
-      estimatedValue: order.estimated_value,
-      specialInstructions: order.special_instructions,
-      price: parseFloat(order.price),
-      status: order.status,
-      orderNumber: order.order_number,
-      createdAt: order.created_at
-    };
+    // Return the full hydrated order (with stats)
+    return await this.getOrderById(order.id);
   }
 
   /**
