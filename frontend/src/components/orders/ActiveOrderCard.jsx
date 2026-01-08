@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import AsyncOrderMap from '../AsyncOrderMap';
 import OrderBiddingSection from './OrderBiddingSection';
 import OrderStatusSection from './OrderStatusSection';
+import DriverBiddingCard from './DriverBiddingCard';
 
 /**
  * ActiveOrderCard Component
@@ -69,6 +70,26 @@ const ActiveOrderCard = ({
 }) => {
     const navigate = useNavigate();
     const isDriverAssigned = order.assignedDriver?.userId === currentUser?.id;
+
+    // ---------------------------------------------------------------------------
+    // NEW: Dedicated Driver Bidding Card View
+    // ---------------------------------------------------------------------------
+    if (order.status === 'pending_bids' && currentUser?.primary_role === 'driver') {
+        return (
+            <DriverBiddingCard
+                order={order}
+                currentUser={currentUser}
+                driverLocation={driverLocation}
+                onBid={handleBidOnOrder}
+                bidInput={bidInput}
+                setBidInput={setBidInput}
+                bidDetails={bidDetails}
+                setBidDetails={setBidDetails}
+                loadingStates={loadingStates}
+                openReviewModal={openReviewModal}
+            />
+        );
+    }
 
     // Helper function to open Google Maps
     const openGoogleMaps = () => {

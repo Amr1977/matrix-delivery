@@ -6,6 +6,7 @@ import RoutePreviewMap from '../RoutePreviewMap';
 import LiveTrackingMap from '../maps/LiveTrackingMap';
 import useAuth from '../../hooks/useAuth';
 import BidWithLiveLocation from './BidWithLiveLocation';
+import DriverBiddingCard from './DriverBiddingCard';
 
 const OrderCard = ({
   order,
@@ -102,7 +103,6 @@ const OrderCard = ({
     }
   };
 
-  // Helper function to format address for display
   const formatAddress = (address) => {
     if (!address) return 'Not specified';
 
@@ -122,6 +122,25 @@ const OrderCard = ({
     // If less than 4 parts, just show last 3 or all available
     return parts.slice(-3).join(', ');
   };
+
+  // ---------------------------------------------------------------------------
+  // NEW: Dedicated Driver Bidding Card View
+  // ---------------------------------------------------------------------------
+  if (order.status === 'pending_bids' && currentUser?.primary_role === 'driver') {
+    return (
+      <DriverBiddingCard
+        order={order}
+        currentUser={currentUser}
+        onBid={onBid}
+        driverLocation={driverLocation}
+        bidInput={bidInput}
+        setBidInput={setBidInput}
+        bidDetails={bidDetails}
+        setBidDetails={setBidDetails}
+        loadingStates={loadingStates}
+      />
+    );
+  }
 
   return (
     <div className="order-card" style={{ border: '5px solid red' }} data-testid={`order-card-${order.id}`}>

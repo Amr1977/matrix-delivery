@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import polyline from '@mapbox/polyline';
 import api from '../../api';
@@ -77,7 +77,46 @@ const createCustomIcon = (iconType, color) => {
   });
 };
 
-const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType = 'car', isFullscreen = false, onToggleFullscreen, theme = 'dark' }) => {
+// Map control component to handle bounds and interactions
+const MapView = ({ pickupCoords, dropoffCoords, driverCoords, driverToPickupPath, pickupToDropoffPath, onInteraction }) => {
+  const map = useMap();
+  const boundsSetRef = React.useRef(false);
+
+  useMapEvents({
+    click: () => onInteraction && onInteraction(),
+    dragstart: () => onInteraction && onInteraction()
+  });
+
+  React.useEffect(() => {
+    if (map && pickupCoords && dropoffCoords && !boundsSetRef.current) {
+      const boundsPoints = [
+        [pickupCoords.lat, pickupCoords.lng],
+        [dropoffCoords.lat, dropoffCoords.lng]
+      ];
+
+      if (driverCoords && Number.isFinite(driverCoords.lat) && Number.isFinite(driverCoords.lng)) {
+        boundsPoints.push([driverCoords.lat, driverCoords.lng]);
+      }
+
+      if (driverToPickupPath && driverToPickupPath.length > 0) {
+        boundsPoints.push(driverToPickupPath[Math.floor(driverToPickupPath.length / 2)]);
+      }
+      if (pickupToDropoffPath && pickupToDropoffPath.length > 0) {
+        boundsPoints.push(pickupToDropoffPath[Math.floor(pickupToDropoffPath.length / 2)]);
+      }
+
+      const bounds = L.latLngBounds(boundsPoints);
+      if (bounds.isValid()) {
+        map.fitBounds(bounds, { padding: [50, 50] });
+        boundsSetRef.current = true;
+      }
+    }
+  }, [map, pickupCoords, dropoffCoords, driverCoords, driverToPickupPath, pickupToDropoffPath]);
+
+  return null;
+};
+
+const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType = 'car', isFullscreen = false, onToggleFullscreen, theme = 'dark', compact = false }) => {
   const [routePath, setRoutePath] = React.useState([]); // Full route path
   const [driverToPickupPath, setDriverToPickupPath] = React.useState([]);
   const [pickupToDropoffPath, setPickupToDropoffPath] = React.useState([]);
@@ -121,15 +160,16 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
   // Get real-time driver location if not provided
   React.useEffect(() => {
     // Check if we have valid driverLocation coordinates from props
-    const hasValidDriverLocation = driverLocation &&
-      Number.isFinite(driverLocation.latitude) &&
-      Number.isFinite(driverLocation.longitude);
+    // Support both {lat, lng} and {latitude, longitude} formats
+    const lat = driverLocation?.lat || driverLocation?.latitude;
+    const lng = driverLocation?.lng || driverLocation?.longitude;
+    const hasValidDriverLocation = Number.isFinite(lat) && Number.isFinite(lng);
 
     if (hasValidDriverLocation) {
       // Use the driver location from props
       setDriverCoords({
-        lat: driverLocation.latitude,
-        lng: driverLocation.longitude,
+        lat: lat,
+        lng: lng,
         accuracy: driverLocation.accuracy || 100
       });
       setLoading(false);
@@ -335,38 +375,7 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
     return R * c; // Distance in km
   };
 
-  const MapView = () => {
-    const map = useMap();
 
-    React.useEffect(() => {
-      if (map && pickupCoords && dropoffCoords) {
-        // Create bounds array
-        const boundsPoints = [
-          [pickupCoords.lat, pickupCoords.lng],
-          [dropoffCoords.lat, dropoffCoords.lng]
-        ];
-
-        // Add driver location if available
-        if (driverCoords && Number.isFinite(driverCoords.lat) && Number.isFinite(driverCoords.lng)) {
-          boundsPoints.push([driverCoords.lat, driverCoords.lng]);
-        }
-
-        // Add path points to ensure full route is visible (sample if too many)
-        if (driverToPickupPath.length > 0) {
-          boundsPoints.push(driverToPickupPath[Math.floor(driverToPickupPath.length / 2)]);
-        }
-        if (pickupToDropoffPath.length > 0) {
-          boundsPoints.push(pickupToDropoffPath[Math.floor(pickupToDropoffPath.length / 2)]);
-        }
-
-        // Fit map to show all points with padding
-        const bounds = L.latLngBounds(boundsPoints);
-        map.fitBounds(bounds, { padding: [50, 50] });
-      }
-    }, [map, driverCoords, pickupCoords, dropoffCoords, driverToPickupPath, pickupToDropoffPath]);
-
-    return null;
-  };
 
   if (loading || !hasDriverCoords) {
     return (
@@ -430,7 +439,14 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
           style={{ height: '100%', width: '100%', zIndex: 1 }}
           zoomControl={!isFullscreen}
         >
-          <MapView />
+          <MapView
+            pickupCoords={pickupCoords}
+            dropoffCoords={dropoffCoords}
+            driverCoords={driverCoords}
+            driverToPickupPath={driverToPickupPath}
+            pickupToDropoffPath={pickupToDropoffPath}
+            onInteraction={() => !isFullscreen && onToggleFullscreen && onToggleFullscreen()}
+          />
           <TileLayer
             url={tileUrl}
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
@@ -535,7 +551,7 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
       </div>
 
       {/* Route Information Panel */}
-      {routeInfo && (
+      {routeInfo && !compact && (
         <div style={{
           marginTop: '1rem',
           padding: '1rem',

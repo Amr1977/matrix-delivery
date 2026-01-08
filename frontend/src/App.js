@@ -2601,9 +2601,20 @@ export const MainApp = () => {
                   const isDriverAssigned = order.assignedDriver?.userId === currentUser?.id;
                   const hasDriverBid = Array.isArray(order.bids) && order.bids.some(b => b.userId === currentUser?.id);
                   if (currentUser?.primary_role === 'driver') {
+                    // My Bids: Pending orders I have bid on
                     if (viewType === 'my_bids' && (!hasDriverBid || order.status !== 'pending_bids')) return null;
-                    if (viewType === 'bidding' && hasDriverBid) return null;
-                    if (viewType === 'history' && order.status !== 'delivered') return null;
+
+                    // Available Bids: Pending orders I haven't bid on
+                    if (viewType === 'bidding' && (hasDriverBid || order.status !== 'pending_bids')) return null;
+
+                    // History: Completed orders (using historyOrders array)
+                    if (viewType === 'history' && !['delivered', 'cancelled', 'confirmed'].includes(order.status)) return null;
+
+                    // Active Orders: Assigned to me and NOT completed
+                    if (viewType === 'active') {
+                      if (!isDriverAssigned) return null;
+                      if (['delivered', 'cancelled', 'confirmed', 'pending_bids'].includes(order.status)) return null;
+                    }
                   }
 
                   return (
