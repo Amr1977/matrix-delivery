@@ -1266,7 +1266,11 @@ export const MainApp = () => {
         // Include map location and route info if available
         ...(orderData.pickupLocation && { pickupLocation: orderData.pickupLocation }),
         ...(orderData.dropoffLocation && { dropoffLocation: orderData.dropoffLocation }),
-        ...(orderData.routeInfo && { routeInfo: orderData.routeInfo })
+        ...(orderData.routeInfo && { routeInfo: orderData.routeInfo }),
+
+        // Critical Financial Fields (Ensure snake_case for backend)
+        upfront_payment: orderData.upfrontPayment || orderData.upfront_payment || null,
+        require_upfront_payment: !!(orderData.requireUpfrontPayment || orderData.require_upfront_payment)
       };
 
       await OrdersApi.createOrder(newOrder);

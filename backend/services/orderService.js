@@ -639,6 +639,14 @@ END as acceptedBid
       acceptedBid: order.acceptedbid,
       reviewStatus: order.reviewstatus || { reviews: { toDriver: false, toCustomer: false, toPlatform: false } },
       customerId: order.customer_id,
+      // Customer Stats Injection
+      customerRating: order.customerRating,
+      customerJoinedAt: order.customerJoinedAt,
+      customerIsVerified: order.customerIsVerified,
+      customerCompletedOrders: order.customerCompletedOrders,
+      customerReviewCount: order.customerReviewCount,
+      customerGivenReviewCount: order.customerGivenReviewCount,
+
       from: order.from_coordinates ? {
         lat: parseFloat(order.from_coordinates.split(',')[0]),
         lng: parseFloat(order.from_coordinates.split(',')[1])

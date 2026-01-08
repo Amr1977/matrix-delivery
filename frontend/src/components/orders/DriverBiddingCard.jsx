@@ -38,8 +38,26 @@ const DriverBiddingCard = ({
     const myBid = order.bids?.find(b => b.driverId === currentUser?.id);
 
     // Estimates logic
-    const distanceKm = order.estimatedDistanceKm || order.distance || 0;
+    // Estimates logic
+    const [calculatedDistance, setCalculatedDistance] = useState(0);
+    const distanceKm = order.estimatedDistanceKm || order.distance || calculatedDistance || 0;
     const estTimeMins = Math.ceil((distanceKm / 30) * 60) + 15;
+
+    // Haversine Distance Calc
+    useEffect(() => {
+        if (!order.estimatedDistanceKm && !order.distance && order.from_lat && order.from_lng && order.to_lat && order.to_lng) {
+            const R = 6371; // Radius of earth in km
+            const dLat = (order.to_lat - order.from_lat) * (Math.PI / 180);
+            const dLon = (order.to_lng - order.from_lng) * (Math.PI / 180);
+            const a =
+                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(order.from_lat * (Math.PI / 180)) * Math.cos(order.to_lat * (Math.PI / 180)) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            const d = R * c; // Distance in km
+            setCalculatedDistance(d);
+        }
+    }, [order]);
 
     // Responsive layout state
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
