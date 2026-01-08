@@ -134,25 +134,27 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
 
   // Parse order locations (handle both old and new formats)
   React.useEffect(() => {
-    // Handle pickup location - support both old and new formats
+    // Handle pickup location
     let pCoords = null;
     if (order.pickupLocation?.coordinates) {
-      // New format
       pCoords = order.pickupLocation.coordinates;
     } else if (order.from) {
-      // Old format converted to new format
       pCoords = { lat: order.from.lat, lng: order.from.lng };
+    } else if (Number.isFinite(parseFloat(order.from_lat)) && Number.isFinite(parseFloat(order.from_lng))) {
+      // Handle flat fields from getOrders query
+      pCoords = { lat: parseFloat(order.from_lat), lng: parseFloat(order.from_lng) };
     }
     setPickupCoords(pCoords);
 
     // Handle dropoff location
     let dCoords = null;
     if (order.dropoffLocation?.coordinates) {
-      // New format
       dCoords = order.dropoffLocation.coordinates;
     } else if (order.to) {
-      // Old format converted to new format
       dCoords = { lat: order.to.lat, lng: order.to.lng };
+    } else if (Number.isFinite(parseFloat(order.to_lat)) && Number.isFinite(parseFloat(order.to_lng))) {
+      // Handle flat fields from getOrders query
+      dCoords = { lat: parseFloat(order.to_lat), lng: parseFloat(order.to_lng) };
     }
     setDropoffCoords(dCoords);
   }, [order]);
@@ -233,21 +235,28 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
 
   // Calculate route when locations are available
   React.useEffect(() => {
-    if (!hasDriverCoords || !pickupCoords || !dropoffCoords) {
+    // Only proceed if we have at least Driver and Pickup coordinates
+    // We allow missing Dropoff for partial route (Driver -> Pickup)
+    if (!hasDriverCoords || !pickupCoords) {
       return;
     }
 
+    // Simple state to prevent race conditions
+    let isMounted = true;
+
     const calculateRoute = async () => {
       try {
+        if (!isMounted) return;
+
         console.log('🗺️ Starting route calculation...');
         console.log('📍 Driver:', driverCoords);
         console.log('📦 Pickup:', pickupCoords);
-        console.log('🏁 Dropoff:', dropoffCoords);
 
         // 1. Calculate Driver -> Pickup Route
         let driverToPickupPolyline = [];
         let driverToPickupDist = 0;
         let driverToPickupTime = 0;
+
 
         try {
           console.log('🚀 Requesting Driver->Pickup route from backend...');

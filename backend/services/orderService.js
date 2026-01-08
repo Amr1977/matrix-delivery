@@ -355,6 +355,15 @@ o.*,
   CASE WHEN o.assigned_driver_user_id = $1 THEN o.pickup_contact_phone ELSE NULL END as "pickupContactPhone",
   CASE WHEN o.assigned_driver_user_id = $1 THEN o.dropoff_contact_name ELSE NULL END as "dropoffContactName",
   CASE WHEN o.assigned_driver_user_id = $1 THEN o.dropoff_contact_phone ELSE NULL END as "dropoffContactPhone",
+  
+  -- Customer Stats
+  c.rating as "customerRating",
+  c.created_at as "customerJoinedAt",
+  c.is_verified as "customerIsVerified",
+  (SELECT COUNT(*)::int FROM orders o2 WHERE o2.customer_id = o.customer_id AND o2.status IN ('delivered', 'DELIVERED', 'completed', 'COMPLETED')) as "customerCompletedOrders",
+  (SELECT COUNT(*)::int FROM reviews r WHERE r.reviewee_id = o.customer_id) as "customerReviewCount",
+  (SELECT COUNT(*)::int FROM reviews r WHERE r.reviewer_id = o.customer_id) as "customerGivenReviewCount",
+
   json_build_object(
     'userId', d.id,
     'name', d.name,
@@ -414,6 +423,7 @@ END as acceptedBid,
 END as sort_priority
         FROM orders o
         LEFT JOIN users d ON o.assigned_driver_user_id = d.id
+        LEFT JOIN users c ON o.customer_id = c.id  -- Join Customer
         LEFT JOIN bids b ON o.id = b.order_id
         LEFT JOIN users u ON b.user_id = u.id
         LEFT JOIN reviews r ON o.id = r.order_id AND r.reviewer_id = $1 AND r.reviewee_id = o.customer_id
@@ -424,7 +434,7 @@ END as sort_priority
 ) dr ON dr.reviewee_id = u.id
 WHERE(o.status = 'pending_bids' AND o.assigned_driver_user_id IS NULL${locationConditions})
            OR o.assigned_driver_user_id = $1
-        GROUP BY o.id, d.id, d.name, d.rating, d.completed_deliveries, r.id
+        GROUP BY o.id, d.id, c.id, d.name, d.rating, d.completed_deliveries, r.id
         ORDER BY sort_priority, o.created_at DESC
   `;
       params = [userId, ...filterParams];
@@ -437,7 +447,16 @@ o.*,
   o.pickup_contact_name as "pickupContactName",
   o.pickup_contact_phone as "pickupContactPhone",
   o.dropoff_contact_name as "dropoffContactName",
-  o.dropoff_contact_phone as "dropoffContactPhone",
+  CASE WHEN o.assigned_driver_user_id = $1 THEN o.dropoff_contact_phone ELSE NULL END as "dropoffContactPhone",
+  
+  -- Customer Stats
+  c.rating as "customerRating",
+  c.created_at as "customerJoinedAt",
+  c.is_verified as "customerIsVerified",
+  (SELECT COUNT(*)::int FROM orders o2 WHERE o2.customer_id = o.customer_id AND o2.status IN ('delivered', 'DELIVERED', 'completed', 'COMPLETED')) as "customerCompletedOrders",
+  (SELECT COUNT(*)::int FROM reviews r WHERE r.reviewee_id = o.customer_id) as "customerReviewCount",
+  (SELECT COUNT(*)::int FROM reviews r WHERE r.reviewer_id = o.customer_id) as "customerGivenReviewCount",
+
   json_build_object(
     'userId', d.id,
     'name', d.name,
@@ -485,6 +504,7 @@ o.*,
 END as acceptedBid
         FROM orders o
         LEFT JOIN users d ON o.assigned_driver_user_id = d.id
+        LEFT JOIN users c ON o.customer_id = c.id  -- Join Customer
         LEFT JOIN bids b ON o.id = b.order_id
         LEFT JOIN users u ON b.user_id = u.id
         LEFT JOIN(
@@ -492,7 +512,7 @@ END as acceptedBid
           FROM reviews
           GROUP BY reviewee_id
 ) dr ON dr.reviewee_id = u.id
-        GROUP BY o.id, d.id, d.name, d.rating, d.completed_deliveries
+        GROUP BY o.id, d.id, c.id, d.name, d.rating, d.completed_deliveries
         ORDER BY o.created_at DESC
       `;
     }
