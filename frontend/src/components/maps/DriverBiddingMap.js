@@ -405,9 +405,18 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
       }
     };
 
-    // Debounce execution: wait 1s before fetching
-    fetchTimeoutRef.current = setTimeout(calculateRoute, 1000);
-  }, [hasDriverCoords, driverCoords, pickupCoords, dropoffCoords, order, driverVehicleType]);
+    // Debounce execution: wait 500ms before fetching
+    fetchTimeoutRef.current = setTimeout(calculateRoute, 500);
+  }, [
+    hasDriverCoords,
+    driverCoords?.lat ? driverCoords.lat.toFixed(4) : null,
+    driverCoords?.lng ? driverCoords.lng.toFixed(4) : null,
+    pickupCoords?.lat ? pickupCoords.lat.toFixed(4) : null,
+    pickupCoords?.lng ? pickupCoords.lng.toFixed(4) : null,
+    dropoffCoords?.lat ? dropoffCoords.lat.toFixed(4) : null,
+    dropoffCoords?.lng ? dropoffCoords.lng.toFixed(4) : null,
+    driverVehicleType
+  ]);
 
   // Helper function to calculate distance between points
   const calculateDistance = (point1, point2) => {

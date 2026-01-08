@@ -319,33 +319,45 @@ const DriverBiddingCard = ({
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem 1rem', marginBottom: '1rem' }}>
-                            <div>
-                                <p style={{ fontSize: '0.7rem', color: '#888', marginBottom: '2px' }}>RATING</p>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-                                    {renderStars(order.customerRating || 0)}
-                                    <span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: 'white', marginLeft: '4px' }}>
-                                        {order.customerRating ? order.customerRating.toFixed(1) : 'New'}
-                                    </span>
-                                </div>
-                            </div>
-                            <div>
-                                <p style={{ fontSize: '0.7rem', color: '#888', marginBottom: '2px' }}>ORDERS</p>
-                                <p style={{ fontSize: '0.9rem', fontWeight: 'bold', color: 'white' }}>
-                                    {order.customerCompletedOrders || 0}
-                                </p>
-                            </div>
-                            <div>
-                                <p style={{ fontSize: '0.7rem', color: '#888', marginBottom: '2px' }}>REVIEWS</p>
-                                <p style={{ fontSize: '0.9rem', fontWeight: 'bold', color: 'white' }}>
-                                    {order.customerReviewCount || 0}
-                                </p>
-                            </div>
-                            <div>
-                                <p style={{ fontSize: '0.7rem', color: '#888', marginBottom: '2px' }}>SINCE</p>
-                                <p style={{ fontSize: '0.8rem', color: 'white' }}>
-                                    {order.customerJoinedAt ? new Date(order.customerJoinedAt).toLocaleDateString() : 'Unknown'}
-                                </p>
-                            </div>
+                            {(() => {
+                                // Robust extraction
+                                const ratingRaw = order.customerRating || order.customerrating;
+                                const ratingVal = ratingRaw ? parseFloat(ratingRaw) : 0;
+                                const joinedRaw = order.customerJoinedAt || order.customerjoinedat;
+                                const joinedDate = joinedRaw ? new Date(joinedRaw).toLocaleDateString() : 'Unknown';
+
+                                return (
+                                    <>
+                                        <div>
+                                            <p style={{ fontSize: '0.7rem', color: '#888', marginBottom: '2px' }}>RATING</p>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                                                {renderStars(ratingVal)}
+                                                <span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: 'white', marginLeft: '4px' }}>
+                                                    {ratingVal > 0 ? ratingVal.toFixed(1) : 'New'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <p style={{ fontSize: '0.7rem', color: '#888', marginBottom: '2px' }}>ORDERS</p>
+                                            <p style={{ fontSize: '0.9rem', fontWeight: 'bold', color: 'white' }}>
+                                                {order.customerCompletedOrders || order.customercompletedorders || 0}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p style={{ fontSize: '0.7rem', color: '#888', marginBottom: '2px' }}>REVIEWS</p>
+                                            <p style={{ fontSize: '0.9rem', fontWeight: 'bold', color: 'white' }}>
+                                                {order.customerReviewCount || order.customerreviewcount || 0}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p style={{ fontSize: '0.7rem', color: '#888', marginBottom: '2px' }}>SINCE</p>
+                                            <p style={{ fontSize: '0.8rem', color: 'white' }}>
+                                                {joinedDate}
+                                            </p>
+                                        </div>
+                                    </>
+                                );
+                            })()}
                         </div>
 
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
