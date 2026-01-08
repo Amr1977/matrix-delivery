@@ -108,45 +108,41 @@ NODE_ENV=test
 
 ## Test Structure
 
-### API Tests (`tests/map-location-api-tests.js`)
+### Polymorphic BDD (Shared Features) - **NEW STANDARD**
 
-```javascript
-describe("Map Location Picker API Tests", () => {
-  // 20+ test suites covering:
-  // - Reverse geocoding for various locations
-  // - Google Maps URL parsing
-  // - Route calculation between coordinates
-  // - Driver preferences management
-  // - Enhanced order creation with location data
-  // - Error handling and edge cases
-});
+**All new features MUST use the Polymorphic BDD pattern:**
+
+1.  **Shared Feature Files**:
+    - Place Gherkin files in `tests/features/shared/`
+    - Logic must be environment-agnostic (business rules, user intent)
+
+2.  **Dual Implementation**:
+    - **API Steps**: `tests/step_definitions/api/` (HTTP requests)
+    - **E2E Steps**: `tests/step_definitions/e2e/` (Playwright/Puppeteer)
+
+```
+tests/features/shared/
+  └── my_feature.feature      <-- Single source of truth
+
+tests/step_definitions/
+  ├── api/my_feature_steps.js <-- Fast API implementation
+  └── e2e/my_feature_steps.js <-- Real UI implementation
 ```
 
-### E2E Tests (`tests/features/map_location_picker.feature`)
+### Legacy Test Structure
 
-`````gherkin
-Feature: Map Location Picker
-  @smoke @map-location-picker
-  Scenario: Successfully reverse geocode coordinates on map click
-    Given I am logged in as a customer
-    When I click on a location on the map at coordinates (30.0131, 31.2089)
-    Then the reverse geocoding API should be called
-    # 15+ comprehensive scenarios covering:
-    # - Smoke tests for core functionality
-    # - Regression tests for existing features
-    # - Edge cases and error conditions
-    # - Performance and accessibility
-    # - Mobile and localization testing
+**API Tests** (`tests/map-location-api-tests.js`)
 
-3. **Core Order Lifecycle** (`tests/features/core/order_lifecycle.feature`)
-   - Complete verification of the delivery flow (Create -> Bid -> Accept -> Deliver)
-   - Verifies Wallet/Escrow balance updates (Platform + Takaful commission)
-   - Validates status transitions (`DELIVERED_PENDING` -> `DELIVERED`)
-   - **Command**: `npm run test:bdd:e2e -- --tags "@order_lifecycle"````
+- Direct Jest tests for backend logic (Legacy pattern, for reference)
+
+**Legacy E2E Tests** (`tests/features/map_location_picker.feature`)
+
+- Feature files located directly in `tests/features/frontend` or `backend` (migration to shared/ recommended)
 
 ### Test Runner (`scripts/run-tests.js`)
 
 A comprehensive test orchestrator that:
+
 - Sets up test environments automatically
 - Runs tests in optimal order (API → E2E → Smoke)
 - Generates detailed reports with pass/fail analysis
@@ -162,7 +158,9 @@ A comprehensive test orchestrator that:
    # Run tests during development
    npm run test:api     # Quick API feedback
    npm run test:smoke   # Basic checks
-`````
+   ```
+
+````
 
 2. **Before Commit**
 
@@ -352,3 +350,4 @@ This comprehensive testing strategy ensures:
 - **Performance and security validation** throughout the development lifecycle
 
 The testing infrastructure prevents the "tragedy of 0 tests before commit" by making testing a required part of the development workflow rather than an optional step.
+````

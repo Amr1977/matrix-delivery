@@ -22,15 +22,15 @@ module.exports = {
     'backend-api': {
         requireModule: ['ts-node/register'],
         require: ['tests/step_definitions/api/**/*.{ts,js}', 'tests/support/**/*.{ts,js}'],
-        paths: ['tests/features/backend/**/*.feature'],
+        paths: ['tests/features/backend/**/*.feature', 'tests/features/shared/**/*.feature'],
         format: ['progress-bar', 'html:tests/reports/backend-api-report.html'],
         tags: '@api'
     },
     // Frontend UI tests
     'frontend-ui': {
         requireModule: ['ts-node/register'],
-        require: ['tests/step_definitions/ui/**/*.{ts,js}', 'tests/support/**/*.{ts,js}'],
-        paths: ['tests/features/frontend/**/*.feature'],
+        require: ['tests/step_definitions/ui/**/*.{ts,js}', 'tests/step_definitions/e2e/**/*.{ts,js}', 'tests/support/**/*.{ts,js}'],
+        paths: ['tests/features/frontend/**/*.feature', 'tests/features/shared/**/*.feature'],
         format: ['progress-bar', 'html:tests/reports/frontend-ui-report.html'],
         tags: '@ui'
     },

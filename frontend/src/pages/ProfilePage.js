@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import RoleSwitcher from '../components/RoleSwitcher';
+import CashBalanceCard from '../components/driver/CashBalanceCard';
 import { formatCurrency } from '../utils/formatters';
 
 const ProfilePage = ({
@@ -93,11 +94,11 @@ const ProfilePage = ({
     };
 
     return (
-        <div className="profile-page" style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto', color: '#fff' }}>
+        <div className="profile-page-container">
 
             {/* Header Section */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', background: 'rgba(255,255,255,0.05)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+            <div className="profile-header">
+                <div className="profile-user-info">
                     <div style={{ position: 'relative' }}>
                         <div style={{ width: '100px', height: '100px', borderRadius: '50%', overflow: 'hidden', border: '4px solid var(--matrix-bright-green, #10B981)', background: '#1F2937' }}>
                             {profileData.profile_picture_url ? (
@@ -164,7 +165,7 @@ const ProfilePage = ({
                 </div>
 
                 {/* primary_role Switcher Section */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '10px' }}>
+                <div className="profile-actions" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '10px' }}>
                     {/* Only show RoleSwitcher if user has multiple granted_roles */}
                     {(profileData.granted_roles?.length > 1 || profileData.granted_roles?.length > 1) && (
                         <div style={{ background: 'rgba(0,0,0,0.3)', padding: '15px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
@@ -239,7 +240,16 @@ const ProfilePage = ({
                 </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '20px' }}>
+            {/* Cash Balance Card (Drivers Only) */}
+            <CashBalanceCard
+                token={token}
+                API_URL={API_URL}
+                currentUser={currentUser || profileData}
+                setError={setError}
+                t={(key) => key} // Placeholder translation function
+            />
+
+            <div className="profile-grid">
 
                 {/* Quick Stats */}
                 <div className="card" style={{ padding: '20px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>

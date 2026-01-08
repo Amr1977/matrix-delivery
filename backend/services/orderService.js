@@ -292,6 +292,25 @@ END as acceptedBid,
         });
       }
 
+      // Cash capacity filtering - only show orders driver can afford
+      if (filters.driverCash !== undefined && filters.driverCash >= 0) {
+        // Orders with no upfront payment (NULL or 0) are visible to all drivers
+        // Orders with upfront payment are only visible if driver has sufficient cash
+        let paramIndex = filterParams.length + 2; // Account for userId ($1) and existing params
+        if (filterParams.length === 0) {
+          paramIndex = 2; // No location params, so start at $2
+        }
+
+        locationConditions += ` AND (o.upfront_payment IS NULL OR o.upfront_payment = 0 OR o.upfront_payment <= $${paramIndex})`;
+        filterParams.push(filters.driverCash);
+
+        logger.info('Cash capacity filter applied', {
+          driverCash: filters.driverCash,
+          paramIndex,
+          category: 'orders'
+        });
+      }
+
       // Additional text-based filters
       if (filters.country || filters.city || filters.area) {
         const conditions = [];

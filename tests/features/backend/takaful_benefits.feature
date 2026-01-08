@@ -8,6 +8,7 @@ Feature: Takaful Benefit Claims
     Given the system is running
     And a driver "benefit_driver" exists
     And "benefit_driver" has contributed 500 EGP to Takaful
+    And "benefit_driver" has been active for 6+ months
 
   # ========================================
   # Gold-Indexed Loans
