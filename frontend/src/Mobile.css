@@ -590,3 +590,69 @@ html {
 [dir="rtl"] .arrow-icon {
   transform: scaleX(-1);
 }
+
+/* =========================================
+   Profile Page Responsive Styles
+   ========================================= */
+
+.profile-page-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  color: #fff;
+}
+
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 20px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.profile-user-info {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 20px;
+}
+
+/* Mobile Adjustments */
+@media (max-width: 767px) {
+  .profile-page-container {
+    padding: 10px;
+  }
+
+  .profile-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  .profile-user-info {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    gap: 15px;
+  }
+
+  .profile-grid {
+    grid-template-columns: 1fr; /* Full width on mobile */
+  }
+
+  .profile-actions {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+  }
+}

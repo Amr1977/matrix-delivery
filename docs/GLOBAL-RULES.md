@@ -3,6 +3,7 @@
 ## UI/UX Standards
 
 ### Mobile-First Development (CRITICAL)
+
 **All new components and views MUST follow mobile-first approach:**
 
 1. **Base styles target mobile devices** (< 768px)
@@ -22,9 +23,11 @@
    - Test on actual mobile devices, not just browser DevTools
 
 ### Matrix Theme (MANDATORY)
+
 **Every component MUST use Matrix theme styling:**
 
 #### Color Palette
+
 ```css
 /* Primary Colors */
 --matrix-black: #0a0e27;
@@ -45,6 +48,7 @@
 ```
 
 #### Visual Effects
+
 1. **Glassmorphism** - All cards and panels must have:
    - Semi-transparent background: `rgba(10, 14, 39, 0.6)`
    - Backdrop blur: `backdrop-filter: blur(20px)`
@@ -66,12 +70,14 @@
    - Active states: `transform: scale(0.97)`
 
 #### Typography
+
 - Headings use gradient text with `-webkit-background-clip: text`
 - Body text: white with varying opacity (0.6-1.0)
 - Labels: rgba(255, 255, 255, 0.7)
 - Use text-transform: uppercase with letter-spacing for small UI elements
 
 #### Buttons
+
 ```css
 /* Primary (Green) */
 background: linear-gradient(135deg, var(--matrix-bright-green), #00ff41);
@@ -90,26 +96,32 @@ color: var(--matrix-bright-green);
 ```
 
 ### Example Component Structure
+
 ```jsx
 // Component with Matrix theme
 <div className="component-name">
   {/* Header with gradient text */}
-  <h1 style={{
-    background: 'linear-gradient(135deg, var(--matrix-bright-green), #00ffff)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent'
-  }}>
+  <h1
+    style={{
+      background:
+        "linear-gradient(135deg, var(--matrix-bright-green), #00ffff)",
+      WebkitBackgroundClip: "text",
+      WebkitTextFillColor: "transparent",
+    }}
+  >
     Title
   </h1>
-  
+
   {/* Glassmorphism card */}
-  <div style={{
-    background: 'rgba(10, 14, 39, 0.6)',
-    border: '1px solid rgba(0, 255, 65, 0.2)',
-    borderRadius: '1rem',
-    padding: '1.5rem',
-    backdropFilter: 'blur(20px)'
-  }}>
+  <div
+    style={{
+      background: "rgba(10, 14, 39, 0.6)",
+      border: "1px solid rgba(0, 255, 65, 0.2)",
+      borderRadius: "1rem",
+      padding: "1.5rem",
+      backdropFilter: "blur(20px)",
+    }}
+  >
     Content
   </div>
 </div>
@@ -118,12 +130,14 @@ color: var(--matrix-bright-green);
 ## Code Quality
 
 ### Clean Code Principles
+
 1. **Meaningful Names**: Use descriptive variable/function names
 2. **Single Responsibility**: Each function should do one thing well
 3. **DRY**: Don't Repeat Yourself - extract reusable logic
 4. **Comments**: Explain WHY, not WHAT (code should be self-documenting)
 
 ### TypeScript Adoption
+
 - Gradually migrate JavaScript files to TypeScript
 - Use strict type checking
 - Define interfaces for all props and state
@@ -132,6 +146,7 @@ color: var(--matrix-bright-green);
 ## Documentation (MANDATORY)
 
 ### DOCS/ Directory
+
 **All significant features MUST be documented in `DOCS/`:**
 
 1. **Create documentation for**:
@@ -142,19 +157,24 @@ color: var(--matrix-bright-green);
    - UI/UX patterns
 
 2. **Documentation format**:
+
    ```markdown
    # Feature Name
-   
+
    ## Overview
+
    Brief description
-   
+
    ## Changes Made
+
    - List of changes
-   
+
    ## Files Modified
+
    - File paths with descriptions
-   
+
    ## Testing
+
    How to verify/test
    ```
 
@@ -162,28 +182,41 @@ color: var(--matrix-bright-green);
 
 ## Testing
 
-### BDD Testing (Dual-Layer Approach)
+### BDD Testing (Polymorphic Approach - CRITICAL)
 
-#### Layer 1: Integration Tests
-- Test API endpoints and business logic
-- Use Cucumber/Gherkin for scenarios
-- Located in: `backend/test/features/`
-- Run with: `npm test` (backend)
+**ALWAYS USE POLYMORPHIC BDD APPROACH FOR BDD/TDD.**
 
-#### Layer 2: UI Tests  
-- Test user interactions and workflows
-- Use Puppeteer/Playwright for browser automation
-- Located in: `frontend/test/features/`
-- Run with: `npm test` (frontend)
+#### Core Principle
 
-### Test Requirements
-- **All new features** must have BDD tests (both layers)
-- Tests must pass before deployment
-- Follow existing test patterns in `test/features/`
+- **One Feature File**: Write Gherkin scenarios once in `tests/features/shared/`
+- **Multiple Contexts**: Run the _same_ scenarios against multiple layers:
+  1.  **API Level** (Fast, checking logic/state via HTTP)
+  2.  **E2E Level** (Comprehensive, checking UI/UX via Playwright)
+
+#### Implementation Structure
+
+```
+tests/features/
+  └── shared/                   # <-- Single source of truth
+       └── my_feature.feature
+
+tests/step_definitions/
+  ├── api/                      # API-specific implementation
+  │   └── my_feature_steps.js
+  └── e2e/                      # UI-specific implementation
+      └── my_feature_steps.js
+```
+
+#### Test Requirements
+
+- **All new features contexts** MUST use this approach
+- Do NOT create separate feature files for backend vs frontend unless logic is purely internal
+- Tests must pass in both contexts before deployment
 
 ## Security
 
 ### Best Practices
+
 1. **Input Validation**: Validate all user inputs
 2. **Authentication**: Use httpOnly cookies for tokens
 3. **Authorization**: Verify user permissions on all endpoints
@@ -194,6 +227,7 @@ color: var(--matrix-bright-green);
 ## Deployment
 
 ### Pre-Deployment Checklist
+
 - [ ] All tests passing (integration + UI)
 - [ ] Documentation updated in DOCS/
 - [ ] Mobile responsiveness verified

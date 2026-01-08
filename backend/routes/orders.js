@@ -47,6 +47,30 @@ router.get('/', verifyToken, async (req, res) => {
           category: 'orders'
         });
       }
+
+      // Fetch driver's available cash for cash capacity filtering
+      const pool = require('../config/db');
+      try {
+        const cashResult = await pool.query(
+          'SELECT available_cash FROM users WHERE id = $1',
+          [req.user.userId]
+        );
+        if (cashResult.rows.length > 0) {
+          filters.driverCash = parseFloat(cashResult.rows[0].available_cash) || 0;
+          logger.info('Driver cash balance filter applied', {
+            userId: req.user.userId,
+            driverCash: filters.driverCash,
+            category: 'orders'
+          });
+        }
+      } catch (cashError) {
+        logger.warn('Failed to fetch driver cash balance', {
+          userId: req.user.userId,
+          error: cashError.message,
+          category: 'orders'
+        });
+        // Continue without cash filtering if query fails
+      }
     } else {
       // Non-drivers should not provide lat/lng parameters (they don't get filtered)
       if (lat || lng) {

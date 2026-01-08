@@ -1,0 +1,90 @@
+
+/**
+ * GET /api/users/me/cash-balance
+ * Get driver's available cash balance (driver-only)
+ */
+router.get('/me/cash-balance', verifyToken, async (req, res, next) => {
+    try {
+        // Verify user is a driver
+        const result = await pool.query(
+            "SELECT available_cash, primary_role, granted_roles FROM users WHERE id = $1",
+            [req.user.userId],
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        const user = result.rows[0];
+        const isDriver =
+            user.primary_role === "driver" ||
+            (user.granted_roles && user.granted_roles.includes("driver"));
+
+        if (!isDriver) {
+            return res.status(403).json({ error: "Only drivers can access cash balance" });
+        }
+
+        res.json({
+            availableCash: parseFloat(user.available_cash) || 0,
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * PUT /api/users/me/cash-balance
+ * Update driver's available cash balance (driver-only)
+ */
+router.put('/me/cash-balance', verifyToken, async (req, res, next) => {
+    try {
+        const { availableCash } = req.body;
+
+        // Validation
+        if (typeof availableCash !== "number" || availableCash < 0) {
+            return res.status(400).json({
+                error: "Available cash must be a positive number",
+            });
+        }
+
+        // Verify user is a driver
+        const userCheck = await pool.query(
+            "SELECT primary_role, granted_roles FROM users WHERE id = $1",
+            [req.user.userId],
+        );
+
+        if (userCheck.rows.length === 0) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        const user = userCheck.rows[0];
+        const isDriver =
+            user.primary_role === "driver" ||
+            (user.granted_roles && user.granted_roles.includes("driver"));
+
+        if (!isDriver) {
+            return res.status(403).json({
+                error: "Only drivers can update cash balance",
+            });
+        }
+
+        // Update available cash
+        const result = await pool.query(
+            "UPDATE users SET available_cash = $1 WHERE id = $2 RETURNING available_cash",
+            [availableCash, req.user.userId],
+        );
+
+        logger.info("Driver updated available cash", {
+            userId: req.user.userId,
+            availableCash,
+            category: "driver",
+        });
+
+        res.json({
+            availableCash: parseFloat(result.rows[0].available_cash),
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
