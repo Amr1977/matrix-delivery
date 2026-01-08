@@ -405,9 +405,19 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
       }
     };
 
-    // Debounce execution: wait 500ms before fetching
-    fetchTimeoutRef.current = setTimeout(calculateRoute, 500);
+    // Simplified Debounce: Wait 500ms
+    console.log('🔄 Map Effect Triggered', { driverCoords, pickupCoords });
+
+    // Clear previous timeout
+    if (fetchTimeoutRef.current) clearTimeout(fetchTimeoutRef.current);
+
+    fetchTimeoutRef.current = setTimeout(() => {
+      console.log('⏱️ Debounce Timer Fired - Executing Route');
+      calculateRoute();
+    }, 500);
+
   }, [
+    // Use primitive values to avoid object reference issues
     hasDriverCoords,
     driverCoords?.lat ? driverCoords.lat.toFixed(4) : null,
     driverCoords?.lng ? driverCoords.lng.toFixed(4) : null,
