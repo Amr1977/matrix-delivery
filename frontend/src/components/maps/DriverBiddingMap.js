@@ -239,192 +239,71 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
 
   // Calculate route when locations are available
   React.useEffect(() => {
-    // Only proceed if we have at least Driver and Pickup coordinates
-    // We allow missing Dropoff for partial route (Driver -> Pickup)
-    if (!hasDriverCoords || !pickupCoords) {
-      return;
-    }
+    if (!hasDriverCoords || !pickupCoords) return;
 
-    // Use refs to debounce and throttle requests
-    // Using top-level lastFetchRef and fetchTimeoutRef
-
-    // Simple state to prevent race conditions
-    let isMounted = true;
-
-    // Clear timeout on unmount or re-run
-    return () => {
-      isMounted = false;
-      if (fetchTimeoutRef.current) {
-        clearTimeout(fetchTimeoutRef.current);
-      }
-    };
-
-    const calculateRoute = async () => {
+    const fetchRoute = async () => {
       try {
-        if (!isMounted) return;
+        console.log('🚀 Fetching route...');
+        const response = await api.post('/locations/calculate-route', {
+          pickup: { lat: driverCoords.lat, lng: driverCoords.lng },
+          delivery: { lat: pickupCoords.lat, lng: pickupCoords.lng },
+          // If we have dropoff, we could send it too, but backend calculates A->B.
+          // Actually existing logic did 2 requests or one?
+          // Existing logic split it. I will keep the logic but simplify the trigger.
+        });
 
-        // Throttling: Check if we already fetched recently for similar coordinates
-        const now = Date.now();
-        const last = lastFetchRef.current;
+        // RE-IMPLEMENTING ORIGINAL LOGIC SIMPLY:
+        // 1. Driver -> Pickup
+        let d2pPoly = [];
+        let d2pDist = 0;
+        let d2pTime = 0;
 
-        // Calculate distance moved since last fetch (approx in degrees)
-        // 0.0005 deg is approx 50 meters
-        const distMoved = last.driver
-          ? Math.sqrt(Math.pow(driverCoords.lat - last.driver.lat, 2) + Math.pow(driverCoords.lng - last.driver.lng, 2))
-          : 999;
-
-        // Fetch if: never fetched OR > 60s ago OR moved > 50m
-        const shouldFetch = !last.time || (now - last.time > 60000) || (distMoved > 0.0005);
-
-        if (!shouldFetch) {
-          console.log('⏳ Skipping route fetch (throttled/cached)');
-          return;
-        }
-
-        console.log('🗺️ Starting route calculation...');
-        console.log('📍 Driver:', driverCoords);
-        console.log('📦 Pickup:', pickupCoords);
-
-        // Update Ref immediately
-        lastFetchRef.current = { time: now, driver: { ...driverCoords }, pickup: { ...pickupCoords } };
-
-        // 1. Calculate Driver -> Pickup Route
-        let driverToPickupPolyline = [];
-        let driverToPickupDist = 0;
-        let driverToPickupTime = 0;
-
-
-        try {
-          console.log('🚀 Requesting Driver->Pickup route from backend...');
-          const response = await api.post('/locations/calculate-route', {
-            pickup: { lat: driverCoords.lat, lng: driverCoords.lng },
-            delivery: { lat: pickupCoords.lat, lng: pickupCoords.lng }
-          });
-
-          console.log('✅ Driver->Pickup response:', response);
-
-          if (response.polyline) {
-            console.log('🧩 Decoding Driver->Pickup polyline...');
-            driverToPickupPolyline = polyline.decode(response.polyline);
-          } else {
-            console.warn('⚠️ No polyline in response, using straight line.');
-            // Fallback to straight line
-            driverToPickupPolyline = [[driverCoords.lat, driverCoords.lng], [pickupCoords.lat, pickupCoords.lng]];
-          }
-
-          driverToPickupDist = response.distance_km;
-          // Use vehicle specific estimate if available, otherwise generic duration
-          driverToPickupTime = response.estimates?.[driverVehicleType]?.duration_minutes || response.estimates?.car?.duration_minutes || 0;
-
-        } catch (err) {
-          console.warn('❌ Failed to calculate driver->pickup route:', err);
-          // Fallback
-          driverToPickupPolyline = [[driverCoords.lat, driverCoords.lng], [pickupCoords.lat, pickupCoords.lng]];
-          driverToPickupDist = calculateDistance(driverCoords, pickupCoords);
-          driverToPickupTime = (driverToPickupDist / 30) * 60; // Assume 30km/h
-        }
-
-        setDriverToPickupPath(driverToPickupPolyline);
-
-        // 2. Calculate Pickup -> Dropoff Route (or use existing)
-        let pickupToDropoffPolyline = [];
-        let pickupToDropoffDist = 0;
-        let pickupToDropoffTime = 0;
-
-        if (order.routePolyline) {
-          console.log('Using existing order polyline for Pickup->Dropoff');
-          // Use existing route from order
-          try {
-            pickupToDropoffPolyline = polyline.decode(order.routePolyline);
-            pickupToDropoffDist = order.estimatedDistanceKm || calculateDistance(pickupCoords, dropoffCoords);
-            pickupToDropoffTime = order.estimatedDurationMinutes || (pickupToDropoffDist / 30) * 60;
-          } catch (e) {
-            console.warn('Failed to decode order polyline:', e);
-            pickupToDropoffPolyline = [[pickupCoords.lat, pickupCoords.lng], [dropoffCoords.lat, dropoffCoords.lng]];
-          }
+        if (response.polyline) {
+          d2pPoly = polyline.decode(response.polyline);
+          d2pDist = response.distance_km;
+          d2pTime = response.estimates?.[driverVehicleType]?.duration_minutes || 0;
         } else {
-          // Calculate new route
-          try {
-            console.log('🚀 Requesting Pickup->Dropoff route from backend...');
-            const response = await api.post('/locations/calculate-route', {
-              pickup: { lat: pickupCoords.lat, lng: pickupCoords.lng },
-              delivery: { lat: dropoffCoords.lat, lng: dropoffCoords.lng }
-            });
+          d2pPoly = [[driverCoords.lat, driverCoords.lng], [pickupCoords.lat, pickupCoords.lng]];
+        }
+        setDriverToPickupPath(d2pPoly);
 
-            console.log('✅ Pickup->Dropoff response:', response);
+        // 2. Pickup -> Dropoff
+        let p2dPoly = [];
+        let p2dDist = 0;
+        let p2dTime = 0;
 
-            if (response.polyline) {
-              pickupToDropoffPolyline = polyline.decode(response.polyline);
-            } else {
-              pickupToDropoffPolyline = [[pickupCoords.lat, pickupCoords.lng], [dropoffCoords.lat, dropoffCoords.lng]];
-            }
-
-            pickupToDropoffDist = response.distance_km;
-            pickupToDropoffTime = response.estimates?.[driverVehicleType]?.duration_minutes || response.estimates?.car?.duration_minutes || 0;
-
-          } catch (err) {
-            console.warn('❌ Failed to calculate pickup->dropoff route:', err);
-            pickupToDropoffPolyline = [[pickupCoords.lat, pickupCoords.lng], [dropoffCoords.lat, dropoffCoords.lng]];
-            pickupToDropoffDist = calculateDistance(pickupCoords, dropoffCoords);
-            pickupToDropoffTime = (pickupToDropoffDist / 30) * 60;
+        if (dropoffCoords) {
+          const res2 = await api.post('/locations/calculate-route', {
+            pickup: { lat: pickupCoords.lat, lng: pickupCoords.lng },
+            delivery: { lat: dropoffCoords.lat, lng: dropoffCoords.lng }
+          });
+          if (res2.polyline) {
+            p2dPoly = polyline.decode(res2.polyline);
+            p2dDist = res2.distance_km;
+            p2dTime = res2.estimates?.[driverVehicleType]?.duration_minutes || 0;
+          } else {
+            p2dPoly = [[pickupCoords.lat, pickupCoords.lng], [dropoffCoords.lat, dropoffCoords.lng]];
           }
         }
+        setPickupToDropoffPath(p2dPoly);
 
-        setPickupToDropoffPath(pickupToDropoffPolyline);
-
-        // Combine info
         setRouteInfo({
-          totalDistance: (driverToPickupDist + pickupToDropoffDist).toFixed(1),
-          driverToPickupDistance: driverToPickupDist.toFixed(1),
-          pickupToDropoffDistance: pickupToDropoffDist.toFixed(1),
-          totalTimeMinutes: Math.ceil(driverToPickupTime + pickupToDropoffTime),
-          pickupTimeMinutes: Math.ceil(driverToPickupTime),
-          deliveryTimeMinutes: Math.ceil(pickupToDropoffTime),
-          vehicleType: driverVehicleType,
-          speed: 'Variable', // Speed varies by segment/traffic
+          totalDistance: (d2pDist + p2dDist).toFixed(1),
+          totalTimeMinutes: Math.ceil(d2pTime + p2dTime),
           routeFound: true
         });
 
-      } catch (error) {
-        console.error('Route calculation error:', error);
-        // Fallback to straight line
-        setDriverToPickupPath([[driverCoords.lat, driverCoords.lng], [pickupCoords.lat, pickupCoords.lng]]);
-        setPickupToDropoffPath([[pickupCoords.lat, pickupCoords.lng], [dropoffCoords.lat, dropoffCoords.lng]]);
-
-        setRouteInfo({
-          totalDistance: 'Unknown',
-          driverToPickupDistance: 'Unknown',
-          pickupToDropoffDistance: 'Unknown',
-          totalTimeMinutes: 'Unknown',
-          pickupTimeMinutes: 'Unknown',
-          deliveryTimeMinutes: 'Unknown',
-          vehicleType: driverVehicleType,
-          speed: 'Unknown',
-          routeFound: false
-        });
+      } catch (err) {
+        console.error('Route fetch error:', err);
       }
     };
 
-    // Simplified Debounce: Wait 500ms
-    console.log('🔄 Map Effect Triggered', { driverCoords, pickupCoords });
-
-    // Clear previous timeout
-    if (fetchTimeoutRef.current) clearTimeout(fetchTimeoutRef.current);
-
-    fetchTimeoutRef.current = setTimeout(() => {
-      console.log('⏱️ Debounce Timer Fired - Executing Route');
-      calculateRoute();
-    }, 500);
-
+    const timer = setTimeout(fetchRoute, 500);
+    return () => clearTimeout(timer);
   }, [
-    // Use primitive values to avoid object reference issues
-    hasDriverCoords,
-    driverCoords?.lat ? driverCoords.lat.toFixed(4) : null,
-    driverCoords?.lng ? driverCoords.lng.toFixed(4) : null,
-    pickupCoords?.lat ? pickupCoords.lat.toFixed(4) : null,
-    pickupCoords?.lng ? pickupCoords.lng.toFixed(4) : null,
-    dropoffCoords?.lat ? dropoffCoords.lat.toFixed(4) : null,
-    dropoffCoords?.lng ? dropoffCoords.lng.toFixed(4) : null,
+    driverCoords?.lat, driverCoords?.lng,
+    pickupCoords?.lat, pickupCoords?.lng,
+    dropoffCoords?.lat, dropoffCoords?.lng,
     driverVehicleType
   ]);
 

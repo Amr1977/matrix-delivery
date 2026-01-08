@@ -114,7 +114,7 @@ const DriverBiddingCard = ({
                 opacity: 0.5
             }} />
 
-            {/* 1. Header: Compact & High Contrast */}
+            {/* 1. Header: Compact & High Contrast - Unified Metrics */}
             <div style={{
                 padding: '1rem',
                 borderBottom: '1px solid rgba(0, 255, 0, 0.2)',
@@ -122,10 +122,10 @@ const DriverBiddingCard = ({
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 flexWrap: 'wrap',
-                gap: '0.5rem',
+                gap: '1rem',
                 background: 'rgba(0, 255, 0, 0.05)'
             }}>
-                <div style={{ flex: 1, minWidth: '200px' }}>
+                <div style={{ flex: '1 1 200px' }}>
                     <div style={{
                         fontSize: '1.25rem',
                         fontWeight: 'bold',
@@ -149,16 +149,69 @@ const DriverBiddingCard = ({
                     )}
                 </div>
 
-                <div style={{
-                    textAlign: 'right',
-                    background: 'rgba(0,0,0,0.6)',
-                    padding: '0.5rem 1rem',
-                    borderRadius: '8px',
-                    border: '1px solid var(--matrix-border)'
-                }}>
-                    <div style={{ fontSize: '0.7rem', color: '#aaa', textTransform: 'uppercase' }}>Client Offer</div>
-                    <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: 'white' }}>
-                        {formatCurrency(order.price)}
+                {/* Unified Metrics Row */}
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+
+                    {/* Upfront (Only if > 0) */}
+                    {hasUpfrontPayment && (
+                        <div style={{
+                            textAlign: 'center',
+                            background: 'rgba(220, 38, 38, 0.1)',
+                            padding: '0.4rem 0.8rem',
+                            borderRadius: '8px',
+                            border: '1px solid #DC2626',
+                            minWidth: '90px'
+                        }}>
+                            <div style={{ fontSize: '0.6rem', color: '#ff6666', textTransform: 'uppercase', marginBottom: '2px' }}>Upfront</div>
+                            <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#fca5a5' }}>
+                                {formatCurrency(upfrontPayment)}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Distance */}
+                    <div style={{
+                        textAlign: 'center',
+                        background: 'rgba(0,0,0,0.6)',
+                        padding: '0.4rem 0.8rem',
+                        borderRadius: '8px',
+                        border: '1px solid var(--matrix-border)',
+                        minWidth: '80px'
+                    }}>
+                        <div style={{ fontSize: '0.6rem', color: '#aaa', textTransform: 'uppercase', marginBottom: '2px' }}>Distance</div>
+                        <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'white' }}>
+                            {distanceKm.toFixed(1)} km
+                        </div>
+                    </div>
+
+                    {/* Time */}
+                    <div style={{
+                        textAlign: 'center',
+                        background: 'rgba(0,0,0,0.6)',
+                        padding: '0.4rem 0.8rem',
+                        borderRadius: '8px',
+                        border: '1px solid var(--matrix-border)',
+                        minWidth: '80px'
+                    }}>
+                        <div style={{ fontSize: '0.6rem', color: '#aaa', textTransform: 'uppercase', marginBottom: '2px' }}>Time</div>
+                        <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'white' }}>
+                            ~{estTimeMins} min
+                        </div>
+                    </div>
+
+                    {/* Offer */}
+                    <div style={{
+                        textAlign: 'center',
+                        background: 'rgba(0,0,0,0.6)',
+                        padding: '0.4rem 0.8rem',
+                        borderRadius: '8px',
+                        border: '1px solid var(--matrix-border)',
+                        minWidth: '100px'
+                    }}>
+                        <div style={{ fontSize: '0.6rem', color: '#aaa', textTransform: 'uppercase', marginBottom: '2px' }}>Offer</div>
+                        <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--matrix-bright-green)' }}>
+                            {formatCurrency(order.price)}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -174,53 +227,7 @@ const DriverBiddingCard = ({
                     compact={true}
                 />
 
-                {/* Floating Stats Overlay */}
-                <div style={{
-                    position: 'absolute',
-                    bottom: '12px',
-                    left: '12px',
-                    right: '12px',
-                    display: 'flex',
-                    gap: '8px',
-                    zIndex: 10
-                }}>
-                    <div style={{
-                        flex: 1,
-                        background: 'rgba(0, 10, 0, 0.85)',
-                        backdropFilter: 'blur(8px)',
-                        padding: '8px 12px',
-                        borderRadius: '6px',
-                        border: '1px solid rgba(0, 255, 0, 0.3)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        boxShadow: '0 4px 6px rgba(0,0,0,0.3)'
-                    }}>
-                        <Navigation size={18} color="#00ffff" />
-                        <div>
-                            <div style={{ fontSize: '0.65rem', color: '#ccc' }}>DISTANCE</div>
-                            <div style={{ fontSize: '1rem', fontWeight: 'bold', color: 'white' }}>{distanceKm.toFixed(1)} km</div>
-                        </div>
-                    </div>
-                    <div style={{
-                        flex: 1,
-                        background: 'rgba(0, 10, 0, 0.85)',
-                        backdropFilter: 'blur(8px)',
-                        padding: '8px 12px',
-                        borderRadius: '6px',
-                        border: '1px solid rgba(0, 255, 0, 0.3)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        boxShadow: '0 4px 6px rgba(0,0,0,0.3)'
-                    }}>
-                        <Clock size={18} color="#FBBF24" />
-                        <div>
-                            <div style={{ fontSize: '0.65rem', color: '#ccc' }}>EST. TIME</div>
-                            <div style={{ fontSize: '1rem', fontWeight: 'bold', color: 'white' }}>~{estTimeMins} min</div>
-                        </div>
-                    </div>
-                </div>
+                {/* Floating Stats Overlay REMOVED - Moved to Header */}
             </div>
 
             {/* 3. Key Details Section - Flex Wrap for Robustness */}
@@ -277,27 +284,7 @@ const DriverBiddingCard = ({
                 {/* Financials & Reputation Column */}
                 <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
-                    {/* Upfront Payment Warning - HIGH CONTRAST */}
-                    <div style={{
-                        background: hasUpfrontPayment ? 'rgba(220, 38, 38, 0.2)' : 'rgba(16, 185, 129, 0.15)',
-                        border: `2px solid ${hasUpfrontPayment ? '#DC2626' : '#10B981'}`,
-                        borderRadius: '12px',
-                        padding: '1.25rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        boxShadow: '0 4px 10px rgba(0,0,0,0.2)'
-                    }}>
-                        <div>
-                            <div style={{ fontSize: '0.75rem', color: hasUpfrontPayment ? '#ff6666' : '#6ee7b7', fontWeight: 'bold', letterSpacing: '0.5px' }}>
-                                UPFRONT PAYMENT {hasUpfrontPayment ? 'REQUIRED' : 'NOT REQUIRED'}
-                            </div>
-                            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'white', marginTop: '4px' }}>
-                                {formatCurrency(upfrontPayment)}
-                            </div>
-                        </div>
-                        {hasUpfrontPayment ? <AlertTriangle color="#ef4444" size={32} /> : <CheckCircle color="#10b981" size={32} />}
-                    </div>
+                    {/* Upfront Payment Warning - Moved to Header */}
 
                     {/* COMPREHENSIVE CLIENT REPUTATION */}
                     <div style={{
