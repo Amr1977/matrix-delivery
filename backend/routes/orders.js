@@ -161,13 +161,15 @@ router.post('/', verifyToken, orderCreationRateLimit, async (req, res, next) => 
     const {
       title, price, description, package_description, package_weight, estimated_value,
       special_instructions, pickupAddress, dropoffAddress, pickupLocation, dropoffLocation,
-      showManualEntry, estimated_delivery_date
+      showManualEntry, estimated_delivery_date,
+      upfront_payment, require_upfront_payment // Added fields
     } = req.body;
 
     const orderData = {
       title, price, description, package_description, package_weight, estimated_value,
       special_instructions, pickupAddress, dropoffAddress, pickupLocation, dropoffLocation,
-      showManualEntry, estimated_delivery_date
+      showManualEntry, estimated_delivery_date,
+      upfront_payment, require_upfront_payment // Added fields
     };
 
     const order = await orderService.createOrder(orderData, req.user.userId, req.user.name);

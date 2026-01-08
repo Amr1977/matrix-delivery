@@ -11,30 +11,23 @@ const pool = new Pool({
 
 async function debugOrder() {
     try {
-        console.log(`Checking LATEST order in DB...`);
+        const targetNum = '1767898681396';
+        console.log(`Checking order with trace: ${targetNum}`);
 
-        // Fetch latest order
-        const res = await pool.query('SELECT * FROM orders ORDER BY created_at DESC LIMIT 1');
+        // Fetch raw order
+        const res = await pool.query('SELECT * FROM orders WHERE order_number LIKE $1', [`%${targetNum}%`]);
         if (res.rows.length === 0) {
-            console.log('❌ No orders found in DB!');
+            console.log('❌ Order not found!');
             return;
         }
 
         const order = res.rows[0];
-        console.log(`✅ Latest Order Found:`);
+        console.log(`✅ Order Found:`);
         console.log(`   ID: ${order.id}`);
-        console.log(`   Number: "${order.order_number}"`);
-        console.log(`   Title: ${order.title}`);
-        console.log(`   Customer ID: ${order.customer_id}`);
-        console.log(`   Upfront Payment: ${order.upfront_payment} (Type: ${typeof order.upfront_payment})`);
-        console.log(`   Require Upfront: ${order.require_upfront_payment}`);
-        console.log(`   Price: ${order.price}`);
-
-        // Check if customer matches test user
-        const userRes = await pool.query('SELECT id, name, email, rating FROM users WHERE id = $1', [order.customer_id]);
-        const user = userRes.rows[0];
-        console.log(`   Customer: ${user?.name} (${user?.email})`);
-        console.log(`   Customer Rating: ${user?.rating}`);
+        console.log(`   Number: '${order.order_number}'`);
+        console.log(`   Title: '${order.title}'`);
+        console.log(`   Upfront Payment (DB Value):`, order.upfront_payment);
+        console.log(`   Require Upfront (DB Value):`, order.require_upfront_payment);
 
         // Check stats for THIS customer
         const completed = await pool.query(`
