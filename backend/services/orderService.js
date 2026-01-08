@@ -1654,10 +1654,10 @@ o.*,
     const reviewId = this.generateId();
     await pool.query(
       `INSERT INTO reviews(
-    id, order_id, reviewer_id, reviewee_id, reviewer_role,
+    id, user_id, order_id, reviewer_id, reviewee_id, reviewer_role,
     review_type, rating, comment, professionalism_rating, communication_rating,
     timeliness_rating, condition_rating, created_at
-  ) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())`,
+  ) VALUES($1, $3, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())`,
       [
         reviewId,
         orderId,
