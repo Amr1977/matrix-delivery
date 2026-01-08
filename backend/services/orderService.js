@@ -54,6 +54,15 @@ class OrderService {
         o.pickup_contact_phone as "pickupContactPhone",
         o.dropoff_contact_name as "dropoffContactName",
         o.dropoff_contact_phone as "dropoffContactPhone",
+        
+        -- Customer Stats
+        c.rating as "customerRating",
+        c.created_at as "customerJoinedAt",
+        c.is_verified as "customerIsVerified",
+        (SELECT COUNT(*)::int FROM orders o2 WHERE o2.customer_id = o.customer_id AND o2.status IN ('delivered', 'DELIVERED', 'completed', 'COMPLETED')) as "customerCompletedOrders",
+        (SELECT COUNT(*)::int FROM reviews r WHERE r.target_user_id = o.customer_id) as "customerReviewCount",
+        (SELECT COUNT(*)::int FROM reviews r WHERE r.reviewer_id = o.customer_id) as "customerGivenReviewCount",
+
         json_build_object(
           'userId', d.id,
           'name', d.name,
@@ -95,10 +104,11 @@ class OrderService {
         END as acceptedBid
       FROM orders o
       LEFT JOIN users d ON o.assigned_driver_user_id = d.id
+      LEFT JOIN users c ON o.customer_id = c.id  -- Join Customer
       LEFT JOIN bids b ON o.id = b.order_id
       LEFT JOIN users u ON b.user_id = u.id
       WHERE o.id = $1
-      GROUP BY o.id, d.id, d.name, d.rating, d.completed_deliveries
+      GROUP BY o.id, d.id, c.id, d.name, d.rating, d.completed_deliveries
     `;
 
     const result = await pool.query(query, [orderId]);

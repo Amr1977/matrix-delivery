@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useI18n } from '../../i18n/i18nContext';
 import { formatCurrency, formatDateTime } from '../../utils/formatters';
 import DriverBiddingMap from '../maps/DriverBiddingMap';
-import { MapPin, Clock, Wallet, User, Star, Hash, Navigation, AlertTriangle, CheckCircle, Send } from 'lucide-react';
+import { MapPin, Clock, Wallet, User, Star, Hash, Navigation, AlertTriangle, CheckCircle, Send, ArrowRight } from 'lucide-react';
 import useAuth from '../../hooks/useAuth';
 
 /**
- * DriverBiddingCard - Matrix Design System
+ * DriverBiddingCard - Ultra-Premium Matrix Design (Mobile First)
  * 
- * Specialized card for drivers to view and bid on available orders.
- * Focuses on:
- * 1. Visual Route (Driver -> Pickup -> Delivery)
- * 2. Financials (Upfront Payment, Client Offer)
- * 3. Client Reputation
+ * Features:
+ * - Fluid Responsive Layout (Flex/Grid with auto-fit)
+ * - True Matrix Aesthetics (Neon Greens, Deep Blacks, Glassmorphism)
+ * - Optimized Touch Targets for Mobile
+ * - Visual Hierarchy: Price -> Map -> Status -> Action
  */
 const DriverBiddingCard = ({
     order,
@@ -23,10 +23,12 @@ const DriverBiddingCard = ({
     setBidInput,
     bidDetails,
     setBidDetails,
-    loadingStates
+    loadingStates,
+    openReviewModal
 }) => {
     const { t } = useI18n();
     const [showMapFullscreen, setShowMapFullscreen] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(false);
 
     // Calculate upfront payment (default to 0 if undefined)
     const upfrontPayment = order.upfront_payment || order.upfrontPayment || 0;
@@ -37,8 +39,27 @@ const DriverBiddingCard = ({
 
     // Estimates logic
     const distanceKm = order.estimatedDistanceKm || order.distance || 0;
-    // Rough estimate: 30km/h avg speed + 15 mins pickup/dropoff handling
     const estTimeMins = Math.ceil((distanceKm / 30) * 60) + 15;
+
+    // Responsive layout state
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    const renderStars = (rating) => {
+        return [...Array(5)].map((_, i) => (
+            <Star
+                key={i}
+                size={14}
+                fill={i < Math.round(rating) ? "#FBBF24" : "none"}
+                color={i < Math.round(rating) ? "#FBBF24" : "#4B5563"}
+            />
+        ));
+    };
 
     const handleBidSubmit = (e) => {
         e.preventDefault();
@@ -52,351 +73,426 @@ const DriverBiddingCard = ({
             }
         }
 
-        // Logic handled by parent (OrderCard) wrapper usually, but we implement the call here
-        if (bidInput[order.id]) {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        const location = { lat: position.coords.latitude, lng: position.coords.longitude };
-                        onBid(order.id, {
-                            bidPrice: bidInput[order.id],
-                            estimatedPickupTime: bidDetails[order.id]?.pickupTime,
-                            estimatedDeliveryTime: bidDetails[order.id]?.deliveryTime,
-                            message: bidDetails[order.id]?.message,
-                            location: location
-                        });
-                    },
-                    () => onBid(order.id, { // Fallback
-                        bidPrice: bidInput[order.id],
-                        estimatedPickupTime: bidDetails[order.id]?.pickupTime,
-                        estimatedDeliveryTime: bidDetails[order.id]?.deliveryTime,
-                        message: bidDetails[order.id]?.message
-                    })
-                );
-            } else {
-                onBid(order.id, {
-                    bidPrice: bidInput[order.id],
-                    estimatedPickupTime: bidDetails[order.id]?.pickupTime,
-                    estimatedDeliveryTime: bidDetails[order.id]?.deliveryTime,
-                    message: bidDetails[order.id]?.message
-                });
-            }
+        // Prepare bid payload
+        const bidPayload = {
+            bidPrice: bidInput[order.id],
+            estimatedPickupTime: bidDetails[order.id]?.pickupTime,
+            estimatedDeliveryTime: bidDetails[order.id]?.deliveryTime,
+            message: bidDetails[order.id]?.message
+        };
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    bidPayload.location = { lat: position.coords.latitude, lng: position.coords.longitude };
+                    onBid(order.id, bidPayload);
+                },
+                () => onBid(order.id, bidPayload) // Fallback if geo fails
+            );
+        } else {
+            onBid(order.id, bidPayload);
         }
     };
 
     return (
         <div style={{
-            background: 'rgba(10, 14, 39, 0.7)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(0, 255, 65, 0.2)',
-            borderRadius: '1rem',
+            background: 'linear-gradient(145deg, rgba(0, 10, 0, 0.95) 0%, rgba(0, 20, 0, 0.98) 100%)',
+            border: '1px solid var(--matrix-border, #00AA00)',
+            borderRadius: '12px',
             marginBottom: '1.5rem',
-            overflow: 'hidden',
-            boxShadow: '0 0 20px rgba(0, 255, 65, 0.05)',
-            color: 'white',
+            overflow: 'hidden', // Keep for border-radius
+            boxShadow: '0 0 20px rgba(0, 255, 0, 0.1)',
+            color: 'var(--matrix-bright-green, #30FF30)',
+            fontFamily: "'Consolas', 'Monaco', monospace",
+            transition: 'all 0.3s ease',
             position: 'relative'
         }}>
+            {/* Glowing Border Animation Element */}
+            <div style={{
+                position: 'absolute', top: 0, left: 0, right: 0, height: '1px',
+                background: 'linear-gradient(90deg, transparent, var(--matrix-bright-green), transparent)',
+                opacity: 0.5
+            }} />
 
-            {/* 1. Header Section */}
-            <div style={{ padding: '1rem', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <h3 style={{
-                            margin: 0,
-                            fontSize: '1.1rem',
-                            color: 'var(--matrix-bright-green, #00ff41)',
-                            fontFamily: 'monospace'
-                        }}>
-                            {order.title}
-                        </h3>
-                        {order.orderNumber && (
-                            <span style={{
-                                fontSize: '0.75rem',
-                                background: 'rgba(255,255,255,0.1)',
-                                padding: '2px 6px',
-                                borderRadius: '4px',
-                                fontFamily: 'monospace'
-                            }}>
-                                #{order.orderNumber}
-                            </span>
-                        )}
+            {/* 1. Header: Compact & High Contrast */}
+            <div style={{
+                padding: '1rem',
+                borderBottom: '1px solid rgba(0, 255, 0, 0.2)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '0.5rem',
+                background: 'rgba(0, 255, 0, 0.05)'
+            }}>
+                <div style={{ flex: 1, minWidth: '200px' }}>
+                    <div style={{
+                        fontSize: '1.25rem',
+                        fontWeight: 'bold',
+                        color: 'white',
+                        textShadow: '0 0 10px rgba(0, 255, 0, 0.5)'
+                    }}>
+                        {order.title}
                     </div>
+                    {order.orderNumber && (
+                        <div style={{
+                            fontSize: '0.75rem',
+                            color: 'var(--matrix-border)',
+                            marginTop: '0.25rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem'
+                        }}>
+                            <span>#{order.orderNumber}</span>
+                            <span style={{ fontSize: '0.6rem', padding: '1px 4px', border: '1px solid var(--matrix-border)', borderRadius: '4px' }}>WAITING FOR BIDS</span>
+                        </div>
+                    )}
                 </div>
 
-                <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '0.75rem', color: '#9CA3AF' }}>Client Offer</div>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white' }}>
+                <div style={{
+                    textAlign: 'right',
+                    background: 'rgba(0,0,0,0.6)',
+                    padding: '0.5rem 1rem',
+                    borderRadius: '8px',
+                    border: '1px solid var(--matrix-border)'
+                }}>
+                    <div style={{ fontSize: '0.7rem', color: '#aaa', textTransform: 'uppercase' }}>Client Offer</div>
+                    <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: 'white' }}>
                         {formatCurrency(order.price)}
                     </div>
                 </div>
             </div>
 
-            {/* 2. Map Section */}
-            <div style={{ position: 'relative', height: '200px', width: '100%' }}>
+            {/* 2. Map Visualization */}
+            <div style={{ position: 'relative', height: '220px', width: '100%', borderBottom: '1px solid rgba(0, 255, 0, 0.1)' }}>
                 <DriverBiddingMap
                     order={order}
                     driverLocation={driverLocation}
                     driverVehicleType={currentUser?.vehicle_type || 'car'}
                     onToggleFullscreen={() => setShowMapFullscreen(!showMapFullscreen)}
                     isFullscreen={showMapFullscreen}
-                    compact={true} // New prop to make it fit better if needed
+                    compact={true}
                 />
 
-                {/* Overlay Stats */}
+                {/* Floating Stats Overlay */}
                 <div style={{
                     position: 'absolute',
-                    bottom: '10px',
-                    left: '10px',
-                    right: '10px',
+                    bottom: '12px',
+                    left: '12px',
+                    right: '12px',
                     display: 'flex',
-                    gap: '0.5rem',
-                    zIndex: 400
+                    gap: '8px',
+                    zIndex: 10
                 }}>
                     <div style={{
                         flex: 1,
-                        background: 'rgba(0,0,0,0.8)',
-                        backdropFilter: 'blur(5px)',
-                        padding: '0.5rem',
-                        borderRadius: '0.5rem',
+                        background: 'rgba(0, 10, 0, 0.85)',
+                        backdropFilter: 'blur(8px)',
+                        padding: '8px 12px',
+                        borderRadius: '6px',
+                        border: '1px solid rgba(0, 255, 0, 0.3)',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '0.5rem',
-                        border: '1px solid rgba(255,255,255,0.1)'
+                        gap: '8px',
+                        boxShadow: '0 4px 6px rgba(0,0,0,0.3)'
                     }}>
-                        <Navigation size={16} color="var(--matrix-cyan, #00ffff)" />
+                        <Navigation size={18} color="#00ffff" />
                         <div>
-                            <div style={{ fontSize: '0.65rem', color: '#9CA3AF', textTransform: 'uppercase' }}>Est. Distance</div>
-                            <div style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>{distanceKm.toFixed(1)} km</div>
+                            <div style={{ fontSize: '0.65rem', color: '#ccc' }}>DISTANCE</div>
+                            <div style={{ fontSize: '1rem', fontWeight: 'bold', color: 'white' }}>{distanceKm.toFixed(1)} km</div>
                         </div>
                     </div>
-
                     <div style={{
                         flex: 1,
-                        background: 'rgba(0,0,0,0.8)',
-                        padding: '0.5rem',
-                        borderRadius: '0.5rem',
+                        background: 'rgba(0, 10, 0, 0.85)',
+                        backdropFilter: 'blur(8px)',
+                        padding: '8px 12px',
+                        borderRadius: '6px',
+                        border: '1px solid rgba(0, 255, 0, 0.3)',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '0.5rem',
-                        border: '1px solid rgba(255,255,255,0.1)'
+                        gap: '8px',
+                        boxShadow: '0 4px 6px rgba(0,0,0,0.3)'
                     }}>
-                        <Clock size={16} color="#FBBF24" />
+                        <Clock size={18} color="#FBBF24" />
                         <div>
-                            <div style={{ fontSize: '0.65rem', color: '#9CA3AF', textTransform: 'uppercase' }}>Est. Time</div>
-                            <div style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>~{estTimeMins} min</div>
+                            <div style={{ fontSize: '0.65rem', color: '#ccc' }}>EST. TIME</div>
+                            <div style={{ fontSize: '1rem', fontWeight: 'bold', color: 'white' }}>~{estTimeMins} min</div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* 3. Key Details Grid */}
-            <div style={{ padding: '1rem', display: 'grid', gridTemplateColumns: 'minmax(120px, 1fr) 2fr', gap: '1rem' }}>
-
-                {/* Financials Column */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    {/* Upfront Payment Box */}
-                    <div style={{
-                        background: hasUpfrontPayment ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)',
-                        border: `1px solid ${hasUpfrontPayment ? '#EF4444' : '#10B981'}`,
-                        padding: '0.75rem',
-                        borderRadius: '0.5rem',
-                        textAlign: 'center'
-                    }}>
-                        <div style={{
-                            fontSize: '0.7rem',
-                            color: hasUpfrontPayment ? '#EF4444' : '#10B981',
-                            textTransform: 'uppercase',
-                            fontWeight: 'bold',
-                            marginBottom: '0.25rem'
-                        }}>
-                            Upfront Payment
-                        </div>
-                        <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white' }}>
-                            {formatCurrency(upfrontPayment)}
-                        </div>
-                        {hasUpfrontPayment && (
-                            <div style={{ fontSize: '0.65rem', color: '#FCA5A5', marginTop: '0.25rem' }}>
-                                Required in wallet
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* Addresses Column */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', justifyContent: 'center' }}>
-                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
-                        <div style={{
-                            background: 'rgba(0, 255, 65, 0.1)',
-                            padding: '6px',
-                            borderRadius: '50%',
-                            color: 'var(--matrix-bright-green)'
-                        }}>
-                            <MapPin size={16} />
-                        </div>
-                        <div>
-                            <div style={{ fontSize: '0.7rem', color: '#9CA3AF', textTransform: 'uppercase' }}>Pickup From</div>
-                            <div style={{ fontSize: '0.9rem', lineHeight: '1.3' }}>
-                                {order.pickupAddress || order.from?.name || "Unknown Location"}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
-                        <div style={{
-                            background: 'rgba(255, 255, 255, 0.1)',
-                            padding: '6px',
-                            borderRadius: '50%',
-                            color: '#ffffff'
-                        }}>
-                            <MapPin size={16} />
-                        </div>
-                        <div>
-                            <div style={{ fontSize: '0.7rem', color: '#9CA3AF', textTransform: 'uppercase' }}>Deliver To</div>
-                            <div style={{ fontSize: '0.9rem', lineHeight: '1.3' }}>
-                                {order.deliveryAddress || order.to?.name || "Unknown Location"}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* 4. Client Reputation */}
+            {/* 3. Key Details Section - Flex Wrap for Robustness */}
             <div style={{
-                margin: '0 1rem 1rem 1rem',
-                background: 'rgba(255,255,255,0.03)',
-                borderRadius: '0.5rem',
-                padding: '0.75rem',
+                position: 'relative',
+                zIndex: 5,
+                padding: '1.5rem',
+                marginTop: '1rem', // Spacer
+                background: '#0a0a0a', // Solid BG to block Map overlap
+                borderTop: '1px solid var(--matrix-border)',
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between'
+                flexWrap: 'wrap',
+                gap: '2rem',
+                alignItems: 'flex-start'
             }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <div style={{ background: '#374151', padding: '6px', borderRadius: '50%' }}>
-                        <User size={16} color="#9CA3AF" />
-                    </div>
-                    <div>
-                        <div style={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Client Reputation</div>
-                        <div style={{ fontSize: '0.7rem', color: '#9CA3AF' }}>
-                            {order.customerCompletedOrders || 0} Orders
+
+                {/* Route Column */}
+                <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingTop: '0.5rem' }}>
+                    <div style={{ position: 'relative', paddingLeft: '2.5rem', borderLeft: '2px dashed rgba(0,255,0,0.3)' }}>
+                        {/* Pickup */}
+                        <div style={{ position: 'relative', marginBottom: '2rem' }}>
+                            <div style={{
+                                position: 'absolute', left: '-2.55rem', top: '-4px',
+                                background: 'black', border: '2px solid var(--matrix-bright-green)',
+                                borderRadius: '50%', padding: '4px', zIndex: 10,
+                                width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                            }}>
+                                <div style={{ width: '10px', height: '10px', background: 'var(--matrix-bright-green)', borderRadius: '50%' }} />
+                            </div>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--matrix-bright-green)', fontWeight: 'bold', marginBottom: '0.25rem', paddingLeft: '0.5rem' }}>PICKUP</div>
+                            <div style={{ color: 'white', fontSize: '1rem', lineHeight: '1.5', paddingLeft: '0.5rem' }}>
+                                {order.pickupAddress || order.from?.name || "Unknown Pickup Location"}
+                            </div>
+                        </div>
+
+                        {/* Delivery */}
+                        <div style={{ position: 'relative' }}>
+                            <div style={{
+                                position: 'absolute', left: '-2.55rem', top: '-4px',
+                                background: 'black', border: '2px solid white',
+                                borderRadius: '50%', padding: '4px', zIndex: 10,
+                                width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                            }}>
+                                <div style={{ width: '10px', height: '10px', background: 'white', borderRadius: '50%' }} />
+                            </div>
+                            <div style={{ fontSize: '0.8rem', color: '#ccc', fontWeight: 'bold', marginBottom: '0.25rem', paddingLeft: '0.5rem' }}>DELIVERY</div>
+                            <div style={{ color: 'white', fontSize: '1rem', lineHeight: '1.5', paddingLeft: '0.5rem' }}>
+                                {order.deliveryAddress || order.to?.name || "Unknown Delivery Location"}
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div style={{ display: 'flex', items: 'center', gap: '0.25rem' }}>
-                    <Star size={14} fill="#FBBF24" color="#FBBF24" />
-                    <span style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>
-                        {order.customerRating ? order.customerRating.toFixed(1) : 'New'}
-                    </span>
+                {/* Financials & Reputation Column */}
+                <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+
+                    {/* Upfront Payment Warning - HIGH CONTRAST */}
+                    <div style={{
+                        background: hasUpfrontPayment ? 'rgba(220, 38, 38, 0.2)' : 'rgba(16, 185, 129, 0.15)',
+                        border: `2px solid ${hasUpfrontPayment ? '#DC2626' : '#10B981'}`,
+                        borderRadius: '12px',
+                        padding: '1.25rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        boxShadow: '0 4px 10px rgba(0,0,0,0.2)'
+                    }}>
+                        <div>
+                            <div style={{ fontSize: '0.75rem', color: hasUpfrontPayment ? '#ff6666' : '#6ee7b7', fontWeight: 'bold', letterSpacing: '0.5px' }}>
+                                UPFRONT PAYMENT {hasUpfrontPayment ? 'REQUIRED' : 'NOT REQUIRED'}
+                            </div>
+                            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'white', marginTop: '4px' }}>
+                                {formatCurrency(upfrontPayment)}
+                            </div>
+                        </div>
+                        {hasUpfrontPayment ? <AlertTriangle color="#ef4444" size={32} /> : <CheckCircle color="#10b981" size={32} />}
+                    </div>
+
+                    {/* COMPREHENSIVE CLIENT REPUTATION */}
+                    <div style={{
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        borderRadius: '12px',
+                        padding: '1.25rem'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+                            <User size={16} color="var(--matrix-bright-green)" />
+                            <h4 style={{ fontSize: '0.9rem', fontWeight: '600', color: 'white', margin: 0 }}>
+                                CLIENT REPUTATION
+                            </h4>
+                            {order.customerIsVerified && (
+                                <span style={{ background: '#10B981', color: 'black', padding: '1px 6px', borderRadius: '99px', fontSize: '0.6rem', fontWeight: 'bold' }}>
+                                    ✓ VERIFIED
+                                </span>
+                            )}
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem 1rem', marginBottom: '1rem' }}>
+                            <div>
+                                <p style={{ fontSize: '0.7rem', color: '#888', marginBottom: '2px' }}>RATING</p>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                                    {renderStars(order.customerRating || 0)}
+                                    <span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: 'white', marginLeft: '4px' }}>
+                                        {order.customerRating ? order.customerRating.toFixed(1) : 'New'}
+                                    </span>
+                                </div>
+                            </div>
+                            <div>
+                                <p style={{ fontSize: '0.7rem', color: '#888', marginBottom: '2px' }}>ORDERS</p>
+                                <p style={{ fontSize: '0.9rem', fontWeight: 'bold', color: 'white' }}>
+                                    {order.customerCompletedOrders || 0}
+                                </p>
+                            </div>
+                            <div>
+                                <p style={{ fontSize: '0.7rem', color: '#888', marginBottom: '2px' }}>REVIEWS</p>
+                                <p style={{ fontSize: '0.9rem', fontWeight: 'bold', color: 'white' }}>
+                                    {order.customerReviewCount || 0}
+                                </p>
+                            </div>
+                            <div>
+                                <p style={{ fontSize: '0.7rem', color: '#888', marginBottom: '2px' }}>SINCE</p>
+                                <p style={{ fontSize: '0.8rem', color: 'white' }}>
+                                    {order.customerJoinedAt ? new Date(order.customerJoinedAt).toLocaleDateString() : 'Unknown'}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button
+                                onClick={() => openReviewModal && openReviewModal(order.id, 'view_customer_reviews')}
+                                style={{
+                                    flex: 1,
+                                    padding: '0.4rem',
+                                    background: 'rgba(59, 130, 246, 0.2)',
+                                    color: '#60A5FA',
+                                    border: '1px solid #3B82F6',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontSize: '0.75rem',
+                                    fontWeight: '600'
+                                }}
+                            >
+                                View Reviews
+                            </button>
+                            <button
+                                onClick={() => openReviewModal && openReviewModal(order.id, 'view_customer_given_reviews')}
+                                style={{
+                                    flex: 1,
+                                    padding: '0.4rem',
+                                    background: 'rgba(99, 102, 241, 0.2)',
+                                    color: '#818CF8',
+                                    border: '1px solid #6366F1',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontSize: '0.75rem',
+                                    fontWeight: '600'
+                                }}
+                            >
+                                Reviews Given
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            {/* 5. Bidding Section */}
+            {/* 4. Action / Bidding Area */}
             <div style={{
-                background: 'rgba(0,0,0,0.3)',
-                padding: '1rem',
-                borderTop: '1px solid rgba(255,255,255,0.1)'
+                background: 'rgba(0, 0, 0, 0.6)',
+                padding: '1.25rem',
+                borderTop: '1px solid rgba(0, 255, 0, 0.2)'
             }}>
                 {myBid ? (
                     <div style={{
                         background: 'rgba(16, 185, 129, 0.1)',
                         border: '1px solid #10B981',
-                        borderRadius: '0.5rem',
-                        padding: '1rem',
-                        textAlign: 'center'
+                        borderRadius: '8px',
+                        padding: '1.5rem',
+                        textAlign: 'center',
+                        animation: 'matrix-pulse 2s infinite'
                     }}>
-                        <CheckCircle size={24} color="#10B981" style={{ marginBottom: '0.5rem' }} />
-                        <div style={{ fontWeight: 'bold', color: '#10B981' }}>Bid Placed</div>
-                        <div style={{ fontSize: '0.9rem', marginTop: '0.25rem' }}>
-                            You offered {formatCurrency(myBid.bidPrice)}
-                        </div>
+                        <CheckCircle size={32} color="#10B981" style={{ margin: '0 auto 0.5rem auto' }} />
+                        <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#10B981' }}>BID PLACED</div>
+                        <div style={{ color: 'white', marginTop: '0.25rem' }}>You offered {formatCurrency(myBid.bidPrice)}</div>
                     </div>
                 ) : (
                     <form onSubmit={handleBidSubmit}>
-                        <div style={{
-                            fontSize: '0.75rem',
-                            textTransform: 'uppercase',
-                            color: 'var(--matrix-bright-green)',
-                            marginBottom: '0.5rem',
-                            fontWeight: 'bold'
-                        }}>
-                            Place Your Bid
+                        <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--matrix-bright-green)' }}>
+                            <ArrowRight size={16} />
+                            <span style={{ fontWeight: 'bold', letterSpacing: '1px' }}>PLACE YOUR BID</span>
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                        {/* Inputs Grid - Stacked on Mobile */}
+                        <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+                            gap: '1rem',
+                            marginBottom: '1rem'
+                        }}>
+                            {/* Bid Amount */}
                             <div style={{ position: 'relative' }}>
-                                <span style={{ position: 'absolute', left: '10px', top: '10px', fontSize: '0.8rem', opacity: 0.7 }}>EGP</span>
+                                <label style={{ fontSize: '0.7rem', color: '#aaa', display: 'block', marginBottom: '4px' }}>YOUR PRICE</label>
                                 <input
                                     type="number"
-                                    placeholder="Amount"
+                                    placeholder="0.00"
                                     value={bidInput[order.id] || ''}
                                     onChange={(e) => setBidInput({ ...bidInput, [order.id]: e.target.value })}
                                     style={{
                                         width: '100%',
-                                        background: 'rgba(0,0,0,0.5)',
-                                        border: '1px solid rgba(255,255,255,0.2)',
-                                        padding: '0.5rem 0.5rem 0.5rem 2.5rem',
-                                        borderRadius: '0.5rem',
+                                        background: 'rgba(0, 20, 0, 0.8)',
+                                        border: '1px solid var(--matrix-border)',
                                         color: 'white',
-                                        fontWeight: 'bold'
+                                        padding: '0.75rem',
+                                        fontSize: '1.1rem',
+                                        fontWeight: 'bold',
+                                        borderRadius: '6px',
+                                        outline: 'none'
                                     }}
-                                    step="1"
                                     required
                                 />
                             </div>
 
-                            <input
-                                type="datetime-local"
-                                value={bidDetails[order.id]?.pickupTime || ''}
-                                onChange={(e) => setBidDetails({ ...bidDetails, [order.id]: { ...bidDetails[order.id], pickupTime: e.target.value } })}
-                                style={{
-                                    width: '100%',
-                                    background: 'rgba(0,0,0,0.5)',
-                                    border: '1px solid rgba(255,255,255,0.2)',
-                                    padding: '0.5rem',
-                                    borderRadius: '0.5rem',
-                                    color: 'white',
-                                    fontSize: '0.8rem'
-                                }}
-                            />
+                            {/* Message (Optional) */}
+                            <div>
+                                <label style={{ fontSize: '0.7rem', color: '#aaa', display: 'block', marginBottom: '4px' }}>MESSAGE (OPTIONAL)</label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g. I have a thermal bag..."
+                                    value={bidDetails[order.id]?.message || ''}
+                                    onChange={(e) => setBidDetails({ ...bidDetails, [order.id]: { ...bidDetails[order.id], message: e.target.value } })}
+                                    style={{
+                                        width: '100%',
+                                        background: 'rgba(0, 20, 0, 0.8)',
+                                        border: '1px solid var(--matrix-border)',
+                                        color: 'white',
+                                        padding: '0.75rem',
+                                        fontSize: '0.9rem',
+                                        borderRadius: '6px',
+                                        outline: 'none'
+                                    }}
+                                />
+                            </div>
                         </div>
 
-                        <div style={{ display: 'flex', gap: '0.75rem' }}>
-                            <input
-                                placeholder="Message to client (optional)"
-                                value={bidDetails[order.id]?.message || ''}
-                                onChange={(e) => setBidDetails({ ...bidDetails, [order.id]: { ...bidDetails[order.id], message: e.target.value } })}
-                                style={{
-                                    flex: 1,
-                                    background: 'rgba(0,0,0,0.5)',
-                                    border: '1px solid rgba(255,255,255,0.2)',
-                                    padding: '0.5rem',
-                                    borderRadius: '0.5rem',
-                                    color: 'white',
-                                    fontSize: '0.9rem'
-                                }}
-                            />
-
-                            <button
-                                type="submit"
-                                disabled={loadingStates?.placeBid}
-                                style={{
-                                    background: 'linear-gradient(135deg, var(--matrix-bright-green), #00cc33)',
-                                    color: 'black',
-                                    border: 'none',
-                                    padding: '0 1.5rem',
-                                    borderRadius: '0.5rem',
-                                    fontWeight: 'bold',
-                                    cursor: loadingStates?.placeBid ? 'not-allowed' : 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.5rem',
-                                    opacity: loadingStates?.placeBid ? 0.7 : 1
-                                }}
-                            >
-                                <Send size={16} />
-                                {loadingStates?.placeBid ? '...' : 'Bid'}
-                            </button>
-                        </div>
+                        {/* Submit Button */}
+                        <button
+                            type="submit"
+                            disabled={loadingStates?.placeBid}
+                            style={{
+                                width: '100%',
+                                padding: '1rem',
+                                background: 'linear-gradient(90deg, var(--matrix-dim-green), var(--matrix-border))',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '8px',
+                                fontSize: '1rem',
+                                fontWeight: 'bold',
+                                letterSpacing: '1px',
+                                cursor: loadingStates?.placeBid ? 'not-allowed' : 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '0.75rem',
+                                boxShadow: '0 4px 15px rgba(0, 255, 0, 0.3)',
+                                transition: 'all 0.2s ease',
+                                opacity: loadingStates?.placeBid ? 0.7 : 1
+                            }}
+                            onMouseOver={(e) => !loadingStates?.placeBid && (e.currentTarget.style.transform = 'translateY(-2px)')}
+                            onMouseOut={(e) => !loadingStates?.placeBid && (e.currentTarget.style.transform = 'translateY(0)')}
+                        >
+                            <Send size={20} />
+                            {loadingStates?.placeBid ? 'SENDING BID...' : 'SUBMIT BID PROPOSAL'}
+                        </button>
                     </form>
                 )}
             </div>
