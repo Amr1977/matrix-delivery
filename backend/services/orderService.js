@@ -60,7 +60,7 @@ class OrderService {
         c.created_at as "customerJoinedAt",
         c.is_verified as "customerIsVerified",
         (SELECT COUNT(*)::int FROM orders o2 WHERE o2.customer_id = o.customer_id AND o2.status IN ('delivered', 'DELIVERED', 'completed', 'COMPLETED')) as "customerCompletedOrders",
-        (SELECT COUNT(*)::int FROM reviews r WHERE r.target_user_id = o.customer_id) as "customerReviewCount",
+        (SELECT COUNT(*)::int FROM reviews r WHERE r.reviewee_id = o.customer_id) as "customerReviewCount",
         (SELECT COUNT(*)::int FROM reviews r WHERE r.reviewer_id = o.customer_id) as "customerGivenReviewCount",
 
         json_build_object(
