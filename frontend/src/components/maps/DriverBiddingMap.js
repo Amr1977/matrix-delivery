@@ -126,6 +126,10 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
   const [pickupCoords, setPickupCoords] = React.useState(null);
   const [dropoffCoords, setDropoffCoords] = React.useState(null);
 
+  // Refs for debouncing and throttling
+  const lastFetchRef = React.useRef({ time: 0, driver: null, pickup: null });
+  const fetchTimeoutRef = React.useRef(null);
+
   const hasDriverCoords = !!(driverCoords && Number.isFinite(driverCoords.lat) && Number.isFinite(driverCoords.lng));
 
   // Get API base URL from environment, strip /api suffix for tile endpoint
@@ -241,16 +245,48 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
       return;
     }
 
+    // Use refs to debounce and throttle requests
+    // Using top-level lastFetchRef and fetchTimeoutRef
+
     // Simple state to prevent race conditions
     let isMounted = true;
+
+    // Clear timeout on unmount or re-run
+    return () => {
+      isMounted = false;
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
+      }
+    };
 
     const calculateRoute = async () => {
       try {
         if (!isMounted) return;
 
+        // Throttling: Check if we already fetched recently for similar coordinates
+        const now = Date.now();
+        const last = lastFetchRef.current;
+
+        // Calculate distance moved since last fetch (approx in degrees)
+        // 0.0005 deg is approx 50 meters
+        const distMoved = last.driver
+          ? Math.sqrt(Math.pow(driverCoords.lat - last.driver.lat, 2) + Math.pow(driverCoords.lng - last.driver.lng, 2))
+          : 999;
+
+        // Fetch if: never fetched OR > 60s ago OR moved > 50m
+        const shouldFetch = !last.time || (now - last.time > 60000) || (distMoved > 0.0005);
+
+        if (!shouldFetch) {
+          console.log('⏳ Skipping route fetch (throttled/cached)');
+          return;
+        }
+
         console.log('🗺️ Starting route calculation...');
         console.log('📍 Driver:', driverCoords);
         console.log('📦 Pickup:', pickupCoords);
+
+        // Update Ref immediately
+        lastFetchRef.current = { time: now, driver: { ...driverCoords }, pickup: { ...pickupCoords } };
 
         // 1. Calculate Driver -> Pickup Route
         let driverToPickupPolyline = [];
@@ -369,7 +405,8 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
       }
     };
 
-    calculateRoute();
+    // Debounce execution: wait 1s before fetching
+    fetchTimeoutRef.current = setTimeout(calculateRoute, 1000);
   }, [hasDriverCoords, driverCoords, pickupCoords, dropoffCoords, order, driverVehicleType]);
 
   // Helper function to calculate distance between points
