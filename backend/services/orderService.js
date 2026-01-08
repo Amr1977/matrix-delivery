@@ -153,7 +153,17 @@ class OrderService {
           lat: parseFloat(order.delivery_coordinates.lat || order.to_lat),
           lng: parseFloat(order.delivery_coordinates.lng || order.to_lng)
         }
-      } : { coordinates: { lat: parseFloat(order.to_lat), lng: parseFloat(order.to_lng) } }
+      } : { coordinates: { lat: parseFloat(order.to_lat), lng: parseFloat(order.to_lng) } },
+
+      // Missing Fields Injection
+      upfrontPayment: order.upfront_payment ? parseFloat(order.upfront_payment) : 0,
+      requireUpfrontPayment: order.require_upfront_payment,
+      customerRating: order.customerRating,
+      customerJoinedAt: order.customerJoinedAt,
+      customerIsVerified: order.customerIsVerified,
+      customerCompletedOrders: order.customerCompletedOrders,
+      customerReviewCount: order.customerReviewCount,
+      customerGivenReviewCount: order.customerGivenReviewCount
     };
   }
 
