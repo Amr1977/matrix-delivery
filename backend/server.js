@@ -149,7 +149,7 @@ if (require.main === module) {
     console.log('╚════════════════════════════════════════════════════╝');
     console.log('');
     console.log(`✅ Server running on: http://localhost:${PORT}`);
-    console.log(`📍 API Base URL: http://localhost:${PORT}/api`);
+    console.log(`📍 API Base URL: http://localhost:${PORT}/api [RELOAD-TEST-${Date.now()}]`);
     console.log(`💾 Database: PostgreSQL`);
     console.log(`🔒 Environment: ${IS_TEST ? 'Testing' : (IS_PRODUCTION ? 'Production' : 'Development')}`);
     console.log('');

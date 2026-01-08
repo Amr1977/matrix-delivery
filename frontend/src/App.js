@@ -44,6 +44,7 @@ import { BalanceDashboardPage, TransactionHistoryPage, BalanceStatementPage } fr
 import MatrixLanding from './pages/MatrixLanding';
 import ReviewsPage from './pages/ReviewsPage';
 import CreateOrderPage from './pages/CreateOrderPage';
+import ReviewModal from './components/reviews/ReviewModal';
 
 // TypeScript API Services
 import { AuthApi, OrdersApi, NotificationsApi, UsersApi } from './services/api';
@@ -939,8 +940,8 @@ export const MainApp = () => {
     }
   };
 
-  const handleSubmitReview = async () => {
-    if (reviewForm.rating === 0) {
+  const handleSubmitReview = async (formData) => {
+    if (!formData || formData.rating === 0) {
       setError('Please provide an overall rating');
       return;
     }
@@ -948,13 +949,13 @@ export const MainApp = () => {
     setLoading(true);
     try {
       await OrdersApi.submitReview(reviewOrderId, {
-        reviewType: reviewType,
-        rating: reviewForm.rating,
-        comment: reviewForm.comment,
-        professionalismRating: reviewForm.professionalismRating || null,
-        communicationRating: reviewForm.communicationRating || null,
-        timelinessRating: reviewForm.timelinessRating || null,
-        conditionRating: reviewForm.conditionRating || null
+        reviewType: formData.reviewType,
+        rating: formData.rating,
+        comment: formData.comment,
+        professionalismRating: formData.professionalismRating || null,
+        communicationRating: formData.communicationRating || null,
+        timelinessRating: formData.timelinessRating || null,
+        conditionRating: formData.conditionRating || null
       });
 
       setShowReviewModal(false);
@@ -2094,71 +2095,14 @@ export const MainApp = () => {
 
 
 
-        {showReviewModal && (
-          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '1rem' }}>
-            <div className="modal-content" style={{ background: 'white', borderRadius: '0.5rem', maxWidth: '42rem', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
-              <div style={{ padding: '1.5rem', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>{t('reviews.submitReview')}</h2>
-                <button onClick={() => setShowReviewModal(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
-              </div>
-              <div style={{ padding: '1.5rem' }}>
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <label style={{ display: 'block', fontWeight: '600', fontSize: '0.875rem', color: '#374151', marginBottom: '0.5rem' }}>{t('reviews.overallRating')} *</label>
-                  <div style={{ marginBottom: '1rem' }}>
-                    {renderStars(reviewForm.rating, (rating) => setReviewForm({ ...reviewForm, rating: rating }))}
-                  </div>
-                </div>
-
-                {reviewType === 'customer_to_driver' && (
-                  <>
-                    <div style={{ marginBottom: '1rem' }}>
-                      <label style={{ display: 'block', fontWeight: '600', fontSize: '0.875rem', color: '#374151', marginBottom: '0.5rem' }}>{t('reviews.professionalism')}</label>
-                      {renderStars(reviewForm.professionalismRating, (rating) => setReviewForm({ ...reviewForm, professionalismRating: rating }))}
-                    </div>
-                    <div style={{ marginBottom: '1rem' }}>
-                      <label style={{ display: 'block', fontWeight: '600', fontSize: '0.875rem', color: '#374151', marginBottom: '0.25rem' }}>{t('reviews.communication')}</label>
-                      {renderStars(reviewForm.communicationRating, (rating) => setReviewForm({ ...reviewForm, communicationRating: rating }))}
-                    </div>
-                    <div style={{ marginBottom: '1rem' }}>
-                      <label style={{ display: 'block', fontWeight: '600', fontSize: '0.875rem', color: '#374151', marginBottom: '0.25rem' }}>{t('reviews.timeliness')}</label>
-                      {renderStars(reviewForm.timelinessRating, (rating) => setReviewForm({ ...reviewForm, timelinessRating: rating }))}
-                    </div>
-                    <div style={{ marginBottom: '1rem' }}>
-                      <label style={{ display: 'block', fontWeight: '600', fontSize: '0.875rem', color: '#374151', marginBottom: '0.25rem' }}>{t('reviews.packageCondition')}</label>
-                      {renderStars(reviewForm.conditionRating, (rating) => setReviewForm({ ...reviewForm, conditionRating: rating }))}
-                    </div>
-                  </>
-                )}
-
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <label style={{ display: 'block', fontWeight: '600', fontSize: '0.875rem', color: '#374151', marginBottom: '0.5rem' }}>{t('reviews.commentOptional')}</label>
-                  <textarea
-                    value={reviewForm.comment}
-                    onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })}
-                    placeholder={t('reviews.shareExperience')}
-                    style={{ width: '100%', padding: '0.75rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem', minHeight: '100px', resize: 'vertical' }}
-                  />
-                </div>
-
-                <div style={{ display: 'flex', gap: '0.75rem' }}>
-                  <button
-                    onClick={() => setShowReviewModal(false)}
-                    style={{ flex: 1, padding: '0.75rem', background: '#F3F4F6', color: '#374151', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600' }}
-                  >
-                    {t('common.cancel')}
-                  </button>
-                  <button
-                    onClick={handleSubmitReview}
-                    disabled={loading || reviewForm.rating === 0}
-                    style={{ flex: 1, padding: '0.75rem', background: '#4F46E5', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: reviewForm.rating === 0 || loading ? 'not-allowed' : 'pointer', fontWeight: '600', opacity: reviewForm.rating === 0 || loading ? 0.5 : 1 }}
-                  >
-                    {loading ? t('reviews.submitting') : t('reviews.submitReview')}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        <ReviewModal
+          isOpen={showReviewModal}
+          onClose={() => setShowReviewModal(false)}
+          onSubmit={handleSubmitReview}
+          orderId={reviewOrderId}
+          reviewType={reviewType}
+          loading={loading}
+        />
 
         {showReviewsModal && (
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '1rem' }}>
