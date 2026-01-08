@@ -152,22 +152,20 @@ const DriverBiddingCard = ({
                 {/* Unified Metrics Row */}
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
 
-                    {/* Upfront (Only if > 0) */}
-                    {hasUpfrontPayment && (
-                        <div style={{
-                            textAlign: 'center',
-                            background: 'rgba(220, 38, 38, 0.1)',
-                            padding: '0.4rem 0.8rem',
-                            borderRadius: '8px',
-                            border: '1px solid #DC2626',
-                            minWidth: '90px'
-                        }}>
-                            <div style={{ fontSize: '0.6rem', color: '#ff6666', textTransform: 'uppercase', marginBottom: '2px' }}>Upfront</div>
-                            <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#fca5a5' }}>
-                                {formatCurrency(upfrontPayment)}
-                            </div>
+                    {/* Upfront - Always Shown */}
+                    <div style={{
+                        textAlign: 'center',
+                        background: hasUpfrontPayment ? 'rgba(220, 38, 38, 0.1)' : 'rgba(16, 185, 129, 0.1)',
+                        padding: '0.4rem 0.8rem',
+                        borderRadius: '8px',
+                        border: `1px solid ${hasUpfrontPayment ? '#DC2626' : '#10B981'}`,
+                        minWidth: '90px'
+                    }}>
+                        <div style={{ fontSize: '0.6rem', color: hasUpfrontPayment ? '#ff6666' : '#6ee7b7', textTransform: 'uppercase', marginBottom: '2px' }}>Upfront</div>
+                        <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: hasUpfrontPayment ? '#fca5a5' : '#a7f3d0' }}>
+                            {hasUpfrontPayment ? formatCurrency(upfrontPayment) : 'None'}
                         </div>
-                    )}
+                    </div>
 
                     {/* Distance */}
                     <div style={{
