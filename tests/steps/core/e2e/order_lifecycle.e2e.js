@@ -748,8 +748,17 @@ class E2eAdapter extends OrderLifecycleAdapter {
         await ordersResponsePromise;
         await this.page.waitForTimeout(2000);
 
-        const customerCard = this.page.locator('.order-card', { hasText: orderId }).first();
-        await expect(customerCard).toBeVisible({ timeout: 15000 });
+        let customerCard = this.page.locator('.order-card', { hasText: orderId }).first();
+        try {
+            await expect(customerCard).toBeVisible({ timeout: 5000 });
+        } catch (e) {
+            console.log('[DEBUG] Order card not found for confirmation, reloading page...');
+            await this.page.reload();
+            await this.page.waitForLoadState('networkidle');
+            await this.page.waitForTimeout(2000);
+            customerCard = this.page.locator('.order-card', { hasText: orderId }).first();
+            await expect(customerCard).toBeVisible({ timeout: 15000 });
+        }
         await customerCard.scrollIntoViewIfNeeded();
 
         const confirmBtn = customerCard.locator('[data-testid^="confirm-delivery-btn-"]').first();
@@ -777,8 +786,20 @@ class E2eAdapter extends OrderLifecycleAdapter {
         // The buttons show "Review Customer" or "Review Driver" text
         let reviewBtn = this.page.locator('button:has-text("Review Customer"), button:has-text("Review Driver")').first();
 
+        if (!(await reviewBtn.isVisible({ timeout: 3000 }).catch(() => false))) {
+            console.log('[DEBUG] Review button not visible on Active Orders, checking History tab...');
+
+            // Try switching to History tab
+            const historyTab = this.page.locator('button:has-text("Order History"), button:has-text("My History")').first();
+            if (await historyTab.isVisible()) {
+                await historyTab.click();
+                await this.page.waitForTimeout(1000); // Wait for tab switch
+                reviewBtn = this.page.locator('button:has-text("Review Customer"), button:has-text("Review Driver")').first();
+            }
+        }
+
         if (!(await reviewBtn.isVisible({ timeout: 5000 }).catch(() => false))) {
-            console.log('[DEBUG] Review button not visible on Active Orders, checking page state...');
+            console.log('[DEBUG] Still not visible, checking page state...');
             // Take a debug screenshot
             await this.page.screenshot({ path: `reports/screenshots/review_debug_${Date.now()}.png` });
 
@@ -804,61 +825,46 @@ class E2eAdapter extends OrderLifecycleAdapter {
         await reviewBtn.click();
         console.log('[DEBUG] Clicked review button successfully');
 
-        // Wait for Modal
-        await expect(this.page.locator('text=Submit Review')).toBeVisible({ timeout: 10000 });
+        // Wait for Modal (use modal-content class, not text which matches both heading and button)
+        await expect(this.page.locator('.modal-content')).toBeVisible({ timeout: 10000 });
         console.log('[DEBUG] Review modal appeared');
 
-        // Fill Rating - stars are span elements with the star character
-        // Try multiple approaches to find and click stars
-        console.log('[DEBUG] Looking for star elements...');
+        // Fill Rating using data-testid (added to ReviewModal.js)
+        // Rating is 1-5, click the star for the desired rating
+        const ratingValue = parseInt(rating) || 5;
+        const starSelector = `[data-testid="star-rating-${ratingValue}"]`;
+        console.log(`[DEBUG] Looking for star selector: ${starSelector}`);
 
-        // Approach 1: Direct text matching with star unicode character
-        let stars = this.page.locator('.modal-content span:text("★")');
-        let starCount = await stars.count();
-        console.log(`[DEBUG] Approach 1: Found ${starCount} star elements`);
-
-        if (starCount < 5) {
-            // Approach 2: Try any clickable span in the first form group (Overall Rating)
-            const ratingDiv = this.page.locator('.modal-content').locator('div').filter({ hasText: 'Overall Rating' }).first();
-            stars = ratingDiv.locator('span');
-            starCount = await stars.count();
-            console.log(`[DEBUG] Approach 2: Found ${starCount} span elements in rating div`);
-        }
-
-        if (starCount >= 5) {
-            // Click 5th star (index 4)
-            const star5 = stars.nth(4);
-            await star5.waitFor({ state: 'visible', timeout: 5000 });
-            await star5.click({ force: true });
-            console.log('[DEBUG] Clicked 5-star rating');
-        } else if (starCount > 0) {
-            console.log('[WARN] Found fewer than 5 stars, clicking last one');
-            await stars.nth(starCount - 1).click({ force: true });
-        } else {
-            // Approach 3: Click by coordinates relative to the modal
-            console.log('[DEBUG] Approach 3: Clicking star by coordinates');
-            const modal = this.page.locator('.modal-content');
-            await modal.evaluate((el) => {
-                // Find all spans that look like stars and click the 5th one
-                const spans = el.querySelectorAll('span');
-                const starSpans = Array.from(spans).filter(s => s.textContent === '★');
-                if (starSpans.length >= 5) {
-                    starSpans[4].click();
-                } else if (starSpans.length > 0) {
-                    starSpans[starSpans.length - 1].click();
-                }
-            });
-        }
+        const star = this.page.locator(starSelector).first();
+        await expect(star).toBeVisible({ timeout: 5000 });
+        await star.click();
+        console.log(`[DEBUG] Clicked ${ratingValue}-star rating`);
 
         // Fill comment
         await this.page.fill('textarea', comment);
 
         // Submit
+        console.log('[DEBUG] Clicking Submit Review button...');
         await this.page.click('button:has-text("Submit Review")');
 
-        // Verify Success
-        await expect(this.page.locator('text=Review submitted successfully')).toBeVisible({ timeout: 10000 });
-        console.log('[DEBUG] Review submitted successfully');
+        // Verify Success or unexpected Error
+        try {
+            await expect(this.page.locator('text=Review submitted successfully')).toBeVisible({ timeout: 10000 });
+            console.log('[DEBUG] Review submitted successfully');
+        } catch (e) {
+            console.log('[DEBUG] Success message not found, checking for errors...');
+            const errorMsg = await this.page.locator('.error-matrix').textContent().catch(() => null);
+            if (errorMsg) {
+                console.error(`[DEBUG] Found error message on page: ${errorMsg}`);
+                throw new Error(`Review submission failed with UI error: ${errorMsg}`);
+            }
+            // Check if modal is still open
+            const modalVisible = await this.page.locator('.modal-content').isVisible();
+            if (modalVisible) {
+                console.error('[DEBUG] Modal still visible after submit');
+            }
+            throw e;
+        }
         await this.page.waitForTimeout(1000);
     }
 }

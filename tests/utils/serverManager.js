@@ -34,6 +34,7 @@ class ServerManager {
       let hasResolved = false;
 
       this.backendProcess.stdout.on('data', (data) => {
+        process.stdout.write('[BACKEND] ' + data.toString()); // Pipe to terminal
         output += data.toString();
         if (!hasResolved && output.includes('Server running')) {
           hasResolved = true;
@@ -43,6 +44,7 @@ class ServerManager {
       });
 
       this.backendProcess.stderr.on('data', (data) => {
+        process.stderr.write('[BACKEND ERROR] ' + data.toString()); // Pipe to terminal
         console.error('Backend error:', data.toString());
       });
 
@@ -68,6 +70,7 @@ class ServerManager {
     console.log('🚀 Starting frontend server...');
 
     return new Promise((resolve, reject) => {
+      // Use dev server - handles REACT_APP_API_URL at runtime
       this.frontendProcess = spawn('npm.cmd', ['start'], {
         cwd: path.join(__dirname, '../../frontend'),
         shell: true,
@@ -87,8 +90,8 @@ class ServerManager {
       let hasResolved = false;
 
       this.frontendProcess.stdout.on('data', (data) => {
+        process.stdout.write('[FRONTEND] ' + data.toString()); // Pipe to terminal
         output += data.toString();
-        // console.log('Frontend stdout:', data.toString().trim()); 
         if (!hasResolved && (output.includes('webpack compiled') || output.includes('Compiled successfully') || output.includes('Local:'))) {
           hasResolved = true;
           console.log('   ✅ Frontend server started');
@@ -97,15 +100,13 @@ class ServerManager {
       });
 
       this.frontendProcess.stderr.on('data', (data) => {
+        process.stderr.write('[FRONTEND ERROR] ' + data.toString()); // Pipe to terminal
         const msg = data.toString();
-        // console.log('Frontend stderr:', msg.trim());
-        if (!msg.includes('webpack compiled')) {
-          output += msg;
-          if (!hasResolved && (output.includes('Compiled successfully') || output.includes('Local:'))) {
-            hasResolved = true;
-            console.log('   ✅ Frontend server started');
-            resolve();
-          }
+        output += msg;
+        if (!hasResolved && (output.includes('Compiled successfully') || output.includes('Local:'))) {
+          hasResolved = true;
+          console.log('   ✅ Frontend server started');
+          resolve();
         }
       });
 
@@ -116,9 +117,9 @@ class ServerManager {
 
       setTimeout(() => {
         if (!hasResolved) {
-          reject(new Error('Frontend server did not start in time: ' + output.slice(-200)));
+          reject(new Error('Frontend server did not start in time: ' + output.slice(-300)));
         }
-      }, 120000);
+      }, 180000);  // 3 minutes - dev server is slower
     });
   }
 

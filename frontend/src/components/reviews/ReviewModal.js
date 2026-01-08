@@ -28,12 +28,13 @@ const ReviewModal = ({ isOpen, onClose, onSubmit, orderId, reviewType, loading }
     });
   };
 
-  const renderStars = (rating, onRate = null) => {
+  const renderStars = (rating, onRate = null, testIdPrefix = 'star') => {
     return (
-      <div style={{ display: 'flex', gap: '0.25rem' }}>
+      <div style={{ display: 'flex', gap: '0.25rem' }} data-testid={`${testIdPrefix}-container`}>
         {[1, 2, 3, 4, 5].map((star) => (
           <span
             key={star}
+            data-testid={`${testIdPrefix}-rating-${star}`}
             onClick={() => onRate && onRate(star)}
             style={{
               fontSize: '1.5rem',
