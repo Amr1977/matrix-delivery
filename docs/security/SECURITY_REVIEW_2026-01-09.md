@@ -244,13 +244,15 @@ Earlier docs (`SECURITY_AUDIT_EXECUTIVE_SUMMARY.md`, `SECURITY_REMEDIATION_CHECK
 
 **Tier 1 – Immediate (Blockers for “secure by design” claims)**
 
-1. **Eliminate localStorage-based tokens & URL tokens**
-   - Remove all `localStorage.getItem('token')` usages and token query parameters.
-   - Standardize all browser auth on cookies (and ephemeral, in-memory WS tokens if required).
+1. ✅ **Eliminate localStorage-based tokens & URL tokens** - **COMPLETED 2026-01-09**
+   - ✅ Removed all `localStorage.getItem('token')` usages and token query parameters.
+   - ✅ Standardized all browser auth on cookies (and ephemeral, in-memory WS tokens if required).
+   - **See:** [SECURITY_FIXES_2026-01-09.md](./SECURITY_FIXES_2026-01-09.md) for implementation details.
 
-2. **Implement CSRF protection**
-   - Add CSRF tokens and enforce them on all state-changing routes.
-   - Update frontend to send `X-CSRF-Token` for mutating requests.
+2. ✅ **Implement CSRF protection** - **COMPLETED 2026-01-09**
+   - ✅ Added CSRF tokens and enforce them on all state-changing routes.
+   - ✅ Updated frontend to send `X-CSRF-Token` for mutating requests.
+   - **See:** [SECURITY_FIXES_2026-01-09.md](./SECURITY_FIXES_2026-01-09.md) for implementation details.
 
 **Tier 2 – Short Term (1–2 weeks)**
 
@@ -278,7 +280,8 @@ Earlier docs (`SECURITY_AUDIT_EXECUTIVE_SUMMARY.md`, `SECURITY_REMEDIATION_CHECK
   - **Lightweight review:** after each major auth / payment / balance change.
   - **Full review:** quarterly or before significant production milestones.
 
-Once Tier 1 items (localStorage tokens + CSRF) are completed, this doc should be updated with:
+✅ **Tier 1 items (localStorage tokens + CSRF) COMPLETED on 2026-01-09**
 
-- Code references to the relevant commits.
-- Any new risks introduced or mitigated.
+- ✅ Code references: See [SECURITY_FIXES_2026-01-09.md](./SECURITY_FIXES_2026-01-09.md)
+- ✅ Commit: `security: Remove localStorage tokens and implement CSRF protection`
+- ✅ No new risks introduced; security posture significantly improved.

@@ -103,16 +103,15 @@ class LogBatcher {
         // Save to localStorage as fallback
         this.saveToLocalStorage();
 
-        // Try to send with sendBeacon (best effort)
-        const token = localStorage.getItem('token');
-        if (token && this.isOnline) {
+        // Try to send with sendBeacon (best effort) WITHOUT exposing auth tokens
+        if (this.isOnline) {
             const blob = new Blob([JSON.stringify(this.queue)], {
                 type: 'application/json'
             });
 
             try {
                 navigator.sendBeacon(
-                    `${this.apiUrl}/logs/frontend?token=${token}`,
+                    `${this.apiUrl}/logs/frontend`,
                     blob
                 );
             } catch (error) {
