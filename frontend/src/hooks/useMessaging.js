@@ -15,8 +15,8 @@ const useMessaging = () => {
   const MAX_RECONNECT_ATTEMPTS = 5;
   const RECONNECT_INTERVAL = 3000;
 
-  // WebSocket connection management
-  const connectWebSocket = useCallback((token) => {
+  // WebSocket connection management (auth via httpOnly cookie on upgrade)
+  const connectWebSocket = useCallback(() => {
     if (socket?.readyState === WebSocket.OPEN) return;
 
     try {
@@ -30,14 +30,6 @@ const useMessaging = () => {
         console.log('WebSocket connected');
         setSocket(ws);
         reconnectAttemptsRef.current = 0;
-
-        // Join user's messaging rooms
-        if (token) {
-          ws.send(JSON.stringify({
-            type: 'authenticate',
-            token: token
-          }));
-        }
       };
 
       ws.onmessage = (event) => {
@@ -70,7 +62,7 @@ const useMessaging = () => {
         if (reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
           reconnectAttemptsRef.current++;
           reconnectTimeoutRef.current = setTimeout(() => {
-            connectWebSocket(token);
+            connectWebSocket();
           }, RECONNECT_INTERVAL);
         }
       };
@@ -294,12 +286,9 @@ const useMessaging = () => {
     }
   }, [markMessagesRead]);
 
-  // Initialize WebSocket connection when token is available
+  // Initialize WebSocket connection (cookies carry JWT for auth)
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      connectWebSocket(token);
-    }
+    connectWebSocket();
 
     return () => {
       disconnectWebSocket();

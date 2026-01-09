@@ -53,6 +53,17 @@ const configureExpress = require('./config/express');
 const corsOptions = configureExpress(app);
 
 // ============================================================================
+// CSRF PROTECTION (double-submit cookie)
+// ============================================================================
+const { csrfMiddleware, csrfTokenRoute } = require('./middleware/csrf');
+
+// Endpoint to obtain CSRF token (used by SPA before state-changing requests)
+app.get('/api/csrf-token', csrfTokenRoute);
+
+// Protect all /api state-changing routes with CSRF validation
+app.use('/api', csrfMiddleware);
+
+// ============================================================================
 // DATABASE & ENVIRONMENT SETUP
 // ============================================================================
 const { validateDatabaseEnvironment, initializeDatabaseConnection } = require('./config/database-init');
