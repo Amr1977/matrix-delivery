@@ -75,7 +75,11 @@ const CreateOrderPage = () => {
                 dropoffAddress: orderData.dropoffAddress,
                 ...(orderData.pickupLocation && { pickupLocation: orderData.pickupLocation }),
                 ...(orderData.dropoffLocation && { dropoffLocation: orderData.dropoffLocation }),
-                ...(orderData.routeInfo && { routeInfo: orderData.routeInfo })
+                ...(orderData.routeInfo && { routeInfo: orderData.routeInfo }),
+
+                // Critical Financial Fields
+                upfront_payment: orderData.upfrontPayment || orderData.upfront_payment || null,
+                require_upfront_payment: !!(orderData.requireUpfrontPayment || orderData.require_upfront_payment)
             };
 
             const createdOrder = await OrdersApi.createOrder(newOrder);

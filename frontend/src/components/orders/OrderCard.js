@@ -54,15 +54,6 @@ const OrderCard = ({
   const handleBidSubmit = (e) => {
     e.preventDefault();
 
-    // Check for Upfront Payment Balance
-    const requiredUpfront = order.upfront_payment || order.upfrontPayment;
-    if ((order.require_upfront_payment || order.requireUpfrontPayment) && requiredUpfront) {
-      const userBalance = Number(currentUser?.balance || 0);
-      if (userBalance < Number(requiredUpfront)) {
-        alert(`Insufficient Balance! You need ${formatCurrency(requiredUpfront)} in your wallet to bid on this order.`);
-        return;
-      }
-    }
 
     if (bidInput[order.id]) {
       // Refresh location before submitting

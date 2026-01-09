@@ -86,6 +86,15 @@ router.get('/', verifyToken, async (req, res) => {
 
     const orders = await orderService.getOrders(req.user.userId, (req.user.primary_role || req.user.primary_role), filters);
 
+    if (orders.length > 0) {
+      console.log('📦 [DEBUG] First Order Stats:', {
+        id: orders[0].id,
+        completed: orders[0].customerCompletedOrders,
+        reviews: orders[0].customerReviewCount,
+        rating: orders[0].customerRating
+      });
+    }
+
     console.log('📦 ORDERS RESPONSE:', {
       userId: req.user.userId,
       primary_role: (req.user.primary_role || req.user.primary_role),
@@ -158,18 +167,22 @@ router.post('/', verifyToken, orderCreationRateLimit, async (req, res, next) => 
     }
 
     // Explicitly select allowed fields to prevent mass assignment
+    console.log('📝 [DEBUG] POST /orders Payload:', JSON.stringify(req.body, null, 2)); // Debug incoming data
+
     const {
       title, price, description, package_description, package_weight, estimated_value,
       special_instructions, pickupAddress, dropoffAddress, pickupLocation, dropoffLocation,
       showManualEntry, estimated_delivery_date,
-      upfront_payment, require_upfront_payment // Added fields
+      upfront_payment, require_upfront_payment, // Added fields
+      routeInfo // Added route info
     } = req.body;
 
     const orderData = {
       title, price, description, package_description, package_weight, estimated_value,
       special_instructions, pickupAddress, dropoffAddress, pickupLocation, dropoffLocation,
       showManualEntry, estimated_delivery_date,
-      upfront_payment, require_upfront_payment // Added fields
+      upfront_payment, require_upfront_payment, // Added fields
+      routeInfo // Added route info
     };
 
     const order = await orderService.createOrder(orderData, req.user.userId, req.user.name);

@@ -185,6 +185,15 @@ o.*,
   o.pickup_contact_phone as pickupContactPhone,
   o.dropoff_contact_name as dropoffContactName,
   o.dropoff_contact_phone as dropoffContactPhone,
+
+  -- Customer Stats (for driver view when viewing this customer's order)
+  (SELECT rating FROM users WHERE id = o.customer_id) as "customerRating",
+  (SELECT created_at FROM users WHERE id = o.customer_id) as "customerJoinedAt",
+  (SELECT is_verified FROM users WHERE id = o.customer_id) as "customerIsVerified",
+  (SELECT COUNT(*)::int FROM orders o2 WHERE o2.customer_id = o.customer_id AND o2.status IN ('delivered', 'DELIVERED', 'completed', 'COMPLETED')) as "customerCompletedOrders",
+  (SELECT COUNT(*)::int FROM reviews r WHERE r.reviewee_id = o.customer_id) as "customerReviewCount",
+  (SELECT COUNT(*)::int FROM reviews r WHERE r.reviewer_id = o.customer_id) as "customerGivenReviewCount",
+
   json_build_object(
     'userId', d.id,
     'name', d.name,
@@ -391,6 +400,7 @@ o.*,
       'driverRating', u.rating,
       'driverCompletedDeliveries', u.completed_deliveries,
       'driverReviewCount', COALESCE(dr.review_count, 0),
+      'driverImage', u.profile_picture_url,
       'driverIsVerified', u.is_verified,
       'driverLocation', json_build_object('lat', b.driver_location_lat, 'lng', b.driver_location_lng)
     )
@@ -407,6 +417,7 @@ o.*,
     'driverRating', au.rating,
     'driverCompletedDeliveries', au.completed_deliveries,
     'driverReviewCount', COALESCE(adr.review_count, 0),
+    'driverImage', au.profile_picture_url,
     'driverIsVerified', au.is_verified
   )
               FROM bids ab
@@ -620,6 +631,22 @@ END as acceptedBid
       }
     }
 
+    // DEBUG: Log first order's raw values to trace data flow
+    if (ordersToReturn.length > 0) {
+      const sample = ordersToReturn[0];
+      console.log('🔍 [DEBUG] Raw Order Data Sample:', {
+        orderId: sample.id,
+        upfront_payment: sample.upfront_payment,
+        require_upfront_payment: sample.require_upfront_payment,
+        customerCompletedOrders: sample.customerCompletedOrders,
+        customercompletedorders: sample.customercompletedorders, // lowercase fallback
+        customerReviewCount: sample.customerReviewCount,
+        customerreviewcount: sample.customerreviewcount, // lowercase fallback
+        estimated_distance_km: sample.estimated_distance_km,
+        route_polyline_length: sample.route_polyline?.length
+      });
+    }
+
     return ordersToReturn.map(order => ({
       id: order.id,
       title: order.title,
@@ -646,6 +673,15 @@ END as acceptedBid
       customerCompletedOrders: order.customerCompletedOrders,
       customerReviewCount: order.customerReviewCount,
       customerGivenReviewCount: order.customerGivenReviewCount,
+
+      // Financial & Upfront Payment
+      requireUpfrontPayment: order.require_upfront_payment,
+      upfrontPayment: order.upfront_payment ? parseFloat(order.upfront_payment) : null,
+
+      // Route Persistence
+      routePolyline: order.route_polyline,
+      estimatedDistanceKm: order.estimated_distance_km ? parseFloat(order.estimated_distance_km) : null,
+      estimatedDurationMinutes: order.estimated_duration_minutes,
 
       from: order.from_coordinates ? {
         lat: parseFloat(order.from_coordinates.split(',')[0]),
@@ -740,6 +776,13 @@ END as acceptedBid
     const dropoffContactName = da?.personName || null;
     const dropoffContactPhone = da?.personPhone || null;
 
+    // Extract Route Info
+    const routePolyline = orderData.routeInfo?.polyline || null;
+    const estimatedDistanceKm = orderData.routeInfo?.distance_km || null;
+    const estimatedDurationMinutes = orderData.routeInfo?.estimates?.car?.duration_minutes
+      || orderData.routeInfo?.estimates?.van?.duration_minutes
+      || null;
+
     const queryText = `INSERT INTO orders(
   id, customer_id, title, description, pickup_address, delivery_address,
   from_lat, from_lng, to_lat, to_lng, from_coordinates, to_coordinates,
@@ -747,8 +790,9 @@ END as acceptedBid
   estimated_value, special_instructions, price, status, order_number,
   pickup_contact_name, pickup_contact_phone, dropoff_contact_name, dropoff_contact_phone,
   created_at, customer_name, estimated_delivery_date,
-  require_upfront_payment, upfront_payment
-) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, NOW(), $26, $27, $28, $29)
+  require_upfront_payment, upfront_payment,
+  route_polyline, estimated_distance_km, estimated_duration_minutes
+) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, NOW(), $26, $27, $28, $29, $30, $31, $32)
 RETURNING * `;
 
     const result = await pool.query(queryText,
@@ -781,7 +825,10 @@ RETURNING * `;
         this.sanitizeString(customerName, 255),
         estimated_delivery_date || null,
         !!orderData.require_upfront_payment, // $28
-        orderData.upfront_payment ? parseFloat(orderData.upfront_payment) : null // $29
+        orderData.upfront_payment ? parseFloat(orderData.upfront_payment) : null, // $29
+        routePolyline, // $30
+        estimatedDistanceKm, // $31
+        estimatedDurationMinutes ? Math.round(estimatedDurationMinutes) : null // $32
       ]
     );
 

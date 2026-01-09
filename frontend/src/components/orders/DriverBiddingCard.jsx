@@ -45,13 +45,19 @@ const DriverBiddingCard = ({
 
     // Haversine Distance Calc
     useEffect(() => {
-        if (!order.estimatedDistanceKm && !order.distance && order.from_lat && order.from_lng && order.to_lat && order.to_lng) {
+        // Robust coordinate extraction & Type Safety
+        const fromLat = parseFloat(order.from_lat || order.from?.lat || order.pickupLocation?.coordinates?.lat);
+        const fromLng = parseFloat(order.from_lng || order.from?.lng || order.pickupLocation?.coordinates?.lng);
+        const toLat = parseFloat(order.to_lat || order.to?.lat || order.dropoffLocation?.coordinates?.lat);
+        const toLng = parseFloat(order.to_lng || order.to?.lng || order.dropoffLocation?.coordinates?.lng);
+
+        if (!order.estimatedDistanceKm && !order.distance && !isNaN(fromLat) && !isNaN(fromLng) && !isNaN(toLat) && !isNaN(toLng)) {
             const R = 6371; // Radius of earth in km
-            const dLat = (order.to_lat - order.from_lat) * (Math.PI / 180);
-            const dLon = (order.to_lng - order.from_lng) * (Math.PI / 180);
+            const dLat = (toLat - fromLat) * (Math.PI / 180);
+            const dLon = (toLng - fromLng) * (Math.PI / 180);
             const a =
                 Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(order.from_lat * (Math.PI / 180)) * Math.cos(order.to_lat * (Math.PI / 180)) *
+                Math.cos(fromLat * (Math.PI / 180)) * Math.cos(toLat * (Math.PI / 180)) *
                 Math.sin(dLon / 2) * Math.sin(dLon / 2);
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
             const d = R * c; // Distance in km
@@ -82,14 +88,7 @@ const DriverBiddingCard = ({
     const handleBidSubmit = (e) => {
         e.preventDefault();
 
-        // Balance Check
-        if (hasUpfrontPayment) {
-            const userBalance = Number(currentUser?.balance || 0);
-            if (userBalance < Number(upfrontPayment)) {
-                alert(`Insufficient Balance! You need ${formatCurrency(upfrontPayment)} in your wallet.`);
-                return;
-            }
-        }
+
 
         // Prepare bid payload
         const bidPayload = {
@@ -343,13 +342,15 @@ const DriverBiddingCard = ({
                                         <div>
                                             <p style={{ fontSize: '0.7rem', color: '#888', marginBottom: '2px' }}>ORDERS</p>
                                             <p style={{ fontSize: '0.9rem', fontWeight: 'bold', color: 'white' }}>
-                                                {order.customerCompletedOrders || order.customercompletedorders || 0}
+                                                {(order.customerCompletedOrders !== undefined ? order.customerCompletedOrders : 
+                                                  order.customercompletedorders !== undefined ? order.customercompletedorders : 0)}
                                             </p>
                                         </div>
                                         <div>
                                             <p style={{ fontSize: '0.7rem', color: '#888', marginBottom: '2px' }}>REVIEWS</p>
                                             <p style={{ fontSize: '0.9rem', fontWeight: 'bold', color: 'white' }}>
-                                                {order.customerReviewCount || order.customerreviewcount || 0}
+                                                {(order.customerReviewCount !== undefined ? order.customerReviewCount : 
+                                                  order.customerreviewcount !== undefined ? order.customerreviewcount : 0)}
                                             </p>
                                         </div>
                                         <div>

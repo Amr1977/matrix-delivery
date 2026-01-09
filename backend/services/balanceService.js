@@ -522,7 +522,8 @@ class BalanceService {
             const balanceAfter = balance.availableBalance - amount;
             await this.createTransaction(client, {
                 userId,
-                type: 'ORDER_HOLD',
+                // Use canonical transaction type that matches DB constraint
+                type: TransactionType.HOLD,
                 amount: -amount,
                 currency: balance.currency || DEFAULT_CURRENCY,
                 balanceBefore,
@@ -600,7 +601,8 @@ class BalanceService {
                 const driverBalance = await this.getBalanceForUpdate(client, options.destinationUserId);
                 await this.createTransaction(client, {
                     userId: options.destinationUserId,
-                    type: 'ORDER_EARNING',
+                    // Driver receives earnings for a completed order
+                    type: TransactionType.EARNINGS,
                     amount: driverAmount,
                     currency: driverBalance.currency || DEFAULT_CURRENCY,
                     balanceBefore: driverBalance.availableBalance,
@@ -610,10 +612,10 @@ class BalanceService {
                     description: `Earnings from order #${orderId}`
                 });
 
-                // Create customer release transaction
+                // Create customer payment transaction for completed order
                 await this.createTransaction(client, {
                     userId,
-                    type: 'ORDER_COMPLETE',
+                    type: TransactionType.ORDER_PAYMENT,
                     amount: -amount,
                     currency: balance.currency || DEFAULT_CURRENCY,
                     balanceBefore: balance.heldBalance,
@@ -633,7 +635,7 @@ class BalanceService {
 
                 await this.createTransaction(client, {
                     userId,
-                    type: 'ORDER_REFUND',
+                    type: TransactionType.ORDER_REFUND,
                     amount: amount,
                     currency: balance.currency || DEFAULT_CURRENCY,
                     balanceBefore: balance.availableBalance,
@@ -697,7 +699,7 @@ class BalanceService {
 
                 await this.createTransaction(client, {
                     userId: customerId,
-                    type: 'ORDER_REFUND',
+                    type: TransactionType.ORDER_REFUND,
                     amount: refundAmount,
                     currency: customerBalance.currency || DEFAULT_CURRENCY,
                     balanceBefore: customerBalance.availableBalance,
@@ -721,7 +723,8 @@ class BalanceService {
                 const driverBalance = await this.getBalanceForUpdate(client, driverId);
                 await this.createTransaction(client, {
                     userId: driverId,
-                    type: 'CANCELLATION_COMPENSATION',
+                    // Driver receives compensation as earnings
+                    type: TransactionType.EARNINGS,
                     amount: penaltyAmount,
                     currency: driverBalance.currency || DEFAULT_CURRENCY,
                     balanceBefore: driverBalance.availableBalance,
@@ -733,7 +736,8 @@ class BalanceService {
 
                 await this.createTransaction(client, {
                     userId: customerId,
-                    type: 'CANCELLATION_FEE',
+                    // Customer pays a penalty/cancellation fee
+                    type: TransactionType.PENALTY,
                     amount: -penaltyAmount,
                     currency: customerBalance.currency || DEFAULT_CURRENCY,
                     balanceBefore: customerBalance.availableBalance + refundAmount,
