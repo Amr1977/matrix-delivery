@@ -38,10 +38,10 @@ const BalanceDashboard: React.FC<BalanceDashboardProps> = ({ userId, userRole })
         // Fetch payment earnings for drivers
         if (userRole === 'driver') {
             setEarningsLoading(true);
+            // Use cookie-based auth (httpOnly JWT) instead of localStorage tokens
             fetch('/api/payments/earnings', {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
+                method: 'GET',
+                credentials: 'include'
             })
                 .then(res => res.json())
                 .then(data => {
