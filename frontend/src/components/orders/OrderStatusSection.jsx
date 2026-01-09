@@ -282,21 +282,51 @@ const OrderStatusSection = ({
             )}
 
             {/* Customer View: Accepted Bid Info */}
-            {order.status === 'accepted' && currentUser?.primary_role === 'customer' && order.bids && order.bids.length > 0 && (
+            {order.status === 'accepted' && currentUser?.primary_role === 'customer' && (
                 <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
                     <h4 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '0.75rem' }}>{t('orders.acceptedBid')}</h4>
                     <div style={{ background: '#F0F9FF', padding: '1rem', borderRadius: '0.375rem', border: '1px solid #DBEAFE' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                            <p style={{ fontWeight: '600', color: '#1E40AF' }}>{order.assignedDriver?.name || 'Driver'}</p>
-                            <p style={{ fontSize: '1.125rem', fontWeight: 'bold', color: '#1E40AF' }}>${order.acceptedBid?.bidPrice || order.price}</p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+                            {/* Driver Avatar */}
+                            <div style={{
+                                width: '50px',
+                                height: '50px',
+                                borderRadius: '50%',
+                                overflow: 'hidden',
+                                border: '2px solid #1E40AF'
+                            }}>
+                                <img
+                                    src={(order.acceptedBid?.driverImage || order.assignedDriver?.profilePicture)
+                                        ? ((order.acceptedBid?.driverImage || order.assignedDriver?.profilePicture).startsWith('/')
+                                            ? `http://localhost:5000${(order.acceptedBid?.driverImage || order.assignedDriver?.profilePicture).replace('/api', '')}`
+                                            : (order.acceptedBid?.driverImage || order.assignedDriver?.profilePicture))
+                                        : '/assets/avatars/male_avatar_matrix.png'}
+                                    alt="Driver"
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                    onError={(e) => { e.target.onerror = null; e.target.src = '/assets/avatars/male_avatar_matrix.png'; }}
+                                />
+                            </div>
+
+                            <div style={{ flex: 1 }}>
+                                <p style={{ fontWeight: '600', color: '#1E40AF', margin: 0 }}>{order.assignedDriver?.name || 'Driver'}</p>
+                                {order.assignedDriver?.rating && (
+                                    <span style={{ fontSize: '0.8rem', color: '#F59E0B' }}>⭐ {parseFloat(order.assignedDriver.rating).toFixed(1)}</span>
+                                )}
+                            </div>
+                            <p style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1E40AF', margin: 0 }}>
+                                ${parseFloat(order.acceptedBid?.bidPrice || order.price).toFixed(2)}
+                            </p>
                         </div>
+
                         {order.acceptedBid?.message && (
-                            <p style={{ fontSize: '0.875rem', color: '#6B7280', marginBottom: '0.5rem' }}>{order.acceptedBid.message}</p>
+                            <p style={{ fontSize: '0.875rem', color: '#6B7280', marginBottom: '0.5rem', fontStyle: 'italic', background: 'rgba(255,255,255,0.5)', padding: '0.5rem', borderRadius: '4px' }}>
+                                "{order.acceptedBid.message}"
+                            </p>
                         )}
                         {order.acceptedBid?.estimatedPickupTime && (
-                            <p style={{ fontSize: '0.875rem', color: '#6B7280' }}>
-                                Estimated pickup: {new Date(order.acceptedBid.estimatedPickupTime).toLocaleString()}
-                            </p>
+                            <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem', color: '#4B5563', marginTop: '0.5rem' }}>
+                                <span>🚀 Pickup: {new Date(order.acceptedBid.estimatedPickupTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            </div>
                         )}
                     </div>
                 </div>
