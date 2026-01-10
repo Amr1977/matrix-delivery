@@ -4,6 +4,9 @@ This directory contains automated tests for the Matrix Delivery application.
 
 ## Test Structure
 
+> [!TIP]
+> **New to E2E testing in this project?** Read the [E2E Testing Model Guide](./E2E_MODEL_GUIDE.md) to understand our Adapter pattern, locator strategy, and how we handle complex multi-user workflows.
+
 ```
 tests/
 ├── features/                 # Cucumber feature files (BDD scenarios)
@@ -13,7 +16,7 @@ tests/
 ├── step_definitions/         # Step definitions for Cucumber tests
 │   ├── backend/              # 🆕 Backend integration test steps
 │   │   └── cod_commission_steps.js  # Direct service calls, fast tests
-│   ├── frontend/             # 🆕 Frontend UI test steps  
+│   ├── frontend/             # 🆕 Frontend UI test steps
 │   │   └── cod_commission_steps.js  # Browser automation, UI tests
 │   ├── translation_steps.js  # Translation-specific steps
 │   └── ...
@@ -34,6 +37,7 @@ tests/
 The translation tests verify that all UI text is properly translated across all supported languages.
 
 #### Simple Translation Validation
+
 ```bash
 cd tests
 npm run test:translation
@@ -42,11 +46,13 @@ node test-translations.js
 ```
 
 This runs a fast validation script that checks:
+
 - Translation keys exist for all languages
 - Translations are not empty
 - Key translation mappings are correct
 
 #### Full E2E Translation Tests (Advanced)
+
 The Cucumber-based E2E tests require a running application and browser automation.
 
 **Note:** The Cucumber tests have configuration issues and may need additional setup. The simple translation validation script is recommended for most use cases.
@@ -58,6 +64,7 @@ The BDD tests use **Cucumber** and support both backend integration tests and fr
 ### COD Commission Tests
 
 #### Backend Tests (Fast Integration Tests)
+
 Test balance service, commission deduction, and debt management directly:
 
 ```bash
@@ -68,6 +75,7 @@ npx cucumber-js -p cod-commission
 ```
 
 **Features**:
+
 - ✅ Direct service calls to `BalanceService`
 - ✅ Database operations
 - ✅ No browser required
@@ -75,6 +83,7 @@ npx cucumber-js -p cod-commission
 - **Status**: 28/31 scenarios passing
 
 #### Frontend Tests (UI Tests)
+
 Test the same scenarios through the browser UI:
 
 ```bash
@@ -83,6 +92,7 @@ npx cucumber-js -p cod-frontend
 ```
 
 **Features**:
+
 - 🌐 Playwright browser automation
 - 🎨 Tests dashboard UI, warnings, error boxes
 - 🔍 Validates user-facing notifications
@@ -104,6 +114,7 @@ step_definitions/
 ### Prerequisites for Frontend Tests
 
 Install Playwright if not already installed:
+
 ```bash
 npm install -D playwright
 npx playwright install chromium
@@ -136,6 +147,7 @@ For frontend tests to work, add `data-testid` attributes to UI components:
 ### Test Profiles
 
 Available Cucumber profiles in `cucumber.js`:
+
 - `cod-backend` - Backend integration tests only
 - `cod-frontend` - Frontend UI tests only
 - `cod-commission` - Alias for `cod-backend` (default)
@@ -160,11 +172,13 @@ The application supports translations in 12 languages:
 ## Test Results
 
 The translation validation script provides:
+
 - ✅ Pass/fail status for each translation key
 - 📊 Summary statistics
 - 🌍 Coverage across all languages
 
 Example output:
+
 ```
 🧪 Testing Translation Keys
 
@@ -202,6 +216,7 @@ When adding new UI text:
 ### Test Setup Issues
 
 If the Cucumber tests fail to run:
+
 - The simple `test-translations.js` script is recommended for validation
 - Cucumber requires proper server setup and browser automation
 - Check that all dependencies are installed: `npm install`
@@ -216,3 +231,4 @@ The translation validation script can be integrated into CI/CD pipelines:
   run: |
     cd tests
     npm run test:translation
+```

@@ -88,8 +88,6 @@ const DriverBiddingCard = ({
     const handleBidSubmit = (e) => {
         e.preventDefault();
 
-
-
         // Prepare bid payload
         const bidPayload = {
             bidPrice: bidInput[order.id],
@@ -98,21 +96,37 @@ const DriverBiddingCard = ({
             message: bidDetails[order.id]?.message
         };
 
+        // Prioritize prop location (from useDriver hook, which handles fake locations)
+        if (driverLocation && (driverLocation.lat || driverLocation.latitude) && (driverLocation.lng || driverLocation.longitude)) {
+            bidPayload.location = {
+                lat: driverLocation.lat || driverLocation.latitude,
+                lng: driverLocation.lng || driverLocation.longitude
+            };
+            console.log('[DEBUG] Submitting bid with prop location:', bidPayload.location);
+            onBid(order.id, bidPayload);
+            return;
+        }
+
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
                     bidPayload.location = { lat: position.coords.latitude, lng: position.coords.longitude };
+                    console.log('[DEBUG] Submitting bid with legacy geolocation:', bidPayload.location);
                     onBid(order.id, bidPayload);
                 },
-                () => onBid(order.id, bidPayload) // Fallback if geo fails
+                () => {
+                    console.log('[DEBUG] Submitting bid without location (geolocation failed)');
+                    onBid(order.id, bidPayload);
+                }
             );
         } else {
+            console.log('[DEBUG] Submitting bid without location (no geolocation API)');
             onBid(order.id, bidPayload);
         }
     };
 
     return (
-        <div style={{
+        <div className="order-card" style={{
             background: 'linear-gradient(145deg, rgba(0, 10, 0, 0.95) 0%, rgba(0, 20, 0, 0.98) 100%)',
             border: '1px solid var(--matrix-border, #00AA00)',
             borderRadius: '12px',
@@ -342,15 +356,15 @@ const DriverBiddingCard = ({
                                         <div>
                                             <p style={{ fontSize: '0.7rem', color: '#888', marginBottom: '2px' }}>ORDERS</p>
                                             <p style={{ fontSize: '0.9rem', fontWeight: 'bold', color: 'white' }}>
-                                                {(order.customerCompletedOrders !== undefined ? order.customerCompletedOrders : 
-                                                  order.customercompletedorders !== undefined ? order.customercompletedorders : 0)}
+                                                {(order.customerCompletedOrders !== undefined ? order.customerCompletedOrders :
+                                                    order.customercompletedorders !== undefined ? order.customercompletedorders : 0)}
                                             </p>
                                         </div>
                                         <div>
                                             <p style={{ fontSize: '0.7rem', color: '#888', marginBottom: '2px' }}>REVIEWS</p>
                                             <p style={{ fontSize: '0.9rem', fontWeight: 'bold', color: 'white' }}>
-                                                {(order.customerReviewCount !== undefined ? order.customerReviewCount : 
-                                                  order.customerreviewcount !== undefined ? order.customerreviewcount : 0)}
+                                                {(order.customerReviewCount !== undefined ? order.customerReviewCount :
+                                                    order.customerreviewcount !== undefined ? order.customerreviewcount : 0)}
                                             </p>
                                         </div>
                                         <div>
@@ -443,6 +457,7 @@ const DriverBiddingCard = ({
                                     placeholder="0.00"
                                     value={bidInput[order.id] || ''}
                                     onChange={(e) => setBidInput({ ...bidInput, [order.id]: e.target.value })}
+                                    data-testid={`bid-amount-input-${order.id}`}
                                     style={{
                                         width: '100%',
                                         background: 'rgba(0, 20, 0, 0.8)',
@@ -483,6 +498,7 @@ const DriverBiddingCard = ({
                         {/* Submit Button */}
                         <button
                             type="submit"
+                            data-testid={`place-bid-btn-${order.id}`}
                             disabled={loadingStates?.placeBid}
                             style={{
                                 width: '100%',

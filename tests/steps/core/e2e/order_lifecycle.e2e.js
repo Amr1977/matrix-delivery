@@ -522,10 +522,23 @@ class E2eAdapter extends OrderLifecycleAdapter {
 
         // Navigate to dashboard where Alice sees her active orders
         await this.page.goto(`${this.FRONTEND_URL}/app`);
+        console.log(`[DEBUG] Navigated to ${this.FRONTEND_URL}/app for ${customerName}`);
+        await this.page.waitForTimeout(3000); // Wait for API
+
+        const cards = this.page.locator('.order-card');
+        const count = await cards.count();
+        console.log(`[DEBUG] Found ${count} order cards on page`);
+        if (count > 0) {
+            for (let i = 0; i < count; i++) {
+                const text = await cards.nth(i).innerText();
+                console.log(`[DEBUG] Card ${i} text snippet: ${text.substring(0, 100).replace(/\n/g, ' ')}...`);
+            }
+        }
 
         // Find the order card
         const card = this.page.locator('.order-card', { hasText: customerName }).filter({ hasText: driverName }).first();
         if (await card.count() === 0) {
+            console.log(`[DEBUG] Primary card locator failed, trying fallback with only driverName="${driverName}"`);
             // Fallback to just finding card with driver name
             const fbCard = this.page.locator('.order-card', { hasText: driverName }).first();
             await expect(fbCard).toBeVisible({ timeout: 10000 });

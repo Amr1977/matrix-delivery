@@ -631,21 +631,7 @@ END as acceptedBid
       }
     }
 
-    // DEBUG: Log first order's raw values to trace data flow
-    if (ordersToReturn.length > 0) {
-      const sample = ordersToReturn[0];
-      console.log('🔍 [DEBUG] Raw Order Data Sample:', {
-        orderId: sample.id,
-        upfront_payment: sample.upfront_payment,
-        require_upfront_payment: sample.require_upfront_payment,
-        customerCompletedOrders: sample.customerCompletedOrders,
-        customercompletedorders: sample.customercompletedorders, // lowercase fallback
-        customerReviewCount: sample.customerReviewCount,
-        customerreviewcount: sample.customerreviewcount, // lowercase fallback
-        estimated_distance_km: sample.estimated_distance_km,
-        route_polyline_length: sample.route_polyline?.length
-      });
-    }
+
 
     return ordersToReturn.map(order => ({
       id: order.id,
