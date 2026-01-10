@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import api from './api';
 import usePageVisibility from './hooks/usePageVisibility';
 import LogsViewer from './components/admin/LogsViewer';
 import SystemHealthDashboard from './components/admin/SystemHealthDashboard';
@@ -41,68 +42,39 @@ const AdminPanel = ({ onClose }) => {
       setLoading(true);
 
       const roleParam = filterRole === 'all' ? '' : filterRole;
-      const [statsRes, usersRes, ordersRes, verifiedCountRes] = await Promise.all([
-        fetch(`${API_URL}/admin/stats?range=${dateRange}`, { credentials: 'include' }),
-        fetch(`${API_URL}/admin/users?page=${usersPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchQuery)}${roleParam ? '&primary_role=' + roleParam : ''}`, { credentials: 'include' }),
-        fetch(`${API_URL}/admin/orders?page=${ordersPage}&limit=${itemsPerPage}`, { credentials: 'include' }),
-        fetch(`${API_URL}/admin/users?page=1&limit=1&status=verified`, { credentials: 'include' })
+      const [statsData, usersData, ordersData, vcData] = await Promise.all([
+        api.get(`/admin/stats?range=${dateRange}`),
+        api.get(`/admin/users?page=${usersPage}&limit=${itemsPerPage}&search=${encodeURIComponent(searchQuery)}${roleParam ? '&primary_role=' + roleParam : ''}`),
+        api.get(`/admin/orders?page=${ordersPage}&limit=${itemsPerPage}`),
+        api.get(`/admin/users?page=1&limit=1&status=verified`)
       ]);
 
-      if (statsRes.ok) {
-        const statsData = await statsRes.json();
-        setStats(statsData);
-      } else {
-        console.error('Stats API error:', statsRes.status, statsRes.statusText);
-        setError('Failed to load dashboard statistics');
-      }
-
-      if (usersRes.ok) {
-        const usersData = await usersRes.json();
-        setUsers(usersData.users || []);
-        setUsersPagination(usersData.pagination || null);
-      } else {
-        console.error('Users API error:', usersRes.status, usersRes.statusText);
-        setError('Failed to load users data');
-      }
-
-      if (ordersRes.ok) {
-        const ordersData = await ordersRes.json();
-        setOrders(ordersData.orders || []);
-        setOrdersPagination(ordersData.pagination || null);
-      } else {
-        console.error('Orders API error:', ordersRes.status, ordersRes.statusText);
-        setError('Failed to load orders data');
-      }
-
-      if (verifiedCountRes.ok) {
-        const vcData = await verifiedCountRes.json();
-        setUserCounts({ totalVerified: vcData.pagination?.totalCount || null });
-      }
+      setStats(statsData);
+      setUsers(usersData.users || []);
+      setUsersPagination(usersData.pagination || null);
+      setOrders(ordersData.orders || []);
+      setOrdersPagination(ordersData.pagination || null);
+      setUserCounts({ totalVerified: vcData.pagination?.totalCount || null });
     } catch (err) {
       console.error('Fetch error:', err);
-      setError('Network error: Unable to connect to server');
+      setError('Network error: ' + (err.message || 'Unable to connect to server'));
     } finally {
       setLoading(false);
     }
-  }, [API_URL, dateRange, usersPage, ordersPage, itemsPerPage, searchQuery, filterRole]);
+  }, [dateRange, usersPage, ordersPage, itemsPerPage, searchQuery, filterRole]);
 
   const fetchLogs = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_URL}/admin/logs?page=${logsPage}&limit=50&type=${logsType}`, { credentials: 'include' });
-      if (res.ok) {
-        const data = await res.json();
-        setSystemLogs(data.logs || []);
-        setLogsPagination(data.pagination || null);
-      } else {
-        setError('Failed to load logs');
-      }
+      const data = await api.get(`/admin/logs?page=${logsPage}&limit=50&type=${logsType}`);
+      setSystemLogs(data.logs || []);
+      setLogsPagination(data.pagination || null);
     } catch (err) {
       setError('Network error: Unable to fetch logs');
     } finally {
       setLoading(false);
     }
-  }, [API_URL, logsPage, logsType]);
+  }, [logsPage, logsType]);
 
   useEffect(() => {
     // Initial fetch if visible
@@ -132,12 +104,8 @@ const AdminPanel = ({ onClose }) => {
   const triggerBackendDeploy = async () => {
     setDeployStatus('running');
     try {
-      const response = await fetch(`${API_URL}/admin/deploy`, {
-        method: 'POST',
-        credentials: 'include'
-      });
-      const data = await response.json();
-      setDeployStatus(response.ok ? `completed (code ${data.exitCode})` : `failed: ${data.error || 'unknown'}`);
+      const data = await api.post('/admin/deploy');
+      setDeployStatus(`completed (code ${data.exitCode})`);
     } catch (e) {
       setDeployStatus(`failed: ${e.message}`);
     }
@@ -146,17 +114,7 @@ const AdminPanel = ({ onClose }) => {
   const handleUserAction = async (action, userId, data = {}) => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/admin/users/${userId}/${action}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify(data)
-      });
-
-      if (!response.ok) throw new Error('Action failed');
-
+      await api.post(`/admin/users/${userId}/${action}`, data);
       fetchDashboardData();
       setShowUserModal(false);
     } catch (err) {
@@ -174,15 +132,7 @@ const AdminPanel = ({ onClose }) => {
   const updateUserRoles = async (userId, { add = [], remove = [] }) => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/admin/users/${userId}/granted_roles`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify({ add, remove })
-      });
-      if (!response.ok) throw new Error('Failed to update granted_roles');
+      await api.post(`/admin/users/${userId}/granted_roles`, { add, remove });
       await fetchDashboardData();
     } catch (err) {
       setError(err.message);

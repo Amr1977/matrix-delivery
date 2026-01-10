@@ -32,7 +32,6 @@ const allowedOrigins = process.env.CORS_ORIGIN
   : [
     'http://localhost:3000',
     'http://192.168.1.2:3000',
-    'https://matrix.oldantique50.com',
     'https://matrix-delivery.web.app'
   ];
 
@@ -43,10 +42,12 @@ const io = socketIo(httpServer, {
       if (!origin) return callback(null, true);
 
       if (allowedOrigins.indexOf(origin) !== -1) {
-        callback(null, true);
+        // Return specific origin for credential support
+        callback(null, origin);
       } else {
         logger.warn(`Socket.IO CORS blocked origin: ${origin}`, { category: 'websocket' });
-        callback(null, true); // Allow anyway for now, but log it
+        // Return specific origin anyway but log it (for debugging)
+        callback(null, origin);
       }
     },
     methods: ['GET', 'POST'],
@@ -104,6 +105,10 @@ configureSocket(io);
 // Initialize Notification Service with Socket.IO instance
 const { initializeNotificationService } = require('./services/notificationService');
 initializeNotificationService(pool, io, logger);
+
+// Initialize Messaging Service with Socket.IO instance
+const messagingService = require('./services/messagingService');
+messagingService.setSocketIo(io);
 
 let server;
 

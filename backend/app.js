@@ -57,11 +57,11 @@ const corsOptions = configureExpress(app);
 // ============================================================================
 const { csrfMiddleware, csrfTokenRoute } = require('./middleware/csrf');
 
-// Endpoint to obtain CSRF token (used by SPA before state-changing requests)
-app.get('/api/csrf-token', csrfTokenRoute);
-
 // Protect all /api state-changing routes with CSRF validation
 app.use('/api', csrfMiddleware);
+
+// Endpoint to obtain CSRF token (used by SPA before state-changing requests)
+app.get('/api/csrf-token', csrfTokenRoute);
 
 // ============================================================================
 // DATABASE & ENVIRONMENT SETUP
@@ -451,8 +451,8 @@ app.post('/api/users/me/switch-primary_role', verifyToken, async (req, res) => {
     // Set new cookie
     res.cookie('token', newToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: true, // Required for sameSite: 'none'
+      sameSite: 'none', // Required for cross-domain cookies
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
 

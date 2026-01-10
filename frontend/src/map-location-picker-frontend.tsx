@@ -2,6 +2,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
+import api from './api';
+
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 // Fix Leaflet default icon issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -15,7 +18,6 @@ L.Icon.Default.mergeOptions({
 // This demonstrates all the map location picker features
 
 const MapLocationPickerDemo = () => {
-  const API_URL = 'http://localhost:5000/api';
 
   // State
   const [pickupLocation, setPickupLocation] = useState(null);
@@ -63,18 +65,10 @@ const MapLocationPickerDemo = () => {
     setError('');
 
     try {
-      const response = await fetch(`${API_URL}/locations/calculate-route`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          pickup: pickupLocation.coordinates,
-          delivery: dropoffLocation.coordinates
-        })
+      const data = await api.post('/locations/calculate-route', {
+        pickup: pickupLocation.coordinates,
+        delivery: dropoffLocation.coordinates
       });
-
-      if (!response.ok) throw new Error('Failed to calculate route');
-
-      const data = await response.json();
       setRouteInfo(data);
     } catch (err) {
       setError(err.message);
@@ -213,13 +207,7 @@ const MapLocationPicker = ({ location, onChange, userLocation, markerColor = 'bl
     setError('');
 
     try {
-      const response = await fetch(
-        `${API_URL}/locations/reverse-geocode?lat=${coords.lat}&lng=${coords.lng}`
-      );
-
-      if (!response.ok) throw new Error('Failed to geocode location');
-
-      const data = await response.json();
+      const data = await api.get(`/locations/reverse-geocode?lat=${coords.lat}&lng=${coords.lng}`);
       onChange(data);
     } catch (err) {
       setError(err.message);
@@ -235,15 +223,7 @@ const MapLocationPicker = ({ location, onChange, userLocation, markerColor = 'bl
     setError('');
 
     try {
-      const response = await fetch(`${API_URL}/locations/parse-maps-url`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: mapUrl })
-      });
-
-      if (!response.ok) throw new Error('Invalid Google Maps URL');
-
-      const data = await response.json();
+      const data = await api.post('/locations/parse-maps-url', { url: mapUrl });
       onChange(data);
       setMapUrl('');
     } catch (err) {

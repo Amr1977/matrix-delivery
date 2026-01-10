@@ -10,9 +10,10 @@ const router = express.Router();
 
 // Middleware to allow cross-origin access to uploaded files
 // This overrides the global Cross-Origin-Resource-Policy: same-origin header
+// NOTE: We only set Cross-Origin-Resource-Policy here. Access-Control-Allow-Origin
+// is handled by the main CORS middleware in express.js to ensure proper credential support.
 router.use((req, res, next) => {
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-    res.setHeader('Access-Control-Allow-Origin', '*');
     next();
 });
 

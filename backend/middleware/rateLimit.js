@@ -52,36 +52,37 @@ const createLimiter = (options, prefix = 'rl:') => {
 };
 
 // General API Rate Limit
-// 300 requests per 15 minutes (approx 1 req every 3 seconds)
+// General API Rate Limit
+// 1000 requests per 15 minutes (approx 1 req every second)
 const apiRateLimit = createLimiter({
   windowMs: 15 * 60 * 1000,
-  limit: 300, // Increased from 100 to 300 to prevent 429s during normal use
+  limit: 1000, // Increased for dev/testing stability
   message: 'Too many requests, please try again later',
   skip: (req) => req.url.includes('/maps/') // Skip map tiles which are heavy on requests
 }, 'rl:api:');
 
 // Auth Rate Limit (Stricter)
-// 10 attempts per 15 minutes
+// 100 attempts per 15 minutes
 const authRateLimit = createLimiter({
   windowMs: 15 * 60 * 1000,
-  limit: 10,
+  limit: 100, // Increased for dev usage
   message: 'Too many login attempts, please try again later',
   skipSuccessfulRequests: true
 }, 'rl:auth:');
 
 // Order Creation Rate Limit
-// 20 orders per hour
+// 100 orders per hour
 const orderCreationRateLimit = createLimiter({
   windowMs: 60 * 60 * 1000,
-  limit: 20,
+  limit: 100, // Increased for testing
   message: 'Order creation limit exceeded, please try again later'
 }, 'rl:order:');
 
 // File Upload Rate Limit
-// 20 uploads per hour
+// 100 uploads per hour
 const uploadRateLimit = createLimiter({
   windowMs: 60 * 60 * 1000,
-  limit: 20,
+  limit: 100, // Increased for testing
   message: 'Upload limit exceeded, please try again later'
 }, 'rl:upload:');
 

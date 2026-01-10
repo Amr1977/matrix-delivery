@@ -8,10 +8,34 @@ class ApiClient {
   constructor() {
     this.baseURL = API_BASE_URL;
     this.fingerprint = null;
+    this.csrfToken = null;
+    this.isFetchingToken = false;
+
     // Initialize fingerprint in background
     getDeviceFingerprint().then(fp => {
       this.fingerprint = fp;
     });
+  }
+
+  async fetchCsrfToken() {
+    if (this.isFetchingToken) return;
+    this.isFetchingToken = true;
+
+    try {
+      const response = await fetch(`${this.baseURL}/csrf-token`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        this.csrfToken = data.csrfToken;
+      }
+    } catch (error) {
+      console.error('Failed to fetch CSRF token:', error);
+    } finally {
+      this.isFetchingToken = false;
+    }
   }
 
   async request(method, endpoint, data = null, options = {}) {
@@ -36,9 +60,12 @@ class ApiClient {
 
     try {
       const headers = {
-        'Content-Type': 'application/json',
         ...options.headers
       };
+
+      if (!(data instanceof FormData)) {
+        headers['Content-Type'] = 'application/json';
+      }
 
       if (this.fingerprint) {
         headers['x-device-fingerprint'] = this.fingerprint;
@@ -50,6 +77,17 @@ class ApiClient {
         headers,
         ...options
       };
+
+      // Add CSRF token for state-changing requests
+      const safeMethods = ['GET', 'HEAD', 'OPTIONS'];
+      if (!safeMethods.includes(method)) {
+        if (!this.csrfToken) {
+          await this.fetchCsrfToken();
+        }
+        if (this.csrfToken) {
+          config.headers['X-CSRF-Token'] = this.csrfToken;
+        }
+      }
 
 
 
@@ -219,6 +257,19 @@ class ApiClient {
   async uploadFile(endpoint, formData, onProgress) {
     const url = `${this.baseURL}${endpoint}`;
 
+    // Ensure we have fingerprint and CSRF token
+    if (!this.fingerprint) {
+      try {
+        this.fingerprint = await getDeviceFingerprint();
+      } catch (e) {
+        // Ignore
+      }
+    }
+
+    if (!this.csrfToken) {
+      await this.fetchCsrfToken();
+    }
+
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
 
@@ -238,7 +289,12 @@ class ApiClient {
             reject(new Error('Failed to parse response'));
           }
         } else {
-          reject(new Error(`Upload failed with status ${xhr.status}`));
+          try {
+            const errorData = JSON.parse(xhr.responseText);
+            reject(new Error(errorData.error || `Upload failed with status ${xhr.status}`));
+          } catch (e) {
+            reject(new Error(`Upload failed with status ${xhr.status}`));
+          }
         }
       });
 
@@ -247,6 +303,17 @@ class ApiClient {
       });
 
       xhr.open('POST', url);
+
+      // CRITICAL: Set withCredentials for session cookies
+      xhr.withCredentials = true;
+
+      // Add security headers
+      if (this.csrfToken) {
+        xhr.setRequestHeader('X-CSRF-Token', this.csrfToken);
+      }
+      if (this.fingerprint) {
+        xhr.setRequestHeader('x-device-fingerprint', this.fingerprint);
+      }
 
       xhr.send(formData);
     });

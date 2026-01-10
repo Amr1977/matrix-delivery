@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import api from './api';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useI18n } from './i18n/i18nContext';
 import LanguageSwitcher from './LanguageSwitcher';
@@ -47,7 +48,7 @@ import CreateOrderPage from './pages/CreateOrderPage';
 import ReviewModal from './components/reviews/ReviewModal';
 
 // TypeScript API Services
-import { AuthApi, OrdersApi, NotificationsApi, UsersApi } from './services/api';
+import { AuthApi, OrdersApi, NotificationsApi, UsersApi, DriversApi } from './services/api';
 
 import { RouterProvider, createBrowserRouter, Navigate } from 'react-router-dom';
 import GlobalError from './components/GlobalError';
@@ -495,12 +496,7 @@ export const MainApp = () => {
       const queryString = queryParams.toString();
       const url = `${API_URL}/updates${queryString ? '?' + queryString : ''}`;
 
-      const response = await fetch(url, {
-        credentials: 'include' // Include cookies for authentication
-      });
-
-      if (!response.ok) return;
-      const data = await response.json();
+      const data = await api.get(`/updates${queryString ? '?' + queryString : ''}`);
 
       if (data.orders) setOrders(data.orders);
 
@@ -1309,19 +1305,7 @@ export const MainApp = () => {
         message: bidDetails[orderId]?.message || null
       };
 
-      const response = await fetch(`${API_URL}/orders/${orderId}/bid`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include', // Use cookie-based authentication
-        body: JSON.stringify(bidData)
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to place bid');
-      }
+      await OrdersApi.placeBid(orderId, bidData);
 
       fetchOrders();
       setBidInput({ ...bidInput, [orderId]: '' });
@@ -1503,19 +1487,7 @@ export const MainApp = () => {
       return;
     }
     try {
-      const response = await fetch(`${API_URL}/drivers/status`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include', // Use httpOnly cookies for authentication
-        body: JSON.stringify({ isOnline })
-      });
-
-      if (!response.ok) {
-        const errText = await response.text();
-        throw new Error(errText || 'Failed to update status');
-      }
+      await DriversApi.updateStatus({ isOnline });
       // Backend tracks driver online/offline status
     } catch (err) {
       console.error('Update status error:', err);
@@ -1538,14 +1510,7 @@ export const MainApp = () => {
             const activeOrders = orders.filter(o => o.assignedDriver?.userId === currentUser.id && ['accepted', 'picked_up', 'in_transit'].includes(o.status));
             if (activeOrders.length > 0) {
               await Promise.all(activeOrders.map(o => (
-                fetch(`${API_URL}/orders/${o.id}/location`, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json'
-                  },
-                  credentials: 'include', // Use cookie-based authentication
-                  body: JSON.stringify({ latitude, longitude })
-                })
+                OrdersApi.updateLocation(o.id, { latitude, longitude })
               )));
             }
             fetchOrders(); // Refresh orders with new distance calculations

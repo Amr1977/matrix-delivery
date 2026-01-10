@@ -93,6 +93,7 @@ const CreateOrderPage = () => {
         }
     };
 
+    const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
     return (
         <div style={{
             padding: '1rem',
@@ -124,6 +125,7 @@ const CreateOrderPage = () => {
                 onSubmit={handlePublishOrder}
                 countries={countries}
                 t={t}
+                API_URL={API_URL}
             />
         </div>
     );
