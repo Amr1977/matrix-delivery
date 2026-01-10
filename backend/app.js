@@ -112,8 +112,6 @@ app.use('/api/admin', require('./routes/admin'));
 // Load uploads/media endpoints (static file serving for profile pictures, etc.)
 app.use('/uploads', require('./routes/uploads'));
 
-// Load API v1 routes (skip in test mode due to TS issues)
-// Load API v1 routes
 const v1Routes = require('./routes/v1');
 app.use('/api/v1', v1Routes);
 
@@ -166,10 +164,8 @@ const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 // ============ END OF PART 2 ============
 // Continue with Part 3 for Order Management
 
-// ============ PART 3: Order Management & Bidding ============
 // Order creation is now handled by ./routes/orders.js
 // using the ordersRouter mounted below.
-
 
 // ============ ORDERS ROUTES (with proximity filtering) ============
 // Mount the orders router which includes 7km radius filtering using PostGIS

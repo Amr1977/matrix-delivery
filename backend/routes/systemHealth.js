@@ -161,7 +161,9 @@ const stopCollector = () => {
 };
 
 // Start collector when this module is loaded
-startCollector();
+if (process.env.NODE_ENV !== 'testing') {
+    startCollector();
+}
 
 // ============================================
 // API ROUTES

@@ -5,9 +5,10 @@ const { chromium } = require('playwright');
 setDefaultTimeout(30 * 1000);
 
 Before(async function () {
-    // Launch browser in headless mode for tests
+    const headless = process.env.HEADLESS !== 'false';
     this.browser = await chromium.launch({
-        headless: true,
+        headless: headless,
+        slowMo: parseInt(process.env.SLOWMO || '0'),
         args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
 
