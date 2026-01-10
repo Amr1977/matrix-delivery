@@ -5,7 +5,7 @@ This directory contains automated tests for the Matrix Delivery application.
 ## Test Structure
 
 > [!TIP]
-> **New to E2E testing in this project?** Read the [E2E Testing Model Guide](./E2E_MODEL_GUIDE.md) to understand our Adapter pattern, locator strategy, and how we handle complex multi-user workflows.
+> **New to E2E testing in this project?** Read the [E2E Testing Model Guide](../DOCS/TESTING/E2E_MODEL_GUIDE.md) to understand our Adapter pattern, locator strategy, and how we handle complex multi-user workflows.
 
 ```
 tests/
