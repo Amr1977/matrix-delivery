@@ -8,18 +8,59 @@ export class ApiClient {
     /**
      * Generic request method with cookie-based authentication
      */
-    private static async request<T>(
+    private static csrfToken: string | null = null;
+    private static isFetchingToken = false;
+
+    private static async fetchCsrfToken(): Promise<void> {
+        if (this.isFetchingToken) return;
+        this.isFetchingToken = true;
+
+        try {
+            const response = await fetch(`${API_URL}/csrf-token`, {
+                method: 'GET',
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                this.csrfToken = data.csrfToken;
+            }
+        } catch (error) {
+            console.error('Failed to fetch CSRF token:', error);
+        } finally {
+            this.isFetchingToken = false;
+        }
+    }
+
+    /**
+     * Generic request method with cookie-based authentication
+     */
+    public static async request<T>(
         endpoint: string,
         options: RequestInit = {}
     ): Promise<T> {
+        const method = (options.method || 'GET').toUpperCase();
+        const headers: Record<string, string> = { ...options.headers as Record<string, string> };
+        if (!(options.body instanceof FormData)) {
+            headers['Content-Type'] = 'application/json';
+        }
+
         const config: RequestInit = {
             credentials: 'include', // Always include cookies for authentication
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers,
-            },
+            headers,
             ...options,
         };
+
+        // Add CSRF token for state-changing requests
+        const safeMethods = ['GET', 'HEAD', 'OPTIONS'];
+        if (!safeMethods.includes(method)) {
+            if (!this.csrfToken) {
+                await this.fetchCsrfToken();
+            }
+            if (this.csrfToken) {
+                (config.headers as any)['X-CSRF-Token'] = this.csrfToken;
+            }
+        }
 
         try {
             const response = await fetch(`${API_URL}${endpoint}`, config);

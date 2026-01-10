@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import MessageBubble from './MessageBubble';
 import MediaViewer from './MediaViewer';
 import DragDropUpload from './DragDropUpload';
@@ -14,16 +14,10 @@ import { useI18n } from '../../i18n/i18nContext';
 const ChatPage = () => {
     const { orderId } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
     const { t } = useI18n();
 
-    const {
-        messages,
-        loading,
-        error: messagingError,
-        sendMessage,
-        fetchOrderMessages,
-        markMessagesRead
-    } = useMessaging();
+
 
     const {
         isRecording,
@@ -52,14 +46,27 @@ const ChatPage = () => {
     const [sending, setSending] = useState(false);
     const [orderDetails, setOrderDetails] = useState(null);
     const [currentUser, setCurrentUser] = useState(null);
-    const [recipientId, setRecipientId] = useState(null);
+    const [recipientId, setRecipientId] = useState(location.state?.recipientId || null);
+    const [recipientName, setRecipientName] = useState(location.state?.recipientName || null);
     const [showMediaOptions, setShowMediaOptions] = useState(false);
     const [selectedMedia, setSelectedMedia] = useState(null);
     const [viewerMessage, setViewerMessage] = useState(null);
 
-    const { socket } = useMessaging();
+    const {
+        messages,
+        loading,
+        error: messagingError,
+        sendMessage,
+        sendMediaMessage,
+        fetchOrderMessages,
+        markMessagesRead,
+        joinConversation,
+        leaveConversation,
+        socketInstance
+    } = useMessaging(currentUser?.userId);
+
     const { typingUsers, isAnyoneTyping, emitTyping, emitStoppedTyping } = useTypingIndicator(
-        socket,
+        socketInstance,
         orderId,
         currentUser?.userId
     );
@@ -68,24 +75,19 @@ const ChatPage = () => {
     const fileInputRef = useRef(null);
     const videoInputRef = useRef(null);
 
-    // Fetch order details and messages on mount
+    // Fetch User and Order Details (Run once per orderId)
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchUserAndOrder = async () => {
             try {
                 // Get current user using AuthApi
-                console.log('Fetching current user with AuthApi...');
                 let user;
                 try {
                     user = await AuthApi.getCurrentUser();
-                    console.log('User fetched successfully:', user);
                 } catch (authError) {
-                    console.error('Auth API call failed:', {
-                        error: authError,
-                        message: authError.error || authError.message
-                    });
-                    // User is not authenticated - redirect to main page
+                    console.error('Auth API call failed:', authError);
                     console.warn('User not authenticated, redirecting to main page');
                     navigate('/');
+                    return;
                 }
 
                 if (!user || (!user.userId && !user.id)) {
@@ -94,34 +96,24 @@ const ChatPage = () => {
                     return;
                 }
 
-                // Normalize user object - backend returns 'id', but we use 'userId'
+                // Normalize user object
                 if (user.id && !user.userId) {
                     user.userId = user.id;
                 }
-
-
                 setCurrentUser(user);
 
                 // Get order details
                 console.log('Fetching order details for:', orderId);
                 const orderResponse = await api.get(`/orders/${orderId}`);
-                console.log('Order response:', orderResponse);
-                setOrderDetails(orderResponse.order);
+                const order = orderResponse.order || orderResponse;
+                setOrderDetails(order);
 
-                // Determine recipient - handle both field name variations
-                const order = orderResponse.order;
-                const isCustomer = user.userId === order.customerId;
+                // If recipient already set from location state, stick with it
+                if (recipientId) return;
 
-                // Debug: Log order structure to identify correct field names
-                console.log('Order structure for chat:', {
-                    orderId: order.id,
-                    customerId: order.customerId,
-                    assignedDriver: order.assignedDriver,
-                    assignedDriverUserId: order.assignedDriverUserId,
-                    driverId: order.driverId,
-                    assigned_driver_user_id: order.assigned_driver_user_id,
-                    status: order.status
-                });
+                // Determine recipient
+                const orderCustomerId = order.customerId || order.customer_id;
+                const isCustomer = String(user.userId) === String(orderCustomerId);
 
                 // Try different field names for assigned driver
                 const driverUserId = order.assignedDriverUserId ||
@@ -129,44 +121,55 @@ const ChatPage = () => {
                     order.assigned_driver_user_id ||
                     order.driverId;
 
-                const recipientUserId = isCustomer ? driverUserId : order.customerId;
-
-                console.log('Recipient determination:', {
-                    isCustomer,
-                    driverUserId,
-                    recipientUserId,
-                    currentUserId: user.userId
-                });
+                const recipientUserId = isCustomer ? driverUserId : orderCustomerId;
 
                 if (!recipientUserId) {
-                    console.warn('No recipient found for chat - order may not have an assigned driver yet');
+                    console.warn('No assigned driver found for this order. Chat might be restricted.');
+                    // Don't setRecipientId to null if it was potentially set (though logic above handles that)
                     return;
                 }
 
                 setRecipientId(recipientUserId);
 
-                // Fetch messages
-                console.log('Fetching messages for order:', orderId);
-                await fetchOrderMessages(orderId);
-
-                console.log('Marking messages as read...');
-                await markMessagesRead(orderId);
-
-                console.log('Chat data loaded successfully');
             } catch (error) {
-                console.error('Failed to fetch data:', {
-                    error,
-                    message: error.message,
-                    stack: error.stack,
-                    response: error.response
-                });
+                console.error('Failed to fetch user/order data:', error);
             }
         };
 
         if (orderId) {
-            fetchData();
+            fetchUserAndOrder();
         }
-    }, [orderId, fetchOrderMessages, markMessagesRead]);
+    }, [orderId, navigate]);
+
+    // Join/Leave Conversation and Sync Messages
+    useEffect(() => {
+        if (!orderId) return;
+
+        // Join the socket room for real-time updates
+        joinConversation(orderId);
+
+        const syncMessages = async () => {
+            try {
+                // Fetch messages
+                await fetchOrderMessages(orderId);
+                // Mark as read
+                if (recipientId) {
+                    await markMessagesRead(orderId);
+                }
+            } catch (error) {
+                console.error('Failed to sync messages:', error);
+            }
+        };
+
+        syncMessages();
+
+        // Cleanup: Leave the room when leaving the page
+        return () => {
+            leaveConversation(orderId);
+        };
+    }, [orderId, joinConversation, leaveConversation, fetchOrderMessages, markMessagesRead, recipientId]);
+
+
 
     // Auto-scroll to bottom when messages change
     useEffect(() => {
@@ -188,13 +191,13 @@ const ChatPage = () => {
             // Handle voice message
             if (audioBlob) {
                 const uploadResult = await uploadVoice(orderId, audioBlob);
-                await api.sendMediaMessage(orderId, recipientId, uploadResult, newMessage.trim());
+                await sendMediaMessage(orderId, recipientId, uploadResult, newMessage.trim());
                 clearRecording();
                 setNewMessage('');
             }
             // Handle media message
             else if (selectedMedia) {
-                await api.sendMediaMessage(orderId, recipientId, selectedMedia, newMessage.trim());
+                await sendMediaMessage(orderId, recipientId, selectedMedia, newMessage.trim());
                 setSelectedMedia(null);
                 clearPreview();
                 setNewMessage('');
@@ -204,8 +207,6 @@ const ChatPage = () => {
                 await sendMessage(orderId, recipientId, newMessage.trim());
                 setNewMessage('');
             }
-
-            await fetchOrderMessages(orderId);
         } catch (error) {
             console.error('Failed to send message:', error);
         } finally {
@@ -292,6 +293,8 @@ const ChatPage = () => {
             </div>
         );
     }
+
+    console.log(`💬 Chat Rendering: ${messages.length} messages found`);
 
     return (
         <div style={{
@@ -392,7 +395,7 @@ const ChatPage = () => {
 
                                     <MessageBubble
                                         message={message}
-                                        isOwnMessage={message.sender.id === currentUser?.userId}
+                                        isOwnMessage={String(message.sender?.id || message.senderId) === String(currentUser?.userId || currentUser?.id)}
                                         onMediaClick={setViewerMessage}
                                         onReact={(messageId, emoji) => {
                                             console.log('React:', messageId, emoji);
@@ -532,16 +535,34 @@ const ChatPage = () => {
                 borderTop: '1px solid #E5E7EB',
                 background: '#FFF'
             }}>
+                {/* Warning for no recipient */}
+                {!recipientId && orderDetails && (
+                    <div style={{
+                        padding: '0.5rem',
+                        marginBottom: '0.5rem',
+                        background: '#FEF3C7',
+                        color: '#92400E',
+                        borderRadius: '0.375rem',
+                        fontSize: '0.875rem',
+                        textAlign: 'center'
+                    }}>
+                        Waiting for connection with the other party...
+                    </div>
+                )}
+
                 <form onSubmit={handleSendMessage} style={{
                     display: 'flex',
                     gap: '0.5rem',
-                    alignItems: 'flex-end'
+                    alignItems: 'flex-end',
+                    opacity: !recipientId ? 0.5 : 1,
+                    pointerEvents: !recipientId ? 'none' : 'auto'
                 }}>
                     {/* Media Options */}
                     <div style={{ position: 'relative' }}>
                         <button
                             type="button"
                             onClick={() => setShowMediaOptions(!showMediaOptions)}
+                            disabled={!recipientId}
                             style={{
                                 padding: '0.75rem',
                                 background: '#F3F4F6',
@@ -607,6 +628,7 @@ const ChatPage = () => {
                             accept="image/*"
                             onChange={handleImageSelect}
                             style={{ display: 'none' }}
+                            disabled={!recipientId}
                         />
                         <input
                             ref={videoInputRef}
@@ -614,6 +636,7 @@ const ChatPage = () => {
                             accept="video/*"
                             onChange={handleVideoSelect}
                             style={{ display: 'none' }}
+                            disabled={!recipientId}
                         />
                     </div>
 
@@ -621,6 +644,7 @@ const ChatPage = () => {
                     <button
                         type="button"
                         onClick={handleVoiceRecording}
+                        disabled={!recipientId}
                         style={{
                             padding: '0.75rem',
                             background: isRecording ? '#EF4444' : '#F3F4F6',
@@ -644,7 +668,8 @@ const ChatPage = () => {
                                 emitTyping();
                             }}
                             onBlur={emitStoppedTyping}
-                            placeholder="Type a message..."
+                            disabled={!recipientId}
+                            placeholder={!recipientId ? "Chat disabled until connected..." : "Type a message..."}
                             style={{
                                 width: '100%',
                                 minHeight: '40px',
@@ -655,7 +680,8 @@ const ChatPage = () => {
                                 outline: 'none',
                                 resize: 'none',
                                 fontSize: '0.875rem',
-                                fontFamily: 'inherit'
+                                fontFamily: 'inherit',
+                                background: !recipientId ? '#F3F4F6' : '#FFF'
                             }}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -670,7 +696,7 @@ const ChatPage = () => {
                     {/* Send Button */}
                     <button
                         type="submit"
-                        disabled={(!newMessage.trim() && !audioBlob && !selectedMedia) || sending || uploading}
+                        disabled={!recipientId || (!newMessage.trim() && !audioBlob && !selectedMedia) || sending || uploading}
                         style={{
                             padding: '0.75rem',
                             background: '#4F46E5',
@@ -678,7 +704,7 @@ const ChatPage = () => {
                             border: 'none',
                             borderRadius: '0.5rem',
                             cursor: 'pointer',
-                            opacity: (!newMessage.trim() && !audioBlob && !selectedMedia) || sending || uploading ? 0.5 : 1,
+                            opacity: (!recipientId || (!newMessage.trim() && !audioBlob && !selectedMedia) || sending || uploading) ? 0.5 : 1,
                             fontSize: '1.25rem'
                         }}
                     >

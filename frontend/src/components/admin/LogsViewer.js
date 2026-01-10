@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import api from '../../api';
 import './LogsViewer.css';
 
 const LogsViewer = ({ apiUrl }) => {
@@ -36,15 +37,7 @@ const LogsViewer = ({ apiUrl }) => {
                 if (value) queryParams.append(key, value);
             });
 
-            const response = await fetch(`${apiUrl}/logs?${queryParams.toString()}`, {
-                credentials: 'include'
-            });
-
-            if (!response.ok) {
-                throw new Error(`Failed to fetch logs: ${response.status}`);
-            }
-
-            const data = await response.json();
+            const data = await api.get(`/logs?${queryParams.toString()}`);
             setLogs(data.logs);
             setPagination(data.pagination);
         } catch (err) {
@@ -53,25 +46,17 @@ const LogsViewer = ({ apiUrl }) => {
         } finally {
             setLoading(false);
         }
-    }, [apiUrl, filters]);
+    }, [filters]);
 
     // Fetch stats
     const fetchStats = useCallback(async () => {
         try {
-            const response = await fetch(`${apiUrl}/logs/stats`, {
-                credentials: 'include'
-            });
-
-            if (!response.ok) {
-                throw new Error(`Failed to fetch stats: ${response.status}`);
-            }
-
-            const data = await response.json();
+            const data = await api.get('/logs/stats');
             setStats(data);
         } catch (err) {
             console.error('Error fetching stats:', err);
         }
-    }, [apiUrl]);
+    }, []);
 
     // Initial fetch
     useEffect(() => {

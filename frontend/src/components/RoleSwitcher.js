@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { AuthApi } from '../services/api';
 import './RoleSwitcher.css';
 
 const RoleSwitcher = ({ currentRole, grantedRoles, onSwitch }) => {
@@ -17,21 +18,7 @@ const RoleSwitcher = ({ currentRole, grantedRoles, onSwitch }) => {
         setError('');
 
         try {
-            const response = await fetch(`${process.env.REACT_APP_API_URL}/users/me/switch-primary_role`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'include',
-                body: JSON.stringify({ newRole })
-            });
-
-            if (!response.ok) {
-                const data = await response.json();
-                throw new Error(data.error || 'Failed to switch role');
-            }
-
-            const data = await response.json();
+            const data = await AuthApi.switchRole({ primary_role: newRole });
 
             // Call parent callback with new user data
             if (onSwitch) {

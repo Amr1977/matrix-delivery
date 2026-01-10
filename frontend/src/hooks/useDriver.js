@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { DriversApi } from '../services/api';
 
 /**
  * Hook for managing driver location tracking
@@ -68,35 +69,25 @@ const useDriver = (token, currentUser) => {
                 }
 
                 try {
-                    const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
-                    const response = await fetch(`${API_URL}/drivers/location`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        credentials: 'include',
-                        body: JSON.stringify({
-                            latitude: position.coords.latitude,
-                            longitude: position.coords.longitude,
-                            heading: position.coords.heading,
-                            speed: position.coords.speed,
-                            accuracy: position.coords.accuracy
-                        })
+                    await DriversApi.updateLocation({
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude,
+                        heading: position.coords.heading,
+                        speed: position.coords.speed,
+                        accuracy: position.coords.accuracy
                     });
 
-                    if (response.ok) {
-                        lastUpdateRef.current = now;
-                        const location = {
-                            latitude: position.coords.latitude,
-                            longitude: position.coords.longitude,
-                            accuracy: position.coords.accuracy,
-                            heading: position.coords.heading,
-                            speed: position.coords.speed,
-                            timestamp: new Date().toISOString()
-                        };
-                        setDriverLocation(location);
-                        setLocationError(null);
-                    }
+                    lastUpdateRef.current = now;
+                    const location = {
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude,
+                        accuracy: position.coords.accuracy,
+                        heading: position.coords.heading,
+                        speed: position.coords.speed,
+                        timestamp: new Date().toISOString()
+                    };
+                    setDriverLocation(location);
+                    setLocationError(null);
                 } catch (error) {
                     console.error('Failed to update driver location:', error);
                     setLocationError(error.message);

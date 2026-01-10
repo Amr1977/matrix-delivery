@@ -1,5 +1,6 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useI18n } from '../i18n/i18nContext';
+import api from '../api';
 
 export default function VendorSelfDashboard({ apiUrl, token }) {
   const { t } = useI18n();
@@ -10,24 +11,37 @@ export default function VendorSelfDashboard({ apiUrl, token }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const headers = useMemo(() => ({ 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }), [token]);
-
   const loadSelf = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${apiUrl}/vendors/self`, { headers });
-      if (res.status === 404) { setVendor(null); } else if (res.ok) { const d = await res.json(); setVendor(d.vendor || d); setForm({ name: d.vendor?.name || d.name || '', city: d.vendor?.city || d.city || '', country: d.vendor?.country || d.country || '', latitude: (d.vendor?.latitude ?? d.latitude ?? '') || '', longitude: (d.vendor?.longitude ?? d.longitude ?? '') || '' }); }
-    } catch (e) { setError('Failed'); } finally { setLoading(false); }
-  }, [apiUrl, headers]);
+      const d = await api.get('/vendors/self');
+      setVendor(d.vendor || d);
+      setForm({
+        name: d.vendor?.name || d.name || '',
+        city: d.vendor?.city || d.city || '',
+        country: d.vendor?.country || d.country || '',
+        latitude: (d.vendor?.latitude ?? d.latitude ?? '') || '',
+        longitude: (d.vendor?.longitude ?? d.longitude ?? '') || ''
+      });
+    } catch (e) {
+      if (e.message.includes('404')) {
+        setVendor(null);
+      } else {
+        setError('Failed to load profile');
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const loadItems = useCallback(async () => {
     if (!vendor || !vendor.id) { setItems([]); return; }
     try {
-      const res = await fetch(`${apiUrl}/vendors/${vendor.id}/items`, { headers });
-      if (res.ok) { const d = await res.json(); setItems(Array.isArray(d.items) ? d.items : d); }
+      const d = await api.get(`/vendors/${vendor.id}/items`);
+      setItems(Array.isArray(d.items) ? d.items : d);
     } catch (e) { }
-  }, [apiUrl, headers, vendor]);
+  }, [vendor]);
 
   useEffect(() => { loadSelf(); }, [loadSelf]);
   useEffect(() => { loadItems(); }, [loadItems]);
@@ -36,41 +50,65 @@ export default function VendorSelfDashboard({ apiUrl, token }) {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${apiUrl}/vendors/self`, { method: 'POST', headers, body: JSON.stringify({ name: form.name, city: form.city, country: form.country, latitude: form.latitude ? parseFloat(form.latitude) : undefined, longitude: form.longitude ? parseFloat(form.longitude) : undefined }) });
-      if (res.ok) { const d = await res.json(); setVendor(d.vendor || d); }
-      else { setError('Create failed'); }
-    } catch (e) { setError('Network error'); } finally { setLoading(false); }
+      const d = await api.post('/vendors/self', {
+        name: form.name,
+        city: form.city,
+        country: form.country,
+        latitude: form.latitude ? parseFloat(form.latitude) : undefined,
+        longitude: form.longitude ? parseFloat(form.longitude) : undefined
+      });
+      setVendor(d.vendor || d);
+    } catch (e) {
+      setError('Create failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const updateSelf = async () => {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${apiUrl}/vendors/self`, { method: 'PUT', headers, body: JSON.stringify({ name: form.name, city: form.city, country: form.country, latitude: form.latitude ? parseFloat(form.latitude) : null, longitude: form.longitude ? parseFloat(form.longitude) : null }) });
-      if (res.ok) { const d = await res.json(); setVendor(d.vendor || d); }
-      else { setError('Update failed'); }
-    } catch (e) { setError('Network error'); } finally { setLoading(false); }
+      const d = await api.put('/vendors/self', {
+        name: form.name,
+        city: form.city,
+        country: form.country,
+        latitude: form.latitude ? parseFloat(form.latitude) : null,
+        longitude: form.longitude ? parseFloat(form.longitude) : null
+      });
+      setVendor(d.vendor || d);
+    } catch (e) {
+      setError('Update failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const addItem = async () => {
     if (!vendor || !vendor.id) return;
     try {
-      const res = await fetch(`${apiUrl}/vendors/${vendor.id}/items`, { method: 'POST', headers, body: JSON.stringify({ name: newItem.name, price: parseFloat(newItem.price) }) });
-      if (res.ok) { await loadItems(); setNewItem({ name: '', price: '' }); }
+      await api.post(`/vendors/${vendor.id}/items`, {
+        name: newItem.name,
+        price: parseFloat(newItem.price)
+      });
+      await loadItems();
+      setNewItem({ name: '', price: '' });
     } catch (e) { }
   };
 
   const updateItemPrice = async (itemId, price) => {
     try {
-      const res = await fetch(`${apiUrl}/vendors/${vendor.id}/items/${itemId}`, { method: 'PUT', headers, body: JSON.stringify({ price: parseFloat(price) }) });
-      if (res.ok) { await loadItems(); }
+      await api.put(`/vendors/${vendor.id}/items/${itemId}`, {
+        price: parseFloat(price)
+      });
+      await loadItems();
     } catch (e) { }
   };
 
   const deactivateItem = async (itemId) => {
     try {
-      const res = await fetch(`${apiUrl}/vendors/${vendor.id}/items/${itemId}/deactivate`, { method: 'POST', headers });
-      if (res.ok) { await loadItems(); }
+      await api.post(`/vendors/${vendor.id}/items/${itemId}/deactivate`);
+      await loadItems();
     } catch (e) { }
   };
 

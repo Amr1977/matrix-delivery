@@ -98,11 +98,16 @@ class MessagingService {
       category: 'messaging'
     });
 
-    return {
+    const messageResponse = {
       id: messageId,
       orderId: orderId,
-      senderId: senderId,
-      recipientId: recipientId,
+      sender: {
+        id: senderId,
+        name: 'You' // Placeholder or fetch from DB user table
+      },
+      recipient: {
+        id: recipientId
+      },
       content: sanitizedContent,
       messageType: messageType,
       mediaUrl: mediaData?.mediaUrl || null,
@@ -113,6 +118,23 @@ class MessagingService {
       isRead: false,
       createdAt: new Date()
     };
+
+    // Emit via Socket.IO if available
+    if (this.io) {
+      this.io.to(`order_${orderId}`).emit('new_message', {
+        message: messageResponse
+      });
+      logger.info(`Emitted new_message event to order_${orderId}`, { category: 'websocket' });
+    }
+
+    return messageResponse;
+  }
+
+  /**
+   * Set Socket.IO instance
+   */
+  setSocketIo(io) {
+    this.io = io;
   }
 
   /**

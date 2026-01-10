@@ -93,20 +93,10 @@ export class UsersApi {
      * Update profile picture
      */
     static async updateProfilePicture(data: { imageDataUrl?: string } | FormData): Promise<{ profilePictureUrl: string }> {
-        if (data instanceof FormData) {
-            // For FormData, use fetch directly as ApiClient might not handle it
-            const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
-            const response = await fetch(`${API_URL}/users/me/profile-picture`, {
-                method: 'POST',
-                credentials: 'include',
-                body: data
-            });
-            if (!response.ok) {
-                throw new Error('Failed to upload profile picture');
-            }
-            return response.json();
-        }
-        return ApiClient.post<{ profilePictureUrl: string }>('/users/me/profile-picture', data);
+        return ApiClient.request<{ profilePictureUrl: string }>('/users/me/profile-picture', {
+            method: 'POST',
+            body: data as any // ApiClient now handles FormData
+        });
     }
 
     /**

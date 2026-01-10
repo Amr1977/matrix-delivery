@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { formatCurrency } from '../../utils/formatters';
 import { Wallet, Edit2, Check, X, Info } from 'lucide-react';
+import { formatCurrency } from '../../utils/formatters';
+import api from '../../api';
 
 /**
  * CashBalanceCard Component
@@ -36,19 +37,8 @@ const CashBalanceCard = ({ token, API_URL, currentUser, setError, t }) => {
     const fetchCashBalance = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${API_URL}/users/me/cash-balance`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
-                credentials: 'include'
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setCashBalance(data.availableCash || 0);
-            } else {
-                throw new Error('Failed to fetch cash balance');
-            }
+            const data = await api.get('/users/me/cash-balance');
+            setCashBalance(data.availableCash || 0);
         } catch (error) {
             console.error('Error fetching cash balance:', error);
             setError && setError('Failed to load cash balance');
@@ -78,25 +68,10 @@ const CashBalanceCard = ({ token, API_URL, currentUser, setError, t }) => {
 
         setSaveLoading(true);
         try {
-            const response = await fetch(`${API_URL}/users/me/cash-balance`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'include',
-                body: JSON.stringify({ availableCash: amount })
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setCashBalance(data.availableCash);
-                setIsEditing(false);
-                setNewBalance('');
-            } else {
-                const error = await response.json();
-                throw new Error(error.error || 'Failed to update cash balance');
-            }
+            const data = await api.put('/users/me/cash-balance', { availableCash: amount });
+            setCashBalance(data.availableCash);
+            setIsEditing(false);
+            setNewBalance('');
         } catch (error) {
             console.error('Error updating cash balance:', error);
             setError && setError(error.message || 'Failed to update cash balance');

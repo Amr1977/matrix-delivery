@@ -8,8 +8,11 @@ import logger from './logger';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import SavedAddressSelector from './components/SavedAddressSelector';
+import api from './api';
 
 // Fix Leaflet default icon issue
+const GLOBAL_API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
@@ -101,8 +104,7 @@ const MessageModal = ({ isOpen, onClose, title, message, type }) => {
 };
 
 //TODO SHOW IN SEPARATE PAGE!!!
-const OrderCreationForm = ({ onSubmit, countries, t }) => {
-  const API_URL = process.env.REACT_APP_API_URL;
+const OrderCreationForm = ({ onSubmit, countries, t, API_URL = GLOBAL_API_URL }) => {
 
   // Form state
   const [orderData, setOrderData] = useState({
@@ -223,17 +225,10 @@ const OrderCreationForm = ({ onSubmit, countries, t }) => {
   const calculateRoute = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/locations/calculate-route`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          pickup: pickupLocation.coordinates,
-          delivery: dropoffLocation.coordinates
-        })
+      const data = await api.post('/locations/calculate-route', {
+        pickup: pickupLocation.coordinates,
+        delivery: dropoffLocation.coordinates
       });
-
-      if (!response.ok) throw new Error('Failed to calculate route');
-      const data = await response.json();
 
       console.log('🗺️ Route calculated:', {
         distance: data.distance_km + ' km',
@@ -901,12 +896,7 @@ const MapLocationPicker = ({ location, onChange, onAddressFill, userLocation, ma
     setError('');
 
     try {
-      const response = await fetch(
-        `${API_URL}/locations/reverse?lat=${coords.lat}&lng=${coords.lng}`
-      );
-
-      if (!response.ok) throw new Error('Failed to geocode location');
-      const data = await response.json();
+      const data = await api.get(`/locations/reverse?lat=${coords.lat}&lng=${coords.lng}`);
       const loc = {
         coordinates: { lat: data.lat, lng: data.lng },
         displayName: data.displayName,
@@ -947,14 +937,7 @@ const MapLocationPicker = ({ location, onChange, onAddressFill, userLocation, ma
     setError('');
 
     try {
-      const response = await fetch(`${API_URL}/locations/parse-maps-url`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: mapUrl })
-      });
-
-      if (!response.ok) throw new Error('Invalid Google Maps URL');
-      const data = await response.json();
+      const data = await api.post('/locations/parse-maps-url', { url: mapUrl });
       onChange(data);
       setMapUrl('');
     } catch (err) {

@@ -33,19 +33,19 @@ const configureExpress = (app) => {
     const corsOptions = {
         origin: function (origin, callback) {
             // Allow requests with no origin (like mobile apps or curl requests)
-            if (!origin) return callback(null, true);
+            // If origin is missing (e.g. stripped by proxy), default to the main frontend to ensure CORS headers are present
+            if (!origin) return callback(null, 'https://matrix-delivery.web.app');
 
             // Parse allowed origins from environment variable
             const allowedOrigins = process.env.CORS_ORIGIN
                 ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
                 : [
-                    'http://localhost:3000',
-                    'http://192.168.1.2:3000',
-                    'https://matrix.oldantique50.com'
+                    'http://localhost:3000'
                 ];
 
             if (allowedOrigins.indexOf(origin) !== -1) {
-                callback(null, true);
+                // Return the specific origin, not true - required for credentials
+                callback(null, origin);
             } else {
                 console.warn(`CORS blocked origin: ${origin}. Allowed: ${allowedOrigins.join(', ')}`);
                 callback(new Error('Not allowed by CORS'));

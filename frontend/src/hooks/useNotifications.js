@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import io from 'socket.io-client';
 import usePageVisibility from './usePageVisibility';
+import api from '../api';
+import { NotificationsApi } from '../services/api';
 
 const useNotifications = (token, currentUser) => {
   const [notifications, setNotifications] = useState([]);
@@ -82,11 +84,7 @@ const useNotifications = (token, currentUser) => {
 
   const fetchNotifications = useCallback(async () => {
     try {
-      const response = await fetch(`${API_URL}/notifications`, {
-        credentials: 'include'
-      });
-      if (!response.ok) return;
-      const data = await response.json();
+      const data = await NotificationsApi.getNotifications();
       setNotifications(data);
 
       // Enhanced notifications with sound and TTS
@@ -106,25 +104,16 @@ const useNotifications = (token, currentUser) => {
     } catch (err) {
       console.error('fetchNotifications error:', err);
     }
-  }, [token, API_URL, notifications, spokenNotifications, playNotificationSound, speakNotification]);
+  }, [notifications, spokenNotifications, playNotificationSound, speakNotification]);
 
   const markNotificationRead = useCallback(async (notificationId) => {
     try {
-      const response = await fetch(`${API_URL}/notifications/${notificationId}/read`, {
-        method: 'POST',
-        credentials: 'include'
-      });
-
-      if (!response.ok) {
-        console.error(`Failed to mark notification as read: ${response.status} ${response.statusText}`);
-        return;
-      }
-
+      await NotificationsApi.markAsRead(notificationId);
       setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n));
     } catch (err) {
       console.error('markNotificationRead error:', err);
     }
-  }, [token, API_URL]);
+  }, []);
 
   // Real-time notifications via WebSocket
   useEffect(() => {

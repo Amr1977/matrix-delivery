@@ -127,9 +127,32 @@ process.on('unhandledRejection', async (reason, promise) => {
 // Setup before each scenario
 Before(async function ({ pickle }) {
   console.log('[DEBUG] Before Hook Started for scenario:', pickle.name);
-  // Launch browser for each scenario
+
+  // Set base URLs
+  this.baseUrl = 'http://localhost:3000';
+  this.apiUrl = 'http://localhost:5000/api';
+
+  // Initialize test data storage
+  this.testData = {};
+
+  // Bind test data factory helpers to scenario context
+  this.testRunId = TEST_RUN_ID;
+  this.generateUniqueEmail = generateUniqueEmail;
+  this.generateTestUser = generateTestUser;
+  this.createdUserIds = []; // Track users for cleanup
+
+  // Skip browser launch for API mode
+  if (process.env.TEST_MODE === 'api') {
+    console.log(`\n▶️  Running (API MODE): ${pickle.name}`);
+    return;
+  }
+
+  // Launch browser for E2E mode
+  const headless = process.env.HEADLESS !== 'false';
+  console.log(`[DEBUG] Launching browser (headless: ${headless})`);
+
   this.browser = await chromium.launch({
-    headless: process.env.HEADLESS === 'true', // Default to headed browser until tests are stable
+    headless: headless,
     slowMo: parseInt(process.env.SLOWMO || '0'),
     args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
@@ -148,30 +171,15 @@ Before(async function ({ pickle }) {
   });
 
   this.page = await this.context.newPage();
-  // console.log('[DEBUG] Page created successfully:', !!this.page);
-
-  // Set base URLs
-  this.baseUrl = 'http://localhost:3000';
-  this.apiUrl = 'http://localhost:5000/api';
-
-  // Initialize test data storage
-  this.testData = {};
-
-  // Bind test data factory helpers to scenario context
-  this.testRunId = TEST_RUN_ID;
-  this.generateUniqueEmail = generateUniqueEmail;
-  this.generateTestUser = generateTestUser;
-  this.createdUserIds = []; // Track users for cleanup
-
-  console.log(`\n▶️  Running: ${pickle.name}`);
+  console.log(`\n▶️  Running (E2E MODE): ${pickle.name}`);
 });
 
 // Cleanup after each scenario
 After(async function ({ pickle, result }) {
   const scenarioName = pickle.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
 
-  // Take screenshot if scenario failed
-  if (result.status === 'FAILED') {
+  // Take screenshot if scenario failed AND page exists
+  if (result.status === 'FAILED' && this.page) {
     console.log(`   ❌ FAILED: ${pickle.name}`);
 
     try {
@@ -204,9 +212,11 @@ After(async function ({ pickle, result }) {
     console.log(`   ✅ PASSED: ${pickle.name}`);
   }
 
-  // Close browser
-  if (this.browser) {
+  // Close browser elements if they exist
+  if (this.context) {
     await this.context.close();
+  }
+  if (this.browser) {
     await this.browser.close();
   }
 });

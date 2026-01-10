@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import RoleSwitcher from '../components/RoleSwitcher';
 import CashBalanceCard from '../components/driver/CashBalanceCard';
 import { formatCurrency } from '../utils/formatters';
+import api from '../api';
 
 const ProfilePage = ({
     profileData,
@@ -57,19 +58,11 @@ const ProfilePage = ({
     };
 
     const updateProfile = async (patch) => {
-        if (!token) return;
         try {
             // Remove read-only or derived fields if present to avoid backend errors
             const { id, email, created_at, updated_at, primary_role, granted_roles, ...updatableFields } = patch;
 
-            const res = await fetch(`${API_URL}/auth/profile`, {
-                method: 'PUT',
-                credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatableFields) // Send only updatable fields
-            });
-            if (!res.ok) throw new Error('Failed to update profile');
-            const d = await res.json();
+            const d = await api.put('/auth/profile', updatableFields);
             setProfileData((prev) => ({ ...prev, ...d.user }));
             if (setCurrentUser) setCurrentUser(d.user);
         } catch (err) {
@@ -78,10 +71,9 @@ const ProfilePage = ({
     };
 
     const removePaymentMethod = async (id) => {
-        if (!token) return;
         try {
-            const res = await fetch(`${API_URL}/users/me/payment-methods/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
-            if (res.ok) setPaymentMethods(prev => prev.filter(p => p.id !== id));
+            await api.delete(`/users/me/payment-methods/${id}`);
+            setPaymentMethods(prev => prev.filter(p => p.id !== id));
         } catch (err) { if (setError) setError(err.message || String(err)); }
     };
 
@@ -430,11 +422,8 @@ const ProfilePage = ({
                                     checked={!!profileData.is_available}
                                     onChange={async (e) => {
                                         try {
-                                            const res = await fetch(`${API_URL}/users/me/availability`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ is_available: !!e.target.checked }) });
-                                            if (res.ok) {
-                                                const d = await res.json();
-                                                setProfileData((prev) => ({ ...prev, is_available: d.isAvailable }));
-                                            }
+                                            const d = await api.post('/users/me/availability', { is_available: !!e.target.checked });
+                                            setProfileData((prev) => ({ ...prev, is_available: d.isAvailable }));
                                         } catch (err) { if (setError) setError(err.message || String(err)); }
                                     }}
                                     style={{ width: '20px', height: '20px' }}

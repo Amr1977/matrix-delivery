@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import usePageVisibility from './usePageVisibility';
+import api from '../api';
 
 /**
  * Custom hook to send periodic heartbeat to backend
@@ -26,23 +27,11 @@ export const useHeartbeat = (token: string | null, apiUrl: string) => {
             }
 
             try {
-                const response = await fetch(`${apiUrl}/heartbeat`, {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (response.ok) {
-                    console.log('💓 Heartbeat sent successfully');
-                } else {
-                    // Silent failure - heartbeat is not critical
-                    console.warn('⚠️ Heartbeat failed:', response.status);
-                }
-            } catch (error) {
-                // Silent failure - don't disrupt user experience
-                console.warn('⚠️ Heartbeat error:', error);
+                await api.post('/heartbeat');
+                console.log('💓 Heartbeat sent successfully');
+            } catch (error: any) {
+                // Silent failure - heartbeat is not critical
+                console.warn('💓 Heartbeat failed:', error.message);
             }
         };
 
