@@ -5,6 +5,7 @@ This roadmap outlines the key milestones, modules, and upcoming features for the
 ---
 
 ## ✅ Phase 1: Foundation (Completed - Q4 2025)
+
 - [x] Backend and frontend integration (React + Node.js + PostgreSQL)
 - [x] Authentication and session management with JWT
 - [x] Delivery request + bidding model with real-time updates
@@ -17,6 +18,7 @@ This roadmap outlines the key milestones, modules, and upcoming features for the
 ---
 
 ## 🚚 Phase 2: Core Delivery Operations (Completed)
+
 - [x] Live delivery tracking with WebSocket integration
 - [x] Courier profiles and ratings system
 - [x] Real-time customer-courier communication (Socket.IO)
@@ -28,6 +30,7 @@ This roadmap outlines the key milestones, modules, and upcoming features for the
 ---
 
 ## 🌐 Phase 3: International Expansion (In Progress)
+
 - [x] Multi-country location support (Egypt, Saudi Arabia, UAE, etc.)
 - [x] International address validation and geocoding
 - [ ] Multi-language UI support (Arabic, English)
@@ -39,6 +42,7 @@ This roadmap outlines the key milestones, modules, and upcoming features for the
 ---
 
 ## 💸 Phase 4: Advanced Features & Sustainability (Q1 2026)
+
 - [ ] Advanced analytics and reporting dashboard
 - [ ] Automated driver dispatch system
 - [ ] Insurance and liability management
@@ -51,6 +55,7 @@ This roadmap outlines the key milestones, modules, and upcoming features for the
 ---
 
 ## 🛠️ Infrastructure & DevOps (Q1 2026)
+
 - [ ] Docker containerization for all services
 - [ ] Kubernetes orchestration for production
 - [ ] CI/CD pipeline enhancements
@@ -60,7 +65,20 @@ This roadmap outlines the key milestones, modules, and upcoming features for the
 
 ---
 
+## 🔮 Planned Feature Queue
+
+- [ ] **Flexible Order Types**: Support for both 'Delivery' and 'Ride Request' orders.
+- [ ] **Complex Delivery Flows**:
+  - Single Pickup, Single Delivery
+  - Single Pickup, Multi Delivery
+  - Multi-Pickup, Single Delivery
+  - Multi-Pickup, Multi Delivery
+- [ ] See [ORDER_FLEXIBILITY_FEATURES.md](ORDER_FLEXIBILITY_FEATURES.md) for details.
+
+---
+
 ## 💬 Ongoing Priorities
+
 - Continuous security audits and penetration testing
 - Test coverage expansion and quality assurance
 - UX/UI improvements and accessibility enhancements
@@ -71,6 +89,7 @@ This roadmap outlines the key milestones, modules, and upcoming features for the
 ---
 
 ## 📊 Current Status (November 2025)
+
 - **Core Platform**: ✅ Fully functional MVP
 - **User Base**: Ready for beta testing
 - **Testing Coverage**: ✅ Comprehensive E2E suite

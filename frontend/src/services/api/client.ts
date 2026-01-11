@@ -9,27 +9,30 @@ export class ApiClient {
      * Generic request method with cookie-based authentication
      */
     private static csrfToken: string | null = null;
-    private static isFetchingToken = false;
+    private static tokenPromise: Promise<void> | null = null;
 
     private static async fetchCsrfToken(): Promise<void> {
-        if (this.isFetchingToken) return;
-        this.isFetchingToken = true;
+        if (this.tokenPromise) return this.tokenPromise;
 
-        try {
-            const response = await fetch(`${API_URL}/csrf-token`, {
-                method: 'GET',
-                credentials: 'include'
-            });
+        this.tokenPromise = (async () => {
+            try {
+                const response = await fetch(`${API_URL}/csrf-token`, {
+                    method: 'GET',
+                    credentials: 'include'
+                });
 
-            if (response.ok) {
-                const data = await response.json();
-                this.csrfToken = data.csrfToken;
+                if (response.ok) {
+                    const data = await response.json();
+                    this.csrfToken = data.csrfToken;
+                }
+            } catch (error) {
+                console.error('Failed to fetch CSRF token:', error);
+            } finally {
+                this.tokenPromise = null;
             }
-        } catch (error) {
-            console.error('Failed to fetch CSRF token:', error);
-        } finally {
-            this.isFetchingToken = false;
-        }
+        })();
+
+        return this.tokenPromise;
     }
 
     /**
@@ -64,6 +67,14 @@ export class ApiClient {
 
         try {
             const response = await fetch(`${API_URL}${endpoint}`, config);
+
+            // Handle 403 Forbidden (CSRF Token Invalid) - Retry logic
+            if (response.status === 403 && !(options as any)._retry) {
+                // Refresh token and retry once
+                this.csrfToken = null;
+                await this.fetchCsrfToken();
+                return this.request<T>(endpoint, { ...options, _retry: true } as any);
+            }
 
             // Handle non-JSON responses (e.g., 204 No Content)
             if (response.status === 204) {
