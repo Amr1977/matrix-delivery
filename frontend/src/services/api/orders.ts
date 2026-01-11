@@ -120,4 +120,11 @@ export class OrdersApi {
     static async getReviews(orderId: string): Promise<any[]> {
         return ApiClient.get<any[]>(`/orders/${orderId}/reviews`);
     }
+
+    /**
+     * Get review status for order (check if already reviewed)
+     */
+    static async getReviewStatus(orderId: string): Promise<any> {
+        return ApiClient.get<any>(`/orders/${orderId}/review-status`);
+    }
 }

@@ -18,24 +18,29 @@ class ApiClient {
   }
 
   async fetchCsrfToken() {
-    if (this.isFetchingToken) return;
-    this.isFetchingToken = true;
-
-    try {
-      const response = await fetch(`${this.baseURL}/csrf-token`, {
-        method: 'GET',
-        credentials: 'include'
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        this.csrfToken = data.csrfToken;
-      }
-    } catch (error) {
-      console.error('Failed to fetch CSRF token:', error);
-    } finally {
-      this.isFetchingToken = false;
+    if (this.tokenPromise) {
+      return this.tokenPromise;
     }
+
+    this.tokenPromise = (async () => {
+      try {
+        const response = await fetch(`${this.baseURL}/csrf-token`, {
+          method: 'GET',
+          credentials: 'include'
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          this.csrfToken = data.csrfToken;
+        }
+      } catch (error) {
+        console.error('Failed to fetch CSRF token:', error);
+      } finally {
+        this.tokenPromise = null;
+      }
+    })();
+
+    return this.tokenPromise;
   }
 
   async request(method, endpoint, data = null, options = {}) {
@@ -89,8 +94,6 @@ class ApiClient {
         }
       }
 
-
-
       // Add body for non-GET requests
       if (data && method !== 'GET') {
         config.body = JSON.stringify(data);
@@ -98,6 +101,18 @@ class ApiClient {
 
       const response = await fetch(url, config);
       const duration = Date.now() - startTime;
+
+      // Handle 403 Forbidden (CSRF Token Invalid) - Retry logic
+      if (response.status === 403 && !options._retry) {
+        // Check if it's likely a CSRF issue (or just a generic auth issue)
+        // We'll try to refresh the token and retry once
+        logger.warn(`403 Forbidden encountered at ${endpoint}. Refreshing CSRF token and retrying...`);
+        this.csrfToken = null; // Clear invalid token
+        await this.fetchCsrfToken(); // Fetch new token
+
+        // Recursive retry with _retry flag
+        return this.request(method, endpoint, data, { ...options, _retry: true });
+      }
 
       // Log API response
       logger.api(method, endpoint, response.status, duration, {

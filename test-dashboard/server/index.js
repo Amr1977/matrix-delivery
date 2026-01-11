@@ -107,9 +107,13 @@ app.post('/api/run', (req, res) => {
     // Let's rely on package.json script context or just run it directly.
     // Best approach: construct the full command string for npx
 
+    const suiteEnv = targetSuite?.env || {};
+    const envArgs = Object.entries(suiteEnv).map(([key, val]) => `${key}=${val}`);
+
     const child = spawn(command, [
         'cross-env',
         'NODE_ENV=testing',
+        ...envArgs,
         'npx',
         'cucumber-js',
         ...featurePaths,

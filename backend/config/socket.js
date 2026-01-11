@@ -87,16 +87,17 @@ const configureSocket = (io) => {
                     category: 'websocket'
                 });
 
+                // Fetch latest location from driver_locations
                 const locationResult = await pool.query(
-                    'SELECT current_location_lat, current_location_lng FROM orders WHERE id = $1',
+                    'SELECT latitude, longitude FROM driver_locations WHERE order_id = $1 ORDER BY timestamp DESC LIMIT 1',
                     [orderId]
                 );
 
-                if (locationResult.rows[0].current_location_lat) {
+                if (locationResult.rows.length > 0) {
                     socket.emit('location_update', {
                         orderId,
-                        latitude: parseFloat(locationResult.rows[0].current_location_lat),
-                        longitude: parseFloat(locationResult.rows[0].current_location_lng),
+                        latitude: parseFloat(locationResult.rows[0].latitude),
+                        longitude: parseFloat(locationResult.rows[0].longitude),
                         timestamp: new Date().toISOString()
                     });
                 }
@@ -122,14 +123,10 @@ const configureSocket = (io) => {
                     return;
                 }
 
+                // Insert into location history
                 await pool.query(
-                    'UPDATE orders SET current_location_lat = $1, current_location_lng = $2 WHERE id = $3',
-                    [parseFloat(latitude), parseFloat(longitude), orderId]
-                );
-
-                await pool.query(
-                    'INSERT INTO location_updates (order_id, driver_id, latitude, longitude, status) VALUES ($1, $2, $3, $4, $5)',
-                    [orderId, socket.userId, parseFloat(latitude), parseFloat(longitude), orderResult.rows[0].status]
+                    'INSERT INTO driver_locations (driver_id, order_id, latitude, longitude, status, timestamp) VALUES ($1, $2, $3, $4, $5, NOW())',
+                    [socket.userId, orderId, parseFloat(latitude), parseFloat(longitude), 'active']
                 );
 
                 io.to(`order_${orderId}`).emit('location_update', {

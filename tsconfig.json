@@ -1,28 +1,26 @@
 {
-    "compilerOptions": {
-        "module": "commonjs",
-        "target": "es2020",
-        "moduleResolution": "node",
-        "esModuleInterop": true,
-        "allowJs": true,
-        "noImplicitAny": false,
-        "types": [
-            "node",
-            "jest"
-        ]
-    },
-    "ts-node": {
-        "transpileOnly": true,
-        "files": true
-    },
-    "exclude": [
-        "node_modules",
-        "backend/scripts",
-        "backend/tests",
-        "backend/features",
-        "backend/debug-init.js",
-        "frontend/build",
-        "tests",
-        "dist"
-    ]
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es2020",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "allowJs": true,
+    "noImplicitAny": false,
+    "types": ["node", "jest"]
+  },
+  "ts-node": {
+    "transpileOnly": true,
+    "files": true
+  },
+  "exclude": [
+    "node_modules",
+    "backend/scripts",
+    "backend/tests",
+    "backend/features",
+    "backend/debug-init.js",
+    "frontend/build",
+    "tests",
+    "dist",
+    "scripts"
+  ]
 }

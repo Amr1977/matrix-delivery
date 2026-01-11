@@ -32,6 +32,11 @@ const checkPortInUse = (port) => {
 // Start servers before all tests
 BeforeAll(async function () {
   console.log('\n🎬 Starting test suite...\n');
+  
+  const isApiMode = process.env.TEST_MODE === 'api';
+  const isE2eMode = process.env.TEST_MODE === 'e2e';
+  
+  console.log(`   Test Mode: ${process.env.TEST_MODE || 'default'}`);
 
   // Clean up stale test data from previous runs
   try {
@@ -41,41 +46,76 @@ BeforeAll(async function () {
   }
 
   try {
-    // Check if servers are already running
-    await checkPortInUse(5000); // Check backend
-    await checkPortInUse(3000); // Check frontend
-
-    // Also check if we can reach the backend API
-    let serversAlreadyRunning = false;
+    // Check if backend is already running
+    let backendRunning = false;
     try {
       const response = await fetch('http://localhost:5000/api/health');
       if (response.ok) {
         const health = await response.json();
         if (health.status === 'healthy') {
-          serversAlreadyRunning = true;
+          backendRunning = true;
         }
       }
     } catch (err) {
-      // API not available
+      // Backend not available
     }
 
-    if (serversAlreadyRunning) {
-      console.log('   ✅ Servers already running (using existing instance)');
-      // Don't start our own servers, use the existing ones
-      // Mark that we shouldn't stop them at the end
-      global.skipServerStop = true;
+    // Start backend if not running
+    if (backendRunning) {
+      console.log('   ✅ Backend already running (using existing instance)');
+      global.skipBackendStop = true;
     } else {
-      // Start servers normally
+      console.log('   🚀 Starting backend server...');
       await serverManager.startBackend();
-      // Wait a bit for backend to fully initialize
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      await serverManager.startFrontend();
-      // Wait a bit for frontend to fully initialize
+      // Wait for backend to fully initialize
       await new Promise(resolve => setTimeout(resolve, 3000));
-
-      console.log('\n✅ All servers ready for testing\n');
+      console.log('   ✅ Backend server ready');
     }
+
+    // Only check/start frontend for E2E mode
+    if (isE2eMode) {
+      let frontendRunning = false;
+      try {
+        const response = await fetch('http://localhost:3000');
+        if (response.ok) {
+          frontendRunning = true;
+        }
+      } catch (err) {
+        // Frontend not available
+      }
+
+      if (frontendRunning) {
+        console.log('   ✅ Frontend already running (using existing instance)');
+        global.skipFrontendStop = true;
+      } else {
+        console.log('   🚀 Starting frontend server...');
+        console.log('   ⚠️  Frontend startup may take 30-60 seconds...');
+        
+        // Start frontend with increased timeout
+        const frontendStartPromise = serverManager.startFrontend();
+        const timeoutPromise = new Promise((resolve, reject) => 
+          setTimeout(() => reject(new Error('Frontend startup timed out after 120 seconds')), 120000)
+        );
+        
+        try {
+          await Promise.race([frontendStartPromise, timeoutPromise]);
+          // Give frontend extra time to stabilize
+          await new Promise(resolve => setTimeout(resolve, 5000));
+          console.log('   ✅ Frontend server ready');
+        } catch (error) {
+          console.log('   ⚠️  Frontend startup failed or timed out');
+          console.log('   💡  Try starting frontend manually: cd frontend && npm start');
+          throw error;
+        }
+      }
+    } else if (isApiMode) {
+      console.log('   ℹ️  Skipping frontend (API mode only needs backend)');
+    }
+
+    // Set global flag for cleanup
+    global.skipServerStop = global.skipBackendStop && global.skipFrontendStop;
+    
+    console.log('\n✅ Test environment ready\n');
   } catch (error) {
     console.error('❌ Failed to start servers:', error.message);
     throw error;
