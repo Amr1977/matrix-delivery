@@ -800,14 +800,31 @@ class E2eAdapter extends OrderLifecycleAdapter {
         let reviewBtn = this.page.locator('button:has-text("Review Customer"), button:has-text("Review Driver")').first();
 
         if (!(await reviewBtn.isVisible({ timeout: 3000 }).catch(() => false))) {
-            console.log('[DEBUG] Review button not visible on Active Orders, checking History tab...');
+            console.log('[DEBUG] Review button not visible on Active Orders, navigating to History via side menu...');
 
-            // Try switching to History tab
-            const historyTab = this.page.locator('button:has-text("Order History"), button:has-text("My History")').first();
-            if (await historyTab.isVisible()) {
-                await historyTab.click();
-                await this.page.waitForTimeout(1000); // Wait for tab switch
-                reviewBtn = this.page.locator('button:has-text("Review Customer"), button:has-text("Review Driver")').first();
+            // Open side menu and navigate to History
+            const hamburgerBtn = this.page.locator('[data-testid="hamburger-btn"]');
+            if (await hamburgerBtn.isVisible({ timeout: 3000 })) {
+                await hamburgerBtn.click();
+                await this.page.waitForTimeout(500); // Wait for menu transition
+
+                // Click History menu item
+                const historyBtn = this.page.locator('[data-testid="history-menu-btn"]');
+                if (await historyBtn.isVisible({ timeout: 3000 })) {
+                    await historyBtn.click();
+                    await this.page.waitForTimeout(2000); // Wait for history page to load
+                    console.log('[DEBUG] Navigated to History via side menu');
+                    reviewBtn = this.page.locator('button:has-text("Review Customer"), button:has-text("Review Driver")').first();
+                } else {
+                    console.log('[DEBUG] History menu button not found, trying alternative selectors...');
+                    // Fallback: Try other history-related menu items
+                    const altHistoryBtn = this.page.locator('button:has-text("History"), a:has-text("History"), [data-testid*="history"]').first();
+                    if (await altHistoryBtn.isVisible({ timeout: 2000 })) {
+                        await altHistoryBtn.click();
+                        await this.page.waitForTimeout(2000);
+                        reviewBtn = this.page.locator('button:has-text("Review Customer"), button:has-text("Review Driver")').first();
+                    }
+                }
             }
         }
 
