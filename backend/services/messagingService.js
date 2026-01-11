@@ -29,8 +29,9 @@ class MessagingService {
    * Check if users can message each other for a specific order
    */
   async canUsersMessage(orderId, userId1, userId2) {
+    const query = 'SELECT customer_id, assigned_driver_user_id FROM orders WHERE id = $1';
     const result = await pool.query(
-      'SELECT customer_id, assigned_driver_user_id FROM orders WHERE id = $1',
+      query,
       [orderId]
     );
 
