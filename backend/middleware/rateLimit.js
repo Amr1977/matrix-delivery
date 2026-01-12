@@ -86,6 +86,22 @@ const uploadRateLimit = createLimiter({
   message: 'Upload limit exceeded, please try again later'
 }, 'rl:upload:');
 
+// Top-Up Rate Limit (Egypt Payment Phase 1)
+// 10 requests per minute per user
+// Requirements: 8.1
+const topupRateLimit = createLimiter({
+  windowMs: 60 * 1000, // 1 minute
+  limit: 10,
+  message: 'Too many top-up requests. Please wait a moment before trying again.',
+  keyGenerator: (req) => {
+    // Use user ID if authenticated, otherwise fall back to IP/fingerprint
+    if (req.user && req.user.userId) {
+      return `user:${req.user.userId}`;
+    }
+    return req.headers['x-device-fingerprint'] || req.ip;
+  }
+}, 'rl:topup:');
+
 
 // Dummy functions for backward compatibility if needed, 
 // though cleanup is handled by Redis or express-rate-limit automatically
@@ -98,6 +114,7 @@ module.exports = {
   authRateLimit,
   orderCreationRateLimit,
   uploadRateLimit,
+  topupRateLimit,
   startCleanup,
   stopCleanup
 };

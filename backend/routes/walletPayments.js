@@ -169,6 +169,28 @@ router.post('/:id/reject', verifyToken, requireRole('admin'), async (req, res, n
  */
 router.get('/wallets/active', verifyToken, async (req, res, next) => {
     try {
+        const { paymentMethod } = req.query;
+        
+        // Use PlatformWalletService for filtered queries (Egypt Phase 1)
+        // Falls back to walletPaymentService for backward compatibility
+        if (paymentMethod) {
+            const { PlatformWalletService } = require('../services/platformWalletService');
+            const platformWalletService = new PlatformWalletService();
+            const wallets = await platformWalletService.getActiveWallets(paymentMethod);
+            
+            return res.json({
+                success: true,
+                wallets: wallets.map(wallet => ({
+                    id: wallet.id,
+                    walletType: wallet.payment_method,
+                    phoneNumber: wallet.phone_number,
+                    instapayAlias: wallet.instapay_alias,
+                    holderName: wallet.holder_name
+                }))
+            });
+        }
+        
+        // Original behavior - get all active wallets
         const wallets = await walletPaymentService.getActivePlatformWallets();
 
         res.json({

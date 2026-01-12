@@ -1,5 +1,5 @@
-const pool = require('../config/database');
-const logger = require('../utils/logger');
+const pool = require('../config/db');
+const logger = require('../config/logger');
 const { PAYMENT_CONFIG, calculateCommission } = require('../config/paymentConfig');
 const smsParser = require('./smsParserService');
 
