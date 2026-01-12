@@ -51,75 +51,75 @@ This implementation plan covers Phase 1: Balance Top-Up (Smart Wallets & InstaPa
   - Ensure wallet service tests pass
   - Ask the user if questions arise
 
-- [ ] 4. TopUp Service
-  - [ ] 4.1 Create TopupService class with createTopup method
+- [x] 4. TopUp Service
+  - [x] 4.1 Create TopupService class with createTopup method
     - Validate amount (10-10000 EGP)
     - Check for duplicate transaction reference
     - Create pending topup record
     - Trigger admin notification
     - _Requirements: 1.4, 1.5, 1.6, 1.7, 2.3, 2.4, 2.5, 2.6_
-  - [ ] 4.2 Write property test for amount validation
+  - [x] 4.2 Write property test for amount validation
     - **Property 1: Amount Validation**
     - **Validates: Requirements 1.6, 1.7, 2.5, 2.6**
-  - [ ] 4.3 Write property test for duplicate reference detection
+  - [x] 4.3 Write property test for duplicate reference detection
     - **Property 2: Duplicate Reference Detection**
     - **Validates: Requirements 3.1, 3.2, 3.3, 3.4**
-  - [ ] 4.4 Write property test for pending record creation
+  - [x] 4.4 Write property test for pending record creation
     - **Property 3: Pending Record Creation**
     - **Validates: Requirements 1.5, 2.4**
-  - [ ] 4.5 Implement checkDuplicate method
+  - [x] 4.5 Implement checkDuplicate method
     - Query existing topups by reference and payment method
     - Return existing topup if found, null otherwise
     - _Requirements: 3.1, 3.2, 3.3, 3.4_
-  - [ ] 4.6 Implement verifyTopup method
+  - [x] 4.6 Implement verifyTopup method
     - Update topup status to 'verified'
     - Call balanceService.deposit() to credit user balance
     - Create audit log entry
     - Trigger user notification
     - _Requirements: 4.3, 4.5, 4.7_
-  - [ ] 4.7 Write property test for verification credits balance
+  - [x] 4.7 Write property test for verification credits balance
     - **Property 4: Verification Credits Balance**
     - **Validates: Requirements 4.3**
-  - [ ] 4.8 Implement rejectTopup method
+  - [x] 4.8 Implement rejectTopup method
     - Validate rejection reason is non-empty
     - Update topup status to 'rejected' with reason
     - Create audit log entry
     - Trigger user notification
     - _Requirements: 4.4, 4.5, 4.7_
-  - [ ] 4.9 Write property test for rejection requires reason
+  - [x] 4.9 Write property test for rejection requires reason
     - **Property 5: Rejection Requires Reason**
     - **Validates: Requirements 4.4**
-  - [ ] 4.10 Implement getTopupHistory method
+  - [x] 4.10 Implement getTopupHistory method
     - Query user's topups with pagination
     - Support filtering by status and date range
     - _Requirements: 6.4, 6.5_
-  - [ ] 4.11 Implement getPendingTopups method for admin
+  - [x] 4.11 Implement getPendingTopups method for admin
     - Query all pending topups sorted by created_at
     - Support filtering by payment method and date range
     - Include pending count
     - _Requirements: 4.1, 4.2, 4.6_
-  - [ ] 4.12 Write property test for audit logging
+  - [x] 4.12 Write property test for audit logging
     - **Property 11: Audit Logging**
     - **Validates: Requirements 4.7**
 
-- [ ] 5. Checkpoint - TopUp Service
+- [x] 5. Checkpoint - TopUp Service
   - Ensure all topup service tests pass
   - Ensure property tests pass
   - Ask the user if questions arise
 
-- [ ] 6. Notification Integration
-  - [ ] 6.1 Implement admin notification on topup creation
+- [x] 6. Notification Integration
+  - [x] 6.1 Implement admin notification on topup creation
     - Send push notification to all admins
     - Include topup amount, user info, payment method
     - _Requirements: 1.9, 2.8_
-  - [ ] 6.2 Write property test for admin notification on creation
+  - [x] 6.2 Write property test for admin notification on creation
     - **Property 6: Admin Notification on Creation**
     - **Validates: Requirements 1.9, 2.8**
-  - [ ] 6.3 Implement user notification on status change
+  - [x] 6.3 Implement user notification on status change
     - Send push notification on verification (with new balance)
     - Send push notification on rejection (with reason)
     - _Requirements: 7.1, 7.2, 7.3_
-  - [ ] 6.4 Write property test for user notification on status change
+  - [x] 6.4 Write property test for user notification on status change
     - **Property 7: User Notification on Status Change**
     - **Validates: Requirements 4.5, 7.2, 7.3**
 
