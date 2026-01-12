@@ -2954,6 +2954,10 @@ app.use('/api/payments', paymentRoutes);
 const topupRoutes = require('./routes/topups');
 app.use('/api/topups', topupRoutes);
 
+// Load admin top-up routes (Egypt payment methods - admin verification)
+const adminTopupRoutes = require('./routes/adminTopups');
+app.use('/api/admin/topups', adminTopupRoutes);
+
 // Note: wallet-payments routes not registered due to missing upload middleware
 // The /api/topups/wallets/active endpoint provides the same functionality
 
