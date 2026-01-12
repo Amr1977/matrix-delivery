@@ -123,7 +123,7 @@ This implementation plan covers Phase 1: Balance Top-Up (Smart Wallets & InstaPa
     - **Property 7: User Notification on Status Change**
     - **Validates: Requirements 4.5, 7.2, 7.3**
 
-- [x] 7. API Routes - User Endpoints
+- [x] 7. API Routes - User Endpoints ✅ COMPLETED
   - [x] 7.1 Create topupRoutes.js with POST /api/topups
     - Validate request body
     - Call topupService.createTopup()
@@ -150,31 +150,32 @@ This implementation plan covers Phase 1: Balance Top-Up (Smart Wallets & InstaPa
   - [x] 7.6 Write property test for rate limiting
     - **Property 10: Rate Limiting**
     - **Validates: Requirements 8.1**
+    - **PBT Status: PASSED** (11 tests: key generation, threshold, error response, user independence, reset behavior)
 
-- [ ] 8. API Routes - Admin Endpoints
-  - [ ] 8.1 Create adminTopupRoutes.js with GET /api/admin/topups/pending
+- [x] 8. API Routes - Admin Endpoints
+  - [x] 8.1 Create adminTopupRoutes.js with GET /api/admin/topups/pending
     - Require admin role
     - Support filtering by payment method and date range
     - Return pending topups with count
     - _Requirements: 4.1, 4.2, 4.6, 4.8_
-  - [ ] 8.2 Add POST /api/admin/topups/:id/verify endpoint
+  - [x] 8.2 Add POST /api/admin/topups/:id/verify endpoint
     - Require admin role
     - Call topupService.verifyTopup()
     - Return updated topup and new balance
     - _Requirements: 4.3_
-  - [ ] 8.3 Add POST /api/admin/topups/:id/reject endpoint
+  - [x] 8.3 Add POST /api/admin/topups/:id/reject endpoint
     - Require admin role
     - Validate rejection reason in body
     - Call topupService.rejectTopup()
     - Return updated topup
     - _Requirements: 4.4_
-  - [ ] 8.4 Add admin platform wallet management endpoints
+  - [x] 8.4 Add admin platform wallet management endpoints
     - GET /api/admin/platform-wallets
     - POST /api/admin/platform-wallets
     - PUT /api/admin/platform-wallets/:id
     - _Requirements: 5.7_
 
-- [ ] 9. Checkpoint - Backend Complete
+- [x] 9. Checkpoint - Backend Complete
   - Ensure all API routes work correctly
   - Ensure all property tests pass
   - Run integration tests for full flows
