@@ -11,6 +11,15 @@
     ]
   },
   {
+    "id": "order_lifecycle_isolated",
+    "name": "🔄 Order Lifecycle (E2E)",
+    "description": "Dedicated test for the complete order lifecycle flow",
+    "features": ["tests/features/core/order_lifecycle.feature"],
+    "env": {
+      "TEST_MODE": "e2e"
+    }
+  },
+  {
     "id": "auth",
     "name": "🔐 Authentication",
     "description": "Login, Registration, Password Reset, and Security",

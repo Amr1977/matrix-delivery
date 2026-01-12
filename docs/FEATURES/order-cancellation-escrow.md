@@ -42,15 +42,17 @@ pending_bids → accepted → picked_up → in_transit → delivered_pending →
 
 ### Status Definitions
 
-| Status              | Description                   | Customer Cancel | Driver Withdraw   |
-| ------------------- | ----------------------------- | --------------- | ----------------- |
-| `pending_bids`      | Order awaiting bids           | ✅ Full refund  | N/A               |
-| `accepted`          | Bid accepted, driver assigned | 🟡 Distance fee | 🟡 Partial pay    |
-| `picked_up`         | Driver has package            | ❌ Blocked      | 🔴 Emergency only |
-| `in_transit`        | Driver delivering             | ❌ Blocked      | 🔴 Emergency only |
-| `delivered_pending` | Driver marked complete        | ❌ Blocked      | ❌ N/A            |
-| `delivered`         | Customer confirmed            | ❌ Closed       | ❌ Closed         |
-| `cancelled`         | Order cancelled               | N/A             | N/A               |
+| Status              | Description                   | Customer Cancel         | Driver Withdraw   | Escrow Status      |
+| ------------------- | ----------------------------- | ----------------------- | ----------------- | ------------------ |
+| `pending_bids`      | Order awaiting bids           | ✅ Free (no escrow yet) | N/A               | None               |
+| `accepted`          | Bid accepted, driver assigned | 🟡 Distance fee         | 🟡 Partial pay    | Held               |
+| `picked_up`         | Driver has package            | ❌ Blocked              | 🔴 Emergency only | Held               |
+| `in_transit`        | Driver delivering             | ❌ Blocked              | 🔴 Emergency only | Held               |
+| `delivered_pending` | Driver marked complete        | ❌ Blocked              | ❌ N/A            | Held               |
+| `delivered`         | Customer confirmed            | ❌ Closed               | ❌ Closed         | Released           |
+| `cancelled`         | Order cancelled               | N/A                     | N/A               | Forfeited/Released |
+
+> **Note:** Escrow hold only happens when customer accepts a bid. During `pending_bids` status, there is no money held - only a balance validation check on order creation.
 
 ---
 
@@ -72,8 +74,10 @@ pending_bids → accepted → picked_up → in_transit → delivered_pending →
 
 | Action         | Check                                | Hold                   |
 | -------------- | ------------------------------------ | ---------------------- |
-| Order Creation | `balance >= upfront + estimated_fee` | None                   |
+| Order Creation | `balance >= upfront + estimated_fee` | None (validation only) |
 | Bid Acceptance | `balance >= upfront + bid_amount`    | `upfront + bid_amount` |
+
+> **Important:** Balance is re-validated when accepting a bid. If customer's balance dropped since order creation (e.g., spent elsewhere), bid acceptance will fail with "Insufficient balance" error.
 
 ### Standard Order Flow (upfront = 0)
 
@@ -121,13 +125,17 @@ await balanceService.holdFunds(customerId, orderId, holdAmount);
 await orderService.updateOrderStatus(orderId, customerId, "confirm_delivery");
 
 // System releases escrow
-const platformCommission = acceptedBidAmount * 0.1; // 10%
-const takafulContribution = acceptedBidAmount * 0.05; // 5%
-const driverPayout =
-  acceptedBidAmount - (platformCommission + takafulContribution);
+// Platform commission is 15% of bid_amount ONLY (includes Takaful allocation internally)
+// Commission is NOT applied to upfront_payment
+const platformCommission = acceptedBidAmount * 0.15; // 15% total (Takaful is part of this)
+const driverPayout = upfrontPayment + acceptedBidAmount - platformCommission;
 
 await balanceService.releaseHold(customerId, orderId);
 await balanceService.creditEarnings(driverId, orderId, driverPayout);
+
+// Internal platform accounting (not visible to driver):
+// - 10% goes to platform operations
+// - 5% goes to Takaful cooperative fund
 ```
 
 ### COD Order Flow
@@ -159,8 +167,11 @@ if (customer.available_balance < requiredBalance) {
 const acceptedBid = 45;
 const holdAmount = upfrontPayment + acceptedBid; // 145 EGP
 
+// Re-validate balance (may have changed since order creation)
 if (customer.available_balance < holdAmount) {
-  throw new Error("Insufficient balance for this bid");
+  throw new Error(
+    `Insufficient balance to accept this bid. Need ${holdAmount} EGP, you have ${customer.available_balance} EGP.`,
+  );
 }
 
 await balanceService.holdFunds(customerId, orderId, holdAmount);
@@ -394,9 +405,13 @@ const nearbyCouriers = await pool.query(
    ├─ New courier continues delivery
    └─ New courier collects from customer + earns fee
 
-6. Timeout (15 min) → Admin escalation
-   ├─ Admin manually assigns
-   └─ Or contacts customer for pickup option
+6. Timeout handling
+   ├─ 15 min: Admin notified, can manually assign
+   ├─ 30 min: Customer notified with options:
+   │   ├─ Wait for admin to find driver
+   │   ├─ Self-pickup from original driver location
+   │   └─ Cancel order (with appropriate refund/compensation)
+   └─ Original driver must stay with package until resolution
 ```
 
 ### What New Courier Sees
@@ -422,13 +437,27 @@ const nearbyCouriers = await pool.query(
 └──────────────────────────────────────────┘
 ```
 
-### Upfront Handling During Transfer
+### Upfront Handling During Transfer (Cash Handoff)
 
 When original driver already paid for purchase:
 
 - New driver pays original driver: `upfront_payment` (cash at handoff)
 - New driver collects from customer: `upfront_payment + delivery_fee`
 - New driver net profit: `delivery_fee + bonus`
+
+**Dispute Resolution:**
+
+- Both drivers must confirm handoff in app (GPS + timestamp recorded)
+- If dispute arises (e.g., new driver claims they paid but original denies):
+  - Admin reviews GPS locations, timestamps, and chat history
+  - Admin can manually adjust balances if needed
+  - Repeated disputes may result in driver suspension
+
+**Trust Mechanism:**
+
+- Driver ratings visible to both parties before accepting transfer
+- Low-rated drivers may be excluded from emergency transfers
+- Cash handoff amount clearly displayed in app for both parties
 
 ---
 
