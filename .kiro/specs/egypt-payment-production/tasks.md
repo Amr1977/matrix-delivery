@@ -123,31 +123,31 @@ This implementation plan covers Phase 1: Balance Top-Up (Smart Wallets & InstaPa
     - **Property 7: User Notification on Status Change**
     - **Validates: Requirements 4.5, 7.2, 7.3**
 
-- [ ] 7. API Routes - User Endpoints
-  - [ ] 7.1 Create topupRoutes.js with POST /api/topups
+- [x] 7. API Routes - User Endpoints
+  - [x] 7.1 Create topupRoutes.js with POST /api/topups
     - Validate request body
     - Call topupService.createTopup()
     - Return created topup with pending status
     - _Requirements: 1.4, 1.5, 2.3, 2.4_
-  - [ ] 7.2 Add GET /api/topups endpoint
+  - [x] 7.2 Add GET /api/topups endpoint
     - Support pagination (limit, offset)
     - Support status filter
     - Return user's topup history
     - _Requirements: 6.4, 6.5_
-  - [ ] 7.3 Add GET /api/topups/:id endpoint
+  - [x] 7.3 Add GET /api/topups/:id endpoint
     - Return single topup by ID
     - Verify user owns the topup
     - _Requirements: 3.3_
-  - [ ] 7.4 Extend existing GET /api/wallet-payments/wallets/active endpoint
+  - [x] 7.4 Extend existing GET /api/wallet-payments/wallets/active endpoint
     - REUSE existing endpoint in walletPayments.js
     - Add paymentMethod query parameter filter if not present
     - Ensure it returns platform wallets for topup flow
     - _Requirements: 1.1, 1.2, 2.1_
-  - [ ] 7.5 Implement rate limiting middleware
+  - [x] 7.5 Implement rate limiting middleware
     - Limit to 10 requests per minute per user on topup endpoints
     - Return 429 with appropriate error message
     - _Requirements: 8.1_
-  - [ ] 7.6 Write property test for rate limiting
+  - [x] 7.6 Write property test for rate limiting
     - **Property 10: Rate Limiting**
     - **Validates: Requirements 8.1**
 

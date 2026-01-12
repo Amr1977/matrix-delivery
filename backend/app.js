@@ -2950,6 +2950,13 @@ app.get('/api/admin/reports/revenue', verifyAdmin, async (req, res) => {
 const paymentRoutes = require('./routes/payments');
 app.use('/api/payments', paymentRoutes);
 
+// Load top-up routes (Egypt payment methods)
+const topupRoutes = require('./routes/topups');
+app.use('/api/topups', topupRoutes);
+
+// Note: wallet-payments routes not registered due to missing upload middleware
+// The /api/topups/wallets/active endpoint provides the same functionality
+
 // Load messages routes
 const messageRoutes = require('./routes/messages');
 app.use('/api/messages', messageRoutes);
