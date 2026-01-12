@@ -1,0 +1,319 @@
+# Implementation Plan: Egypt Payment Production - Phase 1
+
+## Overview
+
+This implementation plan covers Phase 1: Balance Top-Up (Smart Wallets & InstaPay) with Admin Verification. Tasks are organized to build incrementally, with backend services first, then API routes, then frontend components.
+
+## Tasks
+
+- [x] 1. Database Schema Setup
+  - [x] 1.1 Create migration file `backend/migrations/20260112_egypt_payment_phase1.sql`
+    - Follow existing naming convention (date-based prefix YYYYMMDD)
+    - Include platform_wallets table with payment_method constraint
+    - Include topups table with foreign keys, unique constraint, amount validation
+    - Include topup_audit_logs table
+    - Include all indexes for performance
+    - Use `CREATE TABLE IF NOT EXISTS` and `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` for idempotency
+    - _Requirements: 5.1, 5.2, 5.5, 1.5, 1.6, 1.7, 3.4, 4.7, 4.1, 4.6_
+  - [x] 1.2 Run migration via setup-db.js
+    - Execute `node backend/scripts/setup-db.js` to apply migration
+    - Verify migration recorded in `schema_migrations` table
+    - Verify all tables and constraints created correctly
+    - _Requirements: All Phase 1_
+
+- [x] 2. Platform Wallet Service
+  - [x] 2.1 Create PlatformWalletService class
+    - Implement getActiveWallets(paymentMethod?) method
+    - Implement getWalletById(walletId) method
+    - Implement selectWalletForTopup(paymentMethod) with round-robin selection
+    - _Requirements: 5.1, 5.3, 5.8_
+  - [x] 2.2 Write property test for inactive wallet exclusion
+    - **Property 9: Inactive Wallet Exclusion**
+    - **Validates: Requirements 5.4**
+    - **PBT Status: PASSED** (4 tests: getActiveWallets never returns inactive, filter by payment method, selectWalletForTopup never selects inactive, deactivated wallet excluded)
+  - [x] 2.3 Implement admin wallet management methods
+    - Implement createWallet(data) method
+    - Implement updateWallet(walletId, data) method
+    - Implement deactivateWallet(walletId) method
+    - _Requirements: 5.7_
+  - [x] 2.4 Implement wallet limit tracking
+    - Track daily_used and monthly_used on each top-up verification
+    - Implement limit reset logic (daily/monthly)
+    - Trigger admin alert at 80% capacity
+    - _Requirements: 5.5, 5.6_
+  - [x] 2.5 Write property test for wallet limit enforcement
+    - **Property 8: Wallet Limit Enforcement**
+    - **Validates: Requirements 5.6**
+    - **PBT Status: PASSED** (4 tests: daily alert at 80%+, monthly alert at 80%+, no alert below 80%, alert contains correct info)
+
+- [x] 3. Checkpoint - Database and Wallet Service
+  - Ensure all migrations run successfully
+  - Ensure wallet service tests pass
+  - Ask the user if questions arise
+
+- [ ] 4. TopUp Service
+  - [ ] 4.1 Create TopupService class with createTopup method
+    - Validate amount (10-10000 EGP)
+    - Check for duplicate transaction reference
+    - Create pending topup record
+    - Trigger admin notification
+    - _Requirements: 1.4, 1.5, 1.6, 1.7, 2.3, 2.4, 2.5, 2.6_
+  - [ ] 4.2 Write property test for amount validation
+    - **Property 1: Amount Validation**
+    - **Validates: Requirements 1.6, 1.7, 2.5, 2.6**
+  - [ ] 4.3 Write property test for duplicate reference detection
+    - **Property 2: Duplicate Reference Detection**
+    - **Validates: Requirements 3.1, 3.2, 3.3, 3.4**
+  - [ ] 4.4 Write property test for pending record creation
+    - **Property 3: Pending Record Creation**
+    - **Validates: Requirements 1.5, 2.4**
+  - [ ] 4.5 Implement checkDuplicate method
+    - Query existing topups by reference and payment method
+    - Return existing topup if found, null otherwise
+    - _Requirements: 3.1, 3.2, 3.3, 3.4_
+  - [ ] 4.6 Implement verifyTopup method
+    - Update topup status to 'verified'
+    - Call balanceService.deposit() to credit user balance
+    - Create audit log entry
+    - Trigger user notification
+    - _Requirements: 4.3, 4.5, 4.7_
+  - [ ] 4.7 Write property test for verification credits balance
+    - **Property 4: Verification Credits Balance**
+    - **Validates: Requirements 4.3**
+  - [ ] 4.8 Implement rejectTopup method
+    - Validate rejection reason is non-empty
+    - Update topup status to 'rejected' with reason
+    - Create audit log entry
+    - Trigger user notification
+    - _Requirements: 4.4, 4.5, 4.7_
+  - [ ] 4.9 Write property test for rejection requires reason
+    - **Property 5: Rejection Requires Reason**
+    - **Validates: Requirements 4.4**
+  - [ ] 4.10 Implement getTopupHistory method
+    - Query user's topups with pagination
+    - Support filtering by status and date range
+    - _Requirements: 6.4, 6.5_
+  - [ ] 4.11 Implement getPendingTopups method for admin
+    - Query all pending topups sorted by created_at
+    - Support filtering by payment method and date range
+    - Include pending count
+    - _Requirements: 4.1, 4.2, 4.6_
+  - [ ] 4.12 Write property test for audit logging
+    - **Property 11: Audit Logging**
+    - **Validates: Requirements 4.7**
+
+- [ ] 5. Checkpoint - TopUp Service
+  - Ensure all topup service tests pass
+  - Ensure property tests pass
+  - Ask the user if questions arise
+
+- [ ] 6. Notification Integration
+  - [ ] 6.1 Implement admin notification on topup creation
+    - Send push notification to all admins
+    - Include topup amount, user info, payment method
+    - _Requirements: 1.9, 2.8_
+  - [ ] 6.2 Write property test for admin notification on creation
+    - **Property 6: Admin Notification on Creation**
+    - **Validates: Requirements 1.9, 2.8**
+  - [ ] 6.3 Implement user notification on status change
+    - Send push notification on verification (with new balance)
+    - Send push notification on rejection (with reason)
+    - _Requirements: 7.1, 7.2, 7.3_
+  - [ ] 6.4 Write property test for user notification on status change
+    - **Property 7: User Notification on Status Change**
+    - **Validates: Requirements 4.5, 7.2, 7.3**
+
+- [ ] 7. API Routes - User Endpoints
+  - [ ] 7.1 Create topupRoutes.js with POST /api/topups
+    - Validate request body
+    - Call topupService.createTopup()
+    - Return created topup with pending status
+    - _Requirements: 1.4, 1.5, 2.3, 2.4_
+  - [ ] 7.2 Add GET /api/topups endpoint
+    - Support pagination (limit, offset)
+    - Support status filter
+    - Return user's topup history
+    - _Requirements: 6.4, 6.5_
+  - [ ] 7.3 Add GET /api/topups/:id endpoint
+    - Return single topup by ID
+    - Verify user owns the topup
+    - _Requirements: 3.3_
+  - [ ] 7.4 Extend existing GET /api/wallet-payments/wallets/active endpoint
+    - REUSE existing endpoint in walletPayments.js
+    - Add paymentMethod query parameter filter if not present
+    - Ensure it returns platform wallets for topup flow
+    - _Requirements: 1.1, 1.2, 2.1_
+  - [ ] 7.5 Implement rate limiting middleware
+    - Limit to 10 requests per minute per user on topup endpoints
+    - Return 429 with appropriate error message
+    - _Requirements: 8.1_
+  - [ ] 7.6 Write property test for rate limiting
+    - **Property 10: Rate Limiting**
+    - **Validates: Requirements 8.1**
+
+- [ ] 8. API Routes - Admin Endpoints
+  - [ ] 8.1 Create adminTopupRoutes.js with GET /api/admin/topups/pending
+    - Require admin role
+    - Support filtering by payment method and date range
+    - Return pending topups with count
+    - _Requirements: 4.1, 4.2, 4.6, 4.8_
+  - [ ] 8.2 Add POST /api/admin/topups/:id/verify endpoint
+    - Require admin role
+    - Call topupService.verifyTopup()
+    - Return updated topup and new balance
+    - _Requirements: 4.3_
+  - [ ] 8.3 Add POST /api/admin/topups/:id/reject endpoint
+    - Require admin role
+    - Validate rejection reason in body
+    - Call topupService.rejectTopup()
+    - Return updated topup
+    - _Requirements: 4.4_
+  - [ ] 8.4 Add admin platform wallet management endpoints
+    - GET /api/admin/platform-wallets
+    - POST /api/admin/platform-wallets
+    - PUT /api/admin/platform-wallets/:id
+    - _Requirements: 5.7_
+
+- [ ] 9. Checkpoint - Backend Complete
+  - Ensure all API routes work correctly
+  - Ensure all property tests pass
+  - Run integration tests for full flows
+  - Ask the user if questions arise
+
+- [ ] 10. Frontend - Payment Method Selector Update
+  - [ ] 10.1 Update PaymentMethodSelector.tsx
+    - Remove card, crypto, COD options
+    - Add "Smart Wallets" option (combined entry)
+    - Add "InstaPay" option
+    - Remove fee calculation display
+    - _Requirements: 1.1, 2.1_
+  - [ ] 10.2 Write unit tests for PaymentMethodSelector
+    - Test only 2 options displayed
+    - Test selection callback
+    - _Requirements: 1.1, 2.1_
+
+- [ ] 11. Frontend - Deposit Modal Update
+  - [ ] 11.1 Update DepositModal.tsx flow
+    - Change flow to: amount → wallet selection → instructions → submit reference → pending
+    - Add step for showing platform wallet details
+    - Add transaction reference input field
+    - _Requirements: 1.1, 1.2, 1.3, 1.4, 2.1, 2.2, 2.3_
+  - [ ] 11.2 Add wallet details display step
+    - Show platform wallet phone number (for smart wallets)
+    - Show InstaPay alias (for InstaPay)
+    - Show holder name
+    - Display transfer instructions in Arabic and English
+    - _Requirements: 1.2, 1.3, 2.1, 2.2_
+  - [ ] 11.3 Add transaction reference submission step
+    - Input field for transaction reference
+    - Amount confirmation
+    - Submit button
+    - _Requirements: 1.4, 2.3_
+  - [ ] 11.4 Add pending confirmation step
+    - Show success message with pending status
+    - Display estimated confirmation time (5-30 minutes)
+    - _Requirements: 1.8, 2.7_
+  - [ ] 11.5 Handle duplicate reference error
+    - Display error message when duplicate detected
+    - Show existing request status
+    - _Requirements: 3.2, 3.3_
+  - [ ] 11.6 Write unit tests for DepositModal
+    - Test full flow navigation
+    - Test validation errors
+    - Test duplicate handling
+    - _Requirements: 1.1-1.9, 2.1-2.8, 3.1-3.4_
+  - [ ] 11.7 Write property test for role-agnostic flow
+    - **Property 12: Role-Agnostic Flow**
+    - **Validates: Requirements 1.10, 2.9**
+
+- [ ] 12. Frontend - Admin Payments Panel
+  - [ ] 12.1 Create AdminPaymentsPanel.tsx component
+    - List pending top-up requests
+    - Show user info, wallet type, reference, amount, time
+    - Add filters for payment method and date range
+    - _Requirements: 4.1, 4.2, 4.6_
+  - [ ] 12.2 Add verify/reject functionality
+    - Verify button with confirmation dialog
+    - Reject button with reason input modal
+    - Update list after action
+    - _Requirements: 4.3, 4.4_
+  - [ ] 12.3 Add pending count badge
+    - Show count in sidebar navigation
+    - Update count in real-time
+    - _Requirements: 4.8_
+  - [ ] 12.4 Update AdminDashboard.tsx sidebar
+    - Add "Payments" tab to navigation
+    - Route to AdminPaymentsPanel
+    - _Requirements: 4.1_
+  - [ ] 12.5 Write unit tests for AdminPaymentsPanel
+    - Test list rendering
+    - Test verify/reject actions
+    - Test filtering
+    - _Requirements: 4.1-4.8_
+
+- [ ] 13. Checkpoint - Frontend Complete
+  - Ensure all frontend components render correctly
+  - Ensure all unit tests pass
+  - Ask the user if questions arise
+
+- [ ] 14. Integration Testing
+  - [ ] 14.1 Write integration test for full top-up flow
+    - User submits top-up → admin verifies → balance updated
+    - Verify notifications sent
+    - _Requirements: All Phase 1_
+  - [ ] 14.2 Write integration test for rejection flow
+    - User submits top-up → admin rejects → user notified
+    - Verify rejection reason stored
+    - _Requirements: 4.4, 4.5, 7.3_
+  - [ ] 14.3 Write integration test for duplicate handling
+    - Submit same reference twice
+    - Verify second submission rejected
+    - _Requirements: 3.1, 3.2, 3.3, 3.4_
+
+- [ ] 15. API Documentation (OpenAPI/Swagger)
+  - [ ] 15.1 Setup Swagger infrastructure
+    - Install swagger-jsdoc and swagger-ui-express packages
+    - Create backend/config/swagger.js configuration file
+    - Add /api-docs route to server.js
+    - Configure OpenAPI 3.0 base spec with info, servers (localhost:5000 for dev)
+    - Configure cookie-based security scheme (httpOnly JWT cookie)
+    - _Requirements: All Phase 1_
+  - [ ] 15.2 Add OpenAPI JSDoc comments to topupRoutes.js
+    - Document POST /api/topups with @openapi annotations
+    - Document GET /api/topups and GET /api/topups/:id
+    - Define request/response schemas with examples
+    - Include error responses (400, 401, 429)
+    - _Requirements: 1.1-1.10, 2.1-2.9, 3.1-3.4_
+  - [ ] 15.3 Add OpenAPI JSDoc comments to adminTopupRoutes.js
+    - Document GET /api/admin/topups/pending
+    - Document POST /api/admin/topups/:id/verify
+    - Document POST /api/admin/topups/:id/reject
+    - Document platform wallet admin endpoints
+    - Include admin security requirements (verifyAdmin middleware)
+    - _Requirements: 4.1-4.8, 5.1-5.8_
+  - [ ] 15.4 Define reusable OpenAPI components
+    - Create schemas: Topup, PlatformWallet, CreateTopupRequest, TopupFilters
+    - Create error response schemas: ValidationError, DuplicateError, RateLimitError
+    - Define securitySchemes for cookie-based auth (apiKeyCookie type)
+    - Add to backend/config/swagger.js or separate schemas file
+    - _Requirements: All Phase 1_
+  - [ ] 15.5 Verify Swagger UI works
+    - Access http://localhost:5000/api-docs in browser
+    - Test "Try it out" functionality (note: cookie auth may need manual login first)
+    - Verify all endpoints documented correctly
+    - _Requirements: All Phase 1_
+
+- [ ] 16. Final Checkpoint
+  - Ensure all tests pass (unit, property, integration)
+  - Verify all requirements covered
+  - Verify API documentation is complete
+  - Ask the user if questions arise
+
+## Notes
+
+- All tasks including property-based tests are required for comprehensive coverage
+- Each task references specific requirements for traceability
+- Checkpoints ensure incremental validation
+- Property tests validate universal correctness properties
+- Unit tests validate specific examples and edge cases
+- Backend tasks (1-9) should be completed before frontend tasks (10-13)
