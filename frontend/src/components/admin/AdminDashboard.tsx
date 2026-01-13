@@ -12,12 +12,14 @@ import {
   Truck,
   Clock,
   Star,
-  Activity
+  Activity,
+  CreditCard
 } from 'lucide-react';
 import { Card } from '../design-system/Card';
 import { Button } from '../design-system/Button';
 import { Badge } from '../design-system/Badge';
 import SystemHealthDashboard from './SystemHealthDashboard';
+import AdminPaymentsPanel from './AdminPaymentsPanel';
 
 interface StatCard {
   label: string;
@@ -37,11 +39,13 @@ interface Order {
 
 export const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [pendingPaymentsCount, setPendingPaymentsCount] = useState(0);
 
   // Sidebar navigation
   const navItems = [
     { icon: Home, label: 'Dashboard' },
     { icon: Activity, label: 'System Health' },
+    { icon: CreditCard, label: 'Payments', badge: pendingPaymentsCount > 0 ? pendingPaymentsCount : undefined },
     { icon: BarChart3, label: 'Analytics' },
     { icon: Package, label: 'Orders' },
     { icon: Users, label: 'Couriers' },
@@ -97,9 +101,18 @@ export const AdminDashboard: React.FC = () => {
                 ? 'bg-matrix-green/10 text-matrix-green border border-matrix-green'
                 : 'text-matrix-secondary hover:bg-matrix-elevated hover:text-white'
                 }`}
+              data-testid={`nav-${item.label.toLowerCase().replace(' ', '-')}`}
             >
               <item.icon className="w-5 h-5" />
-              <span className="font-medium">{item.label}</span>
+              <span className="font-medium flex-1 text-left">{item.label}</span>
+              {item.badge !== undefined && (
+                <span 
+                  className="bg-yellow-500 text-black text-xs font-bold px-2 py-0.5 rounded-full"
+                  data-testid={`nav-badge-${item.label.toLowerCase().replace(' ', '-')}`}
+                >
+                  {item.badge}
+                </span>
+              )}
             </button>
           ))}
         </nav>
@@ -200,6 +213,11 @@ export const AdminDashboard: React.FC = () => {
               </div>
             </div>
           </>
+        )}
+
+        {/* Payments Tab */}
+        {activeTab === 'payments' && (
+          <AdminPaymentsPanel onPendingCountChange={setPendingPaymentsCount} />
         )}
       </div>
     </div>

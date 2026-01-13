@@ -82,10 +82,72 @@ const topupHistoryQuerySchema = Joi.object({
 });
 
 /**
- * @route   POST /api/topups
- * @desc    Create a new top-up request
- * @access  Private (Authenticated users)
- * Requirements: 1.4, 1.5, 2.3, 2.4, 8.1
+ * @openapi
+ * /api/topups:
+ *   post:
+ *     summary: Create a new top-up request
+ *     description: |
+ *       Submit a new balance top-up request using Egyptian payment methods.
+ *       The request will be placed in pending status until an admin verifies it.
+ *       
+ *       **Rate Limited**: 10 requests per minute per user.
+ *       
+ *       **Amount Limits**: 10-10,000 EGP
+ *     tags:
+ *       - Top-Up
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CreateTopupRequest'
+ *           examples:
+ *             vodafoneCash:
+ *               summary: Vodafone Cash top-up
+ *               value:
+ *                 amount: 100
+ *                 paymentMethod: vodafone_cash
+ *                 transactionReference: "TXN123456789"
+ *                 platformWalletId: 1
+ *             instapay:
+ *               summary: InstaPay top-up
+ *               value:
+ *                 amount: 500
+ *                 paymentMethod: instapay
+ *                 transactionReference: "IPA987654321"
+ *     responses:
+ *       201:
+ *         description: Top-up request created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Top-up request submitted successfully. Please wait for admin verification."
+ *                 topup:
+ *                   $ref: '#/components/schemas/Topup'
+ *                 estimatedConfirmationTime:
+ *                   type: string
+ *                   example: "5-30 minutes"
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       409:
+ *         description: Duplicate transaction reference
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/DuplicateError'
+ *       429:
+ *         $ref: '#/components/responses/RateLimitError'
  */
 router.post('/', verifyToken, topupRateLimit, validateBody(createTopupSchema), async (req, res, next) => {
   try {
@@ -154,10 +216,72 @@ router.post('/', verifyToken, topupRateLimit, validateBody(createTopupSchema), a
 });
 
 /**
- * @route   GET /api/topups
- * @desc    Get user's top-up history with pagination
- * @access  Private (Authenticated users)
- * Requirements: 6.4, 6.5
+ * @openapi
+ * /api/topups:
+ *   get:
+ *     summary: Get user's top-up history
+ *     description: |
+ *       Retrieve the authenticated user's top-up history with pagination and filtering.
+ *       Results are sorted by creation date (newest first).
+ *     tags:
+ *       - Top-Up
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [pending, verified, rejected]
+ *         description: Filter by top-up status
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Filter from date (ISO format)
+ *         example: "2026-01-01"
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Filter to date (ISO format)
+ *         example: "2026-01-31"
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 20
+ *         description: Number of results per page
+ *       - in: query
+ *         name: offset
+ *         schema:
+ *           type: integer
+ *           minimum: 0
+ *           default: 0
+ *         description: Offset for pagination
+ *     responses:
+ *       200:
+ *         description: Top-up history retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 topups:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Topup'
+ *                 pagination:
+ *                   $ref: '#/components/schemas/Pagination'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
  */
 router.get('/', verifyToken, validateQuery(topupHistoryQuerySchema), async (req, res, next) => {
   try {
@@ -202,10 +326,48 @@ router.get('/', verifyToken, validateQuery(topupHistoryQuerySchema), async (req,
 });
 
 /**
- * @route   GET /api/topups/:id
- * @desc    Get a single top-up by ID
- * @access  Private (Owner only)
- * Requirements: 3.3
+ * @openapi
+ * /api/topups/{id}:
+ *   get:
+ *     summary: Get a single top-up by ID
+ *     description: |
+ *       Retrieve details of a specific top-up request.
+ *       Only the owner of the top-up can access this endpoint.
+ *     tags:
+ *       - Top-Up
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Top-up ID
+ *         example: 1
+ *     responses:
+ *       200:
+ *         description: Top-up details retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 topup:
+ *                   $ref: '#/components/schemas/Topup'
+ *       400:
+ *         description: Invalid top-up ID
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
  */
 router.get('/:id', verifyToken, async (req, res, next) => {
   try {
@@ -259,10 +421,65 @@ router.get('/:id', verifyToken, async (req, res, next) => {
 });
 
 /**
- * @route   GET /api/topups/wallets/active
- * @desc    Get active platform wallets for top-up
- * @access  Private (Authenticated users)
- * Requirements: 1.1, 1.2, 2.1
+ * @openapi
+ * /api/topups/wallets/active:
+ *   get:
+ *     summary: Get active platform wallets for top-up
+ *     description: |
+ *       Retrieve the list of active platform wallets that users can send payments to.
+ *       Optionally filter by payment method.
+ *     tags:
+ *       - Top-Up
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: paymentMethod
+ *         schema:
+ *           type: string
+ *           enum: [vodafone_cash, orange_money, etisalat_cash, we_pay, instapay]
+ *         description: Filter by payment method
+ *     responses:
+ *       200:
+ *         description: Active wallets retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 wallets:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                         example: 1
+ *                       paymentMethod:
+ *                         type: string
+ *                         example: "vodafone_cash"
+ *                       phoneNumber:
+ *                         type: string
+ *                         nullable: true
+ *                         example: "01012345678"
+ *                       instapayAlias:
+ *                         type: string
+ *                         nullable: true
+ *                         example: null
+ *                       holderName:
+ *                         type: string
+ *                         example: "Matrix Delivery"
+ *       400:
+ *         description: Invalid payment method
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
  */
 router.get('/wallets/active', verifyToken, async (req, res, next) => {
   try {

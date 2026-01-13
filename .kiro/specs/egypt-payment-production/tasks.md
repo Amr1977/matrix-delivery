@@ -181,130 +181,130 @@ This implementation plan covers Phase 1: Balance Top-Up (Smart Wallets & InstaPa
   - Run integration tests for full flows
   - Ask the user if questions arise
 
-- [ ] 10. Frontend - Payment Method Selector Update
-  - [ ] 10.1 Update PaymentMethodSelector.tsx
+- [x] 10. Frontend - Payment Method Selector Update
+  - [x] 10.1 Update PaymentMethodSelector.tsx
     - Remove card, crypto, COD options
     - Add "Smart Wallets" option (combined entry)
     - Add "InstaPay" option
     - Remove fee calculation display
     - _Requirements: 1.1, 2.1_
-  - [ ] 10.2 Write unit tests for PaymentMethodSelector
+  - [x] 10.2 Write unit tests for PaymentMethodSelector
     - Test only 2 options displayed
     - Test selection callback
     - _Requirements: 1.1, 2.1_
 
-- [ ] 11. Frontend - Deposit Modal Update
-  - [ ] 11.1 Update DepositModal.tsx flow
+- [x] 11. Frontend - Deposit Modal Update
+  - [x] 11.1 Update DepositModal.tsx flow
     - Change flow to: amount → wallet selection → instructions → submit reference → pending
     - Add step for showing platform wallet details
     - Add transaction reference input field
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 2.1, 2.2, 2.3_
-  - [ ] 11.2 Add wallet details display step
+  - [x] 11.2 Add wallet details display step
     - Show platform wallet phone number (for smart wallets)
     - Show InstaPay alias (for InstaPay)
     - Show holder name
     - Display transfer instructions in Arabic and English
     - _Requirements: 1.2, 1.3, 2.1, 2.2_
-  - [ ] 11.3 Add transaction reference submission step
+  - [x] 11.3 Add transaction reference submission step
     - Input field for transaction reference
     - Amount confirmation
     - Submit button
     - _Requirements: 1.4, 2.3_
-  - [ ] 11.4 Add pending confirmation step
+  - [x] 11.4 Add pending confirmation step
     - Show success message with pending status
     - Display estimated confirmation time (5-30 minutes)
     - _Requirements: 1.8, 2.7_
-  - [ ] 11.5 Handle duplicate reference error
+  - [x] 11.5 Handle duplicate reference error
     - Display error message when duplicate detected
     - Show existing request status
     - _Requirements: 3.2, 3.3_
-  - [ ] 11.6 Write unit tests for DepositModal
+  - [x] 11.6 Write unit tests for DepositModal
     - Test full flow navigation
     - Test validation errors
     - Test duplicate handling
     - _Requirements: 1.1-1.9, 2.1-2.8, 3.1-3.4_
-  - [ ] 11.7 Write property test for role-agnostic flow
+  - [x] 11.7 Write property test for role-agnostic flow
     - **Property 12: Role-Agnostic Flow**
     - **Validates: Requirements 1.10, 2.9**
 
-- [ ] 12. Frontend - Admin Payments Panel
-  - [ ] 12.1 Create AdminPaymentsPanel.tsx component
+- [x] 12. Frontend - Admin Payments Panel
+  - [x] 12.1 Create AdminPaymentsPanel.tsx component
     - List pending top-up requests
     - Show user info, wallet type, reference, amount, time
     - Add filters for payment method and date range
     - _Requirements: 4.1, 4.2, 4.6_
-  - [ ] 12.2 Add verify/reject functionality
+  - [x] 12.2 Add verify/reject functionality
     - Verify button with confirmation dialog
     - Reject button with reason input modal
     - Update list after action
     - _Requirements: 4.3, 4.4_
-  - [ ] 12.3 Add pending count badge
+  - [x] 12.3 Add pending count badge
     - Show count in sidebar navigation
     - Update count in real-time
     - _Requirements: 4.8_
-  - [ ] 12.4 Update AdminDashboard.tsx sidebar
+  - [x] 12.4 Update AdminDashboard.tsx sidebar
     - Add "Payments" tab to navigation
     - Route to AdminPaymentsPanel
     - _Requirements: 4.1_
-  - [ ] 12.5 Write unit tests for AdminPaymentsPanel
+  - [x] 12.5 Write unit tests for AdminPaymentsPanel
     - Test list rendering
     - Test verify/reject actions
     - Test filtering
     - _Requirements: 4.1-4.8_
 
-- [ ] 13. Checkpoint - Frontend Complete
+- [x] 13. Checkpoint - Frontend Complete
   - Ensure all frontend components render correctly
   - Ensure all unit tests pass
   - Ask the user if questions arise
 
-- [ ] 14. Integration Testing
-  - [ ] 14.1 Write integration test for full top-up flow
+- [x] 14. Integration Testing
+  - [x] 14.1 Write integration test for full top-up flow
     - User submits top-up → admin verifies → balance updated
     - Verify notifications sent
     - _Requirements: All Phase 1_
-  - [ ] 14.2 Write integration test for rejection flow
+  - [x] 14.2 Write integration test for rejection flow
     - User submits top-up → admin rejects → user notified
     - Verify rejection reason stored
     - _Requirements: 4.4, 4.5, 7.3_
-  - [ ] 14.3 Write integration test for duplicate handling
+  - [x] 14.3 Write integration test for duplicate handling
     - Submit same reference twice
     - Verify second submission rejected
     - _Requirements: 3.1, 3.2, 3.3, 3.4_
 
-- [ ] 15. API Documentation (OpenAPI/Swagger)
-  - [ ] 15.1 Setup Swagger infrastructure
+- [x] 15. API Documentation (OpenAPI/Swagger)
+  - [x] 15.1 Setup Swagger infrastructure
     - Install swagger-jsdoc and swagger-ui-express packages
     - Create backend/config/swagger.js configuration file
     - Add /api-docs route to server.js
     - Configure OpenAPI 3.0 base spec with info, servers (localhost:5000 for dev)
     - Configure cookie-based security scheme (httpOnly JWT cookie)
     - _Requirements: All Phase 1_
-  - [ ] 15.2 Add OpenAPI JSDoc comments to topupRoutes.js
+  - [x] 15.2 Add OpenAPI JSDoc comments to topupRoutes.js
     - Document POST /api/topups with @openapi annotations
     - Document GET /api/topups and GET /api/topups/:id
     - Define request/response schemas with examples
     - Include error responses (400, 401, 429)
     - _Requirements: 1.1-1.10, 2.1-2.9, 3.1-3.4_
-  - [ ] 15.3 Add OpenAPI JSDoc comments to adminTopupRoutes.js
+  - [x] 15.3 Add OpenAPI JSDoc comments to adminTopupRoutes.js
     - Document GET /api/admin/topups/pending
     - Document POST /api/admin/topups/:id/verify
     - Document POST /api/admin/topups/:id/reject
     - Document platform wallet admin endpoints
     - Include admin security requirements (verifyAdmin middleware)
     - _Requirements: 4.1-4.8, 5.1-5.8_
-  - [ ] 15.4 Define reusable OpenAPI components
+  - [x] 15.4 Define reusable OpenAPI components
     - Create schemas: Topup, PlatformWallet, CreateTopupRequest, TopupFilters
     - Create error response schemas: ValidationError, DuplicateError, RateLimitError
     - Define securitySchemes for cookie-based auth (apiKeyCookie type)
     - Add to backend/config/swagger.js or separate schemas file
     - _Requirements: All Phase 1_
-  - [ ] 15.5 Verify Swagger UI works
+  - [x] 15.5 Verify Swagger UI works
     - Access http://localhost:5000/api-docs in browser
     - Test "Try it out" functionality (note: cookie auth may need manual login first)
     - Verify all endpoints documented correctly
     - _Requirements: All Phase 1_
 
-- [ ] 16. Final Checkpoint
+- [x] 16. Final Checkpoint
   - Ensure all tests pass (unit, property, integration)
   - Verify all requirements covered
   - Verify API documentation is complete
