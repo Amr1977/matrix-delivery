@@ -1,0 +1,257 @@
+# Implementation Plan: Admin Wallet Management
+
+## Overview
+
+This implementation plan covers refactoring the Admin Panel navigation from horizontal tabs to a side menu, and creating the Admin Wallet Management UI. Tasks are organized to build incrementally: side menu first, then wallet management components.
+
+## Tasks
+
+- [x] 1. Create AdminSideMenu Component
+  - [x] 1.1 Create AdminSideMenu.tsx with basic structure
+    - Create file at `frontend/src/components/admin/AdminSideMenu.tsx`
+    - Define MenuItem and SubMenuItem interfaces
+    - Implement menu items array with icons (lucide-react)
+    - Add props: activeItem, onItemSelect, pendingTopupCount, collapsed
+    - _Requirements: 1.1, 1.2, 1.7_
+  - [x] 1.2 Implement menu item rendering with icons and labels
+    - Render all menu items: Overview, Health, Payments, Users, Orders, Analytics, Logs, Settings
+    - Use lucide-react icons for each item
+    - Apply active state styling to selected item
+    - _Requirements: 1.2, 1.5, 1.7_
+  - [x] 1.3 Implement expandable Payments section
+    - Add expand/collapse toggle for Payments menu item
+    - Show sub-items: "Top-Up Verification" and "Wallet Management"
+    - Keep section expanded when sub-item is active
+    - _Requirements: 2.1, 2.2, 2.3, 2.7_
+  - [x] 1.4 Add pending count badge to Top-Up Verification
+    - Display badge with pendingTopupCount prop
+    - Style badge with Matrix theme colors
+    - _Requirements: 2.6_
+  - [x] 1.5 Implement collapsed state (icons only)
+    - Add collapsed prop to toggle between expanded/collapsed
+    - Show only icons when collapsed
+    - Add collapse toggle button
+    - _Requirements: 1.8_
+  - [ ]* 1.6 Write property test for active menu item highlighting
+    - **Property 1: Active Menu Item Highlighting**
+    - **Validates: Requirements 1.5**
+  - [x] 1.7 Write unit tests for AdminSideMenu
+    - Test menu item rendering
+    - Test item selection callback
+    - Test expandable section behavior
+    - Test collapsed state
+    - _Requirements: 1.1-1.9, 2.1-2.7_
+
+- [x] 2. Refactor AdminPanel.js to Use Side Menu
+  - [x] 2.1 Replace horizontal tabs with AdminSideMenu
+    - Import AdminSideMenu component
+    - Remove horizontal tab navigation code
+    - Add side menu to left side of layout
+    - _Requirements: 1.1, 1.3_
+  - [x] 2.2 Update layout to respect navbar
+    - Position side menu below top navbar (top: 64px)
+    - Ensure side menu doesn't overlap navbar
+    - _Requirements: 1.4_
+  - [x] 2.3 Adjust main content area
+    - Add margin-left to account for side menu width
+    - Make content area fill remaining space
+    - _Requirements: 1.9_
+  - [x] 2.4 Update activeTab state handling
+    - Handle new sub-item IDs: 'payments-topups', 'payments-wallets'
+    - Map sub-items to correct panel components
+    - _Requirements: 2.4, 2.5_
+  - [x] 2.5 Add responsive behavior
+    - Collapse side menu on tablet (≤1024px)
+    - Hide side menu on mobile with hamburger toggle
+    - _Requirements: 1.8, 8.3_
+
+- [x] 3. Checkpoint - Side Menu Complete
+  - Ensure side menu renders correctly
+  - Ensure all navigation works
+  - Ensure responsive behavior works
+  - Ask the user if questions arise
+
+- [x] 4. Create Platform Wallets API Service
+  - [x] 4.1 Create platformWallets.ts API service
+    - Create file at `frontend/src/services/api/platformWallets.ts`
+    - Implement getAll() method
+    - Implement create() method
+    - Implement update() method
+    - _Requirements: 3.1, 4.7, 5.4_
+  - [x] 4.2 Add TypeScript types for platform wallets
+    - Add PlatformWallet interface to types
+    - Add WalletFormData interface
+    - Export from services/api/index.ts
+    - _Requirements: 3.1_
+
+- [x] 5. Create UsageProgressBar Component
+  - [x] 5.1 Create UsageProgressBar.tsx
+    - Create file at `frontend/src/components/admin/UsageProgressBar.tsx`
+    - Accept used, limit, label props
+    - Calculate percentage (used/limit * 100)
+    - _Requirements: 7.1, 7.2_
+  - [x] 5.2 Implement color thresholds
+    - Green for <80%
+    - Yellow/warning for 80-94%
+    - Red/danger for ≥95%
+    - _Requirements: 7.3, 7.4_
+  - [ ]* 5.3 Write property test for progress bar accuracy
+    - **Property 6: Usage Progress Bar Accuracy**
+    - **Validates: Requirements 7.1, 7.2, 7.3, 7.4**
+  - [x] 5.4 Write unit tests for UsageProgressBar
+    - Test percentage calculation
+    - Test color thresholds
+    - _Requirements: 7.1-7.4_
+
+- [x] 6. Create WalletCard Component
+  - [x] 6.1 Create WalletCard.tsx
+    - Create file at `frontend/src/components/admin/WalletCard.tsx`
+    - Display wallet info: payment method, phone/alias, holder name
+    - Show active/inactive status with visual distinction
+    - _Requirements: 3.2, 3.4_
+  - [x] 6.2 Add usage statistics display
+    - Include UsageProgressBar for daily usage
+    - Include UsageProgressBar for monthly usage
+    - Show last reset timestamps
+    - _Requirements: 3.3, 7.5_
+  - [x] 6.3 Add Edit and Toggle buttons
+    - Add Edit button that calls onEdit prop
+    - Add active status toggle that calls onToggleActive prop
+    - _Requirements: 5.1, 6.1_
+  - [x] 6.4 Add warning indicator for high usage
+    - Show warning icon when daily_used >= 80% of daily_limit
+    - _Requirements: 3.6_
+  - [ ]* 6.5 Write property test for wallet data completeness
+    - **Property 2: Wallet Data Completeness**
+    - **Validates: Requirements 3.2, 3.3**
+  - [ ]* 6.6 Write property test for active/inactive distinction
+    - **Property 3: Active/Inactive Visual Distinction**
+    - **Validates: Requirements 3.4**
+  - [ ]* 6.7 Write property test for wallet controls presence
+    - **Property 5: Wallet Controls Presence**
+    - **Validates: Requirements 5.1, 6.1**
+
+- [x] 7. Create WalletForm Component
+  - [x] 7.1 Create WalletForm.tsx
+    - Create file at `frontend/src/components/admin/WalletForm.tsx`
+    - Accept wallet prop (undefined for create, defined for edit)
+    - Pre-fill form when editing
+    - _Requirements: 4.2, 5.2_
+  - [x] 7.2 Implement form fields
+    - Payment method dropdown (disabled when editing)
+    - Phone number field (for smart wallets)
+    - InstaPay alias field (for InstaPay)
+    - Holder name field
+    - Daily limit field (default 50,000)
+    - Monthly limit field (default 500,000)
+    - _Requirements: 4.3, 4.6, 5.3_
+  - [x] 7.3 Implement conditional field visibility
+    - Show phone number field only for smart wallets
+    - Show InstaPay alias field only for InstaPay
+    - _Requirements: 4.4, 4.5_
+  - [x] 7.4 Implement form validation
+    - Require payment method and holder name
+    - Require phone number for smart wallets
+    - Require InstaPay alias for InstaPay
+    - Validate limits are positive numbers
+    - _Requirements: 4.3, 4.4, 4.5_
+  - [ ]* 7.5 Write property test for form validation
+    - **Property 4: Form Validation by Payment Method**
+    - **Validates: Requirements 4.3, 4.4, 4.5**
+  - [x] 7.6 Write unit tests for WalletForm
+    - Test form rendering
+    - Test validation errors
+    - Test conditional fields
+    - Test submission
+    - _Requirements: 4.1-4.9, 5.1-5.6_
+
+- [x] 8. Checkpoint - Wallet Components Complete
+  - Ensure all wallet components render correctly
+  - Ensure form validation works
+  - Ask the user if questions arise
+
+- [x] 9. Create AdminWalletsPanel Component
+  - [x] 9.1 Create AdminWalletsPanel.tsx
+    - Create file at `frontend/src/components/admin/AdminWalletsPanel.tsx`
+    - Fetch wallets on mount using platformWalletsApi.getAll()
+    - Display loading state while fetching
+    - _Requirements: 3.1_
+  - [x] 9.2 Implement wallet list display
+    - Group wallets by type (Smart Wallets vs InstaPay)
+    - Render WalletCard for each wallet
+    - Show empty state when no wallets
+    - _Requirements: 3.1, 3.5_
+  - [x] 9.3 Add refresh functionality
+    - Add refresh button in header
+    - Re-fetch wallets on click
+    - _Requirements: 3.7_
+  - [x] 9.4 Implement Add Wallet flow
+    - Add "Add Wallet" button
+    - Show WalletForm modal on click
+    - Call platformWalletsApi.create() on submit
+    - Refresh list and show success message
+    - Handle and display errors
+    - _Requirements: 4.1, 4.2, 4.7, 4.8, 4.9_
+  - [x] 9.5 Implement Edit Wallet flow
+    - Open WalletForm modal with wallet data on Edit click
+    - Call platformWalletsApi.update() on submit
+    - Refresh list and show success message
+    - Handle and display errors
+    - _Requirements: 5.2, 5.4, 5.5, 5.6_
+  - [x] 9.6 Implement Activate/Deactivate flow
+    - Show confirmation dialog before deactivating
+    - Call platformWalletsApi.update() with isActive toggle
+    - Show warning message after deactivation
+    - Refresh list after action
+    - _Requirements: 6.2, 6.3, 6.4, 6.5, 6.6_
+  - [x] 9.7 Write unit tests for AdminWalletsPanel
+    - Test wallet list rendering
+    - Test add wallet flow
+    - Test edit wallet flow
+    - Test activate/deactivate flow
+    - Test error handling
+    - _Requirements: 3.1-3.7, 4.1-4.9, 5.1-5.6, 6.1-6.6_
+
+- [x] 10. Checkpoint - Wallet Panel Complete
+  - Ensure AdminWalletsPanel works end-to-end
+  - Ensure all CRUD operations work
+  - **FIXED: Severe layout issues in WalletCard component**
+  - Ask the user if questions arise
+
+- [ ] 11. Responsive Design Implementation
+  - [ ] 11.1 Add responsive styles for AdminSideMenu
+    - Collapse to icons at ≤1024px
+    - Hide with hamburger at ≤768px
+    - _Requirements: 8.3_
+  - [ ] 11.2 Add responsive styles for AdminWalletsPanel
+    - Use card layout on smaller screens
+    - Stack form fields vertically on smaller screens
+    - _Requirements: 8.1, 8.2, 8.4_
+  - [ ] 11.3 Write responsive behavior tests
+    - Test side menu collapse at breakpoints
+    - Test wallet list layout changes
+    - _Requirements: 8.1-8.4_
+
+- [ ] 12. Integration and Final Testing
+  - [ ] 12.1 Integration test for side menu navigation
+    - Test clicking each menu item shows correct panel
+    - Test Payments sub-navigation
+    - _Requirements: 1.1-1.9, 2.1-2.7_
+  - [ ] 12.2 Integration test for wallet management
+    - Test full create → list → edit → deactivate flow
+    - Verify API calls are made correctly
+    - _Requirements: 3.1-3.7, 4.1-4.9, 5.1-5.6, 6.1-6.6_
+
+- [ ] 13. Final Checkpoint
+  - Ensure all tests pass (unit, property, integration)
+  - Verify all requirements covered
+  - Ask the user if questions arise
+
+## Notes
+
+- Tasks marked with `*` are optional property-based tests
+- Backend API endpoints already exist - no backend changes needed
+- Use existing Matrix theme CSS variables for styling
+- Use lucide-react for icons (already in project)
+- Side menu tasks (1-3) should be completed before wallet tasks (4-10)
+

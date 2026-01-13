@@ -54,7 +54,7 @@ export interface AuthResponse {
 }
 
 export interface SwitchRoleRequest {
-    primary_role: string;
+    new_primary_role: string;
 }
 
 // ============ Order Types ============
@@ -289,3 +289,42 @@ export interface ReviewFilters {
     limit?: number;
     page?: number;
 }
+
+// ============ Platform Wallet Types ============
+
+export interface PlatformWallet {
+    id: number;
+    paymentMethod: 'vodafone_cash' | 'orange_money' | 'etisalat_cash' | 'we_pay' | 'instapay';
+    phoneNumber?: string;
+    instapayAlias?: string;
+    holderName: string;
+    isActive: boolean;
+    dailyLimit: number;
+    monthlyLimit: number;
+    dailyUsed: number;
+    monthlyUsed: number;
+    lastResetDaily?: string;
+    lastResetMonthly?: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface WalletFormData {
+    paymentMethod: 'vodafone_cash' | 'orange_money' | 'etisalat_cash' | 'we_pay' | 'instapay';
+    phoneNumber?: string;
+    instapayAlias?: string;
+    holderName: string;
+    dailyLimit: number;
+    monthlyLimit: number;
+}
+
+export interface WalletUpdateData {
+    phoneNumber?: string;
+    instapayAlias?: string;
+    holderName?: string;
+    dailyLimit?: number;
+    monthlyLimit?: number;
+    isActive?: boolean;
+}
+
+export type PaymentMethodType = 'vodafone_cash' | 'orange_money' | 'etisalat_cash' | 'we_pay' | 'instapay';
