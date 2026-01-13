@@ -31,7 +31,7 @@ export const topupApi = {
             ? ApiClient.buildQueryString({ paymentMethod })
             : '';
         const response = await ApiClient.get<PlatformWalletsResponse>(
-            `/wallet-payments/wallets/active${queryString}`
+            `/topups/wallets/active${queryString}`
         );
         return response.wallets;
     },
@@ -100,7 +100,53 @@ export const topupApi = {
             { reason }
         );
         return response;
+    },
+
+    // ============ Platform Wallet Management ============
+
+    /**
+     * Get all platform wallets (admin)
+     */
+    async getAllPlatformWallets(): Promise<PlatformWallet[]> {
+        const response = await ApiClient.get<{ success: boolean; wallets: PlatformWallet[] }>(
+            '/admin/topups/platform-wallets'
+        );
+        return response.wallets;
+    },
+
+    /**
+     * Create a new platform wallet (admin)
+     */
+    async createPlatformWallet(data: {
+        paymentMethod: string;
+        phoneNumber?: string;
+        instapayAlias?: string;
+        holderName: string;
+        dailyLimit?: number;
+        monthlyLimit?: number;
+    }): Promise<PlatformWallet> {
+        const response = await ApiClient.post<{ success: boolean; wallet: PlatformWallet }>(
+            '/admin/topups/platform-wallets',
+            data
+        );
+        return response.wallet;
+    },
+
+    /**
+     * Update a platform wallet (admin)
+     */
+    async updatePlatformWallet(walletId: number, data: {
+        phoneNumber?: string;
+        instapayAlias?: string;
+        holderName?: string;
+        dailyLimit?: number;
+        monthlyLimit?: number;
+        isActive?: boolean;
+    }): Promise<PlatformWallet> {
+        const response = await ApiClient.put<{ success: boolean; wallet: PlatformWallet }>(
+            `/admin/topups/platform-wallets/${walletId}`,
+            data
+        );
+        return response.wallet;
     }
 };
-
-export default topupApi;

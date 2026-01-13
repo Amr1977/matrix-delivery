@@ -4,6 +4,9 @@ import api from './api';
 import usePageVisibility from './hooks/usePageVisibility';
 import LogsViewer from './components/admin/LogsViewer';
 import SystemHealthDashboard from './components/admin/SystemHealthDashboard';
+import { AdminPaymentsPanel } from './components/admin';
+import AdminSideMenu from './components/admin/AdminSideMenu';
+import { AdminWalletsPanel } from './components/admin/AdminWalletsPanel';
 
 const AdminPanel = ({ onClose }) => {
   const API_URL = process.env.REACT_APP_API_URL;
@@ -11,6 +14,8 @@ const AdminPanel = ({ onClose }) => {
 
   // Dashboard State
   const [activeTab, setActiveTab] = useState('overview');
+  const [sideMenuCollapsed, setSideMenuCollapsed] = useState(false);
+  const [pendingTopupCount, setPendingTopupCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
@@ -63,6 +68,27 @@ const AdminPanel = ({ onClose }) => {
     }
   }, [dateRange, usersPage, ordersPage, itemsPerPage, searchQuery, filterRole]);
 
+  // Fetch pending topup count for badge
+  const fetchPendingTopupCount = useCallback(async () => {
+    try {
+      const data = await api.get('/admin/topups/pending?limit=1');
+      setPendingTopupCount(data.pendingCount || 0);
+    } catch (err) {
+      // Silently fail - badge will show 0
+      setPendingTopupCount(0);
+    }
+  }, []);
+
+  // Handle side menu item selection
+  const handleMenuItemSelect = (itemId) => {
+    setActiveTab(itemId);
+  };
+
+  // Toggle side menu collapse
+  const handleToggleCollapse = () => {
+    setSideMenuCollapsed(!sideMenuCollapsed);
+  };
+
   const fetchLogs = useCallback(async () => {
     try {
       setLoading(true);
@@ -80,6 +106,7 @@ const AdminPanel = ({ onClose }) => {
     // Initial fetch if visible
     if (isPageVisible) {
       fetchDashboardData();
+      fetchPendingTopupCount();
     }
 
     // Adaptive polling: 30s visible, 5m hidden
@@ -87,11 +114,12 @@ const AdminPanel = ({ onClose }) => {
     const interval = setInterval(() => {
       if (isPageVisible || !document.hidden) {
         fetchDashboardData();
+        fetchPendingTopupCount();
       }
     }, intervalTime);
 
     return () => clearInterval(interval);
-  }, [fetchDashboardData, isPageVisible]);
+  }, [fetchDashboardData, fetchPendingTopupCount, isPageVisible]);
 
   useEffect(() => {
     if (activeTab === 'logs') {
@@ -192,14 +220,21 @@ const AdminPanel = ({ onClose }) => {
         background: 'linear-gradient(135deg, var(--matrix-black) 0%, var(--matrix-dark-green) 100%)',
         color: 'var(--matrix-bright-green)',
         padding: '1rem 2rem',
-        borderBottom: '2px solid var(--matrix-border)'
+        borderBottom: '2px solid var(--matrix-border)',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: '64px',
+        zIndex: 1000
       }}>
         <div style={{
           maxWidth: '1400px',
           margin: '0 auto',
           display: 'flex',
           justifyContent: 'space-between',
-          alignItems: 'center'
+          alignItems: 'center',
+          height: '100%'
         }}>
           <div>
             <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '0.25rem' }} className="header-title">
@@ -208,6 +243,17 @@ const AdminPanel = ({ onClose }) => {
             <p style={{ fontSize: '0.875rem', opacity: 0.9 }} className="text-matrix">Matrix Delivery System Control</p>
           </div>
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <button
+              onClick={triggerBackendDeploy}
+              className="btn btn-primary"
+            >
+              🚀 Deploy Backend
+            </button>
+            {deployStatus && (
+              <span style={{ fontSize: '0.75rem', color: deployStatus.startsWith('completed') ? '#10B981' : '#EF4444' }}>
+                {`Deploy: ${deployStatus}`}
+              </span>
+            )}
             <button
               onClick={onClose}
               className="btn btn-primary"
@@ -224,96 +270,57 @@ const AdminPanel = ({ onClose }) => {
         </div>
       </header>
 
-      {/* Navigation Tabs */}
-      <div style={{
-        background: 'var(--matrix-black)',
-        borderBottom: '2px solid var(--matrix-border)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 10
+      {/* Side Menu */}
+      <AdminSideMenu
+        activeItem={activeTab}
+        onItemSelect={handleMenuItemSelect}
+        pendingTopupCount={pendingTopupCount}
+        collapsed={sideMenuCollapsed}
+        onToggleCollapse={handleToggleCollapse}
+      />
+
+      {/* Main Content Area */}
+      <main style={{ 
+        marginLeft: sideMenuCollapsed ? '64px' : '240px',
+        marginTop: '64px', // Account for fixed header
+        padding: '2rem',
+        minHeight: 'calc(100vh - 64px)',
+        transition: 'margin-left 0.3s ease'
       }}>
-        <div style={{
-          maxWidth: '1400px',
-          margin: '0 auto',
-          display: 'flex',
-          gap: '0.5rem',
-          padding: '0 2rem',
-          alignItems: 'center'
-        }}>
-          {[
-            { id: 'overview', label: '📊 Overview', icon: '📊' },
-            { id: 'health', label: '🏥 Health', icon: '🏥' },
-            { id: 'users', label: '👥 Users', icon: '👥' },
-            { id: 'orders', label: '📦 Orders', icon: '📦' },
-            { id: 'analytics', label: '📈 Analytics', icon: '📈' },
-            { id: 'logs', label: '📋 Logs', icon: '📋' },
-            { id: 'settings', label: '⚙️ Settings', icon: '⚙️' }
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={activeTab === tab.id ? 'tab-button active' : 'tab-button'}
-            >
-              {tab.label}
-            </button>
-          ))}
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-            <button
-              onClick={triggerBackendDeploy}
-              className="btn btn-primary"
-            >
-              🚀 Deploy Backend
-            </button>
-            {deployStatus && (
-              <span style={{ fontSize: '0.75rem', color: deployStatus.startsWith('completed') ? '#10B981' : '#EF4444' }}>
-                {`Deploy: ${deployStatus}`}
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Error Message */}
-      {error && (
-        <div style={{
-          maxWidth: '1400px',
-          margin: '0 auto',
-          padding: '1rem 2rem',
-          marginBottom: '1rem'
-        }}>
-          <div style={{
-            background: 'rgba(248, 113, 113, 0.2)',
-            color: 'var(--status-cancelled)',
-            padding: '1rem',
-            borderRadius: '0.5rem',
-            border: '1px solid var(--status-cancelled)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span style={{ fontSize: '1.25rem' }}>⚠️</span>
-              <span style={{ fontWeight: '600' }}>{error}</span>
+        {/* Error Message */}
+        {error && (
+          <div style={{ marginBottom: '1rem' }}>
+            <div style={{
+              background: 'rgba(248, 113, 113, 0.2)',
+              color: 'var(--status-cancelled)',
+              padding: '1rem',
+              borderRadius: '0.5rem',
+              border: '1px solid var(--status-cancelled)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ fontSize: '1.25rem' }}>⚠️</span>
+                <span style={{ fontWeight: '600' }}>{error}</span>
+              </div>
+              <button
+                onClick={() => setError('')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#991B1B',
+                  cursor: 'pointer',
+                  fontSize: '1.25rem',
+                  padding: '0.25rem'
+                }}
+              >
+                ×
+              </button>
             </div>
-            <button
-              onClick={() => setError('')}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: '#991B1B',
-                cursor: 'pointer',
-                fontSize: '1.25rem',
-                padding: '0.25rem'
-              }}
-            >
-              ×
-            </button>
           </div>
-        </div>
-      )}
-
-      {/* Main Content */}
-      <main style={{ maxWidth: '1400px', margin: '0 auto', padding: '2rem' }}>
+        )}
+        {/* Content Panels */}
         {activeTab === 'overview' && (
           <div>
             <div className="card" style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
@@ -433,6 +440,16 @@ const AdminPanel = ({ onClose }) => {
           <div style={{ marginTop: '2rem' }}>
             <SystemHealthDashboard />
           </div>
+        )}
+
+        {activeTab === 'payments-topups' && (
+          <div>
+            <AdminPaymentsPanel onPendingCountChange={setPendingTopupCount} />
+          </div>
+        )}
+
+        {activeTab === 'payments-wallets' && (
+          <AdminWalletsPanel />
         )}
 
         {activeTab === 'users' && (
@@ -1105,6 +1122,21 @@ const AdminPanel = ({ onClose }) => {
           </div>
         </div>
       )}
+
+      {/* Responsive Styles */}
+      <style jsx>{`
+        @media (max-width: 1024px) {
+          main {
+            margin-left: 64px !important;
+          }
+        }
+
+        @media (max-width: 768px) {
+          main {
+            margin-left: 0 !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };

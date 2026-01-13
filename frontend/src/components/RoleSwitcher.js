@@ -18,7 +18,7 @@ const RoleSwitcher = ({ currentRole, grantedRoles, onSwitch }) => {
         setError('');
 
         try {
-            const data = await AuthApi.switchRole({ primary_role: newRole });
+            const data = await AuthApi.switchRole({ new_primary_role: newRole });
 
             // Call parent callback with new user data
             if (onSwitch) {

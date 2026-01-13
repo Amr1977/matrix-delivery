@@ -1137,7 +1137,7 @@ export const MainApp = () => {
   const switchRole = async (primary_role) => {
     if (!token || !primary_role) return;
     try {
-      const data = await AuthApi.switchRole({ primary_role });
+      const data = await AuthApi.switchRole({ new_primary_role: primary_role });
       // Token is now in httpOnly cookie, just update the flag
       setToken('authenticated');
       setCurrentUser((prev) => ({ ...(prev || {}), primary_role }));

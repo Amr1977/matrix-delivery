@@ -460,7 +460,7 @@ describe('Authentication API Tests', () => {
 
     it('should switch primary_role successfully', async () => {
       const switchData = {
-        primary_role: 'driver'
+        new_primary_role: 'driver'
       };
 
       const response = await request(server)
@@ -477,7 +477,7 @@ describe('Authentication API Tests', () => {
 
     it('should return 400 for invalid primary_role', async () => {
       const switchData = {
-        primary_role: 'admin' // User doesn't have admin primary_role
+        new_primary_role: 'admin' // User doesn't have admin primary_role
       };
 
       const response = await request(server)
