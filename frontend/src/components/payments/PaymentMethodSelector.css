@@ -16,7 +16,6 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 15px;
-    margin-bottom: 25px;
 }
 
 .payment-method-card {
@@ -36,6 +35,11 @@
     border-color: #4CAF50;
     box-shadow: 0 4px 12px rgba(76, 175, 80, 0.15);
     transform: translateY(-2px);
+}
+
+.payment-method-card:focus {
+    outline: 2px solid #4CAF50;
+    outline-offset: 2px;
 }
 
 .payment-method-card.selected {
@@ -63,13 +67,6 @@
 .method-description {
     font-size: 0.875rem;
     color: #666;
-    margin-bottom: 4px;
-}
-
-.method-fee {
-    font-size: 0.875rem;
-    color: #4CAF50;
-    font-weight: 500;
 }
 
 .selected-indicator {
@@ -88,45 +85,18 @@
     font-weight: bold;
 }
 
-.payment-summary {
-    background: #f8f9fa;
-    border-radius: 12px;
-    padding: 20px;
-    border: 1px solid #e0e0e0;
+/* RTL support for Arabic */
+[dir="rtl"] .selected-indicator {
+    right: auto;
+    left: 10px;
 }
 
-.summary-title {
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin-bottom: 15px;
-    color: #1a1a1a;
+[dir="rtl"] .payment-method-card {
+    flex-direction: row-reverse;
 }
 
-.summary-row {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px 0;
-    font-size: 0.95rem;
-    color: #333;
-}
-
-.summary-row.fee-row {
-    color: #666;
-    font-size: 0.9rem;
-}
-
-.summary-row.total-row {
-    border-top: 2px solid #e0e0e0;
-    margin-top: 10px;
-    padding-top: 15px;
-    font-weight: 600;
-    font-size: 1.1rem;
-}
-
-.total-amount {
-    color: #4CAF50;
-    font-size: 1.3rem;
-    font-weight: 700;
+[dir="rtl"] .method-info {
+    text-align: right;
 }
 
 /* Mobile responsive */
@@ -168,12 +138,7 @@
         background: #1a3a1f;
     }
 
-    .payment-summary {
-        background: #2a2a2a;
-        border-color: #444;
-    }
-
-    .summary-row {
-        color: #e0e0e0;
+    .method-description {
+        color: #aaa;
     }
 }

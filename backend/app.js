@@ -2972,6 +2972,11 @@ app.use('/api/uploads', uploadRoutes);
 // Load crypto payment routes
 app.use('/api/crypto', cryptoPaymentRoutes);
 
+// Setup Swagger API documentation
+const { setupSwagger } = require('./config/swagger');
+setupSwagger(app);
+logger.info('✅ Swagger API documentation available at /api-docs');
+
 // Serve static files from the React app
 app.use(express.static(path.join(__dirname, '../frontend/build')));
 

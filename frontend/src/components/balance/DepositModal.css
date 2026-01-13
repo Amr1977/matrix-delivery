@@ -132,6 +132,15 @@
     pointer-events: none;
 }
 
+[dir="rtl"] .currency-label {
+    right: auto;
+    left: 1rem;
+}
+
+[dir="rtl"] .amount-input-wrapper input {
+    padding: 0.75rem 1rem 0.75rem 4rem;
+}
+
 .validation-error {
     color: #ef4444;
     font-size: 0.875rem;
@@ -191,8 +200,10 @@
     color: white;
 }
 
-/* Payment Step */
-.deposit-summary {
+/* Wallet Step */
+.wallet-step .deposit-summary,
+.instructions-step .deposit-summary,
+.reference-step .deposit-summary {
     background: #f9fafb;
     padding: 1rem;
     border-radius: 0.75rem;
@@ -206,20 +217,274 @@
     color: #6b7280;
 }
 
-.summary-row.total {
-    border-top: 2px solid #e5e7eb;
-    margin-top: 0.5rem;
-    padding-top: 1rem;
-    font-weight: 700;
-    color: #1f2937;
-    font-size: 1.125rem;
-}
-
 .summary-row .amount {
     font-weight: 700;
     color: #1f2937;
 }
 
+.wallet-list {
+    margin-top: 1.5rem;
+}
+
+.wallet-list-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 1rem;
+}
+
+.loading-wallets {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 2rem;
+    color: #6b7280;
+}
+
+.no-wallets {
+    text-align: center;
+    padding: 2rem;
+    color: #6b7280;
+    background: #f9fafb;
+    border-radius: 0.5rem;
+}
+
+.wallet-card {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.75rem;
+    margin-bottom: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.wallet-card:hover {
+    border-color: #8b5cf6;
+    background: #faf5ff;
+}
+
+.wallet-card.selected {
+    border-color: #8b5cf6;
+    background: #f3e8ff;
+}
+
+.wallet-provider {
+    font-weight: 600;
+    color: #1f2937;
+    min-width: 120px;
+}
+
+.wallet-details {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.wallet-phone,
+.wallet-alias,
+.wallet-holder {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.wallet-card .selected-indicator {
+    width: 1.5rem;
+    height: 1.5rem;
+    background: #8b5cf6;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    font-weight: 700;
+}
+
+/* Instructions Step */
+.wallet-details-card {
+    background: #f0fdf4;
+    border: 1px solid #86efac;
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.wallet-details-card h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #166534;
+    margin: 0 0 1rem 0;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #dcfce7;
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.detail-value {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.detail-value.copyable {
+    font-family: monospace;
+    background: #ecfdf5;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+}
+
+.transfer-instructions {
+    background: #eff6ff;
+    border: 1px solid #93c5fd;
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+}
+
+.transfer-instructions h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1e40af;
+    margin: 0 0 1rem 0;
+}
+
+.instructions-list {
+    margin: 0;
+    padding-left: 1.5rem;
+    color: #374151;
+}
+
+[dir="rtl"] .instructions-list {
+    padding-left: 0;
+    padding-right: 1.5rem;
+}
+
+.instructions-list li {
+    padding: 0.5rem 0;
+    line-height: 1.5;
+}
+
+/* Reference Step */
+.duplicate-info {
+    background: #fef3c7;
+    border: 1px solid #fcd34d;
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    margin-top: 1rem;
+}
+
+.duplicate-info h4 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #92400e;
+    margin: 0 0 0.75rem 0;
+}
+
+.duplicate-details .detail-row {
+    border-bottom-color: #fde68a;
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-badge.status-pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-badge.status-verified {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-badge.status-rejected {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* Pending Step */
+.pending-step {
+    text-align: center;
+    padding: 2rem 1rem;
+}
+
+.pending-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.pending-step h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.pending-step p {
+    color: #6b7280;
+    margin-bottom: 1.5rem;
+}
+
+.pending-details {
+    background: #f9fafb;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+[dir="rtl"] .pending-details {
+    text-align: right;
+}
+
+.pending-details .detail-row {
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.pending-details .amount {
+    font-weight: 700;
+    color: #8b5cf6;
+}
+
+.estimated-time {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: #eff6ff;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    color: #1e40af;
+    font-weight: 500;
+}
+
+.time-icon {
+    font-size: 1.25rem;
+}
+
+/* Error Message */
 .error-message {
     background: #fee2e2;
     border: 1px solid #fecaca;
@@ -236,66 +501,20 @@
     font-size: 1.25rem;
 }
 
-/* Processing Step */
-.processing-step {
-    text-align: center;
-    padding: 3rem 1rem;
-}
-
+/* Spinner */
 .spinner {
-    width: 4rem;
-    height: 4rem;
-    border: 4px solid #e5e7eb;
+    width: 2rem;
+    height: 2rem;
+    border: 3px solid #e5e7eb;
     border-top-color: #8b5cf6;
     border-radius: 50%;
     animation: spin 1s linear infinite;
-    margin: 0 auto 1.5rem;
 }
 
 @keyframes spin {
     to {
         transform: rotate(360deg);
     }
-}
-
-.processing-step h3 {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #1f2937;
-    margin-bottom: 0.5rem;
-}
-
-.processing-step p {
-    color: #6b7280;
-}
-
-/* Success Step */
-.success-step {
-    text-align: center;
-    padding: 3rem 1rem;
-}
-
-.success-icon {
-    font-size: 4rem;
-    margin-bottom: 1rem;
-}
-
-.success-step h3 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #1f2937;
-    margin-bottom: 0.5rem;
-}
-
-.success-step p {
-    color: #6b7280;
-    margin-bottom: 1rem;
-}
-
-.success-amount {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #10b981;
 }
 
 /* Modal Footer */
@@ -305,6 +524,10 @@
     display: flex;
     gap: 1rem;
     justify-content: flex-end;
+}
+
+[dir="rtl"] .modal-footer {
+    flex-direction: row-reverse;
 }
 
 .btn {
@@ -356,5 +579,15 @@
 
     .quick-amount-btn {
         width: 100%;
+    }
+
+    .wallet-details {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .wallet-provider {
+        min-width: auto;
+        margin-bottom: 0.5rem;
     }
 }

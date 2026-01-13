@@ -143,10 +143,107 @@ const updateWalletSchema = Joi.object({
 });
 
 /**
- * @route   GET /api/admin/topups/pending
- * @desc    Get pending top-up requests for admin verification
- * @access  Admin only
- * Requirements: 4.1, 4.2, 4.6, 4.8
+ * @openapi
+ * /api/admin/topups/pending:
+ *   get:
+ *     summary: Get pending top-up requests for admin verification
+ *     description: |
+ *       Retrieve all pending top-up requests that require admin verification.
+ *       Results are sorted by submission time (oldest first).
+ *       
+ *       **Admin Only**: Requires admin role.
+ *     tags:
+ *       - Admin Top-Up
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: paymentMethod
+ *         schema:
+ *           type: string
+ *           enum: [vodafone_cash, orange_money, etisalat_cash, we_pay, instapay]
+ *         description: Filter by payment method
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Filter from date (ISO format)
+ *         example: "2026-01-01"
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Filter to date (ISO format)
+ *         example: "2026-01-31"
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 50
+ *         description: Number of results per page
+ *       - in: query
+ *         name: offset
+ *         schema:
+ *           type: integer
+ *           minimum: 0
+ *           default: 0
+ *         description: Offset for pagination
+ *     responses:
+ *       200:
+ *         description: Pending top-ups retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 topups:
+ *                   type: array
+ *                   items:
+ *                     allOf:
+ *                       - $ref: '#/components/schemas/Topup'
+ *                       - type: object
+ *                         properties:
+ *                           userName:
+ *                             type: string
+ *                             example: "John Doe"
+ *                           userEmail:
+ *                             type: string
+ *                             example: "john@example.com"
+ *                           userPhone:
+ *                             type: string
+ *                             example: "01012345678"
+ *                 total:
+ *                   type: integer
+ *                   description: Total number of matching records
+ *                   example: 15
+ *                 pendingCount:
+ *                   type: integer
+ *                   description: Total pending top-ups (badge count)
+ *                   example: 15
+ *                 pagination:
+ *                   $ref: '#/components/schemas/Pagination'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         description: Admin access required
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Admin access required"
  */
 router.get('/pending', verifyAdmin, validateQuery(pendingTopupsQuerySchema), async (req, res, next) => {
   try {
@@ -207,10 +304,60 @@ router.get('/pending', verifyAdmin, validateQuery(pendingTopupsQuerySchema), asy
 });
 
 /**
- * @route   POST /api/admin/topups/:id/verify
- * @desc    Verify a pending top-up request
- * @access  Admin only
- * Requirements: 4.3
+ * @openapi
+ * /api/admin/topups/{id}/verify:
+ *   post:
+ *     summary: Verify a pending top-up request
+ *     description: |
+ *       Verify a pending top-up request and credit the user's balance.
+ *       Creates an audit log entry and sends notification to the user.
+ *       
+ *       **Admin Only**: Requires admin role.
+ *     tags:
+ *       - Admin Top-Up
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Top-up ID to verify
+ *         example: 1
+ *     responses:
+ *       200:
+ *         description: Top-up verified successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Top-up verified successfully"
+ *                 topup:
+ *                   $ref: '#/components/schemas/Topup'
+ *                 newBalance:
+ *                   type: number
+ *                   format: float
+ *                   description: User's new available balance after verification
+ *                   example: 600.00
+ *       400:
+ *         description: Invalid top-up ID or top-up already processed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         description: Admin access required
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
  */
 router.post('/:id/verify', verifyAdmin, async (req, res, next) => {
   try {
@@ -286,10 +433,70 @@ router.post('/:id/verify', verifyAdmin, async (req, res, next) => {
 });
 
 /**
- * @route   POST /api/admin/topups/:id/reject
- * @desc    Reject a pending top-up request
- * @access  Admin only
- * Requirements: 4.4
+ * @openapi
+ * /api/admin/topups/{id}/reject:
+ *   post:
+ *     summary: Reject a pending top-up request
+ *     description: |
+ *       Reject a pending top-up request with a reason.
+ *       Creates an audit log entry and sends notification to the user.
+ *       
+ *       **Admin Only**: Requires admin role.
+ *     tags:
+ *       - Admin Top-Up
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Top-up ID to reject
+ *         example: 1
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - reason
+ *             properties:
+ *               reason:
+ *                 type: string
+ *                 minLength: 1
+ *                 maxLength: 500
+ *                 description: Reason for rejection
+ *                 example: "Transaction reference not found in payment provider records"
+ *     responses:
+ *       200:
+ *         description: Top-up rejected successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Top-up rejected"
+ *                 topup:
+ *                   $ref: '#/components/schemas/Topup'
+ *       400:
+ *         description: Invalid top-up ID, missing reason, or top-up already processed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         description: Admin access required
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
  */
 router.post('/:id/reject', verifyAdmin, validateBody(rejectTopupSchema), async (req, res, next) => {
   try {
@@ -374,10 +581,38 @@ router.post('/:id/reject', verifyAdmin, validateBody(rejectTopupSchema), async (
 });
 
 /**
- * @route   GET /api/admin/platform-wallets
- * @desc    Get all platform wallets (including inactive)
- * @access  Admin only
- * Requirements: 5.7
+ * @openapi
+ * /api/admin/topups/platform-wallets:
+ *   get:
+ *     summary: Get all platform wallets
+ *     description: |
+ *       Retrieve all platform wallets including inactive ones.
+ *       Shows usage statistics and limits.
+ *       
+ *       **Admin Only**: Requires admin role.
+ *     tags:
+ *       - Platform Wallets
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Platform wallets retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 wallets:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/PlatformWallet'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         description: Admin access required
  */
 router.get('/platform-wallets', verifyAdmin, async (req, res, next) => {
   try {
@@ -420,10 +655,64 @@ router.get('/platform-wallets', verifyAdmin, async (req, res, next) => {
 });
 
 /**
- * @route   POST /api/admin/platform-wallets
- * @desc    Create a new platform wallet
- * @access  Admin only
- * Requirements: 5.7
+ * @openapi
+ * /api/admin/topups/platform-wallets:
+ *   post:
+ *     summary: Create a new platform wallet
+ *     description: |
+ *       Create a new platform wallet for receiving payments.
+ *       Phone number is required for smart wallets, InstaPay alias for InstaPay.
+ *       
+ *       **Admin Only**: Requires admin role.
+ *     tags:
+ *       - Platform Wallets
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CreateWalletRequest'
+ *           examples:
+ *             vodafoneCash:
+ *               summary: Vodafone Cash wallet
+ *               value:
+ *                 paymentMethod: vodafone_cash
+ *                 phoneNumber: "01012345678"
+ *                 holderName: "Matrix Delivery"
+ *                 dailyLimit: 50000
+ *                 monthlyLimit: 500000
+ *             instapay:
+ *               summary: InstaPay wallet
+ *               value:
+ *                 paymentMethod: instapay
+ *                 instapayAlias: "matrix@instapay"
+ *                 holderName: "Matrix Delivery LLC"
+ *                 dailyLimit: 100000
+ *                 monthlyLimit: 1000000
+ *     responses:
+ *       201:
+ *         description: Platform wallet created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Platform wallet created successfully"
+ *                 wallet:
+ *                   $ref: '#/components/schemas/PlatformWallet'
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         description: Admin access required
  */
 router.post('/platform-wallets', verifyAdmin, validateBody(createWalletSchema), async (req, res, next) => {
   try {
@@ -477,10 +766,71 @@ router.post('/platform-wallets', verifyAdmin, validateBody(createWalletSchema), 
 });
 
 /**
- * @route   PUT /api/admin/platform-wallets/:id
- * @desc    Update a platform wallet
- * @access  Admin only
- * Requirements: 5.7
+ * @openapi
+ * /api/admin/topups/platform-wallets/{id}:
+ *   put:
+ *     summary: Update a platform wallet
+ *     description: |
+ *       Update an existing platform wallet's details.
+ *       Can update holder name, limits, and active status.
+ *       
+ *       **Admin Only**: Requires admin role.
+ *     tags:
+ *       - Platform Wallets
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Wallet ID to update
+ *         example: 1
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UpdateWalletRequest'
+ *           examples:
+ *             deactivate:
+ *               summary: Deactivate wallet
+ *               value:
+ *                 isActive: false
+ *             updateLimits:
+ *               summary: Update limits
+ *               value:
+ *                 dailyLimit: 75000
+ *                 monthlyLimit: 750000
+ *     responses:
+ *       200:
+ *         description: Platform wallet updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Platform wallet updated successfully"
+ *                 wallet:
+ *                   $ref: '#/components/schemas/PlatformWallet'
+ *       400:
+ *         description: Invalid wallet ID or no update fields provided
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         description: Admin access required
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
  */
 router.put('/platform-wallets/:id', verifyAdmin, validateBody(updateWalletSchema), async (req, res, next) => {
   try {
