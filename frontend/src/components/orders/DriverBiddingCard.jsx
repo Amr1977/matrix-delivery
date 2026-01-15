@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useI18n } from '../../i18n/i18nContext';
 import { formatCurrency, formatDateTime } from '../../utils/formatters';
 import DriverBiddingMap from '../maps/DriverBiddingMap';
-import { MapPin, Clock, Wallet, User, Star, Hash, Navigation, AlertTriangle, CheckCircle, Send, ArrowRight } from 'lucide-react';
+import { MapPin, Clock, Wallet, User, Star, Hash, Navigation, AlertTriangle, CheckCircle, Send, ArrowRight, X } from 'lucide-react';
 import useAuth from '../../hooks/useAuth';
 
 /**
@@ -24,11 +24,13 @@ const DriverBiddingCard = ({
     bidDetails,
     setBidDetails,
     loadingStates,
-    openReviewModal
+    openReviewModal,
+    onWithdrawBid
 }) => {
     const { t } = useI18n();
     const [showMapFullscreen, setShowMapFullscreen] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
 
     // Calculate upfront payment (default to 0 if undefined)
     const upfrontPayment = order.upfront_payment || order.upfrontPayment || 0;
@@ -64,6 +66,12 @@ const DriverBiddingCard = ({
             setCalculatedDistance(d);
         }
     }, [order]);
+    useEffect(() => {
+        if (myBid && !bidInput[order.id] && !isEditing) {
+            setBidInput(prev => ({ ...prev, [order.id]: myBid.bidPrice.toString() }));
+            setBidDetails(prev => ({ ...prev, [order.id]: { ...bidDetails[order.id], message: myBid.message || '' } }));
+        }
+    }, [myBid, order.id, bidInput, setBidInput, bidDetails, setBidDetails, isEditing]);
 
     // Responsive layout state
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -422,7 +430,7 @@ const DriverBiddingCard = ({
                 padding: '1.25rem',
                 borderTop: '1px solid rgba(0, 255, 0, 0.2)'
             }}>
-                {myBid ? (
+                {myBid && !isEditing ? (
                     <div style={{
                         background: 'rgba(16, 185, 129, 0.1)',
                         border: '1px solid #10B981',
@@ -434,12 +442,60 @@ const DriverBiddingCard = ({
                         <CheckCircle size={32} color="#10B981" style={{ margin: '0 auto 0.5rem auto' }} />
                         <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#10B981' }}>BID PLACED</div>
                         <div style={{ color: 'white', marginTop: '0.25rem' }}>You offered {formatCurrency(myBid.bidPrice)}</div>
+                        {myBid.message && <div style={{ color: '#ccc', marginTop: '0.5rem', fontSize: '0.9rem' }}>Message: {myBid.message}</div>}
+                        <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', justifyContent: 'center' }}>
+                            <button
+                                onClick={() => setIsEditing(true)}
+                                data-testid={`edit-bid-btn-${order.id}`}
+                                style={{
+                                    flex: 1,
+                                    padding: '0.75rem',
+                                    background: 'rgba(59, 130, 246, 0.2)',
+                                    color: '#60A5FA',
+                                    border: '1px solid #3B82F6',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer',
+                                    fontSize: '0.9rem',
+                                    fontWeight: '600',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '0.5rem'
+                                }}
+                            >
+                                Edit Bid
+                            </button>
+                            <button
+                                onClick={() => onWithdrawBid && onWithdrawBid(order.id)}
+                                data-testid={`withdraw-bid-btn-${order.id}`}
+                                disabled={loadingStates?.withdrawBid}
+                                style={{
+                                    flex: 1,
+                                    padding: '0.75rem',
+                                    background: 'rgba(239, 68, 68, 0.2)',
+                                    color: '#F87171',
+                                    border: '1px solid #EF4444',
+                                    borderRadius: '6px',
+                                    cursor: loadingStates?.withdrawBid ? 'not-allowed' : 'pointer',
+                                    fontSize: '0.9rem',
+                                    fontWeight: '600',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '0.5rem',
+                                    opacity: loadingStates?.withdrawBid ? 0.7 : 1
+                                }}
+                            >
+                                <X size={16} />
+                                {loadingStates?.withdrawBid ? 'Withdrawing...' : 'Withdraw Bid'}
+                            </button>
+                        </div>
                     </div>
                 ) : (
                     <form onSubmit={handleBidSubmit}>
                         <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--matrix-bright-green)' }}>
                             <ArrowRight size={16} />
-                            <span style={{ fontWeight: 'bold', letterSpacing: '1px' }}>PLACE YOUR BID</span>
+                            <span style={{ fontWeight: 'bold', letterSpacing: '1px' }}>{myBid ? 'EDIT YOUR BID' : 'PLACE YOUR BID'}</span>
                         </div>
 
                         {/* Inputs Grid - Stacked on Mobile */}
@@ -496,35 +552,91 @@ const DriverBiddingCard = ({
                         </div>
 
                         {/* Submit Button */}
-                        <button
-                            type="submit"
-                            data-testid={`place-bid-btn-${order.id}`}
-                            disabled={loadingStates?.placeBid}
-                            style={{
-                                width: '100%',
-                                padding: '1rem',
-                                background: 'linear-gradient(90deg, var(--matrix-dim-green), var(--matrix-border))',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '8px',
-                                fontSize: '1rem',
-                                fontWeight: 'bold',
-                                letterSpacing: '1px',
-                                cursor: loadingStates?.placeBid ? 'not-allowed' : 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '0.75rem',
-                                boxShadow: '0 4px 15px rgba(0, 255, 0, 0.3)',
-                                transition: 'all 0.2s ease',
-                                opacity: loadingStates?.placeBid ? 0.7 : 1
-                            }}
-                            onMouseOver={(e) => !loadingStates?.placeBid && (e.currentTarget.style.transform = 'translateY(-2px)')}
-                            onMouseOut={(e) => !loadingStates?.placeBid && (e.currentTarget.style.transform = 'translateY(0)')}
-                        >
-                            <Send size={20} />
-                            {loadingStates?.placeBid ? 'SENDING BID...' : 'SUBMIT BID PROPOSAL'}
-                        </button>
+                        {myBid ? (
+                            <div style={{ display: 'flex', gap: '1rem' }}>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsEditing(false)}
+                                    style={{
+                                        flex: 1,
+                                        padding: '1rem',
+                                        background: 'rgba(107, 114, 128, 0.2)',
+                                        color: '#9CA3AF',
+                                        border: '1px solid #6B7280',
+                                        borderRadius: '8px',
+                                        fontSize: '1rem',
+                                        fontWeight: 'bold',
+                                        letterSpacing: '1px',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '0.75rem'
+                                    }}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    data-testid={`place-bid-btn-${order.id}`}
+                                    disabled={loadingStates?.placeBid}
+                                    style={{
+                                        flex: 1,
+                                        padding: '1rem',
+                                        background: 'linear-gradient(90deg, var(--matrix-dim-green), var(--matrix-border))',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        fontSize: '1rem',
+                                        fontWeight: 'bold',
+                                        letterSpacing: '1px',
+                                        cursor: loadingStates?.placeBid ? 'not-allowed' : 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '0.75rem',
+                                        boxShadow: '0 4px 15px rgba(0, 255, 0, 0.3)',
+                                        transition: 'all 0.2s ease',
+                                        opacity: loadingStates?.placeBid ? 0.7 : 1
+                                    }}
+                                    onMouseOver={(e) => !loadingStates?.placeBid && (e.currentTarget.style.transform = 'translateY(-2px)')}
+                                    onMouseOut={(e) => !loadingStates?.placeBid && (e.currentTarget.style.transform = 'translateY(0)')}
+                                >
+                                    <Send size={20} />
+                                    {loadingStates?.placeBid ? 'UPDATING BID...' : 'UPDATE BID PROPOSAL'}
+                                </button>
+                            </div>
+                        ) : (
+                            <button
+                                type="submit"
+                                data-testid={`place-bid-btn-${order.id}`}
+                                disabled={loadingStates?.placeBid}
+                                style={{
+                                    width: '100%',
+                                    padding: '1rem',
+                                    background: 'linear-gradient(90deg, var(--matrix-dim-green), var(--matrix-border))',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    fontSize: '1rem',
+                                    fontWeight: 'bold',
+                                    letterSpacing: '1px',
+                                    cursor: loadingStates?.placeBid ? 'not-allowed' : 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '0.75rem',
+                                    boxShadow: '0 4px 15px rgba(0, 255, 0, 0.3)',
+                                    transition: 'all 0.2s ease',
+                                    opacity: loadingStates?.placeBid ? 0.7 : 1
+                                }}
+                                onMouseOver={(e) => !loadingStates?.placeBid && (e.currentTarget.style.transform = 'translateY(-2px)')}
+                                onMouseOut={(e) => !loadingStates?.placeBid && (e.currentTarget.style.transform = 'translateY(0)')}
+                            >
+                                <Send size={20} />
+                                {loadingStates?.placeBid ? 'SENDING BID...' : 'SUBMIT BID PROPOSAL'}
+                            </button>
+                        )}
                     </form>
                 )}
             </div>

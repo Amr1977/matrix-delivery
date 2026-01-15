@@ -431,12 +431,50 @@ class E2eAdapter extends OrderLifecycleAdapter {
         await this.page.waitForTimeout(1000);
     }
 
-    async getOrderStatus(orderId) {
+    async getOrderStatus(orderId, expectedStatusHint) {
+        // If expectedStatusHint is DELIVERED, checking history makes sense if not found in active.
+        let statusEl = this.page.locator('.status-badge', { state: 'visible' }).first();
+
+        try {
+            // Initial check with shorter timeout if we have a hint that suggests it might move
+            const timeout = (expectedStatusHint === 'DELIVERED') ? 5000 : 15000;
+            await expect(statusEl).toBeVisible({ timeout });
+        } catch (e) {
+            if (expectedStatusHint === 'DELIVERED') {
+                console.log('[DEBUG] Status badge not found in Active, checking History...');
+                
+                // Open side menu
+                const hamburgerBtn = this.page.locator('[data-testid="hamburger-btn"]');
+                if (await hamburgerBtn.isVisible({ timeout: 3000 })) {
+                    await hamburgerBtn.click();
+                    await this.page.waitForTimeout(500); 
+
+                    // Click History menu item
+                    const historyBtn = this.page.locator('[data-testid="history-menu-btn"]');
+                    if (await historyBtn.isVisible({ timeout: 3000 })) {
+                        await historyBtn.click();
+                        await this.page.waitForTimeout(2000);
+                        console.log('[DEBUG] Navigated to History');
+                    } else {
+                         // Fallback: Try other history-related menu items
+                        const altHistoryBtn = this.page.locator('button:has-text("History"), a:has-text("History"), [data-testid*="history"]').first();
+                        if (await altHistoryBtn.isVisible({ timeout: 2000 })) {
+                            await altHistoryBtn.click();
+                            await this.page.waitForTimeout(2000);
+                        }
+                    }
+                }
+                
+                // Re-query status element
+                statusEl = this.page.locator('.status-badge', { state: 'visible' }).first();
+            }
+        }
+
+        // Final check
+        await expect(statusEl).toBeVisible({ timeout: 15000 });
+
         // Find the first status badge and extract the raw status from its class
         // Example: class="status-badge status-pending_bids" -> returns "pending_bids"
-        const statusEl = this.page.locator('.status-badge', { state: 'visible' }).first();
-        await expect(statusEl).toBeVisible({ timeout: 10000 });
-
         const className = await statusEl.getAttribute('class');
         const classes = className.split(' ');
         const statusClass = classes.find(c => c.startsWith('status-') && c !== 'status-badge');
