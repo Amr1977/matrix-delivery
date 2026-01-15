@@ -263,6 +263,7 @@ END as acceptedBid,
           GROUP BY reviewee_id
   ) dr ON dr.reviewee_id = u.id
         WHERE o.customer_id = $1
+        AND o.status NOT IN ('delivered', 'cancelled')
         GROUP BY o.id, d.id, d.name, d.rating, d.completed_deliveries, r.id
         ORDER BY o.created_at DESC
       `;

@@ -51,7 +51,7 @@ When('{string} accepts the bid from {string}', async function (customer, driver)
 });
 
 Then('the order status should be {string}', async function (status) {
-    const actualStatus = await this.adapter.getOrderStatus();
+    const actualStatus = await this.adapter.getOrderStatus(null, status);
     expect(actualStatus.toUpperCase()).to.equal(status.toUpperCase());
 });
 
