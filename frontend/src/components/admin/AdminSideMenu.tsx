@@ -43,6 +43,7 @@ export interface AdminSideMenuProps {
     activeItem: string;
     onItemSelect: (itemId: string) => void;
     pendingTopupCount?: number;
+    pendingWithdrawalCount?: number;
     collapsed?: boolean;
     onToggleCollapse?: () => void;
 }
@@ -57,7 +58,8 @@ export const MENU_ITEMS: MenuItem[] = [
         icon: <CreditCard size={20} />,
         subItems: [
             { id: 'payments-topups', label: 'Top-Up Verification', icon: <CheckCircle size={16} /> },
-            { id: 'payments-wallets', label: 'Wallet Management', icon: <Wallet size={16} /> }
+            { id: 'payments-wallets', label: 'Wallet Management', icon: <Wallet size={16} /> },
+            { id: 'payments-withdrawals', label: 'Withdrawal Requests', icon: <Wallet size={16} /> }
         ]
     },
     { id: 'users', label: 'Users', icon: <Users size={20} /> },
@@ -71,6 +73,7 @@ export const AdminSideMenu: React.FC<AdminSideMenuProps> = ({
     activeItem,
     onItemSelect,
     pendingTopupCount = 0,
+    pendingWithdrawalCount = 0,
     collapsed = false,
     onToggleCollapse
 }) => {
@@ -183,6 +186,14 @@ export const AdminSideMenu: React.FC<AdminSideMenuProps> = ({
                                                     data-testid="topup-count-badge"
                                                 >
                                                     {pendingTopupCount}
+                                                </span>
+                                            )}
+                                            {subItem.id === 'payments-withdrawals' && pendingWithdrawalCount > 0 && (
+                                                <span
+                                                    className="menu-badge"
+                                                    data-testid="withdrawal-count-badge"
+                                                >
+                                                    {pendingWithdrawalCount}
                                                 </span>
                                             )}
                                         </button>

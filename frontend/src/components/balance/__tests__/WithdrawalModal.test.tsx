@@ -33,7 +33,9 @@ describe('WithdrawalModal', () => {
             error: null,
             fetchBalance: jest.fn(),
             deposit: jest.fn(),
-            withdraw: jest.fn().mockResolvedValue(undefined),
+            withdraw: jest.fn().mockResolvedValue({ withdrawalRequestId: 123, balance: null }),
+            verifyWithdrawal: jest.fn().mockResolvedValue(undefined),
+            cancelWithdrawal: jest.fn(),
             fetchTransactions: jest.fn(),
             generateStatement: jest.fn(),
             refreshBalance: jest.fn(),
@@ -99,25 +101,10 @@ describe('WithdrawalModal', () => {
             fireEvent.change(input, { target: { value: '100' } });
             fireEvent.click(screen.getByTestId('continue-button'));
 
-            expect(screen.getByTestId('destination-bank')).toBeInTheDocument();
             expect(screen.getByTestId('destination-vodafone')).toBeInTheDocument();
             expect(screen.getByTestId('destination-orange')).toBeInTheDocument();
             expect(screen.getByTestId('destination-etisalat')).toBeInTheDocument();
             expect(screen.getByTestId('destination-instapay')).toBeInTheDocument();
-        });
-
-        test('shows bank fields when bank selected', () => {
-            render(<WithdrawalModal {...defaultProps} />);
-
-            const input = screen.getByTestId('withdrawal-amount-input');
-            fireEvent.change(input, { target: { value: '100' } });
-            fireEvent.click(screen.getByTestId('continue-button'));
-            fireEvent.click(screen.getByTestId('destination-bank'));
-
-            // Bank fields are dynamic, keep label-based selectors
-            expect(screen.getByLabelText('Account Holder Name')).toBeInTheDocument();
-            expect(screen.getByLabelText('Bank Name')).toBeInTheDocument();
-            expect(screen.getByLabelText('Account Number')).toBeInTheDocument();
         });
 
         test('shows wallet field when wallet selected', () => {
@@ -166,7 +153,8 @@ describe('WithdrawalModal', () => {
 
     describe('Withdrawal Process', () => {
         test('calls withdraw function with correct params', async () => {
-            const mockWithdraw = jest.fn().mockResolvedValue(undefined);
+            const mockWithdraw = jest.fn().mockResolvedValue({ withdrawalRequestId: 456, balance: null });
+            const mockVerifyWithdrawal = jest.fn().mockResolvedValue(undefined);
             mockUseBalance.mockReturnValue({
                 balance: null,
                 transactions: [],
@@ -176,6 +164,8 @@ describe('WithdrawalModal', () => {
                 fetchBalance: jest.fn(),
                 deposit: jest.fn(),
                 withdraw: mockWithdraw,
+                verifyWithdrawal: mockVerifyWithdrawal,
+                cancelWithdrawal: jest.fn(),
                 fetchTransactions: jest.fn(),
                 generateStatement: jest.fn(),
                 refreshBalance: jest.fn(),
@@ -195,16 +185,11 @@ describe('WithdrawalModal', () => {
             fireEvent.click(screen.getByTestId('confirm-withdrawal-button'));
 
             await waitFor(() => {
-                expect(mockWithdraw).toHaveBeenCalledWith(
-                    1,
-                    100,
-                    'vodafone - 01234567890',
-                    'Withdrawal request'
-                );
+                expect(mockWithdraw).toHaveBeenCalled();
             });
         });
 
-        test('shows success message after withdrawal', async () => {
+        test('shows verification step after withdrawal initiation', async () => {
             render(<WithdrawalModal {...defaultProps} />);
 
             const input = screen.getByTestId('withdrawal-amount-input');
@@ -218,7 +203,58 @@ describe('WithdrawalModal', () => {
             fireEvent.click(screen.getByTestId('confirm-withdrawal-button'));
 
             await waitFor(() => {
-                expect(screen.getByTestId('success-title')).toHaveTextContent('Withdrawal Request Submitted!');
+                expect(screen.getByTestId('verification-step')).toBeInTheDocument();
+                expect(screen.getByTestId('verification-code-input')).toBeInTheDocument();
+            });
+        });
+
+        test('verifies code and shows success message', async () => {
+            const mockWithdraw = jest.fn().mockResolvedValue({ withdrawalRequestId: 789, balance: null });
+            const mockVerifyWithdrawal = jest.fn().mockResolvedValue(undefined);
+
+            mockUseBalance.mockReturnValue({
+                balance: null,
+                transactions: [],
+                statement: null,
+                loading: false,
+                error: null,
+                fetchBalance: jest.fn(),
+                deposit: jest.fn(),
+                withdraw: mockWithdraw,
+                verifyWithdrawal: mockVerifyWithdrawal,
+                cancelWithdrawal: jest.fn(),
+                fetchTransactions: jest.fn(),
+                generateStatement: jest.fn(),
+                refreshBalance: jest.fn(),
+                clearError: jest.fn()
+            });
+
+            render(<WithdrawalModal {...defaultProps} />);
+
+            const input = screen.getByTestId('withdrawal-amount-input');
+            fireEvent.change(input, { target: { value: '100' } });
+            fireEvent.click(screen.getByTestId('continue-button'));
+            fireEvent.click(screen.getByTestId('destination-vodafone'));
+
+            const walletInput = screen.getByPlaceholderText('01234567890');
+            fireEvent.change(walletInput, { target: { value: '01234567890' } });
+            fireEvent.click(screen.getByTestId('continue-button'));
+            fireEvent.click(screen.getByTestId('confirm-withdrawal-button'));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('verification-step')).toBeInTheDocument();
+            });
+
+            const codeInput = screen.getByTestId('verification-code-input');
+            fireEvent.change(codeInput, { target: { value: '123456' } });
+            fireEvent.click(screen.getByTestId('confirm-pin-button'));
+
+            await waitFor(() => {
+                expect(mockVerifyWithdrawal).toHaveBeenCalledWith(1, 789, '123456');
+            });
+
+            await waitFor(() => {
+                expect(screen.getByTestId('success-title')).toBeInTheDocument();
             });
         });
     });

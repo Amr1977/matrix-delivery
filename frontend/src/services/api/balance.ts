@@ -13,7 +13,11 @@ import type {
     BalanceStatement,
     ApiResponse,
     TransactionHistoryResponse,
-    BalanceTransaction
+    BalanceTransaction,
+    WithdrawalInitiationResponse,
+    WithdrawalVerificationResponse,
+    AdminWithdrawalListResponse,
+    AdminWithdrawalRequest
 } from '../../types/balance';
 
 /**
@@ -44,12 +48,12 @@ export const balanceApi = {
     /**
      * Request withdrawal
      */
-    async withdraw(request: WithdrawalRequest): Promise<BalanceTransaction> {
-        const response = await ApiClient.post<ApiResponse<{ transaction: BalanceTransaction }>>(
+    async withdraw(request: WithdrawalRequest): Promise<WithdrawalInitiationResponse> {
+        const response = await ApiClient.post<ApiResponse<WithdrawalInitiationResponse>>(
             '/v1/balance/withdraw',
             request
         );
-        return response.data.transaction;
+        return response.data;
     },
 
     /**
@@ -90,6 +94,122 @@ export const balanceApi = {
             { userId, amount, reason }
         );
         return response.data;
+    },
+
+    /**
+     * Verify withdrawal with PIN code
+     */
+    async verifyWithdrawal(
+        userId: number,
+        withdrawalRequestId: number,
+        code: string
+    ): Promise<WithdrawalVerificationResponse> {
+        const response = await ApiClient.post<ApiResponse<WithdrawalVerificationResponse>>(
+            `/v1/balance/withdraw/${withdrawalRequestId}/verify`,
+            {
+                userId,
+                withdrawalRequestId,
+                code
+            }
+        );
+        return response.data;
+    },
+
+    /**
+     * Cancel a pending withdrawal request by user
+     */
+    async cancelWithdrawal(
+        userId: number,
+        withdrawalRequestId: number,
+        reason?: string
+    ): Promise<UserBalance> {
+        const response = await ApiClient.post<ApiResponse<{ balance: UserBalance }>>(
+            `/v1/balance/withdraw/${withdrawalRequestId}/cancel`,
+            {
+                userId,
+                withdrawalRequestId,
+                reason
+            }
+        );
+        return response.data.balance;
+    },
+
+    /**
+     * Get pending withdrawals for admin review
+     */
+    async getPendingWithdrawals(options?: {
+        limit?: number;
+        offset?: number;
+    }): Promise<AdminWithdrawalListResponse> {
+        const queryString = ApiClient.buildQueryString(options || {});
+        const response = await ApiClient.get<ApiResponse<{ requests: any[]; total: number }>>(
+            `/v1/balance/admin/withdrawals${queryString}`
+        );
+        const { requests, total } = response.data;
+        const mappedRequests: AdminWithdrawalRequest[] = (requests || []).map((r: any) => {
+            let destinationDetails: any = {};
+            const rawDetails = r.destination_details;
+
+            if (rawDetails) {
+                if (typeof rawDetails === 'string') {
+                    try {
+                        destinationDetails = JSON.parse(rawDetails);
+                    } catch {
+                        destinationDetails = {};
+                    }
+                } else if (typeof rawDetails === 'object') {
+                    destinationDetails = rawDetails;
+                }
+            }
+
+            return {
+                id: r.id,
+                requestNumber: r.request_number,
+                userId: String(r.user_id),
+                userName: r.user_name,
+                userEmail: r.user_email,
+                amount: typeof r.amount === 'string' ? parseFloat(r.amount) : r.amount,
+                currency: r.currency,
+                withdrawalMethod: r.withdrawal_method,
+                destinationType: r.destination_type,
+                destinationDetails,
+                status: r.status,
+                createdAt: r.created_at,
+                verifiedAt: r.verified_at || undefined
+            };
+        });
+        return {
+            requests: mappedRequests,
+            total
+        };
+    },
+
+    /**
+     * Approve a pending withdrawal request
+     */
+    async approveWithdrawal(
+        requestId: number,
+        reference: string
+    ): Promise<{ success: boolean; message: string }> {
+        const response = await ApiClient.post<{ success: boolean; message: string }>(
+            `/v1/balance/admin/withdrawals/${requestId}/approve`,
+            { reference }
+        );
+        return response;
+    },
+
+    /**
+     * Reject a pending withdrawal request
+     */
+    async rejectWithdrawal(
+        requestId: number,
+        reason: string
+    ): Promise<{ success: boolean; message: string }> {
+        const response = await ApiClient.post<{ success: boolean; message: string }>(
+            `/v1/balance/admin/withdrawals/${requestId}/reject`,
+            { reason }
+        );
+        return response;
     }
 };
 

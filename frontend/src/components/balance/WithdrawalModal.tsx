@@ -17,7 +17,7 @@ interface WithdrawalModalProps {
     onSuccess: () => void;
 }
 
-type DestinationType = 'bank' | 'vodafone' | 'orange' | 'etisalat' | 'instapay';
+type DestinationType = 'vodafone' | 'orange' | 'etisalat' | 'instapay';
 
 const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
     userId,
@@ -28,18 +28,17 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
     onClose,
     onSuccess
 }) => {
-    const { withdraw, loading, error, clearError } = useBalance();
+    const { withdraw, verifyWithdrawal, loading, error, clearError } = useBalance();
     const [amount, setAmount] = useState('');
     const [description, setDescription] = useState('Withdrawal request');
-    const [destinationType, setDestinationType] = useState<DestinationType>('bank');
+    const [destinationType, setDestinationType] = useState<DestinationType>('vodafone');
     const [destinationDetails, setDestinationDetails] = useState({
-        accountNumber: '',
-        bankName: '',
-        accountHolder: '',
         walletNumber: ''
     });
-    const [step, setStep] = useState<'amount' | 'destination' | 'confirm' | 'processing' | 'success'>('amount');
+    const [step, setStep] = useState<'amount' | 'destination' | 'confirm' | 'processing' | 'verification' | 'success'>('amount');
     const [validationError, setValidationError] = useState('');
+    const [withdrawalRequestId, setWithdrawalRequestId] = useState<number | null>(null);
+    const [verificationCode, setVerificationCode] = useState('');
 
     const MIN_WITHDRAWAL = 10;
     const MAX_WITHDRAWAL = 100000;
@@ -93,16 +92,9 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
     };
 
     const validateDestination = (): boolean => {
-        if (destinationType === 'bank') {
-            if (!destinationDetails.accountNumber || !destinationDetails.bankName || !destinationDetails.accountHolder) {
-                setValidationError('All bank details are required');
-                return false;
-            }
-        } else {
-            if (!destinationDetails.walletNumber) {
-                setValidationError('Wallet number is required');
-                return false;
-            }
+        if (!destinationDetails.walletNumber) {
+            setValidationError('Wallet or Instapay number is required');
+            return false;
         }
         setValidationError('');
         return true;
@@ -118,18 +110,60 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
         setStep('processing');
         clearError();
 
-        const destination = destinationType === 'bank'
-            ? `${destinationDetails.bankName} - ${destinationDetails.accountNumber}`
-            : `${destinationType} - ${destinationDetails.walletNumber}`;
+        const destination = `${destinationType} - ${destinationDetails.walletNumber}`;
+        const metadata: any = {
+            withdrawalMethod: 'manual',
+            destinationType,
+            destinationDetails: {}
+        };
+
+        if (destinationType === 'instapay') {
+            metadata.destinationDetails = {
+                instapayAlias: destinationDetails.walletNumber
+            };
+        } else {
+            metadata.destinationDetails = {
+                walletNumber: destinationDetails.walletNumber
+            };
+        }
 
         try {
-            await withdraw(userId, parseFloat(amount), destination, description);
+            const result = await withdraw(userId, parseFloat(amount), destination, description, metadata);
+            setWithdrawalRequestId(result.withdrawalRequestId);
+            setVerificationCode('');
+            setValidationError('');
+            setStep('verification');
+        } catch (err) {
+            setStep('confirm');
+        }
+    };
+
+    const handleVerificationCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setVerificationCode(e.target.value);
+        if (validationError) {
+            setValidationError('');
+        }
+    };
+
+    const handleVerify = async () => {
+        if (!withdrawalRequestId) {
+            return;
+        }
+        const trimmedCode = verificationCode.trim();
+        if (!trimmedCode || trimmedCode.length !== 6) {
+            setValidationError('Please enter the 6-digit verification code sent to your email');
+            return;
+        }
+        setStep('processing');
+        clearError();
+        try {
+            await verifyWithdrawal(userId, withdrawalRequestId, trimmedCode);
             setStep('success');
             setTimeout(() => {
                 onSuccess();
             }, 2000);
         } catch (err) {
-            setStep('confirm');
+            setStep('verification');
         }
     };
 
@@ -140,7 +174,6 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
     };
 
     const destinationOptions = [
-        { id: 'bank', name: 'Bank Transfer', icon: '🏦' },
         { id: 'vodafone', name: 'Vodafone Cash', icon: '📱' },
         { id: 'orange', name: 'Orange Cash', icon: '🍊' },
         { id: 'etisalat', name: 'Etisalat Cash', icon: '💚' },
@@ -233,49 +266,17 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
                                 ))}
                             </div>
 
-                            {destinationType === 'bank' ? (
-                                <div className="destination-details">
-                                    <div className="form-group">
-                                        <label>Account Holder Name</label>
-                                        <input
-                                            type="text"
-                                            value={destinationDetails.accountHolder}
-                                            onChange={(e) => setDestinationDetails({ ...destinationDetails, accountHolder: e.target.value })}
-                                            placeholder="John Doe"
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label>Bank Name</label>
-                                        <input
-                                            type="text"
-                                            value={destinationDetails.bankName}
-                                            onChange={(e) => setDestinationDetails({ ...destinationDetails, bankName: e.target.value })}
-                                            placeholder="National Bank of Egypt"
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label>Account Number</label>
-                                        <input
-                                            type="text"
-                                            value={destinationDetails.accountNumber}
-                                            onChange={(e) => setDestinationDetails({ ...destinationDetails, accountNumber: e.target.value })}
-                                            placeholder="1234567890"
-                                        />
-                                    </div>
+                            <div className="destination-details">
+                                <div className="form-group">
+                                    <label>Wallet or Instapay Number</label>
+                                    <input
+                                        type="tel"
+                                        value={destinationDetails.walletNumber}
+                                        onChange={(e) => setDestinationDetails({ ...destinationDetails, walletNumber: e.target.value })}
+                                        placeholder="01234567890"
+                                    />
                                 </div>
-                            ) : (
-                                <div className="destination-details">
-                                    <div className="form-group">
-                                        <label>Wallet Number</label>
-                                        <input
-                                            type="tel"
-                                            value={destinationDetails.walletNumber}
-                                            onChange={(e) => setDestinationDetails({ ...destinationDetails, walletNumber: e.target.value })}
-                                            placeholder="01234567890"
-                                        />
-                                    </div>
-                                </div>
-                            )}
+                            </div>
 
                             {validationError && (
                                 <div className="validation-error" data-testid="validation-error">{validationError}</div>
@@ -304,27 +305,10 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
                                     <span>Destination:</span>
                                     <span>{destinationOptions.find(o => o.id === destinationType)?.name}</span>
                                 </div>
-                                {destinationType === 'bank' ? (
-                                    <>
-                                        <div className="summary-row">
-                                            <span>Account Holder:</span>
-                                            <span>{destinationDetails.accountHolder}</span>
-                                        </div>
-                                        <div className="summary-row">
-                                            <span>Bank:</span>
-                                            <span>{destinationDetails.bankName}</span>
-                                        </div>
-                                        <div className="summary-row">
-                                            <span>Account Number:</span>
-                                            <span>{destinationDetails.accountNumber}</span>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <div className="summary-row">
-                                        <span>Wallet Number:</span>
-                                        <span>{destinationDetails.walletNumber}</span>
-                                    </div>
-                                )}
+                                <div className="summary-row">
+                                    <span>Wallet or Instapay Number:</span>
+                                    <span>{destinationDetails.walletNumber}</span>
+                                </div>
                             </div>
 
                             {error && (
@@ -338,6 +322,37 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
                                 <span className="warning-icon">ℹ️</span>
                                 <p>Withdrawal requests are usually processed within 24-48 hours.</p>
                             </div>
+                        </div>
+                    )}
+
+                    {step === 'verification' && (
+                        <div className="verification-step" data-testid="verification-step">
+                            <h3 data-testid="verification-title">Enter Verification Code</h3>
+                            <p data-testid="verification-instructions">
+                                We sent a 6-digit verification code to your email. Enter it below to confirm your withdrawal.
+                            </p>
+                            <div className="form-group">
+                                <label htmlFor="verification-code">Verification Code</label>
+                                <input
+                                    id="verification-code"
+                                    type="text"
+                                    value={verificationCode}
+                                    onChange={handleVerificationCodeChange}
+                                    maxLength={6}
+                                    inputMode="numeric"
+                                    autoFocus
+                                    data-testid="verification-code-input"
+                                />
+                            </div>
+                            {validationError && (
+                                <div className="validation-error" data-testid="validation-error">{validationError}</div>
+                            )}
+                            {error && (
+                                <div className="error-message" data-testid="error-message">
+                                    <span className="error-icon">⚠️</span>
+                                    {error}
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -406,6 +421,22 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
                                 data-testid="confirm-withdrawal-button"
                             >
                                 {loading ? 'Processing...' : 'Confirm Withdrawal'}
+                            </button>
+                        </>
+                    )}
+
+                    {step === 'verification' && (
+                        <>
+                            <button className="btn btn-secondary" onClick={() => setStep('confirm')} data-testid="back-button">
+                                Back
+                            </button>
+                            <button
+                                className="btn btn-primary"
+                                onClick={handleVerify}
+                                disabled={loading || !verificationCode}
+                                data-testid="confirm-pin-button"
+                            >
+                                {loading ? 'Verifying...' : 'Confirm Code'}
                             </button>
                         </>
                     )}

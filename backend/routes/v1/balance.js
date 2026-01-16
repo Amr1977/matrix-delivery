@@ -31,9 +31,16 @@ const verifyBalanceOwnership = (req, res, next) => {
 // Apply auth
 router.use(verifyToken);
 
+// Admin routes (Must be defined before /:userId to avoid conflict)
+router.get('/admin/withdrawals', requireAdmin, controller.getPendingWithdrawals);
+router.post('/admin/withdrawals/:id/approve', requireAdmin, controller.approveWithdrawal);
+router.post('/admin/withdrawals/:id/reject', requireAdmin, controller.rejectWithdrawal);
+
 router.get('/:userId', validateUserId, verifyBalanceOwnership, controller.getBalance);
 router.get('/:userId/transactions', validateUserId, verifyBalanceOwnership, controller.getTransactionHistory);
 router.post('/deposit', validateDeposit, verifyBalanceOwnership, controller.deposit);
 router.post('/withdraw', validateWithdrawal, verifyBalanceOwnership, controller.withdraw);
+router.post('/withdraw/:id/verify', validateWithdrawal, verifyBalanceOwnership, controller.verifyWithdrawal);
+router.post('/withdraw/:id/cancel', validateWithdrawal, verifyBalanceOwnership, controller.cancelWithdrawal);
 
 module.exports = router;
