@@ -12,10 +12,8 @@ const {
     TRANSACTION_LIMITS
 } = require('../types/balance.js');
 const { PAYMENT_CONFIG } = require('../config/paymentConfig.js');
-const logger = require('../config/logger'); // Adjusted path from '../utils/logger' to '../config/logger' based on app.js check or assume utils exists
-// Note: original TS had require('../utils/logger'). app.js has require('./config/logger'). 
-// I'll check directory structure for logger later if needed, but safe to assume it's in config or utils.
-// Actually, I'll use require('../utils/logger') as per original TS.
+const logger = require('../config/logger');
+const emailService = require('./emailService');
 
 class BalanceService {
     constructor(pool) {
@@ -155,14 +153,22 @@ class BalanceService {
         const query = `
            INSERT INTO balance_transactions (
              user_id, transaction_id, type, amount, currency, balance_before, balance_after, 
-             status, description, order_id, created_at
-           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
+             status, description, order_id, withdrawal_request_id, created_at
+           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())
            RETURNING id, transaction_id
          `;
         const res = await client.query(query, [
-            data.userId, txId, data.type, data.amount, data.currency,
-            data.balanceBefore ?? 0, data.balanceAfter ?? 0, data.status,
-            data.description, data.orderId
+            data.userId,
+            txId,
+            data.type,
+            data.amount,
+            data.currency,
+            data.balanceBefore ?? 0,
+            data.balanceAfter ?? 0,
+            data.status,
+            data.description,
+            data.orderId ?? null,
+            data.withdrawalRequestId ?? null
         ]);
         return { ...data, transactionId: res.rows[0]?.transaction_id || txId };
     }
@@ -175,7 +181,7 @@ class BalanceService {
             const balanceBefore = balance.availableBalance;
             const balanceAfter = balanceBefore + dto.amount;
 
-            await this.createTransaction(client, {
+            const transaction = await this.createTransaction(client, {
                 userId: dto.userId,
                 type: TransactionType.DEPOSIT,
                 amount: dto.amount,
@@ -197,10 +203,541 @@ class BalanceService {
             );
 
             await client.query('COMMIT');
-            return this.getBalance(dto.userId);
+            const updatedBalance = await this.getBalance(dto.userId);
+            return {
+                transaction,
+                balance: updatedBalance
+            };
         } catch (error) {
             await client.query('ROLLBACK');
             logger.error('Deposit failed', error);
+            throw error;
+        } finally {
+            client.release();
+        }
+    }
+
+    async withdraw(dto) {
+        const client = await this.pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            const amount = parseFloat(dto.amount);
+            if (!amount || amount <= 0) {
+                throw new Error('Invalid withdrawal amount');
+            }
+
+            const balance = await this.getBalanceForUpdate(client, dto.userId);
+
+            if (balance.isFrozen) {
+                throw new Error('Your balance is frozen. Contact support.');
+            }
+
+            if (balance.availableBalance < amount) {
+                throw new Error(`Insufficient balance. Required: ${amount}, Available: ${balance.availableBalance}`);
+            }
+
+            const dailyLimit = balance.dailyWithdrawalLimit != null ? parseFloat(balance.dailyWithdrawalLimit) : 0;
+            if (dailyLimit > 0 && amount > dailyLimit) {
+                throw new Error('Daily withdrawal limit exceeded');
+            }
+
+            const currency = balance.currency || DEFAULT_CURRENCY;
+            const requestNumber = `WDR-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+            const metadata = dto.metadata || {};
+            const method = metadata.withdrawalMethod || 'manual';
+            const destinationType = metadata.destinationType || 'manual';
+
+            let destinationDetails = metadata.destinationDetails;
+            if (!destinationDetails) {
+                if (metadata.walletNumber) {
+                    destinationDetails = {
+                        walletNumber: metadata.walletNumber
+                    };
+                } else if (metadata.instapayAlias) {
+                    destinationDetails = {
+                        instapayAlias: metadata.instapayAlias
+                    };
+                } else {
+                    destinationDetails = {
+                        destination: dto.destination
+                    };
+                }
+            }
+
+            const pin = Math.floor(100000 + Math.random() * 900000).toString();
+            const now = new Date();
+
+            const insertQuery = `
+                INSERT INTO withdrawal_requests (
+                    request_number,
+                    user_id,
+                    amount,
+                    currency,
+                    withdrawal_method,
+                    destination_type,
+                    destination_details,
+                    status,
+                    requires_verification,
+                    verification_code,
+                    verification_sent_at
+                ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+                RETURNING id
+            `;
+
+            const insertResult = await client.query(insertQuery, [
+                requestNumber,
+                dto.userId,
+                amount,
+                currency,
+                method,
+                destinationType,
+                JSON.stringify(destinationDetails),
+                'pending',
+                true,
+                pin,
+                now
+            ]);
+
+            const requestId = insertResult.rows[0].id;
+
+            const userResult = await client.query(
+                'SELECT name, email FROM users WHERE id = $1',
+                [dto.userId]
+            );
+
+            const userRow = userResult.rows[0] || null;
+
+            await client.query('COMMIT');
+
+            if (userRow && userRow.email) {
+                try {
+                    await emailService.sendWithdrawalPinEmail(
+                        userRow.email,
+                        userRow.name || 'User',
+                        pin,
+                        {
+                            amount,
+                            currency,
+                            destination: dto.destination
+                        }
+                    );
+                } catch (emailError) {
+                    logger.error('Failed to send withdrawal PIN email', {
+                        userId: dto.userId,
+                        error: emailError.message
+                    });
+                }
+            }
+
+            const updatedBalance = await this.getBalance(dto.userId);
+            const result = {
+                withdrawalRequestId: requestId,
+                balance: updatedBalance
+            };
+            if (process.env.NODE_ENV && process.env.NODE_ENV !== 'production') {
+                result.verificationCodeDebug = pin;
+            }
+            return result;
+        } catch (error) {
+            await client.query('ROLLBACK');
+            logger.error('Withdrawal initiation failed', error);
+            throw error;
+        } finally {
+            client.release();
+        }
+    }
+
+    async verifyWithdrawal(dto) {
+        const client = await this.pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            const requestResult = await client.query(
+                'SELECT * FROM withdrawal_requests WHERE id = $1 FOR UPDATE',
+                [dto.withdrawalRequestId]
+            );
+
+            if (requestResult.rows.length === 0) {
+                throw new Error('Withdrawal request not found');
+            }
+
+            const request = requestResult.rows[0];
+            const requestUserId = request.user_id;
+
+            if (String(requestUserId) !== String(dto.userId)) {
+                throw new Error('Unauthorized withdrawal verification');
+            }
+
+            if (!request.requires_verification) {
+                throw new Error('Withdrawal request already verified');
+            }
+
+            if (request.status !== 'pending') {
+                throw new Error('Withdrawal request is not pending');
+            }
+
+            const sentAt = request.verification_sent_at;
+            if (sentAt) {
+                const sentTime = new Date(sentAt).getTime();
+                if (Date.now() - sentTime > 15 * 60 * 1000) {
+                    throw new Error('Verification code expired');
+                }
+            }
+
+            if (request.verification_code !== dto.code) {
+                throw new Error('Invalid verification code');
+            }
+
+            const amount = parseFloat(request.amount);
+            if (!amount || amount <= 0) {
+                throw new Error('Invalid withdrawal amount');
+            }
+
+            const balance = await this.getBalanceForUpdate(client, dto.userId);
+
+            if (balance.availableBalance < amount) {
+                throw new Error(`Insufficient balance. Required: ${amount}, Available: ${balance.availableBalance}`);
+            }
+
+            const currency = balance.currency || DEFAULT_CURRENCY;
+            const balanceBefore = balance.availableBalance;
+            const balanceAfter = balance.availableBalance - amount;
+
+            await client.query(
+                `UPDATE user_balances
+                 SET available_balance = available_balance - $1,
+                     held_balance = held_balance + $1,
+                     lifetime_withdrawals = lifetime_withdrawals + $1,
+                     total_transactions = total_transactions + 1,
+                     last_transaction_at = CURRENT_TIMESTAMP
+                 WHERE user_id = $2`,
+                [amount, dto.userId]
+            );
+
+            const transaction = await this.createTransaction(client, {
+                userId: dto.userId,
+                type: TransactionType.WITHDRAWAL,
+                amount: -amount,
+                currency,
+                balanceBefore,
+                balanceAfter,
+                status: TransactionStatus.PENDING,
+                description: 'Withdrawal request pending manual processing',
+                withdrawalRequestId: dto.withdrawalRequestId
+            });
+
+            await client.query(
+                `UPDATE withdrawal_requests
+                 SET requires_verification = FALSE,
+                     verified_at = NOW(),
+                     updated_at = NOW()
+                 WHERE id = $1`,
+                [dto.withdrawalRequestId]
+            );
+
+            await client.query('COMMIT');
+
+            const updatedBalance = await this.getBalance(dto.userId);
+            return {
+                transaction,
+                balance: updatedBalance
+            };
+        } catch (error) {
+            await client.query('ROLLBACK');
+            logger.error('Withdrawal verification failed', error);
+            throw error;
+        } finally {
+            client.release();
+        }
+    }
+
+    async getPendingWithdrawals(options = {}) {
+        const { limit = 20, offset = 0 } = options;
+        const query = `
+            SELECT 
+                wr.id,
+                wr.request_number,
+                wr.user_id,
+                u.name as user_name,
+                u.email as user_email,
+                wr.amount,
+                wr.currency,
+                wr.withdrawal_method,
+                wr.destination_type,
+                wr.destination_details,
+                wr.status,
+                wr.created_at,
+                wr.verified_at
+            FROM withdrawal_requests wr
+            JOIN users u ON wr.user_id = u.id
+            WHERE wr.status = 'pending' 
+            AND wr.requires_verification = FALSE
+            ORDER BY wr.verified_at ASC
+            LIMIT $1 OFFSET $2
+        `;
+        const result = await this.pool.query(query, [limit, offset]);
+        
+        const countResult = await this.pool.query(
+            `SELECT COUNT(*) as count FROM withdrawal_requests 
+             WHERE status = 'pending' AND requires_verification = FALSE`
+        );
+
+        return {
+            requests: result.rows,
+            total: parseInt(countResult.rows[0].count)
+        };
+    }
+
+    async approveWithdrawal(adminId, requestId, reference) {
+        const client = await this.pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            // Get request
+            const res = await client.query(
+                `SELECT * FROM withdrawal_requests WHERE id = $1 FOR UPDATE`,
+                [requestId]
+            );
+            if (res.rows.length === 0) throw new Error('Request not found');
+            const request = res.rows[0];
+
+            if (request.status !== 'pending' || request.requires_verification) {
+                throw new Error('Request not eligible for approval');
+            }
+
+            // Update request status
+            await client.query(
+                `UPDATE withdrawal_requests 
+                 SET status = 'completed', 
+                     processed_at = NOW(), 
+                     processed_by = $1,
+                     transaction_reference = $2
+                 WHERE id = $3`,
+                [adminId, reference, requestId]
+            );
+
+            // Update balance transaction
+            await client.query(
+                `UPDATE balance_transactions
+                 SET status = $1, description = $2
+                 WHERE user_id = $3 AND withdrawal_request_id = $4 AND type = $5 AND status = $6`,
+                [
+                    TransactionStatus.COMPLETED, 
+                    `Withdrawal processed: ${reference}`,
+                    request.user_id, 
+                    requestId,
+                    TransactionType.WITHDRAWAL,
+                    TransactionStatus.PENDING
+                ]
+            );
+            
+            // Deduct held balance
+            await client.query(
+                `UPDATE user_balances
+                 SET held_balance = held_balance - $1,
+                     updated_at = NOW()
+                 WHERE user_id = $2`,
+                [request.amount, request.user_id]
+            );
+
+            // Notify user
+            const userRes = await client.query('SELECT email, name FROM users WHERE id = $1', [request.user_id]);
+            if (userRes.rows.length > 0) {
+                 const { email, name } = userRes.rows[0];
+                 try {
+                     await emailService.sendWithdrawalProcessedEmail(
+                        email, 
+                        name, 
+                        request.amount, 
+                        request.currency, 
+                        'completed', 
+                        reference
+                    );
+                 } catch (e) {
+                     logger.warn('Failed to send processed email', e);
+                 }
+            }
+
+            await client.query('COMMIT');
+            return { success: true };
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release();
+        }
+    }
+
+    async rejectWithdrawal(adminId, requestId, reason) {
+        const client = await this.pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            const res = await client.query(
+                `SELECT * FROM withdrawal_requests WHERE id = $1 FOR UPDATE`,
+                [requestId]
+            );
+            if (res.rows.length === 0) throw new Error('Request not found');
+            const request = res.rows[0];
+
+            if (request.status !== 'pending' || request.requires_verification) {
+                throw new Error('Request not eligible for rejection');
+            }
+
+            // Update request status
+            await client.query(
+                `UPDATE withdrawal_requests 
+                 SET status = 'rejected', 
+                     processed_at = NOW(), 
+                     processed_by = $1,
+                     rejection_reason = $2
+                 WHERE id = $3`,
+                [adminId, reason, requestId]
+            );
+
+            // Update balance transaction
+            await client.query(
+                `UPDATE balance_transactions
+                 SET status = $1, description = $2
+                 WHERE user_id = $3 AND withdrawal_request_id = $4 AND type = $5 AND status = $6`,
+                [
+                    TransactionStatus.FAILED, 
+                    `Withdrawal rejected: ${reason}`,
+                    request.user_id, 
+                    requestId,
+                    TransactionType.WITHDRAWAL,
+                    TransactionStatus.PENDING
+                ]
+            );
+            
+            // Refund held balance back to available
+            await client.query(
+                `UPDATE user_balances
+                 SET held_balance = held_balance - $1,
+                     available_balance = available_balance + $1,
+                     lifetime_withdrawals = lifetime_withdrawals - $1,
+                     updated_at = NOW()
+                 WHERE user_id = $2`,
+                [request.amount, request.user_id]
+            );
+
+            // Notify user
+            const userRes = await client.query('SELECT email, name FROM users WHERE id = $1', [request.user_id]);
+            if (userRes.rows.length > 0) {
+                 const { email, name } = userRes.rows[0];
+                 try {
+                     await emailService.sendWithdrawalProcessedEmail(
+                        email, 
+                        name, 
+                        request.amount, 
+                        request.currency, 
+                        'rejected', 
+                        reason
+                    );
+                 } catch (e) {
+                     logger.warn('Failed to send processed email', e);
+                 }
+            }
+
+            await client.query('COMMIT');
+            return { success: true };
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release();
+        }
+    }
+
+    async cancelWithdrawal(dto) {
+        const client = await this.pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            const res = await client.query(
+                `SELECT * FROM withdrawal_requests WHERE id = $1 FOR UPDATE`,
+                [dto.withdrawalRequestId]
+            );
+
+            if (res.rows.length === 0) {
+                throw new Error('Withdrawal request not found');
+            }
+
+            const request = res.rows[0];
+
+            if (String(request.user_id) !== String(dto.userId)) {
+                throw new Error('Unauthorized withdrawal cancellation');
+            }
+
+            if (request.status !== 'pending') {
+                throw new Error('Withdrawal request is not pending');
+            }
+
+            const amount = parseFloat(request.amount);
+            if (!amount || amount <= 0) {
+                throw new Error('Invalid withdrawal amount');
+            }
+
+            if (request.requires_verification) {
+                await client.query(
+                    `UPDATE withdrawal_requests
+                     SET status = 'cancelled',
+                         updated_at = NOW()
+                     WHERE id = $1`,
+                    [dto.withdrawalRequestId]
+                );
+            } else {
+                const reason = dto.reason || 'Cancelled by user';
+
+                await client.query(
+                    `UPDATE withdrawal_requests
+                     SET status = 'cancelled',
+                         processed_at = NOW(),
+                         processed_by = $1,
+                         rejection_reason = $2,
+                         updated_at = NOW()
+                     WHERE id = $3`,
+                    [dto.userId, reason, dto.withdrawalRequestId]
+                );
+
+                await client.query(
+                    `UPDATE balance_transactions
+                     SET status = $1,
+                         description = $2,
+                         updated_at = NOW()
+                     WHERE user_id = $3
+                       AND withdrawal_request_id = $4
+                       AND type = $5
+                       AND status = $6`,
+                    [
+                        TransactionStatus.CANCELLED,
+                        `Withdrawal cancelled by user: ${reason}`,
+                        request.user_id,
+                        dto.withdrawalRequestId,
+                        TransactionType.WITHDRAWAL,
+                        TransactionStatus.PENDING
+                    ]
+                );
+
+                await client.query(
+                    `UPDATE user_balances
+                     SET held_balance = held_balance - $1,
+                         available_balance = available_balance + $1,
+                         lifetime_withdrawals = lifetime_withdrawals - $1,
+                         updated_at = NOW()
+                     WHERE user_id = $2`,
+                    [amount, request.user_id]
+                );
+            }
+
+            await client.query('COMMIT');
+            const balance = await this.getBalance(request.user_id);
+            return { balance };
+        } catch (error) {
+            await client.query('ROLLBACK');
+            logger.error('Cancel withdrawal failed', error);
             throw error;
         } finally {
             client.release();

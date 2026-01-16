@@ -21,6 +21,14 @@ export { platformReviewsSchema } from './platform_reviews';
 export { paymentsSchema } from './payments';
 export { notificationsSchema } from './notifications';
 
+// Balance tables
+export {
+    userBalancesSchema,
+    balanceTransactionsSchema,
+    withdrawalRequestsSchema,
+    balanceHoldsSchema
+} from './balance';
+
 // Tracking and messaging
 export {
     messagesSchema,
@@ -58,6 +66,12 @@ import { bidsSchema } from './bids';
 import { platformReviewsSchema, platformReviewVotesSchema, platformReviewFlagsSchema } from './platform_reviews';
 import { paymentsSchema, walletPaymentsSchema } from './payments';
 import { notificationsSchema } from './notifications';
+import {
+    userBalancesSchema,
+    balanceTransactionsSchema,
+    withdrawalRequestsSchema,
+    balanceHoldsSchema
+} from './balance';
 import {
     messagesSchema,
     locationUpdatesSchema,
@@ -98,6 +112,13 @@ export const allSchemas = [
     walletPaymentsSchema,
     notificationsSchema,
     platformReviewsSchema,
+    
+    // Balance tables (depend on users + orders)
+    userBalancesSchema,
+    balanceTransactionsSchema,
+    withdrawalRequestsSchema,
+    balanceHoldsSchema,
+
     platformReviewVotesSchema,
     platformReviewFlagsSchema,
     messagesSchema,

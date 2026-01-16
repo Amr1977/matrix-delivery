@@ -38,6 +38,7 @@ export interface BalanceTransaction {
     status: TransactionStatus;
     description: string;
     orderId?: number;
+    withdrawalRequestId?: number;
     createdAt: string;
 }
 
@@ -67,6 +68,18 @@ export interface WithdrawalRequest {
     destination: string;
     description: string;
     metadata?: Record<string, any>;
+}
+
+export interface WithdrawalInitiationResponse {
+    withdrawalRequestId: number;
+    balance: UserBalance;
+}
+
+export interface WithdrawalVerificationResponse {
+    transactionId: string;
+    amount: number;
+    balanceAfter: number;
+    balance: UserBalance;
 }
 
 export interface TransactionFilters {
@@ -127,4 +140,25 @@ export interface TransactionHistoryResponse {
         offset: number;
         hasMore: boolean;
     };
+}
+
+export interface AdminWithdrawalRequest {
+    id: number;
+    requestNumber: string;
+    userId: string;
+    userName?: string;
+    userEmail?: string;
+    amount: number;
+    currency: string;
+    withdrawalMethod: string;
+    destinationType: string;
+    destinationDetails: Record<string, any>;
+    status: string;
+    createdAt: string;
+    verifiedAt?: string;
+}
+
+export interface AdminWithdrawalListResponse {
+    requests: AdminWithdrawalRequest[];
+    total: number;
 }

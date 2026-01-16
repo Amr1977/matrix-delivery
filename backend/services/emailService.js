@@ -18,22 +18,18 @@ class EmailService {
     if (this.isInitialized) return;
 
     try {
-      // For development, we'll use a simple console logger
-      // In production, you'd want to use a real SMTP service like SendGrid, Mailgun, etc.
       if (process.env.NODE_ENV === 'production') {
-        // Production email configuration
-        this.transporter = nodemailer.createTransporter({
+        this.transporter = nodemailer.createTransport({
           host: process.env.SMTP_HOST,
           port: process.env.SMTP_PORT || 587,
-          secure: false, // true for 465, false for other ports
+          secure: false,
           auth: {
             user: process.env.SMTP_USER,
             pass: process.env.SMTP_PASS,
           },
         });
       } else {
-        // Development configuration - logs to console
-        this.transporter = nodemailer.createTransporter({
+        this.transporter = nodemailer.createTransport({
           host: 'smtp.ethereal.email',
           port: 587,
           secure: false,
@@ -178,9 +174,6 @@ class EmailService {
     }
   }
 
-  /**
-   * Send email verification (for future use)
-   */
   async sendEmailVerification(email, name, verificationToken) {
     if (!this.isInitialized) {
       this.initialize();
@@ -246,12 +239,154 @@ class EmailService {
    */
   close() {
     if (this.transporter) {
-      this.transporter.close();
+        this.transporter.close();
       this.transporter = null;
       this.isInitialized = false;
+    }
+  }
+
+  async sendWithdrawalPinEmail(email, name, pinCode, details) {
+    if (!this.isInitialized) {
+      this.initialize();
+    }
+
+    const amountText = details && details.amount != null ? `${details.amount.toFixed ? details.amount.toFixed(2) : Number(details.amount).toFixed(2)} ${details.currency || 'EGP'}` : '';
+    const destinationText = details && details.destination ? details.destination : '';
+
+    const mailOptions = {
+      from: process.env.FROM_EMAIL || 'noreply@matrix-delivery.com',
+      to: email,
+      subject: 'Confirm Your Withdrawal Request',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #333;">Confirm Your Withdrawal</h2>
+          <p>Hello ${name},</p>
+          <p>You requested a withdrawal${amountText ? ` of <strong>${amountText}</strong>` : ''}${destinationText ? ` to <strong>${destinationText}</strong>` : ''}.</p>
+          <p>To confirm this withdrawal, please use the PIN code below in the Matrix Delivery app:</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <div style="display: inline-block; padding: 12px 24px; border-radius: 4px; background-color: #111827; color: #ffffff; font-size: 24px; letter-spacing: 4px; font-weight: bold;">
+              ${pinCode}
+            </div>
+          </div>
+          <p>This PIN is valid for 15 minutes. If you did not request this withdrawal, please ignore this email and consider changing your account password.</p>
+          <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+          <p style="color: #666; font-size: 12px;">This email was sent by Matrix Delivery. Please do not reply to this email.</p>
+        </div>
+      `,
+      text: `
+        Hello ${name},
+
+        You requested a withdrawal${amountText ? ` of ${amountText}` : ''}${destinationText ? ` to ${destinationText}` : ''}.
+
+        To confirm this withdrawal, use this PIN code in the Matrix Delivery app:
+
+        ${pinCode}
+
+        This PIN is valid for 15 minutes. If you did not request this withdrawal, please ignore this email and consider changing your password.
+
+        This email was sent by Matrix Delivery.
+      `
+    };
+
+    try {
+      if (this.transporter) {
+        await this.transporter.sendMail(mailOptions);
+      } else {
+        logger.warn('Withdrawal PIN email skipped, transporter not initialized', {
+          category: 'email',
+          to: email
+        });
+      }
+
+      if (process.env.NODE_ENV !== 'production') {
+        logger.info('Withdrawal PIN email debug info', {
+          category: 'email',
+          to: email,
+          pin: pinCode,
+          amount: amountText,
+          destination: destinationText
+        });
+      }
+
+      return { success: true };
+    } catch (error) {
+      logger.error(`Failed to send withdrawal PIN email: ${error.message}`, {
+        category: 'email',
+        error: error.message,
+        to: email
+      });
+      throw new Error('Failed to send withdrawal PIN email');
+    }
+  }
+
+  async sendWithdrawalProcessedEmail(email, name, amount, currency, status, reasonOrReference) {
+    if (!this.isInitialized) {
+      this.initialize();
+    }
+
+    const amountText = `${parseFloat(amount).toFixed(2)} ${currency || 'EGP'}`;
+    const isCompleted = status === 'completed';
+    const subject = isCompleted ? 'Withdrawal Request Processed' : 'Withdrawal Request Rejected';
+    
+    let messageBody = '';
+    if (isCompleted) {
+        messageBody = `
+          <p>Your withdrawal request for <strong>${amountText}</strong> has been processed successfully.</p>
+          <p>Transaction Reference: <strong>${reasonOrReference}</strong></p>
+          <p>The funds should reflect in your account shortly.</p>
+        `;
+    } else {
+        messageBody = `
+          <p>Your withdrawal request for <strong>${amountText}</strong> has been rejected.</p>
+          <p>Reason: ${reasonOrReference}</p>
+          <p>The amount has been refunded to your available balance.</p>
+        `;
+    }
+
+    const mailOptions = {
+      from: process.env.FROM_EMAIL || 'noreply@matrix-delivery.com',
+      to: email,
+      subject: subject,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #333;">${subject}</h2>
+          <p>Hello ${name},</p>
+          ${messageBody}
+          <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+          <p style="color: #666; font-size: 12px;">This email was sent by Matrix Delivery. Please do not reply to this email.</p>
+        </div>
+      `,
+      text: `
+        Hello ${name},
+
+        ${isCompleted ? `Your withdrawal request for ${amountText} has been processed successfully. Transaction Reference: ${reasonOrReference}` : `Your withdrawal request for ${amountText} has been rejected. Reason: ${reasonOrReference}. The amount has been refunded to your available balance.`}
+
+        This email was sent by Matrix Delivery.
+      `
+    };
+
+    try {
+      if (process.env.NODE_ENV === 'production') {
+        await this.transporter.sendMail(mailOptions);
+      } else {
+        logger.info('Withdrawal processed email would be sent', {
+          category: 'email',
+          to: email,
+          status: status,
+          amount: amountText
+        });
+      }
+
+      return { success: true };
+    } catch (error) {
+      logger.error(`Failed to send withdrawal processed email: ${error.message}`, {
+        category: 'email',
+        error: error.message,
+        to: email
+      });
+      // Don't throw, just log
     }
   }
 }
 
 module.exports = new EmailService();
-

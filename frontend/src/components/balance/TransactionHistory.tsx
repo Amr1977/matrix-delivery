@@ -15,7 +15,7 @@ interface TransactionHistoryProps {
 
 const TransactionHistory: React.FC<TransactionHistoryProps> = ({ userId }) => {
     const navigate = useNavigate();
-    const { transactions, loading, error, fetchTransactions } = useBalance();
+    const { transactions, loading, error, fetchTransactions, cancelWithdrawal } = useBalance();
     const [filters, setFilters] = useState<TransactionFilters>({
         limit: 20,
         offset: 0
@@ -117,6 +117,18 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ userId }) => {
 
     const formatCurrency = (amount: number, currency: string = 'EGP') => {
         return `${amount.toFixed(2)} ${currency}`;
+    };
+
+    const handleCancelWithdrawal = async (transactionId: number, withdrawalRequestId?: number) => {
+        if (!withdrawalRequestId) {
+            return;
+        }
+        const confirmed = window.confirm('Are you sure you want to cancel this withdrawal request?');
+        if (!confirmed) {
+            return;
+        }
+        await cancelWithdrawal(userId, withdrawalRequestId, 'Cancelled from transaction history');
+        await loadTransactions();
     };
 
     const filteredTransactions = transactions.filter(t =>
@@ -234,6 +246,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ userId }) => {
                             <div className="col-amount">Amount</div>
                             <div className="col-status">Status</div>
                             <div className="col-balance">Balance After</div>
+                            <div className="col-actions">Actions</div>
                         </div>
 
                         <div className="table-body" data-testid="table-body">
@@ -272,6 +285,17 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ userId }) => {
                                         </div>
                                         <div className="col-balance">
                                             {formatCurrency(transaction.balanceAfter, transaction.currency)}
+                                        </div>
+                                        <div className="col-actions">
+                                            {transaction.type === 'withdrawal' && transaction.status === 'pending' && (
+                                                <button
+                                                    className="cancel-withdrawal-btn"
+                                                    onClick={() => handleCancelWithdrawal(transaction.id, transaction.withdrawalRequestId)}
+                                                    data-testid="cancel-withdrawal-button"
+                                                >
+                                                    Cancel
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
                                 );

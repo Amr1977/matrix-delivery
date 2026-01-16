@@ -10,7 +10,8 @@ import type {
     BalanceTransaction,
     TransactionFilters,
     BalanceStatement,
-    TransactionHistoryResponse
+    TransactionHistoryResponse,
+    WithdrawalInitiationResponse
 } from '../types/balance';
 
 interface UseBalanceReturn {
@@ -23,7 +24,23 @@ interface UseBalanceReturn {
     // Actions
     fetchBalance: (userId: number) => Promise<void>;
     deposit: (userId: number, amount: number, description: string) => Promise<void>;
-    withdraw: (userId: number, amount: number, destination: string, description: string) => Promise<void>;
+    withdraw: (
+        userId: number,
+        amount: number,
+        destination: string,
+        description: string,
+        metadata?: Record<string, any>
+    ) => Promise<WithdrawalInitiationResponse>;
+    verifyWithdrawal: (
+        userId: number,
+        withdrawalRequestId: number,
+        code: string
+    ) => Promise<void>;
+    cancelWithdrawal: (
+        userId: number,
+        withdrawalRequestId: number,
+        reason?: string
+    ) => Promise<void>;
     fetchTransactions: (userId: number, filters?: TransactionFilters) => Promise<void>;
     generateStatement: (userId: number, startDate: string, endDate: string) => Promise<void>;
     refreshBalance: () => Promise<void>;
@@ -90,15 +107,18 @@ export const useBalance = (): UseBalanceReturn => {
         userId: number,
         amount: number,
         destination: string,
-        description: string
+        description: string,
+        metadata?: Record<string, any>
     ) => {
         setLoading(true);
         setError(null);
 
         try {
-            await balanceApi.withdraw({ userId, amount, destination, description });
-            // Refresh balance after successful withdrawal
-            await fetchBalance(userId);
+            const result = await balanceApi.withdraw({ userId, amount, destination, description, metadata });
+            if (result.balance) {
+                setBalance(result.balance);
+            }
+            return result;
         } catch (err: any) {
             const errorMessage = err.response?.data?.error || err.message || 'Failed to withdraw funds';
             setError(errorMessage);
@@ -107,7 +127,54 @@ export const useBalance = (): UseBalanceReturn => {
         } finally {
             setLoading(false);
         }
-    }, [fetchBalance]);
+    }, []);
+
+    /**
+     * Verify withdrawal with PIN code
+     */
+    const verifyWithdrawal = useCallback(async (
+        userId: number,
+        withdrawalRequestId: number,
+        code: string
+    ) => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            const result = await balanceApi.verifyWithdrawal(userId, withdrawalRequestId, code);
+            if (result.balance) {
+                setBalance(result.balance);
+            }
+        } catch (err: any) {
+            const errorMessage = err.response?.data?.error || err.message || 'Failed to verify withdrawal';
+            setError(errorMessage);
+            console.error('Error verifying withdrawal:', err);
+            throw new Error(errorMessage);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const cancelWithdrawal = useCallback(async (
+        userId: number,
+        withdrawalRequestId: number,
+        reason?: string
+    ) => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            const updatedBalance = await balanceApi.cancelWithdrawal(userId, withdrawalRequestId, reason);
+            setBalance(updatedBalance);
+        } catch (err: any) {
+            const errorMessage = err.response?.data?.error || err.message || 'Failed to cancel withdrawal';
+            setError(errorMessage);
+            console.error('Error cancelling withdrawal:', err);
+            throw new Error(errorMessage);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
 
     /**
      * Fetch transaction history
@@ -180,6 +247,8 @@ export const useBalance = (): UseBalanceReturn => {
         fetchBalance,
         deposit,
         withdraw,
+        verifyWithdrawal,
+        cancelWithdrawal,
         fetchTransactions,
         generateStatement,
         refreshBalance,

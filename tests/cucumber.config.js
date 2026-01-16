@@ -1,6 +1,6 @@
 module.exports = {
     default: {
-        requireModule: ['ts-node/register'],
+        requireModule: ['ts-node/register/transpile-only'],
         require: [
             'tests/step_definitions/**/*.{ts,js}',
             'tests/support/**/*.{ts,js}'
@@ -20,7 +20,7 @@ module.exports = {
     },
     // Backend API tests
     'backend-api': {
-        requireModule: ['ts-node/register'],
+        requireModule: ['ts-node/register/transpile-only'],
         require: ['tests/step_definitions/api/**/*.{ts,js}', 'tests/support/**/*.{ts,js}'],
         paths: ['tests/features/backend/**/*.feature', 'tests/features/shared/**/*.feature'],
         format: ['progress-bar', 'html:tests/reports/backend-api-report.html'],
@@ -28,7 +28,7 @@ module.exports = {
     },
     // Frontend UI tests
     'frontend-ui': {
-        requireModule: ['ts-node/register'],
+        requireModule: ['ts-node/register/transpile-only'],
         require: ['tests/step_definitions/ui/**/*.{ts,js}', 'tests/step_definitions/e2e/**/*.{ts,js}', 'tests/support/**/*.{ts,js}'],
         paths: ['tests/features/frontend/**/*.feature', 'tests/features/shared/**/*.feature'],
         format: ['progress-bar', 'html:tests/reports/frontend-ui-report.html'],

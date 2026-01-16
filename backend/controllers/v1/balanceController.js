@@ -102,7 +102,35 @@ class BalanceController {
                 description: req.body.description,
                 metadata: req.body.metadata
             });
+            const data = {
+                withdrawalRequestId: result.withdrawalRequestId,
+                balance: this.toBalanceResponse(result.balance)
+            };
+            if (process.env.NODE_ENV && process.env.NODE_ENV !== 'production' && result.verificationCodeDebug) {
+                data.verificationCodeDebug = result.verificationCodeDebug;
+            }
             res.status(201).json({
+                success: true,
+                data,
+                message: 'Verification code sent to your email'
+            });
+        } catch (error) {
+            if (error.message && error.message.includes('frozen')) return sendError(res, 403, error.message);
+            if (error.message && error.message.includes('limit')) return sendError(res, 400, error.message);
+            if (error.message && error.message.includes('Insufficient')) return sendError(res, 400, error.message);
+            return sendError(res, 500, error.message);
+        }
+    };
+
+    // POST /api/v1/balance/withdraw/:id/verify
+    verifyWithdrawal = async (req, res, next) => {
+        try {
+            const result = await this.balanceService.verifyWithdrawal({
+                userId: req.body.userId,
+                withdrawalRequestId: req.params.id || req.body.withdrawalRequestId,
+                code: req.body.code
+            });
+            res.status(200).json({
                 success: true,
                 data: {
                     transactionId: result.transaction.transactionId,
@@ -110,10 +138,75 @@ class BalanceController {
                     balanceAfter: result.transaction.balanceAfter,
                     balance: this.toBalanceResponse(result.balance)
                 },
-                message: 'Withdrawal successful'
+                message: 'Withdrawal request confirmed'
             });
         } catch (error) {
+            if (error.message && error.message.includes('Unauthorized')) return sendError(res, 403, error.message);
+            if (error.message && (error.message.includes('Invalid verification code') || error.message.includes('expired'))) {
+                return sendError(res, 400, error.message);
+            }
             if (error.message && error.message.includes('Insufficient')) return sendError(res, 400, error.message);
+            return sendError(res, 500, error.message);
+        }
+    };
+
+    // GET /api/v1/balance/admin/withdrawals
+    getPendingWithdrawals = async (req, res, next) => {
+        try {
+            const { limit, offset } = req.query;
+            const result = await this.balanceService.getPendingWithdrawals({
+                limit: limit ? parseInt(limit) : undefined,
+                offset: offset ? parseInt(offset) : undefined
+            });
+            res.status(200).json({
+                success: true,
+                data: result
+            });
+        } catch (error) {
+            return sendError(res, 500, error.message);
+        }
+    };
+
+    // POST /api/v1/balance/admin/withdrawals/:id/approve
+    approveWithdrawal = async (req, res, next) => {
+        try {
+            const { reference } = req.body;
+            if (!reference) return sendError(res, 400, 'Transaction reference is required');
+            
+            // In a real app, req.user.id would come from the auth middleware
+            // Assuming req.user is populated
+            const adminId = req.user ? req.user.id : null;
+
+            await this.balanceService.approveWithdrawal(adminId, req.params.id, reference);
+            
+            res.status(200).json({
+                success: true,
+                message: 'Withdrawal approved successfully'
+            });
+        } catch (error) {
+            if (error.message === 'Request not found') return sendError(res, 404, error.message);
+            if (error.message === 'Request not eligible for approval') return sendError(res, 400, error.message);
+            return sendError(res, 500, error.message);
+        }
+    };
+
+    // POST /api/v1/balance/admin/withdrawals/:id/reject
+    rejectWithdrawal = async (req, res, next) => {
+        try {
+            const { reason } = req.body;
+            if (!reason) return sendError(res, 400, 'Rejection reason is required');
+
+            const adminId = req.user ? req.user.id : null;
+
+            await this.balanceService.rejectWithdrawal(adminId, req.params.id, reason);
+            
+            res.status(200).json({
+                success: true,
+                message: 'Withdrawal rejected successfully'
+            });
+        } catch (error) {
+            if (error.message === 'Request not found') return sendError(res, 404, error.message);
+            if (error.message === 'Request not eligible for rejection') return sendError(res, 400, error.message);
             return sendError(res, 500, error.message);
         }
     };
@@ -164,6 +257,40 @@ class BalanceController {
                 return sendError(res, 400, error.message);
             }
             return sendError(res, 500, error.message || 'Failed to retrieve transaction history');
+        }
+    };
+
+    // POST /api/v1/balance/withdraw/:id/cancel
+    cancelWithdrawal = async (req, res, next) => {
+        try {
+            const userId = req.body.userId;
+            const withdrawalRequestId = req.params.id || req.body.withdrawalRequestId;
+            const reason = req.body.reason;
+
+            const result = await this.balanceService.cancelWithdrawal({
+                userId,
+                withdrawalRequestId,
+                reason
+            });
+
+            res.status(200).json({
+                success: true,
+                data: {
+                    balance: this.toBalanceResponse(result.balance)
+                },
+                message: 'Withdrawal request cancelled'
+            });
+        } catch (error) {
+            if (error.message && error.message.includes('Unauthorized')) {
+                return sendError(res, 403, error.message);
+            }
+            if (error.message && error.message.includes('not pending')) {
+                return sendError(res, 400, error.message);
+            }
+            if (error.message && error.message.includes('not found')) {
+                return sendError(res, 404, error.message);
+            }
+            return sendError(res, 500, error.message || 'Failed to cancel withdrawal');
         }
     };
 }

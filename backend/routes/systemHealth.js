@@ -161,7 +161,7 @@ const stopCollector = () => {
 };
 
 // Start collector when this module is loaded
-if (process.env.NODE_ENV !== 'testing') {
+if (process.env.NODE_ENV !== 'testing' && process.env.NODE_ENV !== 'test') {
     startCollector();
 }
 

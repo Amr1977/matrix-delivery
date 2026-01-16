@@ -7,6 +7,7 @@ DROP TABLE IF EXISTS logs CASCADE;
 DROP TABLE IF EXISTS user_payment_methods CASCADE;
 DROP TABLE IF EXISTS balance_holds CASCADE;
 DROP TABLE IF EXISTS balance_transactions CASCADE;
+DROP TABLE IF EXISTS withdrawal_requests CASCADE;
 DROP TABLE IF EXISTS user_balances CASCADE;
 DROP TABLE IF EXISTS payments CASCADE;
 DROP TABLE IF EXISTS reviews CASCADE;
@@ -235,6 +236,29 @@ CREATE TABLE balance_transactions (
     processed_by VARCHAR(255),
     processing_method VARCHAR(255),
     processed_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP
+);
+
+-- Withdrawal requests table
+CREATE TABLE withdrawal_requests (
+    id SERIAL PRIMARY KEY,
+    request_number VARCHAR(50) UNIQUE NOT NULL,
+    user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    amount DECIMAL(20, 2) NOT NULL,
+    currency VARCHAR(10) DEFAULT 'EGP' NOT NULL,
+    withdrawal_method VARCHAR(30) NOT NULL,
+    destination_type VARCHAR(30) NOT NULL,
+    destination_details JSONB NOT NULL,
+    status VARCHAR(20) DEFAULT 'pending' NOT NULL,
+    requires_verification BOOLEAN DEFAULT TRUE,
+    verification_code VARCHAR(10),
+    verification_sent_at TIMESTAMP,
+    verified_at TIMESTAMP,
+    processed_at TIMESTAMP,
+    processed_by VARCHAR(255),
+    transaction_reference VARCHAR(255),
+    rejection_reason TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP
 );

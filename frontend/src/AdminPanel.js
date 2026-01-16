@@ -7,6 +7,7 @@ import SystemHealthDashboard from './components/admin/SystemHealthDashboard';
 import { AdminPaymentsPanel } from './components/admin';
 import AdminSideMenu from './components/admin/AdminSideMenu';
 import { AdminWalletsPanel } from './components/admin/AdminWalletsPanel';
+import { AdminWithdrawalsPanel } from './components/admin/AdminWithdrawalsPanel';
 
 const AdminPanel = ({ onClose }) => {
   const API_URL = process.env.REACT_APP_API_URL;
@@ -16,6 +17,7 @@ const AdminPanel = ({ onClose }) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [sideMenuCollapsed, setSideMenuCollapsed] = useState(false);
   const [pendingTopupCount, setPendingTopupCount] = useState(0);
+  const [pendingWithdrawalCount, setPendingWithdrawalCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
@@ -275,6 +277,7 @@ const AdminPanel = ({ onClose }) => {
         activeItem={activeTab}
         onItemSelect={handleMenuItemSelect}
         pendingTopupCount={pendingTopupCount}
+        pendingWithdrawalCount={pendingWithdrawalCount}
         collapsed={sideMenuCollapsed}
         onToggleCollapse={handleToggleCollapse}
       />
@@ -445,6 +448,12 @@ const AdminPanel = ({ onClose }) => {
         {activeTab === 'payments-topups' && (
           <div>
             <AdminPaymentsPanel onPendingCountChange={setPendingTopupCount} />
+          </div>
+        )}
+
+        {activeTab === 'payments-withdrawals' && (
+          <div>
+            <AdminWithdrawalsPanel onPendingCountChange={setPendingWithdrawalCount} />
           </div>
         )}
 
