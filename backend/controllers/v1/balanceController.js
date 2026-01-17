@@ -3,6 +3,7 @@
  */
 
 const { BalanceService } = require('../../services/balanceService');
+const { getNotificationService } = require('../../services/notificationService');
 const pool = require('../../config/db');
 
 // Simple error helpers equivalent to ApiError classes
@@ -17,6 +18,15 @@ const sendError = (res, code, message) => {
 class BalanceController {
     constructor() {
         this.balanceService = new BalanceService(pool);
+        let notificationService = null;
+        try {
+            notificationService = getNotificationService();
+        } catch (error) {
+            notificationService = null;
+        }
+        if (notificationService && typeof this.balanceService.setNotificationService === 'function') {
+            this.balanceService.setNotificationService(notificationService);
+        }
     }
 
     // Helper to format balance response
