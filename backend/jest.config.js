@@ -31,4 +31,5 @@ module.exports = {
     transformIgnorePatterns: [
         'node_modules/(?!(supertest)/)',
     ],
+    globalTeardown: '<rootDir>/jest.teardown.js',
 };
