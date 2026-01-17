@@ -15,9 +15,16 @@ const { PAYMENT_CONFIG } = require('../config/paymentConfig.js');
 const logger = require('../config/logger');
 const emailService = require('./emailService');
 
+const WITHDRAWAL_PIN_REQUIRED = process.env.WITHDRAWAL_PIN_REQUIRED !== 'false';
+
 class BalanceService {
     constructor(pool) {
         this.pool = pool;
+        this.notificationService = null;
+    }
+
+    setNotificationService(notificationService) {
+        this.notificationService = notificationService;
     }
 
     async getBalance(userId) {
@@ -268,6 +275,9 @@ class BalanceService {
 
             const pin = Math.floor(100000 + Math.random() * 900000).toString();
             const now = new Date();
+            const requiresVerification = WITHDRAWAL_PIN_REQUIRED;
+            const verificationCode = requiresVerification ? pin : null;
+            const verificationSentAt = requiresVerification ? now : null;
 
             const insertQuery = `
                 INSERT INTO withdrawal_requests (
@@ -295,9 +305,9 @@ class BalanceService {
                 destinationType,
                 JSON.stringify(destinationDetails),
                 'pending',
-                true,
-                pin,
-                now
+                requiresVerification,
+                verificationCode,
+                verificationSentAt
             ]);
 
             const requestId = insertResult.rows[0].id;
@@ -311,7 +321,22 @@ class BalanceService {
 
             await client.query('COMMIT');
 
-            if (userRow && userRow.email) {
+            if (!requiresVerification) {
+                const request = {
+                    id: requestId,
+                    user_id: dto.userId,
+                    amount,
+                    currency
+                };
+                this._notifyAdminsOfWithdrawal(request).catch(error => {
+                    logger.error('Failed to notify admins of new withdrawal', {
+                        error: error.message,
+                        requestId
+                    });
+                });
+            }
+
+            if (requiresVerification && userRow && userRow.email) {
                 try {
                     await emailService.sendWithdrawalPinEmail(
                         userRow.email,
@@ -336,7 +361,7 @@ class BalanceService {
                 withdrawalRequestId: requestId,
                 balance: updatedBalance
             };
-            if (process.env.NODE_ENV && process.env.NODE_ENV !== 'production') {
+            if (requiresVerification && process.env.NODE_ENV && process.env.NODE_ENV !== 'production') {
                 result.verificationCodeDebug = pin;
             }
             return result;
@@ -440,6 +465,18 @@ class BalanceService {
             await client.query('COMMIT');
 
             const updatedBalance = await this.getBalance(dto.userId);
+            const requestForNotification = {
+                id: dto.withdrawalRequestId,
+                user_id: dto.userId,
+                amount,
+                currency
+            };
+            this._notifyAdminsOfWithdrawal(requestForNotification).catch(error => {
+                logger.error('Failed to notify admins after withdrawal verification', {
+                    error: error.message,
+                    requestId: dto.withdrawalRequestId
+                });
+            });
             return {
                 transaction,
                 balance: updatedBalance
@@ -1342,6 +1379,42 @@ class BalanceService {
                 };
             }
             throw error;
+        }
+    }
+
+    async _notifyAdminsOfWithdrawal(request) {
+        if (!this.notificationService) {
+            return;
+        }
+
+        try {
+            const adminResult = await this.pool.query(
+                `SELECT id FROM users WHERE primary_role = 'admin' AND is_active = true`
+            );
+
+            const admins = adminResult.rows;
+            const amount = parseFloat(request.amount);
+            const currency = request.currency || DEFAULT_CURRENCY;
+
+            for (const admin of admins) {
+                await this.notificationService.createNotification({
+                    userId: admin.id,
+                    orderId: null,
+                    type: 'withdrawal_pending',
+                    title: 'New Withdrawal Request',
+                    message: `New withdrawal request of ${amount} ${currency} pending processing`
+                });
+            }
+
+            logger.info('Admin notifications sent for withdrawal request', {
+                requestId: request.id,
+                adminCount: admins.length
+            });
+        } catch (error) {
+            logger.error('Error notifying admins of withdrawal', {
+                error: error.message,
+                requestId: request.id
+            });
         }
     }
 }

@@ -18,8 +18,9 @@ class EmailService {
     if (this.isInitialized) return;
 
     try {
-      if (process.env.NODE_ENV === 'production') {
-        this.transporter = nodemailer.createTransport({
+      if (process.env.NODE_ENV === 'production' || process.env.SMTP_HOST) {
+        const allowSelfSigned = process.env.NODE_ENV !== 'production' && process.env.SMTP_ALLOW_SELF_SIGNED === 'true';
+        const transportOptions = {
           host: process.env.SMTP_HOST,
           port: process.env.SMTP_PORT || 587,
           secure: false,
@@ -27,7 +28,11 @@ class EmailService {
             user: process.env.SMTP_USER,
             pass: process.env.SMTP_PASS,
           },
-        });
+        };
+        if (allowSelfSigned) {
+          transportOptions.tls = { rejectUnauthorized: false };
+        }
+        this.transporter = nodemailer.createTransport(transportOptions);
       } else {
         this.transporter = nodemailer.createTransport({
           host: 'smtp.ethereal.email',
@@ -98,7 +103,8 @@ class EmailService {
     };
 
     try {
-      if (process.env.NODE_ENV === 'production') {
+      const shouldSend = process.env.NODE_ENV === 'production' || process.env.EMAIL_SEND_ENABLED === 'true';
+      if (shouldSend) {
         await this.transporter.sendMail(mailOptions);
       } else {
         // In development, just log the email
@@ -154,7 +160,8 @@ class EmailService {
     };
 
     try {
-      if (process.env.NODE_ENV === 'production') {
+      const shouldSend = process.env.NODE_ENV === 'production' || process.env.EMAIL_SEND_ENABLED === 'true';
+      if (shouldSend) {
         await this.transporter.sendMail(mailOptions);
       } else {
         logger.info('Welcome email would be sent', {
@@ -214,7 +221,8 @@ class EmailService {
     };
 
     try {
-      if (process.env.NODE_ENV === 'production') {
+      const shouldSend = process.env.NODE_ENV === 'production' || process.env.EMAIL_SEND_ENABLED === 'true';
+      if (shouldSend) {
         await this.transporter.sendMail(mailOptions);
       } else {
         logger.info('Email verification would be sent', {
@@ -366,7 +374,8 @@ class EmailService {
     };
 
     try {
-      if (process.env.NODE_ENV === 'production') {
+      const shouldSend = process.env.NODE_ENV === 'production' || process.env.EMAIL_SEND_ENABLED === 'true';
+      if (shouldSend) {
         await this.transporter.sendMail(mailOptions);
       } else {
         logger.info('Withdrawal processed email would be sent', {
