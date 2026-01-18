@@ -128,7 +128,23 @@ class ApiClient {
           duration: `${duration}ms`
         });
 
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        // Try to parse error as JSON to get friendly message
+        let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        try {
+          const errorJson = JSON.parse(errorText);
+          if (errorJson.error) {
+            errorMessage = errorJson.error;
+          } else if (errorJson.message) {
+            errorMessage = errorJson.message;
+          }
+        } catch (e) {
+          // If not JSON, use the raw text if it's short, otherwise fallback to status
+          if (errorText && errorText.length < 200) {
+            errorMessage = errorText;
+          }
+        }
+
+        throw new Error(errorMessage);
       }
 
       const responseData = await response.json();
