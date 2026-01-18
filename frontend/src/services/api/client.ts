@@ -85,12 +85,13 @@ export class ApiClient {
             const data = await response.json();
 
             // Handle error responses
+            // Handle error responses
             if (!response.ok) {
-                const error: ApiError = {
-                    error: data.error || `Request failed with status ${response.status}`,
-                    statusCode: response.status,
-                    details: data,
-                };
+                const errorMessage = data.error || data.message || `Request failed with status ${response.status}`;
+                const error: any = new Error(errorMessage);
+                error.error = errorMessage; // Backward compatibility for ApiError interface consumers
+                error.statusCode = response.status;
+                error.details = data;
                 throw error;
             }
 

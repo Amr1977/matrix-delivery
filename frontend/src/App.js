@@ -146,6 +146,7 @@ export const MainApp = () => {
   const [historyOrders, setHistoryOrders] = useState([]);
   const [historyPagination, setHistoryPagination] = useState(null);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyAttempted, setHistoryAttempted] = useState(false);
   const [uploadingProfilePicture, setUploadingProfilePicture] = useState(false);
 
   const optimizeAndUploadProfilePicture = async (file) => {
@@ -552,13 +553,15 @@ export const MainApp = () => {
       // If page 1, replace all history orders; otherwise append
       setHistoryOrders(prev => page === 1 ? data.orders : [...prev, ...data.orders]);
       setHistoryPagination(data.pagination);
+      setHistoryAttempted(true);
     } catch (err) {
       console.error('Error fetching history orders:', err.message);
       setError('Failed to load order history');
+      setHistoryAttempted(true);
     } finally {
       setHistoryLoading(false);
     }
-  }, [API_URL, token]);
+  }, [token]);
 
   const markNotificationRead = useCallback(async (notificationId) => {
     try {
@@ -638,7 +641,7 @@ export const MainApp = () => {
         driverHook.getDriverLocation();
         // Start continuous location updates
         driverHook.updateDriverLocation();
-      } else if (viewType === 'history') {
+      } else if (viewType === 'history' && !historyAttempted) {
         fetchHistoryOrders(1);
       }
     }
@@ -646,10 +649,10 @@ export const MainApp = () => {
 
   // Lazy load history orders when customer opens history tab
   useEffect(() => {
-    if (currentUser?.primary_role === 'customer' && viewType === 'history' && historyOrders?.length === 0 && !historyLoading) {
+    if (currentUser?.primary_role === 'customer' && viewType === 'history' && !historyAttempted && !historyLoading) {
       fetchHistoryOrders(1);
     }
-  }, [viewType, currentUser?.primary_role, historyOrders?.length, historyLoading, fetchHistoryOrders]);
+  }, [viewType, currentUser?.primary_role, historyAttempted, historyLoading, fetchHistoryOrders]);
 
   // Real-time notifications via WebSocket
   useEffect(() => {
@@ -692,6 +695,10 @@ export const MainApp = () => {
           next.add(notification.id);
           return next;
         });
+      }
+
+      if (notification.type === 'order_delivered' || notification.type === 'order_cancelled') {
+        setHistoryAttempted(false);
       }
 
       if (notification.type === 'new_bid' ||

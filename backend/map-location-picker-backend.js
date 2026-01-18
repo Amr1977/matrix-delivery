@@ -603,6 +603,15 @@ module.exports = (app, pool, jwt) => {
       const offset = (page - 1) * limit;
       const statusFilter = req.query.status; // Optional: 'delivered', 'cancelled', or both
 
+      logger.info('GET /api/orders/history request received', {
+        userId: req.user.userId,
+        role: (req.user.primary_role || req.user.role),
+        page,
+        limit,
+        statusFilter,
+        category: 'orders'
+      });
+
       // Build status condition
       let statusCondition = 'o.status IN (\'delivered\', \'cancelled\')';
       if (statusFilter === 'delivered') {

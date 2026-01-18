@@ -188,6 +188,22 @@ router.post('/', verifyToken, orderCreationRateLimit, async (req, res, next) => 
     const order = await orderService.createOrder(orderData, req.user.userId, req.user.name);
     res.status(201).json(order);
   } catch (error) {
+    logger.error(`Order creation error: ${error.message}`, {
+      userId: req.user.userId,
+      error: error.message,
+      category: 'error'
+    });
+
+    // Handle business logic errors
+    if (error.message.includes('Insufficient balance')) {
+      return res.status(400).json({ error: error.message });
+    }
+    if (error.message.includes('Order title is required') ||
+      error.message.includes('Order price must be greater than 0') ||
+      error.message.includes('Please set pickup and delivery locations')) {
+      return res.status(400).json({ error: error.message });
+    }
+
     next(error);
   }
 });
