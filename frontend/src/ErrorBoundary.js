@@ -1,5 +1,17 @@
 import React from 'react';
 import logger from './logger';
+import translations from './i18n/locales';
+
+// Get translation helper for class component (can't use hooks)
+const getTranslation = (key) => {
+  const locale = localStorage.getItem('locale') || 'en';
+  const keys = key.split('.');
+  let value = translations[locale];
+  for (const k of keys) {
+    value = value?.[k];
+  }
+  return value || key;
+};
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -24,6 +36,8 @@ class ErrorBoundary extends React.Component {
 
   render() {
     if (this.state.hasError) {
+      const t = getTranslation;
+
       return (
         <div style={{
           minHeight: '100vh',
@@ -78,7 +92,7 @@ class ErrorBoundary extends React.Component {
               marginBottom: '1rem',
               textShadow: '0 0 10px rgba(239, 68, 68, 0.6)'
             }}>
-              CRITICAL ERROR
+              {t('system.criticalError')}
             </h2>
 
             <p style={{
@@ -86,7 +100,7 @@ class ErrorBoundary extends React.Component {
               color: '#FECACA',
               marginBottom: '2rem'
             }}>
-              The system has encountered an unrecoverable exception.
+              {t('system.unrecoverableException')}
             </p>
 
             <button
@@ -104,13 +118,13 @@ class ErrorBoundary extends React.Component {
                 fontFamily: 'inherit'
               }}
             >
-              ↻ REBOOT SYSTEM
+              {t('system.rebootSystem')}
             </button>
 
             {process.env.NODE_ENV === 'development' && (
               <details style={{ marginTop: '2rem', textAlign: 'left', width: '100%' }}>
                 <summary style={{ cursor: 'pointer', color: '#F87171', marginBottom: '0.5rem' }}>
-                  Debug Trace
+                  {t('system.debugTrace')}
                 </summary>
                 <div style={{
                   background: 'rgba(0, 0, 0, 0.8)',

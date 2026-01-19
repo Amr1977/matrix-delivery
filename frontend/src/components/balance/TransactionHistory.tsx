@@ -6,6 +6,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBalance } from '../../hooks/useBalance';
+import { useI18n } from '../../i18n/i18nContext';
 import type { TransactionType, TransactionStatus, TransactionFilters } from '../../types/balance';
 import './TransactionHistory.css';
 
@@ -15,6 +16,7 @@ interface TransactionHistoryProps {
 
 const TransactionHistory: React.FC<TransactionHistoryProps> = ({ userId }) => {
     const navigate = useNavigate();
+    const { t, language } = useI18n();
     const { transactions, loading, error, fetchTransactions, cancelWithdrawal } = useBalance();
     const [filters, setFilters] = useState<TransactionFilters>({
         limit: 20,
@@ -97,16 +99,16 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ userId }) => {
 
     const getStatusBadge = (status: string) => {
         const badges: Record<string, { text: string; className: string; icon: string }> = {
-            completed: { text: 'Completed', className: 'status-completed', icon: '✓' },
-            pending: { text: 'Pending', className: 'status-pending', icon: '⏳' },
-            failed: { text: 'Failed', className: 'status-failed', icon: '✗' },
-            cancelled: { text: 'Cancelled', className: 'status-cancelled', icon: '⊘' }
+            completed: { text: t('transactionHistory.statusCompleted'), className: 'status-completed', icon: '✓' },
+            pending: { text: t('transactionHistory.statusPending'), className: 'status-pending', icon: '⏳' },
+            failed: { text: t('transactionHistory.statusFailed'), className: 'status-failed', icon: '✗' },
+            cancelled: { text: t('transactionHistory.statusCancelled'), className: 'status-cancelled', icon: '⊘' }
         };
         return badges[status] || { text: status, className: 'status-default', icon: '•' };
     };
 
     const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
+        return new Date(dateString).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US', {
             year: 'numeric',
             month: 'short',
             day: 'numeric',
@@ -123,11 +125,11 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ userId }) => {
         if (!withdrawalRequestId) {
             return;
         }
-        const confirmed = window.confirm('Are you sure you want to cancel this withdrawal request?');
+        const confirmed = window.confirm(t('transactionHistory.cancelConfirm'));
         if (!confirmed) {
             return;
         }
-        await cancelWithdrawal(userId, withdrawalRequestId, 'Cancelled from transaction history');
+        await cancelWithdrawal(userId, withdrawalRequestId, t('transactionHistory.cancelledFromHistory'));
         await loadTransactions();
     };
 
@@ -144,13 +146,13 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ userId }) => {
         <div className="transaction-history" data-testid="transaction-history">
             <div className="history-header" data-testid="history-header">
                 <button onClick={() => navigate(-1)} className="back-btn matrix-btn-ghost">
-                    ← Back
+                    ← {t('transactionHistory.back') || 'Back'}
                 </button>
                 <div className="header-title-group">
-                    <h1 data-testid="history-title">📊 Transaction History</h1>
+                    <h1 data-testid="history-title">{t('transactionHistory.title')}</h1>
                     <button className="export-btn" onClick={handleExportCSV} data-testid="export-csv-button">
                         <span className="btn-icon">📥</span>
-                        Export CSV
+                        {t('transactionHistory.exportCSV')}
                     </button>
                 </div>
             </div>
@@ -160,7 +162,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ userId }) => {
                     <span className="search-icon">🔍</span>
                     <input
                         type="text"
-                        placeholder="Search transactions..."
+                        placeholder={t('transactionHistory.searchPlaceholder')}
                         value={searchQuery}
                         onChange={(e) => handleSearch(e.target.value)}
                         data-testid="search-input"
@@ -173,13 +175,13 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ userId }) => {
                         onChange={(e) => handleFilterChange('type', e.target.value || undefined)}
                         data-testid="type-filter"
                     >
-                        <option value="">All Types</option>
-                        <option value="deposit">Deposit</option>
-                        <option value="withdrawal">Withdrawal</option>
-                        <option value="order_payment">Order Payment</option>
-                        <option value="order_refund">Order Refund</option>
-                        <option value="earnings">Earnings</option>
-                        <option value="commission_deduction">Commission</option>
+                        <option value="">{t('transactionHistory.allTypes')}</option>
+                        <option value="deposit">{t('transactionHistory.typeDeposit')}</option>
+                        <option value="withdrawal">{t('transactionHistory.typeWithdrawal')}</option>
+                        <option value="order_payment">{t('transactionHistory.typeOrderPayment')}</option>
+                        <option value="order_refund">{t('transactionHistory.typeOrderRefund')}</option>
+                        <option value="earnings">{t('transactionHistory.typeEarnings')}</option>
+                        <option value="commission_deduction">{t('transactionHistory.typeCommission')}</option>
                     </select>
 
                     <select
@@ -187,16 +189,16 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ userId }) => {
                         onChange={(e) => handleFilterChange('status', e.target.value || undefined)}
                         data-testid="status-filter"
                     >
-                        <option value="">All Statuses</option>
-                        <option value="completed">Completed</option>
-                        <option value="pending">Pending</option>
-                        <option value="failed">Failed</option>
-                        <option value="cancelled">Cancelled</option>
+                        <option value="">{t('transactionHistory.allStatuses')}</option>
+                        <option value="completed">{t('transactionHistory.statusCompleted')}</option>
+                        <option value="pending">{t('transactionHistory.statusPending')}</option>
+                        <option value="failed">{t('transactionHistory.statusFailed')}</option>
+                        <option value="cancelled">{t('transactionHistory.statusCancelled')}</option>
                     </select>
 
                     <input
                         type="date"
-                        placeholder="Start Date"
+                        placeholder={t('transactionHistory.startDate')}
                         value={filters.startDate || ''}
                         onChange={(e) => handleFilterChange('startDate', e.target.value || undefined)}
                         data-testid="start-date-filter"
@@ -204,7 +206,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ userId }) => {
 
                     <input
                         type="date"
-                        placeholder="End Date"
+                        placeholder={t('transactionHistory.endDate')}
                         value={filters.endDate || ''}
                         onChange={(e) => handleFilterChange('endDate', e.target.value || undefined)}
                         data-testid="end-date-filter"
@@ -212,7 +214,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ userId }) => {
 
                     {activeFiltersCount > 0 && (
                         <button className="clear-filters-btn" onClick={clearFilters} data-testid="clear-filters-button">
-                            Clear Filters ({activeFiltersCount})
+                            {t('transactionHistory.clearFilters')} ({activeFiltersCount})
                         </button>
                     )}
                 </div>
@@ -221,32 +223,32 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ userId }) => {
             {loading && !transactions.length ? (
                 <div className="loading-state" data-testid="loading-state">
                     <div className="spinner" data-testid="loading-spinner"></div>
-                    <p>Loading transactions...</p>
+                    <p>{t('transactionHistory.loading')}</p>
                 </div>
             ) : error ? (
                 <div className="error-state" data-testid="error-state">
                     <span className="error-icon">⚠️</span>
                     <p data-testid="error-message">{error}</p>
-                    <button onClick={loadTransactions} data-testid="retry-button">Retry</button>
+                    <button onClick={loadTransactions} data-testid="retry-button">{t('transactionHistory.retry')}</button>
                 </div>
             ) : filteredTransactions.length === 0 ? (
                 <div className="empty-state" data-testid="empty-state">
                     <span className="empty-icon">📭</span>
-                    <h3 data-testid="empty-title">No transactions found</h3>
-                    <p>Try adjusting your filters or search query</p>
+                    <h3 data-testid="empty-title">{t('transactionHistory.noTransactions')}</h3>
+                    <p>{t('transactionHistory.noTransactionsHint')}</p>
                 </div>
             ) : (
                 <>
                     <div className="transactions-table" data-testid="transactions-table">
                         <div className="table-header" data-testid="table-header">
                             <div className="col-icon"></div>
-                            <div className="col-type">Type</div>
-                            <div className="col-description">Description</div>
-                            <div className="col-date">Date</div>
-                            <div className="col-amount">Amount</div>
-                            <div className="col-status">Status</div>
-                            <div className="col-balance">Balance After</div>
-                            <div className="col-actions">Actions</div>
+                            <div className="col-type">{t('transactionHistory.type')}</div>
+                            <div className="col-description">{t('transactionHistory.description')}</div>
+                            <div className="col-date">{t('transactionHistory.date')}</div>
+                            <div className="col-amount">{t('transactionHistory.amount')}</div>
+                            <div className="col-status">{t('transactionHistory.status')}</div>
+                            <div className="col-balance">{t('transactionHistory.balanceAfter')}</div>
+                            <div className="col-actions">{t('transactionHistory.actions')}</div>
                         </div>
 
                         <div className="table-body" data-testid="table-body">
@@ -260,7 +262,12 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ userId }) => {
                                             </span>
                                         </div>
                                         <div className="col-type">
-                                            <span className="type-label">{transaction.type.replace(/_/g, ' ')}</span>
+                                            <span className="type-label">
+                                                {['deposit', 'withdrawal', 'order_payment', 'order_refund', 'earnings', 'commission_deduction'].includes(transaction.type)
+                                                    ? t(`transactionHistory.type${transaction.type.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('')}`)
+                                                    : transaction.type.replace(/_/g, ' ')
+                                                }
+                                            </span>
                                         </div>
                                         <div className="col-description">
                                             <span className="description-text">{transaction.description}</span>
@@ -293,7 +300,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ userId }) => {
                                                     onClick={() => handleCancelWithdrawal(transaction.id, transaction.withdrawalRequestId)}
                                                     data-testid="cancel-withdrawal-button"
                                                 >
-                                                    Cancel
+                                                    {t('transactionHistory.cancel')}
                                                 </button>
                                             )}
                                         </div>
@@ -310,7 +317,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ userId }) => {
                             disabled={currentPage === 1}
                             data-testid="previous-page-button"
                         >
-                            ← Previous
+                            ← {t('transactionHistory.previous')}
                         </button>
 
                         <div className="page-numbers" data-testid="page-numbers">
@@ -335,11 +342,11 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ userId }) => {
                             disabled={currentPage === totalPages}
                             data-testid="next-page-button"
                         >
-                            Next →
+                            {t('transactionHistory.next')} →
                         </button>
 
                         <div className="page-info" data-testid="page-info">
-                            Page {currentPage} of {totalPages}
+                            {t('transactionHistory.pageInfo').replace('{current}', currentPage.toString()).replace('{total}', totalPages.toString())}
                         </div>
                     </div>
                 </>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Package, Truck, Zap, Shield, Users, Play, Star, Map as MapIcon, Globe, Activity, Lock, TrendingUp, Menu, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useI18n } from '../i18n/i18nContext';
 
 interface Stats {
     totalCouriers: number;
@@ -27,6 +28,7 @@ interface RoadmapStepProps {
 
 const MatrixLanding: React.FC = () => {
     const navigate = useNavigate();
+    const { t } = useI18n();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [stats, setStats] = useState<Stats>({
         totalCouriers: 0,
@@ -86,14 +88,14 @@ const MatrixLanding: React.FC = () => {
 
                     {/* Desktop Navigation */}
                     <div className="flex items-center gap-6 hidden md:flex">
-                        <a href="#vision" className="text-[#A0AEC0] hover:text-[#00FF41] transition-colors">Vision</a>
-                        <a href="#stats" className="text-[#A0AEC0] hover:text-[#00FF41] transition-colors">Live Stats</a>
-                        <button onClick={() => navigate('/reviews')} className="text-[#A0AEC0] hover:text-[#00FF41] transition-colors">Reviews</button>
+                        <a href="#vision" className="text-[#A0AEC0] hover:text-[#00FF41] transition-colors">{t('landing.vision')}</a>
+                        <a href="#stats" className="text-[#A0AEC0] hover:text-[#00FF41] transition-colors">{t('landing.liveStats')}</a>
+                        <button onClick={() => navigate('/reviews')} className="text-[#A0AEC0] hover:text-[#00FF41] transition-colors">{t('landing.reviews')}</button>
                         <button
                             onClick={() => navigate('/login')}
                             className="px-6 py-2 bg-gradient-to-r from-[#00FF41] to-[#00F0FF] text-[#0A0E14] font-bold rounded-lg hover:shadow-[0_0_20px_rgba(0,255,65,0.4)] transition-all"
                         >
-                            Login
+                            {t('landing.login')}
                         </button>
                     </div>
 
@@ -116,14 +118,14 @@ const MatrixLanding: React.FC = () => {
                                 onClick={() => setMobileMenuOpen(false)}
                                 className="text-[#A0AEC0] hover:text-[#00FF41] transition-colors py-2"
                             >
-                                Vision
+                                {t('landing.vision')}
                             </a>
                             <a
                                 href="#stats"
                                 onClick={() => setMobileMenuOpen(false)}
                                 className="text-[#A0AEC0] hover:text-[#00FF41] transition-colors py-2"
                             >
-                                Live Stats
+                                {t('landing.liveStats')}
                             </a>
                             <button
                                 onClick={() => {
@@ -132,7 +134,7 @@ const MatrixLanding: React.FC = () => {
                                 }}
                                 className="text-[#A0AEC0] hover:text-[#00FF41] transition-colors text-left py-2"
                             >
-                                Reviews
+                                {t('landing.reviews')}
                             </button>
                             <button
                                 onClick={() => {
@@ -141,7 +143,7 @@ const MatrixLanding: React.FC = () => {
                                 }}
                                 className="px-6 py-3 bg-gradient-to-r from-[#00FF41] to-[#00F0FF] text-[#0A0E14] font-bold rounded-lg hover:shadow-[0_0_20px_rgba(0,255,65,0.4)] transition-all mt-2"
                             >
-                                Login
+                                {t('landing.login')}
                             </button>
                         </div>
                     </div>
@@ -155,28 +157,25 @@ const MatrixLanding: React.FC = () => {
 
                 <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
                     <div className="inline-block px-4 py-1 bg-[#00FF41]/10 border border-[#00FF41] rounded-full mb-8 animate-pulse">
-                        <span className="text-[#00FF41] text-sm font-semibold tracking-wider uppercase">Evolution Badge: Beta Phase</span>
+                        <span className="text-[#00FF41] text-sm font-semibold tracking-wider uppercase">{t('landing.evolutionBadge')}</span>
                     </div>
 
                     <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-                        Efficiency Unlocked. <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00FF41] to-[#00F0FF]">Justice Delivered.</span> <br />
-                        Transparency Guaranteed.
+                        {t('landing.heroTitle')}
                     </h1>
 
                     <p className="text-xl text-[#A0AEC0] mb-10 max-w-2xl mx-auto">
-                        The world's first decentralized logistics network powered by the people, for the people.
-                        Experience the freedom of peer-to-peer delivery.
+                        {t('landing.heroSubtitle')}
                     </p>
 
                     <div className="flex justify-center gap-4 flex-wrap">
                         <button onClick={() => navigate('/reviews')} className="px-8 py-4 bg-gradient-to-r from-[#00FF41] to-[#00F0FF] text-[#0A0E14] font-bold rounded-lg text-lg hover:shadow-[0_0_30px_rgba(0,255,65,0.5)] transition-all flex items-center gap-2">
                             <Star className="w-5 h-5" />
-                            Voice of the People
+                            {t('landing.voiceOfPeople')}
                         </button>
                         <button className="px-8 py-4 bg-[#131820] text-white font-bold rounded-lg text-lg border border-[#2A3142] hover:border-[#00FF41] hover:text-[#00FF41] transition-all flex items-center gap-2">
                             <Play className="w-5 h-5" />
-                            Watch Manifesto
+                            {t('landing.watchManifesto')}
                         </button>
                     </div>
                 </div>
@@ -187,43 +186,43 @@ const MatrixLanding: React.FC = () => {
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="flex items-center gap-3 mb-10">
                         <Activity className="w-6 h-6 text-[#00FF41] animate-pulse" />
-                        <h2 className="text-2xl font-bold text-white">Live Matrix Statistics</h2>
+                        <h2 className="text-2xl font-bold text-white">{t('landing.statsTitle')}</h2>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                         {/* 1. Registered Couriers */}
                         <div className="bg-[#131820] p-6 rounded-xl border border-[#2A3142] hover:border-[#00FF41] transition-colors">
-                            <p className="text-[#A0AEC0] text-sm mb-1">Registered Couriers</p>
+                            <p className="text-[#A0AEC0] text-sm mb-1">{t('landing.couriers')}</p>
                             <p className="text-3xl font-mono text-white font-bold">{stats.totalCouriers}</p>
-                            <p className="text-[#00FF41] text-xs mt-2 flex items-center gap-1"><Shield className="w-3 h-3" /> Licensed</p>
+                            <p className="text-[#00FF41] text-xs mt-2 flex items-center gap-1"><Shield className="w-3 h-3" /> {t('landing.licensed')}</p>
                         </div>
 
                         {/* 2. Registered Clients */}
                         <div className="bg-[#131820] p-6 rounded-xl border border-[#2A3142] hover:border-[#F0F0FF] transition-colors">
-                            <p className="text-[#A0AEC0] text-sm mb-1">Registered Clients</p>
+                            <p className="text-[#A0AEC0] text-sm mb-1">{t('landing.clients')}</p>
                             <p className="text-3xl font-mono text-white font-bold">{stats.totalClients}</p>
-                            <p className="text-[#F0F0FF] text-xs mt-2 flex items-center gap-1"><Users className="w-3 h-3" /> Growing</p>
+                            <p className="text-[#F0F0FF] text-xs mt-2 flex items-center gap-1"><Users className="w-3 h-3" /> {t('landing.growing')}</p>
                         </div>
 
                         {/* 3. Registered Vendors */}
                         <div className="bg-[#131820] p-6 rounded-xl border border-[#2A3142] hover:border-[#FFB800] transition-colors">
-                            <p className="text-[#A0AEC0] text-sm mb-1">Registered Vendors</p>
+                            <p className="text-[#A0AEC0] text-sm mb-1">{t('landing.vendors')}</p>
                             <p className="text-3xl font-mono text-white font-bold">{stats.totalVendors}</p>
-                            <p className="text-[#FFB800] text-xs mt-2 flex items-center gap-1"><Package className="w-3 h-3" /> Partners</p>
+                            <p className="text-[#FFB800] text-xs mt-2 flex items-center gap-1"><Package className="w-3 h-3" /> {t('landing.partners')}</p>
                         </div>
 
                         {/* 4. Total Deliveries */}
                         <div className="bg-[#131820] p-6 rounded-xl border border-[#2A3142] hover:border-[#00F0FF] transition-colors">
-                            <p className="text-[#A0AEC0] text-sm mb-1">Total Deliveries</p>
+                            <p className="text-[#A0AEC0] text-sm mb-1">{t('landing.deliveries')}</p>
                             <p className="text-3xl font-mono text-white font-bold">{stats.totalDeliveries.toLocaleString()}</p>
-                            <p className="text-[#00F0FF] text-xs mt-2 flex items-center gap-1"><Truck className="w-3 h-3" /> Lifetime</p>
+                            <p className="text-[#00F0FF] text-xs mt-2 flex items-center gap-1"><Truck className="w-3 h-3" /> {t('landing.lifetime')}</p>
                         </div>
 
                         {/* 5. System Uptime */}
                         <div className="bg-[#131820] p-6 rounded-xl border border-[#2A3142] hover:border-[#B026FF] transition-colors">
-                            <p className="text-[#A0AEC0] text-sm mb-1">System Uptime</p>
+                            <p className="text-[#A0AEC0] text-sm mb-1">{t('landing.uptime')}</p>
                             <p className="text-3xl font-mono text-white font-bold">{stats.uptime}</p>
-                            <p className="text-[#B026FF] text-xs mt-2 flex items-center gap-1"><Activity className="w-3 h-3" /> Online</p>
+                            <p className="text-[#B026FF] text-xs mt-2 flex items-center gap-1"><Activity className="w-3 h-3" /> {t('landing.online')}</p>
                         </div>
                     </div>
                 </div>
@@ -233,33 +232,33 @@ const MatrixLanding: React.FC = () => {
             <section id="vision" className="py-24 relative">
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="text-center mb-16">
-                        <h2 className="text-3xl font-bold mb-4">Our Core Vision</h2>
-                        <p className="text-[#A0AEC0]">The four pillars that define the Matrix.</p>
+                        <h2 className="text-3xl font-bold mb-4">{t('landing.visionTitle')}</h2>
+                        <p className="text-[#A0AEC0]">{t('landing.visionSubtitle')}</p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                         <VisionCard
                             icon={<Globe className="w-8 h-8 text-[#00FF41]" />}
-                            title="Freedom"
-                            desc="Break free from traditional logistics constraints. Delivery without borders."
+                            title={t('landing.visionFreedom')}
+                            desc={t('landing.visionFreedomDesc')}
                             color="#00FF41"
                         />
                         <VisionCard
                             icon={<Shield className="w-8 h-8 text-[#00F0FF]" />}
-                            title="Justice"
-                            desc="Fair wages for couriers. Fair prices for customers. No hidden fees."
+                            title={t('landing.visionJustice')}
+                            desc={t('landing.visionJusticeDesc')}
                             color="#00F0FF"
                         />
                         <VisionCard
                             icon={<Zap className="w-8 h-8 text-[#FFB800]" />}
-                            title="Efficiency"
-                            desc="AI-optimized routing ensures the fastest possible delivery times."
+                            title={t('landing.visionEfficiency')}
+                            desc={t('landing.visionEfficiencyDesc')}
                             color="#FFB800"
                         />
                         <VisionCard
                             icon={<Lock className="w-8 h-8 text-[#B026FF]" />}
-                            title="Transparency"
-                            desc="Open source protocols. Real-time tracking. Verify everything."
+                            title={t('landing.visionTransparency')}
+                            desc={t('landing.visionTransparencyDesc')}
                             color="#B026FF"
                         />
                     </div>
@@ -269,15 +268,15 @@ const MatrixLanding: React.FC = () => {
             {/* Global Roadmap Section */}
             <section className="py-20 bg-[#0F1419]">
                 <div className="max-w-7xl mx-auto px-6 text-center">
-                    <h2 className="text-3xl font-bold mb-12">Global Roadmap</h2>
+                    <h2 className="text-3xl font-bold mb-12">{t('landing.roadmapTitle')}</h2>
                     <div className="relative">
                         {/* Simple Roadmap visualization */}
                         <div className="absolute top-1/2 left-0 w-full h-1 bg-[#2A3142] -translate-y-1/2 hidden md:block"></div>
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 relative z-10">
-                            <RoadmapStep phase="Phase 1" title="Awakening" status="Completed" date="Q1 2025" />
-                            <RoadmapStep phase="Phase 2" title="Expansion" status="Active" date="Q2 2025" active />
-                            <RoadmapStep phase="Phase 3" title="Liberation" status="Upcoming" date="Q4 2025" />
-                            <RoadmapStep phase="Phase 4" title="The Source" status="Planned" date="2026" />
+                            <RoadmapStep phase={t('landing.phase1')} title={t('landing.heroTitle').split('.')[0] + '.'} status={t('landing.statusCompleted')} date="Q1 2025" />
+                            <RoadmapStep phase={t('landing.phase2')} title={t('landing.vision')} status={t('landing.statusActive')} date="Q2 2025" active />
+                            <RoadmapStep phase={t('landing.phase3')} title={t('landing.visionFreedom')} status={t('landing.statusUpcoming')} date="Q4 2025" />
+                            <RoadmapStep phase={t('landing.phase4')} title="The Source" status={t('landing.statusPlanned')} date="2026" />
                         </div>
                     </div>
                 </div>
@@ -285,7 +284,7 @@ const MatrixLanding: React.FC = () => {
 
             {/* Footer */}
             <footer className="py-12 border-t border-[#2A3142] bg-[#0A0E14] text-center">
-                <p className="text-[#64748B]">© 2025 Matrix Delivery. A Living Platform.</p>
+                <p className="text-[#64748B]">{t('landing.footer')}</p>
             </footer>
         </div>
     );

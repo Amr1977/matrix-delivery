@@ -5,6 +5,7 @@
 
 import React, { useState } from 'react';
 import { useBalance } from '../../hooks/useBalance';
+import { useI18n } from '../../i18n/i18nContext';
 import './WithdrawalModal.css';
 
 interface WithdrawalModalProps {
@@ -28,6 +29,7 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
     onClose,
     onSuccess
 }) => {
+    const { t } = useI18n();
     const { withdraw, verifyWithdrawal, loading, error, clearError } = useBalance();
     const [amount, setAmount] = useState('');
     const [description, setDescription] = useState('Withdrawal request');
@@ -47,27 +49,27 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
         const numValue = parseFloat(value);
 
         if (isNaN(numValue) || numValue <= 0) {
-            setValidationError('Amount must be positive');
+            setValidationError(t('withdrawal.amountPositive'));
             return false;
         }
 
         if (numValue < MIN_WITHDRAWAL) {
-            setValidationError(`Minimum withdrawal is ${MIN_WITHDRAWAL} ${currency}`);
+            setValidationError(`${t('withdrawal.minWithdrawal')} ${MIN_WITHDRAWAL} ${currency}`);
             return false;
         }
 
         if (numValue > MAX_WITHDRAWAL) {
-            setValidationError(`Maximum withdrawal is ${MAX_WITHDRAWAL.toLocaleString()} ${currency}`);
+            setValidationError(`${t('withdrawal.maxWithdrawal')} ${MAX_WITHDRAWAL.toLocaleString()} ${currency}`);
             return false;
         }
 
         if (numValue > availableBalance) {
-            setValidationError('Insufficient balance');
+            setValidationError(t('withdrawal.insufficientBalance'));
             return false;
         }
 
         if (numValue > dailyLimit) {
-            setValidationError(`Daily limit is ${dailyLimit.toLocaleString()} ${currency}`);
+            setValidationError(`${t('withdrawal.dailyLimitExceeded')} ${dailyLimit.toLocaleString()} ${currency}`);
             return false;
         }
 
@@ -93,7 +95,7 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
 
     const validateDestination = (): boolean => {
         if (!destinationDetails.walletNumber) {
-            setValidationError('Wallet or Instapay number is required');
+            setValidationError(t('withdrawal.walletRequired'));
             return false;
         }
         setValidationError('');
@@ -151,7 +153,7 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
         }
         const trimmedCode = verificationCode.trim();
         if (!trimmedCode || trimmedCode.length !== 6) {
-            setValidationError('Please enter the 6-digit verification code sent to your email');
+            setValidationError(t('withdrawal.enterVerificationCodeError'));
             return;
         }
         setStep('processing');
@@ -184,7 +186,7 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
         <div className="modal-overlay" onClick={handleClose} data-testid="withdrawal-modal-overlay">
             <div className="withdrawal-modal" onClick={(e) => e.stopPropagation()} data-testid="withdrawal-modal">
                 <div className="modal-header" data-testid="modal-header">
-                    <h2 data-testid="modal-title">💸 Withdraw Funds</h2>
+                    <h2 data-testid="modal-title">{t('withdrawal.title')}</h2>
                     <button className="close-btn" onClick={handleClose} disabled={step === 'processing'} data-testid="close-button">
                         ×
                     </button>
@@ -195,21 +197,21 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
                         <div className="amount-step" data-testid="amount-step">
                             <div className="balance-info" data-testid="balance-info">
                                 <div className="info-row">
-                                    <span className="label">Available Balance:</span>
+                                    <span className="label">{t('withdrawal.availableBalance')}</span>
                                     <span className="value" data-testid="available-balance">{availableBalance.toFixed(2)} {currency}</span>
                                 </div>
                                 <div className="info-row">
-                                    <span className="label">Daily Limit:</span>
+                                    <span className="label">{t('withdrawal.dailyLimit')}</span>
                                     <span className="value" data-testid="daily-limit">{dailyLimit.toLocaleString()} {currency}</span>
                                 </div>
                                 <div className="info-row">
-                                    <span className="label">Monthly Limit:</span>
+                                    <span className="label">{t('withdrawal.monthlyLimit')}</span>
                                     <span className="value" data-testid="monthly-limit">{monthlyLimit.toLocaleString()} {currency}</span>
                                 </div>
                             </div>
 
                             <div className="form-group">
-                                <label htmlFor="withdrawal-amount">Withdrawal Amount</label>
+                                <label htmlFor="withdrawal-amount">{t('withdrawal.amount')}</label>
                                 <div className="amount-input-wrapper">
                                     <input
                                         id="withdrawal-amount"
@@ -234,13 +236,13 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
                             </div>
 
                             <div className="form-group">
-                                <label htmlFor="withdrawal-description">Description</label>
+                                <label htmlFor="withdrawal-description">{t('withdrawal.description')}</label>
                                 <input
                                     id="withdrawal-description"
                                     type="text"
                                     value={description}
                                     onChange={(e) => setDescription(e.target.value)}
-                                    placeholder="e.g., Monthly withdrawal"
+                                    placeholder={t('withdrawal.descriptionPlaceholder')}
                                     maxLength={200}
                                     data-testid="withdrawal-description-input"
                                 />
@@ -250,7 +252,7 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
 
                     {step === 'destination' && (
                         <div className="destination-step" data-testid="destination-step">
-                            <h3>Select Destination</h3>
+                            <h3>{t('withdrawal.selectDestination')}</h3>
                             <div className="destination-options" data-testid="destination-options">
                                 {destinationOptions.map((option) => (
                                     <button
@@ -268,7 +270,7 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
 
                             <div className="destination-details">
                                 <div className="form-group">
-                                    <label>Wallet or Instapay Number</label>
+                                    <label>{t('withdrawal.walletNumber')}</label>
                                     <input
                                         type="tel"
                                         value={destinationDetails.walletNumber}
@@ -286,27 +288,27 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
 
                     {step === 'confirm' && (
                         <div className="confirm-step" data-testid="confirm-step">
-                            <h3>Confirm Withdrawal</h3>
+                            <h3>{t('withdrawal.confirmWithdrawal')}</h3>
                             <div className="confirmation-summary" data-testid="confirmation-summary">
                                 <div className="summary-row">
-                                    <span>Amount:</span>
+                                    <span>{t('withdrawal.amount')}</span>
                                     <span className="amount">{parseFloat(amount).toFixed(2)} {currency}</span>
                                 </div>
                                 <div className="summary-row">
-                                    <span>Processing Fee:</span>
+                                    <span>{t('withdrawal.processingFee')}</span>
                                     <span className="amount">0.00 {currency}</span>
                                 </div>
                                 <div className="summary-row total">
-                                    <span>You will receive:</span>
+                                    <span>{t('withdrawal.youWillReceive')}</span>
                                     <span className="amount">{parseFloat(amount).toFixed(2)} {currency}</span>
                                 </div>
                                 <div className="summary-divider"></div>
                                 <div className="summary-row">
-                                    <span>Destination:</span>
+                                    <span>{t('withdrawal.destination')}</span>
                                     <span>{destinationOptions.find(o => o.id === destinationType)?.name}</span>
                                 </div>
                                 <div className="summary-row">
-                                    <span>Wallet or Instapay Number:</span>
+                                    <span>{t('withdrawal.walletNumber')}</span>
                                     <span>{destinationDetails.walletNumber}</span>
                                 </div>
                             </div>
@@ -320,19 +322,19 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
 
                             <div className="warning-notice" data-testid="warning-notice">
                                 <span className="warning-icon">ℹ️</span>
-                                <p>Withdrawal requests are usually processed within 24-48 hours.</p>
+                                <p>{t('withdrawal.processingNotice')}</p>
                             </div>
                         </div>
                     )}
 
                     {step === 'verification' && (
                         <div className="verification-step" data-testid="verification-step">
-                            <h3 data-testid="verification-title">Enter Verification Code</h3>
+                            <h3 data-testid="verification-title">{t('withdrawal.enterVerificationCode')}</h3>
                             <p data-testid="verification-instructions">
-                                We sent a 6-digit verification code to your email. Enter it below to confirm your withdrawal.
+                                {t('withdrawal.verificationInstructions')}
                             </p>
                             <div className="form-group">
-                                <label htmlFor="verification-code">Verification Code</label>
+                                <label htmlFor="verification-code">{t('withdrawal.verificationCode')}</label>
                                 <input
                                     id="verification-code"
                                     type="text"
@@ -359,20 +361,20 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
                     {step === 'processing' && (
                         <div className="processing-step" data-testid="processing-step">
                             <div className="spinner" data-testid="processing-spinner"></div>
-                            <h3 data-testid="processing-title">Processing Withdrawal...</h3>
-                            <p>Please wait while we process your withdrawal request.</p>
+                            <h3 data-testid="processing-title">{t('withdrawal.processing')}</h3>
+                            <p>{t('withdrawal.processingWait')}</p>
                         </div>
                     )}
 
                     {step === 'success' && (
                         <div className="success-step" data-testid="success-step">
                             <div className="success-icon">✅</div>
-                            <h3 data-testid="success-title">Withdrawal Request Submitted!</h3>
-                            <p data-testid="success-message">Your withdrawal request has been submitted successfully.</p>
+                            <h3 data-testid="success-title">{t('withdrawal.successTitle')}</h3>
+                            <p data-testid="success-message">{t('withdrawal.successMessage')}</p>
                             <div className="success-amount" data-testid="success-amount">
                                 -{parseFloat(amount).toFixed(2)} {currency}
                             </div>
-                            <p className="success-note">You will be notified once the withdrawal is processed.</p>
+                            <p className="success-note">{t('withdrawal.successNote')}</p>
                         </div>
                     )}
                 </div>
@@ -381,7 +383,7 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
                     {step === 'amount' && (
                         <>
                             <button className="btn btn-secondary" onClick={handleClose} data-testid="cancel-button">
-                                Cancel
+                                {t('withdrawal.cancel')}
                             </button>
                             <button
                                 className="btn btn-primary"
@@ -389,7 +391,7 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
                                 disabled={!amount || !!validationError}
                                 data-testid="continue-button"
                             >
-                                Continue
+                                {t('withdrawal.continue')}
                             </button>
                         </>
                     )}
@@ -397,14 +399,14 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
                     {step === 'destination' && (
                         <>
                             <button className="btn btn-secondary" onClick={() => setStep('amount')} data-testid="back-button">
-                                Back
+                                {t('withdrawal.back')}
                             </button>
                             <button
                                 className="btn btn-primary"
                                 onClick={handleConfirm}
                                 data-testid="continue-button"
                             >
-                                Continue
+                                {t('withdrawal.continue')}
                             </button>
                         </>
                     )}
@@ -412,7 +414,7 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
                     {step === 'confirm' && (
                         <>
                             <button className="btn btn-secondary" onClick={() => setStep('destination')} data-testid="back-button">
-                                Back
+                                {t('withdrawal.back')}
                             </button>
                             <button
                                 className="btn btn-primary"
@@ -420,7 +422,7 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
                                 disabled={loading}
                                 data-testid="confirm-withdrawal-button"
                             >
-                                {loading ? 'Processing...' : 'Confirm Withdrawal'}
+                                {loading ? t('withdrawal.processing') : t('withdrawal.confirm')}
                             </button>
                         </>
                     )}
@@ -428,7 +430,7 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
                     {step === 'verification' && (
                         <>
                             <button className="btn btn-secondary" onClick={() => setStep('confirm')} data-testid="back-button">
-                                Back
+                                {t('withdrawal.back')}
                             </button>
                             <button
                                 className="btn btn-primary"
@@ -436,14 +438,14 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
                                 disabled={loading || !verificationCode}
                                 data-testid="confirm-pin-button"
                             >
-                                {loading ? 'Verifying...' : 'Confirm Code'}
+                                {loading ? t('withdrawal.verifying') : t('withdrawal.confirmCode')}
                             </button>
                         </>
                     )}
 
                     {step === 'success' && (
                         <button className="btn btn-primary" onClick={onSuccess} data-testid="done-button">
-                            Done
+                            {t('withdrawal.done')}
                         </button>
                     )}
                 </div>

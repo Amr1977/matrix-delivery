@@ -1,10 +1,13 @@
 import React from 'react';
+import { useI18n } from '../i18n/i18nContext';
 
 /**
  * MaintenanceRedirect Component
  * Redirects to the existing maintenance page when backend is down
  */
 const MaintenanceRedirect = ({ onRetry, isChecking, lastCheck }) => {
+    const { t } = useI18n();
+
     // Use iframe to show maintenance page while keeping React app mounted
     // This allows automatic recovery when backend comes back
 
@@ -55,13 +58,13 @@ const MaintenanceRedirect = ({ onRetry, isChecking, lastCheck }) => {
                 border: '1px solid #00ff95'
             }}>
                 {isChecking ? (
-                    <span>⟳ Checking server...</span>
+                    <span>{t('system.checkingServer')}</span>
                 ) : (
-                    <span>↻ Auto-retry in progress</span>
+                    <span>{t('system.autoRetryInProgress')}</span>
                 )}
                 {lastCheck && (
                     <div style={{ marginTop: '5px', opacity: 0.7 }}>
-                        Last: {new Date(lastCheck).toLocaleTimeString()}
+                        {t('system.lastCheck')}: {new Date(lastCheck).toLocaleTimeString()}
                     </div>
                 )}
             </div>

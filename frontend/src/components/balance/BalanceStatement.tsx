@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBalance } from '../../hooks/useBalance';
+import { useI18n } from '../../i18n/i18nContext';
 import type { BalanceStatement as BalanceStatementType } from '../../types/balance';
 import './BalanceStatement.css';
 
@@ -16,6 +17,7 @@ interface BalanceStatementProps {
 
 const BalanceStatement: React.FC<BalanceStatementProps> = ({ userId, userRole }) => {
     const navigate = useNavigate();
+    const { t, language } = useI18n();
     const { statement, loading, error, generateStatement } = useBalance();
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
@@ -23,12 +25,12 @@ const BalanceStatement: React.FC<BalanceStatementProps> = ({ userId, userRole })
     const [validationError, setValidationError] = useState('');
 
     const presetPeriods = [
-        { id: 'last7days', label: 'Last 7 days', days: 7 },
-        { id: 'last30days', label: 'Last 30 days', days: 30 },
-        { id: 'last3months', label: 'Last 3 months', days: 90 },
-        { id: 'last6months', label: 'Last 6 months', days: 180 },
-        { id: 'lastyear', label: 'Last year', days: 365 },
-        { id: 'custom', label: 'Custom range', days: 0 }
+        { id: 'last7days', label: t('balanceStatement.periodLast7Days'), days: 7 },
+        { id: 'last30days', label: t('balanceStatement.periodLast30Days'), days: 30 },
+        { id: 'last3months', label: t('balanceStatement.periodLast3Months'), days: 90 },
+        { id: 'last6months', label: t('balanceStatement.periodLast6Months'), days: 180 },
+        { id: 'lastyear', label: t('balanceStatement.periodLastYear'), days: 365 },
+        { id: 'custom', label: t('balanceStatement.periodCustom'), days: 0 }
     ];
 
     const handlePeriodSelect = (periodId: string) => {
@@ -54,7 +56,7 @@ const BalanceStatement: React.FC<BalanceStatementProps> = ({ userId, userRole })
 
     const validateDates = (): boolean => {
         if (!startDate || !endDate) {
-            setValidationError('Please select both start and end dates');
+            setValidationError(t('balanceStatement.errorMissingDates'));
             return false;
         }
 
@@ -63,23 +65,23 @@ const BalanceStatement: React.FC<BalanceStatementProps> = ({ userId, userRole })
         const now = new Date();
 
         if (start > now) {
-            setValidationError('Start date cannot be in the future');
+            setValidationError(t('balanceStatement.errorFutureStart'));
             return false;
         }
 
         if (end > now) {
-            setValidationError('End date cannot be in the future');
+            setValidationError(t('balanceStatement.errorFutureEnd'));
             return false;
         }
 
         if (start > end) {
-            setValidationError('End date must be after start date');
+            setValidationError(t('balanceStatement.errorEndBeforeStart'));
             return false;
         }
 
         const daysDiff = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
         if (daysDiff > 365) {
-            setValidationError('Maximum statement period is 1 year');
+            setValidationError(t('balanceStatement.errorMaxPeriod'));
             return false;
         }
 
@@ -142,7 +144,7 @@ const BalanceStatement: React.FC<BalanceStatementProps> = ({ userId, userRole })
     };
 
     const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
+        return new Date(dateString).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US', {
             year: 'numeric',
             month: 'long',
             day: 'numeric'
@@ -153,16 +155,16 @@ const BalanceStatement: React.FC<BalanceStatementProps> = ({ userId, userRole })
         <div className="balance-statement" data-testid="balance-statement">
             <div className="statement-header" data-testid="statement-header">
                 <button onClick={() => navigate(-1)} className="back-btn matrix-btn-ghost">
-                    ← Back
+                    ← {t('balanceStatement.back') || 'Back'}
                 </button>
-                <h1 data-testid="statement-title">📄 Balance Statement</h1>
+                <h1 data-testid="statement-title">{t('balanceStatement.title')}</h1>
             </div>
 
             <div className="statement-generator" data-testid="statement-generator">
-                <h2>Generate Statement</h2>
+                <h2>{t('balanceStatement.generateTitle')}</h2>
 
                 <div className="period-selector" data-testid="period-selector">
-                    <label>Select Period:</label>
+                    <label>{t('balanceStatement.selectPeriod')}</label>
                     <div className="period-options" data-testid="period-options">
                         {presetPeriods.map((period) => (
                             <button
@@ -180,7 +182,7 @@ const BalanceStatement: React.FC<BalanceStatementProps> = ({ userId, userRole })
                 {(selectedPeriod === 'custom' || selectedPeriod) && (
                     <div className="date-range-selector" data-testid="date-range-selector">
                         <div className="date-input-group">
-                            <label htmlFor="start-date">Start Date</label>
+                            <label htmlFor="start-date">{t('balanceStatement.startDate')}</label>
                             <input
                                 id="start-date"
                                 type="date"
@@ -192,7 +194,7 @@ const BalanceStatement: React.FC<BalanceStatementProps> = ({ userId, userRole })
                         </div>
 
                         <div className="date-input-group">
-                            <label htmlFor="end-date">End Date</label>
+                            <label htmlFor="end-date">{t('balanceStatement.endDate')}</label>
                             <input
                                 id="end-date"
                                 type="date"
@@ -225,29 +227,29 @@ const BalanceStatement: React.FC<BalanceStatementProps> = ({ userId, userRole })
                     disabled={!startDate || !endDate || loading}
                     data-testid="generate-statement-button"
                 >
-                    {loading ? 'Generating...' : 'Generate Statement'}
+                    {loading ? t('balanceStatement.generating') : t('balanceStatement.generate')}
                 </button>
             </div>
 
             {statement && (
                 <div className="statement-preview" data-testid="statement-preview">
                     <div className="preview-header" data-testid="preview-header">
-                        <h2>Statement Preview</h2>
+                        <h2>{t('balanceStatement.previewTitle')}</h2>
                         <div className="download-buttons" data-testid="download-buttons">
                             <button className="download-btn pdf" onClick={handleDownloadPDF} data-testid="download-pdf-button">
                                 <span className="btn-icon">📄</span>
-                                Download PDF
+                                {t('balanceStatement.downloadPDF')}
                             </button>
                             <button className="download-btn csv" onClick={handleDownloadCSV} data-testid="download-csv-button">
                                 <span className="btn-icon">📊</span>
-                                Download CSV
+                                {t('balanceStatement.downloadCSV')}
                             </button>
                         </div>
                     </div>
 
                     <div className="statement-content" data-testid="statement-content">
                         <div className="statement-info" data-testid="statement-info">
-                            <h3>Balance Statement</h3>
+                            <h3>{t('balanceStatement.statementType')}</h3>
                             <p className="period" data-testid="statement-period">
                                 {formatDate(statement.period.startDate)} - {formatDate(statement.period.endDate)}
                             </p>
@@ -256,21 +258,21 @@ const BalanceStatement: React.FC<BalanceStatementProps> = ({ userId, userRole })
                         <div className="statement-summary" data-testid="statement-summary">
                             <div className="summary-grid">
                                 <div className="summary-item" data-testid="opening-balance">
-                                    <span className="label">Opening Balance</span>
+                                    <span className="label">{t('balanceStatement.openingBalance')}</span>
                                     <span className="value">
                                         {formatCurrency(statement.openingBalance, statement.currency)}
                                     </span>
                                 </div>
 
                                 <div className="summary-item positive" data-testid="total-deposits">
-                                    <span className="label">Total Deposits</span>
+                                    <span className="label">{t('balanceStatement.totalDeposits')}</span>
                                     <span className="value">
                                         +{formatCurrency(statement.totalDeposits, statement.currency)}
                                     </span>
                                 </div>
 
                                 <div className="summary-item negative" data-testid="total-withdrawals">
-                                    <span className="label">Total Withdrawals</span>
+                                    <span className="label">{t('balanceStatement.totalWithdrawals')}</span>
                                     <span className="value">
                                         -{formatCurrency(statement.totalWithdrawals, statement.currency)}
                                     </span>
@@ -279,14 +281,14 @@ const BalanceStatement: React.FC<BalanceStatementProps> = ({ userId, userRole })
                                 {userRole === 'driver' && (
                                     <>
                                         <div className="summary-item positive" data-testid="total-earnings">
-                                            <span className="label">Total Earnings</span>
+                                            <span className="label">{t('balanceStatement.totalEarnings')}</span>
                                             <span className="value">
                                                 +{formatCurrency(statement.totalEarnings, statement.currency)}
                                             </span>
                                         </div>
 
                                         <div className="summary-item negative" data-testid="total-deductions">
-                                            <span className="label">Total Deductions</span>
+                                            <span className="label">{t('balanceStatement.totalDeductions')}</span>
                                             <span className="value">
                                                 -{formatCurrency(statement.totalDeductions, statement.currency)}
                                             </span>
@@ -295,7 +297,7 @@ const BalanceStatement: React.FC<BalanceStatementProps> = ({ userId, userRole })
                                 )}
 
                                 <div className="summary-item total" data-testid="closing-balance">
-                                    <span className="label">Closing Balance</span>
+                                    <span className="label">{t('balanceStatement.closingBalance')}</span>
                                     <span className="value">
                                         {formatCurrency(statement.closingBalance, statement.currency)}
                                     </span>
@@ -304,7 +306,7 @@ const BalanceStatement: React.FC<BalanceStatementProps> = ({ userId, userRole })
                         </div>
 
                         <div className="statement-transactions" data-testid="statement-transactions">
-                            <h4 data-testid="transactions-count">Transaction Details ({statement.transactions.length} transactions)</h4>
+                            <h4 data-testid="transactions-count">{t('balanceStatement.transactionDetails').replace('{count}', statement.transactions.length.toString())}</h4>
                             <div className="transactions-list" data-testid="transactions-list">
                                 {statement.transactions.map((transaction, index) => (
                                     <div key={index} className="transaction-row" data-testid="statement-transaction-row">

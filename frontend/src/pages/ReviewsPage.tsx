@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Star, ThumbsUp, Flag, Clock, MessageSquare, Filter, ChevronDown, Send, AlertTriangle } from 'lucide-react';
 import { ReviewsApi, Review } from '../services/api';
 import { useNavigate } from 'react-router-dom';
+import { useI18n } from '../i18n/i18nContext';
 
 const ReviewsPage = () => {
     const navigate = useNavigate();
+    const { t, language } = useI18n();
     const [reviews, setReviews] = useState<Review[]>([]);
     const [loading, setLoading] = useState(true);
     const [sortBy, setSortBy] = useState<'upvotes' | 'recent'>('upvotes');
@@ -47,10 +49,10 @@ const ReviewsPage = () => {
     };
 
     const handleFlag = async (id: string) => {
-        if (!window.confirm('Report this review as inappropriate?')) return;
+        if (!window.confirm(t('reviews.reportConfirm'))) return;
         try {
             await ReviewsApi.flagReview(id);
-            alert('Review reported. Thank you for keeping the community safe.');
+            alert(t('reviews.reportSuccess'));
             // Optimistic update or refetch
             setReviews(prev => prev.map(r => {
                 if (r.id === id) {
@@ -86,9 +88,9 @@ const ReviewsPage = () => {
                 <div className="max-w-4xl mx-auto flex justify-between items-center">
                     <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/landing')}>
                         <span className="text-[#00FF41] font-bold text-xl">MATRIX</span>
-                        <span className="text-sm font-mono text-gray-400">REVIEWS</span>
+                        <span className="text-sm font-mono text-gray-400">{t('reviews.navTitle')}</span>
                     </div>
-                    <button onClick={() => navigate('/landing')} className="text-gray-400 hover:text-white">Back to Landing</button>
+                    <button onClick={() => navigate('/landing')} className="text-gray-400 hover:text-white">{t('reviews.backToLanding')}</button>
                 </div>
             </nav>
 
@@ -96,24 +98,24 @@ const ReviewsPage = () => {
                 {/* Header */}
                 <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold mb-2">Voice of the People</h1>
-                        <p className="text-[#A0AEC0]">Trusted experiences from the Matrix network.</p>
+                        <h1 className="text-3xl font-bold mb-2">{t('reviews.title')}</h1>
+                        <p className="text-[#A0AEC0]">{t('reviews.subtitle')}</p>
                     </div>
                     <button
                         onClick={() => setShowForm(!showForm)}
                         className="px-6 py-3 bg-gradient-to-r from-[#00FF41] to-[#00F0FF] text-[#0A0E14] font-bold rounded-lg hover:shadow-lg transition-all"
                     >
-                        {showForm ? 'Cancel Review' : 'Write a Review'}
+                        {showForm ? t('reviews.cancelReview') : t('reviews.writeReview')}
                     </button>
                 </div>
 
                 {/* Submit Form */}
                 {showForm && (
                     <div className="bg-[#131820] p-6 rounded-xl border border-[#2A3142] mb-8 animate-fade-in">
-                        <h3 className="text-lg font-bold mb-4">Share your experience</h3>
+                        <h3 className="text-lg font-bold mb-4">{t('reviews.shareTitle')}</h3>
                         <form onSubmit={handleSubmit}>
                             <div className="mb-4">
-                                <label className="block text-sm text-[#A0AEC0] mb-2">Rating</label>
+                                <label className="block text-sm text-[#A0AEC0] mb-2">{t('reviews.rating')}</label>
                                 <div className="flex gap-2">
                                     {[1, 2, 3, 4, 5].map(star => (
                                         <button
@@ -128,10 +130,10 @@ const ReviewsPage = () => {
                                 </div>
                             </div>
                             <div className="mb-4">
-                                <label className="block text-sm text-[#A0AEC0] mb-2">Comment</label>
+                                <label className="block text-sm text-[#A0AEC0] mb-2">{t('reviews.comment')}</label>
                                 <textarea
                                     className="w-full bg-[#0A0E14] border border-[#2A3142] rounded-lg p-3 text-white focus:border-[#00FF41] outline-none min-h-[100px]"
-                                    placeholder="Tell us about your delivery..."
+                                    placeholder={t('reviews.commentPlaceholder')}
                                     value={newReview.comment}
                                     onChange={e => setNewReview({ ...newReview, comment: e.target.value })}
                                     required
@@ -142,10 +144,10 @@ const ReviewsPage = () => {
                                 disabled={submitStatus === 'submitting'}
                                 className="w-full py-3 bg-[#00FF41] text-[#0A0E14] font-bold rounded-lg disabled:opacity-50 hover:bg-[#00CC33] transition-colors"
                             >
-                                {submitStatus === 'submitting' ? 'Transmitting...' : 'Submit Review'}
+                                {submitStatus === 'submitting' ? t('reviews.submitting') : t('reviews.submit')}
                             </button>
-                            {submitStatus === 'success' && <p className="text-[#00FF41] mt-2 flex items-center gap-2"><Send className="w-4 h-4" /> Review submitted successfully</p>}
-                            {submitStatus === 'error' && <p className="text-red-500 mt-2">Failed to submit. Please try again.</p>}
+                            {submitStatus === 'success' && <p className="text-[#00FF41] mt-2 flex items-center gap-2"><Send className="w-4 h-4" /> {t('reviews.success')}</p>}
+                            {submitStatus === 'error' && <p className="text-red-500 mt-2">{t('reviews.error')}</p>}
                         </form>
                     </div>
                 )}
@@ -154,30 +156,30 @@ const ReviewsPage = () => {
                 <div className="flex justify-between items-center mb-6 bg-[#131820] p-4 rounded-lg border border-[#2A3142]">
                     <div className="flex items-center gap-2 text-[#A0AEC0]">
                         <Filter className="w-5 h-5" />
-                        <span className="font-mono text-sm block">SORT BY:</span>
+                        <span className="font-mono text-sm block">{t('reviews.sortBy')}</span>
                     </div>
                     <div className="flex gap-4">
                         <button
                             onClick={() => setSortBy('upvotes')}
                             className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${sortBy === 'upvotes' ? 'bg-[#00FF41]/20 text-[#00FF41] border border-[#00FF41]' : 'text-[#A0AEC0] hover:text-white'}`}
                         >
-                            Highest Upvotes
+                            {t('reviews.sortUpvotes')}
                         </button>
                         <button
                             onClick={() => setSortBy('recent')}
                             className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${sortBy === 'recent' ? 'bg-[#00FF41]/20 text-[#00FF41] border border-[#00FF41]' : 'text-[#A0AEC0] hover:text-white'}`}
                         >
-                            Most Recent
+                            {t('reviews.sortRecent')}
                         </button>
                     </div>
                 </div>
 
                 {/* Review List */}
                 {loading ? (
-                    <div className="text-center py-20 text-[#00FF41] animate-pulse">Initializing Matrix data stream...</div>
+                    <div className="text-center py-20 text-[#00FF41] animate-pulse">{t('reviews.loading')}</div>
                 ) : (
                     <div className="space-y-4">
-                        {reviews?.length === 0 && <p className="text-center text-[#A0AEC0] py-10">No signals detected yet. Be the first to broadcast.</p>}
+                        {reviews?.length === 0 && <p className="text-center text-[#A0AEC0] py-10">{t('reviews.empty')}</p>}
                         {reviews?.map(review => (
                             <div key={review.id} className="bg-[#131820] p-6 rounded-xl border border-[#2A3142] hover:border-[#00FF41] transition-all group">
                                 <div className="flex justify-between items-start mb-4">
@@ -188,7 +190,7 @@ const ReviewsPage = () => {
                                         <div>
                                             <p className="font-bold text-white">{review.user_name}</p>
                                             <p className="text-xs text-[#64748B] flex items-center gap-1">
-                                                <Clock className="w-3 h-3" /> {new Date(review.created_at).toLocaleDateString()}
+                                                <Clock className="w-3 h-3" /> {new Date(review.created_at).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US')}
                                             </p>
                                         </div>
                                     </div>
@@ -212,7 +214,7 @@ const ReviewsPage = () => {
                                             <span className="text-sm font-mono">{review.upvotes}</span>
                                         </button>
                                         {/* BDD Requirement: See Flags */}
-                                        <div className="flex items-center gap-2 text-[#64748B]" title="Flag Count">
+                                        <div className="flex items-center gap-2 text-[#64748B]" title={t('reviews.flagCount')}>
                                             <AlertTriangle className="w-4 h-4" />
                                             <span className="text-sm font-mono">{review.flag_count}</span>
                                         </div>
@@ -222,7 +224,7 @@ const ReviewsPage = () => {
                                         onClick={() => handleFlag(review.id)}
                                         className="text-[#64748B] hover:text-red-500 transition-colors flex items-center gap-1 text-xs"
                                     >
-                                        <Flag className="w-3 h-3" /> Report
+                                        <Flag className="w-3 h-3" /> {t('reviews.report')}
                                     </button>
                                 </div>
                             </div>

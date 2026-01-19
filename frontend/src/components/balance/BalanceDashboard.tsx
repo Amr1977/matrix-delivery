@@ -6,6 +6,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBalance } from '../../hooks/useBalance';
+import { useI18n } from '../../i18n/i18nContext';
 import DepositModal from './DepositModal';
 import WithdrawalModal from './WithdrawalModal';
 import './BalanceDashboard.css';
@@ -17,6 +18,7 @@ interface BalanceDashboardProps {
 
 const BalanceDashboard: React.FC<BalanceDashboardProps> = ({ userId, userRole }) => {
     const navigate = useNavigate();
+    const { t } = useI18n();
     const {
         balance,
         transactions,
@@ -86,10 +88,10 @@ const BalanceDashboard: React.FC<BalanceDashboardProps> = ({ userId, userRole })
 
     const getStatusBadge = (status: string) => {
         const badges: Record<string, { text: string; className: string }> = {
-            completed: { text: 'Completed', className: 'status-completed' },
-            pending: { text: 'Pending', className: 'status-pending' },
-            failed: { text: 'Failed', className: 'status-failed' },
-            cancelled: { text: 'Cancelled', className: 'status-cancelled' }
+            completed: { text: t('balance.completed'), className: 'status-completed' },
+            pending: { text: t('status.pendingBids'), className: 'status-pending' },
+            failed: { text: t('balance.failed'), className: 'status-failed' },
+            cancelled: { text: t('balance.cancelled'), className: 'status-cancelled' }
         };
         return badges[status] || { text: status, className: 'status-default' };
     };
@@ -97,7 +99,7 @@ const BalanceDashboard: React.FC<BalanceDashboardProps> = ({ userId, userRole })
     if (loading && !balance) {
         return (
             <div className="balance-dashboard loading" data-testid="balance-loading">
-                <div className="loading-spinner" data-testid="loading-spinner">Loading balance...</div>
+                <div className="loading-spinner" data-testid="loading-spinner">{t('balance.loadingBalance')}</div>
             </div>
         );
     }
@@ -108,7 +110,7 @@ const BalanceDashboard: React.FC<BalanceDashboardProps> = ({ userId, userRole })
                 <div className="error-message" data-testid="error-message">
                     <span className="error-icon">⚠️</span>
                     <p data-testid="error-text">{error}</p>
-                    <button onClick={() => fetchBalance(userId)} data-testid="retry-button">Retry</button>
+                    <button onClick={() => fetchBalance(userId)} data-testid="retry-button">{t('balance.retry')}</button>
                 </div>
             </div>
         );
@@ -120,11 +122,11 @@ const BalanceDashboard: React.FC<BalanceDashboardProps> = ({ userId, userRole })
         <div className="balance-dashboard" data-testid="balance-dashboard">
             <div className="dashboard-header" data-testid="dashboard-header">
                 <button onClick={() => navigate(-1)} className="back-btn matrix-btn-ghost">
-                    ← Back
+                    {t('balance.back')}
                 </button>
                 <div className="header-title-group">
-                    <h1 data-testid="dashboard-title">💰 My Balance</h1>
-                    {userRole === 'driver' && <span className="primary_role-badge" data-testid="driver-badge">Driver Account</span>}
+                    <h1 data-testid="dashboard-title">{t('balance.myBalance')}</h1>
+                    {userRole === 'driver' && <span className="primary_role-badge" data-testid="driver-badge">{t('balance.driverAccount')}</span>}
                 </div>
             </div>
 
@@ -132,8 +134,8 @@ const BalanceDashboard: React.FC<BalanceDashboardProps> = ({ userId, userRole })
                 <div className="freeze-warning" data-testid="freeze-warning">
                     <span className="warning-icon">⚠️</span>
                     <div className="warning-content">
-                        <strong>Account Frozen</strong>
-                        <p data-testid="freeze-reason">{balance?.freezeReason || 'Your balance is currently frozen. Please contact support.'}</p>
+                        <strong>{t('balance.accountFrozen')}</strong>
+                        <p data-testid="freeze-reason">{balance?.freezeReason || t('balance.frozenMessage')}</p>
                     </div>
                 </div>
             )}
@@ -142,7 +144,7 @@ const BalanceDashboard: React.FC<BalanceDashboardProps> = ({ userId, userRole })
                 <div className="balance-card main-balance" data-testid="available-balance-card">
                     <div className="card-header">
                         <span className="card-icon">💵</span>
-                        <span className="card-title">Available Balance</span>
+                        <span className="card-title">{t('balance.availableBalance')}</span>
                     </div>
                     <div className="card-amount" data-testid="available-balance-amount">
                         {formatCurrency(balance?.availableBalance || 0, balance?.currency)}
@@ -152,7 +154,7 @@ const BalanceDashboard: React.FC<BalanceDashboardProps> = ({ userId, userRole })
                 <div className="balance-card" data-testid="pending-balance-card">
                     <div className="card-header">
                         <span className="card-icon">⏳</span>
-                        <span className="card-title">Pending</span>
+                        <span className="card-title">{t('balance.pending')}</span>
                     </div>
                     <div className="card-amount secondary" data-testid="pending-balance-amount">
                         {formatCurrency(balance?.pendingBalance || 0, balance?.currency)}
@@ -162,7 +164,7 @@ const BalanceDashboard: React.FC<BalanceDashboardProps> = ({ userId, userRole })
                 <div className="balance-card" data-testid="held-balance-card">
                     <div className="card-header">
                         <span className="card-icon">🔒</span>
-                        <span className="card-title">Held</span>
+                        <span className="card-title">{t('balance.held')}</span>
                     </div>
                     <div className="card-amount secondary" data-testid="held-balance-amount">
                         {formatCurrency(balance?.heldBalance || 0, balance?.currency)}
@@ -172,7 +174,7 @@ const BalanceDashboard: React.FC<BalanceDashboardProps> = ({ userId, userRole })
                 <div className="balance-card total" data-testid="total-balance-card">
                     <div className="card-header">
                         <span className="card-icon">📊</span>
-                        <span className="card-title">Total Balance</span>
+                        <span className="card-title">{t('balance.totalBalance')}</span>
                     </div>
                     <div className="card-amount" data-testid="total-balance-amount">
                         {formatCurrency(balance?.totalBalance || 0, balance?.currency)}
@@ -188,7 +190,7 @@ const BalanceDashboard: React.FC<BalanceDashboardProps> = ({ userId, userRole })
                     data-testid="deposit-button"
                 >
                     <span className="btn-icon">💵</span>
-                    Deposit
+                    {t('balance.deposit')}
                 </button>
                 <button
                     className="action-btn withdraw-btn"
@@ -197,29 +199,29 @@ const BalanceDashboard: React.FC<BalanceDashboardProps> = ({ userId, userRole })
                     data-testid="withdraw-button"
                 >
                     <span className="btn-icon">💸</span>
-                    Withdraw
+                    {t('balance.withdraw')}
                 </button>
             </div>
 
             <div className="recent-transactions" data-testid="recent-transactions">
                 <div className="section-header">
-                    <h2 data-testid="transactions-title">Recent Transactions</h2>
+                    <h2 data-testid="transactions-title">{t('balance.recentTransactions')}</h2>
                     <a href="/balance/transactions" className="view-all-link" data-testid="view-all-link">
-                        View All →
+                        {t('balance.viewAll')}
                     </a>
                 </div>
 
                 {transactions.length === 0 ? (
                     <div className="empty-state" data-testid="empty-transactions">
                         <span className="empty-icon">📭</span>
-                        <p data-testid="empty-message">No transactions yet</p>
+                        <p data-testid="empty-message">{t('balance.noTransactions')}</p>
                         <button
                             className="cta-btn"
                             onClick={() => setShowDepositModal(true)}
                             disabled={isFrozen}
                             data-testid="first-deposit-button"
                         >
-                            Make Your First Deposit
+                            {t('balance.makeFirstDeposit')}
                         </button>
                     </div>
                 ) : (
@@ -248,142 +250,151 @@ const BalanceDashboard: React.FC<BalanceDashboardProps> = ({ userId, userRole })
                             );
                         })}
                     </div>
-                )}
-            </div>
+                )
+                }
+            </div >
 
             {/* COD Earnings Section for Drivers */}
-            {userRole === 'driver' && paymentEarnings && !earningsLoading && (
-                <div className="earnings-section" data-testid="earnings-section">
-                    <h3 data-testid="cod-earnings-title">💵 COD Earnings Summary</h3>
+            {
+                userRole === 'driver' && paymentEarnings && !earningsLoading && (
+                    <div className="earnings-section" data-testid="earnings-section">
+                        <h3 data-testid="cod-earnings-title">{t('balance.codEarnings')}</h3>
 
-                    <div className="earnings-breakdown">
-                        {/* Cash Collected (Gross) */}
-                        <div className="stat-item" data-testid="cash-collected">
-                            <span className="stat-label">💵 Cash Collected</span>
-                            <span className="stat-value positive">
-                                {formatCurrency(paymentEarnings.totalEarnings, balance?.currency)}
-                            </span>
-                        </div>
-
-                        {/* Platform Commission */}
-                        <div className="stat-item" data-testid="platform-commission">
-                            <span className="stat-label">🏢 Platform Commission (15%)</span>
-                            <span className="stat-value negative">
-                                -{formatCurrency(paymentEarnings.platformFee, balance?.currency)}
-                            </span>
-                        </div>
-
-                        {/* Net Earnings */}
-                        <div className="stat-item highlight" data-testid="net-earnings">
-                            <span className="stat-label">✅ Net Earnings</span>
-                            <span className="stat-value success">
-                                {formatCurrency(paymentEarnings.driverEarnings, balance?.currency)}
-                            </span>
-                        </div>
-
-                        <hr />
-
-                        {/* Current Balance */}
-                        <div className="stat-item" data-testid="current-balance-status">
-                            <span className="stat-label">💰 Current Balance</span>
-                            <span className={`stat-value ${balance && balance.availableBalance < 0 ? 'negative' : 'positive'}`}>
-                                {balance && formatCurrency(balance.availableBalance, balance.currency)}
-                                {balance && balance.availableBalance < 0 && ' (Debt)'}
-                            </span>
-                        </div>
-
-                        {/* Warning if debt is high */}
-                        {balance && balance.availableBalance < -150 && (
-                            <div className="warning-box" data-testid="debt-warning">
-                                ⚠️ Your balance is low. Please deposit funds to continue accepting orders.
+                        <div className="earnings-breakdown">
+                            {/* Cash Collected (Gross) */}
+                            <div className="stat-item" data-testid="cash-collected">
+                                <span className="stat-label">{t('balance.cashCollected')}</span>
+                                <span className="stat-value positive">
+                                    {formatCurrency(paymentEarnings.totalEarnings, balance?.currency)}
+                                </span>
                             </div>
-                        )}
 
-                        {/* Critical warning if blocked */}
-                        {balance && balance.availableBalance <= -200 && (
-                            <div className="error-box" data-testid="blocked-warning">
-                                🚫 You cannot accept new orders until your balance is above -200 EGP.
-                                <button onClick={() => setShowDepositModal(true)} className="btn-deposit">
-                                    Deposit Now
-                                </button>
+                            {/* Platform Commission */}
+                            <div className="stat-item" data-testid="platform-commission">
+                                <span className="stat-label">{t('balance.platformCommission')}</span>
+                                <span className="stat-value negative">
+                                    -{formatCurrency(paymentEarnings.platformFee, balance?.currency)}
+                                </span>
                             </div>
-                        )}
+
+                            {/* Net Earnings */}
+                            <div className="stat-item highlight" data-testid="net-earnings">
+                                <span className="stat-label">{t('balance.netEarnings')}</span>
+                                <span className="stat-value success">
+                                    {formatCurrency(paymentEarnings.driverEarnings, balance?.currency)}
+                                </span>
+                            </div>
+
+                            <hr />
+
+                            {/* Current Balance */}
+                            <div className="stat-item" data-testid="current-balance-status">
+                                <span className="stat-label">{t('balance.currentBalance')}</span>
+                                <span className={`stat-value ${balance && balance.availableBalance < 0 ? 'negative' : 'positive'}`}>
+                                    {balance && formatCurrency(balance.availableBalance, balance.currency)}
+                                    {balance && balance.availableBalance < 0 && ` (${t('balance.debt')})`}
+                                </span>
+                            </div>
+
+                            {/* Warning if debt is high */}
+                            {balance && balance.availableBalance < -150 && (
+                                <div className="warning-box" data-testid="debt-warning">
+                                    {t('balance.lowBalanceWarning')}
+                                </div>
+                            )}
+
+                            {/* Critical warning if blocked */}
+                            {balance && balance.availableBalance <= -200 && (
+                                <div className="error-box" data-testid="blocked-warning">
+                                    {t('balance.blockedWarning')}
+                                    <button onClick={() => setShowDepositModal(true)} className="btn-deposit">
+                                        {t('balance.depositNow')}
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Orders Summary */}
+                        <div className="orders-summary">
+                            <div className="summary-stat">
+                                <span>{t('balance.totalDeliveries')}</span>
+                                <span>{paymentEarnings.totalDeliveries}</span>
+                            </div>
+                            <div className="summary-stat">
+                                <span>{t('balance.completedPayments')}</span>
+                                <span>{paymentEarnings.completedPayments}</span>
+                            </div>
+                        </div>
                     </div>
+                )
+            }
 
-                    {/* Orders Summary */}
-                    <div className="orders-summary">
-                        <div className="summary-stat">
-                            <span>Total Deliveries</span>
-                            <span>{paymentEarnings.totalDeliveries}</span>
-                        </div>
-                        <div className="summary-stat">
-                            <span>Completed Payments</span>
-                            <span>{paymentEarnings.completedPayments}</span>
+            {
+                userRole === 'driver' && balance && (
+                    <div className="driver-stats" data-testid="driver-stats">
+                        <h3 data-testid="earnings-title">{t('balance.earningsSummary')}</h3>
+                        <div className="stats-grid">
+                            <div className="stat-item">
+                                <span className="stat-label">{t('balance.lifetimeEarnings')}</span>
+                                <span className="stat-value">
+                                    {formatCurrency(balance.lifetimeEarnings, balance.currency)}
+                                </span>
+                            </div>
+                            <div className="stat-item">
+                                <span className="stat-label">{t('balance.totalDeposits')}</span>
+                                <span className="stat-value">
+                                    {formatCurrency(balance.lifetimeDeposits, balance.currency)}
+                                </span>
+                            </div>
+                            <div className="stat-item">
+                                <span className="stat-label">{t('balance.totalWithdrawals')}</span>
+                                <span className="stat-value">
+                                    {formatCurrency(balance.lifetimeWithdrawals, balance.currency)}
+                                </span>
+                            </div>
+                            <div className="stat-item">
+                                <span className="stat-label">{t('balance.totalTransactions')}</span>
+                                <span className="stat-value">{balance.totalTransactions}</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
-            {userRole === 'driver' && balance && (
-                <div className="driver-stats" data-testid="driver-stats">
-                    <h3 data-testid="earnings-title">Earnings Summary</h3>
-                    <div className="stats-grid">
-                        <div className="stat-item">
-                            <span className="stat-label">Lifetime Earnings</span>
-                            <span className="stat-value">
-                                {formatCurrency(balance.lifetimeEarnings, balance.currency)}
-                            </span>
-                        </div>
-                        <div className="stat-item">
-                            <span className="stat-label">Total Deposits</span>
-                            <span className="stat-value">
-                                {formatCurrency(balance.lifetimeDeposits, balance.currency)}
-                            </span>
-                        </div>
-                        <div className="stat-item">
-                            <span className="stat-label">Total Withdrawals</span>
-                            <span className="stat-value">
-                                {formatCurrency(balance.lifetimeWithdrawals, balance.currency)}
-                            </span>
-                        </div>
-                        <div className="stat-item">
-                            <span className="stat-label">Total Transactions</span>
-                            <span className="stat-value">{balance.totalTransactions}</span>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {
+                showDepositModal && (
+                    <DepositModal
+                        userId={userId}
+                        currentBalance={balance?.availableBalance || 0}
+                        currency={balance?.currency || 'EGP'}
+                        onClose={() => setShowDepositModal(false)}
+                        onSuccess={() => {
+                            setShowDepositModal(false);
+                            fetchBalance(userId);
+                            fetchTransactions(userId, { limit: 5 });
+                        }}
+                    />
+                )
+            }
 
-            {showDepositModal && (
-                <DepositModal
-                    userId={userId}
-                    currentBalance={balance?.availableBalance || 0}
-                    currency={balance?.currency || 'EGP'}
-                    onClose={() => setShowDepositModal(false)}
-                    onSuccess={() => {
-                        setShowDepositModal(false);
-                        fetchBalance(userId);
-                        fetchTransactions(userId, { limit: 5 });
-                    }}
-                />
-            )}
-
-            {showWithdrawalModal && (
-                <WithdrawalModal
-                    userId={userId}
-                    availableBalance={balance?.availableBalance || 0}
-                    currency={balance?.currency || 'EGP'}
-                    dailyLimit={balance?.dailyWithdrawalLimit || 5000}
-                    monthlyLimit={balance?.monthlyWithdrawalLimit || 50000}
-                    onClose={() => setShowWithdrawalModal(false)}
-                    onSuccess={() => {
-                        setShowWithdrawalModal(false);
-                        fetchBalance(userId);
-                        fetchTransactions(userId, { limit: 5 });
-                    }}
-                />
-            )}
-        </div>
+            {
+                showWithdrawalModal && (
+                    <WithdrawalModal
+                        userId={userId}
+                        availableBalance={balance?.availableBalance || 0}
+                        currency={balance?.currency || 'EGP'}
+                        dailyLimit={balance?.dailyWithdrawalLimit || 5000}
+                        monthlyLimit={balance?.monthlyWithdrawalLimit || 50000}
+                        onClose={() => setShowWithdrawalModal(false)}
+                        onSuccess={() => {
+                            setShowWithdrawalModal(false);
+                            fetchBalance(userId);
+                            fetchTransactions(userId, { limit: 5 });
+                        }}
+                    />
+                )
+            }
+        </div >
     );
 };
 
