@@ -229,7 +229,7 @@ const DriverEarningsDashboard: React.FC<DriverEarningsDashboardProps> = ({ token
         return (
             <div style={{ padding: '1rem', maxWidth: '1200px', margin: '0 auto' }}>
                 <h2 style={{ color: 'var(--matrix-bright-green)', marginBottom: '1.5rem', fontSize: '1.5rem', fontWeight: 'bold' }}>
-                    💰 Driver Earnings
+                    💰 {t('driverEarnings.title')}
                 </h2>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
                     <SkeletonCard />
@@ -245,7 +245,7 @@ const DriverEarningsDashboard: React.FC<DriverEarningsDashboardProps> = ({ token
         <div style={{ padding: '1rem', maxWidth: '1200px', margin: '0 auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
                 <h2 style={{ color: 'var(--matrix-bright-green)', fontSize: '1.5rem', fontWeight: 'bold', margin: 0 }}>
-                    💰 Driver Earnings
+                    💰 {t('driverEarnings.title')}
                 </h2>
 
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -254,38 +254,38 @@ const DriverEarningsDashboard: React.FC<DriverEarningsDashboardProps> = ({ token
                         onClick={() => applyDatePreset('last7days')}
                         style={{ padding: '0.5rem 1rem', background: '#4F46E5', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.875rem' }}
                     >
-                        Last 7 Days
+                        {t('driverEarnings.last7Days')}
                     </button>
                     <button
                         onClick={() => applyDatePreset('last30days')}
                         style={{ padding: '0.5rem 1rem', background: '#4F46E5', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.875rem' }}
                     >
-                        Last 30 Days
+                        {t('driverEarnings.last30Days')}
                     </button>
                     <button
                         onClick={() => applyDatePreset('thisMonth')}
                         style={{ padding: '0.5rem 1rem', background: '#4F46E5', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.875rem' }}
                     >
-                        This Month
+                        {t('driverEarnings.thisMonth')}
                     </button>
                     <button
                         onClick={() => applyDatePreset('lastMonth')}
                         style={{ padding: '0.5rem 1rem', background: '#4F46E5', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.875rem' }}
                     >
-                        Last Month
+                        {t('driverEarnings.lastMonth')}
                     </button>
                     <button
                         onClick={() => setShowDatePicker(!showDatePicker)}
                         style={{ padding: '0.5rem 1rem', background: '#6B7280', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.875rem' }}
                     >
-                        📅 Custom Range
+                        📅 {t('driverEarnings.customRange')}
                     </button>
                     {(startDate || endDate) && (
                         <button
                             onClick={() => applyDatePreset('all')}
                             style={{ padding: '0.5rem 1rem', background: '#EF4444', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.875rem' }}
                         >
-                            Clear Filter
+                            {t('driverEarnings.clearFilter')}
                         </button>
                     )}
                 </div>
@@ -309,7 +309,7 @@ const DriverEarningsDashboard: React.FC<DriverEarningsDashboardProps> = ({ token
             {startDate && endDate && (
                 <div style={{ marginBottom: '1rem', padding: '0.75rem', background: '#EFF6FF', borderRadius: '0.375rem', border: '1px solid #DBEAFE' }}>
                     <span style={{ fontSize: '0.875rem', color: '#1E40AF' }}>
-                        📅 Showing data from {startDate.toLocaleDateString()} to {endDate.toLocaleDateString()}
+                        📅 {t('driverEarnings.showingData')} {startDate.toLocaleDateString()} {t('driverEarnings.to')} {endDate.toLocaleDateString()}
                     </span>
                 </div>
             )}
@@ -323,19 +323,19 @@ const DriverEarningsDashboard: React.FC<DriverEarningsDashboardProps> = ({ token
             {/* Stats Cards */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
                 <div className="card" style={{ textAlign: 'center' }}>
-                    <h3 style={{ fontSize: '0.875rem', color: '#6B7280', textTransform: 'uppercase' }}>Today</h3>
+                    <h3 style={{ fontSize: '0.875rem', color: '#6B7280', textTransform: 'uppercase' }}>{t('driverEarnings.today')}</h3>
                     <p style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--matrix-bright-green)', margin: '0.5rem 0' }}>
                         ${stats?.today.toFixed(2) || '0.00'}
                     </p>
                 </div>
                 <div className="card" style={{ textAlign: 'center' }}>
-                    <h3 style={{ fontSize: '0.875rem', color: '#6B7280', textTransform: 'uppercase' }}>This Week</h3>
+                    <h3 style={{ fontSize: '0.875rem', color: '#6B7280', textTransform: 'uppercase' }}>{t('driverEarnings.thisWeek')}</h3>
                     <p style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--matrix-bright-green)', margin: '0.5rem 0' }}>
                         ${stats?.week.toFixed(2) || '0.00'}
                     </p>
                 </div>
                 <div className="card" style={{ textAlign: 'center' }}>
-                    <h3 style={{ fontSize: '0.875rem', color: '#6B7280', textTransform: 'uppercase' }}>This Month</h3>
+                    <h3 style={{ fontSize: '0.875rem', color: '#6B7280', textTransform: 'uppercase' }}>{t('driverEarnings.thisMonth')}</h3>
                     <p style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--matrix-bright-green)', margin: '0.5rem 0' }}>
                         ${stats?.month.toFixed(2) || '0.00'}
                     </p>
@@ -344,7 +344,7 @@ const DriverEarningsDashboard: React.FC<DriverEarningsDashboardProps> = ({ token
 
             {/* Chart */}
             <div className="card" style={{ marginBottom: '2rem', padding: '1.5rem' }}>
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '1rem', color: '#374151' }}>Earnings Trend (Last 7 Days)</h3>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '1rem', color: '#374151' }}>{t('driverEarnings.trendTitle')}</h3>
                 <div style={{ height: '300px', width: '100%' }}>
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={stats?.chartData || []}>
@@ -369,31 +369,31 @@ const DriverEarningsDashboard: React.FC<DriverEarningsDashboardProps> = ({ token
                     disabled={!history || history.orders.length === 0}
                     style={{ padding: '0.5rem 1rem', background: '#10B981', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.875rem', opacity: (!history || history.orders.length === 0) ? 0.5 : 1 }}
                 >
-                    📄 Export CSV
+                    📄 {t('driverEarnings.exportCSV')}
                 </button>
                 <button
                     onClick={exportToPDF}
                     disabled={!history || history.orders.length === 0}
                     style={{ padding: '0.5rem 1rem', background: '#EF4444', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.875rem', opacity: (!history || history.orders.length === 0) ? 0.5 : 1 }}
                 >
-                    📑 Export PDF
+                    📑 {t('driverEarnings.exportPDF')}
                 </button>
             </div>
 
             {/* History Table */}
             <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
                 <div style={{ padding: '1rem', borderBottom: '1px solid #E5E7EB' }}>
-                    <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#374151', margin: 0 }}>Recent Deliveries</h3>
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#374151', margin: 0 }}>{t('driverEarnings.recentDeliveries')}</h3>
                 </div>
 
                 <div style={{ overflowX: 'auto' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead style={{ background: '#F9FAFB' }}>
                             <tr>
-                                <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.75rem', color: '#6B7280', textTransform: 'uppercase' }}>Date</th>
-                                <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.75rem', color: '#6B7280', textTransform: 'uppercase' }}>Order #</th>
-                                <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.75rem', color: '#6B7280', textTransform: 'uppercase' }}>Rating</th>
-                                <th style={{ padding: '0.75rem 1rem', textAlign: 'right', fontSize: '0.75rem', color: '#6B7280', textTransform: 'uppercase' }}>Amount</th>
+                                <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.75rem', color: '#6B7280', textTransform: 'uppercase' }}>{t('driverEarnings.date')}</th>
+                                <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.75rem', color: '#6B7280', textTransform: 'uppercase' }}>{t('driverEarnings.orderNum')}</th>
+                                <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '0.75rem', color: '#6B7280', textTransform: 'uppercase' }}>{t('driverEarnings.rating')}</th>
+                                <th style={{ padding: '0.75rem 1rem', textAlign: 'right', fontSize: '0.75rem', color: '#6B7280', textTransform: 'uppercase' }}>{t('driverEarnings.amount')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -405,7 +405,7 @@ const DriverEarningsDashboard: React.FC<DriverEarningsDashboardProps> = ({ token
                                 </>
                             ) : history?.orders.length === 0 ? (
                                 <tr>
-                                    <td colSpan={4} style={{ padding: '2rem', textAlign: 'center', color: '#9CA3AF' }}>No completed orders yet.</td>
+                                    <td colSpan={4} style={{ padding: '2rem', textAlign: 'center', color: '#9CA3AF' }}>{t('driverEarnings.noOrders')}</td>
                                 </tr>
                             ) : (
                                 history?.orders.map((order) => (
@@ -440,17 +440,17 @@ const DriverEarningsDashboard: React.FC<DriverEarningsDashboardProps> = ({ token
                             onClick={() => setPage(p => p - 1)}
                             style={{ padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem', background: page === 1 ? '#F3F4F6' : 'white', cursor: page === 1 ? 'not-allowed' : 'pointer' }}
                         >
-                            Previous
+                            {t('driverEarnings.previous')}
                         </button>
                         <span style={{ display: 'flex', alignItems: 'center', padding: '0 0.5rem', fontSize: '0.875rem', color: '#6B7280' }}>
-                            Page {page} of {history.pagination.totalPages}
+                            {t('driverEarnings.pageInfo').replace('{current}', page.toString()).replace('{total}', history.pagination.totalPages.toString())}
                         </span>
                         <button
                             disabled={page === history.pagination.totalPages}
                             onClick={() => setPage(p => p + 1)}
                             style={{ padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem', background: page === history.pagination.totalPages ? '#F3F4F6' : 'white', cursor: page === history.pagination.totalPages ? 'not-allowed' : 'pointer' }}
                         >
-                            Next
+                            {t('driverEarnings.next')}
                         </button>
                     </div>
                 )}

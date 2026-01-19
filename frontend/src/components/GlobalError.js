@@ -1,14 +1,16 @@
 import React from 'react';
 import { useRouteError, useNavigate } from 'react-router-dom';
+import { useI18n } from '../i18n/i18nContext';
 import '../MatrixTheme.css';
 
 const GlobalError = () => {
     const error = useRouteError();
     const navigate = useNavigate();
+    const { t } = useI18n();
 
     console.error("GlobalError caught:", error);
 
-    const errorMessage = error?.statusText || error?.message || "Unknown error occurred";
+    const errorMessage = error?.statusText || error?.message || t('system.unexpectedError');
     const errorStack = process.env.NODE_ENV === 'development' ? error?.stack : null;
 
     return (
@@ -62,7 +64,7 @@ const GlobalError = () => {
                     marginBottom: '1rem',
                     textShadow: '0 0 10px rgba(239, 68, 68, 0.6)'
                 }}>
-                    SYSTEM FAILURE
+                    {t('system.systemFailure')}
                 </h1>
 
                 <p style={{
@@ -70,7 +72,7 @@ const GlobalError = () => {
                     color: '#FECACA', // Red 200
                     marginBottom: '2rem'
                 }}>
-                    An unexpected error has disrupted the Matrix.
+                    {t('system.unexpectedError')}
                 </p>
 
                 <div style={{
@@ -104,7 +106,7 @@ const GlobalError = () => {
                             borderColor: '#B91C1C'
                         }}
                     >
-                        ↻ REBOOT SYSTEM
+                        {t('system.rebootSystem')}
                     </button>
 
                     <button
@@ -116,7 +118,7 @@ const GlobalError = () => {
                             borderColor: '#34D399'
                         }}
                     >
-                        ⌂ RETURN TO SOURCE
+                        {t('system.returnToSource')}
                     </button>
                 </div>
             </div>

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import RoleSwitcher from '../components/RoleSwitcher';
 import CashBalanceCard from '../components/driver/CashBalanceCard';
 import { formatCurrency } from '../utils/formatters';
+import { useI18n } from '../i18n/i18nContext';
 import api from '../api';
 
 const ProfilePage = ({
@@ -24,6 +25,7 @@ const ProfilePage = ({
 }) => {
     // Local state for primary_role switcher
     const [switching, setSwitching] = useState(false);
+    const { t } = useI18n();
 
     // Edit Mode State
     const [isEditing, setIsEditing] = useState(false);
@@ -139,7 +141,7 @@ const ProfilePage = ({
                                 fontSize: '14px',
                                 fontWeight: '500'
                             }}>
-                                {profileData.is_verified ? '✓ Verified' : 'Unverified'}
+                                {profileData.is_verified ? `✓ ${t('profile.verified')}` : t('profile.unverified')}
                             </span>
                             <span style={{
                                 padding: '4px 12px',
@@ -150,7 +152,7 @@ const ProfilePage = ({
                                 fontWeight: '500',
                                 textTransform: 'capitalize'
                             }}>
-                                {profileData.primary_role || profileData.primary_role || 'User'}
+                                {profileData.primary_role || profileData.primary_role || t('profile.userRole')}
                             </span>
                         </div>
                     </div>
@@ -161,7 +163,7 @@ const ProfilePage = ({
                     {/* Only show RoleSwitcher if user has multiple granted_roles */}
                     {(profileData.granted_roles?.length > 1 || profileData.granted_roles?.length > 1) && (
                         <div style={{ background: 'rgba(0,0,0,0.3)', padding: '15px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                            <h3 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Switch Role</h3>
+                            <h3 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('profile.switchRole')}</h3>
                             <RoleSwitcher
                                 currentRole={profileData.primary_role || profileData.primary_role}
                                 grantedRoles={profileData.granted_roles || profileData.granted_roles}
@@ -189,7 +191,7 @@ const ProfilePage = ({
                                     gap: '5px'
                                 }}
                             >
-                                ✏️ Edit Profile
+                                ✏️ {t('profile.editProfile')}
                             </button>
                         ) : (
                             <div style={{ display: 'flex', gap: '10px' }}>
@@ -206,7 +208,7 @@ const ProfilePage = ({
                                         fontSize: '14px'
                                     }}
                                 >
-                                    Cancel
+                                    {t('profile.cancel')}
                                 </button>
                                 <button
                                     onClick={handleSave}
@@ -224,7 +226,7 @@ const ProfilePage = ({
                                         gap: '5px'
                                     }}
                                 >
-                                    💾 Save Changes
+                                    💾 {t('profile.saveChanges')}
                                 </button>
                             </div>
                         )}
@@ -245,20 +247,20 @@ const ProfilePage = ({
 
                 {/* Quick Stats */}
                 <div className="card" style={{ padding: '20px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                    <h3 style={{ marginTop: 0, color: '#A7F3D0', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '10px' }}>📊 Activity Stats</h3>
+                    <h3 style={{ marginTop: 0, color: '#A7F3D0', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '10px' }}>📊 {t('profile.activityStats')}</h3>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '15px' }}>
                         <div style={{ padding: '15px', borderRadius: '10px', background: 'rgba(0,0,0,0.2)', textAlign: 'center' }}>
                             <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#10B981' }}>{profileData.completed_deliveries || profileData.completedDeliveries || 0}</div>
-                            <div style={{ fontSize: '13px', color: '#9CA3AF', marginTop: '5px' }}>Completed Deliveries</div>
+                            <div style={{ fontSize: '13px', color: '#9CA3AF', marginTop: '5px' }}>{t('profile.completedDeliveries')}</div>
                         </div>
                         <div style={{ padding: '15px', borderRadius: '10px', background: 'rgba(0,0,0,0.2)', textAlign: 'center' }}>
                             <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#FBBF24' }}>{profileData.rating ? Number(profileData.rating).toFixed(1) : '5.0'}</div>
-                            <div style={{ fontSize: '13px', color: '#9CA3AF', marginTop: '5px' }}>Average Rating</div>
+                            <div style={{ fontSize: '13px', color: '#9CA3AF', marginTop: '5px' }}>{t('profile.averageRating')}</div>
                         </div>
                         {(profileData.primary_role === 'driver' || profileData.primary_role === 'driver') && (
                             <div style={{ gridColumn: '1 / -1', padding: '15px', borderRadius: '10px', background: 'rgba(0,0,0,0.2)', textAlign: 'center', cursor: 'pointer' }} onClick={() => onNavigate && onNavigate('earnings')}>
-                                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#60A5FA' }}>View Earnings ➔</div>
-                                <div style={{ fontSize: '13px', color: '#9CA3AF', marginTop: '5px' }}>Go to Dashboard</div>
+                                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#60A5FA' }}>{t('profile.viewEarnings')} ➔</div>
+                                <div style={{ fontSize: '13px', color: '#9CA3AF', marginTop: '5px' }}>{t('profile.goToDashboard')}</div>
                             </div>
                         )}
                     </div>
@@ -268,34 +270,34 @@ const ProfilePage = ({
                 {/* Financials Card (Drivers Only) */}
                 {(profileData.primary_role === 'driver' || (profileData.granted_roles && profileData.granted_roles.includes('driver'))) && (
                     <div className="card" style={{ padding: '20px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                        <h3 style={{ marginTop: 0, color: '#A7F3D0', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '10px' }}>💰 Financials</h3>
+                        <h3 style={{ marginTop: 0, color: '#A7F3D0', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '10px' }}>💰 {t('profile.financials')}</h3>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '15px' }}>
                             <div style={{ padding: '15px', borderRadius: '10px', background: 'rgba(0,0,0,0.2)', textAlign: 'center' }}>
                                 <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#10B981' }}>
                                     {formatCurrency(profileData.balance || 0)}
                                 </div>
-                                <div style={{ fontSize: '13px', color: '#9CA3AF', marginTop: '5px' }}>Cash in Hand</div>
+                                <div style={{ fontSize: '13px', color: '#9CA3AF', marginTop: '5px' }}>{t('profile.cashInHand')}</div>
                             </div>
                             <div style={{ padding: '15px', borderRadius: '10px', background: 'rgba(0,0,0,0.2)', textAlign: 'center' }}>
                                 <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#60A5FA' }}>
                                     {profileData.commission_rate || 10}%
                                 </div>
-                                <div style={{ fontSize: '13px', color: '#9CA3AF', marginTop: '5px' }}>Platform Fee</div>
+                                <div style={{ fontSize: '13px', color: '#9CA3AF', marginTop: '5px' }}>{t('profile.platformFee')}</div>
                             </div>
                         </div>
                         <div style={{ marginTop: '15px', fontSize: '12px', color: '#6B7280', fontStyle: 'italic' }}>
-                            * You must have enough balance to cover upfront payments for cash orders.
+                            {t('profile.financialsNote')}
                         </div>
                     </div>
                 )}
 
                 {/* Profile Details Form */}
                 <div className="card" style={{ padding: '20px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                    <h3 style={{ marginTop: 0, color: '#A7F3D0', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '10px' }}>📝 Personal Info</h3>
+                    <h3 style={{ marginTop: 0, color: '#A7F3D0', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '10px' }}>📝 {t('profile.personalInfo')}</h3>
 
                     <div style={{ display: 'grid', gap: '15px', marginTop: '15px' }}>
                         <div>
-                            <label style={{ display: 'block', color: '#9CA3AF', marginBottom: '5px', fontSize: '14px' }}>Full Name</label>
+                            <label style={{ display: 'block', color: '#9CA3AF', marginBottom: '5px', fontSize: '14px' }}>{t('profile.fullName')}</label>
                             {isEditing ? (
                                 <input
                                     value={editFormData.name || ''}
@@ -307,7 +309,7 @@ const ProfilePage = ({
                             )}
                         </div>
                         <div>
-                            <label style={{ display: 'block', color: '#9CA3AF', marginBottom: '5px', fontSize: '14px' }}>Phone Number</label>
+                            <label style={{ display: 'block', color: '#9CA3AF', marginBottom: '5px', fontSize: '14px' }}>{t('profile.phoneNumber')}</label>
                             {isEditing ? (
                                 <input
                                     value={editFormData.phone || ''}
@@ -321,7 +323,7 @@ const ProfilePage = ({
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                             <div>
-                                <label style={{ display: 'block', color: '#9CA3AF', marginBottom: '5px', fontSize: '14px' }}>Language</label>
+                                <label style={{ display: 'block', color: '#9CA3AF', marginBottom: '5px', fontSize: '14px' }}>{t('profile.language')}</label>
                                 {isEditing ? (
                                     <select
                                         value={editFormData.language || ''}
@@ -338,7 +340,7 @@ const ProfilePage = ({
                                 )}
                             </div>
                             <div>
-                                <label style={{ display: 'block', color: '#9CA3AF', marginBottom: '5px', fontSize: '14px' }}>Theme</label>
+                                <label style={{ display: 'block', color: '#9CA3AF', marginBottom: '5px', fontSize: '14px' }}>{t('profile.theme')}</label>
                                 {isEditing ? (
                                     <select
                                         value={editFormData.theme || ''}
@@ -355,7 +357,7 @@ const ProfilePage = ({
                                 )}
                             </div>
                             <div>
-                                <label style={{ display: 'block', color: '#9CA3AF', marginBottom: '5px', fontSize: '14px' }}>Gender</label>
+                                <label style={{ display: 'block', color: '#9CA3AF', marginBottom: '5px', fontSize: '14px' }}>{t('profile.gender')}</label>
                                 {isEditing ? (
                                     <select
                                         value={editFormData.gender || 'male'}
@@ -377,12 +379,12 @@ const ProfilePage = ({
                 {/* Driver Specifics */}
                 {(profileData.primary_role === 'driver' || profileData.primary_role === 'driver' || (profileData.granted_roles && profileData.granted_roles.includes('driver')) || (profileData.granted_roles && profileData.granted_roles.includes('driver'))) && (
                     <div className="card" style={{ padding: '20px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                        <h3 style={{ marginTop: 0, color: '#A7F3D0', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '10px' }}>🚗 Driver Settings</h3>
+                        <h3 style={{ marginTop: 0, color: '#A7F3D0', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '10px' }}>🚗 {t('profile.driverSettings')}</h3>
 
                         <div style={{ display: 'grid', gap: '15px', marginTop: '15px' }}>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                                 <div>
-                                    <label style={{ display: 'block', color: '#9CA3AF', marginBottom: '5px', fontSize: '14px' }}>Vehicle Type</label>
+                                    <label style={{ display: 'block', color: '#9CA3AF', marginBottom: '5px', fontSize: '14px' }}>{t('profile.vehicleType')}</label>
                                     {isEditing ? (
                                         <select
                                             value={editFormData.vehicle_type || ''}
@@ -402,7 +404,7 @@ const ProfilePage = ({
                                     )}
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', color: '#9CA3AF', marginBottom: '5px', fontSize: '14px' }}>License</label>
+                                    <label style={{ display: 'block', color: '#9CA3AF', marginBottom: '5px', fontSize: '14px' }}>{t('profile.license')}</label>
                                     {isEditing ? (
                                         <input
                                             value={editFormData.license_number || ''}
@@ -429,8 +431,8 @@ const ProfilePage = ({
                                     style={{ width: '20px', height: '20px' }}
                                 />
                                 <label htmlFor="availability" style={{ cursor: 'pointer', userSelect: 'none' }}>
-                                    <div style={{ fontWeight: 'bold' }}>Available for Orders</div>
-                                    <div style={{ fontSize: '12px', color: '#9CA3AF' }}>Status: {profileData.is_available ? 'ONLINE' : 'OFFLINE'}</div>
+                                    <div style={{ fontWeight: 'bold' }}>{t('profile.availableForOrders')}</div>
+                                    <div style={{ fontSize: '12px', color: '#9CA3AF' }}>{t('profile.status')}: {profileData.is_available ? t('profile.online') : t('profile.offline')}</div>
                                 </label>
                             </div>
                         </div>
@@ -439,19 +441,19 @@ const ProfilePage = ({
 
                 {/* Payment Methods */}
                 <div className="card" style={{ padding: '20px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                    <h3 style={{ marginTop: 0, color: '#A7F3D0', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '10px' }}>💳 Payment Methods</h3>
+                    <h3 style={{ marginTop: 0, color: '#A7F3D0', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '10px' }}>💳 {t('profile.paymentMethods')}</h3>
 
                     <div style={{ marginTop: '15px' }}>
                         {paymentMethods.length === 0 ? (
-                            <div style={{ color: '#9CA3AF', fontStyle: 'italic', padding: '10px' }}>No payment methods added.</div>
+                            <div style={{ color: '#9CA3AF', fontStyle: 'italic', padding: '10px' }}>{t('profile.noPaymentMethods')}</div>
                         ) : (
                             paymentMethods.map(pm => (
                                 <div key={pm.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', marginBottom: '8px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)' }}>
                                     <div>
                                         <div style={{ fontWeight: '500' }}>{pm.payment_method_type} • {pm.masked_details}</div>
-                                        {pm.is_default && <div style={{ fontSize: '12px', color: '#10B981' }}>Default Method</div>}
+                                        {pm.is_default && <div style={{ fontSize: '12px', color: '#10B981' }}>{t('profile.defaultMethod')}</div>}
                                     </div>
-                                    <button onClick={() => removePaymentMethod(pm.id)} style={{ background: 'transparent', border: '1px solid #EF4444', color: '#EF4444', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer' }}>Remove</button>
+                                    <button onClick={() => removePaymentMethod(pm.id)} style={{ background: 'transparent', border: '1px solid #EF4444', color: '#EF4444', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer' }}>{t('profile.remove')}</button>
                                 </div>
                             ))
                         )}
@@ -463,7 +465,7 @@ const ProfilePage = ({
 
             {/* Footer */}
             <div style={{ marginTop: '30px', textAlign: 'center', color: '#6B7280', fontSize: '14px' }}>
-                <p>User ID: {profileData.id}</p>
+                <p>{t('profile.userId')}: {profileData.id}</p>
                 <p>Matrix Delivery v1.0.0</p>
             </div>
 

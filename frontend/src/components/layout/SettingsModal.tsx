@@ -1,5 +1,6 @@
 import React from 'react';
 import LanguageSwitcher from '../../LanguageSwitcher';
+import { useI18n } from '../../i18n/i18nContext';
 
 interface SettingsModalProps {
     isOpen: boolean;
@@ -14,6 +15,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     locale,
     changeLocale
 }) => {
+    const { t } = useI18n();
     if (!isOpen) return null;
 
     return (
@@ -59,7 +61,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                         textShadow: '0 0 10px var(--matrix-bright-green)',
                         fontWeight: 'bold'
                     }}>
-                        ⚙️ Settings
+                        ⚙️ {t('settings.title')}
                     </h2>
                     <button
                         onClick={onClose}
@@ -79,7 +81,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                         onMouseOver={(e) => e.currentTarget.style.boxShadow = '0 0 15px var(--matrix-bright-green)'}
                         onMouseOut={(e) => e.currentTarget.style.boxShadow = '0 0 10px var(--matrix-bright-green)'}
                     >
-                        ✕ Close
+                        ✕ {t('settings.close')}
                     </button>
                 </div>
 
@@ -105,7 +107,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                             textShadow: '0 0 8px var(--matrix-bright-green)',
                             fontWeight: 'bold'
                         }}>
-                            🌐 Language Settings
+                            🌐 {t('settings.languageSettings')}
                         </h3>
                         <p style={{
                             margin: '0 0 1rem 0',
@@ -114,7 +116,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                             fontFamily: 'Consolas, Monaco, Courier New, monospace',
                             lineHeight: '1.5'
                         }}>
-                            Choose your preferred language for the application interface.
+                            {t('settings.languageDesc')}
                         </p>
                         <div style={{
                             background: '#000',
@@ -145,7 +147,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                             fontFamily: 'Consolas, Monaco, Courier New, monospace',
                             fontStyle: 'italic'
                         }}>
-                            🔧 More settings coming soon insha Allah...
+                            🔧 {t('settings.comingSoon')}
                         </p>
                     </div>
                 </div>
@@ -163,7 +165,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                         fontSize: '0.75rem',
                         fontFamily: 'Consolas, Monaco, Courier New, monospace'
                     }}>
-                        Matrix Delivery Settings • v1.0.0
+                        {t('settings.footer')} • v1.0.0
                     </p>
                 </div>
             </div>

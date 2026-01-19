@@ -34,7 +34,7 @@ Complete walkthrough of the actual implementation, including:
 ### Accessing Chat
 
 **Via UI:**
-- Navigate to an order with status: `accepted`, `picked_up`, or `in_transit`
+- Navigate to an order with status: `accepted`, `picked_up`, `in_transit`, 
 - Click the purple "💬 Chat" button
 - Chat page opens at `/chat/:orderId`
 
