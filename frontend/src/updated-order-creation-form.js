@@ -9,6 +9,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 're
 import L from 'leaflet';
 import SavedAddressSelector from './components/SavedAddressSelector';
 import api from './api';
+import { MapsApi } from './services/api/maps';
 
 // Fix Leaflet default icon issue
 const GLOBAL_API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
@@ -75,6 +76,7 @@ const MessageModal = ({ isOpen, onClose, title, message, type }) => {
         </p>
 
         <button
+          data-testid="modal-close-button"
           onClick={onClose}
           style={{
             padding: '0.75rem 1.5rem',
@@ -105,6 +107,7 @@ const MessageModal = ({ isOpen, onClose, title, message, type }) => {
 
 //TODO SHOW IN SEPARATE PAGE!!!
 const OrderCreationForm = ({ onSubmit, countries, t, API_URL = GLOBAL_API_URL }) => {
+  const navigate = useNavigate();
 
   // Form state
   const [orderData, setOrderData] = useState({
@@ -225,7 +228,7 @@ const OrderCreationForm = ({ onSubmit, countries, t, API_URL = GLOBAL_API_URL })
   const calculateRoute = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await api.post('/locations/calculate-route', {
+      const data = await MapsApi.calculateRoute({
         pickup: pickupLocation.coordinates,
         delivery: dropoffLocation.coordinates
       });
@@ -345,6 +348,9 @@ const OrderCreationForm = ({ onSubmit, countries, t, API_URL = GLOBAL_API_URL })
   };
 
   const closeModal = () => {
+    if (modalState.type === 'success') {
+      navigate('/app');
+    }
     setModalState({
       isOpen: false,
       type: '',

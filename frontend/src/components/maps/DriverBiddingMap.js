@@ -2,7 +2,7 @@ import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import polyline from '@mapbox/polyline';
-import api from '../../api';
+import { MapsApi } from '../../services/api';
 
 // Fix default icon issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -80,7 +80,7 @@ const createCustomIcon = (iconType, color) => {
 // Map control component to handle bounds and interactions
 const MapView = ({ pickupCoords, dropoffCoords, driverCoords, driverToPickupPath, pickupToDropoffPath, onInteraction }) => {
   const map = useMap();
-  const boundsSetRef = React.useRef(false);
+  const lastDriverCoordsRef = React.useRef(null);
 
   useMapEvents({
     click: () => onInteraction && onInteraction(),
@@ -88,7 +88,8 @@ const MapView = ({ pickupCoords, dropoffCoords, driverCoords, driverToPickupPath
   });
 
   React.useEffect(() => {
-    if (map && pickupCoords && dropoffCoords && !boundsSetRef.current) {
+    if (map && pickupCoords && dropoffCoords && !lastDriverCoordsRef.current) {
+      // Initial bounds setting - only when map first loads
       const boundsPoints = [
         [pickupCoords.lat, pickupCoords.lng],
         [dropoffCoords.lat, dropoffCoords.lng]
@@ -96,6 +97,7 @@ const MapView = ({ pickupCoords, dropoffCoords, driverCoords, driverToPickupPath
 
       if (driverCoords && Number.isFinite(driverCoords.lat) && Number.isFinite(driverCoords.lng)) {
         boundsPoints.push([driverCoords.lat, driverCoords.lng]);
+        lastDriverCoordsRef.current = driverCoords;
       }
 
       if (driverToPickupPath && driverToPickupPath.length > 0) {
@@ -108,7 +110,6 @@ const MapView = ({ pickupCoords, dropoffCoords, driverCoords, driverToPickupPath
       const bounds = L.latLngBounds(boundsPoints);
       if (bounds.isValid()) {
         map.fitBounds(bounds, { padding: [50, 50] });
-        boundsSetRef.current = true;
       }
     }
   }, [map, pickupCoords, dropoffCoords, driverCoords, driverToPickupPath, pickupToDropoffPath]);
@@ -244,7 +245,7 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
     const fetchRoute = async () => {
       try {
         console.log('🚀 Fetching route...');
-        const response = await api.post('/locations/calculate-route', {
+        const response = await MapsApi.calculateRoute({
           pickup: { lat: driverCoords.lat, lng: driverCoords.lng },
           delivery: { lat: pickupCoords.lat, lng: pickupCoords.lng },
           // If we have dropoff, we could send it too, but backend calculates A->B.
@@ -273,7 +274,7 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
         let p2dTime = 0;
 
         if (dropoffCoords) {
-          const res2 = await api.post('/locations/calculate-route', {
+          const res2 = await MapsApi.calculateRoute({
             pickup: { lat: pickupCoords.lat, lng: pickupCoords.lng },
             delivery: { lat: dropoffCoords.lat, lng: dropoffCoords.lng }
           });

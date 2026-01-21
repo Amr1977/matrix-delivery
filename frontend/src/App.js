@@ -2287,8 +2287,13 @@ export const MainApp = () => {
                       const cpk = Number(prefs.cost_per_km || 1);
                       const wph = Number(prefs.waiting_cost_per_hour || 0);
                       const wh = Number(prefs.expected_waiting_hours || 0);
-                      const pickup = selectedOrderForMap.pickupLocation?.coordinates || (selectedOrderForMap.from ? { lat: selectedOrderForMap.from.lat, lng: selectedOrderForMap.from.lng } : null);
-                      const dropoff = selectedOrderForMap.dropoffLocation?.coordinates || (selectedOrderForMap.to ? { lat: selectedOrderForMap.to.lat, lng: selectedOrderForMap.to.lng } : null);
+                      const pickupLat = parseFloat(selectedOrderForMap.from_lat || selectedOrderForMap.from?.lat || selectedOrderForMap.pickupLocation?.coordinates?.lat);
+                      const pickupLng = parseFloat(selectedOrderForMap.from_lng || selectedOrderForMap.from?.lng || selectedOrderForMap.pickupLocation?.coordinates?.lng);
+                      const dropoffLat = parseFloat(selectedOrderForMap.to_lat || selectedOrderForMap.to?.lat || selectedOrderForMap.dropoffLocation?.coordinates?.lat);
+                      const dropoffLng = parseFloat(selectedOrderForMap.to_lng || selectedOrderForMap.to?.lng || selectedOrderForMap.dropoffLocation?.coordinates?.lng);
+
+                      const pickup = (!isNaN(pickupLat) && !isNaN(pickupLng)) ? { lat: pickupLat, lng: pickupLng } : null;
+                      const dropoff = (!isNaN(dropoffLat) && !isNaN(dropoffLng)) ? { lat: dropoffLat, lng: dropoffLng } : null;
                       const driver = driverLocation && Number.isFinite(driverLocation.latitude) && Number.isFinite(driverLocation.longitude)
                         ? { lat: driverLocation.latitude, lng: driverLocation.longitude } : null;
                       let distanceKm = 0;
@@ -2307,7 +2312,7 @@ export const MainApp = () => {
           </div>
         )}
 
-        {!['profile', 'settings', 'admin_panel'].includes(viewType) && (
+        {!['profile', 'settings', 'admin_panel', 'location_settings'].includes(viewType) && (
           <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>
             {currentUser?.primary_role === 'customer' ? t('orders.myOrders') : getDriverViewTitle(viewType)}
           </h2>
@@ -2543,7 +2548,7 @@ export const MainApp = () => {
           </div>
         )}
 
-        {!['profile', 'settings', 'admin_panel'].includes(viewType) && (
+        {!['profile', 'settings', 'admin_panel', 'location_settings'].includes(viewType) && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {(() => {
               // Determine which orders to display based on primary_role and view type

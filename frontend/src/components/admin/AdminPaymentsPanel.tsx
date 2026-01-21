@@ -111,15 +111,23 @@ export const AdminPaymentsPanel: React.FC<AdminPaymentsPanelProps> = ({
     const handleVerify = async () => {
         if (!confirmDialog.topup) return;
 
+        const topupId = confirmDialog.topup.id;
+
         try {
             setActionLoading(true);
             setActionError(null);
 
-            await topupApi.verifyTopup(confirmDialog.topup.id);
+            await topupApi.verifyTopup(topupId);
 
-            // Close dialog and refresh list
+            // Close dialog
             setConfirmDialog({ isOpen: false, type: 'verify', topup: null });
-            await fetchPendingTopups();
+
+            // Optimistic update
+            setTopups(current => current.filter(t => t.id !== topupId));
+            setPendingCount(prev => Math.max(0, prev - 1));
+            
+            // Refresh list in background
+            fetchPendingTopups();
         } catch (err: any) {
             setActionError(err.error || 'Failed to verify topup');
         } finally {
@@ -131,16 +139,24 @@ export const AdminPaymentsPanel: React.FC<AdminPaymentsPanelProps> = ({
     const handleReject = async () => {
         if (!confirmDialog.topup || !rejectReason.trim()) return;
 
+        const topupId = confirmDialog.topup.id;
+
         try {
             setActionLoading(true);
             setActionError(null);
 
-            await topupApi.rejectTopup(confirmDialog.topup.id, rejectReason.trim());
+            await topupApi.rejectTopup(topupId, rejectReason.trim());
 
-            // Close dialog and refresh list
+            // Close dialog
             setConfirmDialog({ isOpen: false, type: 'reject', topup: null });
             setRejectReason('');
-            await fetchPendingTopups();
+
+            // Optimistic update
+            setTopups(current => current.filter(t => t.id !== topupId));
+            setPendingCount(prev => Math.max(0, prev - 1));
+            
+            // Refresh list in background
+            fetchPendingTopups();
         } catch (err: any) {
             setActionError(err.error || 'Failed to reject topup');
         } finally {

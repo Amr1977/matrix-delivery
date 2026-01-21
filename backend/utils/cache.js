@@ -14,7 +14,8 @@ const locationMemoryCache = {
     countries: { data: null, expiresAt: 0 },
     cities: new Map(),
     areas: new Map(),
-    streets: new Map()
+    streets: new Map(),
+    routes: new Map()
 };
 
 /**
@@ -132,7 +133,8 @@ const cleanupCache = () => {
     const buckets = [
         locationMemoryCache.cities,
         locationMemoryCache.areas,
-        locationMemoryCache.streets
+        locationMemoryCache.streets,
+        locationMemoryCache.routes
     ];
 
     for (const bucket of buckets) {
@@ -178,12 +180,36 @@ const stopCacheCleanup = () => {
     }
 };
 
+/**
+ * Get route from memory cache
+ * @param {Object} pickup - {lat, lng}
+ * @param {Object} delivery - {lat, lng}
+ * @returns {Object|null} Cached route data or null
+ */
+const getRouteFromCache = (pickup, delivery) => {
+    const key = `${pickup.lat},${pickup.lng}-${delivery.lat},${delivery.lng}`;
+    return getListFromMemory(locationMemoryCache.routes, key);
+};
+
+/**
+ * Set route in memory cache
+ * @param {Object} pickup - {lat, lng}
+ * @param {Object} delivery - {lat, lng}
+ * @param {Object} data - Route data to cache
+ */
+const setRouteCache = (pickup, delivery, data) => {
+    const key = `${pickup.lat},${pickup.lng}-${delivery.lat},${delivery.lng}`;
+    setListInMemory(locationMemoryCache.routes, key, data, LOCATION_CACHE_TTLS.ROUTES);
+};
+
 module.exports = {
     locationMemoryCache,
     getCountriesFromCache,
     setCountriesCache,
     getListFromMemory,
     setListInMemory,
+    getRouteFromCache,
+    setRouteCache,
     getPersistedCache,
     persistCache,
     cleanupCache,

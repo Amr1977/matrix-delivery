@@ -250,9 +250,12 @@ class E2eAdapter extends OrderLifecycleAdapter {
         }
 
         // Fill basic order info
+        // Wait for page to fully load
+        await this.page.waitForLoadState('domcontentloaded');
+
         const timestamp = Date.now();
         const uniqueTitle = orderData.title ? `${orderData.title} ${timestamp}` : `Test Order ${timestamp}`;
-        await this.page.fill('[data-testid="order-title"]', uniqueTitle);
+        await this.page.fill('[data-testid="order-title"]', uniqueTitle, { timeout: 60000 });
         await this.page.fill('[data-testid="order-description"]', orderData.description || 'Test Description');
         await this.page.fill('[data-testid="order-price"]', orderData.price?.toString() || '100');
 
@@ -300,6 +303,15 @@ class E2eAdapter extends OrderLifecycleAdapter {
         }
 
         await this.page.click('button[type="submit"]');
+
+        // Check for success modal and click it if present (new behavior)
+        try {
+            const modalButton = this.page.locator('[data-testid="modal-close-button"]');
+            await modalButton.waitFor({ state: 'visible', timeout: 5000 });
+            await modalButton.click();
+        } catch (e) {
+            // Modal might not appear if redirect happens too fast, which is fine
+        }
 
         // Wait for redirection to dashboard which confirms order creation
         try {

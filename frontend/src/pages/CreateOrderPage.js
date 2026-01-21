@@ -84,8 +84,8 @@ const CreateOrderPage = () => {
 
             const createdOrder = await OrdersApi.createOrder(newOrder);
 
-            alert(t('common.orderPublished', 'Order published successfully!'));
-            navigate('/app'); // Go back to dashboard/active orders
+            // alert(t('common.orderPublished', 'Order published successfully!'));
+            // navigate('/app'); // Handled by OrderCreationForm success modal
         } catch (err) {
             throw err; // Form component will catch and display
         } finally {

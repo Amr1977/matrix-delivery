@@ -4,6 +4,7 @@
 const logger = require('./config/logger');
 const { verifyToken } = require('./middleware/auth');
 const orderService = require('./services/orderService');
+const { getRouteFromCache, setRouteCache } = require('./utils/cache');
 
 // Helper functions for ID generation (same as OrderService)
 const generateId = () => {
@@ -249,6 +250,12 @@ module.exports = (app, pool, jwt) => {
         Math.abs(delivery.lat) > 90 || Math.abs(delivery.lng) > 180) {
         return res.status(400).json({ error: 'Invalid coordinates' });
       }
+      // Check cache first
+      const cachedRoute = getRouteFromCache(pickup, delivery);
+      if (cachedRoute) {
+        // console.log('Serving route from cache');
+        return res.json(cachedRoute);
+      }
 
       // Calculate straight-line distance
       const straightDistance = calculateDistance(
@@ -327,14 +334,19 @@ module.exports = (app, pool, jwt) => {
         }
       };
 
-      res.json({
+      const responseData = {
         distance_km: parseFloat(routeDistance.toFixed(2)),
         straight_line_distance_km: parseFloat(straightDistance.toFixed(2)),
         polyline: routePolyline,
         estimates,
         route_found: osrmSuccess,
         osrm_used: osrmSuccess
-      });
+      };
+
+      // Cache the result
+      setRouteCache(pickup, delivery, responseData);
+
+      res.json(responseData);
     } catch (error) {
       console.error('Route calculation error:', error);
       res.status(500).json({ error: 'Failed to calculate route' });
