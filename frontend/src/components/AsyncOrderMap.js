@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import RoutePreviewMap from './RoutePreviewMap';
-import api from '../api';
+import { MapsApi } from '../services/api';
 import polyline from '@mapbox/polyline';
 
 /**
@@ -90,13 +90,13 @@ const AsyncOrderMap = ({ order, currentUser, driverLocation, theme = 'dark', ...
             };
 
             // Calculate route from driver to pickup
-            const driverToPickupResponse = await api.post('/locations/calculate-route', {
+            const driverToPickupResponse = await MapsApi.calculateRoute({
                 pickup: driverPos,
                 delivery: pickupPos
             });
 
             // Calculate route from pickup to dropoff
-            const pickupToDropoffResponse = await api.post('/locations/calculate-route', {
+            const pickupToDropoffResponse = await MapsApi.calculateRoute({
                 pickup: pickupPos,
                 delivery: dropoffPos
             });

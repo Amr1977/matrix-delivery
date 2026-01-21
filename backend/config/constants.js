@@ -11,7 +11,8 @@ const LOCATION_CACHE_TTLS = {
     COUNTRIES: 1000 * 60 * 60 * 24 * 7, // 7 days
     CITIES: 1000 * 60 * 60 * 6,         // 6 hours
     AREAS: 1000 * 60 * 60 * 6,          // 6 hours
-    STREETS: 1000 * 60 * 60 * 6         // 6 hours
+    STREETS: 1000 * 60 * 60 * 6,        // 6 hours
+    ROUTES: 1000 * 60 * 60 * 12         // 12 hours
 };
 
 // Common countries list

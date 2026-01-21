@@ -8,6 +8,7 @@ export { UsersApi } from './users';
 export { NotificationsApi } from './notifications';
 export { ReviewsApi } from './reviews';
 export { platformWalletsApi } from './platformWallets';
+export { MapsApi } from './maps';
 
 // Export types
 export * from './types';

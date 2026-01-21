@@ -4,6 +4,7 @@ import { formatCurrency, formatDateTime } from '../../utils/formatters';
 import DriverBiddingMap from '../maps/DriverBiddingMap';
 import { MapPin, Clock, Wallet, User, Star, Hash, Navigation, AlertTriangle, CheckCircle, Send, ArrowRight, X } from 'lucide-react';
 import useAuth from '../../hooks/useAuth';
+import { MapsApi } from '../../services/api';
 
 /**
  * DriverBiddingCard - Ultra-Premium Matrix Design (Mobile First)
@@ -40,10 +41,23 @@ const DriverBiddingCard = ({
     const myBid = order.bids?.find(b => b.driverId === currentUser?.id);
 
     // Estimates logic
-    // Estimates logic
     const [calculatedDistance, setCalculatedDistance] = useState(0);
+    const [totalDistanceKm, setTotalDistanceKm] = useState(0);
+
+    // Haversine Distance Calc
+    const haversineKm = (a, b) => {
+        if (!a || !b || a.lat == null || a.lng == null || b.lat == null || b.lng == null) return 0;
+        const R = 6371;
+        const dLat = (b.lat - a.lat) * Math.PI / 180;
+        const dLng = (b.lng - a.lng) * Math.PI / 180;
+        const aa = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * Math.PI / 180) * Math.cos(b.lat * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+        const c = 2 * Math.atan2(Math.sqrt(aa), Math.sqrt(1 - aa));
+        return R * c;
+    };
+
     const distanceKm = order.estimatedDistanceKm || order.distance || calculatedDistance || 0;
     const estTimeMins = Math.ceil((distanceKm / 30) * 60) + 15;
+    const totalEstTimeMins = Math.ceil((totalDistanceKm / 30) * 60) + 15;
 
     // Haversine Distance Calc
     useEffect(() => {
@@ -66,6 +80,83 @@ const DriverBiddingCard = ({
             setCalculatedDistance(d);
         }
     }, [order]);
+
+    // Calculate total distance using routing API with Haversine fallback
+    useEffect(() => {
+        const calculateRouteDistance = async () => {
+            // Comprehensive coordinate extraction - same logic as full map view but with all possible sources
+            const pickupLat = parseFloat(order.from_lat || order.from?.lat || order.pickupLocation?.coordinates?.lat);
+            const pickupLng = parseFloat(order.from_lng || order.from?.lng || order.pickupLocation?.coordinates?.lng);
+            const dropoffLat = parseFloat(order.to_lat || order.to?.lat || order.dropoffLocation?.coordinates?.lat);
+            const dropoffLng = parseFloat(order.to_lng || order.to?.lng || order.dropoffLocation?.coordinates?.lng);
+
+            const pickup = (!isNaN(pickupLat) && !isNaN(pickupLng)) ? { lat: pickupLat, lng: pickupLng } : null;
+            const dropoff = (!isNaN(dropoffLat) && !isNaN(dropoffLng)) ? { lat: dropoffLat, lng: dropoffLng } : null;
+
+            if (!pickup || !dropoff) {
+                // Fallback to Haversine if coordinates are missing
+                let pickupToDropoffKm = 0;
+                if (pickup && dropoff) {
+                    pickupToDropoffKm = haversineKm(pickup, dropoff);
+                }
+                let driverToPickupKm = 0;
+                if (driverLocation && Number.isFinite(driverLocation.lat || driverLocation.latitude) && Number.isFinite(driverLocation.lng || driverLocation.longitude) && pickup) {
+                    const driverLat = driverLocation.lat || driverLocation.latitude;
+                    const driverLng = driverLocation.lng || driverLocation.longitude;
+                    driverToPickupKm = haversineKm({ lat: driverLat, lng: driverLng }, pickup);
+                }
+                const totalKm = driverToPickupKm + pickupToDropoffKm;
+                setTotalDistanceKm(totalKm);
+                return;
+            }
+
+            try {
+                // Calculate driver to pickup distance using routing API
+                let driverToPickupKm = 0;
+                if (driverLocation && Number.isFinite(driverLocation.lat || driverLocation.latitude) && Number.isFinite(driverLocation.lng || driverLocation.longitude)) {
+                    const driverLat = driverLocation.lat || driverLocation.latitude;
+                    const driverLng = driverLocation.lng || driverLocation.longitude;
+
+                    const driverToPickupResponse = await MapsApi.calculateRoute({
+                        pickup: { lat: driverLat, lng: driverLng },
+                        delivery: { lat: pickupLat, lng: pickupLng }
+                    });
+
+                    driverToPickupKm = driverToPickupResponse.distance_km || 0;
+                }
+
+                // Calculate pickup to dropoff distance using routing API
+                const pickupToDropoffResponse = await MapsApi.calculateRoute({
+                    pickup: { lat: pickupLat, lng: pickupLng },
+                    delivery: { lat: dropoffLat, lng: dropoffLng }
+                });
+
+                const pickupToDropoffKm = pickupToDropoffResponse.distance_km || 0;
+                const totalKm = driverToPickupKm + pickupToDropoffKm;
+
+                setTotalDistanceKm(totalKm);
+
+            } catch (error) {
+                console.warn('Route calculation failed, using Haversine fallback:', error.message);
+
+                // Fallback to Haversine calculation
+                let pickupToDropoffKm = haversineKm(pickup, dropoff);
+                let driverToPickupKm = 0;
+
+                if (driverLocation && Number.isFinite(driverLocation.lat || driverLocation.latitude) && Number.isFinite(driverLocation.lng || driverLocation.longitude)) {
+                    const driverLat = driverLocation.lat || driverLocation.latitude;
+                    const driverLng = driverLocation.lng || driverLocation.longitude;
+                    driverToPickupKm = haversineKm({ lat: driverLat, lng: driverLng }, pickup);
+                }
+
+                const totalKm = driverToPickupKm + pickupToDropoffKm;
+                setTotalDistanceKm(totalKm);
+            }
+        };
+
+        calculateRouteDistance();
+    }, [order, driverLocation, haversineKm]);
+
     useEffect(() => {
         if (myBid && !bidInput[order.id] && !isEditing) {
             setBidInput(prev => ({ ...prev, [order.id]: myBid.bidPrice.toString() }));
@@ -217,7 +308,7 @@ const DriverBiddingCard = ({
                     }}>
                         <div style={{ fontSize: '0.6rem', color: '#aaa', textTransform: 'uppercase', marginBottom: '2px' }}>Distance</div>
                         <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'white' }}>
-                            {distanceKm.toFixed(1)} km
+                            {(totalDistanceKm > 0 ? totalDistanceKm : distanceKm).toFixed(1)} km
                         </div>
                     </div>
 
@@ -232,7 +323,7 @@ const DriverBiddingCard = ({
                     }}>
                         <div style={{ fontSize: '0.6rem', color: '#aaa', textTransform: 'uppercase', marginBottom: '2px' }}>Time</div>
                         <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'white' }}>
-                            ~{estTimeMins} min
+                            ~{(totalDistanceKm > 0 ? totalEstTimeMins : estTimeMins)} min
                         </div>
                     </div>
 
