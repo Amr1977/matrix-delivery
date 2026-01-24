@@ -32,6 +32,11 @@ const configureExpress = (app) => {
     // ============================================================================
     const corsOptions = {
         origin: function (origin, callback) {
+            // Allow all origins in test mode
+            if (IS_TEST) {
+                return callback(null, true);
+            }
+
             // Allow requests with no origin (like mobile apps or curl requests)
             // If origin is missing (e.g. stripped by proxy), default to the main frontend to ensure CORS headers are present
             if (!origin) return callback(null, 'https://matrix-delivery.web.app');

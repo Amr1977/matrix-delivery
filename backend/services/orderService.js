@@ -1227,23 +1227,38 @@ RETURNING * `;
       throw new Error(`Order must be in ${expectedPreviousStatuses.join(' or ')} status (current: ${order.status})`);
     }
 
-    // Update order status
-    let query = `UPDATE orders SET status = $1 WHERE id = $2`;
-    let params = [transition.to, orderId];
+    // Update order status safely using optimistic concurrency control
+            let query = `UPDATE orders SET status = $1 WHERE id = $2 AND status = ANY($3::text[])`;
+            let params = [transition.to, orderId, expectedPreviousStatuses];
 
-    const updateFields = {
-      pickup: 'picked_up_at = NOW()',
-      // complete (driver) -> no timestamp update yet, or maybe 'arrived_at'? 
-      complete: 'delivered_at = NOW()', // We can set it tentatively, or wait for confirm. Let's set it now.
-      confirm_delivery: 'completed_at = NOW()', // Maybe a new field? Or just leave delivered_at.
-      cancel: 'cancelled_at = NOW()' // Record when order was cancelled
-    };
+            const updateFields = {
+                pickup: 'picked_up_at = NOW()',
+                // complete (driver) -> no timestamp update yet, or maybe 'arrived_at'? 
+                complete: 'delivered_at = NOW()', // We can set it tentatively, or wait for confirm. Let's set it now.
+                confirm_delivery: 'completed_at = NOW()', // Maybe a new field? Or just leave delivered_at.
+                cancel: 'cancelled_at = NOW()' // Record when order was cancelled
+            };
 
-    if (updateFields[normalizedAction]) {
-      query = `UPDATE orders SET status = $1, ${updateFields[normalizedAction]} WHERE id = $2`;
-    }
+            if (updateFields[normalizedAction]) {
+                query = `UPDATE orders SET status = $1, ${updateFields[normalizedAction]} WHERE id = $2 AND status = ANY($3::text[])`;
+            }
 
-    await pool.query(query, params);
+            console.log(`[DEBUG] Executing update for order ${orderId}, action: ${normalizedAction}. Query: ${query}, Params: ${JSON.stringify(params)}`);
+            const updateResult = await pool.query(query, params);
+            console.log(`[DEBUG] Update result for order ${orderId}: rowCount=${updateResult.rowCount}`);
+
+            if (updateResult.rowCount === 0) {
+                // Check if already updated (idempotency)
+                const currentOrder = await pool.query('SELECT status FROM orders WHERE id = $1', [orderId]);
+                if (currentOrder.rows.length > 0 && currentOrder.rows[0].status === transition.to) {
+                    logger.info(`Order ${orderId} already updated to ${transition.to}, skipping duplicate processing`);
+                    console.log(`[DEBUG] Order ${orderId} already updated to ${transition.to}. Skipping payment logic.`);
+                    return { message: 'Order status already updated' };
+                }
+                throw new Error(`Order status update failed. Current status might have changed.`);
+            } else {
+                console.log(`[DEBUG] Order ${orderId} status updated to ${transition.to}. Proceeding to payment logic if applicable.`);
+            }
 
     // ✅ ESCROW: Handle cancel action - forfeit with compensation
     if (normalizedAction === 'cancel') {
@@ -1324,6 +1339,7 @@ RETURNING * `;
         const takafulContribution = deliveryFee * 0.05; // 5%
 
         try {
+          console.log(`[DEBUG] Calling releaseHold for order ${orderId} from orderService. Confirming delivery.`);
           await balanceService.releaseHold(
             order.customer_id,
             orderId,
@@ -1334,12 +1350,15 @@ RETURNING * `;
               takafulContribution
             }
           );
+          console.log(`[DEBUG] releaseHold returned for order ${orderId}.`);
 
           // Update escrow status on order
+          console.log(`[DEBUG] Updating escrow status to 'released' for order ${orderId}`);
           await pool.query(
             'UPDATE orders SET escrow_status = $1 WHERE id = $2',
             ['released', orderId]
           );
+          console.log(`[DEBUG] Escrow status updated for order ${orderId}`);
 
           logger.info('Escrow released on delivery confirmation', {
             orderId,

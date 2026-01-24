@@ -99,12 +99,14 @@ const ReviewModal = ({ isOpen, onClose, onSubmit, orderId, reviewType, loading }
 
           <div style={{ display: 'flex', gap: '0.75rem' }}>
             <button
+              data-testid="cancel-review-btn"
               onClick={onClose}
               style={{ flex: 1, padding: '0.75rem', background: '#F3F4F6', color: '#374151', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600' }}
             >
               {t('common.cancel')}
             </button>
             <button
+              data-testid="submit-review-btn"
               onClick={handleSubmit}
               disabled={loading || reviewForm.rating === 0}
               style={{ flex: 1, padding: '0.75rem', background: '#4F46E5', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: reviewForm.rating === 0 || loading ? 'not-allowed' : 'pointer', fontWeight: '600', opacity: reviewForm.rating === 0 || loading ? 0.5 : 1 }}

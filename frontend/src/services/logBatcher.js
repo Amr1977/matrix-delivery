@@ -121,15 +121,32 @@ class LogBatcher {
     }
 
     /**
-     * Send logs to backend (DISABLED)
+     * Send logs to backend
      * @param {Array} logs - Array of log entries
      * @param {number} attempt - Current retry attempt
      */
     async sendLogs(logs, attempt = 1) {
-        // Feature disabled as backend endpoint has been removed
-        // Just clear the queue to prevent memory leaks
-        this.clearLocalStorage();
-        return;
+        try {
+            const response = await fetch(`${this.apiUrl}/logs/frontend`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(logs)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+        } catch (error) {
+            console.error(`Failed to send logs (attempt ${attempt}):`, error);
+            
+            if (attempt < this.retryAttempts) {
+                await new Promise(resolve => setTimeout(resolve, this.retryDelay));
+                return this.sendLogs(logs, attempt + 1);
+            }
+            throw error;
+        }
     }
 
     /**

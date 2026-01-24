@@ -267,7 +267,7 @@ const login = async (req, res) => {
             maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
             path: '/'
         };
-
+        
         // Clear any existing cookie first
         // We attempt to clear with both configurations to be safe
         res.clearCookie('token', {
