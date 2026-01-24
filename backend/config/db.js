@@ -6,7 +6,8 @@ const logger = require('./logger');
 if (!process.env.DB_HOST && !process.env.DATABASE_URL) {
     const dotenv = require('dotenv');
     const IS_TEST = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing';
-    const envFile = IS_TEST ? '.env.testing' : '.env';
+    const IS_PROD = process.env.NODE_ENV === 'production';
+    const envFile = IS_TEST ? '.env.testing' : IS_PROD ? '.env.production' : '.env';
 
     logger.info(`📄 Loading environment from: ${envFile}`);
     dotenv.config({ path: envFile });
