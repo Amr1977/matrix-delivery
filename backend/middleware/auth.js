@@ -18,7 +18,10 @@ const verifyToken = async (req, res, next) => {
 
   // Fall back to Authorization header
   if (!token) {
-    token = req.headers['authorization']?.split(' ')[1];
+    const authHeader = req.headers['authorization'];
+    if (authHeader) {
+        token = authHeader.split(' ')[1];
+    }
   }
 
   const clientIP = req.ip || req.connection.remoteAddress;

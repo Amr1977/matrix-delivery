@@ -1135,7 +1135,35 @@ class BalanceService {
     async releaseHold(userId, orderId, amount, options = {}) {
         const client = await this.pool.connect();
         try {
+            console.log(`[DEBUG] releaseHold called for order ${orderId}, amount ${amount}, user ${userId}`);
             await client.query('BEGIN');
+
+            // SERIALIZATION LOCK: Lock the order to prevent concurrent payment processing
+            // This ensures multiple requests wait here, and subsequent ones see the transaction created by the first
+            console.log(`[DEBUG] releaseHold acquiring lock for order ${orderId}`);
+            await client.query('SELECT id FROM orders WHERE id = $1 FOR UPDATE', [orderId]);
+            console.log(`[DEBUG] releaseHold lock acquired for order ${orderId}`);
+
+            // IDEMPOTENCY CHECK: Ensure we haven't already processed this order
+            console.log(`[DEBUG] releaseHold checking idempotency for order ${orderId}`);
+            const idempotencyCheck = await client.query(
+                `SELECT id, type, created_at FROM balance_transactions 
+                 WHERE order_id = $1 
+                 AND type IN ($2, $3, $4) 
+                 LIMIT 1`,
+                [orderId, TransactionType.EARNINGS, TransactionType.ORDER_REFUND, TransactionType.ORDER_PAYMENT]
+            );
+
+            if (idempotencyCheck.rows.length > 0) {
+                logger.info(`[DEBUG] Release hold already processed for order ${orderId} - skipping duplicate. Found tx: ${JSON.stringify(idempotencyCheck.rows[0])}`, { userId, orderId });
+                console.log(`[DEBUG] releaseHold idempotency hit for order ${orderId}. Transaction found: ${idempotencyCheck.rows[0].id}`);
+                await client.query('ROLLBACK');
+                return await this.getBalance(userId);
+            }
+
+            console.log(`[DEBUG] releaseHold processing new transaction for order ${orderId}`);
+            logger.info(`[DEBUG] Processing releaseHold for order ${orderId}. No existing transactions found.`, { userId, orderId });
+
 
             // Verify held balance
             const balance = await this.getBalanceForUpdate(client, userId);

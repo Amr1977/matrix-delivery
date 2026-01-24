@@ -24,10 +24,16 @@ class ServerManager {
         cwd: path.join(__dirname, '../../backend'),
         shell: true,
         env: {
-          ...process.env,
-          ENV_FILE: '.env.testing',
-          INIT_TEST_DB: 'true'
-        }
+            ...process.env,
+            ENV_FILE: '.env.testing',
+            INIT_TEST_DB: 'true',
+            NODE_ENV: 'testing',
+            DB_USER: 'postgres',
+            DB_PASSWORD: 'be_the_one',
+            DB_NAME: 'matrix_delivery_test',
+            DB_HOST: 'localhost',
+            DB_PORT: '5432'
+          }
       });
 
       let output = '';
@@ -77,9 +83,9 @@ class ServerManager {
         env: {
           ...process.env,
           PORT: this.frontendPort,
-          HOST: 'localhost',
+          // HOST: 'localhost',
           BROWSER: 'none',
-          REACT_APP_API_URL: `${this.backendUrl}/api`,
+          REACT_APP_API_URL: '/api',
           REACT_APP_RECAPTCHA_SITE_KEY: '',
           REACT_APP_RECAPTCHA_SECRET_KEY: '',
           NODE_OPTIONS: '--max-old-space-size=4096'

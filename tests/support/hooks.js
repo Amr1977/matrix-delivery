@@ -211,6 +211,15 @@ Before(async function ({ pickle }) {
   });
 
   this.page = await this.context.newPage();
+
+  // Capture browser logs
+  this.page.on('console', msg => {
+      if (msg.type() === 'error' || msg.type() === 'warning') {
+        console.log(`[BROWSER ${msg.type().toUpperCase()}] ${msg.text()}`);
+      }
+  });
+  this.page.on('pageerror', err => console.log(`[BROWSER UNCAUGHT ERROR] ${err}`));
+
   console.log(`\n▶️  Running (E2E MODE): ${pickle.name}`);
 });
 
@@ -221,6 +230,8 @@ After(async function ({ pickle, result }) {
   // Take screenshot if scenario failed AND page exists
   if (result.status === 'FAILED' && this.page) {
     console.log(`   ❌ FAILED: ${pickle.name}`);
+    console.log(`   📍 Current URL: ${this.page.url()}`);
+
 
     try {
       const screenshotPath = path.join(

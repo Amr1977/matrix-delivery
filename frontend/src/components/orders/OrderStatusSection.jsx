@@ -427,10 +427,10 @@ const OrderStatusSection = ({
                                 <button
                                     data-testid={`confirm-delivery-btn-${order.id}`}
                                     onClick={() => handleConfirmDelivery(order.id)}
-                                    // disabled={loadingStates.confirmDelivery} // Add this if you track it
-                                    style={{ flex: 1, padding: '0.75rem', background: '#10B981', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600' }}
+                                    disabled={loadingStates.confirmDelivery}
+                                    style={{ flex: 1, padding: '0.75rem', background: '#10B981', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: loadingStates.confirmDelivery ? 'not-allowed' : 'pointer', fontWeight: '600', opacity: loadingStates.confirmDelivery ? 0.5 : 1 }}
                                 >
-                                    ✅ {t('orders.confirmDelivery') || 'Confirm Delivery'}
+                                    {loadingStates.confirmDelivery ? (t('common.processing') || 'Processing...') : (t('orders.confirmDelivery') || '✅ Confirm Delivery')}
                                 </button>
                             </div>
                         </>

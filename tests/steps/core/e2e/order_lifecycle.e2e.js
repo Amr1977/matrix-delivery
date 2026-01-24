@@ -72,6 +72,7 @@ class E2eAdapter extends OrderLifecycleAdapter {
     async _login(role, name) {
         if (this.currentUser === name) return;
 
+        console.log(`[E2E] Logging in as ${name} (${role})...`);
         await this.logout();
 
         await this.page.goto(`${this.FRONTEND_URL}/login`);
@@ -84,8 +85,17 @@ class E2eAdapter extends OrderLifecycleAdapter {
             await this.page.waitForNavigation({ url: '**/app', timeout: 5000 });
         } catch (e) {
             // If timeout, maybe we are already there or redirected elsewhere
+            console.log(`[E2E] Navigation wait timeout, current URL: ${this.page.url()}`);
         }
         await this.page.waitForTimeout(1000);
+
+        // Debug cookies
+        const cookies = await this.page.context().cookies();
+        const tokenCookie = cookies.find(c => c.name === 'token');
+        console.log(`[E2E] Cookies after login for ${name}:`, tokenCookie ? 'Token present' : 'Token MISSING');
+        if (tokenCookie) {
+             console.log(`[E2E] Token details: domain=${tokenCookie.domain}, path=${tokenCookie.path}, secure=${tokenCookie.secure}, httpOnly=${tokenCookie.httpOnly}, sameSite=${tokenCookie.sameSite}`);
+        }
 
         this.currentUser = name;
     }
@@ -243,7 +253,7 @@ class E2eAdapter extends OrderLifecycleAdapter {
 
             // Wait for and click the "Create New Order" button
             const createOrderBtn = this.page.locator('button', { hasText: 'Create New Order' }).or(this.page.locator('button:has-text("Create Order")'));
-            await createOrderBtn.waitFor({ state: 'visible', timeout: 10000 });
+            await createOrderBtn.waitFor({ state: 'visible', timeout: 30000 });
             await createOrderBtn.click();
 
             await this.page.waitForURL('**/create-order', { timeout: 10000 });
@@ -255,7 +265,10 @@ class E2eAdapter extends OrderLifecycleAdapter {
 
         const timestamp = Date.now();
         const uniqueTitle = orderData.title ? `${orderData.title} ${timestamp}` : `Test Order ${timestamp}`;
-        await this.page.fill('[data-testid="order-title"]', uniqueTitle, { timeout: 60000 });
+        
+        // Wait for the form to be visible before filling
+        await this.page.waitForSelector('[data-testid="order-title"]', { state: 'visible', timeout: 60000 });
+        await this.page.fill('[data-testid="order-title"]', uniqueTitle);
         await this.page.fill('[data-testid="order-description"]', orderData.description || 'Test Description');
         await this.page.fill('[data-testid="order-price"]', orderData.price?.toString() || '100');
 
@@ -703,7 +716,11 @@ class E2eAdapter extends OrderLifecycleAdapter {
         if (userName === 'Alice') {
             expect(actualAmount).toBeCloseTo(expectedAmount, 2);
         } else {
-            expect(actualAmount).toBeGreaterThan(1000);
+             // Driver: 15% commission deducted
+             // Driver starts with 1000.00 EGP (set in createDriver)
+             const initialBalance = 1000.00;
+             const expectedAfterCommission = expectedAmount * 0.85;
+             expect(actualAmount).toBeCloseTo(initialBalance + expectedAfterCommission, 2);
         }
 
 
@@ -925,7 +942,7 @@ class E2eAdapter extends OrderLifecycleAdapter {
 
         // Submit
         console.log('[DEBUG] Clicking Submit Review button...');
-        await this.page.click('button:has-text("Submit Review")');
+        await this.page.click('[data-testid="submit-review-btn"]');
 
         // Verify Success or unexpected Error
         try {

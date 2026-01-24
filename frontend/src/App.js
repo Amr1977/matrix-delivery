@@ -236,19 +236,13 @@ export const MainApp = () => {
   const ttsLastSpokenRef = useRef(0);
   const ttsSignaturesRef = useRef(new Set());
 
-  const [driverPricing, setDriverPricing] = useState(() => {
-    try {
-      const saved = localStorage.getItem('driverPricing');
-      return saved ? JSON.parse(saved) : { currency: 'USD', costPerKm: 1, waitingPerHour: 5, vehicleType: 'car' };
-    } catch {
-      return { currency: 'USD', costPerKm: 1, waitingPerHour: 5, vehicleType: 'car' };
-    }
+  const [driverPricing, setDriverPricing] = useState({
+    currency: 'USD', costPerKm: 1, waitingPerHour: 5, vehicleType: 'car'
   });
 
   const saveDriverPricing = (updates) => {
     const next = { ...driverPricing, ...updates };
     setDriverPricing(next);
-    try { localStorage.setItem('driverPricing', JSON.stringify(next)); } catch { }
   };
 
   const vehicleSpeeds = {
@@ -654,6 +648,17 @@ export const MainApp = () => {
     }
   }, [viewType, currentUser?.primary_role, historyAttempted, historyLoading, fetchHistoryOrders]);
 
+  // Debug "Create New Order" button visibility
+  useEffect(() => {
+    logger.info('Create Order Button Check', {
+      viewType,
+      currentUserExists: !!currentUser,
+      primaryRole: currentUser?.primary_role,
+      loading,
+      shouldShow: viewType !== 'profile' && (currentUser?.primary_role === 'customer' || currentUser?.primary_role === 'admin')
+    });
+  }, [viewType, currentUser, loading]);
+
   // Real-time notifications via WebSocket
   useEffect(() => {
     if (!token || !currentUser?.id) return;
@@ -764,7 +769,9 @@ export const MainApp = () => {
   // Fetch Functions
   const fetchCurrentUser = async () => {
     try {
+      console.log('Fetching current user...');
       const data = await AuthApi.getCurrentUser();
+      console.log('Fetched current user:', data);
       setCurrentUser(data);
       if (data.id) logger.setUserId(data.id); // Secure in-memory logging
       setAvailableRoles(data.granted_roles || (data.primary_role ? [data.primary_role] : []));
@@ -782,6 +789,7 @@ export const MainApp = () => {
 
       // Handle 401/403 errors (no session or expired session)
       if (err.statusCode === 401 || err.statusCode === 403) {
+        console.log('Auth error 401/403. Current user:', currentUser);
         // Only logout if we previously had a user (session expired)
         // Don't logout on initial page load when there's no session
         if (currentUser) {
@@ -1171,9 +1179,6 @@ export const MainApp = () => {
     setAuthState('login');
     setError('');
 
-    // Clear any localStorage items that might persist auth
-    localStorage.removeItem('token');
-
     // Clear tracking modal state on logout
     setShowLiveTracking(false);
     setSelectedOrder(null);
@@ -1455,7 +1460,7 @@ export const MainApp = () => {
   };
 
   const handleConfirmDelivery = async (orderId) => {
-    setLoading(true);
+    setLoadingState('confirmDelivery', true);
     try {
       await OrdersApi.updateStatus(orderId, 'confirm_delivery');
 
@@ -1465,7 +1470,7 @@ export const MainApp = () => {
     } catch (err) {
       setError(err.message);
     } finally {
-      setLoading(false);
+      setLoadingState('confirmDelivery', false);
     }
   };
 
