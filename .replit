@@ -45,3 +45,7 @@ author = 53683379
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "git status"
+
+[[ports]]
+localPort = 5000
+externalPort = 80
