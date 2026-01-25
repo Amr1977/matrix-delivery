@@ -39,7 +39,8 @@ const EXEMPT_POST_ROUTES = [
   '/locations/parse-maps-url',
   '/api/locations/parse-maps-url',
   '/maps/proxy',
-  '/api/maps/proxy'
+  '/api/maps/proxy',
+  '/logs/frontend'
 ];
 
 /**
