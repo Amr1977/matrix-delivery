@@ -37,14 +37,9 @@ const validateDatabaseEnvironment = () => {
 const initializeDatabaseConnection = async () => {
     if (!IS_TEST) {
         try {
-            if (IS_PRODUCTION) {
-                // Temporarily skip migrations in production since schema is pre-loaded
-                logger.info('✅ Skipping migrations in production (schema pre-loaded)');
-            } else {
-                // In development, initialize schema
-                await initDatabase(pool);
-                logger.info('✅ Database initialized successfully');
-            }
+            // Initialize database schema and run migrations in both development and production
+            await initDatabase(pool);
+            logger.info('✅ Database initialized successfully');
         } catch (err) {
             logger.error('Failed to initialize database:', err);
             process.exit(1);
