@@ -9,19 +9,22 @@
 
 const { Pool } = require('pg');
 const dotenv = require('dotenv');
+const path = require('path');
 
 // Load environment variables from backend/.env
-dotenv.config({ path: '../backend/.env' });
+dotenv.config({ path: path.join(__dirname, '../backend/.env') });
 
-// Clean up the connection string by removing unsupported parameters
+console.log('DATABASE_URL loaded:', process.env.DATABASE_URL ? 'yes' : 'no');
+
+// Clean up the connection string by removing query parameters
 let connectionString = process.env.DATABASE_URL;
-if (connectionString && connectionString.includes('channel_binding=require')) {
-  connectionString = connectionString.replace('&channel_binding=require', '');
+if (connectionString) {
+  connectionString = connectionString.split('?')[0];
 }
 
 const pool = new Pool({
   connectionString: connectionString,
-  ssl: { rejectUnauthorized: false }, // Allow self-signed certificates
+  ssl: true, // Enable SSL
 });
 
 async function promoteToAdmin(email) {
