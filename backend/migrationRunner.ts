@@ -35,7 +35,7 @@ export class MigrationRunner {
     constructor(pool: Pool) {
         this.pool = pool;
         this.migrationsDir = path.join(__dirname, 'migrations');
-        this.migrationsTable = 'schema_migrations';
+        this.migrationsTable = 'public.schema_migrations';
     }
 
     /**
