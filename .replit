@@ -54,15 +54,15 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Run App"
+args = "Backend Server"
 
 [[workflows.workflow]]
-name = "Run App"
+name = "Backend Server"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run start:replit"
+args = "cd backend && cross-env PORT=5000 node server.js"
 waitForPort = 5000
 
 [workflows.workflow.metadata]
@@ -77,5 +77,5 @@ localPort = 5000
 externalPort = 80
 
 [deployment]
-run = ["sh", "-c", "cd backend; npm start"]
-deploymentTarget = "cloudrun"
+run = ["bash", "-c", "cd backend && node server.js"]
+deploymentTarget = "autoscale"
