@@ -7,6 +7,26 @@ const pool = new Pool({
   connectionString: DATABASE_URL,
 });
 
+async function listDatabases() {
+  try {
+    const result = await pool.query("SELECT datname FROM pg_database WHERE datistemplate = false ORDER BY datname;");
+    console.log('📋 Databases:');
+    result.rows.forEach(row => console.log('  -', row.datname));
+  } catch (error) {
+    console.error('❌ Failed to list databases:', error.message);
+  }
+}
+
+async function listTables() {
+  try {
+    const result = await pool.query("SELECT schemaname, tablename FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename;");
+    console.log('📋 Tables in public schema:');
+    result.rows.forEach(row => console.log(`  - ${row.schemaname}.${row.tablename}`));
+  } catch (error) {
+    console.error('❌ Failed to list tables:', error.message);
+  }
+}
+
 async function testConnection() {
   try {
     console.log('Testing Neon database connection...');
@@ -25,6 +45,12 @@ async function testConnection() {
       ) as exists
     `);
     console.log('Schema migrations table exists:', tableCheck.rows[0].exists);
+
+    // List databases
+    await listDatabases();
+
+    // List tables
+    await listTables();
 
     // Close the pool
     await pool.end();
