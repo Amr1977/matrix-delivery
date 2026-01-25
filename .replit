@@ -47,5 +47,9 @@ task = "shell.exec"
 args = "git status"
 
 [[ports]]
+localPort = 80
+externalPort = 8080
+
+[[ports]]
 localPort = 5000
 externalPort = 80
