@@ -18,9 +18,6 @@ yarn-debug.log*
 yarn-error.log*
 
 # Environment variables
-.env
-.env.*
-!.env.example
 
 # IDE
 .vscode/
