@@ -16,15 +16,11 @@ dotenv.config({ path: path.join(__dirname, '../backend/.env') });
 
 console.log('DATABASE_URL loaded:', process.env.DATABASE_URL ? 'yes' : 'no');
 
-// Clean up the connection string by removing query parameters
+// Use the connection string as-is
 let connectionString = process.env.DATABASE_URL;
-if (connectionString) {
-  connectionString = connectionString.split('?')[0];
-}
 
 const pool = new Pool({
   connectionString: connectionString,
-  ssl: true, // Enable SSL
 });
 
 async function promoteToAdmin(email) {
