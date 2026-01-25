@@ -145,7 +145,7 @@ app.use('/api/heartbeat', heartbeatAuth, heartbeatRouter);
 app.use('/api/health', require('./routes/health'));
 
 // Load system health monitoring (admin only)
-app.use('/api/admin/health', require('./routes/systemHealth'));
+// app.use('/api/admin/health', require('./routes/systemHealth'));
 
 // Load Takaful cooperative insurance routes
 app.use('/api/takaful', require('./routes/takaful'));
@@ -2977,7 +2977,8 @@ const { setupSwagger } = require('./config/swagger');
 setupSwagger(app);
 logger.info('✅ Swagger API documentation available at /api-docs');
 
-// Serve static files from the React app
+// Serve static files from the React app - Commented out for Firebase setup
+/*
 app.use(express.static(path.join(__dirname, '../frontend/build')));
 
 // The "catchall" handler: for any request that doesn't
@@ -2989,6 +2990,7 @@ app.get('*', (req, res, next) => {
   }
   res.sendFile(path.join(__dirname, '../frontend/build/index.html'));
 });
+*/
 
 // Error handling middleware
 app.use(logger.errorLogger);
