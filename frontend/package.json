@@ -36,7 +36,7 @@
     "dev": "node ../../start-dev.js",
     "dev:stop": "node ../../stop-dev.js",
     "dev:restore": "node -e \"require('fs').copyFileSync('.env.develop', '.env')\"",
-    "start": "node scripts/generate-git-info.js && cross-env NODE_OPTIONS=--max-old-space-size=5120 GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true react-scripts start",
+    "start": "node scripts/generate-git-info.js && cross-env HOST=0.0.0.0 PORT=5000 WDS_SOCKET_PORT=0 NODE_OPTIONS=--max-old-space-size=5120 GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true react-scripts start",
     "start:lan": "node -e \"require('fs').copyFileSync('.env.lan', '.env')\" && node scripts/generate-git-info.js && cross-env HOST=0.0.0.0 NODE_OPTIONS=--max-old-space-size=5120 GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true react-scripts start",
     "build": "react-scripts build",
     "build:dev": "node -e \"require('fs').copyFileSync('.env.develop', '.env')\" && set REACT_APP_ENV=development && react-scripts build",

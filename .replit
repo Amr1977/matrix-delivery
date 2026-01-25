@@ -9,6 +9,7 @@ NODE_ENV = "production"
 channel = "stable-25_05"
 
 [workflows]
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "git commit"
@@ -46,6 +47,27 @@ author = 53683379
 task = "shell.exec"
 args = "git status"
 
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Run App"
+
+[[workflows.workflow]]
+name = "Run App"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run start:replit"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
 [[ports]]
 localPort = 80
 externalPort = 8080
@@ -53,3 +75,7 @@ externalPort = 8080
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[deployment]
+run = ["sh", "-c", "cd backend; npm start"]
+deploymentTarget = "cloudrun"
