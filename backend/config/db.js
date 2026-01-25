@@ -19,7 +19,7 @@ if (!process.env.DB_HOST && !process.env.DATABASE_URL) {
 logger.info(`🔧 Environment Configuration:`);
 logger.info(`   NODE_ENV: ${process.env.NODE_ENV}`);
 logger.info(`   IS_TEST: ${IS_TEST}`);
-logger.info(`   DATABASE_URL: ${process.env.DATABASE_URL}`);
+console.log(`   DATABASE_URL: ${process.env.DATABASE_URL}`);
 logger.info(`   DB_HOST: ${process.env.DB_HOST || 'localhost'}`);
 logger.info(`   DB_PORT: ${process.env.DB_PORT || 5432}`);
 logger.info(`   DB_USER: ${process.env.DB_USER || 'postgres'}`);
