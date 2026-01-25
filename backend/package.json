@@ -23,6 +23,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.0.2",
     "@paypal/checkout-server-sdk": "^1.0.3",
     "@socket.io/redis-adapter": "^8.3.0",
     "axios": "^1.13.2",
