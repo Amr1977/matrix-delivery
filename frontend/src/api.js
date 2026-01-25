@@ -1,5 +1,4 @@
-// API utility with logging
-import logger from './logger';
+// API utility
 import { getDeviceFingerprint } from './utils/fingerprint';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
@@ -56,7 +55,7 @@ class ApiClient {
     const startTime = Date.now();
     const url = `${this.baseURL}${endpoint}`;
 
-    logger.debug(`API Request: ${method} ${endpoint}`, {
+    console.debug(`API Request: ${method} ${endpoint}`, {
       method,
       endpoint,
       hasData: !!data,
@@ -106,7 +105,7 @@ class ApiClient {
       if (response.status === 403 && !options._retry) {
         // Check if it's likely a CSRF issue (or just a generic auth issue)
         // We'll try to refresh the token and retry once
-        logger.warn(`403 Forbidden encountered at ${endpoint}. Refreshing CSRF token and retrying...`);
+        console.warn(`403 Forbidden encountered at ${endpoint}. Refreshing CSRF token and retrying...`);
         this.csrfToken = null; // Clear invalid token
         await this.fetchCsrfToken(); // Fetch new token
 
@@ -115,13 +114,11 @@ class ApiClient {
       }
 
       // Log API response
-      logger.api(method, endpoint, response.status, duration, {
-        responseSize: response.headers.get('content-length') || 'unknown'
-      });
+      console.log(`API ${method} ${endpoint} - ${response.status} (${duration}ms)`);
 
       if (!response.ok) {
         const errorText = await response.text();
-        logger.warn(`API Error: ${method} ${endpoint}`, {
+        console.warn(`API Error: ${method} ${endpoint}`, {
           status: response.status,
           statusText: response.statusText,
           error: errorText,
@@ -149,7 +146,7 @@ class ApiClient {
 
       const responseData = await response.json();
 
-      logger.debug(`API Success: ${method} ${endpoint}`, {
+      console.debug(`API Success: ${method} ${endpoint}`, {
         duration: `${duration}ms`,
         hasResponseData: !!responseData
       });
@@ -158,7 +155,7 @@ class ApiClient {
     } catch (error) {
       const duration = Date.now() - startTime;
 
-      logger.error(`API Request Failed: ${method} ${endpoint}`, {
+      console.error(`API Request Failed: ${method} ${endpoint}`, {
         error: error.message,
         duration: `${duration}ms`,
         stack: error.stack
