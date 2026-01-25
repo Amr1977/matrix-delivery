@@ -1,0 +1,47 @@
+modules = ["nodejs-20", "web"]
+[agent]
+expertMode = true
+
+[env]
+NODE_ENV = "production"
+
+[nix]
+channel = "stable-25_05"
+
+[workflows]
+
+[[workflows.workflow]]
+name = "git commit"
+mode = "sequential"
+author = 53683379
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "git add . && git commit -m \"replit commit\""
+
+[[workflows.workflow]]
+name = "start backend"
+mode = "sequential"
+author = 53683379
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd backend && npm install && npm start"
+
+[[workflows.workflow]]
+name = "git pull"
+mode = "sequential"
+author = 53683379
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "git pull origin master"
+
+[[workflows.workflow]]
+name = "git status"
+mode = "sequential"
+author = 53683379
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "git status"
