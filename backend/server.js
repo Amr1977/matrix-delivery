@@ -21,7 +21,7 @@ const { startCleanup, stopCleanup } = require('./middleware/rateLimit');
 
 const IS_TEST = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing';
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 // Create HTTP server wrapping the Express app
 const httpServer = http.createServer(app);
@@ -32,6 +32,7 @@ const allowedOrigins = process.env.CORS_ORIGIN
   : [
     'http://localhost:3000',
     'http://192.168.1.2:3000',
+    'https://' + process.env.REPLIT_DEV_DOMAIN,
     'https://matrix-delivery.web.app'
   ];
 
