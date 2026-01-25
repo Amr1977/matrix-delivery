@@ -29,7 +29,7 @@ let poolConfig;
 
 if (process.env.DATABASE_URL) {
     // Use DATABASE_URL if provided (e.g., for Neon, Heroku, etc.)
-    poolConfig = process.env.DATABASE_URL;
+    poolConfig = { connectionString: process.env.DATABASE_URL };
     logger.info(`🔌 Connecting to database via DATABASE_URL (Test Mode: ${IS_TEST})`);
 } else {
     // Use individual config variables
