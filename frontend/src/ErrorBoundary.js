@@ -1,5 +1,4 @@
 import React from 'react';
-import logger from './logger';
 import translations from './i18n/locales';
 
 // Get translation helper for class component (can't use hooks)
@@ -25,8 +24,8 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    // Log the error to our logging system
-    logger.logError(error, errorInfo, errorInfo?.componentStack || 'No component stack available');
+    // Log the error to console
+    console.error('React Error Boundary caught an error:', error, errorInfo);
 
     this.setState({
       error: error,

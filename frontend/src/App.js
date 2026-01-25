@@ -11,7 +11,6 @@ import OrdersMap from './components/maps/OrdersMap';
 import AsyncOrderMap from './components/AsyncOrderMap';
 import io from 'socket.io-client';
 import ReCAPTCHA from 'react-google-recaptcha';
-import logger from './logger';
 import './Mobile.css';
 import './MatrixTheme.css';
 import MessagingPanel from './components/messaging/MessagingPanel';
@@ -650,7 +649,7 @@ export const MainApp = () => {
 
   // Debug "Create New Order" button visibility
   useEffect(() => {
-    logger.info('Create Order Button Check', {
+    console.log('Create Order Button Check', {
       viewType,
       currentUserExists: !!currentUser,
       primaryRole: currentUser?.primary_role,
@@ -773,7 +772,6 @@ export const MainApp = () => {
       const data = await AuthApi.getCurrentUser();
       console.log('Fetched current user:', data);
       setCurrentUser(data);
-      if (data.id) logger.setUserId(data.id); // Secure in-memory logging
       setAvailableRoles(data.granted_roles || (data.primary_role ? [data.primary_role] : []));
       setToken('authenticated'); // Set token flag to indicate logged in
       setError('');
@@ -1053,7 +1051,6 @@ export const MainApp = () => {
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    logger.user('Registration attempt', { primary_role: authForm.primary_role });
 
     if (!authForm.name || !authForm.email || !authForm.password || !authForm.phone || !authForm.country || !authForm.city) {
       logger.warn('Registration validation failed: missing required fields');
@@ -1096,11 +1093,6 @@ export const MainApp = () => {
       setError('');
       navigate('/app');
 
-      logger.user('Registration successful', {
-        userId: userData.id,
-        primary_role: userData.primary_role,
-        duration: `${duration}ms`
-      });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -1137,7 +1129,6 @@ export const MainApp = () => {
       // Token is now set in httpOnly cookie by server, no need to store in localStorage
       setToken('authenticated'); // Just a flag to indicate user is logged in
       setCurrentUser(userData);
-      if (userData.id) logger.setUserId(userData.id);
       setAvailableRoles(userData.granted_roles || (userData.primary_role ? [userData.primary_role] : []));
       setAuthForm({ name: '', email: '', password: '', phone: '', primary_role: 'customer', vehicle_type: '' });
       setError('');
@@ -1172,7 +1163,6 @@ export const MainApp = () => {
     // Clear all client-side state
     setToken(null);
     setCurrentUser(null);
-    logger.setUserId(null); // Clear logger user ID
     setProfileData({});
     setOrders([]);
     setNotifications([]);

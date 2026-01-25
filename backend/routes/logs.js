@@ -14,56 +14,6 @@ module.exports = (pool) => {
 
 
 
-    /**
-     * POST /api/logs/frontend
-     * Receive logs from frontend (single or batch)
-     */
-    router.post('/frontend', async (req, res) => {
-        try {
-            const payload = req.body;
-            
-            if (!payload) {
-                console.error('[LOGS_API] No payload received in request body');
-                return res.status(400).json({ error: 'No payload received' });
-            }
-
-            // Handle batch of logs (array)
-            if (Array.isArray(payload)) {
-                payload.forEach(logEntry => {
-                    if (!logEntry) return;
-                    const { level, message, details, timestamp } = logEntry;
-                    try {
-                        logger.info(`[FRONTEND] ${message}`, {
-                            ...details,
-                            source: 'frontend',
-                            originalTimestamp: timestamp,
-                            level: level || 'info'
-                        });
-                    } catch (err) {
-                        console.error('[LOGS_API] Error logging entry:', err);
-                    }
-                });
-            } else {
-                // Handle single log
-                const { level, message, details, timestamp } = payload;
-                try {
-                    logger.info(`[FRONTEND] ${message}`, {
-                        ...details,
-                        source: 'frontend',
-                        originalTimestamp: timestamp,
-                        level: level || 'info'
-                    });
-                } catch (err) {
-                    console.error('[LOGS_API] Error logging single entry:', err);
-                }
-            }
-
-            res.status(200).json({ success: true });
-        } catch (error) {
-            console.error('[LOGS_API] Failed to process frontend log:', error);
-            res.status(500).json({ error: 'Failed to process log: ' + error.message });
-        }
-    });
 
     /**
      * GET /api/logs
