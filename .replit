@@ -7,18 +7,6 @@ NODE_ENV = "production"
 
 [nix]
 channel = "stable-25_05"
-<<<<<<< HEAD
-=======
-modules = ["nodejs-20", "web"]
-[agent]
-expertMode = true
-
-[env]
-NODE_ENV = "production"
-
-[nix]
-channel = "stable-25_05"
->>>>>>> 774fcbe (Pre-Recovery checkpoint)
 
 [workflows]
 
