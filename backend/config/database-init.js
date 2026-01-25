@@ -38,10 +38,22 @@ const initializeDatabaseConnection = async () => {
     if (!IS_TEST) {
         try {
             if (IS_PRODUCTION) {
-                // In production, run migrations instead of schema initialization
-                const { runMigrationsOnStartup } = require('../migrationRunner');
-                await runMigrationsOnStartup(pool);
-                logger.info('✅ Database migrations completed successfully');
+                // Check if database is already initialized (has users table)
+                const result = await pool.query(`
+                    SELECT EXISTS (
+                        SELECT FROM information_schema.tables
+                        WHERE table_name = 'users' AND table_schema = 'public'
+                    ) as initialized
+                `);
+
+                if (result.rows[0].initialized) {
+                    logger.info('✅ Database already initialized - skipping migrations');
+                } else {
+                    // In production, run migrations instead of schema initialization
+                    const { runMigrationsOnStartup } = require('../migrationRunner');
+                    await runMigrationsOnStartup(pool);
+                    logger.info('✅ Database migrations completed successfully');
+                }
             } else {
                 // In development, initialize schema
                 await initDatabase(pool);
