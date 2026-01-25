@@ -1,4 +1,5 @@
 const { Pool } = require('pg');
+const { neon } = require("@neondatabase/serverless");
 const logger = require('./logger');
 
 // Environment is loaded by server.js or jest.setup.js
