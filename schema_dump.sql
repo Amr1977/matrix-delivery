@@ -19,32 +19,32 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- Name: public; Type: SCHEMA; Schema: -; Owner: postgres
+-- Name: public; Type: SCHEMA; Schema: -; Owner: neondb_owner
 --
 
 -- *not* creating schema, since initdb creates it
 
 
-ALTER SCHEMA public OWNER TO postgres;
+ALTER SCHEMA public OWNER TO neondb_owner;
 
 --
--- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: postgres
+-- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: neondb_owner
 --
 
 COMMENT ON SCHEMA public IS '';
 
 
 --
--- Name: topology; Type: SCHEMA; Schema: -; Owner: postgres
+-- Name: topology; Type: SCHEMA; Schema: -; Owner: neondb_owner
 --
 
 CREATE SCHEMA topology;
 
 
-ALTER SCHEMA topology OWNER TO postgres;
+ALTER SCHEMA topology OWNER TO neondb_owner;
 
 --
--- Name: SCHEMA topology; Type: COMMENT; Schema: -; Owner: postgres
+-- Name: SCHEMA topology; Type: COMMENT; Schema: -; Owner: neondb_owner
 --
 
 COMMENT ON SCHEMA topology IS 'PostGIS Topology schema';
@@ -93,7 +93,7 @@ COMMENT ON EXTENSION postgis_topology IS 'PostGIS topology spatial types and fun
 
 
 --
--- Name: enum_bids_status; Type: TYPE; Schema: public; Owner: postgres
+-- Name: enum_bids_status; Type: TYPE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TYPE public.enum_bids_status AS ENUM (
@@ -103,10 +103,10 @@ CREATE TYPE public.enum_bids_status AS ENUM (
 );
 
 
-ALTER TYPE public.enum_bids_status OWNER TO postgres;
+ALTER TYPE public.enum_bids_status OWNER TO neondb_owner;
 
 --
--- Name: enum_orders_status; Type: TYPE; Schema: public; Owner: postgres
+-- Name: enum_orders_status; Type: TYPE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TYPE public.enum_orders_status AS ENUM (
@@ -119,10 +119,10 @@ CREATE TYPE public.enum_orders_status AS ENUM (
 );
 
 
-ALTER TYPE public.enum_orders_status OWNER TO postgres;
+ALTER TYPE public.enum_orders_status OWNER TO neondb_owner;
 
 --
--- Name: enum_payments_payment_method; Type: TYPE; Schema: public; Owner: postgres
+-- Name: enum_payments_payment_method; Type: TYPE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TYPE public.enum_payments_payment_method AS ENUM (
@@ -134,10 +134,10 @@ CREATE TYPE public.enum_payments_payment_method AS ENUM (
 );
 
 
-ALTER TYPE public.enum_payments_payment_method OWNER TO postgres;
+ALTER TYPE public.enum_payments_payment_method OWNER TO neondb_owner;
 
 --
--- Name: enum_payments_status; Type: TYPE; Schema: public; Owner: postgres
+-- Name: enum_payments_status; Type: TYPE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TYPE public.enum_payments_status AS ENUM (
@@ -150,10 +150,10 @@ CREATE TYPE public.enum_payments_status AS ENUM (
 );
 
 
-ALTER TYPE public.enum_payments_status OWNER TO postgres;
+ALTER TYPE public.enum_payments_status OWNER TO neondb_owner;
 
 --
--- Name: enum_reviews_review_type; Type: TYPE; Schema: public; Owner: postgres
+-- Name: enum_reviews_review_type; Type: TYPE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TYPE public.enum_reviews_review_type AS ENUM (
@@ -164,10 +164,10 @@ CREATE TYPE public.enum_reviews_review_type AS ENUM (
 );
 
 
-ALTER TYPE public.enum_reviews_review_type OWNER TO postgres;
+ALTER TYPE public.enum_reviews_review_type OWNER TO neondb_owner;
 
 --
--- Name: enum_users_role; Type: TYPE; Schema: public; Owner: postgres
+-- Name: enum_users_role; Type: TYPE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TYPE public.enum_users_role AS ENUM (
@@ -178,77 +178,96 @@ CREATE TYPE public.enum_users_role AS ENUM (
 );
 
 
-ALTER TYPE public.enum_users_role OWNER TO postgres;
+ALTER TYPE public.enum_users_role OWNER TO neondb_owner;
 
 --
--- Name: cleanup_old_health_logs(); Type: FUNCTION; Schema: public; Owner: postgres
+-- Name: cleanup_old_health_logs(); Type: FUNCTION; Schema: public; Owner: neondb_owner
 --
 
 CREATE FUNCTION public.cleanup_old_health_logs() RETURNS void
     LANGUAGE plpgsql
-    AS $$
-BEGIN
-    DELETE FROM system_health_logs WHERE timestamp < NOW() - INTERVAL '3 days';
-END;
+    AS $$
+
+BEGIN
+
+    DELETE FROM system_health_logs WHERE timestamp < NOW() - INTERVAL '3 days';
+
+END;
+
 $$;
 
 
-ALTER FUNCTION public.cleanup_old_health_logs() OWNER TO postgres;
+ALTER FUNCTION public.cleanup_old_health_logs() OWNER TO neondb_owner;
 
 --
--- Name: update_balance_transaction_timestamp(); Type: FUNCTION; Schema: public; Owner: postgres
+-- Name: update_balance_transaction_timestamp(); Type: FUNCTION; Schema: public; Owner: neondb_owner
 --
 
 CREATE FUNCTION public.update_balance_transaction_timestamp() RETURNS trigger
     LANGUAGE plpgsql
-    AS $$
-BEGIN
-    NEW.updated_at = CURRENT_TIMESTAMP;
-    RETURN NEW;
-END;
+    AS $$
+
+BEGIN
+
+    NEW.updated_at = CURRENT_TIMESTAMP;
+
+    RETURN NEW;
+
+END;
+
 $$;
 
 
-ALTER FUNCTION public.update_balance_transaction_timestamp() OWNER TO postgres;
+ALTER FUNCTION public.update_balance_transaction_timestamp() OWNER TO neondb_owner;
 
 --
--- Name: update_timestamp(); Type: FUNCTION; Schema: public; Owner: postgres
+-- Name: update_timestamp(); Type: FUNCTION; Schema: public; Owner: neondb_owner
 --
 
 CREATE FUNCTION public.update_timestamp() RETURNS trigger
     LANGUAGE plpgsql
-    AS $$
-BEGIN
-    NEW.updated_at = CURRENT_TIMESTAMP;
-    RETURN NEW;
-END;
+    AS $$
+
+BEGIN
+
+    NEW.updated_at = CURRENT_TIMESTAMP;
+
+    RETURN NEW;
+
+END;
+
 $$;
 
 
-ALTER FUNCTION public.update_timestamp() OWNER TO postgres;
+ALTER FUNCTION public.update_timestamp() OWNER TO neondb_owner;
 
 --
--- Name: update_wallet_payment_timestamp(); Type: FUNCTION; Schema: public; Owner: postgres
+-- Name: update_wallet_payment_timestamp(); Type: FUNCTION; Schema: public; Owner: neondb_owner
 --
 
 CREATE FUNCTION public.update_wallet_payment_timestamp() RETURNS trigger
     LANGUAGE plpgsql
-    AS $$
-BEGIN
-    NEW.updated_at = CURRENT_TIMESTAMP;
-    RETURN NEW;
-END;
+    AS $$
+
+BEGIN
+
+    NEW.updated_at = CURRENT_TIMESTAMP;
+
+    RETURN NEW;
+
+END;
+
 $$;
 
 
-ALTER FUNCTION public.update_wallet_payment_timestamp() OWNER TO postgres;
+ALTER FUNCTION public.update_wallet_payment_timestamp() OWNER TO neondb_owner;
 
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
 
 --
--- Name: SequelizeMeta; Type: TABLE; Schema: public; Owner: postgres
+-- Name: SequelizeMeta; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public."SequelizeMeta" (
@@ -256,10 +275,10 @@ CREATE TABLE public."SequelizeMeta" (
 );
 
 
-ALTER TABLE public."SequelizeMeta" OWNER TO postgres;
+ALTER TABLE public."SequelizeMeta" OWNER TO neondb_owner;
 
 --
--- Name: admin_logs; Type: TABLE; Schema: public; Owner: postgres
+-- Name: admin_logs; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.admin_logs (
@@ -274,10 +293,10 @@ CREATE TABLE public.admin_logs (
 );
 
 
-ALTER TABLE public.admin_logs OWNER TO postgres;
+ALTER TABLE public.admin_logs OWNER TO neondb_owner;
 
 --
--- Name: admin_logs_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: admin_logs_id_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
 --
 
 CREATE SEQUENCE public.admin_logs_id_seq
@@ -289,17 +308,17 @@ CREATE SEQUENCE public.admin_logs_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.admin_logs_id_seq OWNER TO postgres;
+ALTER TABLE public.admin_logs_id_seq OWNER TO neondb_owner;
 
 --
--- Name: admin_logs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: admin_logs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
 --
 
 ALTER SEQUENCE public.admin_logs_id_seq OWNED BY public.admin_logs.id;
 
 
 --
--- Name: audit_logs; Type: TABLE; Schema: public; Owner: postgres
+-- Name: audit_logs; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.audit_logs (
@@ -314,10 +333,10 @@ CREATE TABLE public.audit_logs (
 );
 
 
-ALTER TABLE public.audit_logs OWNER TO postgres;
+ALTER TABLE public.audit_logs OWNER TO neondb_owner;
 
 --
--- Name: audit_logs_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: audit_logs_id_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
 --
 
 CREATE SEQUENCE public.audit_logs_id_seq
@@ -329,17 +348,17 @@ CREATE SEQUENCE public.audit_logs_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.audit_logs_id_seq OWNER TO postgres;
+ALTER TABLE public.audit_logs_id_seq OWNER TO neondb_owner;
 
 --
--- Name: audit_logs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: audit_logs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
 --
 
 ALTER SEQUENCE public.audit_logs_id_seq OWNED BY public.audit_logs.id;
 
 
 --
--- Name: backups; Type: TABLE; Schema: public; Owner: postgres
+-- Name: backups; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.backups (
@@ -353,10 +372,10 @@ CREATE TABLE public.backups (
 );
 
 
-ALTER TABLE public.backups OWNER TO postgres;
+ALTER TABLE public.backups OWNER TO neondb_owner;
 
 --
--- Name: balance_holds; Type: TABLE; Schema: public; Owner: postgres
+-- Name: balance_holds; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.balance_holds (
@@ -384,17 +403,17 @@ CREATE TABLE public.balance_holds (
 );
 
 
-ALTER TABLE public.balance_holds OWNER TO postgres;
+ALTER TABLE public.balance_holds OWNER TO neondb_owner;
 
 --
--- Name: TABLE balance_holds; Type: COMMENT; Schema: public; Owner: postgres
+-- Name: TABLE balance_holds; Type: COMMENT; Schema: public; Owner: neondb_owner
 --
 
 COMMENT ON TABLE public.balance_holds IS 'Tracks temporary holds on user balances for pending transactions';
 
 
 --
--- Name: balance_holds_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: balance_holds_id_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
 --
 
 CREATE SEQUENCE public.balance_holds_id_seq
@@ -406,17 +425,17 @@ CREATE SEQUENCE public.balance_holds_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.balance_holds_id_seq OWNER TO postgres;
+ALTER TABLE public.balance_holds_id_seq OWNER TO neondb_owner;
 
 --
--- Name: balance_holds_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: balance_holds_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
 --
 
 ALTER SEQUENCE public.balance_holds_id_seq OWNED BY public.balance_holds.id;
 
 
 --
--- Name: balance_transactions; Type: TABLE; Schema: public; Owner: postgres
+-- Name: balance_transactions; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.balance_transactions (
@@ -449,38 +468,38 @@ CREATE TABLE public.balance_transactions (
 );
 
 
-ALTER TABLE public.balance_transactions OWNER TO postgres;
+ALTER TABLE public.balance_transactions OWNER TO neondb_owner;
 
 --
--- Name: TABLE balance_transactions; Type: COMMENT; Schema: public; Owner: postgres
+-- Name: TABLE balance_transactions; Type: COMMENT; Schema: public; Owner: neondb_owner
 --
 
 COMMENT ON TABLE public.balance_transactions IS 'Records all balance-related transactions for audit trail and history';
 
 
 --
--- Name: COLUMN balance_transactions.transaction_id; Type: COMMENT; Schema: public; Owner: postgres
+-- Name: COLUMN balance_transactions.transaction_id; Type: COMMENT; Schema: public; Owner: neondb_owner
 --
 
 COMMENT ON COLUMN public.balance_transactions.transaction_id IS 'Unique UUID for each transaction';
 
 
 --
--- Name: COLUMN balance_transactions.balance_before; Type: COMMENT; Schema: public; Owner: postgres
+-- Name: COLUMN balance_transactions.balance_before; Type: COMMENT; Schema: public; Owner: neondb_owner
 --
 
 COMMENT ON COLUMN public.balance_transactions.balance_before IS 'Snapshot of balance before transaction';
 
 
 --
--- Name: COLUMN balance_transactions.balance_after; Type: COMMENT; Schema: public; Owner: postgres
+-- Name: COLUMN balance_transactions.balance_after; Type: COMMENT; Schema: public; Owner: neondb_owner
 --
 
 COMMENT ON COLUMN public.balance_transactions.balance_after IS 'Snapshot of balance after transaction';
 
 
 --
--- Name: balance_transactions_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: balance_transactions_id_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
 --
 
 CREATE SEQUENCE public.balance_transactions_id_seq
@@ -491,17 +510,17 @@ CREATE SEQUENCE public.balance_transactions_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.balance_transactions_id_seq OWNER TO postgres;
+ALTER TABLE public.balance_transactions_id_seq OWNER TO neondb_owner;
 
 --
--- Name: balance_transactions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: balance_transactions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
 --
 
 ALTER SEQUENCE public.balance_transactions_id_seq OWNED BY public.balance_transactions.id;
 
 
 --
--- Name: bids; Type: TABLE; Schema: public; Owner: postgres
+-- Name: bids; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.bids (
@@ -520,10 +539,10 @@ CREATE TABLE public.bids (
 );
 
 
-ALTER TABLE public.bids OWNER TO postgres;
+ALTER TABLE public.bids OWNER TO neondb_owner;
 
 --
--- Name: bids_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: bids_id_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
 --
 
 CREATE SEQUENCE public.bids_id_seq
@@ -535,17 +554,17 @@ CREATE SEQUENCE public.bids_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.bids_id_seq OWNER TO postgres;
+ALTER TABLE public.bids_id_seq OWNER TO neondb_owner;
 
 --
--- Name: bids_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: bids_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
 --
 
 ALTER SEQUENCE public.bids_id_seq OWNED BY public.bids.id;
 
 
 --
--- Name: coordinate_mappings; Type: TABLE; Schema: public; Owner: postgres
+-- Name: coordinate_mappings; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.coordinate_mappings (
@@ -561,10 +580,10 @@ CREATE TABLE public.coordinate_mappings (
 );
 
 
-ALTER TABLE public.coordinate_mappings OWNER TO postgres;
+ALTER TABLE public.coordinate_mappings OWNER TO neondb_owner;
 
 --
--- Name: coordinate_mappings_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: coordinate_mappings_id_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
 --
 
 CREATE SEQUENCE public.coordinate_mappings_id_seq
@@ -576,17 +595,17 @@ CREATE SEQUENCE public.coordinate_mappings_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.coordinate_mappings_id_seq OWNER TO postgres;
+ALTER TABLE public.coordinate_mappings_id_seq OWNER TO neondb_owner;
 
 --
--- Name: coordinate_mappings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: coordinate_mappings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
 --
 
 ALTER SEQUENCE public.coordinate_mappings_id_seq OWNED BY public.coordinate_mappings.id;
 
 
 --
--- Name: crypto_transactions; Type: TABLE; Schema: public; Owner: postgres
+-- Name: crypto_transactions; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.crypto_transactions (
@@ -606,17 +625,17 @@ CREATE TABLE public.crypto_transactions (
 );
 
 
-ALTER TABLE public.crypto_transactions OWNER TO postgres;
+ALTER TABLE public.crypto_transactions OWNER TO neondb_owner;
 
 --
--- Name: TABLE crypto_transactions; Type: COMMENT; Schema: public; Owner: postgres
+-- Name: TABLE crypto_transactions; Type: COMMENT; Schema: public; Owner: neondb_owner
 --
 
 COMMENT ON TABLE public.crypto_transactions IS 'All cryptocurrency transactions';
 
 
 --
--- Name: delivery_agent_preferences; Type: TABLE; Schema: public; Owner: postgres
+-- Name: delivery_agent_preferences; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.delivery_agent_preferences (
@@ -629,10 +648,10 @@ CREATE TABLE public.delivery_agent_preferences (
 );
 
 
-ALTER TABLE public.delivery_agent_preferences OWNER TO postgres;
+ALTER TABLE public.delivery_agent_preferences OWNER TO neondb_owner;
 
 --
--- Name: delivery_agent_preferences_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: delivery_agent_preferences_id_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
 --
 
 CREATE SEQUENCE public.delivery_agent_preferences_id_seq
@@ -644,17 +663,17 @@ CREATE SEQUENCE public.delivery_agent_preferences_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.delivery_agent_preferences_id_seq OWNER TO postgres;
+ALTER TABLE public.delivery_agent_preferences_id_seq OWNER TO neondb_owner;
 
 --
--- Name: delivery_agent_preferences_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: delivery_agent_preferences_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
 --
 
 ALTER SEQUENCE public.delivery_agent_preferences_id_seq OWNED BY public.delivery_agent_preferences.id;
 
 
 --
--- Name: driver_locations; Type: TABLE; Schema: public; Owner: postgres
+-- Name: driver_locations; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.driver_locations (
@@ -671,10 +690,10 @@ CREATE TABLE public.driver_locations (
 );
 
 
-ALTER TABLE public.driver_locations OWNER TO postgres;
+ALTER TABLE public.driver_locations OWNER TO neondb_owner;
 
 --
--- Name: driver_locations_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: driver_locations_id_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
 --
 
 CREATE SEQUENCE public.driver_locations_id_seq
@@ -686,17 +705,17 @@ CREATE SEQUENCE public.driver_locations_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.driver_locations_id_seq OWNER TO postgres;
+ALTER TABLE public.driver_locations_id_seq OWNER TO neondb_owner;
 
 --
--- Name: driver_locations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: driver_locations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
 --
 
 ALTER SEQUENCE public.driver_locations_id_seq OWNED BY public.driver_locations.id;
 
 
 --
--- Name: email_verification_tokens; Type: TABLE; Schema: public; Owner: postgres
+-- Name: email_verification_tokens; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.email_verification_tokens (
@@ -709,10 +728,10 @@ CREATE TABLE public.email_verification_tokens (
 );
 
 
-ALTER TABLE public.email_verification_tokens OWNER TO postgres;
+ALTER TABLE public.email_verification_tokens OWNER TO neondb_owner;
 
 --
--- Name: emergency_transfer_notifications; Type: TABLE; Schema: public; Owner: postgres
+-- Name: emergency_transfer_notifications; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.emergency_transfer_notifications (
@@ -726,10 +745,10 @@ CREATE TABLE public.emergency_transfer_notifications (
 );
 
 
-ALTER TABLE public.emergency_transfer_notifications OWNER TO postgres;
+ALTER TABLE public.emergency_transfer_notifications OWNER TO neondb_owner;
 
 --
--- Name: emergency_transfer_notifications_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: emergency_transfer_notifications_id_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
 --
 
 CREATE SEQUENCE public.emergency_transfer_notifications_id_seq
@@ -741,17 +760,17 @@ CREATE SEQUENCE public.emergency_transfer_notifications_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.emergency_transfer_notifications_id_seq OWNER TO postgres;
+ALTER TABLE public.emergency_transfer_notifications_id_seq OWNER TO neondb_owner;
 
 --
--- Name: emergency_transfer_notifications_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: emergency_transfer_notifications_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
 --
 
 ALTER SEQUENCE public.emergency_transfer_notifications_id_seq OWNED BY public.emergency_transfer_notifications.id;
 
 
 --
--- Name: emergency_transfers; Type: TABLE; Schema: public; Owner: postgres
+-- Name: emergency_transfers; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.emergency_transfers (
@@ -782,31 +801,31 @@ CREATE TABLE public.emergency_transfers (
 );
 
 
-ALTER TABLE public.emergency_transfers OWNER TO postgres;
+ALTER TABLE public.emergency_transfers OWNER TO neondb_owner;
 
 --
--- Name: TABLE emergency_transfers; Type: COMMENT; Schema: public; Owner: postgres
+-- Name: TABLE emergency_transfers; Type: COMMENT; Schema: public; Owner: neondb_owner
 --
 
 COMMENT ON TABLE public.emergency_transfers IS 'Tracks order transfers when drivers cannot complete after pickup';
 
 
 --
--- Name: COLUMN emergency_transfers.emergency_bonus; Type: COMMENT; Schema: public; Owner: postgres
+-- Name: COLUMN emergency_transfers.emergency_bonus; Type: COMMENT; Schema: public; Owner: neondb_owner
 --
 
 COMMENT ON COLUMN public.emergency_transfers.emergency_bonus IS '20% of original fee, paid from Takaful fund';
 
 
 --
--- Name: COLUMN emergency_transfers.timeout_at; Type: COMMENT; Schema: public; Owner: postgres
+-- Name: COLUMN emergency_transfers.timeout_at; Type: COMMENT; Schema: public; Owner: neondb_owner
 --
 
 COMMENT ON COLUMN public.emergency_transfers.timeout_at IS '30 minutes from creation - after which escalates to admin';
 
 
 --
--- Name: emergency_transfers_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: emergency_transfers_id_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
 --
 
 CREATE SEQUENCE public.emergency_transfers_id_seq
@@ -818,17 +837,17 @@ CREATE SEQUENCE public.emergency_transfers_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.emergency_transfers_id_seq OWNER TO postgres;
+ALTER TABLE public.emergency_transfers_id_seq OWNER TO neondb_owner;
 
 --
--- Name: emergency_transfers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: emergency_transfers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
 --
 
 ALTER SEQUENCE public.emergency_transfers_id_seq OWNED BY public.emergency_transfers.id;
 
 
 --
--- Name: location_cache; Type: TABLE; Schema: public; Owner: postgres
+-- Name: location_cache; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.location_cache (
@@ -838,10 +857,10 @@ CREATE TABLE public.location_cache (
 );
 
 
-ALTER TABLE public.location_cache OWNER TO postgres;
+ALTER TABLE public.location_cache OWNER TO neondb_owner;
 
 --
--- Name: location_updates; Type: TABLE; Schema: public; Owner: postgres
+-- Name: location_updates; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.location_updates (
@@ -855,10 +874,10 @@ CREATE TABLE public.location_updates (
 );
 
 
-ALTER TABLE public.location_updates OWNER TO postgres;
+ALTER TABLE public.location_updates OWNER TO neondb_owner;
 
 --
--- Name: location_updates_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: location_updates_id_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
 --
 
 CREATE SEQUENCE public.location_updates_id_seq
@@ -870,17 +889,17 @@ CREATE SEQUENCE public.location_updates_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.location_updates_id_seq OWNER TO postgres;
+ALTER TABLE public.location_updates_id_seq OWNER TO neondb_owner;
 
 --
--- Name: location_updates_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: location_updates_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
 --
 
 ALTER SEQUENCE public.location_updates_id_seq OWNED BY public.location_updates.id;
 
 
 --
--- Name: locations; Type: TABLE; Schema: public; Owner: postgres
+-- Name: locations; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.locations (
@@ -893,10 +912,10 @@ CREATE TABLE public.locations (
 );
 
 
-ALTER TABLE public.locations OWNER TO postgres;
+ALTER TABLE public.locations OWNER TO neondb_owner;
 
 --
--- Name: locations_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: locations_id_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
 --
 
 CREATE SEQUENCE public.locations_id_seq
@@ -908,17 +927,17 @@ CREATE SEQUENCE public.locations_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.locations_id_seq OWNER TO postgres;
+ALTER TABLE public.locations_id_seq OWNER TO neondb_owner;
 
 --
--- Name: locations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: locations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
 --
 
 ALTER SEQUENCE public.locations_id_seq OWNED BY public.locations.id;
 
 
 --
--- Name: logs; Type: TABLE; Schema: public; Owner: postgres
+-- Name: logs; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.logs (
@@ -944,10 +963,10 @@ CREATE TABLE public.logs (
 );
 
 
-ALTER TABLE public.logs OWNER TO postgres;
+ALTER TABLE public.logs OWNER TO neondb_owner;
 
 --
--- Name: logs_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: logs_id_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
 --
 
 CREATE SEQUENCE public.logs_id_seq
@@ -959,17 +978,17 @@ CREATE SEQUENCE public.logs_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.logs_id_seq OWNER TO postgres;
+ALTER TABLE public.logs_id_seq OWNER TO neondb_owner;
 
 --
--- Name: logs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: logs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
 --
 
 ALTER SEQUENCE public.logs_id_seq OWNED BY public.logs.id;
 
 
 --
--- Name: messages; Type: TABLE; Schema: public; Owner: postgres
+-- Name: messages; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.messages (
@@ -990,10 +1009,10 @@ CREATE TABLE public.messages (
 );
 
 
-ALTER TABLE public.messages OWNER TO postgres;
+ALTER TABLE public.messages OWNER TO neondb_owner;
 
 --
--- Name: notifications; Type: TABLE; Schema: public; Owner: postgres
+-- Name: notifications; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.notifications (
@@ -1008,10 +1027,10 @@ CREATE TABLE public.notifications (
 );
 
 
-ALTER TABLE public.notifications OWNER TO postgres;
+ALTER TABLE public.notifications OWNER TO neondb_owner;
 
 --
--- Name: notifications_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: notifications_id_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
 --
 
 CREATE SEQUENCE public.notifications_id_seq
@@ -1023,17 +1042,17 @@ CREATE SEQUENCE public.notifications_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.notifications_id_seq OWNER TO postgres;
+ALTER TABLE public.notifications_id_seq OWNER TO neondb_owner;
 
 --
--- Name: notifications_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: notifications_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
 --
 
 ALTER SEQUENCE public.notifications_id_seq OWNED BY public.notifications.id;
 
 
 --
--- Name: orders; Type: TABLE; Schema: public; Owner: postgres
+-- Name: orders; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.orders (
@@ -1096,38 +1115,38 @@ CREATE TABLE public.orders (
 );
 
 
-ALTER TABLE public.orders OWNER TO postgres;
+ALTER TABLE public.orders OWNER TO neondb_owner;
 
 --
--- Name: COLUMN orders.upfront_payment; Type: COMMENT; Schema: public; Owner: postgres
+-- Name: COLUMN orders.upfront_payment; Type: COMMENT; Schema: public; Owner: neondb_owner
 --
 
 COMMENT ON COLUMN public.orders.upfront_payment IS 'Amount customer pays upfront for driver to purchase items (default 0)';
 
 
 --
--- Name: COLUMN orders.escrow_amount; Type: COMMENT; Schema: public; Owner: postgres
+-- Name: COLUMN orders.escrow_amount; Type: COMMENT; Schema: public; Owner: neondb_owner
 --
 
 COMMENT ON COLUMN public.orders.escrow_amount IS 'Total amount held in escrow (upfront + delivery fee)';
 
 
 --
--- Name: COLUMN orders.escrow_status; Type: COMMENT; Schema: public; Owner: postgres
+-- Name: COLUMN orders.escrow_status; Type: COMMENT; Schema: public; Owner: neondb_owner
 --
 
 COMMENT ON COLUMN public.orders.escrow_status IS 'Status of escrow: none, held, released, forfeited';
 
 
 --
--- Name: COLUMN orders.driver_distance_traveled_km; Type: COMMENT; Schema: public; Owner: postgres
+-- Name: COLUMN orders.driver_distance_traveled_km; Type: COMMENT; Schema: public; Owner: neondb_owner
 --
 
 COMMENT ON COLUMN public.orders.driver_distance_traveled_km IS 'Distance driver traveled (used for compensation on cancellation)';
 
 
 --
--- Name: password_reset_tokens; Type: TABLE; Schema: public; Owner: postgres
+-- Name: password_reset_tokens; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.password_reset_tokens (
@@ -1140,10 +1159,10 @@ CREATE TABLE public.password_reset_tokens (
 );
 
 
-ALTER TABLE public.password_reset_tokens OWNER TO postgres;
+ALTER TABLE public.password_reset_tokens OWNER TO neondb_owner;
 
 --
--- Name: payments; Type: TABLE; Schema: public; Owner: postgres
+-- Name: payments; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.payments (
@@ -1172,24 +1191,24 @@ CREATE TABLE public.payments (
 );
 
 
-ALTER TABLE public.payments OWNER TO postgres;
+ALTER TABLE public.payments OWNER TO neondb_owner;
 
 --
--- Name: COLUMN payments.paymob_transaction_id; Type: COMMENT; Schema: public; Owner: postgres
+-- Name: COLUMN payments.paymob_transaction_id; Type: COMMENT; Schema: public; Owner: neondb_owner
 --
 
 COMMENT ON COLUMN public.payments.paymob_transaction_id IS 'Paymob transaction ID for tracking';
 
 
 --
--- Name: COLUMN payments.paymob_order_id; Type: COMMENT; Schema: public; Owner: postgres
+-- Name: COLUMN payments.paymob_order_id; Type: COMMENT; Schema: public; Owner: neondb_owner
 --
 
 COMMENT ON COLUMN public.payments.paymob_order_id IS 'Paymob order ID for reference';
 
 
 --
--- Name: platform_revenue; Type: TABLE; Schema: public; Owner: postgres
+-- Name: platform_revenue; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.platform_revenue (
@@ -1203,17 +1222,17 @@ CREATE TABLE public.platform_revenue (
 );
 
 
-ALTER TABLE public.platform_revenue OWNER TO postgres;
+ALTER TABLE public.platform_revenue OWNER TO neondb_owner;
 
 --
--- Name: TABLE platform_revenue; Type: COMMENT; Schema: public; Owner: postgres
+-- Name: TABLE platform_revenue; Type: COMMENT; Schema: public; Owner: neondb_owner
 --
 
 COMMENT ON TABLE public.platform_revenue IS 'Tracks platform commission revenue from all payment methods';
 
 
 --
--- Name: platform_revenue_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: platform_revenue_id_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
 --
 
 CREATE SEQUENCE public.platform_revenue_id_seq
@@ -1225,17 +1244,17 @@ CREATE SEQUENCE public.platform_revenue_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.platform_revenue_id_seq OWNER TO postgres;
+ALTER TABLE public.platform_revenue_id_seq OWNER TO neondb_owner;
 
 --
--- Name: platform_revenue_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: platform_revenue_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
 --
 
 ALTER SEQUENCE public.platform_revenue_id_seq OWNED BY public.platform_revenue.id;
 
 
 --
--- Name: platform_review_flags; Type: TABLE; Schema: public; Owner: postgres
+-- Name: platform_review_flags; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.platform_review_flags (
@@ -1246,10 +1265,10 @@ CREATE TABLE public.platform_review_flags (
 );
 
 
-ALTER TABLE public.platform_review_flags OWNER TO postgres;
+ALTER TABLE public.platform_review_flags OWNER TO neondb_owner;
 
 --
--- Name: platform_review_votes; Type: TABLE; Schema: public; Owner: postgres
+-- Name: platform_review_votes; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.platform_review_votes (
@@ -1259,10 +1278,10 @@ CREATE TABLE public.platform_review_votes (
 );
 
 
-ALTER TABLE public.platform_review_votes OWNER TO postgres;
+ALTER TABLE public.platform_review_votes OWNER TO neondb_owner;
 
 --
--- Name: platform_reviews; Type: TABLE; Schema: public; Owner: postgres
+-- Name: platform_reviews; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.platform_reviews (
@@ -1289,10 +1308,10 @@ CREATE TABLE public.platform_reviews (
 );
 
 
-ALTER TABLE public.platform_reviews OWNER TO postgres;
+ALTER TABLE public.platform_reviews OWNER TO neondb_owner;
 
 --
--- Name: platform_wallets; Type: TABLE; Schema: public; Owner: postgres
+-- Name: platform_wallets; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.platform_wallets (
@@ -1309,10 +1328,10 @@ CREATE TABLE public.platform_wallets (
 );
 
 
-ALTER TABLE public.platform_wallets OWNER TO postgres;
+ALTER TABLE public.platform_wallets OWNER TO neondb_owner;
 
 --
--- Name: platform_wallets_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: platform_wallets_id_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
 --
 
 CREATE SEQUENCE public.platform_wallets_id_seq
@@ -1324,17 +1343,17 @@ CREATE SEQUENCE public.platform_wallets_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.platform_wallets_id_seq OWNER TO postgres;
+ALTER TABLE public.platform_wallets_id_seq OWNER TO neondb_owner;
 
 --
--- Name: platform_wallets_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: platform_wallets_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
 --
 
 ALTER SEQUENCE public.platform_wallets_id_seq OWNED BY public.platform_wallets.id;
 
 
 --
--- Name: review_flags; Type: TABLE; Schema: public; Owner: postgres
+-- Name: review_flags; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.review_flags (
@@ -1345,10 +1364,10 @@ CREATE TABLE public.review_flags (
 );
 
 
-ALTER TABLE public.review_flags OWNER TO postgres;
+ALTER TABLE public.review_flags OWNER TO neondb_owner;
 
 --
--- Name: review_votes; Type: TABLE; Schema: public; Owner: postgres
+-- Name: review_votes; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.review_votes (
@@ -1358,10 +1377,10 @@ CREATE TABLE public.review_votes (
 );
 
 
-ALTER TABLE public.review_votes OWNER TO postgres;
+ALTER TABLE public.review_votes OWNER TO neondb_owner;
 
 --
--- Name: reviews; Type: TABLE; Schema: public; Owner: postgres
+-- Name: reviews; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.reviews (
@@ -1392,10 +1411,10 @@ CREATE TABLE public.reviews (
 );
 
 
-ALTER TABLE public.reviews OWNER TO postgres;
+ALTER TABLE public.reviews OWNER TO neondb_owner;
 
 --
--- Name: reviews_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: reviews_id_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
 --
 
 CREATE SEQUENCE public.reviews_id_seq
@@ -1407,17 +1426,17 @@ CREATE SEQUENCE public.reviews_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.reviews_id_seq OWNER TO postgres;
+ALTER TABLE public.reviews_id_seq OWNER TO neondb_owner;
 
 --
--- Name: reviews_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: reviews_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
 --
 
 ALTER SEQUENCE public.reviews_id_seq OWNED BY public.reviews.id;
 
 
 --
--- Name: schema_migrations; Type: TABLE; Schema: public; Owner: postgres
+-- Name: schema_migrations; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.schema_migrations (
@@ -1429,10 +1448,10 @@ CREATE TABLE public.schema_migrations (
 );
 
 
-ALTER TABLE public.schema_migrations OWNER TO postgres;
+ALTER TABLE public.schema_migrations OWNER TO neondb_owner;
 
 --
--- Name: schema_migrations_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: schema_migrations_id_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
 --
 
 CREATE SEQUENCE public.schema_migrations_id_seq
@@ -1444,17 +1463,17 @@ CREATE SEQUENCE public.schema_migrations_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.schema_migrations_id_seq OWNER TO postgres;
+ALTER TABLE public.schema_migrations_id_seq OWNER TO neondb_owner;
 
 --
--- Name: schema_migrations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: schema_migrations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
 --
 
 ALTER SEQUENCE public.schema_migrations_id_seq OWNED BY public.schema_migrations.id;
 
 
 --
--- Name: system_health_logs; Type: TABLE; Schema: public; Owner: postgres
+-- Name: system_health_logs; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.system_health_logs (
@@ -1469,10 +1488,10 @@ CREATE TABLE public.system_health_logs (
 );
 
 
-ALTER TABLE public.system_health_logs OWNER TO postgres;
+ALTER TABLE public.system_health_logs OWNER TO neondb_owner;
 
 --
--- Name: system_health_logs_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: system_health_logs_id_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
 --
 
 CREATE SEQUENCE public.system_health_logs_id_seq
@@ -1484,17 +1503,17 @@ CREATE SEQUENCE public.system_health_logs_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.system_health_logs_id_seq OWNER TO postgres;
+ALTER TABLE public.system_health_logs_id_seq OWNER TO neondb_owner;
 
 --
--- Name: system_health_logs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: system_health_logs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
 --
 
 ALTER SEQUENCE public.system_health_logs_id_seq OWNED BY public.system_health_logs.id;
 
 
 --
--- Name: system_settings; Type: TABLE; Schema: public; Owner: postgres
+-- Name: system_settings; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.system_settings (
@@ -1507,10 +1526,10 @@ CREATE TABLE public.system_settings (
 );
 
 
-ALTER TABLE public.system_settings OWNER TO postgres;
+ALTER TABLE public.system_settings OWNER TO neondb_owner;
 
 --
--- Name: user_balances; Type: TABLE; Schema: public; Owner: postgres
+-- Name: user_balances; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.user_balances (
@@ -1544,10 +1563,10 @@ CREATE TABLE public.user_balances (
 );
 
 
-ALTER TABLE public.user_balances OWNER TO postgres;
+ALTER TABLE public.user_balances OWNER TO neondb_owner;
 
 --
--- Name: user_favorites; Type: TABLE; Schema: public; Owner: postgres
+-- Name: user_favorites; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.user_favorites (
@@ -1557,10 +1576,10 @@ CREATE TABLE public.user_favorites (
 );
 
 
-ALTER TABLE public.user_favorites OWNER TO postgres;
+ALTER TABLE public.user_favorites OWNER TO neondb_owner;
 
 --
--- Name: user_payment_methods; Type: TABLE; Schema: public; Owner: postgres
+-- Name: user_payment_methods; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.user_payment_methods (
@@ -1581,10 +1600,10 @@ CREATE TABLE public.user_payment_methods (
 );
 
 
-ALTER TABLE public.user_payment_methods OWNER TO postgres;
+ALTER TABLE public.user_payment_methods OWNER TO neondb_owner;
 
 --
--- Name: user_payment_methods_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: user_payment_methods_id_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
 --
 
 CREATE SEQUENCE public.user_payment_methods_id_seq
@@ -1596,17 +1615,17 @@ CREATE SEQUENCE public.user_payment_methods_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.user_payment_methods_id_seq OWNER TO postgres;
+ALTER TABLE public.user_payment_methods_id_seq OWNER TO neondb_owner;
 
 --
--- Name: user_payment_methods_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: user_payment_methods_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
 --
 
 ALTER SEQUENCE public.user_payment_methods_id_seq OWNED BY public.user_payment_methods.id;
 
 
 --
--- Name: user_saved_addresses; Type: TABLE; Schema: public; Owner: postgres
+-- Name: user_saved_addresses; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.user_saved_addresses (
@@ -1622,10 +1641,10 @@ CREATE TABLE public.user_saved_addresses (
 );
 
 
-ALTER TABLE public.user_saved_addresses OWNER TO postgres;
+ALTER TABLE public.user_saved_addresses OWNER TO neondb_owner;
 
 --
--- Name: users; Type: TABLE; Schema: public; Owner: postgres
+-- Name: users; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.users (
@@ -1663,17 +1682,17 @@ CREATE TABLE public.users (
 );
 
 
-ALTER TABLE public.users OWNER TO postgres;
+ALTER TABLE public.users OWNER TO neondb_owner;
 
 --
--- Name: COLUMN users.available_cash; Type: COMMENT; Schema: public; Owner: postgres
+-- Name: COLUMN users.available_cash; Type: COMMENT; Schema: public; Owner: neondb_owner
 --
 
 COMMENT ON COLUMN public.users.available_cash IS 'Cash the driver has available for upfront payments';
 
 
 --
--- Name: users_backup_role_migration; Type: TABLE; Schema: public; Owner: postgres
+-- Name: users_backup_role_migration; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.users_backup_role_migration (
@@ -1712,10 +1731,10 @@ CREATE TABLE public.users_backup_role_migration (
 );
 
 
-ALTER TABLE public.users_backup_role_migration OWNER TO postgres;
+ALTER TABLE public.users_backup_role_migration OWNER TO neondb_owner;
 
 --
--- Name: vendor_categories; Type: TABLE; Schema: public; Owner: postgres
+-- Name: vendor_categories; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.vendor_categories (
@@ -1725,10 +1744,10 @@ CREATE TABLE public.vendor_categories (
 );
 
 
-ALTER TABLE public.vendor_categories OWNER TO postgres;
+ALTER TABLE public.vendor_categories OWNER TO neondb_owner;
 
 --
--- Name: vendor_categories_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: vendor_categories_id_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
 --
 
 CREATE SEQUENCE public.vendor_categories_id_seq
@@ -1740,17 +1759,17 @@ CREATE SEQUENCE public.vendor_categories_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.vendor_categories_id_seq OWNER TO postgres;
+ALTER TABLE public.vendor_categories_id_seq OWNER TO neondb_owner;
 
 --
--- Name: vendor_categories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: vendor_categories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
 --
 
 ALTER SEQUENCE public.vendor_categories_id_seq OWNED BY public.vendor_categories.id;
 
 
 --
--- Name: vendor_items; Type: TABLE; Schema: public; Owner: postgres
+-- Name: vendor_items; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.vendor_items (
@@ -1767,10 +1786,10 @@ CREATE TABLE public.vendor_items (
 );
 
 
-ALTER TABLE public.vendor_items OWNER TO postgres;
+ALTER TABLE public.vendor_items OWNER TO neondb_owner;
 
 --
--- Name: vendors; Type: TABLE; Schema: public; Owner: postgres
+-- Name: vendors; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.vendors (
@@ -1792,10 +1811,10 @@ CREATE TABLE public.vendors (
 );
 
 
-ALTER TABLE public.vendors OWNER TO postgres;
+ALTER TABLE public.vendors OWNER TO neondb_owner;
 
 --
--- Name: wallet_payments; Type: TABLE; Schema: public; Owner: postgres
+-- Name: wallet_payments; Type: TABLE; Schema: public; Owner: neondb_owner
 --
 
 CREATE TABLE public.wallet_payments (
@@ -1812,10 +1831,10 @@ CREATE TABLE public.wallet_payments (
 );
 
 
-ALTER TABLE public.wallet_payments OWNER TO postgres;
+ALTER TABLE public.wallet_payments OWNER TO neondb_owner;
 
 --
--- Name: wallet_payments_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: wallet_payments_id_seq; Type: SEQUENCE; Schema: public; Owner: neondb_owner
 --
 
 CREATE SEQUENCE public.wallet_payments_id_seq
@@ -1827,171 +1846,171 @@ CREATE SEQUENCE public.wallet_payments_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.wallet_payments_id_seq OWNER TO postgres;
+ALTER TABLE public.wallet_payments_id_seq OWNER TO neondb_owner;
 
 --
--- Name: wallet_payments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: wallet_payments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: neondb_owner
 --
 
 ALTER SEQUENCE public.wallet_payments_id_seq OWNED BY public.wallet_payments.id;
 
 
 --
--- Name: admin_logs id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: admin_logs id; Type: DEFAULT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.admin_logs ALTER COLUMN id SET DEFAULT nextval('public.admin_logs_id_seq'::regclass);
 
 
 --
--- Name: audit_logs id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: audit_logs id; Type: DEFAULT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.audit_logs ALTER COLUMN id SET DEFAULT nextval('public.audit_logs_id_seq'::regclass);
 
 
 --
--- Name: balance_holds id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: balance_holds id; Type: DEFAULT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.balance_holds ALTER COLUMN id SET DEFAULT nextval('public.balance_holds_id_seq'::regclass);
 
 
 --
--- Name: balance_transactions id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: balance_transactions id; Type: DEFAULT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.balance_transactions ALTER COLUMN id SET DEFAULT nextval('public.balance_transactions_id_seq'::regclass);
 
 
 --
--- Name: bids id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: bids id; Type: DEFAULT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.bids ALTER COLUMN id SET DEFAULT nextval('public.bids_id_seq'::regclass);
 
 
 --
--- Name: coordinate_mappings id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: coordinate_mappings id; Type: DEFAULT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.coordinate_mappings ALTER COLUMN id SET DEFAULT nextval('public.coordinate_mappings_id_seq'::regclass);
 
 
 --
--- Name: delivery_agent_preferences id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: delivery_agent_preferences id; Type: DEFAULT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.delivery_agent_preferences ALTER COLUMN id SET DEFAULT nextval('public.delivery_agent_preferences_id_seq'::regclass);
 
 
 --
--- Name: driver_locations id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: driver_locations id; Type: DEFAULT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.driver_locations ALTER COLUMN id SET DEFAULT nextval('public.driver_locations_id_seq'::regclass);
 
 
 --
--- Name: emergency_transfer_notifications id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: emergency_transfer_notifications id; Type: DEFAULT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.emergency_transfer_notifications ALTER COLUMN id SET DEFAULT nextval('public.emergency_transfer_notifications_id_seq'::regclass);
 
 
 --
--- Name: emergency_transfers id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: emergency_transfers id; Type: DEFAULT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.emergency_transfers ALTER COLUMN id SET DEFAULT nextval('public.emergency_transfers_id_seq'::regclass);
 
 
 --
--- Name: location_updates id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: location_updates id; Type: DEFAULT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.location_updates ALTER COLUMN id SET DEFAULT nextval('public.location_updates_id_seq'::regclass);
 
 
 --
--- Name: locations id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: locations id; Type: DEFAULT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.locations ALTER COLUMN id SET DEFAULT nextval('public.locations_id_seq'::regclass);
 
 
 --
--- Name: logs id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: logs id; Type: DEFAULT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.logs ALTER COLUMN id SET DEFAULT nextval('public.logs_id_seq'::regclass);
 
 
 --
--- Name: notifications id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: notifications id; Type: DEFAULT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.notifications ALTER COLUMN id SET DEFAULT nextval('public.notifications_id_seq'::regclass);
 
 
 --
--- Name: platform_revenue id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: platform_revenue id; Type: DEFAULT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.platform_revenue ALTER COLUMN id SET DEFAULT nextval('public.platform_revenue_id_seq'::regclass);
 
 
 --
--- Name: platform_wallets id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: platform_wallets id; Type: DEFAULT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.platform_wallets ALTER COLUMN id SET DEFAULT nextval('public.platform_wallets_id_seq'::regclass);
 
 
 --
--- Name: reviews id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: reviews id; Type: DEFAULT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.reviews ALTER COLUMN id SET DEFAULT nextval('public.reviews_id_seq'::regclass);
 
 
 --
--- Name: schema_migrations id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: schema_migrations id; Type: DEFAULT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.schema_migrations ALTER COLUMN id SET DEFAULT nextval('public.schema_migrations_id_seq'::regclass);
 
 
 --
--- Name: system_health_logs id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: system_health_logs id; Type: DEFAULT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.system_health_logs ALTER COLUMN id SET DEFAULT nextval('public.system_health_logs_id_seq'::regclass);
 
 
 --
--- Name: user_payment_methods id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: user_payment_methods id; Type: DEFAULT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.user_payment_methods ALTER COLUMN id SET DEFAULT nextval('public.user_payment_methods_id_seq'::regclass);
 
 
 --
--- Name: vendor_categories id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: vendor_categories id; Type: DEFAULT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.vendor_categories ALTER COLUMN id SET DEFAULT nextval('public.vendor_categories_id_seq'::regclass);
 
 
 --
--- Name: wallet_payments id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: wallet_payments id; Type: DEFAULT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.wallet_payments ALTER COLUMN id SET DEFAULT nextval('public.wallet_payments_id_seq'::regclass);
 
 
 --
--- Name: SequelizeMeta SequelizeMeta_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: SequelizeMeta SequelizeMeta_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public."SequelizeMeta"
@@ -1999,7 +2018,7 @@ ALTER TABLE ONLY public."SequelizeMeta"
 
 
 --
--- Name: admin_logs admin_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: admin_logs admin_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.admin_logs
@@ -2007,7 +2026,7 @@ ALTER TABLE ONLY public.admin_logs
 
 
 --
--- Name: audit_logs audit_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: audit_logs audit_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.audit_logs
@@ -2015,7 +2034,7 @@ ALTER TABLE ONLY public.audit_logs
 
 
 --
--- Name: backups backups_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: backups backups_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.backups
@@ -2023,7 +2042,7 @@ ALTER TABLE ONLY public.backups
 
 
 --
--- Name: balance_holds balance_holds_hold_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: balance_holds balance_holds_hold_id_key; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.balance_holds
@@ -2031,7 +2050,7 @@ ALTER TABLE ONLY public.balance_holds
 
 
 --
--- Name: balance_holds balance_holds_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: balance_holds balance_holds_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.balance_holds
@@ -2039,7 +2058,7 @@ ALTER TABLE ONLY public.balance_holds
 
 
 --
--- Name: balance_transactions balance_transactions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: balance_transactions balance_transactions_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.balance_transactions
@@ -2047,7 +2066,7 @@ ALTER TABLE ONLY public.balance_transactions
 
 
 --
--- Name: balance_transactions balance_transactions_transaction_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: balance_transactions balance_transactions_transaction_id_key; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.balance_transactions
@@ -2055,7 +2074,7 @@ ALTER TABLE ONLY public.balance_transactions
 
 
 --
--- Name: bids bids_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: bids bids_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.bids
@@ -2063,7 +2082,7 @@ ALTER TABLE ONLY public.bids
 
 
 --
--- Name: coordinate_mappings coordinate_mappings_location_key_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: coordinate_mappings coordinate_mappings_location_key_key; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.coordinate_mappings
@@ -2071,7 +2090,7 @@ ALTER TABLE ONLY public.coordinate_mappings
 
 
 --
--- Name: coordinate_mappings coordinate_mappings_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: coordinate_mappings coordinate_mappings_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.coordinate_mappings
@@ -2079,7 +2098,7 @@ ALTER TABLE ONLY public.coordinate_mappings
 
 
 --
--- Name: crypto_transactions crypto_transactions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: crypto_transactions crypto_transactions_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.crypto_transactions
@@ -2087,7 +2106,7 @@ ALTER TABLE ONLY public.crypto_transactions
 
 
 --
--- Name: crypto_transactions crypto_transactions_tx_hash_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: crypto_transactions crypto_transactions_tx_hash_key; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.crypto_transactions
@@ -2095,7 +2114,7 @@ ALTER TABLE ONLY public.crypto_transactions
 
 
 --
--- Name: delivery_agent_preferences delivery_agent_preferences_agent_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: delivery_agent_preferences delivery_agent_preferences_agent_id_key; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.delivery_agent_preferences
@@ -2103,7 +2122,7 @@ ALTER TABLE ONLY public.delivery_agent_preferences
 
 
 --
--- Name: delivery_agent_preferences delivery_agent_preferences_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: delivery_agent_preferences delivery_agent_preferences_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.delivery_agent_preferences
@@ -2111,7 +2130,7 @@ ALTER TABLE ONLY public.delivery_agent_preferences
 
 
 --
--- Name: driver_locations driver_locations_driver_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: driver_locations driver_locations_driver_id_key; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.driver_locations
@@ -2119,7 +2138,7 @@ ALTER TABLE ONLY public.driver_locations
 
 
 --
--- Name: driver_locations driver_locations_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: driver_locations driver_locations_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.driver_locations
@@ -2127,7 +2146,7 @@ ALTER TABLE ONLY public.driver_locations
 
 
 --
--- Name: email_verification_tokens email_verification_tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: email_verification_tokens email_verification_tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.email_verification_tokens
@@ -2135,7 +2154,7 @@ ALTER TABLE ONLY public.email_verification_tokens
 
 
 --
--- Name: email_verification_tokens email_verification_tokens_token_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: email_verification_tokens email_verification_tokens_token_key; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.email_verification_tokens
@@ -2143,7 +2162,7 @@ ALTER TABLE ONLY public.email_verification_tokens
 
 
 --
--- Name: emergency_transfer_notifications emergency_transfer_notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: emergency_transfer_notifications emergency_transfer_notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.emergency_transfer_notifications
@@ -2151,7 +2170,7 @@ ALTER TABLE ONLY public.emergency_transfer_notifications
 
 
 --
--- Name: emergency_transfers emergency_transfers_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: emergency_transfers emergency_transfers_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.emergency_transfers
@@ -2159,7 +2178,7 @@ ALTER TABLE ONLY public.emergency_transfers
 
 
 --
--- Name: location_cache location_cache_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: location_cache location_cache_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.location_cache
@@ -2167,7 +2186,7 @@ ALTER TABLE ONLY public.location_cache
 
 
 --
--- Name: location_updates location_updates_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: location_updates location_updates_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.location_updates
@@ -2175,7 +2194,7 @@ ALTER TABLE ONLY public.location_updates
 
 
 --
--- Name: locations locations_country_city_area_street_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: locations locations_country_city_area_street_key; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.locations
@@ -2183,7 +2202,7 @@ ALTER TABLE ONLY public.locations
 
 
 --
--- Name: locations locations_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: locations locations_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.locations
@@ -2191,7 +2210,7 @@ ALTER TABLE ONLY public.locations
 
 
 --
--- Name: logs logs_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: logs logs_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.logs
@@ -2199,7 +2218,7 @@ ALTER TABLE ONLY public.logs
 
 
 --
--- Name: messages messages_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: messages messages_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.messages
@@ -2207,7 +2226,7 @@ ALTER TABLE ONLY public.messages
 
 
 --
--- Name: notifications notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: notifications notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.notifications
@@ -2215,7 +2234,7 @@ ALTER TABLE ONLY public.notifications
 
 
 --
--- Name: orders orders_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: orders orders_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.orders
@@ -2223,7 +2242,7 @@ ALTER TABLE ONLY public.orders
 
 
 --
--- Name: password_reset_tokens password_reset_tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: password_reset_tokens password_reset_tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.password_reset_tokens
@@ -2231,7 +2250,7 @@ ALTER TABLE ONLY public.password_reset_tokens
 
 
 --
--- Name: password_reset_tokens password_reset_tokens_token_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: password_reset_tokens password_reset_tokens_token_key; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.password_reset_tokens
@@ -2239,7 +2258,7 @@ ALTER TABLE ONLY public.password_reset_tokens
 
 
 --
--- Name: payments payments_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: payments payments_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.payments
@@ -2247,7 +2266,7 @@ ALTER TABLE ONLY public.payments
 
 
 --
--- Name: platform_revenue platform_revenue_order_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: platform_revenue platform_revenue_order_id_key; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.platform_revenue
@@ -2255,7 +2274,7 @@ ALTER TABLE ONLY public.platform_revenue
 
 
 --
--- Name: platform_revenue platform_revenue_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: platform_revenue platform_revenue_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.platform_revenue
@@ -2263,7 +2282,7 @@ ALTER TABLE ONLY public.platform_revenue
 
 
 --
--- Name: platform_review_flags platform_review_flags_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: platform_review_flags platform_review_flags_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.platform_review_flags
@@ -2271,7 +2290,7 @@ ALTER TABLE ONLY public.platform_review_flags
 
 
 --
--- Name: platform_review_votes platform_review_votes_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: platform_review_votes platform_review_votes_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.platform_review_votes
@@ -2279,7 +2298,7 @@ ALTER TABLE ONLY public.platform_review_votes
 
 
 --
--- Name: platform_reviews platform_reviews_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: platform_reviews platform_reviews_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.platform_reviews
@@ -2287,7 +2306,7 @@ ALTER TABLE ONLY public.platform_reviews
 
 
 --
--- Name: platform_wallets platform_wallets_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: platform_wallets platform_wallets_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.platform_wallets
@@ -2295,7 +2314,7 @@ ALTER TABLE ONLY public.platform_wallets
 
 
 --
--- Name: platform_wallets platform_wallets_wallet_type_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: platform_wallets platform_wallets_wallet_type_key; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.platform_wallets
@@ -2303,7 +2322,7 @@ ALTER TABLE ONLY public.platform_wallets
 
 
 --
--- Name: review_flags review_flags_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: review_flags review_flags_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.review_flags
@@ -2311,7 +2330,7 @@ ALTER TABLE ONLY public.review_flags
 
 
 --
--- Name: review_votes review_votes_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: review_votes review_votes_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.review_votes
@@ -2319,7 +2338,7 @@ ALTER TABLE ONLY public.review_votes
 
 
 --
--- Name: reviews reviews_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: reviews reviews_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.reviews
@@ -2327,7 +2346,7 @@ ALTER TABLE ONLY public.reviews
 
 
 --
--- Name: schema_migrations schema_migrations_migration_name_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: schema_migrations schema_migrations_migration_name_key; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.schema_migrations
@@ -2335,7 +2354,7 @@ ALTER TABLE ONLY public.schema_migrations
 
 
 --
--- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.schema_migrations
@@ -2343,7 +2362,7 @@ ALTER TABLE ONLY public.schema_migrations
 
 
 --
--- Name: system_health_logs system_health_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: system_health_logs system_health_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.system_health_logs
@@ -2351,7 +2370,7 @@ ALTER TABLE ONLY public.system_health_logs
 
 
 --
--- Name: system_settings system_settings_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: system_settings system_settings_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.system_settings
@@ -2359,7 +2378,7 @@ ALTER TABLE ONLY public.system_settings
 
 
 --
--- Name: user_balances user_balances_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: user_balances user_balances_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.user_balances
@@ -2367,7 +2386,7 @@ ALTER TABLE ONLY public.user_balances
 
 
 --
--- Name: user_favorites user_favorites_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: user_favorites user_favorites_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.user_favorites
@@ -2375,7 +2394,7 @@ ALTER TABLE ONLY public.user_favorites
 
 
 --
--- Name: user_payment_methods user_payment_methods_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: user_payment_methods user_payment_methods_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.user_payment_methods
@@ -2383,7 +2402,7 @@ ALTER TABLE ONLY public.user_payment_methods
 
 
 --
--- Name: user_payment_methods user_payment_methods_user_id_provider_token_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: user_payment_methods user_payment_methods_user_id_provider_token_key; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.user_payment_methods
@@ -2391,7 +2410,7 @@ ALTER TABLE ONLY public.user_payment_methods
 
 
 --
--- Name: user_saved_addresses user_saved_addresses_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: user_saved_addresses user_saved_addresses_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.user_saved_addresses
@@ -2399,7 +2418,7 @@ ALTER TABLE ONLY public.user_saved_addresses
 
 
 --
--- Name: users users_email_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: users users_email_key; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.users
@@ -2407,7 +2426,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.users
@@ -2415,7 +2434,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- Name: vendor_categories vendor_categories_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: vendor_categories vendor_categories_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.vendor_categories
@@ -2423,7 +2442,7 @@ ALTER TABLE ONLY public.vendor_categories
 
 
 --
--- Name: vendor_items vendor_items_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: vendor_items vendor_items_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.vendor_items
@@ -2431,7 +2450,7 @@ ALTER TABLE ONLY public.vendor_items
 
 
 --
--- Name: vendors vendors_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: vendors vendors_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.vendors
@@ -2439,7 +2458,7 @@ ALTER TABLE ONLY public.vendors
 
 
 --
--- Name: wallet_payments wallet_payments_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: wallet_payments wallet_payments_pkey; Type: CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.wallet_payments
@@ -2447,952 +2466,952 @@ ALTER TABLE ONLY public.wallet_payments
 
 
 --
--- Name: idx_admin_logs_action; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_admin_logs_action; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_admin_logs_action ON public.admin_logs USING btree (action);
 
 
 --
--- Name: idx_admin_logs_admin; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_admin_logs_admin; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_admin_logs_admin ON public.admin_logs USING btree (admin_id);
 
 
 --
--- Name: idx_admin_logs_created; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_admin_logs_created; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_admin_logs_created ON public.admin_logs USING btree (created_at);
 
 
 --
--- Name: idx_audit_logs_action; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_audit_logs_action; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_audit_logs_action ON public.audit_logs USING btree (action);
 
 
 --
--- Name: idx_audit_logs_created_at; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_audit_logs_created_at; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_audit_logs_created_at ON public.audit_logs USING btree (created_at DESC);
 
 
 --
--- Name: idx_audit_logs_user_id; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_audit_logs_user_id; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_audit_logs_user_id ON public.audit_logs USING btree (user_id);
 
 
 --
--- Name: idx_balance_holds_expires; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_balance_holds_expires; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_balance_holds_expires ON public.balance_holds USING btree (expires_at) WHERE ((status)::text = 'active'::text);
 
 
 --
--- Name: idx_balance_holds_expires_at; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_balance_holds_expires_at; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_balance_holds_expires_at ON public.balance_holds USING btree (expires_at) WHERE ((status)::text = 'active'::text);
 
 
 --
--- Name: idx_balance_holds_hold_id; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_balance_holds_hold_id; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_balance_holds_hold_id ON public.balance_holds USING btree (hold_id);
 
 
 --
--- Name: idx_balance_holds_order; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_balance_holds_order; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_balance_holds_order ON public.balance_holds USING btree (order_id) WHERE (order_id IS NOT NULL);
 
 
 --
--- Name: idx_balance_holds_order_id; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_balance_holds_order_id; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_balance_holds_order_id ON public.balance_holds USING btree (order_id) WHERE (order_id IS NOT NULL);
 
 
 --
--- Name: idx_balance_holds_status; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_balance_holds_status; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_balance_holds_status ON public.balance_holds USING btree (status);
 
 
 --
--- Name: idx_balance_holds_user; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_balance_holds_user; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_balance_holds_user ON public.balance_holds USING btree (user_id);
 
 
 --
--- Name: idx_balance_holds_user_id; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_balance_holds_user_id; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_balance_holds_user_id ON public.balance_holds USING btree (user_id);
 
 
 --
--- Name: idx_balance_transactions_created_at; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_balance_transactions_created_at; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_balance_transactions_created_at ON public.balance_transactions USING btree (created_at DESC);
 
 
 --
--- Name: idx_balance_transactions_order_id; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_balance_transactions_order_id; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_balance_transactions_order_id ON public.balance_transactions USING btree (order_id) WHERE (order_id IS NOT NULL);
 
 
 --
--- Name: idx_balance_transactions_status; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_balance_transactions_status; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_balance_transactions_status ON public.balance_transactions USING btree (status);
 
 
 --
--- Name: idx_balance_transactions_transaction_id; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_balance_transactions_transaction_id; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_balance_transactions_transaction_id ON public.balance_transactions USING btree (transaction_id);
 
 
 --
--- Name: idx_balance_transactions_type; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_balance_transactions_type; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_balance_transactions_type ON public.balance_transactions USING btree (type);
 
 
 --
--- Name: idx_balance_transactions_user_created; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_balance_transactions_user_created; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_balance_transactions_user_created ON public.balance_transactions USING btree (user_id, created_at DESC);
 
 
 --
--- Name: idx_balance_transactions_user_id; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_balance_transactions_user_id; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_balance_transactions_user_id ON public.balance_transactions USING btree (user_id);
 
 
 --
--- Name: idx_balance_transactions_user_type_created; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_balance_transactions_user_type_created; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_balance_transactions_user_type_created ON public.balance_transactions USING btree (user_id, type, created_at DESC);
 
 
 --
--- Name: idx_balance_transactions_user_type_status; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_balance_transactions_user_type_status; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_balance_transactions_user_type_status ON public.balance_transactions USING btree (user_id, type, status);
 
 
 --
--- Name: idx_balance_tx_created; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_balance_tx_created; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_balance_tx_created ON public.balance_transactions USING btree (created_at DESC);
 
 
 --
--- Name: idx_balance_tx_order; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_balance_tx_order; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_balance_tx_order ON public.balance_transactions USING btree (order_id) WHERE (order_id IS NOT NULL);
 
 
 --
--- Name: idx_balance_tx_status; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_balance_tx_status; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_balance_tx_status ON public.balance_transactions USING btree (status);
 
 
 --
--- Name: idx_balance_tx_transaction_id; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_balance_tx_transaction_id; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_balance_tx_transaction_id ON public.balance_transactions USING btree (transaction_id);
 
 
 --
--- Name: idx_balance_tx_type; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_balance_tx_type; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_balance_tx_type ON public.balance_transactions USING btree (type);
 
 
 --
--- Name: idx_balance_tx_user; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_balance_tx_user; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_balance_tx_user ON public.balance_transactions USING btree (user_id);
 
 
 --
--- Name: idx_balance_tx_user_created; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_balance_tx_user_created; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_balance_tx_user_created ON public.balance_transactions USING btree (user_id, created_at DESC);
 
 
 --
--- Name: idx_balance_tx_user_type_created; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_balance_tx_user_type_created; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_balance_tx_user_type_created ON public.balance_transactions USING btree (user_id, type, created_at DESC);
 
 
 --
--- Name: idx_balance_tx_user_type_status; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_balance_tx_user_type_status; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_balance_tx_user_type_status ON public.balance_transactions USING btree (user_id, type, status);
 
 
 --
--- Name: idx_bids_created_at; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_bids_created_at; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_bids_created_at ON public.bids USING btree (created_at DESC);
 
 
 --
--- Name: idx_bids_order_id; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_bids_order_id; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_bids_order_id ON public.bids USING btree (order_id);
 
 
 --
--- Name: idx_bids_status; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_bids_status; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_bids_status ON public.bids USING btree (status);
 
 
 --
--- Name: idx_bids_user_id; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_bids_user_id; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_bids_user_id ON public.bids USING btree (user_id);
 
 
 --
--- Name: idx_crypto_tx_hash; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_crypto_tx_hash; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_crypto_tx_hash ON public.crypto_transactions USING btree (tx_hash);
 
 
 --
--- Name: idx_crypto_tx_order; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_crypto_tx_order; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_crypto_tx_order ON public.crypto_transactions USING btree (order_id);
 
 
 --
--- Name: idx_crypto_tx_status; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_crypto_tx_status; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_crypto_tx_status ON public.crypto_transactions USING btree (status);
 
 
 --
--- Name: idx_crypto_tx_user; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_crypto_tx_user; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_crypto_tx_user ON public.crypto_transactions USING btree (user_id);
 
 
 --
--- Name: idx_driver_locations_driver_id; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_driver_locations_driver_id; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_driver_locations_driver_id ON public.driver_locations USING btree (driver_id);
 
 
 --
--- Name: idx_driver_locations_driver_timestamp; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_driver_locations_driver_timestamp; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_driver_locations_driver_timestamp ON public.driver_locations USING btree (driver_id, "timestamp" DESC);
 
 
 --
--- Name: idx_driver_locations_order; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_driver_locations_order; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_driver_locations_order ON public.driver_locations USING btree (order_id);
 
 
 --
--- Name: idx_driver_locations_timestamp; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_driver_locations_timestamp; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_driver_locations_timestamp ON public.driver_locations USING btree ("timestamp" DESC);
 
 
 --
--- Name: idx_email_verification_tokens_expires_at; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_email_verification_tokens_expires_at; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_email_verification_tokens_expires_at ON public.email_verification_tokens USING btree (expires_at);
 
 
 --
--- Name: idx_email_verification_tokens_token; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_email_verification_tokens_token; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_email_verification_tokens_token ON public.email_verification_tokens USING btree (token);
 
 
 --
--- Name: idx_email_verification_tokens_user_id; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_email_verification_tokens_user_id; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_email_verification_tokens_user_id ON public.email_verification_tokens USING btree (user_id);
 
 
 --
--- Name: idx_emergency_notif_driver; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_emergency_notif_driver; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_emergency_notif_driver ON public.emergency_transfer_notifications USING btree (driver_id);
 
 
 --
--- Name: idx_emergency_notif_transfer; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_emergency_notif_transfer; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_emergency_notif_transfer ON public.emergency_transfer_notifications USING btree (transfer_id);
 
 
 --
--- Name: idx_emergency_transfers_new_driver; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_emergency_transfers_new_driver; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_emergency_transfers_new_driver ON public.emergency_transfers USING btree (new_driver_id);
 
 
 --
--- Name: idx_emergency_transfers_order; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_emergency_transfers_order; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_emergency_transfers_order ON public.emergency_transfers USING btree (order_id);
 
 
 --
--- Name: idx_emergency_transfers_status; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_emergency_transfers_status; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_emergency_transfers_status ON public.emergency_transfers USING btree (status);
 
 
 --
--- Name: idx_emergency_transfers_timeout; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_emergency_transfers_timeout; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_emergency_transfers_timeout ON public.emergency_transfers USING btree (timeout_at) WHERE (status = 'pending'::text);
 
 
 --
--- Name: idx_health_logs_timestamp; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_health_logs_timestamp; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_health_logs_timestamp ON public.system_health_logs USING btree ("timestamp" DESC);
 
 
 --
--- Name: idx_location_updates_created_at; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_location_updates_created_at; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_location_updates_created_at ON public.location_updates USING btree (created_at DESC);
 
 
 --
--- Name: idx_location_updates_driver_id; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_location_updates_driver_id; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_location_updates_driver_id ON public.location_updates USING btree (driver_id);
 
 
 --
--- Name: idx_location_updates_order; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_location_updates_order; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_location_updates_order ON public.location_updates USING btree (order_id);
 
 
 --
--- Name: idx_location_updates_order_id; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_location_updates_order_id; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_location_updates_order_id ON public.location_updates USING btree (order_id);
 
 
 --
--- Name: idx_logs_category; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_logs_category; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_logs_category ON public.logs USING btree (category);
 
 
 --
--- Name: idx_logs_level; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_logs_level; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_logs_level ON public.logs USING btree (level);
 
 
 --
--- Name: idx_logs_session_id; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_logs_session_id; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_logs_session_id ON public.logs USING btree (session_id);
 
 
 --
--- Name: idx_logs_source; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_logs_source; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_logs_source ON public.logs USING btree (source);
 
 
 --
--- Name: idx_logs_timestamp; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_logs_timestamp; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_logs_timestamp ON public.logs USING btree ("timestamp" DESC);
 
 
 --
--- Name: idx_logs_user_id; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_logs_user_id; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_logs_user_id ON public.logs USING btree (user_id);
 
 
 --
--- Name: idx_messages_created; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_messages_created; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_messages_created ON public.messages USING btree (created_at);
 
 
 --
--- Name: idx_messages_created_at; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_messages_created_at; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_messages_created_at ON public.messages USING btree (created_at DESC);
 
 
 --
--- Name: idx_messages_is_read; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_messages_is_read; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_messages_is_read ON public.messages USING btree (is_read);
 
 
 --
--- Name: idx_messages_order; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_messages_order; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_messages_order ON public.messages USING btree (order_id);
 
 
 --
--- Name: idx_messages_order_id; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_messages_order_id; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_messages_order_id ON public.messages USING btree (order_id);
 
 
 --
--- Name: idx_messages_recipient; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_messages_recipient; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_messages_recipient ON public.messages USING btree (recipient_id);
 
 
 --
--- Name: idx_messages_recipient_id; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_messages_recipient_id; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_messages_recipient_id ON public.messages USING btree (recipient_id);
 
 
 --
--- Name: idx_messages_sender; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_messages_sender; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_messages_sender ON public.messages USING btree (sender_id);
 
 
 --
--- Name: idx_messages_sender_id; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_messages_sender_id; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_messages_sender_id ON public.messages USING btree (sender_id);
 
 
 --
--- Name: idx_migration_name; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_migration_name; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_migration_name ON public.schema_migrations USING btree (migration_name);
 
 
 --
--- Name: idx_notifications_created_at; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_notifications_created_at; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_notifications_created_at ON public.notifications USING btree (created_at DESC);
 
 
 --
--- Name: idx_notifications_is_read; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_notifications_is_read; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_notifications_is_read ON public.notifications USING btree (is_read);
 
 
 --
--- Name: idx_notifications_order_id; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_notifications_order_id; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_notifications_order_id ON public.notifications USING btree (order_id);
 
 
 --
--- Name: idx_notifications_user_id; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_notifications_user_id; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_notifications_user_id ON public.notifications USING btree (user_id);
 
 
 --
--- Name: idx_orders_assigned_driver_user_id; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_orders_assigned_driver_user_id; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_orders_assigned_driver_user_id ON public.orders USING btree (assigned_driver_user_id);
 
 
 --
--- Name: idx_orders_completed_at; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_orders_completed_at; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_orders_completed_at ON public.orders USING btree (completed_at DESC);
 
 
 --
--- Name: idx_orders_created_at; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_orders_created_at; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_orders_created_at ON public.orders USING btree (created_at DESC);
 
 
 --
--- Name: idx_orders_customer_id; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_orders_customer_id; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_orders_customer_id ON public.orders USING btree (customer_id);
 
 
 --
--- Name: idx_orders_escrow_status; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_orders_escrow_status; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_orders_escrow_status ON public.orders USING btree (escrow_status) WHERE (escrow_status IS NOT NULL);
 
 
 --
--- Name: idx_orders_order_number; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_orders_order_number; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_orders_order_number ON public.orders USING btree (order_number);
 
 
 --
--- Name: idx_orders_status; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_orders_status; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_orders_status ON public.orders USING btree (status);
 
 
 --
--- Name: idx_password_reset_tokens_expires_at; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_password_reset_tokens_expires_at; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_password_reset_tokens_expires_at ON public.password_reset_tokens USING btree (expires_at);
 
 
 --
--- Name: idx_password_reset_tokens_token; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_password_reset_tokens_token; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_password_reset_tokens_token ON public.password_reset_tokens USING btree (token);
 
 
 --
--- Name: idx_password_reset_tokens_user_id; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_password_reset_tokens_user_id; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_password_reset_tokens_user_id ON public.password_reset_tokens USING btree (user_id);
 
 
 --
--- Name: idx_payments_created_at; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_payments_created_at; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_payments_created_at ON public.payments USING btree (created_at DESC);
 
 
 --
--- Name: idx_payments_order_id; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_payments_order_id; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_payments_order_id ON public.payments USING btree (order_id);
 
 
 --
--- Name: idx_payments_payer_id; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_payments_payer_id; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_payments_payer_id ON public.payments USING btree (payer_id);
 
 
 --
--- Name: idx_payments_paymob_order; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_payments_paymob_order; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_payments_paymob_order ON public.payments USING btree (paymob_order_id);
 
 
 --
--- Name: idx_payments_paymob_transaction; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_payments_paymob_transaction; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_payments_paymob_transaction ON public.payments USING btree (paymob_transaction_id);
 
 
 --
--- Name: idx_payments_status; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_payments_status; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_payments_status ON public.payments USING btree (status);
 
 
 --
--- Name: idx_platform_revenue_created; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_platform_revenue_created; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_platform_revenue_created ON public.platform_revenue USING btree (created_at);
 
 
 --
--- Name: idx_platform_revenue_payment_method; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_platform_revenue_payment_method; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_platform_revenue_payment_method ON public.platform_revenue USING btree (payment_method);
 
 
 --
--- Name: idx_platform_reviews_created_at; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_platform_reviews_created_at; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_platform_reviews_created_at ON public.platform_reviews USING btree (created_at);
 
 
 --
--- Name: idx_platform_reviews_flag_count; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_platform_reviews_flag_count; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_platform_reviews_flag_count ON public.platform_reviews USING btree (flag_count);
 
 
 --
--- Name: idx_platform_reviews_is_approved; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_platform_reviews_is_approved; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_platform_reviews_is_approved ON public.platform_reviews USING btree (is_approved);
 
 
 --
--- Name: idx_platform_reviews_upvotes; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_platform_reviews_upvotes; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_platform_reviews_upvotes ON public.platform_reviews USING btree (upvotes DESC);
 
 
 --
--- Name: idx_platform_reviews_user_id; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_platform_reviews_user_id; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_platform_reviews_user_id ON public.platform_reviews USING btree (user_id);
 
 
 --
--- Name: idx_reviews_created_at; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_reviews_created_at; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_reviews_created_at ON public.reviews USING btree (created_at);
 
 
 --
--- Name: idx_reviews_flag_count; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_reviews_flag_count; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_reviews_flag_count ON public.reviews USING btree (flag_count);
 
 
 --
--- Name: idx_reviews_is_approved; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_reviews_is_approved; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_reviews_is_approved ON public.reviews USING btree (is_approved);
 
 
 --
--- Name: idx_reviews_upvotes; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_reviews_upvotes; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_reviews_upvotes ON public.reviews USING btree (upvotes DESC);
 
 
 --
--- Name: idx_reviews_user_id; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_reviews_user_id; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_reviews_user_id ON public.reviews USING btree (user_id);
 
 
 --
--- Name: idx_user_balances_active; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_user_balances_active; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_user_balances_active ON public.user_balances USING btree (is_active) WHERE (is_active = true);
 
 
 --
--- Name: idx_user_balances_currency; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_user_balances_currency; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_user_balances_currency ON public.user_balances USING btree (currency);
 
 
 --
--- Name: idx_user_balances_frozen; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_user_balances_frozen; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_user_balances_frozen ON public.user_balances USING btree (is_frozen) WHERE (is_frozen = true);
 
 
 --
--- Name: idx_user_balances_last_transaction; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_user_balances_last_transaction; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_user_balances_last_transaction ON public.user_balances USING btree (last_transaction_at DESC);
 
 
 --
--- Name: idx_user_saved_addresses_user; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_user_saved_addresses_user; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_user_saved_addresses_user ON public.user_saved_addresses USING btree (user_id);
 
 
 --
--- Name: idx_users_created_at; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_users_created_at; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_users_created_at ON public.users USING btree (created_at DESC);
 
 
 --
--- Name: idx_users_email; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_users_email; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_users_email ON public.users USING btree (email);
 
 
 --
--- Name: idx_users_granted_roles; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_users_granted_roles; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_users_granted_roles ON public.users USING gin (granted_roles);
 
 
 --
--- Name: idx_users_is_available; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_users_is_available; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_users_is_available ON public.users USING btree (is_available);
 
 
 --
--- Name: idx_users_is_verified; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_users_is_verified; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_users_is_verified ON public.users USING btree (is_verified);
 
 
 --
--- Name: idx_users_last_active; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_users_last_active; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_users_last_active ON public.users USING btree (last_active DESC);
 
 
 --
--- Name: idx_users_primary_role; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_users_primary_role; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_users_primary_role ON public.users USING btree (primary_role);
 
 
 --
--- Name: idx_vendor_items_category; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_vendor_items_category; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_vendor_items_category ON public.vendor_items USING btree (category);
 
 
 --
--- Name: idx_vendor_items_created; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_vendor_items_created; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_vendor_items_created ON public.vendor_items USING btree (created_at);
 
 
 --
--- Name: idx_vendor_items_price; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_vendor_items_price; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_vendor_items_price ON public.vendor_items USING btree (price);
 
 
 --
--- Name: idx_vendor_items_vendor; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_vendor_items_vendor; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_vendor_items_vendor ON public.vendor_items USING btree (vendor_id);
 
 
 --
--- Name: idx_vendors_city; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_vendors_city; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_vendors_city ON public.vendors USING btree (city);
 
 
 --
--- Name: idx_vendors_coords; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_vendors_coords; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_vendors_coords ON public.vendors USING btree (latitude, longitude);
 
 
 --
--- Name: idx_vendors_owner; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_vendors_owner; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_vendors_owner ON public.vendors USING btree (owner_user_id);
 
 
 --
--- Name: idx_vendors_rating; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_vendors_rating; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_vendors_rating ON public.vendors USING btree (rating);
 
 
 --
--- Name: idx_wallet_payments_created_at; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_wallet_payments_created_at; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_wallet_payments_created_at ON public.wallet_payments USING btree (created_at);
 
 
 --
--- Name: idx_wallet_payments_order_id; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_wallet_payments_order_id; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_wallet_payments_order_id ON public.wallet_payments USING btree (order_id);
 
 
 --
--- Name: idx_wallet_payments_status; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_wallet_payments_status; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_wallet_payments_status ON public.wallet_payments USING btree (status);
 
 
 --
--- Name: idx_wallet_payments_transaction_ref; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_wallet_payments_transaction_ref; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_wallet_payments_transaction_ref ON public.wallet_payments USING btree (transaction_reference);
 
 
 --
--- Name: idx_wallet_payments_wallet_type; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_wallet_payments_wallet_type; Type: INDEX; Schema: public; Owner: neondb_owner
 --
 
 CREATE INDEX idx_wallet_payments_wallet_type ON public.wallet_payments USING btree (wallet_type);
 
 
 --
--- Name: balance_holds balance_holds_updated_at; Type: TRIGGER; Schema: public; Owner: postgres
+-- Name: balance_holds balance_holds_updated_at; Type: TRIGGER; Schema: public; Owner: neondb_owner
 --
 
 CREATE TRIGGER balance_holds_updated_at BEFORE UPDATE ON public.balance_holds FOR EACH ROW EXECUTE FUNCTION public.update_balance_transaction_timestamp();
 
 
 --
--- Name: balance_transactions balance_transactions_updated_at; Type: TRIGGER; Schema: public; Owner: postgres
+-- Name: balance_transactions balance_transactions_updated_at; Type: TRIGGER; Schema: public; Owner: neondb_owner
 --
 
 CREATE TRIGGER balance_transactions_updated_at BEFORE UPDATE ON public.balance_transactions FOR EACH ROW EXECUTE FUNCTION public.update_balance_transaction_timestamp();
 
 
 --
--- Name: user_balances user_balances_updated_at; Type: TRIGGER; Schema: public; Owner: postgres
+-- Name: user_balances user_balances_updated_at; Type: TRIGGER; Schema: public; Owner: neondb_owner
 --
 
 CREATE TRIGGER user_balances_updated_at BEFORE UPDATE ON public.user_balances FOR EACH ROW EXECUTE FUNCTION public.update_timestamp();
 
 
 --
--- Name: users users_updated_at; Type: TRIGGER; Schema: public; Owner: postgres
+-- Name: users users_updated_at; Type: TRIGGER; Schema: public; Owner: neondb_owner
 --
 
 CREATE TRIGGER users_updated_at BEFORE UPDATE ON public.users FOR EACH ROW EXECUTE FUNCTION public.update_timestamp();
 
 
 --
--- Name: balance_holds balance_holds_order_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: balance_holds balance_holds_order_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.balance_holds
@@ -3400,7 +3419,7 @@ ALTER TABLE ONLY public.balance_holds
 
 
 --
--- Name: balance_holds balance_holds_released_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: balance_holds balance_holds_released_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.balance_holds
@@ -3408,7 +3427,7 @@ ALTER TABLE ONLY public.balance_holds
 
 
 --
--- Name: balance_holds balance_holds_transaction_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: balance_holds balance_holds_transaction_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.balance_holds
@@ -3416,7 +3435,7 @@ ALTER TABLE ONLY public.balance_holds
 
 
 --
--- Name: balance_holds balance_holds_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: balance_holds balance_holds_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.balance_holds
@@ -3424,7 +3443,7 @@ ALTER TABLE ONLY public.balance_holds
 
 
 --
--- Name: balance_transactions balance_transactions_order_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: balance_transactions balance_transactions_order_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.balance_transactions
@@ -3432,7 +3451,7 @@ ALTER TABLE ONLY public.balance_transactions
 
 
 --
--- Name: balance_transactions balance_transactions_processed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: balance_transactions balance_transactions_processed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.balance_transactions
@@ -3440,7 +3459,7 @@ ALTER TABLE ONLY public.balance_transactions
 
 
 --
--- Name: balance_transactions balance_transactions_related_transaction_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: balance_transactions balance_transactions_related_transaction_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.balance_transactions
@@ -3448,7 +3467,7 @@ ALTER TABLE ONLY public.balance_transactions
 
 
 --
--- Name: balance_transactions balance_transactions_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: balance_transactions balance_transactions_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.balance_transactions
@@ -3456,7 +3475,7 @@ ALTER TABLE ONLY public.balance_transactions
 
 
 --
--- Name: balance_transactions balance_transactions_wallet_payment_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: balance_transactions balance_transactions_wallet_payment_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.balance_transactions
@@ -3464,7 +3483,7 @@ ALTER TABLE ONLY public.balance_transactions
 
 
 --
--- Name: bids bids_order_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: bids bids_order_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.bids
@@ -3472,7 +3491,7 @@ ALTER TABLE ONLY public.bids
 
 
 --
--- Name: bids bids_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: bids bids_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.bids
@@ -3480,7 +3499,7 @@ ALTER TABLE ONLY public.bids
 
 
 --
--- Name: driver_locations driver_locations_order_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: driver_locations driver_locations_order_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.driver_locations
@@ -3488,7 +3507,7 @@ ALTER TABLE ONLY public.driver_locations
 
 
 --
--- Name: emergency_transfer_notifications emergency_transfer_notifications_transfer_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: emergency_transfer_notifications emergency_transfer_notifications_transfer_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.emergency_transfer_notifications
@@ -3496,7 +3515,7 @@ ALTER TABLE ONLY public.emergency_transfer_notifications
 
 
 --
--- Name: emergency_transfers emergency_transfers_order_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: emergency_transfers emergency_transfers_order_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.emergency_transfers
@@ -3504,7 +3523,7 @@ ALTER TABLE ONLY public.emergency_transfers
 
 
 --
--- Name: notifications notifications_order_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: notifications notifications_order_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.notifications
@@ -3512,7 +3531,7 @@ ALTER TABLE ONLY public.notifications
 
 
 --
--- Name: notifications notifications_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: notifications notifications_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.notifications
@@ -3520,7 +3539,7 @@ ALTER TABLE ONLY public.notifications
 
 
 --
--- Name: orders orders_assigned_driver_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: orders orders_assigned_driver_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.orders
@@ -3528,7 +3547,7 @@ ALTER TABLE ONLY public.orders
 
 
 --
--- Name: orders orders_customer_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: orders orders_customer_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.orders
@@ -3536,7 +3555,7 @@ ALTER TABLE ONLY public.orders
 
 
 --
--- Name: orders orders_driver_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: orders orders_driver_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.orders
@@ -3544,7 +3563,7 @@ ALTER TABLE ONLY public.orders
 
 
 --
--- Name: orders orders_emergency_transfer_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: orders orders_emergency_transfer_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.orders
@@ -3552,7 +3571,7 @@ ALTER TABLE ONLY public.orders
 
 
 --
--- Name: platform_review_flags platform_review_flags_review_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: platform_review_flags platform_review_flags_review_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.platform_review_flags
@@ -3560,7 +3579,7 @@ ALTER TABLE ONLY public.platform_review_flags
 
 
 --
--- Name: platform_review_flags platform_review_flags_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: platform_review_flags platform_review_flags_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.platform_review_flags
@@ -3568,7 +3587,7 @@ ALTER TABLE ONLY public.platform_review_flags
 
 
 --
--- Name: platform_review_votes platform_review_votes_review_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: platform_review_votes platform_review_votes_review_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.platform_review_votes
@@ -3576,7 +3595,7 @@ ALTER TABLE ONLY public.platform_review_votes
 
 
 --
--- Name: platform_review_votes platform_review_votes_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: platform_review_votes platform_review_votes_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.platform_review_votes
@@ -3584,7 +3603,7 @@ ALTER TABLE ONLY public.platform_review_votes
 
 
 --
--- Name: platform_reviews platform_reviews_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: platform_reviews platform_reviews_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.platform_reviews
@@ -3592,7 +3611,7 @@ ALTER TABLE ONLY public.platform_reviews
 
 
 --
--- Name: reviews reviews_order_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: reviews reviews_order_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.reviews
@@ -3600,7 +3619,7 @@ ALTER TABLE ONLY public.reviews
 
 
 --
--- Name: reviews reviews_reviewee_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: reviews reviews_reviewee_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.reviews
@@ -3608,7 +3627,7 @@ ALTER TABLE ONLY public.reviews
 
 
 --
--- Name: reviews reviews_reviewer_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: reviews reviews_reviewer_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.reviews
@@ -3616,7 +3635,7 @@ ALTER TABLE ONLY public.reviews
 
 
 --
--- Name: reviews reviews_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: reviews reviews_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.reviews
@@ -3624,7 +3643,7 @@ ALTER TABLE ONLY public.reviews
 
 
 --
--- Name: user_balances user_balances_frozen_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: user_balances user_balances_frozen_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.user_balances
@@ -3632,7 +3651,7 @@ ALTER TABLE ONLY public.user_balances
 
 
 --
--- Name: user_balances user_balances_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: user_balances user_balances_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.user_balances
@@ -3640,7 +3659,7 @@ ALTER TABLE ONLY public.user_balances
 
 
 --
--- Name: user_saved_addresses user_saved_addresses_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: user_saved_addresses user_saved_addresses_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.user_saved_addresses
@@ -3648,7 +3667,7 @@ ALTER TABLE ONLY public.user_saved_addresses
 
 
 --
--- Name: vendor_categories vendor_categories_vendor_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: vendor_categories vendor_categories_vendor_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.vendor_categories
@@ -3656,7 +3675,7 @@ ALTER TABLE ONLY public.vendor_categories
 
 
 --
--- Name: vendor_items vendor_items_vendor_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: vendor_items vendor_items_vendor_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.vendor_items
@@ -3664,7 +3683,7 @@ ALTER TABLE ONLY public.vendor_items
 
 
 --
--- Name: wallet_payments wallet_payments_order_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: wallet_payments wallet_payments_order_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: neondb_owner
 --
 
 ALTER TABLE ONLY public.wallet_payments
@@ -3672,7 +3691,7 @@ ALTER TABLE ONLY public.wallet_payments
 
 
 --
--- Name: SCHEMA public; Type: ACL; Schema: -; Owner: postgres
+-- Name: SCHEMA public; Type: ACL; Schema: -; Owner: neondb_owner
 --
 
 REVOKE USAGE ON SCHEMA public FROM PUBLIC;
