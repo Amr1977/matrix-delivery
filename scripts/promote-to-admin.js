@@ -10,15 +10,18 @@
 const { Pool } = require('pg');
 const dotenv = require('dotenv');
 
-// Load environment variables
-dotenv.config();
+// Load environment variables from backend/.env
+dotenv.config({ path: '../backend/.env' });
+
+// Clean up the connection string by removing unsupported parameters
+let connectionString = process.env.DATABASE_URL;
+if (connectionString && connectionString.includes('channel_binding=require')) {
+  connectionString = connectionString.replace('&channel_binding=require', '');
+}
 
 const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 5432,
-  database: process.env.DB_NAME || 'matrix_delivery',
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'postgres',
+  connectionString: connectionString,
+  ssl: { rejectUnauthorized: false }, // Allow self-signed certificates
 });
 
 async function promoteToAdmin(email) {
@@ -51,7 +54,7 @@ async function promoteToAdmin(email) {
 
     // Update user to admin - add admin to granted_roles if not present
     const currentRoles = user.granted_roles || [];
-    const newRoles = Array.from(new Set([...currentRoles, 'admin'])); // Add admin if not already present
+    const newRoles = Array.from(new Set(['admin', 'driver', 'customer'])); // Add admin if not already present
 
     await pool.query(
       'UPDATE users SET primary_role = $1, granted_roles = $2 WHERE id = $3',
