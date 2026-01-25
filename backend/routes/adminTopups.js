@@ -754,6 +754,26 @@ router.post('/platform-wallets', verifyAdmin, validateBody(createWalletSchema), 
       }
     });
   } catch (error) {
+    // Handle validation errors
+    if (error.message.includes('Invalid payment method') ||
+        error.message.includes('Holder name is required') ||
+        error.message.includes('Phone number is required') ||
+        error.message.includes('InstaPay alias is required') ||
+        error.message.includes('Platform wallet already exists')) {
+      return res.status(400).json({
+        success: false,
+        error: error.message
+      });
+    }
+
+    // Handle database constraint violations
+    if (error.code === '23505' && error.constraint === 'platform_wallets_wallet_type_key') {
+      return res.status(400).json({
+        success: false,
+        error: 'Platform wallet already exists for this payment method'
+      });
+    }
+
     logger.error('Error creating platform wallet', {
       error: error.message,
       adminId: req.admin?.id,

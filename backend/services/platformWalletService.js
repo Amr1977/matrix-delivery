@@ -217,6 +217,16 @@ class PlatformWalletService {
         }
       }
 
+      // Check if wallet already exists for this payment method
+      const existingWallet = await this.pool.query(
+        'SELECT id FROM platform_wallets WHERE wallet_type = $1',
+        [paymentMethod]
+      );
+
+      if (existingWallet.rows.length > 0) {
+        throw new Error(`Platform wallet already exists for payment method: ${paymentMethod}`);
+      }
+
       const result = await this.pool.query(
         `INSERT INTO platform_wallets (
           wallet_type,
@@ -232,7 +242,7 @@ class PlatformWalletService {
           last_reset_daily,
           last_reset_monthly
         ) VALUES ($1, $2, $3, $4, $4, $5, $6, TRUE, 0, 0, NOW(), NOW())
-        RETURNING 
+        RETURNING
           id,
           wallet_type as payment_method,
           phone_number,
