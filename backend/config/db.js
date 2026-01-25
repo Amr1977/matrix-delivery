@@ -2,19 +2,18 @@ const { Pool } = require('pg');
 const { neon } = require("@neondatabase/serverless");
 const logger = require('./logger');
 
+const IS_TEST = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing';
+
 // Environment is loaded by server.js or jest.setup.js
 // but we check anyway to be safe
 if (!process.env.DB_HOST && !process.env.DATABASE_URL) {
     const dotenv = require('dotenv');
-    const IS_TEST = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing';
     const IS_PROD = process.env.NODE_ENV === 'production';
     const envFile = IS_TEST ? '.env.testing' : IS_PROD ? '.env.production' : '.env';
 
     logger.info(`📄 Loading environment from: ${envFile}`);
     dotenv.config({ path: envFile });
 }
-
-const IS_TEST = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing';
 
 // Log environment details
 logger.info(`🔧 Environment Configuration:`);
