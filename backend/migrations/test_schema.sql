@@ -3,6 +3,7 @@
 -- Generated: 2025-12-31
 
 -- Drop all existing tables
+DROP TABLE IF EXISTS location_updates CASCADE;
 DROP TABLE IF EXISTS logs CASCADE;
 DROP TABLE IF EXISTS user_payment_methods CASCADE;
 DROP TABLE IF EXISTS balance_holds CASCADE;

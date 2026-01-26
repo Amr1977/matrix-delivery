@@ -2,7 +2,13 @@ const fs = require('fs');
 const path = require('path');
 const { Pool } = require('pg');
 const crypto = require('crypto');
-require('dotenv').config();
+
+// Load environment variables - use .env.testing for test environments
+if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing') {
+  require('dotenv').config({ path: path.join(__dirname, '../../.env.testing') });
+} else {
+  require('dotenv').config({ path: path.join(__dirname, '../../.env') });
+}
 
 const logger = {
     info: (msg) => console.log(`[INFO] ${msg}`),

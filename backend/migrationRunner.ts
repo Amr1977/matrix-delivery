@@ -92,7 +92,7 @@ export class MigrationRunner {
             }
 
             const files = fs.readdirSync(this.migrationsDir)
-                .filter(file => file.endsWith('.sql'))
+                .filter(file => file.endsWith('.sql') && file !== 'test_schema.sql' && file !== 'dev_orders_schema.sql')
                 .sort(); // Alphabetical order ensures chronological execution
 
             return files;
