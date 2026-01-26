@@ -344,21 +344,21 @@ END as acceptedBid,
       // Additional text-based filters
       if (filters.country || filters.city || filters.area) {
         const conditions = [];
-        let paramIndex = filterParams.length + 1;
+        let paramIndex = filterParams.length + 2; // Start after userId ($1) and any existing location params
 
         if (filters.country) {
           conditions.push(`o.pickup_address ILIKE $${paramIndex} `);
-          filterParams.push(`% ${filters.country}% `);
+          filterParams.push(`%${filters.country}%`);
           paramIndex += 1;
         }
         if (filters.city) {
           conditions.push(`o.pickup_address ILIKE $${paramIndex} `);
-          filterParams.push(`% ${filters.city}% `);
+          filterParams.push(`%${filters.city}%`);
           paramIndex += 1;
         }
         if (filters.area) {
           conditions.push(`o.pickup_address ILIKE $${paramIndex} `);
-          filterParams.push(`% ${filters.area}% `);
+          filterParams.push(`%${filters.area}%`);
           paramIndex += 1;
         }
 
@@ -463,6 +463,7 @@ WHERE(o.status = 'pending_bids' AND o.assigned_driver_user_id IS NULL${locationC
       // Note: userId is used in WHERE clause as $1, and filterParams contains the location coordinates
     } else {
       // Admin sees all orders
+      params = [userId];
       query = `
 SELECT
 o.*,
