@@ -44,6 +44,12 @@ CREATE TABLE IF NOT EXISTS wallet_payments (
     CONSTRAINT positive_amount CHECK (amount > 0)
 );
 
+-- Ensure columns exist (idempotency fix)
+ALTER TABLE wallet_payments ADD COLUMN IF NOT EXISTS sms_forwarded BOOLEAN DEFAULT FALSE;
+ALTER TABLE wallet_payments ADD COLUMN IF NOT EXISTS sms_content TEXT;
+ALTER TABLE wallet_payments ADD COLUMN IF NOT EXISTS auto_verified BOOLEAN DEFAULT FALSE;
+ALTER TABLE wallet_payments ADD COLUMN IF NOT EXISTS screenshot_url VARCHAR(500);
+
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_wallet_payments_order_id ON wallet_payments(order_id);
 CREATE INDEX IF NOT EXISTS idx_wallet_payments_status ON wallet_payments(status);

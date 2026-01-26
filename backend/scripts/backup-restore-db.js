@@ -2,13 +2,13 @@
 
 /**
  * Database Backup and Restore Utility
- * 
+ *
  * Features:
  * - Backup production database to local file
  * - Restore database from backup file
  * - List available backups
  * - Clean old backups (optional)
- * 
+ *
  * Usage:
  *   node backup-restore-db.js backup [--format=custom|plain]
  *   node backup-restore-db.js restore <backup-file>
@@ -16,10 +16,18 @@
  *   node backup-restore-db.js clean --older-than=7d
  */
 
+const dotenv = require('dotenv');
 const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const util = require('util');
+
+// Load environment variables - use .env.testing for test environments
+if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing') {
+  dotenv.config({ path: path.join(__dirname, '../../.env.testing') });
+} else {
+  dotenv.config({ path: path.join(__dirname, '../../.env') });
+}
 
 const execAsync = util.promisify(exec);
 
