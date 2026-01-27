@@ -16,15 +16,20 @@ const rl = readline.createInterface({
     output: process.stdout
 });
 
-const config = {
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT || '5432'),
-    user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD,
-    database: 'postgres' // Connect to postgres DB first
-};
+let config;
+let dbName;
 
-const dbName = process.env.DB_NAME || 'matrix_delivery_prod';
+try {
+    const url = new URL(process.env.DATABASE_URL);
+    dbName = url.pathname.substring(1);
+    config.host = url.hostname;
+    config.port = parseInt(url.port || '5432');
+    config.user = url.username;
+    config.password = url.password;
+    // Keep config.database as 'postgres'
+} catch (e) {
+    console.warn('Failed to parse DATABASE_URL, falling back to individual variables');
+}
 
 async function resetDatabase() {
     console.log('\n⚠️  WARNING: This will DROP the entire production database!');

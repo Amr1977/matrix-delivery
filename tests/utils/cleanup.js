@@ -9,12 +9,10 @@ dotenv.config();
 async function cleanup() {
   console.log('🧹 Cleaning up test environment...');
 
+  const poolConfig = { connectionString: process.env.DATABASE_URL };
+
   const pool = new Pool({
-    host: process.env.DB_HOST || 'localhost',
-    port: process.env.DB_PORT || 5432,
-    database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
-    user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || 'postgres',
+    ...poolConfig,
     max: 5,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 2000,

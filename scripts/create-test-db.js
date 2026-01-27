@@ -1,13 +1,20 @@
 const { Client } = require('pg');
 require('dotenv').config({ path: 'backend/.env.testing' });
 
-const config = {
-    user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD,
-    host: process.env.DB_HOST || 'localhost',
-    port: process.env.DB_PORT || 5432,
-    database: 'postgres' // Connect to default postgres DB to create new DB
-};
+let config;
+let dbName;
+
+try {
+    const url = new URL(process.env.DATABASE_URL);
+    dbName = url.pathname.substring(1);
+    config.user = url.username;
+    config.password = url.password;
+    config.host = url.hostname;
+    config.port = url.port || 5432;
+    // Keep config.database as 'postgres'
+} catch (e) {
+    console.warn('Failed to parse DATABASE_URL, falling back to individual variables');
+}
 
 async function createTestDatabase() {
     const client = new Client(config);
@@ -16,9 +23,6 @@ async function createTestDatabase() {
         await client.connect();
         console.log('Connected to PostgreSQL...');
 
-        const dbName = process.env.DB_NAME || 'matrix_delivery_test';
-
-        // Check if database exists
         const res = await client.query(`SELECT 1 FROM pg_database WHERE datname = '${dbName}'`);
 
         if (res.rowCount === 0) {

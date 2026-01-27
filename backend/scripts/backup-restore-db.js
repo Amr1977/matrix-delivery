@@ -33,13 +33,20 @@ const execAsync = util.promisify(exec);
 
 // Configuration
 const BACKUP_DIR = path.join(__dirname, '../backups');
-const DB_CONFIG = {
-    host: process.env.DB_HOST || 'localhost',
-    port: process.env.DB_PORT || '5432',
-    database: process.env.DB_NAME || 'matrix_delivery_prod',
-    user: process.env.DB_USER || 'matrix_delivery_prod',
-    password: process.env.DB_PASSWORD
-};
+let DB_CONFIG;
+
+try {
+    const url = new URL(process.env.DATABASE_URL);
+    DB_CONFIG = {
+        host: url.hostname,
+        port: url.port || '5432',
+        database: url.pathname.substring(1), // remove leading /
+        user: url.username,
+        password: url.password
+    };
+} catch (e) {
+    console.warn('Failed to parse DATABASE_URL, falling back to individual variables');
+}
 
 // Ensure backup directory exists
 if (!fs.existsSync(BACKUP_DIR)) {

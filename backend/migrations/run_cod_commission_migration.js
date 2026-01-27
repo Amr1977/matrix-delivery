@@ -8,11 +8,7 @@
  *   node backend/migrations/run_cod_commission_migration.js
  * 
  * Environment Variables Required:
- *   - DB_HOST (default: localhost)
- *   - DB_PORT (default: 5432)
- *   - DB_NAME (default: matrix_delivery)
- *   - DB_USER (default: postgres)
- *   - DB_PASSWORD
+ *   - DATABASE_URL
  */
 
 const { Pool } = require('pg');
@@ -20,21 +16,14 @@ const fs = require('fs');
 const path = require('path');
 
 // Database configuration
-const pool = new Pool({
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT || '5432'),
-    database: process.env.DB_NAME || 'matrix_delivery',
-    user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD,
-});
+const poolConfig = { connectionString: process.env.DATABASE_URL };
+const pool = new Pool(poolConfig);
 
 async function runMigration() {
     const client = await pool.connect();
 
     try {
         console.log('🚀 Starting COD Commission Migration...');
-        console.log(`📊 Database: ${process.env.DB_NAME || 'matrix_delivery'}`);
-        console.log(`🔗 Host: ${process.env.DB_HOST || 'localhost'}`);
 
         // Read the migration file
         const migrationPath = path.join(__dirname, '20251219_remove_positive_balance_constraint.sql');

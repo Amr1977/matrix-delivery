@@ -72,7 +72,7 @@ Given('a customer {string} exists', async function (name) {
     };
 });
 
-Given('a driver {string} exists', async function (name) {
+Given('a driver named {string} exists', async function (name) {
     const timestamp = Date.now();
     const email = `${name.toLowerCase()}_${timestamp}@test.com`;
     const password = 'Password123!';

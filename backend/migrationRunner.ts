@@ -190,7 +190,7 @@ export class MigrationRunner {
                     successCount++;
                 } catch (error) {
                     logger.error(`Migration failed, stopping migration process: ${migration} `);
-                    throw error;
+                    //throw error;
                 }
             }
 

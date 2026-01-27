@@ -29,12 +29,10 @@ const printError = (msg) => console.log(`${colors.red}[✗]${colors.reset} ${msg
 const printWarning = (msg) => console.log(`${colors.yellow}[!]${colors.reset} ${msg}`);
 
 // PostgreSQL Connection Pool
+const poolConfig = { connectionString: process.env.DATABASE_URL };
+
 const pool = new Pool({
-    host: process.env.DB_HOST,
-    port: parseInt(process.env.DB_PORT),
-    database: process.env.DB_NAME,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
+    ...poolConfig,
     max: 1,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 5000,
@@ -147,7 +145,6 @@ async function installPostGIS() {
         console.log('  3. Verify database credentials in .env file');
         console.log('  4. Try manual installation:');
         console.log('     sudo apt-get install -y postgresql-contrib postgis');
-        console.log('     sudo -u postgres psql -d ' + process.env.DB_NAME + ' -c "CREATE EXTENSION postgis;"');
         process.exit(1);
     } finally {
         await pool.end();

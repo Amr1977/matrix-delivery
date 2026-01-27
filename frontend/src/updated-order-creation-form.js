@@ -216,11 +216,11 @@ const OrderCreationForm = ({ onSubmit, countries, t, API_URL = GLOBAL_API_URL })
         },
         (error) => {
           console.warn('Geolocation error:', error);
-          setUserLocation({ lat: 30.0444, lng: 31.2357 }); // Default to Cairo
+          setUserLocation({ lat: 31.2001012694892, lng: 29.91881847381592 }); // Default to Alexandria
         }
       );
     } else {
-      setUserLocation({ lat: 30.0444, lng: 31.2357 });
+      setUserLocation({ lat: 31.2001012694892, lng: 29.91881847381592 }); // Default to Alexandria
     }
   }, []);
 
@@ -1054,7 +1054,7 @@ const MapLocationPicker = ({ location, onChange, onAddressFill, userLocation, ma
         }}>
           {userLocation ? (
             <MapContainer
-              center={location?.coordinates ? [location.coordinates.lat, location.coordinates.lng] : (userLocation ? [userLocation.lat, userLocation.lng] : [30.0444, 31.2357])}
+              center={location?.coordinates ? [location.coordinates.lat, location.coordinates.lng] : (userLocation ? [userLocation.lat, userLocation.lng] : [31.2001012694892, 29.91881847381592])}
               zoom={15}
               style={{
                 height: '100%',
@@ -1167,7 +1167,7 @@ const MapLocationPicker = ({ location, onChange, onAddressFill, userLocation, ma
           </div>
           <div style={{ width: '100%', maxWidth: 900, height: '80vh', background: 'white', borderRadius: '0.5rem', overflow: 'hidden' }}>
             <MapContainer
-              center={location?.coordinates ? [location.coordinates.lat, location.coordinates.lng] : (userLocation ? [userLocation.lat, userLocation.lng] : [30.0444, 31.2357])}
+              center={location?.coordinates ? [location.coordinates.lat, location.coordinates.lng] : (userLocation ? [userLocation.lat, userLocation.lng] : [31.2001012694892, 29.91881847381592])}
               zoom={16}
               style={{ height: '100%', width: '100%' }}
               whenReady={(map) => {

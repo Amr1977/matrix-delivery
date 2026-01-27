@@ -182,7 +182,7 @@ const pool = new Pool({
 
 // Issue 2: Visible in test files
 // verify-user.js line 9:
-password: process.env.DB_PASSWORD || '***REDACTED***' // EXPOSED IN CODE
+password: process.env.DB_PASSWORD || 'some_password_exposed' // EXPOSED IN CODE
 ```
 
 #### ✅ REMEDIATION:

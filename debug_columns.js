@@ -1,13 +1,8 @@
 const { Pool } = require('pg');
 require('dotenv').config({ path: './backend/.env.testing' });
 
-const pool = new Pool({
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT || '5432'),
-    database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
-    user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD,
-});
+const poolConfig = { connectionString: process.env.DATABASE_URL };
+const pool = new Pool(poolConfig);
 
 async function listColumns() {
     try {
