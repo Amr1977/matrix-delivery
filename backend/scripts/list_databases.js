@@ -9,13 +9,9 @@ const logger = {
 };
 
 async function listDatabases() {
-    const pool = new Pool({
-        host: process.env.DB_HOST || 'localhost',
-        port: process.env.DB_PORT || 5432,
-        database: 'postgres', // Connect to default postgres database
-        user: process.env.DB_USER || 'postgres',
-        password: process.env.DB_PASSWORD,
-    });
+    let poolConfig = { connectionString: process.env.DATABASE_URL };
+
+    const pool = new Pool(poolConfig);
 
     try {
         logger.info('Connecting to local PostgreSQL...');

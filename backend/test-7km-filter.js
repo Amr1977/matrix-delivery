@@ -1,13 +1,9 @@
 const { Pool } = require('pg');
 const logger = require('./config/logger');
 
-const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 5432,
-  database: process.env.DB_NAME || 'matrix_delivery',
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'be_the_one'
-});
+const poolConfig = { connectionString: process.env.DATABASE_URL };
+
+const pool = new Pool(poolConfig);
 
 // Import the actual OrderService instance from the backend
 const orderService = require('./services/orderService');
@@ -15,13 +11,8 @@ const orderService = require('./services/orderService');
 // Add cleanup method to the imported service
 orderService.cleanupTestOrders = async function () {
   const pool = require('pg').Pool;
-  const dbPool = new pool({
-    host: process.env.DB_HOST || 'localhost',
-    port: process.env.DB_PORT || 5432,
-    database: process.env.DB_NAME || 'matrix_delivery',
-    user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || 'be_the_one'
-  });
+  const poolConfig = { connectionString: process.env.DATABASE_URL };
+  const dbPool = new pool(poolConfig);
   await dbPool.query('DELETE FROM orders WHERE order_number LIKE \'TEST-%\'');
   await dbPool.end();
   console.log('🧹 Cleaned up test orders');

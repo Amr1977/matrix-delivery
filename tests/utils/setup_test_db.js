@@ -7,13 +7,28 @@ const dotenv = require('dotenv');
 dotenv.config({ path: path.join(__dirname, '../../backend/.env.testing') });
 
 // Configuration
-const dbConfig = {
+let dbConfig = {
     host: process.env.DB_HOST || 'localhost',
     port: process.env.DB_PORT || 5432,
     database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
     user: process.env.DB_USER || 'postgres',
     password: process.env.DB_PASSWORD || 'postgres',
 };
+
+if (process.env.DATABASE_URL) {
+    try {
+        const url = new URL(process.env.DATABASE_URL);
+        dbConfig = {
+            host: url.hostname,
+            port: url.port || 5432,
+            database: url.pathname.substring(1),
+            user: url.username,
+            password: url.password,
+        };
+    } catch (e) {
+        console.warn('Failed to parse DATABASE_URL, falling back to individual variables');
+    }
+}
 
 const adminConfig = {
     ...dbConfig,

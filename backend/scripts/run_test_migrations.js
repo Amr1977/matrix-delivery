@@ -11,22 +11,8 @@ if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing') {
 // Import resetDatabase directly from init.ts to force clean slate
 const { resetDatabase } = require('../database/init.ts');
 
-// I need valid pool config on port 5432 (default)
-console.log('DB Connection:', {
-    user: process.env.DB_USER,
-    host: process.env.DB_HOST,
-    database: process.env.DB_NAME,
-    port: process.env.DB_PORT,
-    passwordType: typeof process.env.DB_PASSWORD,
-    passwordLen: process.env.DB_PASSWORD ? process.env.DB_PASSWORD.length : 0
-});
-const pool = new Pool({
-    user: process.env.DB_USER,
-    host: process.env.DB_HOST,
-    database: process.env.DB_NAME,
-    password: process.env.DB_PASSWORD,
-    port: process.env.DB_PORT,
-});
+const poolConfig = { connectionString: process.env.DATABASE_URL };
+const pool = new Pool(poolConfig);
 
 async function run() {
     console.log('🚀 Resetting and initializing TEST DB...');

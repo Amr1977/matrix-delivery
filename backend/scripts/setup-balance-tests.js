@@ -7,13 +7,9 @@ const fs = require('fs');
 require('dotenv').config();
 
 async function setup() {
-    const pool = new Pool({
-        user: process.env.DB_USER,
-        host: process.env.DB_HOST || 'localhost',
-        database: 'matrix_delivery_test',
-        password: process.env.DB_PASSWORD,
-        port: parseInt(process.env.DB_PORT || '5432'),
-    });
+    const poolConfig = { connectionString: process.env.DATABASE_URL };
+
+    const pool = new Pool(poolConfig);
 
     try {
         console.log('🚀 Setting up test environment...\n');

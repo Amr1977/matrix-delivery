@@ -18,39 +18,12 @@ if (!process.env.DB_HOST && !process.env.DATABASE_URL) {
 // Log environment details
 logger.info(`🔧 Environment Configuration:`);
 logger.info(`   NODE_ENV: ${process.env.NODE_ENV}`);
-logger.info(`   IS_TEST: ${IS_TEST}`);
 console.log(`   DATABASE_URL: ${process.env.DATABASE_URL}`);
-logger.info(`   DB_HOST: ${process.env.DB_HOST || 'localhost'}`);
-logger.info(`   DB_PORT: ${process.env.DB_PORT || 5432}`);
-logger.info(`   DB_USER: ${process.env.DB_USER || 'postgres'}`);
-logger.info(`   DB_NAME: ${process.env.DB_NAME || 'matrix_delivery'}`);
-logger.info(`   DB_NAME_TEST: ${process.env.DB_NAME_TEST || 'matrix_delivery_test'}`);
 
-let poolConfig;
-
-if (process.env.DATABASE_URL) {
-    // Use DATABASE_URL if provided (e.g., for Neon, Heroku, etc.)
-    poolConfig = { connectionString: process.env.DATABASE_URL };
-    logger.info(`🔌 Connecting to database via DATABASE_URL (Test Mode: ${IS_TEST})`);
-} else {
-    // Use individual config variables
-    poolConfig = {
-        host: process.env.DB_HOST || 'localhost',
-        port: process.env.DB_PORT || 5432,
-        // Use test database if in test mode
-        database: IS_TEST ? (process.env.DB_NAME_TEST || 'matrix_delivery_test') : (process.env.DB_NAME || 'matrix_delivery'),
-        user: process.env.DB_USER || 'postgres',
-        password: process.env.DB_PASSWORD || 'postgres',
-        max: 10, // Reduced from 20 to safe guard 1GB VPS in cluster mode
-        idleTimeoutMillis: 30000,
-        connectionTimeoutMillis: 30000, // Increased to 30s to handle high load/swap spikes
-    };
-    // Log which database we are connecting to
-    logger.info(`🔌 Connecting to database: ${poolConfig.database} (Test Mode: ${IS_TEST})`);
-}
+const poolConfig  = { connectionString: process.env.DATABASE_URL };
 
 const pool = new Pool(poolConfig);
-
+logger.info(`🔌 Connecting to database: ${poolConfig.database} (Test Mode: ${IS_TEST})`);
 pool.on('error', (err, client) => {
     logger.error('Unexpected error on idle client', err);
     process.exit(-1);

@@ -19,13 +19,9 @@ const logger = {
 const migrationsDir = path.join(__dirname, '..', 'migrations');
 const migrationsTable = 'schema_migrations';
 
-const pool = new Pool({
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    database: process.env.DB_NAME,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-});
+const poolConfig = { connectionString: process.env.DATABASE_URL };
+
+const pool = new Pool(poolConfig);
 
 async function initializeMigrationsTable() {
     const query = `
@@ -119,7 +115,7 @@ async function applyMigration(migrationFile) {
 
 async function runPendingMigrations() {
     try {
-        logger.info(`Connecting to database: ${process.env.DB_NAME} as ${process.env.DB_USER}`);
+        logger.info(`Connecting to database: ${process.env.DATABASE_URL}`);
 
         await initializeMigrationsTable();
 

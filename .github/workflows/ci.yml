@@ -65,7 +65,7 @@ jobs:
         env:
           DB_HOST: localhost
           DB_PORT: 5432
-          DB_NAME_TEST: matrix_delivery_test
+          DB_NAME: matrix_delivery_test
           DB_USER: postgres
           DB_PASSWORD: test_password
           NODE_ENV: test

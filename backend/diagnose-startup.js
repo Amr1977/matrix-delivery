@@ -57,12 +57,10 @@ requiredDeps.forEach(dep => {
 console.log('\n3. Testing database connection...');
 const { Pool } = require('pg');
 
+const poolConfig = { connectionString: process.env.DATABASE_URL };
+
 const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 5432,
-  database: process.env.DB_NAME || 'matrix_delivery',
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'postgres',
+  ...poolConfig,
   max: 1,
   idleTimeoutMillis: 5000,
   connectionTimeoutMillis: 5000,

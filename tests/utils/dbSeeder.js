@@ -86,13 +86,8 @@ class DBSeeder {
 
   async createAdminViaDB(name, email, password, phone) {
     const { Pool } = require('pg');
-    const pool = new Pool({
-      host: process.env.DB_HOST || 'localhost',
-      port: process.env.DB_PORT || 5432,
-      database: process.env.DB_NAME_TEST || 'matrix_delivery_test',
-      user: process.env.DB_USER || 'postgres',
-      password: process.env.DB_PASSWORD || 'postgres',
-    });
+    const poolConfig = { connectionString: process.env.DATABASE_URL };
+    const pool = new Pool(poolConfig);
 
     // Ensure user exists via API registration as customer
     let existing = await pool.query('SELECT id, name, email FROM users WHERE LOWER(email) = LOWER($1)', [email]);

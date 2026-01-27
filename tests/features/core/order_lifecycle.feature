@@ -7,7 +7,7 @@ Feature: Core Order Lifecycle
   Background:
     Given the platform is ready
     And a customer "Alice" exists
-    And a driver "Bob" exists
+    And a driver named "Bob" exists
 
   @happy_path
   Scenario: Customer creates order, driver bids, customer accepts, driver delivers

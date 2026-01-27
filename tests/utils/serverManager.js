@@ -28,11 +28,7 @@ class ServerManager {
             ENV_FILE: '.env.testing',
             INIT_TEST_DB: 'true',
             NODE_ENV: 'testing',
-            DB_USER: 'postgres',
-            DB_PASSWORD: 'be_the_one',
-            DB_NAME: 'matrix_delivery_test',
-            DB_HOST: 'localhost',
-            DB_PORT: '5432'
+            DATABASE_URL: process.env.TEST_DATABASE_URL || 'postgres://postgres:be_the_one@localhost:5432/matrix_delivery_test'
           }
       });
 

@@ -14,12 +14,10 @@ dotenv.config({ path: '.env.production' });
 console.log('🔍 Database Health Check');
 console.log('========================\n');
 
+const poolConfig = { connectionString: process.env.DATABASE_URL };
+
 const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 5432,
-  database: process.env.DB_NAME || 'matrix_delivery',
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'postgres',
+  ...poolConfig,
   max: 1,
   idleTimeoutMillis: 5000,
   connectionTimeoutMillis: 10000,
@@ -93,11 +91,11 @@ async function checkDatabase() {
       console.log('   - Run database migration scripts if available');
     } else if (error.code === '28000') {
       console.log('💡 Authentication failed - check database credentials');
-      console.log('   - Verify DB_USER and DB_PASSWORD in .env.production');
+      console.log('   - Verify DATABASE_URL or DB_USER/DB_PASSWORD in .env.production');
       console.log('   - Check if user has access to the database');
     } else if (error.code === 'ENOTFOUND') {
       console.log('💡 Database host not found');
-      console.log('   - Check DB_HOST in .env.production');
+      console.log('   - Check DATABASE_URL or DB_HOST in .env.production');
       console.log('   - Verify network connectivity to database server');
     }
 
