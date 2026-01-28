@@ -85,3 +85,4 @@ frontend/src/git-info.json
 # Test Reports and Results
 frontend/smoke-tests/report/
 frontend/test-results/
+test-results.json
