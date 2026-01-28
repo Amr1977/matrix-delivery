@@ -1192,23 +1192,26 @@ export const MainApp = () => {
       requiredFieldsError.push('Price');
     }
 
+    //TODO 🛑🛑🛑!!!!!! BLOODY SHIT !!!!!! UNIFY THE BLOODY PICKUP/DROPOFF RETURNED DATA FORMAT !!!!!!! 🛑🛑🛑🛑
     // Check for both data structure formats since the form can send either
     const hasPickupData = orderData.pickupAddress?.country || orderData.pickupLocation?.address?.country;
     const hasPickupCountry = (orderData.pickupAddress?.country || orderData.pickupLocation?.address?.country)?.trim();
     const hasPickupCity = (orderData.pickupAddress?.city || orderData.pickupLocation?.address?.city)?.trim();
     const hasPickupPersonName = (orderData.pickupAddress?.personName || orderData.pickupLocation?.address?.personName)?.trim();
+    const hasPickupPersonPhone = (orderData.pickupAddress?.personPhone || orderData.pickupLocation?.address?.personPhone)?.trim();
 
-    if (!hasPickupData || !hasPickupCountry || !hasPickupCity || !hasPickupPersonName) {
-      requiredFieldsError.push('Pickup location (country, city, contact name)');
+    if (!hasPickupData || !hasPickupCountry || !hasPickupCity || !hasPickupPersonName || !hasPickupPersonPhone) {
+      requiredFieldsError.push('Pickup location (country, city, contact name, contact phone)');
     }
 
     const hasDropoffData = orderData.dropoffAddress?.country || orderData.dropoffLocation?.address?.country;
     const hasDropoffCountry = (orderData.dropoffAddress?.country || orderData.dropoffLocation?.address?.country)?.trim();
     const hasDropoffCity = (orderData.dropoffAddress?.city || orderData.dropoffLocation?.address?.city)?.trim();
     const hasDropoffPersonName = (orderData.dropoffAddress?.personName || orderData.dropoffLocation?.address?.personName)?.trim();
+    const hasDropoffPersonPhone = (orderData.dropoffAddress?.personPhone || orderData.dropoffLocation?.address?.personPhone)?.trim();
 
-    if (!hasDropoffData || !hasDropoffCountry || !hasDropoffCity || !hasDropoffPersonName) {
-      requiredFieldsError.push('Delivery location (country, city, contact name)');
+    if (!hasDropoffData || !hasDropoffCountry || !hasDropoffCity || !hasDropoffPersonName || !hasDropoffPersonPhone) {
+      requiredFieldsError.push('Delivery location (country, city, contact name, contact phone)');
     }
 
     // If validation fails, throw error for form to catch and display

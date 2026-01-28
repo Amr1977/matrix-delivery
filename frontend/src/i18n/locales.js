@@ -55,7 +55,7 @@ const translations = {
       "area": "Area",
       "street": "Street",
       "building": "Building",
-      "floor": "Floor",
+      "floor": "Floor #",
       "apartment": "Apartment",
       "contactName": "Contact Name",
       "selectCountry": "Select Country",

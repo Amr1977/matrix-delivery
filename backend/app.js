@@ -202,18 +202,32 @@ app.get('/api/orders/:id', verifyToken, async (req, res) => {
     }
 
     res.json({
-      id: order.id, orderNumber: order.order_number, title: order.title, description: order.description,
-      pickupAddress: order.pickup_address, deliveryAddress: order.delivery_address,
+      id: order.id, 
+      orderNumber: order.order_number, 
+      title: order.title, 
+      description: order.description,
+      pickupAddress: order.pickup_address, 
+      deliveryAddress: order.delivery_address,
       from: { lat: parseFloat(order.from_lat), lng: parseFloat(order.from_lng), name: order.from_name },
       to: { lat: parseFloat(order.to_lat), lng: parseFloat(order.to_lng), name: order.to_name },
-      packageDescription: order.package_description, packageWeight: order.package_weight ? parseFloat(order.package_weight) : null,
+      packageDescription: order.package_description, 
+      packageWeight: order.package_weight ? parseFloat(order.package_weight) : null,
       estimatedValue: order.estimated_value ? parseFloat(order.estimated_value) : null,
-      specialInstructions: order.special_instructions, price: parseFloat(order.price), status: order.status,
-      bids: order.bids, customerId: order.customer_id, customerName: order.customer_name,
-      assignedDriver: order.assigned_driver_user_id ? { userId: order.assigned_driver_user_id, driverName: order.assigned_driver_name, bidPrice: parseFloat(order.assigned_driver_bid_price) } : null,
+      specialInstructions: order.special_instructions, price: parseFloat(order.price), 
+      status: order.status,
+      bids: order.bids, 
+      customerId: order.customer_id, 
+      customerName: order.customer_name,
+      assignedDriver: order.assigned_driver_user_id ? { userId: order.assigned_driver_user_id, 
+      driverName: order.assigned_driver_name, 
+      bidPrice: parseFloat(order.assigned_driver_bid_price) } : null,
       estimatedDeliveryDate: order.estimated_delivery_date,
-      currentLocation: order.current_location_lat ? { lat: parseFloat(order.current_location_lat), lng: parseFloat(order.current_location_lng) } : null,
-      createdAt: order.created_at, acceptedAt: order.accepted_at, pickedUpAt: order.picked_up_at, deliveredAt: order.delivered_at
+      currentLocation: order.current_location_lat ? 
+      { lat: parseFloat(order.current_location_lat), lng: parseFloat(order.current_location_lng) } : null,
+      createdAt: order.created_at, 
+      acceptedAt: order.accepted_at, 
+      pickedUpAt: order.picked_up_at, 
+      deliveredAt: order.delivered_at
     });
   } catch (error) {
     logger.error('Get order error:', error);

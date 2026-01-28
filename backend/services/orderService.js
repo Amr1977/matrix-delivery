@@ -772,14 +772,38 @@ END as acceptedBid
       || null;
 
     const queryText = `INSERT INTO orders(
-  id, customer_id, title, description, pickup_address, delivery_address,
-  from_lat, from_lng, to_lat, to_lng, from_coordinates, to_coordinates,
-  pickup_coordinates, delivery_coordinates, package_description, package_weight,
-  estimated_value, special_instructions, price, status, order_number,
-  pickup_contact_name, pickup_contact_phone, dropoff_contact_name, dropoff_contact_phone,
-  created_at, customer_name, estimated_delivery_date,
-  require_upfront_payment, upfront_payment,
-  route_polyline, estimated_distance_km, estimated_duration_minutes
+  id,
+  customer_id, 
+  title, 
+  description, 
+  pickup_address, 
+  delivery_address,
+  from_lat, 
+  from_lng, 
+  to_lat, 
+  to_lng, 
+  from_coordinates, 
+  to_coordinates,
+  pickup_coordinates, 
+  delivery_coordinates, 
+  package_description, 
+  package_weight,
+  estimated_value, 
+  special_instructions, 
+  price, status, 
+  order_number,
+  pickup_contact_name, 
+  pickup_contact_phone, 
+  dropoff_contact_name, 
+  dropoff_contact_phone,
+  created_at, 
+  customer_name, 
+  estimated_delivery_date,
+  require_upfront_payment, 
+  upfront_payment,
+  route_polyline, 
+  estimated_distance_km, 
+  estimated_duration_minutes
 ) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, NOW(), $26, $27, $28, $29, $30, $31, $32)
 RETURNING * `;
 
