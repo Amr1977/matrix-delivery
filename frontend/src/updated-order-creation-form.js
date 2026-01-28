@@ -5,12 +5,13 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import 'leaflet/dist/leaflet.css';
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Popup, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import SavedAddressSelector from './components/SavedAddressSelector';
 import api from './api';
 import { MapsApi } from './services/api/maps';
 import { MessageModal } from './MessageModal';
+import { DraggableMarker } from './DraggableMarker';
 
 // Fix Leaflet default icon issue
 const GLOBAL_API_URL = process.env.REACT_APP_API_URL;
@@ -1206,51 +1207,6 @@ const MapLocationPicker = ({ location, onChange, onAddressFill, userLocation, ma
         </div>
       )}
     </div>
-  );
-};
-
-// ============ ROUTE PREVIEW MAP COMPONENT ============
-
-
-// ============ DRAGGABLE MARKER COMPONENT ============
-const DraggableMarker = ({ position, icon, onDragEnd, children, isDragging, setIsDragging }) => {
-  const [markerPosition, setMarkerPosition] = useState(position);
-
-  useEffect(() => {
-    setMarkerPosition(position);
-  }, [position]);
-
-  const eventHandlers = {
-    dragstart: () => {
-      if (setIsDragging) {
-        setIsDragging(true);
-      }
-    },
-    dragend: (e) => {
-      const newPos = e.target.getLatLng();
-      const coords = { lat: newPos.lat, lng: newPos.lng };
-      setMarkerPosition(newPos);
-
-      // Update the location immediately when drag ends
-      if (onDragEnd) {
-        onDragEnd(coords);
-      }
-
-      if (setIsDragging) {
-        setIsDragging(false);
-      }
-    }
-  };
-
-  return (
-    <Marker
-      position={markerPosition}
-      icon={icon}
-      draggable={true}
-      eventHandlers={eventHandlers}
-    >
-      {children}
-    </Marker>
   );
 };
 
