@@ -524,7 +524,7 @@ const translations = {
       "reviews": "Reviews",
       "login": "Login",
       "evolutionBadge": "Evolution Badge: Beta Phase",
-      "heroTitle": "Efficiency Unlocked. Justice Delivered. Transparency Guaranteed.",
+      "heroTitle": "P2P Delivery Marketplace",
       "heroSubtitle": "The world's first decentralized logistics network powered by the people, for the people. Experience the freedom of peer-to-peer delivery.",
       "voiceOfPeople": "Voice of the People",
       "watchManifesto": "Watch Manifesto",
