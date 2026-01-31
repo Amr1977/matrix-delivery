@@ -41,7 +41,7 @@ const MatrixLanding: React.FC = () => {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const API_URL = process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api';
+                const API_URL = process.env.REACT_APP_API_URL;
                 const response = await fetch(`${API_URL}/stats/footer`);
                 if (response.ok) {
                     const data = await response.json();
@@ -181,6 +181,60 @@ const MatrixLanding: React.FC = () => {
                 </div>
             </section>
 
+            {/* Vision Section */}
+            <section id="vision" className="py-20 bg-[#0F1419] border-y border-[#1E293B]">
+                <div className="max-w-7xl mx-auto px-6">
+                    <div className="text-center mb-16">
+                        <h2 className="text-3xl font-bold mb-4">{t('landing.visionTitle')}</h2>
+                        <p className="text-[#A0AEC0]">{t('landing.visionSubtitle')}</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                        <VisionCard
+                            icon={<Globe className="w-8 h-8 text-[#00FF41]" />}
+                            title={t('landing.visionFreedom')}
+                            desc={t('landing.visionFreedomDesc')}
+                            color="#00FF41"
+                        />
+                        <VisionCard
+                            icon={<Shield className="w-8 h-8 text-[#00F0FF]" />}
+                            title={t('landing.visionJustice')}
+                            desc={t('landing.visionJusticeDesc')}
+                            color="#00F0FF"
+                        />
+                        <VisionCard
+                            icon={<Zap className="w-8 h-8 text-[#FFB800]" />}
+                            title={t('landing.visionEfficiency')}
+                            desc={t('landing.visionEfficiencyDesc')}
+                            color="#FFB800"
+                        />
+                        <VisionCard
+                            icon={<Lock className="w-8 h-8 text-[#B026FF]" />}
+                            title={t('landing.visionTransparency')}
+                            desc={t('landing.visionTransparencyDesc')}
+                            color="#B026FF"
+                        />
+                    </div>
+                </div>
+            </section>
+
+            {/* Global Roadmap Section */}
+            <section className="py-24 relative">
+                <div className="max-w-7xl mx-auto px-6 text-center">
+                    <h2 className="text-3xl font-bold mb-12">{t('landing.roadmapTitle')}</h2>
+                    <div className="relative">
+                        {/* Simple Roadmap visualization */}
+                        <div className="absolute top-1/2 left-0 w-full h-1 bg-[#2A3142] -translate-y-1/2 hidden md:block"></div>
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 relative z-10">
+                            <RoadmapStep phase={t('landing.phase1')} title={t('landing.heroTitle').split('.')[0] + '.'} status={t('landing.statusCompleted')} date="Q1 2025" />
+                            <RoadmapStep phase={t('landing.phase2')} title={t('landing.vision')} status={t('landing.statusActive')} date="Q2 2025" active />
+                            <RoadmapStep phase={t('landing.phase3')} title={t('landing.visionFreedom')} status={t('landing.statusUpcoming')} date="Q4 2025" />
+                            <RoadmapStep phase={t('landing.phase4')} title="The Source" status={t('landing.statusPlanned')} date="2026" />
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             {/* Live Matrix Stats Section */}
             <section id="stats" className="py-20 bg-[#0F1419] border-y border-[#1E293B]">
                 <div className="max-w-7xl mx-auto px-6">
@@ -228,59 +282,7 @@ const MatrixLanding: React.FC = () => {
                 </div>
             </section>
 
-            {/* Vision Section */}
-            <section id="vision" className="py-24 relative">
-                <div className="max-w-7xl mx-auto px-6">
-                    <div className="text-center mb-16">
-                        <h2 className="text-3xl font-bold mb-4">{t('landing.visionTitle')}</h2>
-                        <p className="text-[#A0AEC0]">{t('landing.visionSubtitle')}</p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                        <VisionCard
-                            icon={<Globe className="w-8 h-8 text-[#00FF41]" />}
-                            title={t('landing.visionFreedom')}
-                            desc={t('landing.visionFreedomDesc')}
-                            color="#00FF41"
-                        />
-                        <VisionCard
-                            icon={<Shield className="w-8 h-8 text-[#00F0FF]" />}
-                            title={t('landing.visionJustice')}
-                            desc={t('landing.visionJusticeDesc')}
-                            color="#00F0FF"
-                        />
-                        <VisionCard
-                            icon={<Zap className="w-8 h-8 text-[#FFB800]" />}
-                            title={t('landing.visionEfficiency')}
-                            desc={t('landing.visionEfficiencyDesc')}
-                            color="#FFB800"
-                        />
-                        <VisionCard
-                            icon={<Lock className="w-8 h-8 text-[#B026FF]" />}
-                            title={t('landing.visionTransparency')}
-                            desc={t('landing.visionTransparencyDesc')}
-                            color="#B026FF"
-                        />
-                    </div>
-                </div>
-            </section>
-
-            {/* Global Roadmap Section */}
-            <section className="py-20 bg-[#0F1419]">
-                <div className="max-w-7xl mx-auto px-6 text-center">
-                    <h2 className="text-3xl font-bold mb-12">{t('landing.roadmapTitle')}</h2>
-                    <div className="relative">
-                        {/* Simple Roadmap visualization */}
-                        <div className="absolute top-1/2 left-0 w-full h-1 bg-[#2A3142] -translate-y-1/2 hidden md:block"></div>
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 relative z-10">
-                            <RoadmapStep phase={t('landing.phase1')} title={t('landing.heroTitle').split('.')[0] + '.'} status={t('landing.statusCompleted')} date="Q1 2025" />
-                            <RoadmapStep phase={t('landing.phase2')} title={t('landing.vision')} status={t('landing.statusActive')} date="Q2 2025" active />
-                            <RoadmapStep phase={t('landing.phase3')} title={t('landing.visionFreedom')} status={t('landing.statusUpcoming')} date="Q4 2025" />
-                            <RoadmapStep phase={t('landing.phase4')} title="The Source" status={t('landing.statusPlanned')} date="2026" />
-                        </div>
-                    </div>
-                </div>
-            </section>
+            
 
             {/* Footer */}
             <footer className="py-12 border-t border-[#2A3142] bg-[#0A0E14] text-center">
