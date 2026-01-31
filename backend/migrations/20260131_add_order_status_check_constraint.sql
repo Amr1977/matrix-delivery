@@ -1,0 +1,2 @@
+alter table orders drop constraint orders_status_check;
+alter table orders add constraint orders_status_check CHECK (((status)::text = ANY ((ARRAY['pending_bids'::character varying, 'accepted'::character varying, 'picked_up'::character varying, 'in_transit'::character varying, 'delivered_pending'::character varying, 'delivered'::character varying, 'cancelled'::character varying])::text[])));

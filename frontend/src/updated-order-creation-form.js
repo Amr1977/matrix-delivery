@@ -12,7 +12,7 @@ import api from './api';
 import { MapsApi } from './services/api/maps';
 import { MessageModal } from './MessageModal';
 import { DraggableMarker } from './DraggableMarker';
-import { useLocationData } from './useLocationData';
+// import { useLocationData } from './useLocationData';
 
 // Fix Leaflet default icon issue
 const GLOBAL_API_URL = process.env.REACT_APP_API_URL;
@@ -788,7 +788,7 @@ const OrderCreationForm = ({ onSubmit, countries, t, API_URL = GLOBAL_API_URL })
               if (pickupLocation?.coordinates && dropoffLocation?.coordinates) {
                 e.target.style.boxShadow = '0 0 30px rgba(0, 255, 0, 0.8)';
                 e.target.style.transform = 'translateY(-2px)';
-              }
+              } 
             }}
             onMouseOut={(e) => {
               if (pickupLocation?.coordinates && dropoffLocation?.coordinates) {
@@ -827,32 +827,31 @@ const MapLocationPicker = ({ location, onChange, onAddressFill, userLocation, ma
     setLoading(true);
     setError('');
 
+    let loc = {
+        coordinates: { lat: coords.lat, lng: coords.lng },
+      };
+    onChange(loc);
     try {
       const data = await api.get(`/locations/reverse?lat=${coords.lat}&lng=${coords.lng}`);
-      const loc = {
-        coordinates: { lat: data.lat, lng: data.lng },
+      loc = {
+        coordinates: { lat: coords.lat, lng: coords.lng },
         displayName: data.displayName,
         address: {
           country: data.address?.country || '',
           city: data.address?.city || '',
           area: data.address?.area || '',
           street: data.address?.street || '',
-          building: data.address?.buildingNumber || '',
-          floor: '',
-          apartment: data.address?.apartmentNumber || ''
+          building: data.address?.buildingNumber || ''
         }
       };
-      onChange(loc);
+      
       if (onAddressFill && data && data.address) {
         onAddressFill({
           country: data.address.country || '',
           city: data.address.city || '',
           area: data.address.area || '',
           street: data.address.street || '',
-          building: data.address.buildingNumber || '',
-          floor: data.address.floor || '',
-          apartment: data.address.apartmentNumber || '',
-          personName: data.address.personName || ''
+          building: data.address.buildingNumber || ''
         });
       }
     } catch (err) {
@@ -1256,197 +1255,197 @@ const LocationEntryCombined = ({
   t,
   validationErrors = {}
 }) => {
-  const locationData = useLocationData(API_URL);
+  // const locationData = useLocationData(API_URL);
 
 
   // State for cascaded dropdowns
-  const [availableCities, setAvailableCities] = useState([]);
-  const [availableAreas, setAvailableAreas] = useState([]);
-  const [availableStreets, setAvailableStreets] = useState([]);
-  const [loadingCities, setLoadingCities] = useState(false);
-  const [loadingAreas, setLoadingAreas] = useState(false);
-  const [loadingStreets, setLoadingStreets] = useState(false);
-  const citySearchTimer = useRef(null);
-  const areaSearchTimer = useRef(null);
-  const streetSearchTimer = useRef(null);
+  // const [availableCities, setAvailableCities] = useState([]);
+  // const [availableAreas, setAvailableAreas] = useState([]);
+  // const [availableStreets, setAvailableStreets] = useState([]);
+  // const [loadingCities, setLoadingCities] = useState(false);
+  // const [loadingAreas, setLoadingAreas] = useState(false);
+  // const [loadingStreets, setLoadingStreets] = useState(false);
+  // const citySearchTimer = useRef(null);
+  // const areaSearchTimer = useRef(null);
+  // const streetSearchTimer = useRef(null);
 
-  useEffect(() => {
-    return () => {
-      clearTimeout(citySearchTimer.current);
-      clearTimeout(areaSearchTimer.current);
-      clearTimeout(streetSearchTimer.current);
-    };
-  }, []);
+  // useEffect(() => {
+  //   return () => {
+  //     clearTimeout(citySearchTimer.current);
+  //     clearTimeout(areaSearchTimer.current);
+  //     clearTimeout(streetSearchTimer.current);
+  //   };
+  // }, []);
 
-  const triggerCitySearch = (value = '', overrideCountry) => {
-    const selectedCountry = overrideCountry || addressData.country;
-    if (!selectedCountry) {
-      setAvailableCities([]);
-      return;
-    }
-    const normalizedQuery = (value || '').trim();
-    const effectiveQuery = normalizedQuery.length >= 2 ? normalizedQuery : '';
-    clearTimeout(citySearchTimer.current);
-    setLoadingCities(true);
-    const timer = setTimeout(async () => {
-      try {
-        const result = await locationData.searchCities(selectedCountry, effectiveQuery);
-        if (citySearchTimer.current === timer) {
-          setAvailableCities(result);
-        }
-      } catch (error) {
-        console.warn('City search error:', error);
-      } finally {
-        if (citySearchTimer.current === timer) {
-          setLoadingCities(false);
-        }
-      }
-    }, 250);
-    citySearchTimer.current = timer;
-  };
+  // const triggerCitySearch = (value = '', overrideCountry) => {
+  //   const selectedCountry = overrideCountry || addressData.country;
+  //   if (!selectedCountry) {
+  //     setAvailableCities([]);
+  //     return;
+  //   }
+  //   const normalizedQuery = (value || '').trim();
+  //   const effectiveQuery = normalizedQuery.length >= 2 ? normalizedQuery : '';
+  //   clearTimeout(citySearchTimer.current);
+  //   setLoadingCities(true);
+  //   const timer = setTimeout(async () => {
+  //     try {
+  //       const result = await locationData.searchCities(selectedCountry, effectiveQuery);
+  //       if (citySearchTimer.current === timer) {
+  //         setAvailableCities(result);
+  //       }
+  //     } catch (error) {
+  //       console.warn('City search error:', error);
+  //     } finally {
+  //       if (citySearchTimer.current === timer) {
+  //         setLoadingCities(false);
+  //       }
+  //     }
+  //   }, 250);
+  //   citySearchTimer.current = timer;
+  // };
 
-  const triggerAreaSearch = (value = '', overrideCity) => {
-    const selectedCountry = addressData.country;
-    const selectedCity = overrideCity || addressData.city;
-    if (!selectedCountry || !selectedCity) {
-      setAvailableAreas([]);
-      return;
-    }
-    const normalizedQuery = (value || '').trim();
-    const effectiveQuery = normalizedQuery.length >= 2 ? normalizedQuery : '';
-    clearTimeout(areaSearchTimer.current);
-    setLoadingAreas(true);
-    const timer = setTimeout(async () => {
-      try {
-        const result = await locationData.searchAreas(selectedCountry, selectedCity, effectiveQuery);
-        if (areaSearchTimer.current === timer) {
-          setAvailableAreas(result);
-        }
-      } catch (error) {
-        console.warn('Area search error:', error);
-      } finally {
-        if (areaSearchTimer.current === timer) {
-          setLoadingAreas(false);
-        }
-      }
-    }, 250);
-    areaSearchTimer.current = timer;
-  };
+  // const triggerAreaSearch = (value = '', overrideCity) => {
+  //   const selectedCountry = addressData.country;
+  //   const selectedCity = overrideCity || addressData.city;
+  //   if (!selectedCountry || !selectedCity) {
+  //     setAvailableAreas([]);
+  //     return;
+  //   }
+  //   const normalizedQuery = (value || '').trim();
+  //   const effectiveQuery = normalizedQuery.length >= 2 ? normalizedQuery : '';
+  //   clearTimeout(areaSearchTimer.current);
+  //   setLoadingAreas(true);
+  //   const timer = setTimeout(async () => {
+  //     try {
+  //       const result = await locationData.searchAreas(selectedCountry, selectedCity, effectiveQuery);
+  //       if (areaSearchTimer.current === timer) {
+  //         setAvailableAreas(result);
+  //       }
+  //     } catch (error) {
+  //       console.warn('Area search error:', error);
+  //     } finally {
+  //       if (areaSearchTimer.current === timer) {
+  //         setLoadingAreas(false);
+  //       }
+  //     }
+  //   }, 250);
+  //   areaSearchTimer.current = timer;
+  // };
 
-  const triggerStreetSearch = (value = '', overrideArea) => {
-    const selectedCountry = addressData.country;
-    const selectedCity = addressData.city;
-    const selectedArea = overrideArea || addressData.area;
-    if (!selectedCountry || !selectedCity || !selectedArea) {
-      setAvailableStreets([]);
-      return;
-    }
-    const normalizedQuery = (value || '').trim();
-    const effectiveQuery = normalizedQuery.length >= 2 ? normalizedQuery : '';
-    clearTimeout(streetSearchTimer.current);
-    setLoadingStreets(true);
-    const timer = setTimeout(async () => {
-      try {
-        const result = await locationData.searchStreets(selectedCountry, selectedCity, selectedArea, effectiveQuery);
-        if (streetSearchTimer.current === timer) {
-          setAvailableStreets(result);
-        }
-      } catch (error) {
-        console.warn('Street search error:', error);
-      } finally {
-        if (streetSearchTimer.current === timer) {
-          setLoadingStreets(false);
-        }
-      }
-    }, 250);
-    streetSearchTimer.current = timer;
-  };
+  // const triggerStreetSearch = (value = '', overrideArea) => {
+  //   const selectedCountry = addressData.country;
+  //   const selectedCity = addressData.city;
+  //   const selectedArea = overrideArea || addressData.area;
+  //   if (!selectedCountry || !selectedCity || !selectedArea) {
+  //     setAvailableStreets([]);
+  //     return;
+  //   }
+  //   const normalizedQuery = (value || '').trim();
+  //   const effectiveQuery = normalizedQuery.length >= 2 ? normalizedQuery : '';
+  //   clearTimeout(streetSearchTimer.current);
+  //   setLoadingStreets(true);
+  //   const timer = setTimeout(async () => {
+  //     try {
+  //       const result = await locationData.searchStreets(selectedCountry, selectedCity, selectedArea, effectiveQuery);
+  //       if (streetSearchTimer.current === timer) {
+  //         setAvailableStreets(result);
+  //       }
+  //     } catch (error) {
+  //       console.warn('Street search error:', error);
+  //     } finally {
+  //       if (streetSearchTimer.current === timer) {
+  //         setLoadingStreets(false);
+  //       }
+  //     }
+  //   }, 250);
+  //   streetSearchTimer.current = timer;
+  // };
 
-  useEffect(() => {
-    if (!addressData.country) {
-      setAvailableCities([]);
-      return;
-    }
-    triggerCitySearch('', addressData.country);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [addressData.country]);
+  // useEffect(() => {
+  //   if (!addressData.country) {
+  //     setAvailableCities([]);
+  //     return;
+  //   }
+  //   triggerCitySearch('', addressData.country);
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [addressData.country]);
 
-  useEffect(() => {
-    if (!addressData.country || !addressData.city) {
-      setAvailableAreas([]);
-      return;
-    }
-    triggerAreaSearch('', addressData.city);
-    // Geocode when city changes (with enough info)
-    setTimeout(() => locationData.geocodeAddress(addressData, onMapLocationChange), 100);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [addressData.city, addressData.country]);
+  // useEffect(() => {
+  //   if (!addressData.country || !addressData.city) {
+  //     setAvailableAreas([]);
+  //     return;
+  //   }
+  //   triggerAreaSearch('', addressData.city);
+  //   // Geocode when city changes (with enough info)
+  //   setTimeout(() => locationData.geocodeAddress(addressData, onMapLocationChange), 100);
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [addressData.city, addressData.country]);
 
-  useEffect(() => {
-    if (!addressData.country || !addressData.city || !addressData.area) {
-      setAvailableStreets([]);
-      return;
-    }
-    triggerStreetSearch('', addressData.area);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [addressData.area, addressData.city, addressData.country]);
+  // useEffect(() => {
+  //   if (!addressData.country || !addressData.city || !addressData.area) {
+  //     setAvailableStreets([]);
+  //     return;
+  //   }
+  //   triggerStreetSearch('', addressData.area);
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [addressData.area, addressData.city, addressData.country]);
 
   // Handle country change - load cities
-  const handleCountryChange = async (country) => {
-    const newAddress = { ...addressData, country, city: '', area: '', street: '' };
-    onAddressChange(newAddress);
+  // const handleCountryChange = async (country) => {
+  //   const newAddress = { ...addressData, country, city: '', area: '', street: '' };
+  //   onAddressChange(newAddress);
 
-    if (country) {
-      setLoadingCities(true);
-      const cities = await locationData.searchCities(country);
-      setAvailableCities(cities);
-      setLoadingCities(false);
-      setAvailableAreas([]);
-      setAvailableStreets([]);
-    } else {
-      setAvailableCities([]);
-      setAvailableAreas([]);
-      setAvailableStreets([]);
-    }
-  };
+  //   if (country) {
+  //     setLoadingCities(true);
+  //     const cities = await locationData.searchCities(country);
+  //     setAvailableCities(cities);
+  //     setLoadingCities(false);
+  //     setAvailableAreas([]);
+  //     setAvailableStreets([]);
+  //   } else {
+  //     setAvailableCities([]);
+  //     setAvailableAreas([]);
+  //     setAvailableStreets([]);
+  //   }
+  // };
 
-  // Handle city change - load areas
-  const handleCityChange = async (city) => {
-    const newAddress = { ...addressData, city, area: '', street: '' };
-    onAddressChange(newAddress);
+  // // Handle city change - load areas
+  // const handleCityChange = async (city) => {
+  //   const newAddress = { ...addressData, city, area: '', street: '' };
+  //   onAddressChange(newAddress);
 
-    if (addressData.country && city) {
-      setLoadingAreas(true);
-      const areas = await locationData.searchAreas(addressData.country, city);
-      setAvailableAreas(areas);
-      setLoadingAreas(false);
-      setAvailableStreets([]);
-    } else {
-      setAvailableAreas([]);
-      setAvailableStreets([]);
-    }
+  //   if (addressData.country && city) {
+  //     setLoadingAreas(true);
+  //     const areas = await locationData.searchAreas(addressData.country, city);
+  //     setAvailableAreas(areas);
+  //     setLoadingAreas(false);
+  //     setAvailableStreets([]);
+  //   } else {
+  //     setAvailableAreas([]);
+  //     setAvailableStreets([]);
+  //   }
 
-    // Geocode when city changes (with enough info)
-    setTimeout(() => locationData.geocodeAddress(newAddress, onMapLocationChange), 100);
-  };
+  //   // Geocode when city changes (with enough info)
+  //   setTimeout(() => locationData.geocodeAddress(newAddress, onMapLocationChange), 100);
+  // };
 
-  // Handle area change - load streets
-  const handleAreaChange = async (area) => {
-    const newAddress = { ...addressData, area, street: '' };
-    onAddressChange(newAddress);
+  // // Handle area change - load streets
+  // const handleAreaChange = async (area) => {
+  //   const newAddress = { ...addressData, area, street: '' };
+  //   onAddressChange(newAddress);
 
-    if (addressData.country && addressData.city && area) {
-      setLoadingStreets(true);
-      const streets = await locationData.searchStreets(addressData.country, addressData.city, area);
-      setAvailableStreets(streets);
-      setLoadingStreets(false);
-    } else {
-      setAvailableStreets([]);
-    }
+  //   if (addressData.country && addressData.city && area) {
+  //     setLoadingStreets(true);
+  //     const streets = await locationData.searchStreets(addressData.country, addressData.city, area);
+  //     setAvailableStreets(streets);
+  //     setLoadingStreets(false);
+  //   } else {
+  //     setAvailableStreets([]);
+  //   }
 
-    // Geocode when area changes
-    setTimeout(() => locationData.geocodeAddress(newAddress, onMapLocationChange), 100);
-  };
+  //   // Geocode when area changes
+  //   setTimeout(() => locationData.geocodeAddress(newAddress, onMapLocationChange), 100);
+  // };
 
   // Handle other field changes - geocode for street, building, floor, apartment
   const handleFieldChange = (field, value) => {
@@ -1455,9 +1454,9 @@ const LocationEntryCombined = ({
 
     //TODO currently we are not affecting map upon address change, 
     //only map can change address fields and not the inverse, so check if this should be deleted with other fields cascading
-    if (['street', 'building', 'floor', 'apartment'].includes(field)) {
-      setTimeout(() => locationData.geocodeAddress(newAddress, onMapLocationChange), 300);
-    }
+    // if (['street', 'building', 'floor', 'apartment'].includes(field)) {
+    //   setTimeout(() => locationData.geocodeAddress(newAddress, onMapLocationChange), 300);
+    // }
   };
 
   // Handle selecting a saved address

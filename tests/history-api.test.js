@@ -54,10 +54,10 @@ describe('Customer Order History API Tests', () => {
             delivery_address TEXT NOT NULL,
             from_lat DECIMAL(10,8) NOT NULL,
             from_lng DECIMAL(11,8) NOT NULL,
-            from_name VARCHAR(255) NOT NULL,
+            pickup_contact_name VARCHAR(255) NOT NULL,
             to_lat DECIMAL(10,8) NOT NULL,
             to_lng DECIMAL(11,8) NOT NULL,
-            to_name VARCHAR(255) NOT NULL,
+            dropoff_contact_name VARCHAR(255) NOT NULL,
             price DECIMAL(10,2) NOT NULL,
             status VARCHAR(50) NOT NULL,
             customer_id VARCHAR(255) NOT NULL REFERENCES users(id),
@@ -134,8 +134,8 @@ describe('Customer Order History API Tests', () => {
         INSERT INTO orders (
           id, order_number, title, description, 
           pickup_address, delivery_address,
-          from_lat, from_lng, from_name, 
-          to_lat, to_lng, to_name,
+          from_lat, from_lng, pickup_contact_name, 
+          to_lat, to_lng, dropoff_contact_name,
           price, status, customer_id, customer_name,
           created_at, delivered_at, cancelled_at
         ) VALUES (

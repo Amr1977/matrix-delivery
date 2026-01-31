@@ -63,7 +63,7 @@ describe('Messaging API Tests', () => {
         // Create test order
         const orderResult = await pool.query(
             `INSERT INTO orders (id, order_number, title, description, pickup_address, delivery_address, 
-       from_lat, from_lng, from_name, to_lat, to_lng, to_name, price, status, customer_id, customer_name, assigned_driver_user_id, assigned_driver_name)
+       from_lat, from_lng, pickup_contact_name, to_lat, to_lng, dropoff_contact_name, price, status, customer_id, customer_name, assigned_driver_user_id, assigned_driver_name)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
        RETURNING *`,
             [

@@ -555,12 +555,12 @@ module.exports = (app, pool, jwt) => {
         from: {
           lat: parseFloat(order.from_lat),
           lng: parseFloat(order.from_lng),
-          name: order.from_name
+          name: order.pickup_contact_name
         },
         to: {
           lat: parseFloat(order.to_lat),
           lng: parseFloat(order.to_lng),
-          name: order.to_name
+          name: order.dropoff_contact_name
         },
         pickupCoordinates: order.pickup_coordinates,
         deliveryCoordinates: order.delivery_coordinates,
@@ -758,12 +758,12 @@ module.exports = (app, pool, jwt) => {
         from: {
           lat: parseFloat(order.from_lat),
           lng: parseFloat(order.from_lng),
-          name: order.from_name
+          name: order.pickup_contact_name
         },
         to: {
           lat: parseFloat(order.to_lat),
           lng: parseFloat(order.to_lng),
-          name: order.to_name
+          name: order.dropoff_contact_name
         },
         pickupCoordinates: order.pickup_coordinates,
         deliveryCoordinates: order.delivery_coordinates,

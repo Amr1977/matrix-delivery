@@ -860,12 +860,12 @@ router.get('/orders/:id', verifyAdmin, async (req, res) => {
         from: {
           lat: parseFloat(order.from_lat),
           lng: parseFloat(order.from_lng),
-          name: order.from_name
+          name: order.pickup_contact_name
         },
         to: {
           lat: parseFloat(order.to_lat),
           lng: parseFloat(order.to_lng),
-          name: order.to_name
+          name: order.dropoff_contact_name
         },
         packageDescription: order.package_description,
         packageWeight: order.package_weight ? parseFloat(order.package_weight) : null,
