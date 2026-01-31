@@ -5,7 +5,6 @@ import { useI18n } from './i18n/i18nContext';
 import LanguageSwitcher from './LanguageSwitcher';
 import AdminPanel from './AdminPanel';
 import ErrorBoundary from './ErrorBoundary';
-import OrderCreationForm from './updated-order-creation-form';
 import LiveTrackingMapView from './components/maps/LiveTrackingMap';
 import OrdersMap from './components/maps/OrdersMap';
 import AsyncOrderMap from './components/AsyncOrderMap';

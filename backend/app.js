@@ -208,8 +208,8 @@ app.get('/api/orders/:id', verifyToken, async (req, res) => {
       description: order.description,
       pickupAddress: order.pickup_address, 
       deliveryAddress: order.delivery_address,
-      from: { lat: parseFloat(order.from_lat), lng: parseFloat(order.from_lng), name: order.from_name },
-      to: { lat: parseFloat(order.to_lat), lng: parseFloat(order.to_lng), name: order.to_name },
+      from: { lat: parseFloat(order.from_lat), lng: parseFloat(order.from_lng), name: order.pickup_contact_name },
+      to: { lat: parseFloat(order.to_lat), lng: parseFloat(order.to_lng), name: order.dropoff_contact_name },
       packageDescription: order.package_description, 
       packageWeight: order.package_weight ? parseFloat(order.package_weight) : null,
       estimatedValue: order.estimated_value ? parseFloat(order.estimated_value) : null,
@@ -2352,12 +2352,12 @@ app.get('/api/admin/orders/:id', verifyAdmin, async (req, res) => {
         from: {
           lat: parseFloat(order.from_lat),
           lng: parseFloat(order.from_lng),
-          name: order.from_name
+          name: order.pickup_contact_name
         },
         to: {
           lat: parseFloat(order.to_lat),
           lng: parseFloat(order.to_lng),
-          name: order.to_name
+          name: order.dropoff_contact_name
         },
         packageDescription: order.package_description,
         packageWeight: order.package_weight ? parseFloat(order.package_weight) : null,

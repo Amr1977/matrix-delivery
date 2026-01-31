@@ -88,8 +88,8 @@ All test results are saved to `test-results/` directory:
 - `to_lat`, `to_lng` ✅
 
 ### Still Needed
-- `from_name` ❌
-- `to_name` ❌
+- `pickup_contact_name` ❌
+- `dropoff_contact_name` ❌
 - Possibly more...
 
 ---
