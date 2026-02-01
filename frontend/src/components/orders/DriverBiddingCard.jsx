@@ -19,6 +19,7 @@ const DriverBiddingCard = ({
     order,
     currentUser,
     onBid,
+    //TODO USE DRIVER ID TO GET LIVE LOCATION INSTEAD
     driverLocation,
     bidInput,
     setBidInput,
@@ -43,6 +44,8 @@ const DriverBiddingCard = ({
     // Estimates logic
     const [calculatedDistance, setCalculatedDistance] = useState(0);
     const [totalDistanceKm, setTotalDistanceKm] = useState(0);
+    const [pickupDistanceKm, setPickupDistanceKm] = useState(0);
+    const [dropoffDistanceKm, setDropoffDistanceKm] = useState(0);
 
     // Haversine Distance Calc
     const haversineKm = (a, b) => {
@@ -93,22 +96,22 @@ const DriverBiddingCard = ({
             const pickup = (!isNaN(pickupLat) && !isNaN(pickupLng)) ? { lat: pickupLat, lng: pickupLng } : null;
             const dropoff = (!isNaN(dropoffLat) && !isNaN(dropoffLng)) ? { lat: dropoffLat, lng: dropoffLng } : null;
 
-            if (!pickup || !dropoff) {
-                // Fallback to Haversine if coordinates are missing
-                let pickupToDropoffKm = 0;
-                if (pickup && dropoff) {
-                    pickupToDropoffKm = haversineKm(pickup, dropoff);
-                }
-                let driverToPickupKm = 0;
-                if (driverLocation && Number.isFinite(driverLocation.lat || driverLocation.latitude) && Number.isFinite(driverLocation.lng || driverLocation.longitude) && pickup) {
-                    const driverLat = driverLocation.lat || driverLocation.latitude;
-                    const driverLng = driverLocation.lng || driverLocation.longitude;
-                    driverToPickupKm = haversineKm({ lat: driverLat, lng: driverLng }, pickup);
-                }
-                const totalKm = driverToPickupKm + pickupToDropoffKm;
-                setTotalDistanceKm(totalKm);
-                return;
-            }
+            // if (!pickup || !dropoff) {
+            //     // Fallback to Haversine if coordinates are missing
+            //     let pickupToDropoffKm = 0;
+            //     if (pickup && dropoff) {
+            //         pickupToDropoffKm = haversineKm(pickup, dropoff);
+            //     }
+            //     let driverToPickupKm = 0;
+            //     if (driverLocation && Number.isFinite(driverLocation.lat || driverLocation.latitude) && Number.isFinite(driverLocation.lng || driverLocation.longitude) && pickup) {
+            //         const driverLat = driverLocation.lat || driverLocation.latitude;
+            //         const driverLng = driverLocation.lng || driverLocation.longitude;
+            //         driverToPickupKm = haversineKm({ lat: driverLat, lng: driverLng }, pickup);
+            //     }
+            //     const totalKm = driverToPickupKm + pickupToDropoffKm;
+            //     setTotalDistanceKm(totalKm);
+            //     return;
+            // }
 
             try {
                 // Calculate driver to pickup distance using routing API
@@ -123,6 +126,7 @@ const DriverBiddingCard = ({
                     });
 
                     driverToPickupKm = driverToPickupResponse.distance_km || 0;
+                    setPickupDistanceKm(driverToPickupKm);
                 }
 
                 // Calculate pickup to dropoff distance using routing API
@@ -132,6 +136,7 @@ const DriverBiddingCard = ({
                 });
 
                 const pickupToDropoffKm = pickupToDropoffResponse.distance_km || 0;
+                setDropoffDistanceKm(pickupToDropoffKm);
                 const totalKm = driverToPickupKm + pickupToDropoffKm;
 
                 setTotalDistanceKm(totalKm);
@@ -148,7 +153,8 @@ const DriverBiddingCard = ({
                     const driverLng = driverLocation.lng || driverLocation.longitude;
                     driverToPickupKm = haversineKm({ lat: driverLat, lng: driverLng }, pickup);
                 }
-
+                setPickupDistanceKm(driverToPickupKm);
+                setDropoffDistanceKm(pickupToDropoffKm);
                 const totalKm = driverToPickupKm + pickupToDropoffKm;
                 setTotalDistanceKm(totalKm);
             }
@@ -297,7 +303,35 @@ const DriverBiddingCard = ({
                         </div>
                     </div>
 
-                    {/* Distance */}
+                    {/* Pickup Distance */}
+                    <div style={{
+                        textAlign: 'center',
+                        background: 'rgba(0,0,0,0.6)',
+                        padding: '0.4rem 0.8rem',
+                        borderRadius: '8px',
+                        border: '1px solid var(--matrix-border)',
+                        minWidth: '80px'
+                    }}>
+                        <div style={{ fontSize: '0.6rem', color: '#aaa', textTransform: 'uppercase', marginBottom: '2px' }}>Pickup</div>
+                        <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'white' }}>
+                            {(pickupDistanceKm).toFixed(1)} km
+                        </div>
+                    </div>
+                    {/* DropOff Distance */}
+                    <div style={{
+                        textAlign: 'center',
+                        background: 'rgba(0,0,0,0.6)',
+                        padding: '0.4rem 0.8rem',
+                        borderRadius: '8px',
+                        border: '1px solid var(--matrix-border)',
+                        minWidth: '80px'
+                    }}>
+                        <div style={{ fontSize: '0.6rem', color: '#aaa', textTransform: 'uppercase', marginBottom: '2px' }}>Dropoff</div>
+                        <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'white' }}>
+                            {(dropoffDistanceKm).toFixed(1)} km
+                        </div>
+                    </div>
+                    {/* Total Distance */}
                     <div style={{
                         textAlign: 'center',
                         background: 'rgba(0,0,0,0.6)',
