@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Package, Truck, Zap, Shield, Users, Play, Star, Map as MapIcon, Globe, Activity, Lock, TrendingUp, Menu, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import LanguageSwitcher from '../LanguageSwitcher';
 import { useI18n } from '../i18n/i18nContext';
 
 interface Stats {
@@ -28,7 +29,7 @@ interface RoadmapStepProps {
 
 const MatrixLanding: React.FC = () => {
     const navigate = useNavigate();
-    const { t } = useI18n();
+    const { t, locale, changeLocale } = useI18n();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [stats, setStats] = useState<Stats>({
         totalCouriers: 0,
@@ -82,7 +83,7 @@ const MatrixLanding: React.FC = () => {
                         </div>
                         <div>
                             <h1 className="text-xl font-bold tracking-wider">MATRIX</h1>
-                            <p className="text-[#00FF41] text-xs font-mono tracking-widest">DELIVERY</p>
+                            <p className="text-[#00FF41] text-xs font-mono tracking-widest">PLATFORM</p>
                         </div>
                     </div>
 
@@ -97,6 +98,9 @@ const MatrixLanding: React.FC = () => {
                         >
                             {t('landing.login')}
                         </button>
+                        <div style={{ position: 'fixed', top: 'calc(0.75rem + env(safe-area-inset-top))', right: 'calc(0.75rem + env(safe-area-inset-right))', zIndex: 2000 }}>
+                            <LanguageSwitcher locale={locale} changeLocale={changeLocale} />
+                        </div>
                     </div>
 
                     {/* Mobile Menu Button */}
