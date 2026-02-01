@@ -8,12 +8,12 @@
  */
 
 const { Pool } = require('pg');
-const dotenv = require('dotenv');
 const path = require('path');
 
 // Load environment variables from backend/.env
  if (!process.env.DATABASE_URL) {
-    dotenv.config({ path: path.join(__dirname, '../backend/.env') });
+  const dotenv = require('dotenv');
+  dotenv.config({ path: path.join(__dirname, '../backend/.env') });
  }
 
 console.log('DATABASE_URL loaded:', process.env.DATABASE_URL ? 'yes' : 'no');
