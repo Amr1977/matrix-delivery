@@ -48,8 +48,8 @@
     "deploy:backend": "pwsh scripts/deploy.ps1 -Target backend",
     "deploy:frontend": "pwsh scripts/deploy.ps1 -Target frontend",
     "deploy:skip-tests": "pwsh scripts/deploy.ps1 -SkipTests",
-    "deploy:backend:skip-tests": "pwsh scripts/deploy.ps1 -Target backend -SkipTests",
-    "prepare": "node -e \"process.env.CI || require('husky').install()\""
+    "deploy:backend:skip-tests": "pwsh scripts/deploy.ps1 -Target backend -SkipTests"
+    
   },
   "jest": {
     "testEnvironment": "node",
