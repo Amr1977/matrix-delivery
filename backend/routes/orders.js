@@ -11,8 +11,8 @@ const router = express.Router();
 // Get orders (filtered by user primary_role and location filters)
 router.get('/', verifyToken, async (req, res) => {
   try {
-    const { country, city, area, lat, lng, status } = req.query;
-    const filters = { country, city, area };
+    const {lat, lng, status } = req.query;
+    let filters = {};
 
     logger.info('GET /api/orders request received', {
       userId: req.user?.userId || 'unauthenticated',
