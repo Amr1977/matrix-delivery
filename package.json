@@ -2,6 +2,8 @@
   "name": "matrix-heroes",
   "version": "1.0.0",
   "description": "Matrix Heroes - P2P Delivery & Ride-Hailing Platform",
+  "private": true,
+  "workspaces": ["backend"],
   "scripts": {
     "test": "npm run test:backend",
     "test:all": "npm run test:backend && npm run test:frontend:ci && npm run test:e2e",
@@ -33,7 +35,7 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "build": "cd frontend && npm run build",
-    "start": "cd backend && node server.js",
+    "start": "npm --workspace backend start",
     "dev": "cd backend && npm run dev",
     "logs:sync": "node scripts/sync-production-logs.js",
     "logs:analyze": "node scripts/log-analyzer.js",
