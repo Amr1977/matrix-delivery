@@ -1,5 +1,6 @@
 import { Pool } from 'pg';
 import { Server as SocketIOServer } from 'socket.io';
+import { getPushService } from './pushNotificationService';
 
 /**
  * Notification creation parameters
@@ -93,6 +94,23 @@ export class NotificationService {
                     title,
                     category: 'notification'
                 });
+            }
+
+            // NEW: Send push notification
+            try {
+                const pushService = getPushService();
+                await pushService.sendPushToUser(userId, {
+                    title,
+                    body: message,
+                    data: {
+                        type,
+                        orderId: orderId || '',
+                        notificationId: String(notification.id)
+                    }
+                });
+            } catch (pushError) {
+                this.logger.error('Push notification failed:', pushError);
+                // Don't fail the main operation if push fails
             }
 
             return notification;

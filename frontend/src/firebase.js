@@ -1,6 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
+import { getMessaging, isSupported } from "firebase/messaging";
 
 // Environment-specific Firebase configurations
 const firebaseConfigs = {
@@ -78,4 +79,20 @@ if (typeof window !== 'undefined') {
   analytics = getAnalytics(app);
 }
 
-export { app, analytics, environment };
+// Initialize Firebase Cloud Messaging
+let messaging = null;
+
+async function initializeMessaging() {
+  try {
+    const supported = await isSupported();
+    if (supported && typeof window !== 'undefined') {
+      messaging = getMessaging(app);
+    }
+  } catch (error) {
+    console.warn('Firebase Messaging not supported:', error);
+  }
+}
+
+initializeMessaging();
+
+export { app, analytics, messaging, environment };
