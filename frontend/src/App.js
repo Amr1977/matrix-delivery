@@ -51,8 +51,38 @@ import { AuthApi, OrdersApi, NotificationsApi, UsersApi, DriversApi } from './se
 import { RouterProvider, createBrowserRouter, Navigate } from 'react-router-dom';
 import GlobalError from './components/GlobalError';
 
+import { usePushNotifications } from './hooks/usePushNotifications';
+import { useForegroundMessages } from './hooks/useForegroundMessages';
+
 // Location data state and API functions
 export const MainApp = () => {
+  const { registerForPush, permission } = usePushNotifications();
+
+  // Handle foreground push messages - add to existing notifications
+  useForegroundMessages((message) => {
+    const newNotification = {
+      id: Date.now().toString(),
+      title: message.title,
+      message: message.body,
+      body: message.body,
+      data: message.data,
+      isRead: false,
+      createdAt: new Date().toISOString(),
+      type: 'push'
+    };
+    setNotifications(prev => [newNotification, ...prev]);
+    playNotificationSound();
+  });
+
+  // Register for push on login/app start
+  useEffect(() => {
+    if (permission === 'default') {
+      // Auto-register on app start (will show permission prompt)
+      registerForPush();
+    }
+  }, [permission]);
+
+
   const navigate = useNavigate();
   const { t, locale, changeLocale } = useI18n();
   const API_URL = process.env.REACT_APP_API_URL;

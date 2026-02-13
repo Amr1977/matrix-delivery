@@ -18,6 +18,8 @@ const pool = require('./config/db');
 const { getNotificationService } = require('./services/notificationService');
 const configureSocket = require('./config/socket');
 const { startCleanup, stopCleanup } = require('./middleware/rateLimit');
+const pushRoutes = require('./routes/push');
+app.use('/api/push', pushRoutes);
 
 const IS_TEST = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing';
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
@@ -99,7 +101,6 @@ if (process.env.REDIS_URL && !IS_TEST) {
   logger.info('ℹ️ Socket.IO using in-memory adapter (single instance mode)');
 }
 
-// Configure Socket.IO
 // Configure Socket.IO
 configureSocket(io);
 

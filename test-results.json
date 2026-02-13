@@ -14,7 +14,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 11660904900
+              "duration": 1574518400
             }
           },
           {
@@ -27,7 +27,7 @@
             },
             "result": {
               "status": "passed",
-              "duration": 12620235300
+              "duration": 2414147100
             }
           },
           {
@@ -40,20 +40,17 @@
             },
             "result": {
               "status": "passed",
-              "duration": 36886887100
+              "duration": 11949336900
             }
           },
           {
             "arguments": [],
             "keyword": "And ",
             "line": 10,
-            "name": "a driver \"Bob\" exists",
-            "match": {
-              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:16"
-            },
+            "name": "a driver named \"Bob\" exists",
             "result": {
-              "status": "passed",
-              "duration": 42716149999
+              "status": "undefined",
+              "duration": 0
             }
           },
           {
@@ -65,8 +62,8 @@
               "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:20"
             },
             "result": {
-              "status": "passed",
-              "duration": 84842235600
+              "status": "skipped",
+              "duration": 0
             }
           },
           {
@@ -78,8 +75,8 @@
               "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:24"
             },
             "result": {
-              "status": "passed",
-              "duration": 106405299
+              "status": "skipped",
+              "duration": 0
             }
           },
           {
@@ -91,8 +88,8 @@
               "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:30"
             },
             "result": {
-              "status": "passed",
-              "duration": 50086129100
+              "status": "skipped",
+              "duration": 0
             }
           },
           {
@@ -104,8 +101,8 @@
               "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:34"
             },
             "result": {
-              "status": "passed",
-              "duration": 25312832699
+              "status": "skipped",
+              "duration": 0
             }
           },
           {
@@ -117,8 +114,8 @@
               "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:44"
             },
             "result": {
-              "status": "passed",
-              "duration": 20122639199
+              "status": "skipped",
+              "duration": 0
             }
           },
           {
@@ -130,8 +127,8 @@
               "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:53"
             },
             "result": {
-              "status": "passed",
-              "duration": 799415600
+              "status": "skipped",
+              "duration": 0
             }
           },
           {
@@ -143,8 +140,8 @@
               "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:58"
             },
             "result": {
-              "status": "passed",
-              "duration": 36442325200
+              "status": "skipped",
+              "duration": 0
             }
           },
           {
@@ -156,8 +153,8 @@
               "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:65"
             },
             "result": {
-              "status": "passed",
-              "duration": 26050836200
+              "status": "skipped",
+              "duration": 0
             }
           },
           {
@@ -169,8 +166,8 @@
               "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:53"
             },
             "result": {
-              "status": "passed",
-              "duration": 853315200
+              "status": "skipped",
+              "duration": 0
             }
           },
           {
@@ -182,8 +179,8 @@
               "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:69"
             },
             "result": {
-              "status": "passed",
-              "duration": 12696888399
+              "status": "skipped",
+              "duration": 0
             }
           },
           {
@@ -195,8 +192,8 @@
               "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:53"
             },
             "result": {
-              "status": "passed",
-              "duration": 974407999
+              "status": "skipped",
+              "duration": 0
             }
           },
           {
@@ -208,8 +205,8 @@
               "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:73"
             },
             "result": {
-              "status": "passed",
-              "duration": 34642244600
+              "status": "skipped",
+              "duration": 0
             }
           },
           {
@@ -221,8 +218,8 @@
               "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:53"
             },
             "result": {
-              "status": "passed",
-              "duration": 10767811700
+              "status": "skipped",
+              "duration": 0
             }
           },
           {
@@ -234,8 +231,8 @@
               "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:77"
             },
             "result": {
-              "status": "passed",
-              "duration": 15693382600
+              "status": "skipped",
+              "duration": 0
             }
           },
           {
@@ -247,8 +244,8 @@
               "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:83"
             },
             "result": {
-              "status": "passed",
-              "duration": 16537548999
+              "status": "skipped",
+              "duration": 0
             }
           },
           {
@@ -260,8 +257,8 @@
               "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:89"
             },
             "result": {
-              "status": "passed",
-              "duration": 31168177700
+              "status": "skipped",
+              "duration": 0
             }
           },
           {
@@ -273,8 +270,8 @@
               "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:95"
             },
             "result": {
-              "status": "passed",
-              "duration": 350300
+              "status": "skipped",
+              "duration": 0
             }
           },
           {
@@ -286,8 +283,8 @@
               "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:89"
             },
             "result": {
-              "status": "passed",
-              "duration": 31008504799
+              "status": "skipped",
+              "duration": 0
             }
           },
           {
@@ -299,8 +296,8 @@
               "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:95"
             },
             "result": {
-              "status": "passed",
-              "duration": 238299
+              "status": "skipped",
+              "duration": 0
             }
           },
           {
@@ -308,7 +305,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 332603899
+              "duration": 161302400
             }
           }
         ],

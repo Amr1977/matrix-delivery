@@ -22,7 +22,9 @@ class OrderService {
    * Calculate distance between two points using geolib
    */
   getDistance(point1, point2) {
+    logger.log("Point Object structure: " + JSON.stringify(point1));
     return getDistance(
+      // عك يعك عكا!!!!!!!!!!!!!!!!!!!!!
       { lat: point1.latitude, lng: point1.longitude },
       { lat: point2.lat, lng: point2.lng }
     );
