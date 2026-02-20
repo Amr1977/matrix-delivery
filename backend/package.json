@@ -21,7 +21,11 @@
     "test:bdd": "cross-env NODE_ENV=testing cucumber-js --exit",
     "test:bdd:lifecycle": "cross-env NODE_ENV=testing cucumber-js ../tests/features/core/order_lifecycle.feature --exit",
     "test:bdd:report": "cross-env NODE_ENV=testing cucumber-js --exit --format html:reports/cucumber-report.html",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "users:backup": "node scripts/user-backup-restore.js backup",
+    "users:restore": "node scripts/user-backup-restore.js restore",
+    "users:list": "node scripts/user-backup-restore.js list-backups",
+    "users:compare": "node scripts/user-backup-restore.js compare"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
