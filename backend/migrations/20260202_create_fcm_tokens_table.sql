@@ -1,7 +1,7 @@
 -- Create FCM tokens table for push notifications
 CREATE TABLE IF NOT EXISTS fcm_tokens (
   id SERIAL PRIMARY KEY,
-  user_id VARCHAR(255) NOT NULL REFERENCES users(id),
+  user_id INTEGER NOT NULL REFERENCES users(id),
   role VARCHAR(50) NOT NULL CHECK (role IN ('customer', 'driver', 'admin')),
   token TEXT NOT NULL UNIQUE,
   device_info VARCHAR(255),
