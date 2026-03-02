@@ -9,6 +9,7 @@
     "@capacitor/core": "^7.4.4",
     "@fingerprintjs/fingerprintjs": "^5.0.1",
     "@mapbox/polyline": "^1.2.1",
+    "@mux/mux-player-react": "^3.11.5",
     "@stripe/react-stripe-js": "^5.4.1",
     "@stripe/stripe-js": "^8.5.3",
     "ethers": "^6.9.0",
@@ -76,10 +77,12 @@
     ]
   },
   "devDependencies": {
+    "@pmmmwh/react-refresh-webpack-plugin": "^0.5.11",
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^14.4.3",
     "@types/react": "^19.2.7",
+    "@types/react-datepicker": "^6.2.0",
     "@types/react-dom": "^19.2.3",
     "autoprefixer": "^10.4.22",
     "cross-env": "^10.1.0",

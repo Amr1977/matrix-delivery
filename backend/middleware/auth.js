@@ -294,6 +294,7 @@ const authorizeVendorManage = async (req, res, next) => {
 
 module.exports = {
   verifyToken,
+  requireAuth: verifyToken, // Alias for backward compatibility
   requireRole,
   requireOwnershipOrAdmin,
   verifyBalanceOwnership,
