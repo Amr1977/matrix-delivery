@@ -1,6 +1,6 @@
 import { Pool } from 'pg';
 import admin from '../config/firebase-admin';
-import { getLogger } from '../config/logger';
+const logger = require('../config/logger');
 
 interface PushPayload {
     title: string;
@@ -23,7 +23,7 @@ export class PushNotificationService {
 
     constructor(pool: Pool) {
         this.pool = pool;
-        this.logger = getLogger();
+        this.logger = logger;
     }
 
     /**
