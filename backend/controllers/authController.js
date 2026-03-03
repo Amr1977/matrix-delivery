@@ -170,20 +170,26 @@ const register = async (req, res) => {
         const token = result.token;
         const IS_PRODUCTION = process.env.NODE_ENV === 'production';
         
-        // In production, always use secure cookie settings since we serve over HTTPS
-        const useSecureCookie = IS_PRODUCTION;
-        const sameSite = IS_PRODUCTION ? 'none' : 'lax';
+        // CRITICAL: For cross-site requests (frontend at matrix-delivery.web.app, backend at matrix-delivery-api-gc.mywire.org)
+        // we MUST use SameSite=None and Secure=true to allow cookies in cross-site context
+        const cookieOptions = {
+            httpOnly: true,
+            secure: true, // Always use secure in production (HTTPS)
+            sameSite: 'none', // Required for cross-site cookies
+            maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+            path: '/'
+        };
+        
+        // For development, use lax for same-site requests
+        if (!IS_PRODUCTION) {
+            cookieOptions.sameSite = 'lax';
+            cookieOptions.secure = false;
+        }
 
         // Clear existing
         res.clearCookie('token', { path: '/' });
 
-        res.cookie('token', token, {
-            httpOnly: true,
-            secure: useSecureCookie,
-            sameSite: sameSite,
-            maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-            path: '/'
-        });
+        res.cookie('token', token, cookieOptions);
 
         // Remove token from response body for security
         const response = { ...result };
@@ -256,17 +262,22 @@ const login = async (req, res) => {
         const token = result.token;
         const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
-        // In production, always use secure cookie settings since we serve over HTTPS
-        const useSecureCookie = IS_PRODUCTION;
-        const sameSite = IS_PRODUCTION ? 'none' : 'lax';
-
+        // CRITICAL: For cross-site requests (frontend at matrix-delivery.web.app, backend at matrix-delivery-api-gc.mywire.org)
+        // we MUST use SameSite=None and Secure=true to allow cookies in cross-site context
+        // This is required for browsers to accept the cookie in cross-site scenarios
         const cookieOptions = {
             httpOnly: true,
-            secure: useSecureCookie,
-            sameSite: sameSite, // 'none' requires secure
+            secure: true, // Always use secure in production (HTTPS)
+            sameSite: 'none', // Required for cross-site cookies
             maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
             path: '/'
         };
+        
+        // For development, use lax for same-site requests
+        if (!IS_PRODUCTION) {
+            cookieOptions.sameSite = 'lax';
+            cookieOptions.secure = false;
+        }
         
         // Clear any existing cookie first
         // We attempt to clear with both configurations to be safe
@@ -387,18 +398,23 @@ const refresh = async (req, res) => {
 
         const IS_PRODUCTION = process.env.NODE_ENV === 'production';
         
-        // In production, always use secure cookie settings since we serve over HTTPS
-        const useSecureCookie = IS_PRODUCTION;
-        const sameSite = IS_PRODUCTION ? 'none' : 'lax';
-
-        // Set new token in cookie
-        res.cookie('token', newToken, {
+        // CRITICAL: For cross-site requests, always use SameSite=None and Secure=true
+        const cookieOptions = {
             httpOnly: true,
-            secure: useSecureCookie,
-            sameSite: useSecureCookie ? 'none' : 'lax',
+            secure: true,
+            sameSite: 'none', // Required for cross-site cookies
             maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
             path: '/'
-        });
+        };
+        
+        // For development, use lax for same-site requests
+        if (!IS_PRODUCTION) {
+            cookieOptions.sameSite = 'lax';
+            cookieOptions.secure = false;
+        }
+
+        // Set new token in cookie
+        res.cookie('token', newToken, cookieOptions);
 
         logger.info('Token refreshed successfully', {
             userId: decoded.userId,
