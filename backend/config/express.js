@@ -9,7 +9,7 @@ const {
     additionalSecurityHeaders,
     sanitizeRequest,
     validateSecurityConfig
-} = require('../middleware/security.js');
+} = require('../middleware/security');
 const { apiRateLimit } = require('../middleware/rateLimit');
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
