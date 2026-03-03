@@ -39,7 +39,13 @@ const configureExpress = (app) => {
 
             // Allow requests with no origin (like mobile apps or curl requests)
             // If origin is missing (e.g. stripped by proxy), default to the main frontend to ensure CORS headers are present
-            if (!origin) return callback(null, 'https://matrix-delivery.web.app');
+            if (!origin) {
+                // Allow all for production - the frontend domain might be different
+                if (IS_PRODUCTION) {
+                    return callback(null, true);
+                }
+                return callback(null, 'https://matrix-delivery.web.app');
+            }
 
             // Parse allowed origins from environment variable
             const allowedOrigins = process.env.CORS_ORIGIN
