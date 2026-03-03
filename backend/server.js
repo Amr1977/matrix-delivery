@@ -4,10 +4,11 @@ const dotenv = require('dotenv');
 require('ts-node/register');
 
 // Load environment FIRST
+const envFile = process.env.ENV_FILE || '.env';
 if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing') {
   dotenv.config({ path: '.env.testing' });
 } else {
-  dotenv.config();
+  dotenv.config({ path: envFile });
 }
 
 const app = require('./app');
