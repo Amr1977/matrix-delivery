@@ -170,15 +170,9 @@ const register = async (req, res) => {
         const token = result.token;
         const IS_PRODUCTION = process.env.NODE_ENV === 'production';
         
-        // Check for secure connection - be more permissive for production
-        // Check multiple sources: x-forwarded-proto, req.secure, and protocol header
-        const forwardedProto = req.get('x-forwarded-proto');
-        const isSecure = req.secure || 
-                        forwardedProto === 'https' || 
-                        forwardedProto === 'https, https' ||
-                        req.protocol === 'https';
-
-        const useSecureCookie = IS_PRODUCTION && isSecure;
+        // In production, always use secure cookie settings since we serve over HTTPS
+        const useSecureCookie = IS_PRODUCTION;
+        const sameSite = IS_PRODUCTION ? 'none' : 'lax';
 
         // Clear existing
         res.clearCookie('token', { path: '/' });
@@ -186,7 +180,7 @@ const register = async (req, res) => {
         res.cookie('token', token, {
             httpOnly: true,
             secure: useSecureCookie,
-            sameSite: useSecureCookie ? 'none' : 'lax',
+            sameSite: sameSite,
             maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
             path: '/'
         });
@@ -262,19 +256,14 @@ const login = async (req, res) => {
         const token = result.token;
         const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
-        // Check for secure connection - be more permissive for production
-        // Check multiple sources: x-forwarded-proto, req.secure, and protocol header
-        const forwardedProto = req.get('x-forwarded-proto');
-        const isSecure = req.secure || 
-                        forwardedProto === 'https' || 
-                        forwardedProto === 'https, https' ||
-                        req.protocol === 'https';
-        const useSecureCookie = IS_PRODUCTION && isSecure;
+        // In production, always use secure cookie settings since we serve over HTTPS
+        const useSecureCookie = IS_PRODUCTION;
+        const sameSite = IS_PRODUCTION ? 'none' : 'lax';
 
         const cookieOptions = {
             httpOnly: true,
             secure: useSecureCookie,
-            sameSite: useSecureCookie ? 'none' : 'lax', // 'none' requires secure
+            sameSite: sameSite, // 'none' requires secure
             maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
             path: '/'
         };
@@ -398,13 +387,9 @@ const refresh = async (req, res) => {
 
         const IS_PRODUCTION = process.env.NODE_ENV === 'production';
         
-        // Check for secure connection - be more permissive for production
-        const forwardedProto = req.get('x-forwarded-proto');
-        const isSecure = req.secure || 
-                        forwardedProto === 'https' || 
-                        forwardedProto === 'https, https' ||
-                        req.protocol === 'https';
-        const useSecureCookie = IS_PRODUCTION && isSecure;
+        // In production, always use secure cookie settings since we serve over HTTPS
+        const useSecureCookie = IS_PRODUCTION;
+        const sameSite = IS_PRODUCTION ? 'none' : 'lax';
 
         // Set new token in cookie
         res.cookie('token', newToken, {
