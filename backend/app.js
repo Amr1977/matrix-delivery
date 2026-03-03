@@ -9,7 +9,12 @@ if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing') {
   dotenv.config({ path: '.env.testing' });
   console.log('✅ Loaded .env.testing for testing');
 } else {
-  dotenv.config();
+  // Check ENV_FILE first (set by PM2), then fall back to NODE_ENV-based detection
+  const envFile = process.env.ENV_FILE || 
+    (process.env.NODE_ENV === 'production' ? '.env.production' : 
+     process.env.NODE_ENV === 'staging' ? '.env.staging' : 
+     process.env.NODE_ENV === 'development' ? '.env.development' : '.env');
+  dotenv.config({ path: envFile });
 }
 
 const jwt = require('jsonwebtoken');
