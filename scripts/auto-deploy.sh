@@ -37,8 +37,19 @@ fi
 
 while true; do
     # Load Environment Variables (for FIREBASE_TOKEN)
-    if [ -f .env ]; then
-        # Read .env line by line to handle edge cases better than xargs
+    # Check both root .env and backend/.env
+    if [ -f backend/.env ]; then
+        log "📄 Loading env from backend/.env"
+        ENV_FILE="backend/.env"
+    elif [ -f .env ]; then
+        log "📄 Loading env from .env"
+        ENV_FILE=".env"
+    else
+        log "⚠️ No .env file found"
+        ENV_FILE=""
+    fi
+    
+    if [ -n "$ENV_FILE" ]; then
         while IFS= read -r line || [ -n "$line" ]; do
             # Skip comments and empty lines
             if [[ "$line" =~ ^# ]] || [[ -z "$line" ]]; then continue; fi
@@ -46,7 +57,7 @@ while true; do
             line=$(echo "$line" | tr -d '\r')
             # Export the variable
             export "$line"
-        done < .env
+        done < "$ENV_FILE"
     fi
 
     # Debug: Check if Token is loaded (masked)
