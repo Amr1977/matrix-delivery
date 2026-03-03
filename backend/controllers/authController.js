@@ -169,7 +169,14 @@ const register = async (req, res) => {
         // Set httpOnly cookie for security
         const token = result.token;
         const IS_PRODUCTION = process.env.NODE_ENV === 'production';
-        const isSecure = req.secure || (req.get('x-forwarded-proto') === 'https');
+        
+        // Check for secure connection - be more permissive for production
+        // Check multiple sources: x-forwarded-proto, req.secure, and protocol header
+        const forwardedProto = req.get('x-forwarded-proto');
+        const isSecure = req.secure || 
+                        forwardedProto === 'https' || 
+                        forwardedProto === 'https, https' ||
+                        req.protocol === 'https';
 
         const useSecureCookie = IS_PRODUCTION && isSecure;
 
@@ -254,10 +261,14 @@ const login = async (req, res) => {
         // Set httpOnly cookie for security
         const token = result.token;
         const IS_PRODUCTION = process.env.NODE_ENV === 'production';
-        const isSecure = req.secure || (req.get('x-forwarded-proto') === 'https');
 
-        // Only use Secure/SameSite=None if we are actually on a secure connection
-        // This allows testing production builds on localhost (HTTP)
+        // Check for secure connection - be more permissive for production
+        // Check multiple sources: x-forwarded-proto, req.secure, and protocol header
+        const forwardedProto = req.get('x-forwarded-proto');
+        const isSecure = req.secure || 
+                        forwardedProto === 'https' || 
+                        forwardedProto === 'https, https' ||
+                        req.protocol === 'https';
         const useSecureCookie = IS_PRODUCTION && isSecure;
 
         const cookieOptions = {
@@ -386,7 +397,13 @@ const refresh = async (req, res) => {
         );
 
         const IS_PRODUCTION = process.env.NODE_ENV === 'production';
-        const isSecure = req.secure || (req.get('x-forwarded-proto') === 'https');
+        
+        // Check for secure connection - be more permissive for production
+        const forwardedProto = req.get('x-forwarded-proto');
+        const isSecure = req.secure || 
+                        forwardedProto === 'https' || 
+                        forwardedProto === 'https, https' ||
+                        req.protocol === 'https';
         const useSecureCookie = IS_PRODUCTION && isSecure;
 
         // Set new token in cookie
