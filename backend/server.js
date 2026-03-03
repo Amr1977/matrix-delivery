@@ -4,7 +4,13 @@ const dotenv = require('dotenv');
 require('ts-node/register');
 
 // Load environment FIRST
-const envFile = process.env.ENV_FILE || '.env';
+// Check ENV_FILE first (set by PM2), then fall back to NODE_ENV-based detection
+const envFile = process.env.ENV_FILE || 
+  (process.env.NODE_ENV === 'production' ? '.env.production' : 
+   process.env.NODE_ENV === 'staging' ? '.env.staging' : 
+   process.env.NODE_ENV === 'development' ? '.env.development' : 
+   process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing' ? '.env.testing' : '.env');
+
 if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing') {
   dotenv.config({ path: '.env.testing' });
 } else {

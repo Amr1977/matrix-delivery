@@ -8,8 +8,12 @@ const IS_TEST = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'tes
 // but we check anyway to be safe
 if (!process.env.DB_HOST && !process.env.DATABASE_URL) {
     const dotenv = require('dotenv');
-    const IS_PROD = process.env.NODE_ENV === 'production';
-    const envFile = IS_TEST ? '.env.testing' : IS_PROD ? '.env.production' : '.env';
+    // Check ENV_FILE first (set by PM2), then fall back to NODE_ENV-based detection
+    const envFile = process.env.ENV_FILE || 
+      (process.env.NODE_ENV === 'production' ? '.env.production' : 
+       process.env.NODE_ENV === 'staging' ? '.env.staging' : 
+       process.env.NODE_ENV === 'development' ? '.env.development' : 
+       process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing' ? '.env.testing' : '.env');
 
     logger.info(`📄 Loading environment from: ${envFile}`);
     dotenv.config({ path: envFile });
