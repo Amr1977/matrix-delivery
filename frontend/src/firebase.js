@@ -74,9 +74,16 @@ const firebaseConfig = firebaseConfigs[environment];
 const app = initializeApp(firebaseConfig);
 
 // Initialize Firebase Analytics (optional, only if you want analytics)
+// Disabled by default to avoid cookie domain issues with GA4
 let analytics;
-if (typeof window !== 'undefined') {
-  analytics = getAnalytics(app);
+
+// Only enable analytics if explicitly enabled via environment variable
+if (typeof window !== 'undefined' && process.env.REACT_APP_ENABLE_ANALYTICS === 'true') {
+  try {
+    analytics = getAnalytics(app);
+  } catch (error) {
+    console.warn('Firebase Analytics initialization failed:', error);
+  }
 }
 
 // Initialize Firebase Cloud Messaging
