@@ -101,6 +101,9 @@ const BoundsController = ({ bounds }) => {
 
 // ========== LIVE TRACKING MAP COMPONENT ==========
 const LiveTrackingMap = ({ orderId, t, compact = false, theme = 'dark', isDriver = false }) => {
+  // Ensure orderId is a valid string for API calls
+  const validOrderId = typeof orderId === 'string' && orderId ? orderId : String(orderId || '');
+  
   const [trackingData, setTrackingData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -118,16 +121,16 @@ const LiveTrackingMap = ({ orderId, t, compact = false, theme = 'dark', isDriver
   // Fetch tracking data
   const fetchTrackingData = useCallback(async () => {
     try {
-      let idToUse = orderId;
+      let idToUse = validOrderId;
       if (!orderMeta) {
         try {
           const ordersList = await api.get('/orders');
           const match = Array.isArray(ordersList)
-            ? ordersList.find(o => o.id === orderId || o.orderNumber === orderId)
+            ? ordersList.find(o => o.id === validOrderId || o.orderNumber === validOrderId)
             : null;
           if (match) {
             setOrderMeta({ id: match.id, status: match.status });
-            idToUse = match.id || orderId;
+            idToUse = match.id || validOrderId;
             if (match.status === 'pending_bids') {
               setError('Tracking is unavailable until a bid is accepted');
               setLoading(false);
@@ -141,7 +144,7 @@ const LiveTrackingMap = ({ orderId, t, compact = false, theme = 'dark', isDriver
           setLoading(false);
           return;
         }
-        idToUse = orderMeta.id || orderId;
+        idToUse = orderMeta.id || validOrderId;
       }
 
       let detailsResponse;
@@ -156,7 +159,7 @@ const LiveTrackingMap = ({ orderId, t, compact = false, theme = 'dark', isDriver
         if (primaryErr && String(primaryErr.message).includes('HTTP 404')) {
           const ordersList = await api.get('/orders');
           const match = Array.isArray(ordersList)
-            ? ordersList.find(o => o.orderNumber === orderId)
+            ? ordersList.find(o => o.orderNumber === validOrderId)
             : null;
           if (match && match.id) {
             detailsResponse = await api.get(`/orders/${match.id}/tracking`);
@@ -176,11 +179,11 @@ const LiveTrackingMap = ({ orderId, t, compact = false, theme = 'dark', isDriver
     } finally {
       setLoading(false);
     }
-  }, [orderId, orderMeta]);
+  }, [validOrderId, orderMeta]);
 
   // Start tracking updates when component mounts
   useEffect(() => {
-    if (orderId) {
+    if (validOrderId) {
       fetchTrackingData(); // Initial load
 
       // Set up interval for live updates (every 10 seconds)
@@ -192,7 +195,7 @@ const LiveTrackingMap = ({ orderId, t, compact = false, theme = 'dark', isDriver
         clearInterval(refreshIntervalRef.current);
       }
     };
-  }, [orderId, fetchTrackingData]);
+  }, [validOrderId, fetchTrackingData]);
 
   useEffect(() => {
     if (!trackingData) return;
@@ -265,7 +268,7 @@ const LiveTrackingMap = ({ orderId, t, compact = false, theme = 'dark', isDriver
 
     const sendLocationUpdate = async (lat, lng, heading, speed, accuracy) => {
       try {
-        await api.post(`/drivers/location/${orderId}`, {
+        await api.post(`/drivers/location/${validOrderId}`, {
           latitude: lat,
           longitude: lng,
           heading,
@@ -324,7 +327,7 @@ const LiveTrackingMap = ({ orderId, t, compact = false, theme = 'dark', isDriver
         navigator.geolocation.clearWatch(watchIdRef.current);
       }
     };
-  }, [orderId, isDriver]);
+  }, [validOrderId, isDriver]);
 
   useEffect(() => {
     const loc = trackingData?.currentLocation;

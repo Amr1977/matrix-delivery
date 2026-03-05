@@ -60,12 +60,18 @@ export const MainApp = () => {
 
   // Handle foreground push messages - add to existing notifications
   useForegroundMessages((message) => {
+    // Defensive: ensure message has valid data
+    if (!message || typeof message !== 'object') {
+      console.warn('Invalid push message received:', message);
+      return;
+    }
+    
     const newNotification = {
       id: Date.now().toString(),
-      title: message.title,
-      message: message.body,
-      body: message.body,
-      data: message.data,
+      title: String(message.title || 'Notification'),
+      message: String(message.body || ''),
+      body: String(message.body || ''),
+      data: message.data && typeof message.data === 'object' ? message.data : {},
       isRead: false,
       createdAt: new Date().toISOString(),
       type: 'push'
@@ -1925,7 +1931,7 @@ export const MainApp = () => {
                 <button onClick={() => setShowLiveTracking(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
               </div>
               <div style={{ padding: '1.5rem' }}>
-                <LiveTrackingMapView orderId={selectedOrder?.id || selectedOrder?.id || selectedOrder?.orderNumber} t={t} />
+                <LiveTrackingMapView orderId={String(selectedOrder?.id || selectedOrder?.orderNumber || '')} t={t} />
                 <button onClick={() => setShowLiveTracking(false)} style={{ width: '100%', marginTop: '1rem', padding: '0.75rem', background: '#F3F4F6', color: '#374151', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600' }}>{t('common.close')}</button>
               </div>
             </div>
@@ -2276,7 +2282,7 @@ export const MainApp = () => {
                 <button onClick={() => setShowLiveTracking(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
               </div>
               <div style={{ padding: '1.5rem' }}>
-                <LiveTrackingMapView orderId={selectedOrder?.id || selectedOrder?.id || selectedOrder?.orderNumber} t={t} />
+                <LiveTrackingMapView orderId={String(selectedOrder?.id || selectedOrder?.orderNumber || '')} t={t} />
                 <button onClick={() => setShowLiveTracking(false)} style={{ width: '100%', marginTop: '1rem', padding: '0.75rem', background: '#F3F4F6', color: '#374151', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600' }}>{t('common.close')}</button>
               </div>
             </div>

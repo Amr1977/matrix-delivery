@@ -88,18 +88,26 @@ if (typeof window !== 'undefined' && process.env.REACT_APP_ENABLE_ANALYTICS === 
 
 // Initialize Firebase Cloud Messaging
 let messaging = null;
+let messagingError = null;
 
 async function initializeMessaging() {
   try {
     const supported = await isSupported();
     if (supported && typeof window !== 'undefined') {
-      messaging = getMessaging(app);
+      try {
+        messaging = getMessaging(app);
+      } catch (messagingInitError) {
+        messagingError = messagingInitError;
+        console.warn('Firebase Messaging initialization failed:', messagingInitError);
+      }
     }
   } catch (error) {
+    messagingError = error;
     console.warn('Firebase Messaging not supported:', error);
   }
 }
 
+// Initialize messaging but don't await - it's async
 initializeMessaging();
 
-export { app, analytics, messaging, environment };
+export { app, analytics, messaging, environment, messagingError };
