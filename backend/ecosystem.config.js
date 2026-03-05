@@ -5,10 +5,10 @@ module.exports = {
     name: 'matrix-delivery-backend',
     script: './server.js',
     cwd: __dirname,
-    instances: 2, // Using cluster mode with Redis adapter for session sharing
-    exec_mode: 'cluster', // Cluster mode enabled - Redis adapter handles sticky sessions
+    instances: 2,
+    exec_mode: 'cluster',
     env: {
-      NODE_ENV: 'production',
+      NODE_ENV: 'development',
       PORT: 5000,
       ENV_FILE: '.env'
     },
