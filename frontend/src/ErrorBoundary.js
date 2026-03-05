@@ -27,6 +27,15 @@ class ErrorBoundary extends React.Component {
     // Log the error to console
     console.error('React Error Boundary caught an error:', error, errorInfo);
 
+    // Check for error #31 - objects as children
+    if (error && error.message && error.message.includes && error.message.includes('31')) {
+      console.error('Error #31 detected: Objects as children. This usually happens when:',
+        '\n- A React element object is rendered as a child',
+        '\n- An object with $typeof, type, key, ref, props is passed as a child',
+        '\n- The props.children contains an invalid React element'
+      );
+    }
+
     this.setState({
       error: error,
       errorInfo: errorInfo
