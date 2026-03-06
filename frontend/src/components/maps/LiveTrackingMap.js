@@ -359,6 +359,28 @@ const LiveTrackingMap = ({ orderId, t, compact = false, theme = 'dark', isDriver
     return MAP_DEFAULT_CENTER;
   };
 
+  // Safe render helper to prevent React error #31 (objects as children)
+  const safeRender = (value, fallback = 'N/A') => {
+    if (value === null || value === undefined) return fallback;
+    if (typeof value === 'string') return value;
+    if (typeof value === 'number') return String(value);
+    if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+    // If it's an object, try to extract a display value
+    if (typeof value === 'object') {
+      if (value.address) return safeRender(value.address, fallback);
+      if (value.name) return safeRender(value.name, fallback);
+      if (value.display_name) return safeRender(value.display_name, fallback);
+      if (value.lat && value.lng) return `${value.lat}, ${value.lng}`;
+      // Return JSON stringified as last resort
+      try {
+        return JSON.stringify(value);
+      } catch {
+        return fallback;
+      }
+    }
+    return String(value);
+  };
+
   // Format time and distance
   const formatDistance = (distanceKm) => {
     if (!distanceKm) return 'N/A';
@@ -664,7 +686,7 @@ const LiveTrackingMap = ({ orderId, t, compact = false, theme = 'dark', isDriver
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap'
           }}>
-            {trackingData.pickup.address}
+            {safeRender(trackingData.pickup.address)}
           </p>
         </div>
 
@@ -699,7 +721,7 @@ const LiveTrackingMap = ({ orderId, t, compact = false, theme = 'dark', isDriver
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap'
           }}>
-            {trackingData.delivery.address}
+            {safeRender(trackingData.delivery.address)}
           </p>
         </div>
       </div>
@@ -759,7 +781,7 @@ const LiveTrackingMap = ({ orderId, t, compact = false, theme = 'dark', isDriver
             >
               <Popup>
                 <strong>Pickup Location</strong><br />
-                {trackingData.pickup.address}<br />
+                {safeRender(trackingData.pickup.address)}<br />
                 {trackingData.pickup.completedAt && (
                   <small>Completed: {new Date(trackingData.pickup.completedAt).toLocaleString()}</small>
                 )}
@@ -775,7 +797,7 @@ const LiveTrackingMap = ({ orderId, t, compact = false, theme = 'dark', isDriver
             >
               <Popup>
                 <strong>Delivery Location</strong><br />
-                {trackingData.delivery.address}<br />
+                {safeRender(trackingData.delivery.address)}<br />
                 {trackingData.delivery.completedAt && (
                   <small>Completed: {new Date(trackingData.delivery.completedAt).toLocaleString()}</small>
                 )}
@@ -791,10 +813,10 @@ const LiveTrackingMap = ({ orderId, t, compact = false, theme = 'dark', isDriver
             >
               <Popup>
                 <strong>Driver Current Location</strong><br />
-                Driver: {trackingData.driver?.name || 'Unknown'}<br />
+                Driver: {safeRender(trackingData.driver?.name)}<br />
                 Speed: {trackingData.currentLocation.speedKmh ? `${trackingData.currentLocation.speedKmh} km/h` : 'Unknown'}<br />
                 Last Update: {new Date(trackingData.currentLocation.timestamp).toLocaleString()}<br />
-                Accuracy: {trackingData.currentLocation.accuracyMeters || 'Unknown'}m<br />
+                Accuracy: {safeRender(trackingData.currentLocation.accuracyMeters)}m<br />
                 Address: {currentAddress || 'Locating...'}
               </Popup>
             </Marker>

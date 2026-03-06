@@ -48,6 +48,7 @@ import ReviewModal from './components/reviews/ReviewModal';
 // TypeScript API Services
 import { AuthApi, OrdersApi, NotificationsApi, UsersApi, DriversApi } from './services/api';
 
+import AuthPage from './AuthPage';
 import { RouterProvider, createBrowserRouter, Navigate } from 'react-router-dom';
 import GlobalError from './components/GlobalError';
 
@@ -55,7 +56,7 @@ import { usePushNotifications } from './hooks/usePushNotifications';
 import { useForegroundMessages } from './hooks/useForegroundMessages';
 
 // Location data state and API functions
-export const MainApp = () => {
+export const MainApp = ({ authState: initialAuthState }) => {
   const { registerForPush, permission } = usePushNotifications();
 
   // Handle foreground push messages - add to existing notifications
@@ -98,17 +99,8 @@ export const MainApp = () => {
 
   // Fixed: LiveTrackingMap component moved outside DeliveryApp function for proper scoping
   // State variables
+  const [authState, setAuthState] = useState(initialAuthState || 'login');
   const location = useLocation();
-  const [authState, setAuthState] = useState(location.pathname === '/register' ? 'register' : 'login');
-
-  // Sync authState with URL changes
-  useEffect(() => {
-    if (location.pathname === '/register') {
-      setAuthState('register');
-    } else if (location.pathname === '/login') {
-      setAuthState('login');
-    }
-  }, [location.pathname]);
   const [token, setToken] = useState(null); // Remove localStorage - tokens are in httpOnly cookies
   const [authChecking, setAuthChecking] = useState(true); // Track initial auth check
   const [currentUser, setCurrentUser] = useState(null);
@@ -1088,19 +1080,19 @@ export const MainApp = () => {
     e.preventDefault();
 
     if (!authForm.name || !authForm.email || !authForm.password || !authForm.phone || !authForm.country || !authForm.city) {
-      logger.warn('Registration validation failed: missing required fields');
+      console.warn('Registration validation failed: missing required fields');
       setError('All required fields must be filled');
       return;
     }
     if (authForm.primary_role === 'driver' && !authForm.vehicle_type) {
-      logger.warn('Registration validation failed: missing vehicle type for driver');
+      console.warn('Registration validation failed: missing vehicle type for driver');
       setError('Vehicle type is required for drivers');
       return;
     }
 
     const recaptchaToken = process.env.REACT_APP_RECAPTCHA_SITE_KEY ? registerCaptchaRef.current?.getValue() : null;
     if (process.env.REACT_APP_RECAPTCHA_SITE_KEY && !recaptchaToken) {
-      logger.warn('Registration validation failed: missing captcha');
+      console.warn('Registration validation failed: missing captcha');
       setError('Please complete the captcha');
       return;
     }
@@ -2828,41 +2820,48 @@ const router = createBrowserRouter([
   },
   {
     path: '/login',
-    element: <MainApp />,
+    element: <AuthPage />,
     errorElement: <GlobalError />,
   },
   {
     path: '/register',
-    element: <MainApp />,
+    element: <AuthPage />,
     errorElement: <GlobalError />,
   },
   {
     path: '/landing', // Keep for backward compatibility/explicit access
     element: <MatrixLanding />,
+    errorElement: <GlobalError />,
   },
   {
     path: '/create-order',
     element: <CreateOrderPage />,
+    errorElement: <GlobalError />,
   },
   {
     path: '/reviews',
     element: <ReviewsPage />,
+    errorElement: <GlobalError />,
   },
   {
     path: '/chat/:orderId',
     element: <ChatPage />,
+    errorElement: <GlobalError />,
   },
   {
     path: '/balance',
     element: <BalanceDashboardPage />,
+    errorElement: <GlobalError />,
   },
   {
     path: '/balance/transactions',
     element: <TransactionHistoryPage />,
+    errorElement: <GlobalError />,
   },
   {
     path: '/balance/statement',
     element: <BalanceStatementPage />,
+    errorElement: <GlobalError />,
   },
   {
     path: '*',

@@ -28,12 +28,13 @@ const pool = require('./config/db');
 const { getNotificationService } = require('./services/notificationService');
 const configureSocket = require('./config/socket');
 const { startCleanup, stopCleanup } = require('./middleware/rateLimit');
-const { initializePushService } = require('./services/pushNotificationService');
-const pushRoutes = require('./routes/push');
-app.use('/api/push', pushRoutes);
+// Push notifications temporarily disabled
+// const { initializePushService } = require('./services/pushNotificationService');
+// const pushRoutes = require('./routes/push');
+// app.use('/api/push', pushRoutes);
 
-// Initialize Push Notification Service with pool
-initializePushService(pool);
+// Initialize Push Notification Service with pool (temporarily disabled)
+// initializePushService(pool);
 
 const IS_TEST = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing';
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
@@ -78,41 +79,43 @@ const io = socketIo(httpServer, {
 // ============================================================================
 // SOCKET.IO REDIS ADAPTER FOR PM2 CLUSTER MODE
 // This enables session sharing across multiple PM2 instances
+// Redis is optional - server will work without it (single instance mode)
 // ============================================================================
-if (process.env.REDIS_URL && !IS_TEST) {
+if (process.env.REDIS_URL && process.env.ENABLE_REDIS === 'true' && !IS_TEST) {
+  // Only use Redis adapter if explicitly enabled
   try {
-    // Create pub/sub clients for Socket.IO adapter
-    // These are separate from the main Redis client used for caching/blacklist
     const pubClient = new Redis(process.env.REDIS_URL, {
-      maxRetriesPerRequest: 3,
+      maxRetriesPerRequest: 1,
       enableReadyCheck: false,
-      lazyConnect: true
+      lazyConnect: true,
+      connectTimeout: 3000
     });
     const subClient = pubClient.duplicate();
 
-    // Connect both clients
-    Promise.all([pubClient.connect(), subClient.connect()])
+    // Try to connect with timeout
+    const connectPromise = Promise.all([pubClient.connect(), subClient.connect()]);
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Redis connection timeout')), 3000)
+    );
+
+    Promise.race([connectPromise, timeoutPromise])
       .then(() => {
         io.adapter(createAdapter(pubClient, subClient));
         logger.info('✅ Socket.IO Redis adapter connected - cluster mode enabled');
       })
       .catch((err) => {
-        logger.error('❌ Socket.IO Redis adapter connection failed:', err.message);
-        logger.warn('⚠️ Falling back to in-memory adapter (single instance only)');
+        pubClient.disconnect().catch(() => {});
+        subClient.disconnect().catch(() => {});
+        logger.warn('⚠️ Redis unavailable - using in-memory adapter (single instance)');
       });
 
-    // Handle adapter client errors
-    pubClient.on('error', (err) => {
-      logger.error('Socket.IO Redis pub client error:', err.message);
-    });
-    subClient.on('error', (err) => {
-      logger.error('Socket.IO Redis sub client error:', err.message);
-    });
+    pubClient.on('error', () => {}); // Ignore errors - we're gracefully degrading
+    subClient.on('error', () => {});
   } catch (err) {
-    logger.error('❌ Failed to setup Socket.IO Redis adapter:', err.message);
+    logger.warn('⚠️ Redis setup skipped - using in-memory adapter');
   }
 } else if (!IS_TEST) {
-  logger.info('ℹ️ Socket.IO using in-memory adapter (single instance mode)');
+  logger.info('ℹ️ Socket.IO using in-memory adapter (set ENABLE_REDIS=true for cluster mode)');
 }
 
 // Configure Socket.IO
