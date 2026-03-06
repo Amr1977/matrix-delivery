@@ -2,15 +2,28 @@ import React from 'react';
 import translations from './i18n/locales';
 
 // Get translation helper for class component (can't use hooks)
-const getTranslation = (key) => {
-  const locale = localStorage.getItem('locale') || 'en';
-  const keys = key.split('.');
-  let value = translations[locale];
-  for (const k of keys) {
-    value = value?.[k];
-  }
-  return value || key;
-};
+  const getTranslation = (key) => {
+    const locale = localStorage.getItem('locale') || 'en';
+    const keys = key.split('.');
+    let value = translations[locale];
+    for (const k of keys) {
+      value = value?.[k];
+    }
+    
+    // Enhanced safety: ensure we always return a string
+    if (typeof value === 'string') {
+      return value;
+    }
+    
+    // If value is an object or undefined, return the key as fallback
+    if (value && typeof value === 'object') {
+      console.warn(`Translation key "${key}" returns an object instead of string`);
+      return key;
+    }
+    
+    // If translation doesn't exist, return the key
+    return key;
+  };
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -44,7 +57,22 @@ class ErrorBoundary extends React.Component {
 
   render() {
     if (this.state.hasError) {
-      const t = getTranslation;
+      // Safe translation wrapper that always returns strings
+      const t = (key) => {
+        try {
+          const value = getTranslation(key);
+          // Ensure we always return a string
+          if (typeof value === 'string') {
+            return value;
+          }
+          // If translation returns an object or undefined, return the key
+          console.warn(`Translation "${key}" returned non-string:`, value);
+          return key;
+        } catch (err) {
+          console.error(`Translation error for "${key}":`, err);
+          return key;
+        }
+      };
 
       return (
         <div style={{
@@ -78,16 +106,15 @@ class ErrorBoundary extends React.Component {
             maxWidth: '600px',
             width: '100%',
             zIndex: 10,
-            border: '2px solid #D32F2F', // Red border for error
+            border: '2px solid #D32F2F',
             boxShadow: '0 0 30px rgba(220, 38, 38, 0.4)',
-            background: 'linear-gradient(135deg, #1a0505 0%, #2a0a0a 100%)', // Dark red tint
+            background: 'linear-gradient(135deg, #1a0505 0%, #2a0a0a 100%)',
             padding: '2rem',
             borderRadius: '1rem'
           }}>
             <div style={{
               fontSize: '4rem',
               marginBottom: '1rem',
-              // Simple pulse animation fallback if CSS not loaded
               animation: 'matrix-pulse 2s infinite'
             }}>
               ⚠️
@@ -100,7 +127,7 @@ class ErrorBoundary extends React.Component {
               marginBottom: '1rem',
               textShadow: '0 0 10px rgba(239, 68, 68, 0.6)'
             }}>
-              {t('system.criticalError')}
+              {String(t('system.criticalError'))}
             </h2>
 
             <p style={{
@@ -108,7 +135,7 @@ class ErrorBoundary extends React.Component {
               color: '#FECACA',
               marginBottom: '2rem'
             }}>
-              {t('system.unrecoverableException')}
+              {String(t('system.unrecoverableException'))}
             </p>
 
             <button
@@ -126,13 +153,13 @@ class ErrorBoundary extends React.Component {
                 fontFamily: 'inherit'
               }}
             >
-              {t('system.rebootSystem')}
+              {String(t('system.rebootSystem'))}
             </button>
 
             {process.env.NODE_ENV === 'development' && (
               <details style={{ marginTop: '2rem', textAlign: 'left', width: '100%' }}>
                 <summary style={{ cursor: 'pointer', color: '#F87171', marginBottom: '0.5rem' }}>
-                  {t('system.debugTrace')}
+                  {String(t('system.debugTrace'))}
                 </summary>
                 <div style={{
                   background: 'rgba(0, 0, 0, 0.8)',
@@ -145,10 +172,10 @@ class ErrorBoundary extends React.Component {
                   border: '1px solid #7F1D1D'
                 }}>
                   <p style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>
-                    {this.state.error && this.state.error.toString()}
+                    {this.state.error && String(this.state.error.toString())}
                   </p>
                   <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
-                    {this.state.errorInfo?.componentStack || 'No component stack available'}
+                    {String(this.state.errorInfo?.componentStack || 'No component stack available')}
                   </pre>
                 </div>
               </details>

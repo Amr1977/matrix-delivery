@@ -30,7 +30,19 @@ export const I18nProvider = ({ children }) => {
       value = value?.[k];
     }
     
-    return value || key;
+    // Enhanced safety: ensure we always return a string
+    if (typeof value === 'string') {
+      return value;
+    }
+    
+    // If value is an object or undefined, return the key as fallback
+    if (value && typeof value === 'object') {
+      console.warn(`Translation key "${key}" returns an object instead of string`);
+      return key;
+    }
+    
+    // If translation doesn't exist, return the key
+    return key;
   };
 
   const changeLocale = (newLocale) => {

@@ -5,55 +5,41 @@ let redisClient = null;
 const isTest = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing';
 const isProduction = process.env.NODE_ENV === 'production';
 
-// Only attempt to connect to Redis if REDIS_URL is provided or in production
-// In production, we strongly prefer Redis, but will fall back to memory if connection fails to avoid crash
-if (process.env.REDIS_URL) {
-    logger.info('🔌 Attempting to connect to Redis...', {
-        url: process.env.REDIS_URL.replace(/\/\/.*@/, '//***@') // Mask auth
-    });
-
+// Redis is optional - use in-memory fallback if Redis is not available
+// This prevents crashes during development without Redis installed
+if (process.env.REDIS_URL && process.env.ENABLE_REDIS === 'true') {
+    logger.info('🔌 Redis enabled via ENABLE_REDIS=true, attempting connection...');
+    
     redisClient = new Redis(process.env.REDIS_URL, {
-        maxRetriesPerRequest: 3,  // Limit retries per request to prevent indefinite queueing
+        maxRetriesPerRequest: 1,
         enableReadyCheck: false,
-        // Limit command queue to prevent memory buildup during outages
-        maxLoadingRetryTime: 10000,
+        connectTimeout: 3000,
+        commandTimeout: 2000,
         retryStrategy(times) {
-            // Stop retrying after 20 attempts (~40 seconds)
-            if (times > 20) {
-                logger.error('Redis: max reconnection attempts reached, giving up');
-                return null; // Stop retrying
+            if (times > 1) {
+                logger.warn('⚠️ Redis: stopping reconnection attempts');
+                return null;
             }
-            const delay = Math.min(times * 50, 2000);
-            return delay;
+            return 500;
         },
-        reconnectOnError(err) {
-            const targetError = 'READONLY';
-            if (err.message.slice(0, targetError.length) === targetError) {
-                // Only reconnect when the error starts with "READONLY"
-                return true;
-            }
-            return false;
-        }
-    });
-
-    redisClient.on('connect', () => {
-        logger.info('✅ Redis connected successfully');
+        lazyConnect: true
     });
 
     redisClient.on('error', (err) => {
-        logger.error('❌ Redis connection error', { error: err.message });
-        // If specific error handling needed, add here
+        // Gracefully ignore connection errors
+        if (err.message && (err.message.includes('ETIMEDOUT') || err.message.includes('ECONNREFUSED') || err.message.includes('timed out'))) {
+            logger.warn('⚠️ Redis unavailable - using in-memory fallback');
+            return;
+        }
+        logger.warn('⚠️ Redis error:', err.message);
     });
-
-    redisClient.on('ready', () => {
-        logger.info('🚀 Redis client ready');
-    });
-
 } else {
-    if (isProduction) {
-        logger.warn('⚠️ REDIS_URL not set in production! Falling back to in-memory storage. This is NOT recommended for scaling.');
+    if (isProduction && !process.env.REDIS_URL) {
+        logger.warn('⚠️ REDIS_URL not set in production! Using in-memory storage.');
+    } else if (!isTest && process.env.REDIS_URL && process.env.ENABLE_REDIS !== 'true') {
+        logger.info('ℹ️ Redis available but not enabled (set ENABLE_REDIS=true to use). Using in-memory storage.');
     } else if (!isTest) {
-        logger.info('ℹ️ Running without Redis (Development mode). Using in-memory storage.');
+        logger.info('ℹ️ Running without Redis. Using in-memory storage.');
     }
 }
 
