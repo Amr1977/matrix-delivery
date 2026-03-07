@@ -17,12 +17,22 @@ const csrfTokenRoute = (req, res) => {
     return res.json({ csrfToken: null, disabled: true });
   }
 
+  // CRITICAL: Ensure this endpoint is NEVER cached by browsers or CDNs.
+  // If cached, the frontend gets a token from the cache but the cookie is not set.
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+
   const token = generateToken();
 
+  // Double-submit cookie pattern:
+  // 1. Set a non-httpOnly cookie so frontend JS can read it (if same-site)
+  // 2. OR rely on the browser sending it back automatically with credentials: include
   res.cookie('csrfToken', token, {
-    httpOnly: false, // must be readable by frontend JS
-    sameSite: 'none',
+    httpOnly: false, // must be readable by frontend JS for true double-submit
+    sameSite: 'none', // Required for cross-site requests (Safari/Chrome default)
     secure: true, // Required for sameSite: 'none'
+    path: '/', // Ensure it's available for all /api routes
   });
 
   // Also expose via header for clients that prefer it
