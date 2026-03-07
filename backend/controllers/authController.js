@@ -131,25 +131,30 @@ const register = async (req, res) => {
         // Set httpOnly cookie for security
         const token = result.token;
         const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+        const isHttps = req.secure || req.get('x-forwarded-proto') === 'https';
         
         // CRITICAL: For cross-site requests (frontend at matrix-delivery.web.app, backend at matrix-delivery-api-gc.mywire.org)
         // we MUST use SameSite=None and Secure=true to allow cookies in cross-site context
         const cookieOptions = {
             httpOnly: true,
-            secure: true, // Always use secure in production (HTTPS)
-            sameSite: 'none', // Required for cross-site cookies
+            secure: isHttps || IS_PRODUCTION, // Use secure if HTTPS is detected or in production
+            sameSite: isHttps ? 'none' : 'lax', // Use 'none' for cross-site (requires HTTPS), 'lax' for same-site/dev
             maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
             path: '/'
         };
         
-        // For development, use lax for same-site requests
-        if (!IS_PRODUCTION) {
-            cookieOptions.sameSite = 'lax';
-            cookieOptions.secure = false;
+        // Ensure that if sameSite is 'none', secure MUST be true (browser requirement)
+        if (cookieOptions.sameSite === 'none') {
+            cookieOptions.secure = true;
         }
 
-        // Clear existing
-        res.clearCookie('token', { path: '/' });
+        // Clear existing with matching options to ensure it's removed
+        res.clearCookie('token', { 
+            path: '/',
+            httpOnly: true,
+            secure: cookieOptions.secure,
+            sameSite: cookieOptions.sameSite
+        });
 
         res.cookie('token', token, cookieOptions);
 
@@ -223,38 +228,29 @@ const login = async (req, res) => {
         // Set httpOnly cookie for security
         const token = result.token;
         const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+        const isHttps = req.secure || req.get('x-forwarded-proto') === 'https';
 
         // CRITICAL: For cross-site requests (frontend at matrix-delivery.web.app, backend at matrix-delivery-api-gc.mywire.org)
         // we MUST use SameSite=None and Secure=true to allow cookies in cross-site context
-        // This is required for browsers to accept the cookie in cross-site scenarios
         const cookieOptions = {
             httpOnly: true,
-            secure: true, // Always use secure in production (HTTPS)
-            sameSite: 'none', // Required for cross-site cookies
+            secure: isHttps || IS_PRODUCTION, // Use secure if HTTPS is detected or in production
+            sameSite: isHttps ? 'none' : 'lax', // Use 'none' for cross-site (requires HTTPS), 'lax' for same-site/dev
             maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
             path: '/'
         };
         
-        // For development, use lax for same-site requests
-        if (!IS_PRODUCTION) {
-            cookieOptions.sameSite = 'lax';
-            cookieOptions.secure = false;
+        // Ensure that if sameSite is 'none', secure MUST be true (browser requirement)
+        if (cookieOptions.sameSite === 'none') {
+            cookieOptions.secure = true;
         }
         
-        // Clear any existing cookie first
-        // We attempt to clear with both configurations to be safe
+        // Clear any existing cookie first with matching configuration
         res.clearCookie('token', {
+            path: '/',
             httpOnly: true,
-            secure: true,
-            sameSite: 'none',
-            path: '/'
-        });
-
-        res.clearCookie('token', {
-            httpOnly: true,
-            secure: false,
-            sameSite: 'lax',
-            path: '/'
+            secure: cookieOptions.secure,
+            sameSite: cookieOptions.sameSite
         });
 
         res.cookie('token', token, cookieOptions);
@@ -307,20 +303,16 @@ const logout = async (req, res) => {
         category: 'auth'
     });
 
+    const isHttps = req.secure || req.get('x-forwarded-proto') === 'https';
     const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+    const sameSite = isHttps ? 'none' : 'lax';
+    const secure = isHttps || IS_PRODUCTION || sameSite === 'none';
 
-    // Clear with both possible configurations to ensure removal
+    // Clear with matching configuration to ensure removal
     res.clearCookie('token', {
         httpOnly: true,
-        secure: true,
-        sameSite: 'none',
-        path: '/'
-    });
-
-    res.clearCookie('token', {
-        httpOnly: true,
-        secure: false,
-        sameSite: 'lax',
+        secure: secure,
+        sameSite: sameSite,
         path: '/'
     });
 
@@ -358,21 +350,21 @@ const refresh = async (req, res) => {
             { expiresIn: '30d' }
         );
 
+        const isHttps = req.secure || req.get('x-forwarded-proto') === 'https';
         const IS_PRODUCTION = process.env.NODE_ENV === 'production';
         
         // CRITICAL: For cross-site requests, always use SameSite=None and Secure=true
         const cookieOptions = {
             httpOnly: true,
-            secure: true,
-            sameSite: 'none', // Required for cross-site cookies
+            secure: isHttps || IS_PRODUCTION, // Use secure if HTTPS is detected or in production
+            sameSite: isHttps ? 'none' : 'lax', // Use 'none' for cross-site (requires HTTPS), 'lax' for same-site/dev
             maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
             path: '/'
         };
         
-        // For development, use lax for same-site requests
-        if (!IS_PRODUCTION) {
-            cookieOptions.sameSite = 'lax';
-            cookieOptions.secure = false;
+        // Ensure that if sameSite is 'none', secure MUST be true (browser requirement)
+        if (cookieOptions.sameSite === 'none') {
+            cookieOptions.secure = true;
         }
 
         // Set new token in cookie
