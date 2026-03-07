@@ -67,9 +67,13 @@ const ActiveOrderCard = ({
     handleConfirmDelivery,
     openReviewModal,
     fetchOrderReviews,
+    onTrackOrder,
 }) => {
     const navigate = useNavigate();
     const isDriverAssigned = order.assignedDriver?.userId === currentUser?.id;
+
+    // Determine if order is trackable (in progress)
+    const isTrackable = ['accepted', 'picked_up', 'in_transit'].includes(order.status);
 
     // ---------------------------------------------------------------------------
     // NEW: Dedicated Driver Bidding Card View
@@ -231,6 +235,16 @@ const ActiveOrderCard = ({
                             style={{ padding: '0.5rem 1rem', background: '#EF4444', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: loadingStates.deleteOrder ? 'not-allowed' : 'pointer', fontSize: '0.875rem', fontWeight: '600', opacity: loadingStates.deleteOrder ? 0.5 : 1 }}
                         >
                             🗑️ {t('activeOrder.deleteOrder')}
+                        </button>
+                    )}
+
+                    {/* Track Order Button (Active Orders) */}
+                    {isTrackable && currentUser?.primary_role === 'customer' && (
+                        <button
+                            onClick={() => onTrackOrder(order)}
+                            style={{ padding: '0.5rem 1rem', background: '#10B981', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
+                        >
+                            🛰️ {t('activeOrder.trackOrder') || 'Track Order'}
                         </button>
                     )}
 

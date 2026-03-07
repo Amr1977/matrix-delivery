@@ -2719,6 +2719,10 @@ export const MainApp = () => {
                       handleConfirmDelivery={handleConfirmDelivery}
                       openReviewModal={openReviewModal}
                       fetchOrderReviews={fetchOrderReviews}
+                      onTrackOrder={(order) => {
+                        setSelectedOrder(order);
+                        setShowLiveTracking(true);
+                      }}
                     />
                   );
                 })
