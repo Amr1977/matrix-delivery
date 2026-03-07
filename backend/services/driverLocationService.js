@@ -71,10 +71,10 @@ async function getDriversLocationsForOrder(orderId) {
         b.estimated_pickup_time,
         b.estimated_delivery_time
       FROM bids b
-      JOIN users u ON b.driver_id = u.id
+      JOIN users u ON b.user_id = u.id
       LEFT JOIN LATERAL (
         SELECT * FROM driver_locations
-        WHERE driver_id = b.driver_id
+        WHERE driver_id = b.user_id
         ORDER BY timestamp DESC
         LIMIT 1
       ) dl ON true
