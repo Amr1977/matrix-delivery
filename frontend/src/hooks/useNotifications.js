@@ -115,9 +115,21 @@ const useNotifications = (token, currentUser) => {
     }
   }, []);
 
+  // Use refs for stable handlers to prevent reconnection cycles
+  const playNotificationSoundRef = useRef(playNotificationSound);
+  const speakNotificationRef = useRef(speakNotification);
+
+  useEffect(() => {
+    playNotificationSoundRef.current = playNotificationSound;
+  }, [playNotificationSound]);
+
+  useEffect(() => {
+    speakNotificationRef.current = speakNotification;
+  }, [speakNotification]);
+
   // Real-time notifications via WebSocket
   useEffect(() => {
-    if (token && currentUser) {
+    if (token && currentUser?.id) {
       const apiUrl = API_URL.replace('/api', '');
 
       console.log('🔌 Initializing Socket.IO connection to:', apiUrl);
@@ -199,11 +211,13 @@ const useNotifications = (token, currentUser) => {
         setNotifications(prev => [notification, ...prev]);
 
         // Play notification sound
-        playNotificationSound();
+        if (playNotificationSoundRef.current) {
+          playNotificationSoundRef.current();
+        }
 
         // Speak notification (only for new unread ones)
-        if (!notification.isRead) {
-          speakNotification(notification);
+        if (!notification.isRead && speakNotificationRef.current) {
+          speakNotificationRef.current(notification);
         }
       });
 
@@ -214,7 +228,7 @@ const useNotifications = (token, currentUser) => {
         socket.disconnect();
       };
     }
-  }, [token, currentUser, API_URL, playNotificationSound, speakNotification]);
+  }, [token, currentUser?.id, API_URL]); // Stable dependencies
 
   // Setup periodic polling
   useEffect(() => {
