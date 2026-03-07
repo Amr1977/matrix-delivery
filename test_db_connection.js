@@ -1,7 +1,7 @@
 const { Pool } = require('pg');
 
 // Use the Neon DATABASE_URL directly for testing
-const DATABASE_URL = 'postgresql://neondb_owner:***REDACTED***@ep-shy-tooth-ab6w37t9-pooler.eu-west-2.aws.neon.tech/matrix_delivery_production?sslmode=require&channel_binding=require';
+const DATABASE_URL = 'postgresql://neondb_owner:***REDACTED***@ep-shy-tooth-ab6w37t9-pooler.eu-west-2.aws.neon.tech/matrix_delivery_production?sslmode=verify-full&channel_binding=require';
 
 const pool = new Pool({
   connectionString: DATABASE_URL,

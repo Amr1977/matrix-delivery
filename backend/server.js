@@ -95,17 +95,17 @@ if (process.env.REDIS_URL && process.env.ENABLE_REDIS === 'true' && !IS_TEST) {
   // Only use Redis adapter if explicitly enabled
   try {
     const pubClient = new Redis(process.env.REDIS_URL, {
-      maxRetriesPerRequest: 1,
+      maxRetriesPerRequest: 3,
       enableReadyCheck: false,
       lazyConnect: true,
-      connectTimeout: 3000
+      connectTimeout: 10000
     });
     const subClient = pubClient.duplicate();
 
     // Try to connect with timeout
     const connectPromise = Promise.all([pubClient.connect(), subClient.connect()]);
     const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Redis connection timeout')), 3000)
+      setTimeout(() => reject(new Error('Redis connection timeout')), 5000)
     );
 
     Promise.race([connectPromise, timeoutPromise])
@@ -116,13 +116,17 @@ if (process.env.REDIS_URL && process.env.ENABLE_REDIS === 'true' && !IS_TEST) {
       .catch((err) => {
         pubClient.disconnect().catch(() => {});
         subClient.disconnect().catch(() => {});
-        logger.warn('⚠️ Redis unavailable - using in-memory adapter (single instance)');
+        logger.warn(`⚠️ Redis unavailable for Socket.IO: ${err.message} - using in-memory adapter (single instance)`);
       });
 
-    pubClient.on('error', () => {}); // Ignore errors - we're gracefully degrading
-    subClient.on('error', () => {});
+    pubClient.on('error', (err) => {
+      logger.debug(`Redis pubClient error: ${err.message}`);
+    });
+    subClient.on('error', (err) => {
+      logger.debug(`Redis subClient error: ${err.message}`);
+    });
   } catch (err) {
-    logger.warn('⚠️ Redis setup skipped - using in-memory adapter');
+    logger.warn(`⚠️ Redis setup skipped for Socket.IO: ${err.message} - using in-memory adapter`);
   }
 } else if (!IS_TEST) {
   logger.info('ℹ️ Socket.IO using in-memory adapter (set ENABLE_REDIS=true for cluster mode)');
