@@ -48,7 +48,6 @@
     "deploy:frontend": "pwsh scripts/deploy.ps1 -Target frontend",
     "deploy:skip-tests": "pwsh scripts/deploy.ps1 -SkipTests",
     "deploy:backend:skip-tests": "pwsh scripts/deploy.ps1 -Target backend -SkipTests"
-    
   },
   "jest": {
     "testEnvironment": "node",
@@ -141,9 +140,25 @@
     "@capacitor/android": "^7.4.4",
     "@capacitor/cli": "^7.4.4",
     "@capacitor/core": "^7.4.4",
+    "@neondatabase/serverless": "^1.0.2",
     "@paypal/checkout-server-sdk": "^1.0.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
     "eslint-plugin-security": "^3.0.1",
+    "ethers": "^6.16.0",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.3.0",
+    "express-validator": "^7.3.1",
     "firebase": "^12.7.0",
-    "react-router-dom": "^7.12.0"
+    "geolib": "^3.3.4",
+    "helmet": "^8.1.0",
+    "ioredis": "^5.10.0",
+    "morgan": "^1.10.1",
+    "nodemailer": "^8.0.1",
+    "rate-limit-redis": "^4.3.1",
+    "react-router-dom": "^7.12.0",
+    "socket.io": "^4.8.3",
+    "winston": "^3.19.0",
+    "winston-daily-rotate-file": "^5.0.0"
   }
 }
