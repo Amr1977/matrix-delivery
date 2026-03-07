@@ -1,5 +1,7 @@
 const express = require('express');
+const pool = require('../config/db');
 const orderService = require('../services/orderService');
+const driverLocationService = require('../services/driverLocationService');
 const { verifyToken, requireRole } = require('../middleware/auth');
 const { orderCreationRateLimit, apiRateLimit } = require('../middleware/rateLimit');
 const logger = require('../config/logger');
@@ -156,6 +158,38 @@ router.get('/:orderId', verifyToken, async (req, res) => {
       category: 'error'
     });
     res.status(500).json({ error: error.message || 'Failed to fetch order' });
+  }
+});
+
+// Get live locations of all drivers who bid on an order (Customer only)
+router.get('/:orderId/bids/locations', verifyToken, async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const userId = req.user.userId;
+
+    // Check if user is the customer who created the order
+    const order = await pool.query(
+      'SELECT customer_id FROM orders WHERE id = $1',
+      [orderId]
+    );
+
+    if (order.rows.length === 0) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    if (order.rows[0].customer_id !== userId) {
+      return res.status(403).json({ error: 'Access denied: You are not the owner of this order' });
+    }
+
+    const locations = await driverLocationService.getDriversLocationsForOrder(orderId);
+    res.json(locations);
+  } catch (error) {
+    logger.error(`Get bid locations error: ${error.message}`, {
+      userId: req.user.userId,
+      orderId: req.params.orderId,
+      category: 'error'
+    });
+    res.status(500).json({ error: error.message || 'Failed to fetch bid locations' });
   }
 });
 

@@ -13,7 +13,11 @@ L.Icon.Default.mergeOptions({
 });
 
 // ============ ROUTE PREVIEW MAP COMPONENT ============
-const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, loading, compact = false, t, mapTitle = "Route Preview", theme = 'dark' }) => {
+const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, bids = [], onBidAccept, onBidSelect, selectedBidId: externalSelectedBidId, loading, compact = false, t, mapTitle = "Route Preview", theme = 'dark' }) => {
+  const [internalSelectedBidId, setInternalSelectedBidId] = React.useState(null);
+  const selectedBidId = externalSelectedBidId !== undefined ? externalSelectedBidId : internalSelectedBidId;
+  const setSelectedBidId = externalSelectedBidId !== undefined ? onBidSelect : setInternalSelectedBidId;
+
   const hasCoordinates = pickup && dropoff;
   const centerLat = hasCoordinates ? (pickup.lat + dropoff.lat) / 2 : 30.0444;
   const centerLng = hasCoordinates ? (pickup.lng + dropoff.lng) / 2 : 31.2357;
@@ -94,6 +98,18 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, loading, 
     if (driverLocation && Number.isFinite(driverLocation.latitude) && Number.isFinite(driverLocation.longitude)) {
       points.push([driverLocation.latitude, driverLocation.longitude]);
     }
+    
+    // Add bid locations to bounds
+    if (Array.isArray(bids)) {
+      bids.forEach(bid => {
+        const lat = bid.driverLocation?.lat || bid.latitude;
+        const lng = bid.driverLocation?.lng || bid.longitude;
+        if (Number.isFinite(lat) && Number.isFinite(lng)) {
+          points.push([lat, lng]);
+        }
+      });
+    }
+
     // Also include route path points if available to ensure full route is visible
     if (routePath && routePath.length > 0) {
       // Sample points to avoid performance issues with large polylines
@@ -105,7 +121,7 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, loading, 
 
     if (points.length === 0) return null;
     return L.latLngBounds(points);
-  }, [pickup, dropoff, driverLocation, routePath]);
+  }, [pickup, dropoff, driverLocation, routePath, bids]);
 
   const MapEffect = () => {
     const map = useMap();
@@ -211,9 +227,109 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, loading, 
                     dashArray="10, 10"
                   />
                 )}
-                {/* Driver Location Marker - Enhanced visibility */}
+
+                {/* All Bids Markers */}
+                {Array.isArray(bids) && bids.map((bid, index) => {
+                  const bidLat = bid.driverLocation?.lat || bid.latitude;
+                  const bidLng = bid.driverLocation?.lng || bid.longitude;
+                  if (!Number.isFinite(bidLat) || !Number.isFinite(bidLng)) return null;
+
+                  const isSelected = (selectedBidId === (bid.userId || bid.driver_id)) || (driverLocation && driverLocation.userId === (bid.userId || bid.driver_id));
+
+                  return (
+                    <React.Fragment key={bid.userId || bid.driver_id || index}>
+                      {/* Highlighted pickup leg for selected bid */}
+                      {isSelected && pickup && (
+                        <Polyline
+                          positions={[
+                            [bidLat, bidLng],
+                            [pickup.lat, pickup.lng]
+                          ]}
+                          color="#3B82F6"
+                          weight={6}
+                          opacity={1.0}
+                          dashArray="10, 10"
+                        />
+                      )}
+
+                      <Marker
+                        position={[bidLat, bidLng]}
+                        icon={L.icon({
+                          iconUrl: isSelected ? '/markers/user-location.svg' : '/markers/marker-icon.png',
+                          iconSize: isSelected ? [60, 60] : [25, 41],
+                          iconAnchor: isSelected ? [30, 30] : [12, 41],
+                          popupAnchor: [0, -30]
+                        })}
+                        eventHandlers={{
+                          click: () => {
+                            if (externalSelectedBidId !== undefined) {
+                              if (onBidSelect) onBidSelect(bid.userId || bid.driver_id);
+                            } else {
+                              setInternalSelectedBidId(bid.userId || bid.driver_id);
+                              if (onBidSelect) onBidSelect(bid.userId || bid.driver_id);
+                            }
+                          }
+                        }}
+                      >
+                        <Popup>
+                          <div style={{ 
+                            fontSize: '0.875rem', 
+                            minWidth: '200px',
+                            color: isLightMode ? '#000' : '#fff',
+                            background: isLightMode ? '#fff' : '#000',
+                            padding: '0.5rem'
+                          }}>
+                            <div style={{ fontWeight: '600', color: '#3B82F6', marginBottom: '0.25rem', fontSize: '1rem' }}>
+                              🚗 {bid.driverName || 'Driver'}
+                            </div>
+                            <div style={{ color: '#059669', fontWeight: 'bold', marginBottom: '0.5rem' }}>
+                              Bid: {bid.bidPrice ? `${bid.bidPrice} EGP` : 'Price not set'}
+                            </div>
+                            
+                            <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.5rem', fontSize: '0.75rem' }}>
+                              <div>⭐ {bid.driverRating || bid.rating || 'No rating'}</div>
+                              <div>📦 {bid.driverCompletedDeliveries || bid.completed_deliveries || 0} orders</div>
+                            </div>
+
+                            {bid.message && (
+                              <div style={{ 
+                                fontStyle: 'italic', 
+                                borderLeft: '3px solid #3B82F6', 
+                                paddingLeft: '0.5rem',
+                                marginBottom: '0.75rem',
+                                fontSize: '0.8125rem'
+                              }}>
+                                "{bid.message}"
+                              </div>
+                            )}
+
+                            <button
+                              onClick={() => {
+                                if (onBidAccept) onBidAccept(bid.userId || bid.driver_id);
+                              }}
+                              style={{
+                                width: '100%',
+                                padding: '0.5rem',
+                                background: '#059669',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '0.25rem',
+                                cursor: 'pointer',
+                                fontWeight: 'bold'
+                              }}
+                            >
+                              Accept Bid
+                            </button>
+                          </div>
+                        </Popup>
+                      </Marker>
+                    </React.Fragment>
+                  );
+                })}
+
+                {/* Driver Location Marker - Enhanced visibility (Original) */}
                 {console.log('🚗 RoutePreviewMap Driver Marker Check:', { driverLocation })}
-                {driverLocation && Number.isFinite(driverLocation.latitude) && Number.isFinite(driverLocation.longitude) && (
+                {driverLocation && Number.isFinite(driverLocation.latitude) && Number.isFinite(driverLocation.longitude) && !bids.some(b => (b.userId || b.driver_id) === driverLocation.userId) && (
                   <Marker
                     position={[driverLocation.latitude, driverLocation.longitude]}
                     icon={L.icon({

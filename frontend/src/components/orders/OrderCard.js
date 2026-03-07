@@ -5,6 +5,7 @@ import DriverBiddingMap from '../maps/DriverBiddingMap';
 import RoutePreviewMap from '../RoutePreviewMap';
 import LiveTrackingMap from '../maps/LiveTrackingMap';
 import useAuth from '../../hooks/useAuth';
+import useBidsLocations from '../../hooks/useBidsLocations';
 import BidWithLiveLocation from './BidWithLiveLocation';
 import DriverBiddingCard from './DriverBiddingCard';
 
@@ -27,6 +28,23 @@ const OrderCard = ({
 }) => {
   const { t } = useI18n();
   const [showRouteMapFullscreen, setShowRouteMapFullscreen] = React.useState(false);
+  const [highlightedBidId, setHighlightedBidId] = React.useState(null);
+
+  // Fetch live locations for all drivers who bid on this order
+  const { locations: bidLocations } = useBidsLocations(
+    order.id, 
+    order.status === 'pending_bids' && currentUser?.primary_role === 'customer' && order.bids?.length > 0
+  );
+
+  // Scroll to highlighted bid section when it changes from the map
+  React.useEffect(() => {
+    if (highlightedBidId) {
+      const element = document.getElementById(`bid-section-${highlightedBidId}`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  }, [highlightedBidId]);
 
   // Convert app-level driver location format for compatibility with maps
   // appDriverLocation comes from useDriver hook in App.js and has { latitude, longitude } format
@@ -837,6 +855,11 @@ const OrderCard = ({
             <RoutePreviewMap
               pickup={order.from}
               dropoff={order.to}
+              // Pass all bid locations for the markers
+              bids={bidLocations && bidLocations.length > 0 ? bidLocations : (order.bids || [])}
+              selectedBidId={highlightedBidId}
+              onBidSelect={(bidId) => setHighlightedBidId(bidId)}
+              onBidAccept={(bidId) => onAcceptBid(order.id, bidId)}
               // Pass the first bid's location if available (or logic to select which driver to show)
               // For now, we don't show a specific driver on the main card map until a bid is selected or we iterate bids
               // But if we want to show the route for a specific bid, we'd need to pass that bid's location
@@ -871,18 +894,28 @@ const OrderCard = ({
               Driver Bids ({order.bids.length})
             </h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              {order.bids.map((bid, index) => (
-                <div key={index} style={{
-                  background: 'rgba(0, 17, 0, 0.3)',
-                  border: '2px solid var(--matrix-border)',
-                  padding: '1rem',
-                  borderRadius: '0.5rem',
-                  opacity: '0.95'
-                }}>
-                  {/* Show live location map for this bid */}
-                  <BidWithLiveLocation bid={bid} order={order} compact={true} />
+              {order.bids.map((bid, index) => {
+                const isHighlighted = highlightedBidId === (bid.userId || bid.driver_id);
+                return (
+                  <div 
+                    key={index} 
+                    id={`bid-section-${bid.userId || bid.driver_id}`}
+                    style={{
+                      background: isHighlighted ? 'rgba(79, 70, 229, 0.2)' : 'rgba(0, 17, 0, 0.3)',
+                      border: isHighlighted ? '2px solid #4F46E5' : '2px solid var(--matrix-border)',
+                      padding: '1rem',
+                      borderRadius: '0.5rem',
+                      opacity: '0.95',
+                      transition: 'all 0.3s ease',
+                      transform: isHighlighted ? 'scale(1.02)' : 'scale(1)',
+                      boxShadow: isHighlighted ? '0 0 15px rgba(79, 70, 229, 0.4)' : 'none'
+                    }}
+                    onMouseEnter={() => setHighlightedBidId(bid.userId || bid.driver_id)}
+                    onMouseLeave={() => setHighlightedBidId(null)}
+                  >
+                    {/* Show live location map removed as we now have one main map with all markers */}
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.75rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.75rem' }}>
                     <div>
                       <p style={{
                         fontWeight: '600',
@@ -963,8 +996,9 @@ const OrderCard = ({
                       </p>
                     </div>
                   )}
-                </div>
-              ))}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )
