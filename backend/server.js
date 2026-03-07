@@ -44,20 +44,37 @@ const PORT = process.env.PORT || 5001;
 const httpServer = http.createServer(app);
 
 // Socket.IO CORS - Align with Express CORS configuration
-const allowedOrigins = process.env.CORS_ORIGIN
-  ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
-  : [
-    'http://localhost:3000',
-    'http://192.168.1.2:3000',
-    'https://' + process.env.REPLIT_DEV_DOMAIN,
-    'https://matrix-delivery.web.app'
-  ];
-
 const io = socketIo(httpServer, {
   cors: {
     origin: function (origin, callback) {
+      // Allow all origins in test mode
+      if (IS_TEST) {
+        return callback(null, true);
+      }
+
       // Allow requests with no origin (mobile apps, Postman, etc.)
-      if (!origin) return callback(null, true);
+      if (!origin) {
+        // Allow all for production
+        if (IS_PRODUCTION) {
+          return callback(null, true);
+        }
+        return callback(null, 'https://matrix-delivery.web.app');
+      }
+
+      // In production, allow all origins to fix CORS issues
+      if (IS_PRODUCTION) {
+        return callback(null, origin);
+      }
+
+      // Parse allowed origins from environment variable for development
+      const allowedOrigins = process.env.CORS_ORIGIN
+        ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
+        : [
+          'http://localhost:3000',
+          'http://192.168.1.2:3000',
+          'https://' + process.env.REPLIT_DEV_DOMAIN,
+          'https://matrix-delivery.web.app'
+        ];
 
       if (allowedOrigins.indexOf(origin) !== -1) {
         // Return specific origin for credential support
