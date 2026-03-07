@@ -330,6 +330,25 @@ export const MainApp = () => {
   const [countryFilter, setCountryFilter] = useState(''); // Country filter for bidding orders
   const [cityFilter, setCityFilter] = useState(''); // City filter for bidding orders
   const [areaFilter, setAreaFilter] = useState(''); // Area filter for bidding orders
+  const initialViewRedirectDone = useRef(false);
+
+  useEffect(() => {
+    // Only proceed if user is a driver, orders are loaded, and we haven't done the initial redirect
+    if (currentUser?.primary_role === 'driver' && ordersLoaded && !initialViewRedirectDone.current) {
+      const hasActiveOrder = orders.some(order => 
+        order.assignedDriver?.userId === currentUser.id && 
+        !['delivered', 'cancelled', 'confirmed', 'pending_bids'].includes(order.status)
+      );
+
+      if (hasActiveOrder) {
+        setViewType('active');
+      } else {
+        setViewType('bidding');
+      }
+      initialViewRedirectDone.current = true;
+      console.log(`🚗 Driver default view set to: ${hasActiveOrder ? 'active' : 'bidding'}`);
+    }
+  }, [orders, currentUser, ordersLoaded]);
 
 
 
@@ -361,7 +380,10 @@ export const MainApp = () => {
   const [bidInput, setBidInput] = useState({});
   const [bidDetails, setBidDetails] = useState({});
 
+  const [ordersLoaded, setOrdersLoaded] = useState(false);
+
   const fetchOrders = useCallback(async (filters = {}) => {
+    setLoadingStates(prev => ({ ...prev, ordersFetch: true }));
     try {
       const queryParams = new URLSearchParams();
 
@@ -416,8 +438,11 @@ export const MainApp = () => {
       const ordersWithBids = data.filter(order => order.bids && order.bids.length > 0);
 
       setOrders(data);
+      setOrdersLoaded(true);
     } catch (err) {
       console.error('Error fetching orders:', err.message);
+    } finally {
+      setLoadingStates(prev => ({ ...prev, ordersFetch: false }));
     }
   }, [API_URL, token, currentUser?.primary_role, driverLocation]);
 
@@ -527,7 +552,10 @@ export const MainApp = () => {
 
       const data = await api.get(`/updates${queryString ? '?' + queryString : ''}`);
 
-      if (data.orders) setOrders(data.orders);
+      if (data.orders) {
+        setOrders(data.orders);
+        setOrdersLoaded(true);
+      }
 
       if (data.notifications) {
         const newNotifications = data.notifications;
@@ -1209,6 +1237,8 @@ export const MainApp = () => {
       // Token is now in httpOnly cookie, just update the flag
       setToken('authenticated');
       setCurrentUser((prev) => ({ ...(prev || {}), primary_role }));
+      setOrdersLoaded(false);
+      initialViewRedirectDone.current = false;
     } catch (err) {
       setError(err.message || err.error || 'Failed to switch role');
     }
@@ -1227,6 +1257,7 @@ export const MainApp = () => {
     setCurrentUser(null);
     setProfileData({});
     setOrders([]);
+    setOrdersLoaded(false);
     setNotifications([]);
     setAuthState('login');
     setError('');
@@ -1234,6 +1265,7 @@ export const MainApp = () => {
     // Clear tracking modal state on logout
     setShowLiveTracking(false);
     setSelectedOrder(null);
+    initialViewRedirectDone.current = false;
   };
 
   // Add effect to close menu when clicking backdrop
