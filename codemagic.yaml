@@ -72,7 +72,7 @@ workflows:
     publishing:
       email:
         recipients:
-          - your-email@example.com
+          - amr.lotfy.othman@gmail.com
         notify:
           success: true
           failure: true
