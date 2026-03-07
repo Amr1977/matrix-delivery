@@ -51,6 +51,9 @@ const IS_TEST = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'tes
 
 const app = express();
 
+// Trust proxy is required for 'secure: true' cookies when behind Nginx/CDNs
+app.set('trust proxy', 1);
+
 // ============================================================================
 // EXPRESS CONFIGURATION (Middleware, Security, Logging, CORS)
 // ============================================================================
