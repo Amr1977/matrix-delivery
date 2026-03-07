@@ -39,13 +39,32 @@ UPLOAD_*.md
 WSL_SETUP.md
 
 # Compiled TypeScript (keep .ts, ignore .js in specific dirs)
-backend/utils/*.js
-backend/middleware/*.js
-
+backend/**/*.js
+!backend/server.js
+!backend/app.js
+!backend/config/*.js
 !backend/utils/generators.js
 !backend/utils/sanitizers.js
 !backend/utils/validators.js
 !backend/utils/cache.js
+!backend/routes/*.js
+!backend/services/*.js
+!backend/controllers/*.js
+!backend/models/*.js
+!backend/middleware/*.js
+
+# Explicitly ignore compiled files that have .ts counterparts
+backend/database/schema/*.js
+backend/database/init.js
+backend/middleware/validation/balanceValidation.js
+backend/migrationRunner.js
+backend/routes/heartbeat.js
+backend/services/activityTracker.js
+backend/services/notificationService.js
+backend/services/paymobService.js
+backend/services/pushNotificationService.js
+backend/types/api/*.js
+backend/utils/errors/ApiError.js
 
 # IDE
 .vscode/
