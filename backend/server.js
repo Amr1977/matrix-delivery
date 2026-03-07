@@ -28,13 +28,6 @@ const pool = require('./config/db');
 const { getNotificationService } = require('./services/notificationService');
 const configureSocket = require('./config/socket');
 const { startCleanup, stopCleanup } = require('./middleware/rateLimit');
-// Initialize Push Notification Service
-const { initializePushService } = require('./services/pushNotificationService');
-const pushRoutes = require('./routes/push');
-app.use('/api/push', pushRoutes);
-
-// Initialize Push Notification Service with pool
-initializePushService(pool);
 
 const IS_TEST = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing';
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';

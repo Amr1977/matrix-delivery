@@ -158,6 +158,12 @@ app.use('/api/takaful', require('./routes/takaful'));
 // Load emergency transfer routes
 app.use('/api/emergency', require('./routes/emergency'));
 
+// Load push notification routes
+const { initializePushService } = require('./services/pushNotificationService');
+const pushRoutes = require('./routes/push');
+app.use('/api/push', pushRoutes);
+initializePushService(pool);
+
 let HAS_POSTGIS = false;
 
 const JWT_SECRET = process.env.JWT_SECRET;

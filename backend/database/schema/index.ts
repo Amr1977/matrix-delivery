@@ -36,6 +36,8 @@ export {
     driverLocationsSchema
 } from './tracking';
 
+export { fcmTokensSchema } from './fcmTokens';
+
 // Vendor tables
 export {
     vendorsSchema,
@@ -77,6 +79,7 @@ import {
     locationUpdatesSchema,
     driverLocationsSchema
 } from './tracking';
+import { fcmTokensSchema } from './fcmTokens';
 import {
     vendorsSchema,
     vendorCategoriesSchema,
@@ -96,6 +99,7 @@ import { logsSchema } from './logs';
 export const allSchemas = [
     // Core tables (no dependencies)
     usersSchema,
+    fcmTokensSchema,
 
     // Auth tables (depend on users)
     passwordResetTokensSchema,
