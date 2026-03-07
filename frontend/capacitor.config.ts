@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.matrix.delivery',
-  appName: 'matrix-delivery',
+  appId: 'com.badr.delivery',
+  appName: 'BadrDeliveryTest',
   webDir: 'build'
 };
 

@@ -1142,19 +1142,19 @@ export const MainApp = () => {
     e.preventDefault();
 
     if (!authForm.name || !authForm.email || !authForm.password || !authForm.phone || !authForm.country || !authForm.city) {
-      logger.warn('Registration validation failed: missing required fields');
+      console.warn('Registration validation failed: missing required fields');
       setError('All required fields must be filled');
       return;
     }
     if (authForm.primary_role === 'driver' && !authForm.vehicle_type) {
-      logger.warn('Registration validation failed: missing vehicle type for driver');
+      console.warn('Registration validation failed: missing vehicle type for driver');
       setError('Vehicle type is required for drivers');
       return;
     }
 
     const recaptchaToken = process.env.REACT_APP_RECAPTCHA_SITE_KEY ? registerCaptchaRef.current?.getValue() : null;
     if (process.env.REACT_APP_RECAPTCHA_SITE_KEY && !recaptchaToken) {
-      logger.warn('Registration validation failed: missing captcha');
+      console.warn('Registration validation failed: missing captcha');
       setError('Please complete the captcha');
       return;
     }

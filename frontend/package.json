@@ -5,8 +5,10 @@
   "homepage": ".",
   "proxy": "http://localhost:5000",
   "dependencies": {
-    "@capacitor/cli": "^7.4.4",
-    "@capacitor/core": "^7.4.4",
+    "@capacitor/cli": "^7.6.0",
+    "@capacitor/core": "^7.6.0",
+    "@capacitor/device": "^7.0.4",
+    "@capacitor/ios": "^7.6.0",
     "@fingerprintjs/fingerprintjs": "^5.0.1",
     "@mapbox/polyline": "^1.2.1",
     "@mux/mux-player-react": "^3.11.5",
