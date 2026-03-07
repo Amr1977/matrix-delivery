@@ -13,8 +13,8 @@ const { getPushService } = require('../services/pushNotificationService');
 router.post('/register', requireAuth, async (req, res) => {
     try {
         const { token, deviceInfo } = req.body;
-        const userId = req.user.id;
-        const role = req.user.role;
+        const userId = req.user.userId;
+        const role = req.user.primary_role || req.user.role;
 
         if (!token || typeof token !== 'string') {
             return res.status(400).json({ error: 'token is required' });
