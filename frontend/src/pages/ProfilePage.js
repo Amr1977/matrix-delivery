@@ -3,7 +3,6 @@ import RoleSwitcher from '../components/RoleSwitcher';
 import CashBalanceCard from '../components/driver/CashBalanceCard';
 import { formatCurrency } from '../utils/formatters';
 import { useI18n } from '../i18n/i18nContext';
-import PushNotificationPermission from '../components/push/PushNotificationPermission';
 import api from '../api';
 
 const ProfilePage = ({
@@ -356,10 +355,6 @@ const ProfilePage = ({
                                 ) : (
                                     <div style={{ padding: '10px', fontSize: '16px', textTransform: 'capitalize' }}>{profileData.theme || 'System'}</div>
                                 )}
-                            </div>
-                            <div>
-                                <label style={{ display: 'block', color: '#9CA3AF', marginBottom: '5px', fontSize: '14px' }}>{t('profile.notifications')}</label>
-                                <PushNotificationPermission />
                             </div>
                             <div>
                                 <label style={{ display: 'block', color: '#9CA3AF', marginBottom: '5px', fontSize: '14px' }}>{t('profile.gender')}</label>

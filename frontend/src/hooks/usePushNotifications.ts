@@ -47,7 +47,7 @@ export function usePushNotifications(): {
             }
 
             // Send to backend
-            await api.post('/api/push/register', { token });
+            await api.post('/push/register', { token });
 
             return { success: true, token };
         } catch (error: any) {
@@ -64,7 +64,7 @@ export function usePushNotifications(): {
             }).catch(() => null);
 
             if (token) {
-                await api.post('/api/push/unregister', { token });
+                await api.post('/push/unregister', { token });
             }
         } catch (error) {
             console.error('Push unregistration error:', error);
