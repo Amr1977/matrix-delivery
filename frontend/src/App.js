@@ -693,11 +693,30 @@ export const MainApp = () => {
     });
   }, [viewType, currentUser, loading]);
 
+  // Create stable refs for functions used in Socket.IO listeners to prevent reconnection cycles
+  const fetchOrdersRef = useRef(fetchOrders);
+  const speakNotificationRef = useRef(speakNotification);
+  const currentUserRef = useRef(currentUser);
+
+  useEffect(() => {
+    fetchOrdersRef.current = fetchOrders;
+  }, [fetchOrders]);
+
+  useEffect(() => {
+    speakNotificationRef.current = speakNotification;
+  }, [speakNotification]);
+
+  useEffect(() => {
+    currentUserRef.current = currentUser;
+  }, [currentUser]);
+
   // Real-time notifications via WebSocket
   useEffect(() => {
     if (!token || !currentUser?.id) return;
 
     const apiUrl = API_URL.replace('/api', '');
+
+    console.log('🔌 Initializing Socket.IO connection for notifications');
 
     // Don't send token in auth - use httpOnly cookie instead
     const socket = io(apiUrl, {
@@ -712,15 +731,15 @@ export const MainApp = () => {
       console.log('📡 Connected to real-time notifications');
 
       // Join user's notification room
-      socket.emit('join_user_room', currentUser.id);
-      console.log(`📡 Joined user room: user_${currentUser.id}`);
+      if (currentUserRef.current?.id) {
+        socket.emit('join_user_room', currentUserRef.current.id);
+        console.log(`📡 Joined user room: user_${currentUserRef.current.id}`);
+      }
     });
 
     socket.on('notification', async (notification) => {
       console.log('📡 Real-time notification received:', notification);
-      console.log('📡 Notification type:', notification.type);
-      console.log('📡 Notification message:', notification.message);
-
+      
       setNotifications(prev => [notification, ...prev]);
       playNotificationSound();
 
@@ -729,7 +748,9 @@ export const MainApp = () => {
           if (prev.has(notification.id)) {
             return prev;
           }
-          speakNotification(notification);
+          if (speakNotificationRef.current) {
+            speakNotificationRef.current(notification);
+          }
           const next = new Set(prev);
           next.add(notification.id);
           return next;
@@ -740,30 +761,36 @@ export const MainApp = () => {
         setHistoryAttempted(false);
       }
 
-      if (notification.type === 'new_bid' ||
+      const isOrderRelated = 
+        notification.type === 'new_bid' ||
         notification.type === 'bid_accepted' ||
         notification.type === 'order_picked_up' ||
         notification.type === 'order_in_transit' ||
         notification.type === 'order_delivered' ||
         notification.message?.toLowerCase().includes('bid') ||
         notification.message?.toLowerCase().includes('driver') ||
-        notification.message?.toLowerCase().includes('order')) {
+        notification.message?.toLowerCase().includes('order');
+
+      if (isOrderRelated) {
         try {
-          await fetchOrders();
+          if (fetchOrdersRef.current) {
+            await fetchOrdersRef.current();
+          }
         } catch (error) {
           console.warn('Failed to refresh orders after notification:', error);
         }
       }
     });
 
-    socket.on('disconnect', () => {
-      console.log('📡 Disconnected from real-time notifications');
+    socket.on('disconnect', (reason) => {
+      console.log('📡 Disconnected from real-time notifications:', reason);
     });
 
     return () => {
+      console.log('🔌 Cleaning up Socket.IO connection for notifications');
       socket.disconnect();
     };
-  }, [token, currentUser, API_URL, fetchOrders, speakNotification]);
+  }, [token, currentUser?.id, API_URL]); // Only reconnect if token or user ID changes
 
   // // Fetch footer statistics
   // useEffect(() => {
