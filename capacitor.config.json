@@ -1,5 +1,5 @@
 {
   "appId": "com.matrix.delivery",
-  "appName": "matrix-delivery",
-  "webDir": "www"
+  "appName": "Matrix Delivery",
+  "webDir": "frontend/build"
 }
