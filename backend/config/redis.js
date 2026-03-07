@@ -11,16 +11,17 @@ if (process.env.REDIS_URL && process.env.ENABLE_REDIS === 'true') {
     logger.info('🔌 Redis enabled via ENABLE_REDIS=true, attempting connection...');
     
     redisClient = new Redis(process.env.REDIS_URL, {
-        maxRetriesPerRequest: 1,
+        maxRetriesPerRequest: 3,
         enableReadyCheck: false,
-        connectTimeout: 3000,
-        commandTimeout: 2000,
+        connectTimeout: 10000,
+        commandTimeout: 5000,
         retryStrategy(times) {
-            if (times > 1) {
-                logger.warn('⚠️ Redis: stopping reconnection attempts');
+            const delay = Math.min(times * 1000, 15000);
+            if (times > 10) {
+                logger.warn('⚠️ Redis: too many reconnection attempts, stopping');
                 return null;
             }
-            return 500;
+            return delay;
         },
         lazyConnect: true
     });
