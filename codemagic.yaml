@@ -1,0 +1,78 @@
+# Codemagic CI/CD configuration for Capacitor iOS build
+# For more information, see: https://docs.codemagic.io/yaml/yaml-getting-started/
+
+workflows:
+  ios-release:
+    name: iOS Release Build
+    instance_type: mac_mini_m1
+    max_build_duration: 60
+    environment:
+      node: 20
+      xcode: latest
+      cocoapods: default
+      vars:
+        # Define these in Codemagic UI (Environment Variables)
+        # APP_STORE_CONNECT_KEY_ID: "YOUR_KEY_ID"
+        # APP_STORE_CONNECT_ISSUER_ID: "YOUR_ISSUER_ID"
+        # APP_STORE_CONNECT_PRIVATE_KEY: "YOUR_PRIVATE_KEY"
+        # CERTIFICATE_PRIVATE_KEY: "YOUR_CERT_PRIVATE_KEY"
+        # XCODE_WORKSPACE: "frontend/ios/App/App.xcworkspace"
+        # XCODE_SCHEME: "App"
+        # BUNDLE_ID: "com.badr.delivery"
+        APP_NAME: "BadrDeliveryTest"
+      groups:
+        - apple_auth # Group containing Apple API keys
+    
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: 'main'
+          include: true
+        - pattern: 'develop'
+          include: true
+
+    scripts:
+      - name: Install Frontend dependencies
+        script: |
+          cd frontend
+          npm install
+
+      - name: Build Web Application
+        script: |
+          cd frontend
+          # Use build:prod if it exists, otherwise use build
+          npm run build:prod || npm run build
+
+      - name: Capacitor Sync
+        script: |
+          cd frontend
+          npx cap copy ios
+          npx cap sync ios
+
+      - name: Install CocoaPods
+        script: |
+          cd frontend/ios/App
+          pod install
+
+      - name: Build IPA
+        script: |
+          # Use xcode-project utility to build the IPA
+          # Requires provisioning and code signing setup in Codemagic
+          cd frontend/ios/App
+          xcode-project build-ipa \
+            --workspace App.xcworkspace \
+            --scheme App \
+            --archive-flags "-allowProvisioningUpdates"
+
+    artifacts:
+      - frontend/ios/App/*.ipa
+      - frontend/ios/App/*.zip
+
+    publishing:
+      email:
+        recipients:
+          - your-email@example.com
+        notify:
+          success: true
+          failure: true
