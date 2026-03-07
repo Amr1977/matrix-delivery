@@ -311,7 +311,11 @@ app.get('/api/orders/:id/tracking', verifyToken, async (req, res) => {
     }
 
     const locationResult = await pool.query(
-      `SELECT latitude, longitude, status, created_at FROM location_updates WHERE order_id = $1 ORDER BY created_at DESC LIMIT 50`,
+      `SELECT latitude as lat, longitude as lng, status, created_at as timestamp 
+       FROM location_updates 
+       WHERE order_id = $1 
+       AND created_at >= (SELECT COALESCE(accepted_at, created_at) FROM orders WHERE id = $1)
+       ORDER BY created_at ASC`,
       [req.params.id]
     );
 
@@ -320,7 +324,8 @@ app.get('/api/orders/:id/tracking', verifyToken, async (req, res) => {
       status: order.status,
       currentLocation: order.current_location_lat ? {
         lat: parseFloat(order.current_location_lat),
-        lng: parseFloat(order.current_location_lng)
+        lng: parseFloat(order.current_location_lng),
+        timestamp: locationResult.rows.length > 0 ? locationResult.rows[locationResult.rows.length - 1].timestamp : order.updated_at
       } : null,
       pickup: {
         address: order.pickup_address,
@@ -336,16 +341,14 @@ app.get('/api/orders/:id/tracking', verifyToken, async (req, res) => {
           lng: parseFloat(order.to_lng)
         }
       },
-      estimatedDelivery: order.estimated_delivery_date,
-      createdAt: order.created_at,
-      acceptedAt: order.accepted_at,
-      pickedUpAt: order.picked_up_at,
-      deliveredAt: order.delivered_at,
+      estimatedDistanceKm: order.estimated_distance_km,
+      estimatedDurationMinutes: order.estimated_duration_minutes,
+      routePolyline: order.route_polyline,
       locationHistory: locationResult.rows.map(loc => ({
-        lat: parseFloat(loc.latitude),
-        lng: parseFloat(loc.longitude),
+        lat: parseFloat(loc.lat),
+        lng: parseFloat(loc.lng),
         status: loc.status,
-        timestamp: loc.created_at
+        timestamp: loc.timestamp
       }))
     });
   } catch (error) {

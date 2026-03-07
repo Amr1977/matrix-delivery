@@ -3,6 +3,7 @@ import 'leaflet/dist/leaflet.css';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import polyline from '@mapbox/polyline';
+import io from 'socket.io-client';
 import { ClickableMap } from '../FullscreenMapModal';
 import api from '../../api';
 
@@ -186,15 +187,72 @@ const LiveTrackingMap = ({ orderId, t, compact = false, theme = 'dark', isDriver
     if (validOrderId) {
       fetchTrackingData(); // Initial load
 
-      // Set up interval for live updates (every 10 seconds)
-      refreshIntervalRef.current = setInterval(fetchTrackingData, LIVE_TRACK_REFRESH_INTERVAL_MS_IDLE);
-    }
+      // Set up Socket.IO connection for real-time updates
+      const apiUrl = (process.env.REACT_APP_API_URL || 'http://localhost:5000/api').replace('/api', '');
+      const socket = io(apiUrl, {
+        withCredentials: true,
+        transports: ['websocket'],
+        reconnection: true
+      });
 
-    return () => {
-      if (refreshIntervalRef.current) {
-        clearInterval(refreshIntervalRef.current);
-      }
-    };
+      socket.on('connect', () => {
+        console.log('📡 LiveTrackingMap: Socket connected, joining order room');
+        socket.emit('join_order', { orderId: validOrderId });
+      });
+
+      socket.on('location_update', (data) => {
+        console.log('📡 LiveTrackingMap: Real-time location update received', data);
+        if (data.orderId === validOrderId) {
+          setTrackingData(prev => {
+            if (!prev) return prev;
+            
+            // Add to location history
+            const newHistory = [...(prev.locationHistory || [])];
+            const newPoint = {
+              lat: data.latitude,
+              lng: data.longitude,
+              timestamp: data.timestamp,
+              status: prev.status
+            };
+            
+            // Avoid duplicate points (simple check)
+            const lastPoint = newHistory[newHistory.length - 1];
+            if (!lastPoint || lastPoint.lat !== newPoint.lat || lastPoint.lng !== newPoint.lng) {
+              newHistory.push(newPoint);
+            }
+
+            return {
+              ...prev,
+              currentLocation: {
+                lat: data.latitude,
+                lng: data.longitude,
+                timestamp: data.timestamp,
+                heading: data.heading,
+                speedKmh: data.speedKmh,
+                accuracyMeters: data.accuracyMeters
+              },
+              locationHistory: newHistory
+            };
+          });
+        }
+      });
+
+      socket.on('error', (err) => {
+        console.error('📡 LiveTrackingMap: Socket error:', err);
+      });
+
+      // Set up interval for fallback/status updates (less frequent if socket is active)
+      refreshIntervalRef.current = setInterval(fetchTrackingData, LIVE_TRACK_REFRESH_INTERVAL_MS_IDLE);
+
+      return () => {
+        console.log('📡 LiveTrackingMap: Disconnecting socket');
+        socket.emit('leave_order', validOrderId);
+        socket.disconnect();
+        if (refreshIntervalRef.current) {
+          clearInterval(refreshIntervalRef.current);
+        }
+      };
+    }
   }, [validOrderId, fetchTrackingData]);
 
   useEffect(() => {
