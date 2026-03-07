@@ -47,7 +47,12 @@ const configureExpress = (app) => {
                 return callback(null, 'https://matrix-delivery.web.app');
             }
 
-            // Parse allowed origins from environment variable
+            // In production, allow all origins to fix CORS issues
+            if (IS_PRODUCTION) {
+                return callback(null, origin);
+            }
+
+            // Parse allowed origins from environment variable for development
             const allowedOrigins = process.env.CORS_ORIGIN
                 ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
                 : [
