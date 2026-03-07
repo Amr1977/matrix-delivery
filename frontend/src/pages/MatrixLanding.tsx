@@ -98,9 +98,7 @@ const MatrixLanding: React.FC = () => {
                         >
                             {t('landing.login')}
                         </button>
-                        <div style={{ position: 'fixed', top: 'calc(0.75rem + env(safe-area-inset-top))', right: 'calc(0.75rem + env(safe-area-inset-right))', zIndex: 2000 }}>
-                            <LanguageSwitcher locale={locale} changeLocale={changeLocale} />
-                        </div>
+                        <LanguageSwitcher locale={locale} changeLocale={changeLocale} />
                     </div>
 
                     {/* Mobile Menu Button */}
@@ -149,6 +147,9 @@ const MatrixLanding: React.FC = () => {
                             >
                                 {t('landing.login')}
                             </button>
+                            <div className="pt-4 border-t border-[#2A3142] flex justify-center">
+                                <LanguageSwitcher locale={locale} changeLocale={changeLocale} />
+                            </div>
                         </div>
                     </div>
                 )}
@@ -173,11 +174,18 @@ const MatrixLanding: React.FC = () => {
                     </p>
 
                     <div className="flex justify-center gap-4 flex-wrap">
-                        <button onClick={() => navigate('/reviews')} className="px-8 py-4 bg-gradient-to-r from-[#00FF41] to-[#00F0FF] text-[#0A0E14] font-bold rounded-lg text-lg hover:shadow-[0_0_30px_rgba(0,255,65,0.5)] transition-all flex items-center gap-2">
+                        <button
+                            onClick={() => navigate('/login')}
+                            className="px-8 py-4 bg-gradient-to-r from-[#00FF41] to-[#00F0FF] text-[#0A0E14] font-bold rounded-lg text-xl hover:shadow-[0_0_30px_rgba(0,255,65,0.6)] transform hover:scale-105 transition-all flex items-center gap-2"
+                        >
+                            <Zap className="w-6 h-6" />
+                            {t('landing.cta')}
+                        </button>
+                        <button onClick={() => navigate('/reviews')} className="px-8 py-4 bg-[#131820] text-white font-bold rounded-lg text-lg border border-[#2A3142] hover:border-[#00FF41] hover:text-[#00FF41] transition-all flex items-center gap-2">
                             <Star className="w-5 h-5" />
                             {t('landing.voiceOfPeople')}
                         </button>
-                        <button className="px-8 py-4 bg-[#131820] text-white font-bold rounded-lg text-lg border border-[#2A3142] hover:border-[#00FF41] hover:text-[#00FF41] transition-all flex items-center gap-2">
+                        <button className="px-8 py-4 bg-[#131820] text-[#A0AEC0] font-bold rounded-lg text-lg border border-[#2A3142] hover:border-[#00F0FF] hover:text-[#00F0FF] transition-all flex items-center gap-2 opacity-80">
                             <Play className="w-5 h-5" />
                             {t('landing.watchManifesto')}
                         </button>
