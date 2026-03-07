@@ -324,6 +324,7 @@ export const MainApp = () => {
 
   // Driver location functionality
   const [viewType, setViewType] = useState('active'); // 'active', 'bidding', 'history', 'map', 'my_bids'
+  const [ordersLoaded, setOrdersLoaded] = useState(false);
   const [ordersMapRadiusKm, setOrdersMapRadiusKm] = useState(5);
   const [selectedOrderForMap, setSelectedOrderForMap] = useState(null);
   const [driverOnline, setDriverOnline] = useState(false); // Driver online/offline status
@@ -379,8 +380,6 @@ export const MainApp = () => {
 
   const [bidInput, setBidInput] = useState({});
   const [bidDetails, setBidDetails] = useState({});
-
-  const [ordersLoaded, setOrdersLoaded] = useState(false);
 
   const fetchOrders = useCallback(async (filters = {}) => {
     setLoadingStates(prev => ({ ...prev, ordersFetch: true }));
