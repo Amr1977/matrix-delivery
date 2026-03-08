@@ -182,6 +182,7 @@ router.get('/:orderId/bids/locations', verifyToken, async (req, res) => {
     }
 
     const locations = await driverLocationService.getDriversLocationsForOrder(orderId);
+    console.log(`📍 [Order ${orderId}] Found ${locations.length} bid locations`);
     res.json(locations);
   } catch (error) {
     logger.error(`Get bid locations error: ${error.message}`, {

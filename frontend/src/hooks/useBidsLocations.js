@@ -24,8 +24,8 @@ const useBidsLocations = (orderId, active = false, rapid = false) => {
         if (!orderId || !isPageVisible) return;
 
         try {
-            const response = await api.get(`/api/orders/${orderId}/bids/locations`);
-            setLocations(response.data);
+            const data = await api.get(`/orders/${orderId}/bids/locations`);
+            setLocations(data);
             setError(null);
         } catch (err) {
             console.error('Failed to fetch bid locations:', err);

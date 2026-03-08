@@ -5,6 +5,7 @@ const { verifyToken, requireRole } = require('../middleware/auth');
 // const googleMapsService = require('../services/googleMapsService');
 const { apiRateLimit } = require('../middleware/rateLimit');
 const logger = require('../config/logger');
+const driverLocationService = require('../services/driverLocationService');
 const { createNotification } = require('../services/notificationService.ts'); // Import from notification service
 
 // Environment is already loaded by server.js or jest.setup.js
@@ -245,24 +246,17 @@ router.post('/location/:orderId', verifyToken, requireRole('driver'), apiRateLim
       return res.status(400).json({ error: 'Tracking is not active for this order' });
     }
 
-    // Insert location record into database
-    const result = await pool.query(
-      `INSERT INTO driver_locations
-       (driver_id, order_id, latitude, longitude, heading, speed_kmh, accuracy_meters, timestamp, status)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, 'active')
-       RETURNING id, timestamp`,
-      [
-        driverId,
-        orderId,
-        parseFloat(latitude.toFixed(8)),
-        parseFloat(longitude.toFixed(8)),
-        heading ? parseFloat(heading) : null,
-        speedKmh ? parseFloat(speedKmh) : null,
-        accuracyMeters ? parseFloat(accuracyMeters) : null
-      ]
+    // Insert location record into database using service (handles UPSERT)
+    const locationData = await driverLocationService.updateDriverLocation(
+      driverId,
+      latitude,
+      longitude,
+      heading,
+      speedKmh,
+      accuracyMeters,
+      'active_order',
+      orderId
     );
-
-    const locationData = result.rows[0];
 
     // Emit real-time location update to all clients tracking this order
     try {
@@ -346,26 +340,59 @@ router.get('/location', verifyToken, requireRole('driver'), async (req, res) => 
   }
 });
 
+// Update driver location (general)
+router.post('/location', verifyToken, requireRole('driver'), apiRateLimit, async (req, res) => {
+  try {
+    const driverId = req.user.userId;
+    const { latitude, longitude, heading, speed, accuracy } = req.body;
+
+    if (latitude === undefined || longitude === undefined) {
+      return res.status(400).json({ error: 'Latitude and longitude are required' });
+    }
+
+    const locationData = await driverLocationService.updateDriverLocation(
+      driverId,
+      latitude,
+      longitude,
+      heading,
+      speed,
+      accuracy,
+      'idle'
+    );
+
+    res.json({
+      success: true,
+      message: 'Location updated successfully',
+      location: locationData
+    });
+  } catch (error) {
+    logger.error(`Update location error: ${error.message}`, {
+      driverId: req.user.userId,
+      category: 'error'
+    });
+    res.status(500).json({ error: error.message || 'Failed to update location' });
+  }
+});
+
 // Update driver location for bidding (not tied to specific order)
 router.post('/location/bidding', verifyToken, requireRole('driver'), apiRateLimit, async (req, res) => {
   try {
     const driverId = req.user.userId;
     const { latitude, longitude, heading, speed, accuracy } = req.body;
 
-    if (!latitude || !longitude) {
+    if (latitude === undefined || longitude === undefined) {
       return res.status(400).json({ error: 'Latitude and longitude are required' });
     }
 
-    // Validate coordinates
-    if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
-      return res.status(400).json({ error: 'Invalid coordinates' });
-    }
-
-    // Insert location update
-    await pool.query(
-      `INSERT INTO driver_locations (driver_id, latitude, longitude, heading, speed_kmh, accuracy_meters, context, timestamp)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
-      [driverId, latitude, longitude, heading || null, speed || null, accuracy || null, 'bidding']
+    // Insert location update using service
+    const locationData = await driverLocationService.updateDriverLocation(
+      driverId,
+      latitude,
+      longitude,
+      heading,
+      speed,
+      accuracy,
+      'bidding'
     );
 
     logger.info(`Driver location updated (bidding)`, {
@@ -377,7 +404,8 @@ router.post('/location/bidding', verifyToken, requireRole('driver'), apiRateLimi
 
     res.json({
       success: true,
-      message: 'Location updated successfully'
+      message: 'Location updated successfully',
+      location: locationData
     });
 
   } catch (error) {
