@@ -21,6 +21,16 @@ async function updateDriverLocation(driverId, latitude, longitude, heading = nul
         const query = `
       INSERT INTO driver_locations (driver_id, order_id, latitude, longitude, heading, speed_kmh, accuracy_meters, context, timestamp)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+      ON CONFLICT (driver_id) 
+      DO UPDATE SET 
+        latitude = EXCLUDED.latitude,
+        longitude = EXCLUDED.longitude,
+        heading = EXCLUDED.heading,
+        speed_kmh = EXCLUDED.speed_kmh,
+        accuracy_meters = EXCLUDED.accuracy_meters,
+        context = EXCLUDED.context,
+        order_id = COALESCE(EXCLUDED.order_id, driver_locations.order_id),
+        timestamp = NOW()
       RETURNING *
     `;
 

@@ -19,12 +19,18 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, bids = []
   const setSelectedBidId = externalSelectedBidId !== undefined ? onBidSelect : setInternalSelectedBidId;
 
   const hasCoordinates = pickup && dropoff;
+  
+  // Normalize driverLocation coordinates
+  const driverLat = Number(driverLocation?.lat || driverLocation?.latitude);
+  const driverLng = Number(driverLocation?.lng || driverLocation?.longitude);
+  const hasDriverCoords = Number.isFinite(driverLat) && Number.isFinite(driverLng);
+
   const centerLat = hasCoordinates ? (pickup.lat + dropoff.lat) / 2 : 30.0444;
   const centerLng = hasCoordinates ? (pickup.lng + dropoff.lng) / 2 : 31.2357;
 
   // If driver location is provided, adjust center to include driver
-  const effectiveCenterLat = driverLocation ? (centerLat + driverLocation.latitude) / 2 : centerLat;
-  const effectiveCenterLng = driverLocation ? (centerLng + driverLocation.longitude) / 2 : centerLng;
+  const effectiveCenterLat = hasDriverCoords ? (centerLat + driverLat) / 2 : centerLat;
+  const effectiveCenterLng = hasDriverCoords ? (centerLng + driverLng) / 2 : centerLng;
 
   // Get API base URL from environment, strip /api suffix for tile endpoint
   const API_BASE = (process.env.REACT_APP_API_URL || 'http://localhost:5000/api').replace('/api', '');
@@ -219,10 +225,10 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, bids = []
                 )}
 
                 {/* Driver to Pickup Line (Dashed) */}
-                {driverLocation && Number.isFinite(driverLocation.latitude) && Number.isFinite(driverLocation.longitude) && pickup && !actualDriverPath.length && (
+                {hasDriverCoords && pickup && !actualDriverPath.length && (
                   <Polyline
                     positions={[
-                      [driverLocation.latitude, driverLocation.longitude],
+                      [driverLat, driverLng],
                       [pickup.lat, pickup.lng]
                     ]}
                     color="#3B82F6"
@@ -233,26 +239,42 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, bids = []
                 )}
 
                 {/* All Bids Markers */}
-                {Array.isArray(bids) && bids.map((bid, index) => {
-                  // Robust coordinate parsing
-                  const rawLat = bid.driverLocation?.lat ?? bid.latitude ?? bid.lat;
-                  const rawLng = bid.driverLocation?.lng ?? bid.longitude ?? bid.lng;
+                {(() => {
+                  if (!Array.isArray(bids) || bids.length === 0) {
+                    // window.console.log(`\ud83d\udccd [${mapTitle}] No bids to render as markers`);
+                    return null;
+                  }
                   
-                  if (rawLat === null || rawLat === undefined || rawLng === null || rawLng === undefined) return null;
+                  window.console.log(`\ud83d\udccd [${mapTitle}] Rendering ${bids.length} bid markers`, bids);
                   
-                  const bidLat = Number(rawLat);
-                  const bidLng = Number(rawLng);
-                  
-                  if (!Number.isFinite(bidLat) || !Number.isFinite(bidLng)) return null;
-                  if (bidLat === 0 && bidLng === 0) return null; // Likely invalid data if both are zero
+                  return bids.map((bid, index) => {
+                    // Robust coordinate parsing
+                    const rawLat = bid.driverLocation?.lat ?? bid.latitude ?? bid.lat;
+                    const rawLng = bid.driverLocation?.lng ?? bid.longitude ?? bid.lng;
+                    
+                    if (rawLat === null || rawLat === undefined || rawLng === null || rawLng === undefined) {
+                      window.console.warn(`\u26a0\ufe0f [${mapTitle}] Bid ${index} missing coordinates:`, bid);
+                      return null;
+                    }
+                    
+                    const bidLat = Number(rawLat);
+                    const bidLng = Number(rawLng);
+                    
+                    if (!Number.isFinite(bidLat) || !Number.isFinite(bidLng)) {
+                      window.console.warn(`\u26a0\ufe0f [${mapTitle}] Bid ${index} invalid coordinates:`, { bidLat, bidLng });
+                      return null;
+                    }
+                    if (bidLat === 0 && bidLng === 0) return null; // Likely invalid data if both are zero
 
-                  const bidUserId = bid.userId || bid.driver_id || bid.user_id || `bid-${index}`;
-                  const isSelected = (selectedBidId && String(selectedBidId) === String(bidUserId)) || 
-                                   (driverLocation && (driverLocation.userId || driverLocation.id) && 
-                                    String(driverLocation.userId || driverLocation.id) === String(bidUserId));
+                    const bidUserId = bid.userId || bid.driver_id || bid.user_id || `bid-${index}`;
+                    const isSelected = (selectedBidId && String(selectedBidId) === String(bidUserId)) || 
+                                     (driverLocation && (driverLocation.userId || driverLocation.id) && 
+                                      String(driverLocation.userId || driverLocation.id) === String(bidUserId));
 
-                  return (
-                    <React.Fragment key={bidUserId || index}>
+                    window.console.log(`\u2705 [${mapTitle}] Marker ${index} (${bidUserId}) at:`, { bidLat, bidLng, isSelected });
+
+                    return (
+                      <React.Fragment key={bidUserId || index}>
                       {/* Highlighted pickup leg for selected bid */}
                       {isSelected && pickup && (
                         <Polyline
@@ -340,7 +362,8 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, bids = []
                       </Marker>
                     </React.Fragment>
                   );
-                })}
+                });
+              })()}
 
                 {/* Driver Location Marker - Enhanced visibility (Original) */}
                 {console.log('🚗 RoutePreviewMap Driver Marker Check:', { driverLocation })}
@@ -352,7 +375,8 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, bids = []
                   if (!Number.isFinite(dLat) || !Number.isFinite(dLng)) return null;
                   
                   // Skip if this driver is already shown in the bids list
-                  if (bids.some(b => (b.userId || b.driver_id || b.user_id) === dUserId)) return null;
+                  const normalizedBids = Array.isArray(bids) ? bids : [];
+                  if (normalizedBids.some(b => String(b.userId || b.driver_id || b.user_id) === String(dUserId))) return null;
                   
                   return (
                     <Marker

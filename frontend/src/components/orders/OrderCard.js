@@ -53,11 +53,23 @@ const OrderCard = ({
   }, []);
 
   // Fetch live locations for all drivers who bid on this order
-  const { locations: bidLocations } = useBidsLocations(
+  const { locations: bidLocations, loading: loadingLocations } = useBidsLocations(
     order.id, 
     order.status === 'pending_bids' && currentUser?.primary_role === 'customer' && order.bids?.length > 0,
     isMapVisible // Use rapid polling when map is in viewport
   );
+
+  // Debug log for bid locations
+  React.useEffect(() => {
+    if (order.status === 'pending_bids' && currentUser?.primary_role === 'customer') {
+      window.console.log(`📦 [Order ${order.id}] Bid Locations State:`, {
+        loading: loadingLocations,
+        locationsCount: bidLocations?.length || 0,
+        bidsCount: order.bids?.length || 0,
+        isMapVisible
+      });
+    }
+  }, [order.id, bidLocations, loadingLocations, order.status, currentUser?.primary_role, order.bids?.length, isMapVisible]);
 
   // Scroll to highlighted bid section when it changes from the map
   React.useEffect(() => {
@@ -880,8 +892,8 @@ const OrderCard = ({
             }}
           >
             <RoutePreviewMap
-              pickup={order.from}
-              dropoff={order.to}
+              pickup={order.from || (order.pickupLocation && order.pickupLocation.coordinates)}
+              dropoff={order.to || (order.dropoffLocation && order.dropoffLocation.coordinates)}
               // Pass all bid locations for the markers
               bids={bidLocations && bidLocations.length > 0 ? bidLocations : (order.bids || [])}
               selectedBidId={highlightedBidId}

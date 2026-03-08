@@ -13,8 +13,9 @@
             "keyword": "Before",
             "hidden": true,
             "result": {
-              "status": "passed",
-              "duration": 1574518400
+              "status": "failed",
+              "duration": 2168071499,
+              "error_message": "browserType.launch: Executable doesn't exist at C:\\Users\\amr\\AppData\\Local\\ms-playwright\\chromium_headless_shell-1208\\chrome-headless-shell-win64\\chrome-headless-shell.exe\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝\n    at CustomWorld.<anonymous> (D:\\matrix-delivery\\tests\\support\\hooks.js:194:33)"
             }
           },
           {
@@ -26,8 +27,8 @@
               "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:7"
             },
             "result": {
-              "status": "passed",
-              "duration": 2414147100
+              "status": "skipped",
+              "duration": 0
             }
           },
           {
@@ -39,8 +40,8 @@
               "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:12"
             },
             "result": {
-              "status": "passed",
-              "duration": 11949336900
+              "status": "skipped",
+              "duration": 0
             }
           },
           {
@@ -305,7 +306,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 161302400
+              "duration": 1334399
             }
           }
         ],
