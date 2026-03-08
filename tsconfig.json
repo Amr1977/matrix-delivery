@@ -6,7 +6,9 @@
     "esModuleInterop": true,
     "allowJs": true,
     "noImplicitAny": false,
-    "types": ["node", "jest"]
+    "types": ["node", "jest"],
+    "outDir": "./dist",
+    "rootDir": "./"
   },
   "ts-node": {
     "transpileOnly": true,
