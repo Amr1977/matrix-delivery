@@ -38,7 +38,7 @@ After({ tags: '@courier_cash_registry' }, async function () {
 
 // ============ GIVEN STEPS ============
 
-Given('a driver {string} exists', async function (driverName) {
+Given('an API driver {string} exists', async function (driverName) {
     const email = `${driverName.toLowerCase().replace(/\s+/g, '_')}@test.com`;
     const password = 'Driver123!';
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -176,7 +176,7 @@ When('driver updates available cash to {int} EGP', async function (amount) {
         .send({ availableCash: amount });
 });
 
-When('driver views available orders', async function () {
+When('API driver views available orders', async function () {
     const lat = this.driverLat || 29.9602; // Default to Maadi if not set
     const lng = this.driverLng || 31.2494;
 

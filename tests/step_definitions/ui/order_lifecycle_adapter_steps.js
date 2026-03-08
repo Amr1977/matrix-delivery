@@ -13,7 +13,7 @@ Given('a customer {string} exists', async function (name) {
     await this.adapter.createCustomer(name);
 });
 
-Given('a driver {string} exists', async function (name) {
+Given('a UI driver {string} exists', async function (name) {
     await this.adapter.createDriver(name);
 });
 
