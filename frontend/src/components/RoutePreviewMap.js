@@ -95,17 +95,21 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, bids = []
     const points = [];
     if (pickup) points.push([pickup.lat, pickup.lng]);
     if (dropoff) points.push([dropoff.lat, dropoff.lng]);
-    if (driverLocation && Number.isFinite(driverLocation.latitude) && Number.isFinite(driverLocation.longitude)) {
-      points.push([driverLocation.latitude, driverLocation.longitude]);
+    
+    // Normalize driverLocation
+    const dLat = driverLocation?.lat || driverLocation?.latitude;
+    const dLng = driverLocation?.lng || driverLocation?.longitude;
+    if (Number.isFinite(Number(dLat)) && Number.isFinite(Number(dLng))) {
+      points.push([Number(dLat), Number(dLng)]);
     }
     
     // Add bid locations to bounds
     if (Array.isArray(bids)) {
       bids.forEach(bid => {
-        const lat = bid.driverLocation?.lat || bid.latitude;
-        const lng = bid.driverLocation?.lng || bid.longitude;
-        if (Number.isFinite(lat) && Number.isFinite(lng)) {
-          points.push([lat, lng]);
+        const lat = bid.driverLocation?.lat || bid.latitude || bid.lat;
+        const lng = bid.driverLocation?.lng || bid.longitude || bid.lng;
+        if (Number.isFinite(Number(lat)) && Number.isFinite(Number(lng))) {
+          points.push([Number(lat), Number(lng)]);
         }
       });
     }
@@ -230,14 +234,25 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, bids = []
 
                 {/* All Bids Markers */}
                 {Array.isArray(bids) && bids.map((bid, index) => {
-                  const bidLat = bid.driverLocation?.lat || bid.latitude;
-                  const bidLng = bid.driverLocation?.lng || bid.longitude;
+                  // Robust coordinate parsing
+                  const rawLat = bid.driverLocation?.lat ?? bid.latitude ?? bid.lat;
+                  const rawLng = bid.driverLocation?.lng ?? bid.longitude ?? bid.lng;
+                  
+                  if (rawLat === null || rawLat === undefined || rawLng === null || rawLng === undefined) return null;
+                  
+                  const bidLat = Number(rawLat);
+                  const bidLng = Number(rawLng);
+                  
                   if (!Number.isFinite(bidLat) || !Number.isFinite(bidLng)) return null;
+                  if (bidLat === 0 && bidLng === 0) return null; // Likely invalid data if both are zero
 
-                  const isSelected = (selectedBidId === (bid.userId || bid.driver_id)) || (driverLocation && driverLocation.userId === (bid.userId || bid.driver_id));
+                  const bidUserId = bid.userId || bid.driver_id || bid.user_id || `bid-${index}`;
+                  const isSelected = (selectedBidId && String(selectedBidId) === String(bidUserId)) || 
+                                   (driverLocation && (driverLocation.userId || driverLocation.id) && 
+                                    String(driverLocation.userId || driverLocation.id) === String(bidUserId));
 
                   return (
-                    <React.Fragment key={bid.userId || bid.driver_id || index}>
+                    <React.Fragment key={bidUserId || index}>
                       {/* Highlighted pickup leg for selected bid */}
                       {isSelected && pickup && (
                         <Polyline
@@ -263,10 +278,10 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, bids = []
                         eventHandlers={{
                           click: () => {
                             if (externalSelectedBidId !== undefined) {
-                              if (onBidSelect) onBidSelect(bid.userId || bid.driver_id);
+                              if (onBidSelect) onBidSelect(bidUserId);
                             } else {
-                              setInternalSelectedBidId(bid.userId || bid.driver_id);
-                              if (onBidSelect) onBidSelect(bid.userId || bid.driver_id);
+                              setInternalSelectedBidId(bidUserId);
+                              if (onBidSelect) onBidSelect(bidUserId);
                             }
                           }
                         }}
@@ -280,14 +295,14 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, bids = []
                             padding: '0.5rem'
                           }}>
                             <div style={{ fontWeight: '600', color: '#3B82F6', marginBottom: '0.25rem', fontSize: '1rem' }}>
-                              🚗 {bid.driverName || 'Driver'}
+                              🚗 {bid.driverName || bid.driver_name || 'Driver'}
                             </div>
                             <div style={{ color: '#059669', fontWeight: 'bold', marginBottom: '0.5rem' }}>
-                              Bid: {bid.bidPrice ? `${bid.bidPrice} EGP` : 'Price not set'}
+                              Bid: {bid.bidPrice || bid.bid_price ? `${bid.bidPrice || bid.bid_price} EGP` : 'Price not set'}
                             </div>
                             
                             <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.5rem', fontSize: '0.75rem' }}>
-                              <div>⭐ {bid.driverRating || bid.rating || 'No rating'}</div>
+                              <div>⭐ {bid.driverRating || bid.rating || bid.driver_rating || 'No rating'}</div>
                               <div>📦 {bid.driverCompletedDeliveries || bid.completed_deliveries || 0} orders</div>
                             </div>
 
@@ -305,7 +320,7 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, bids = []
 
                             <button
                               onClick={() => {
-                                if (onBidAccept) onBidAccept(bid.userId || bid.driver_id);
+                                if (onBidAccept) onBidAccept(bidUserId);
                               }}
                               style={{
                                 width: '100%',
@@ -329,27 +344,38 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, bids = []
 
                 {/* Driver Location Marker - Enhanced visibility (Original) */}
                 {console.log('🚗 RoutePreviewMap Driver Marker Check:', { driverLocation })}
-                {driverLocation && Number.isFinite(driverLocation.latitude) && Number.isFinite(driverLocation.longitude) && !bids.some(b => (b.userId || b.driver_id) === driverLocation.userId) && (
-                  <Marker
-                    position={[driverLocation.latitude, driverLocation.longitude]}
-                    icon={L.icon({
-                      iconUrl: '/markers/user-location.svg',
-                      iconSize: [60, 60],
-                      iconAnchor: [30, 30],
-                      popupAnchor: [0, -30],
-                      className: ''
-                    })}
-                    zIndexOffset={1000}
-                  >
-                    <Popup>
-                      <div style={{ fontSize: '0.875rem' }}>
-                        <strong>🚗 Driver Location</strong>
-                        <div>Lat: {driverLocation.latitude.toFixed(6)}</div>
-                        <div>Lng: {driverLocation.longitude.toFixed(6)}</div>
-                      </div>
-                    </Popup>
-                  </Marker>
-                )}
+                {(() => {
+                  const dLat = Number(driverLocation?.lat || driverLocation?.latitude);
+                  const dLng = Number(driverLocation?.lng || driverLocation?.longitude);
+                  const dUserId = driverLocation?.userId || driverLocation?.id;
+                  
+                  if (!Number.isFinite(dLat) || !Number.isFinite(dLng)) return null;
+                  
+                  // Skip if this driver is already shown in the bids list
+                  if (bids.some(b => (b.userId || b.driver_id || b.user_id) === dUserId)) return null;
+                  
+                  return (
+                    <Marker
+                      position={[dLat, dLng]}
+                      icon={L.icon({
+                        iconUrl: '/markers/user-location.svg',
+                        iconSize: [60, 60],
+                        iconAnchor: [30, 30],
+                        popupAnchor: [0, -30],
+                        className: ''
+                      })}
+                      zIndexOffset={1000}
+                    >
+                      <Popup>
+                        <div style={{ fontSize: '0.875rem' }}>
+                          <strong>🚗 Driver Location</strong>
+                          <div>Lat: {dLat.toFixed(6)}</div>
+                          <div>Lng: {dLng.toFixed(6)}</div>
+                        </div>
+                      </Popup>
+                    </Marker>
+                  );
+                })()}
               </>
             )}
           </MapContainer>
