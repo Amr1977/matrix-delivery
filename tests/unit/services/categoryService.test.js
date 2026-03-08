@@ -1,12 +1,7 @@
-const CategoryService = require('../../../backend/modules/marketplace/services/categoryService');
+const categoryService = require('../../../backend/modules/marketplace/services/categoryService');
 const categoryRepository = require('../../../backend/modules/marketplace/repositories/categoryRepository');
 
 jest.mock('../../../backend/modules/marketplace/repositories/categoryRepository');
-
-// CategoryService is exported as a class instance, so we need to create an instance
-const categoryService = new CategoryService.constructor
-  ? new CategoryService.constructor()
-  : CategoryService;
 
 describe('CategoryService - Unit Tests', () => {
   const adminUser = { userId: 'admin-1', primary_role: 'admin' };
