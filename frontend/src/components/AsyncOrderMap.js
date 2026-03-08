@@ -3,26 +3,111 @@ import api from '../api';
 import RoutePreviewMap from './RoutePreviewMap';
 import { MapsApi } from '../services/api';
 import polyline from '@mapbox/polyline';
+import io from 'socket.io-client';
 
 /**
  * AsyncOrderMap
  * Wraps RoutePreviewMap to asynchronously fetch actual driver route for active orders.
  * Only fetches data when the component is visible (lazy loading).
+ * Supports real-time tracking via Socket.IO.
  */
-const AsyncOrderMap = ({ order, currentUser, driverLocation, theme = 'dark', ...props }) => {
+const AsyncOrderMap = ({ order, currentUser, driverLocation, theme = 'dark', onTelemetryUpdate, ...props }) => {
     const [actualRoute, setActualRoute] = useState(null);
     const [currentDriverLocation, setCurrentDriverLocation] = useState(null);
     const [loadingRoute, setLoadingRoute] = useState(false);
     const [hasFetched, setHasFetched] = useState(false);
     const [biddingRoute, setBiddingRoute] = useState(null);
+    const socketRef = useRef(null);
     const containerRef = useRef(null);
 
-    const isActiveOrder = ['picked_up', 'in_transit', 'delivered'].includes(order.status);
+    const isActiveOrder = ['accepted', 'picked_up', 'in_transit'].includes(order.status);
     const shouldFetch = isActiveOrder && (
         currentUser?.primary_role === 'admin' ||
         (currentUser?.primary_role === 'customer' && order.customerId === currentUser?.id) ||
         (currentUser?.primary_role === 'driver' && order.assignedDriver?.userId === currentUser?.id)
     );
+
+    // Initialize Socket.IO for real-time tracking
+    useEffect(() => {
+        if (!shouldFetch || !order.id) return;
+
+        const apiUrl = (process.env.REACT_APP_API_URL || 'http://localhost:5000/api').replace('/api', '');
+        const socket = io(apiUrl, {
+            withCredentials: true,
+            transports: ['websocket'],
+            reconnection: true
+        });
+
+        socketRef.current = socket;
+
+        socket.on('connect', () => {
+            console.log(`📡 [AsyncOrderMap] Socket connected, joining order room: ${order.id}`);
+            socket.emit('join_order', { orderId: order.id });
+        });
+
+        socket.on('location_update', (data) => {
+            if (data.orderId === order.id) {
+                console.log(`📡 [AsyncOrderMap] Real-time update for order ${order.id}`);
+                
+                const newLocation = {
+                    latitude: data.latitude,
+                    longitude: data.longitude,
+                    timestamp: data.timestamp,
+                    heading: data.heading,
+                    speedKmh: data.speedKmh,
+                    accuracyMeters: data.accuracyMeters
+                };
+
+                setCurrentDriverLocation(newLocation);
+
+                // Update route history
+                setActualRoute(prev => {
+                    const newPoint = [data.latitude, data.longitude];
+                    if (!prev) return [newPoint];
+                    
+                    const lastPoint = prev[prev.length - 1];
+                    if (lastPoint[0] === newPoint[0] && lastPoint[1] === newPoint[1]) return prev;
+                    
+                    return [...prev, newPoint];
+                });
+
+                // Trigger map bounds update when live location moves
+                setHasFetched(false); 
+
+                // Calculate telemetry if we have pickup/delivery
+                if (onTelemetryUpdate) {
+                    const nextTarget = order.status === 'accepted' ? order.from : order.to;
+                    if (nextTarget && nextTarget.lat && nextTarget.lng) {
+                        const distanceKm = calculateDistance(
+                            { lat: data.latitude, lng: data.longitude },
+                            { lat: nextTarget.lat, lng: nextTarget.lng }
+                        );
+                        
+                        // Assume average speed of 30 km/h for ETA if current speed is too low
+                        const speed = data.speedKmh > 5 ? data.speedKmh : 30;
+                        const etaMinutes = Math.ceil((distanceKm / speed) * 60);
+
+                        onTelemetryUpdate({
+                            distanceKm: distanceKm.toFixed(1),
+                            etaMinutes,
+                            speedKmh: data.speedKmh ? data.speedKmh.toFixed(0) : '0',
+                            lastUpdated: data.timestamp,
+                            nextTarget: order.status === 'accepted' ? 'pickup' : 'delivery'
+                        });
+                    }
+                }
+            }
+        });
+
+        return () => {
+            if (socketRef.current) {
+                console.log(`📡 [AsyncOrderMap] Leaving order room: ${order.id}`);
+                socketRef.current.emit('leave_order', order.id);
+                socketRef.current.disconnect();
+                socketRef.current = null;
+            }
+        };
+    }, [shouldFetch, order.id, order.status, onTelemetryUpdate]);
 
     // Check if we need to calculate bidding route (driver to pickup to dropoff)
     const isBiddingView = currentUser?.primary_role === 'driver' && driverLocation &&
@@ -209,10 +294,35 @@ const AsyncOrderMap = ({ order, currentUser, driverLocation, theme = 'dark', ...
 
             // Store current driver location if available
             if (response && response.currentLocation) {
-                setCurrentDriverLocation({
+                const currentLoc = {
                     latitude: response.currentLocation.lat,
-                    longitude: response.currentLocation.lng
-                });
+                    longitude: response.currentLocation.lng,
+                    timestamp: response.currentLocation.timestamp,
+                    speedKmh: response.speedKmh,
+                    heading: response.heading
+                };
+                setCurrentDriverLocation(currentLoc);
+
+                // Initial telemetry update from history
+                if (onTelemetryUpdate) {
+                    const nextTarget = order.status === 'accepted' ? order.from : order.to;
+                    if (nextTarget && nextTarget.lat && nextTarget.lng) {
+                        const distanceKm = calculateDistance(
+                            { lat: currentLoc.latitude, lng: currentLoc.longitude },
+                            { lat: nextTarget.lat, lng: nextTarget.lng }
+                        );
+                        const speed = currentLoc.speedKmh > 5 ? currentLoc.speedKmh : 30;
+                        const etaMinutes = Math.ceil((distanceKm / speed) * 60);
+
+                        onTelemetryUpdate({
+                            distanceKm: distanceKm.toFixed(1),
+                            etaMinutes,
+                            speedKmh: currentLoc.speedKmh ? currentLoc.speedKmh.toFixed(0) : '0',
+                            lastUpdated: currentLoc.timestamp,
+                            nextTarget: order.status === 'accepted' ? 'pickup' : 'delivery'
+                        });
+                    }
+                }
             }
 
             if (response && response.locationHistory && Array.isArray(response.locationHistory)) {
