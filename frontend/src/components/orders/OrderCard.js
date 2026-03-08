@@ -66,10 +66,12 @@ const OrderCard = ({
         loading: loadingLocations,
         locationsCount: bidLocations?.length || 0,
         bidsCount: order.bids?.length || 0,
-        isMapVisible
+        isMapVisible,
+        bidLocationsData: bidLocations,
+        orderBidsData: order.bids
       });
     }
-  }, [order.id, bidLocations, loadingLocations, order.status, currentUser?.primary_role, order.bids?.length, isMapVisible]);
+  }, [order.id, bidLocations, loadingLocations, order.status, currentUser?.primary_role, order.bids, isMapVisible]);
 
   // Scroll to highlighted bid section when it changes from the map
   React.useEffect(() => {

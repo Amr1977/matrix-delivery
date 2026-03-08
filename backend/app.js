@@ -310,7 +310,17 @@ app.get('/api/orders/:id/tracking', verifyToken, async (req, res) => {
       return res.status(403).json({ error: 'Unauthorized to view tracking' });
     }
 
-    const locationResult = await pool.query(
+    // Get driver location from driver_locations table (real-time tracking)
+    const driverLocationResult = await pool.query(
+      `SELECT latitude, longitude, heading, speed_kmh, accuracy_meters, timestamp, context as location_status
+       FROM driver_locations 
+       WHERE order_id = $1 
+       ORDER BY timestamp DESC`,
+      [req.params.id]
+    );
+
+    // Get location history from location_updates table (legacy tracking)
+    const locationHistoryResult = await pool.query(
       `SELECT latitude as lat, longitude as lng, status, created_at as timestamp 
        FROM location_updates 
        WHERE order_id = $1 
@@ -319,14 +329,60 @@ app.get('/api/orders/:id/tracking', verifyToken, async (req, res) => {
       [req.params.id]
     );
 
+    // Get driver information
+    const driverResult = await pool.query(
+      `SELECT id, name, vehicle_type, rating, completed_deliveries 
+       FROM users 
+       WHERE id = $1`,
+      [order.assigned_driver_user_id]
+    );
+
+    const driver = driverResult.rows[0];
+
+    // Determine current location (prefer real-time driver location)
+    let currentLocation = null;
+    if (driverLocationResult.rows.length > 0) {
+      const latestDriverLocation = driverLocationResult.rows[0];
+      currentLocation = {
+        lat: parseFloat(latestDriverLocation.latitude),
+        lng: parseFloat(latestDriverLocation.longitude),
+        heading: latestDriverLocation.heading,
+        speedKmh: latestDriverLocation.speed_kmh,
+        accuracyMeters: latestDriverLocation.accuracy_meters,
+        timestamp: latestDriverLocation.timestamp,
+        status: latestDriverLocation.location_status
+      };
+    } else if (order.current_location_lat) {
+      currentLocation = {
+        lat: parseFloat(order.current_location_lat),
+        lng: parseFloat(order.current_location_lng),
+        timestamp: locationHistoryResult.rows.length > 0 ? locationHistoryResult.rows[locationHistoryResult.rows.length - 1].timestamp : order.updated_at
+      };
+    }
+
+    // Combine location history (prefer real-time data, then legacy data)
+    const locationHistory = [
+      ...driverLocationResult.rows.map(loc => ({
+        lat: parseFloat(loc.latitude),
+        lng: parseFloat(loc.longitude),
+        timestamp: loc.timestamp,
+        heading: loc.heading,
+        speedKmh: loc.speed_kmh,
+        accuracyMeters: loc.accuracy_meters,
+        status: loc.location_status
+      })),
+      ...locationHistoryResult.rows.map(loc => ({
+        lat: parseFloat(loc.lat),
+        lng: parseFloat(loc.lng),
+        timestamp: loc.timestamp,
+        status: loc.status
+      }))
+    ].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
     res.json({
       orderNumber: order.order_number,
       status: order.status,
-      currentLocation: order.current_location_lat ? {
-        lat: parseFloat(order.current_location_lat),
-        lng: parseFloat(order.current_location_lng),
-        timestamp: locationResult.rows.length > 0 ? locationResult.rows[locationResult.rows.length - 1].timestamp : order.updated_at
-      } : null,
+      currentLocation: currentLocation,
       pickup: {
         address: order.pickup_address,
         location: {
@@ -344,12 +400,14 @@ app.get('/api/orders/:id/tracking', verifyToken, async (req, res) => {
       estimatedDistanceKm: order.estimated_distance_km,
       estimatedDurationMinutes: order.estimated_duration_minutes,
       routePolyline: order.route_polyline,
-      locationHistory: locationResult.rows.map(loc => ({
-        lat: parseFloat(loc.lat),
-        lng: parseFloat(loc.lng),
-        status: loc.status,
-        timestamp: loc.timestamp
-      }))
+      locationHistory: locationHistory,
+      driver: driver ? {
+        userId: driver.id,
+        name: driver.name,
+        vehicleType: driver.vehicle_type,
+        rating: parseFloat(driver.rating),
+        completedDeliveries: driver.completed_deliveries
+      } : null
     });
   } catch (error) {
     logger.error('Get tracking error:', error);
@@ -428,6 +486,19 @@ app.get('/api/drivers/location', verifyToken, async (req, res) => {
     res.status(500).json({ error: 'Failed to get location' });
   }
 });
+
+// Helper function to create notifications
+const createNotification = async (userId, orderId, type, title, message) => {
+  try {
+    await pool.query(
+      `INSERT INTO notifications (user_id, order_id, type, title, message, is_read, created_at)
+       VALUES ($1, $2, $3, $4, $5, false, NOW())`,
+      [userId, orderId, type, title, message]
+    );
+  } catch (error) {
+    logger.error('Failed to create notification:', error);
+  }
+};
 
 // Switch user's primary primary_role
 app.post('/api/users/me/switch-primary_role', verifyToken, async (req, res) => {

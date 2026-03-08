@@ -10,6 +10,7 @@ import usePageVisibility from './usePageVisibility';
  * @returns {Object} { locations, loading, error }
  */
 const useBidsLocations = (orderId, active = false, rapid = false) => {
+    console.log(`📡 [Order ${orderId}] useBidsLocations hook start: active=${active}, rapid=${rapid}`);
     const [locations, setLocations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -21,10 +22,15 @@ const useBidsLocations = (orderId, active = false, rapid = false) => {
     const RELAXED_INTERVAL = 30000;
 
     const fetchLocations = async () => {
-        if (!orderId || !isPageVisible) return;
+        if (!orderId || !isPageVisible) {
+            console.log(`📡 [Order ${orderId}] Fetch skipped: orderId=${!!orderId}, isPageVisible=${isPageVisible}`);
+            return;
+        }
 
         try {
+            console.log(`📡 [Order ${orderId}] Fetching bid locations...`);
             const data = await api.get(`/orders/${orderId}/bids/locations`);
+            console.log(`📡 [Order ${orderId}] Received ${data?.length || 0} locations:`, data);
             setLocations(data);
             setError(null);
         } catch (err) {

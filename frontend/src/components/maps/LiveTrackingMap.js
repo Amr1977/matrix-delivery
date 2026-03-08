@@ -150,25 +150,55 @@ const LiveTrackingMap = ({ orderId, t, compact = false, theme = 'dark', isDriver
 
       let detailsResponse;
       try {
+        // Try the tracking endpoint first
         detailsResponse = await api.get(`/orders/${idToUse}/tracking`);
       } catch (primaryErr) {
-        if (primaryErr && String(primaryErr.message).includes('HTTP 403')) {
-          setError('Tracking is unavailable until a bid is accepted');
-          setLoading(false);
-          return;
-        }
-        if (primaryErr && String(primaryErr.message).includes('HTTP 404')) {
-          const ordersList = await api.get('/orders');
-          const match = Array.isArray(ordersList)
-            ? ordersList.find(o => o.orderNumber === validOrderId)
-            : null;
-          if (match && match.id) {
-            detailsResponse = await api.get(`/orders/${match.id}/tracking`);
+        console.warn('Primary tracking endpoint failed, trying alternative:', primaryErr.message);
+        
+        // If tracking endpoint fails, try to get order details and build tracking data manually
+        try {
+          const orderDetails = await api.get(`/orders/${idToUse}`);
+          
+          // Build tracking data from order details
+          detailsResponse = {
+            orderNumber: orderDetails.orderNumber,
+            status: orderDetails.status,
+            currentLocation: orderDetails.currentLocation || null,
+            pickup: {
+              address: orderDetails.pickupAddress,
+              location: orderDetails.from
+            },
+            delivery: {
+              address: orderDetails.deliveryAddress,
+              location: orderDetails.to
+            },
+            estimatedDistanceKm: orderDetails.estimatedDistanceKm,
+            estimatedDurationMinutes: orderDetails.estimatedDurationMinutes,
+            routePolyline: orderDetails.routePolyline,
+            locationHistory: [],
+            driver: orderDetails.assignedDriver
+          };
+        } catch (fallbackErr) {
+          console.error('Fallback order details also failed:', fallbackErr.message);
+          
+          if (primaryErr && String(primaryErr.message).includes('HTTP 403')) {
+            setError('Tracking is unavailable until a bid is accepted');
+            setLoading(false);
+            return;
+          }
+          if (primaryErr && String(primaryErr.message).includes('HTTP 404')) {
+            const ordersList = await api.get('/orders');
+            const match = Array.isArray(ordersList)
+              ? ordersList.find(o => o.orderNumber === validOrderId)
+              : null;
+            if (match && match.id) {
+              detailsResponse = await api.get(`/orders/${match.id}/tracking`);
+            } else {
+              throw primaryErr;
+            }
           } else {
             throw primaryErr;
           }
-        } else {
-          throw primaryErr;
         }
       }
 
