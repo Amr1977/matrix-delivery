@@ -125,6 +125,10 @@ app.use('/api/marketplace/items', marketplaceItemRoutes);
 const offerRoutes = require('./routes/offerRoutes');
 app.use('/api/offers', offerRoutes);
 
+// New modular marketplace cart endpoints (Milestone 6)
+const cartRoutes = require('./routes/cartRoutes');
+app.use('/api/cart', cartRoutes);
+
 // Load vendor management endpoints
 app.use('/api/vendors', require('./routes/vendors'));
 
