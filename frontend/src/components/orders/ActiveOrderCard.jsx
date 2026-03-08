@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AsyncOrderMap from '../AsyncOrderMap';
 import OrderBiddingSection from './OrderBiddingSection';
@@ -67,9 +67,9 @@ const ActiveOrderCard = ({
     handleConfirmDelivery,
     openReviewModal,
     fetchOrderReviews,
-    onTrackOrder,
 }) => {
     const navigate = useNavigate();
+    const [telemetry, setTelemetry] = useState(null);
     const isDriverAssigned = order.assignedDriver?.userId === currentUser?.id;
 
     // Determine if order is trackable (in progress)
@@ -128,13 +128,109 @@ const ActiveOrderCard = ({
             )}
 
             {/* Route Preview Map */}
-            <div style={{ height: '200px', marginBottom: '1rem', borderRadius: '0.5rem', overflow: 'hidden', border: '1px solid #E5E7EB' }}>
+            <div style={{ position: 'relative', height: '250px', marginBottom: '1rem', borderRadius: '0.5rem', overflow: 'hidden', border: '2px solid var(--matrix-border)', boxShadow: 'var(--shadow-matrix)' }}>
                 <AsyncOrderMap
                     order={order}
                     currentUser={currentUser}
                     driverLocation={driverLocation}
                     theme={profileData?.theme || 'dark'}
+                    onTelemetryUpdate={setTelemetry}
                 />
+                
+                {/* Live Telemetry Overlay */}
+                {isTrackable && telemetry && (
+                    <div style={{
+                        position: 'absolute',
+                        bottom: '10px',
+                        left: '10px',
+                        right: '10px',
+                        zIndex: 1000,
+                        display: 'flex',
+                        gap: '0.5rem',
+                        pointerEvents: 'none'
+                    }}>
+                        <div className="telemetry-badge" style={{
+                            flex: 1,
+                            background: 'rgba(0, 17, 0, 0.85)',
+                            border: '1px solid var(--matrix-border)',
+                            padding: '0.5rem',
+                            borderRadius: '0.375rem',
+                            backdropFilter: 'blur(4px)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center'
+                        }}>
+                            <span style={{ fontSize: '0.625rem', color: 'var(--matrix-green)', textTransform: 'uppercase' }}>
+                                To {telemetry.nextTarget}
+                            </span>
+                            <span className="text-matrix" style={{ fontSize: '1rem', fontWeight: 'bold', textShadow: 'var(--shadow-glow)' }}>
+                                {telemetry.distanceKm} km
+                            </span>
+                        </div>
+                        
+                        <div className="telemetry-badge" style={{
+                            flex: 1,
+                            background: 'rgba(0, 17, 0, 0.85)',
+                            border: '1px solid var(--matrix-border)',
+                            padding: '0.5rem',
+                            borderRadius: '0.375rem',
+                            backdropFilter: 'blur(4px)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center'
+                        }}>
+                            <span style={{ fontSize: '0.625rem', color: 'var(--matrix-green)', textTransform: 'uppercase' }}>
+                                ETA
+                            </span>
+                            <span className="text-matrix" style={{ fontSize: '1rem', fontWeight: 'bold', textShadow: 'var(--shadow-glow)' }}>
+                                {telemetry.etaMinutes} min
+                            </span>
+                        </div>
+
+                        {telemetry.speedKmh > 0 && (
+                            <div className="telemetry-badge" style={{
+                                flex: 1,
+                                background: 'rgba(0, 17, 0, 0.85)',
+                                border: '1px solid var(--matrix-border)',
+                                padding: '0.5rem',
+                                borderRadius: '0.375rem',
+                                backdropFilter: 'blur(4px)',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center'
+                            }}>
+                                <span style={{ fontSize: '0.625rem', color: 'var(--matrix-green)', textTransform: 'uppercase' }}>
+                                    Speed
+                                </span>
+                                <span className="text-matrix" style={{ fontSize: '1rem', fontWeight: 'bold', textShadow: 'var(--shadow-glow)' }}>
+                                    {telemetry.speedKmh} km/h
+                                </span>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Live Indicator */}
+                {isTrackable && (
+                    <div style={{
+                        position: 'absolute',
+                        top: '10px',
+                        left: '10px',
+                        zIndex: 1000,
+                        background: 'rgba(0, 17, 0, 0.85)',
+                        border: '1px solid var(--matrix-border)',
+                        padding: '0.25rem 0.5rem',
+                        borderRadius: '1rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.375rem'
+                    }}>
+                        <div className="pulse" style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#00FF00' }}></div>
+                        <span style={{ fontSize: '0.625rem', color: '#00FF00', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                            Live Tracking
+                        </span>
+                    </div>
+                )}
             </div>
 
             {/* Order Details Grid */}
@@ -235,16 +331,6 @@ const ActiveOrderCard = ({
                             style={{ padding: '0.5rem 1rem', background: '#EF4444', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: loadingStates.deleteOrder ? 'not-allowed' : 'pointer', fontSize: '0.875rem', fontWeight: '600', opacity: loadingStates.deleteOrder ? 0.5 : 1 }}
                         >
                             🗑️ {t('activeOrder.deleteOrder')}
-                        </button>
-                    )}
-
-                    {/* Track Order Button (Active Orders) */}
-                    {isTrackable && currentUser?.primary_role === 'customer' && (
-                        <button
-                            onClick={() => onTrackOrder(order)}
-                            style={{ padding: '0.5rem 1rem', background: '#10B981', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
-                        >
-                            🛰️ {t('activeOrder.trackOrder') || 'Track Order'}
                         </button>
                     )}
 

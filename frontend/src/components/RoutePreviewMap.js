@@ -215,7 +215,7 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, bids = []
                 )}
 
                 {/* Driver to Pickup Line (Dashed) */}
-                {driverLocation && Number.isFinite(driverLocation.latitude) && Number.isFinite(driverLocation.longitude) && pickup && (
+                {driverLocation && Number.isFinite(driverLocation.latitude) && Number.isFinite(driverLocation.longitude) && pickup && !actualDriverPath.length && (
                   <Polyline
                     positions={[
                       [driverLocation.latitude, driverLocation.longitude],
