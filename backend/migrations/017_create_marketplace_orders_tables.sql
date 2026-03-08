@@ -4,6 +4,7 @@
 -- Marketplace orders table
 CREATE TABLE marketplace_orders (
   id SERIAL PRIMARY KEY,
+  order_type VARCHAR(50) NOT NULL DEFAULT 'marketplace', -- 'delivery' or 'marketplace'
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   cart_id INTEGER NOT NULL REFERENCES shopping_carts(id) ON DELETE CASCADE,
   store_id INTEGER NOT NULL REFERENCES stores(id) ON DELETE CASCADE,

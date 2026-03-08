@@ -45,15 +45,36 @@ const COMMON_COUNTRIES = [
     'Uzbekistan', 'Vanuatu', 'Vatican City', 'Venezuela', 'Vietnam', 'Yemen', 'Zambia', 'Zimbabwe'
 ];
 
-// Order status values
+// Order status values (comprehensive marketplace state machine)
 const ORDER_STATUS = {
+    // Traditional delivery system statuses
     PENDING_BIDS: 'pending_bids',
     ACCEPTED: 'accepted',
     PICKED_UP: 'picked_up',
     IN_TRANSIT: 'in_transit',
     DELIVERED: 'delivered',
     DELIVERED_PENDING: 'delivered_pending',
-    CANCELLED: 'cancelled'
+    CANCELLED: 'cancelled',
+
+    // Comprehensive marketplace order state machine
+    PENDING: 'pending',           // Order created, awaiting payment
+    PAID: 'paid',                 // Payment received, awaiting vendor confirmation
+    ACCEPTED: 'accepted',         // Vendor accepted, awaiting driver assignment
+    ASSIGNED: 'assigned',         // Driver assigned, awaiting pickup
+    PICKED_UP: 'picked_up',       // Driver picked up, en route to delivery
+    DELIVERED: 'delivered',       // Delivered to customer, awaiting confirmation
+    COMPLETED: 'completed',       // Customer confirmed receipt - final state
+    CANCELLED: 'cancelled',       // Order cancelled before completion
+    REJECTED: 'rejected',         // Vendor rejected after payment
+    DISPUTED: 'disputed',         // Customer disputed after delivery
+    REFUNDED: 'refunded',         // Refund processed - final state
+    FAILED: 'failed'              // System failure or timeout - final state
+};
+
+// Order types to distinguish between systems
+const ORDER_TYPES = {
+    DELIVERY: 'delivery',         // Traditional customer-to-driver delivery
+    MARKETPLACE: 'marketplace'    // Vendor-to-customer marketplace orders
 };
 
 // Bid status values
@@ -86,6 +107,7 @@ module.exports = {
     LOCATION_CACHE_TTLS,
     COMMON_COUNTRIES,
     ORDER_STATUS,
+    ORDER_TYPES,
     BID_STATUS,
     PAYMENT_STATUS,
     USER_ROLES

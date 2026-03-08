@@ -1,6 +1,9 @@
-const marketplaceOrderService = require('../services/marketplaceOrderService');
+const MarketplaceOrderService = require('../services/marketplaceOrderService');
 const pool = require('../config/db');
 const logger = require('../config/logger');
+
+// Instantiate service
+const marketplaceOrderService = new MarketplaceOrderService();
 
 /**
  * Helper function to get vendor ID from user ID
@@ -158,26 +161,24 @@ const getOrders = async (req, res) => {
 };
 
 /**
- * Update order status (vendor only)
+ * Update order status (vendor actions: accept/reject)
  * PATCH /api/marketplace/orders/:id/status
  */
 const updateOrderStatus = async (req, res) => {
   try {
-    const userId = req.user.userId; // This should be vendor ID for authorization
+    const userId = req.user.userId;
     const { id } = req.params;
-    const { status, vendorNotes } = req.body;
+    const { action, vendorNotes } = req.body;
 
-    if (!status) {
+    if (!action) {
       return res.status(400).json({
         success: false,
-        error: 'Status is required'
+        error: 'Action is required'
       });
     }
 
-    // In a real implementation, we need to get the vendor ID from the user
-    // For now, assuming userId is vendor ID (this would need proper vendor lookup)
+    // Get vendor ID from user
     const vendorId = await getVendorIdFromUser(userId);
-
     if (!vendorId) {
       return res.status(403).json({
         success: false,
@@ -185,23 +186,31 @@ const updateOrderStatus = async (req, res) => {
       });
     }
 
-    const order = await marketplaceOrderService.updateOrderStatus(
-      parseInt(id),
-      status,
-      vendorId,
-      { vendorNotes }
-    );
+    let order;
+    switch (action) {
+      case 'accept':
+        order = await marketplaceOrderService.vendorAcceptOrder(parseInt(id), vendorId);
+        break;
+      case 'reject':
+        order = await marketplaceOrderService.vendorRejectOrder(parseInt(id), vendorId);
+        break;
+      default:
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid action. Supported actions: accept, reject'
+        });
+    }
 
-    logger.info(`Order status updated: ${order.order_number} to ${status}`, {
+    logger.info(`Order ${action}ed: ${order.order_number}`, {
       orderId: id,
       vendorId,
-      newStatus: status,
+      action,
       category: 'marketplace_order'
     });
 
     res.status(200).json({
       success: true,
-      message: `Order status updated to ${status}`,
+      message: `Order ${action}ed successfully`,
       data: order
     });
   } catch (error) {
@@ -276,27 +285,231 @@ const cancelOrder = async (req, res) => {
 };
 
 /**
- * Get vendor order statistics
- * GET /api/marketplace/vendor/stats
+ * Customer confirms payment
+ * POST /api/marketplace/orders/:id/confirm-payment
  */
-const getVendorStats = async (req, res) => {
+const confirmPayment = async (req, res) => {
   try {
-    const vendorId = req.user.userId; // TODO: Get vendor ID from user relationship
+    const customerId = req.user.userId;
+    const { id } = req.params;
+    const { paymentReference } = req.body;
 
-    const stats = await marketplaceOrderService.getOrderStats(vendorId);
+    const order = await marketplaceOrderService.customerConfirmPayment(parseInt(id), customerId);
 
-    res.status(200).json({
-      success: true,
-      data: stats
-    });
-  } catch (error) {
-    logger.error('Error getting vendor stats:', {
-      error: error.message,
-      userId: req.user?.userId,
+    logger.info(`Payment confirmed for order: ${order.order_number}`, {
+      orderId: id,
+      customerId,
+      paymentReference,
       category: 'marketplace_order'
     });
 
-    res.status(400).json({
+    res.status(200).json({
+      success: true,
+      message: 'Payment confirmed successfully',
+      data: order
+    });
+  } catch (error) {
+    logger.error('Error confirming payment:', {
+      error: error.message,
+      userId: req.user?.userId,
+      orderId: req.params.id,
+      category: 'marketplace_order'
+    });
+
+    const statusCode = error.message.includes('not found') ? 404 :
+                      error.message.includes('Access denied') ? 403 :
+                      error.message.includes('Invalid') ? 400 : 400;
+
+    res.status(statusCode).json({
+      success: false,
+      error: error.message
+    });
+  }
+};
+
+/**
+ * Admin assigns driver to order
+ * POST /api/marketplace/orders/:id/assign-driver
+ */
+const assignDriver = async (req, res) => {
+  try {
+    const adminId = req.user.userId;
+    const { id } = req.params;
+    const { driverId, notes } = req.body;
+
+    if (!driverId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Driver ID is required'
+      });
+    }
+
+    // TODO: Verify user has admin role
+    // For now, assume the user calling this endpoint is an admin
+
+    const order = await marketplaceOrderService.adminAssignDriver(parseInt(id), adminId, parseInt(driverId));
+
+    logger.info(`Driver assigned to order: ${order.order_number}`, {
+      orderId: id,
+      adminId,
+      assignedDriverId: driverId,
+      notes,
+      category: 'marketplace_order'
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Driver assigned successfully',
+      data: order
+    });
+  } catch (error) {
+    logger.error('Error assigning driver:', {
+      error: error.message,
+      userId: req.user?.userId,
+      orderId: req.params.id,
+      body: req.body,
+      category: 'marketplace_order'
+    });
+
+    const statusCode = error.message.includes('not found') ? 404 :
+                      error.message.includes('Access denied') ? 403 :
+                      error.message.includes('Invalid') ? 400 : 400;
+
+    res.status(statusCode).json({
+      success: false,
+      error: error.message
+    });
+  }
+};
+
+/**
+ * Driver picks up order
+ * POST /api/marketplace/orders/:id/pickup
+ */
+const pickupOrder = async (req, res) => {
+  try {
+    const driverId = req.user.userId;
+    const { id } = req.params;
+
+    // TODO: Verify user has driver role
+    // For now, assume the user calling this endpoint is a driver
+
+    const order = await marketplaceOrderService.driverPickupOrder(parseInt(id), driverId);
+
+    logger.info(`Order picked up: ${order.order_number}`, {
+      orderId: id,
+      driverId,
+      category: 'marketplace_order'
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Order picked up successfully',
+      data: order
+    });
+  } catch (error) {
+    logger.error('Error picking up order:', {
+      error: error.message,
+      userId: req.user?.userId,
+      orderId: req.params.id,
+      category: 'marketplace_order'
+    });
+
+    const statusCode = error.message.includes('not found') ? 404 :
+                      error.message.includes('Access denied') ? 403 :
+                      error.message.includes('Invalid') ? 400 : 400;
+
+    res.status(statusCode).json({
+      success: false,
+      error: error.message
+    });
+  }
+};
+
+/**
+ * Driver delivers order
+ * POST /api/marketplace/orders/:id/deliver
+ */
+const deliverOrder = async (req, res) => {
+  try {
+    const driverId = req.user.userId;
+    const { id } = req.params;
+    const { deliveryNotes } = req.body;
+
+    // TODO: Verify user has driver role
+    // For now, assume the user calling this endpoint is a driver
+
+    const order = await marketplaceOrderService.driverDeliverOrder(parseInt(id), driverId);
+
+    logger.info(`Order delivered: ${order.order_number}`, {
+      orderId: id,
+      driverId,
+      deliveryNotes,
+      category: 'marketplace_order'
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Order delivered successfully',
+      data: order
+    });
+  } catch (error) {
+    logger.error('Error delivering order:', {
+      error: error.message,
+      userId: req.user?.userId,
+      orderId: req.params.id,
+      category: 'marketplace_order'
+    });
+
+    const statusCode = error.message.includes('not found') ? 404 :
+                      error.message.includes('Access denied') ? 403 :
+                      error.message.includes('Invalid') ? 400 : 400;
+
+    res.status(statusCode).json({
+      success: false,
+      error: error.message
+    });
+  }
+};
+
+/**
+ * Customer confirms receipt
+ * POST /api/marketplace/orders/:id/confirm-receipt
+ */
+const confirmReceipt = async (req, res) => {
+  try {
+    const customerId = req.user.userId;
+    const { id } = req.params;
+    const { rating, feedback } = req.body;
+
+    const order = await marketplaceOrderService.customerConfirmReceipt(parseInt(id), customerId);
+
+    logger.info(`Receipt confirmed for order: ${order.order_number}`, {
+      orderId: id,
+      customerId,
+      rating,
+      feedback,
+      category: 'marketplace_order'
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Receipt confirmed successfully',
+      data: order
+    });
+  } catch (error) {
+    logger.error('Error confirming receipt:', {
+      error: error.message,
+      userId: req.user?.userId,
+      orderId: req.params.id,
+      category: 'marketplace_order'
+    });
+
+    const statusCode = error.message.includes('not found') ? 404 :
+                      error.message.includes('Access denied') ? 403 :
+                      error.message.includes('Invalid') ? 400 : 400;
+
+    res.status(statusCode).json({
       success: false,
       error: error.message
     });
@@ -309,5 +522,10 @@ module.exports = {
   getOrders,
   updateOrderStatus,
   cancelOrder,
+  confirmPayment,
+  assignDriver,
+  pickupOrder,
+  deliverOrder,
+  confirmReceipt,
   getVendorStats
 };
