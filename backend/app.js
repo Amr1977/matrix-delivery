@@ -306,6 +306,8 @@ app.get('/api/orders/:id/tracking', verifyToken, async (req, res) => {
     if (orderResult.rows.length === 0) return res.status(404).json({ error: 'Order not found' });
 
     const order = orderResult.rows[0];
+    
+    // Authorization check: Allow access if user is customer OR assigned driver
     if (order.customer_id !== req.user.userId && order.assigned_driver_user_id !== req.user.userId) {
       return res.status(403).json({ error: 'Unauthorized to view tracking' });
     }
@@ -329,15 +331,61 @@ app.get('/api/orders/:id/tracking', verifyToken, async (req, res) => {
       [req.params.id]
     );
 
-    // Get driver information
-    const driverResult = await pool.query(
-      `SELECT id, name, vehicle_type, rating, completed_deliveries 
-       FROM users 
-       WHERE id = $1`,
-      [order.assigned_driver_user_id]
-    );
+    // Get driver information for assigned driver
+    let driver = null;
+    if (order.assigned_driver_user_id) {
+      const driverResult = await pool.query(
+        `SELECT id, name, vehicle_type, rating, completed_deliveries 
+         FROM users 
+         WHERE id = $1`,
+        [order.assigned_driver_user_id]
+      );
+      driver = driverResult.rows[0];
+    }
 
-    const driver = driverResult.rows[0];
+    // Get bidding drivers' locations (for customers viewing pending orders)
+    let biddingDrivers = [];
+    if (order.customer_id === req.user.userId && order.status === 'pending_bids') {
+      // Get all drivers who have placed bids on this order
+      const biddingDriversResult = await pool.query(
+        `SELECT DISTINCT b.user_id, u.name, u.vehicle_type, u.rating, u.completed_deliveries
+         FROM bids b
+         JOIN users u ON b.user_id = u.id
+         WHERE b.order_id = $1 AND u.primary_role = 'driver'`,
+        [req.params.id]
+      );
+
+      // Get current locations for these bidding drivers
+      for (const biddingDriver of biddingDriversResult.rows) {
+        const driverLocation = await pool.query(
+          `SELECT latitude, longitude, heading, speed_kmh, accuracy_meters, timestamp, context as location_status
+           FROM driver_locations 
+           WHERE driver_id = $1 
+           ORDER BY timestamp DESC
+           LIMIT 1`,
+          [biddingDriver.user_id]
+        );
+
+        if (driverLocation.rows.length > 0) {
+          biddingDrivers.push({
+            userId: biddingDriver.user_id,
+            name: biddingDriver.name,
+            vehicleType: biddingDriver.vehicle_type,
+            rating: parseFloat(biddingDriver.rating),
+            completedDeliveries: biddingDriver.completed_deliveries,
+            currentLocation: {
+              lat: parseFloat(driverLocation.rows[0].latitude),
+              lng: parseFloat(driverLocation.rows[0].longitude),
+              heading: driverLocation.rows[0].heading,
+              speedKmh: driverLocation.rows[0].speed_kmh,
+              accuracyMeters: driverLocation.rows[0].accuracy_meters,
+              timestamp: driverLocation.rows[0].timestamp,
+              status: driverLocation.rows[0].location_status
+            }
+          });
+        }
+      }
+    }
 
     // Determine current location (prefer real-time driver location)
     let currentLocation = null;
@@ -407,7 +455,9 @@ app.get('/api/orders/:id/tracking', verifyToken, async (req, res) => {
         vehicleType: driver.vehicle_type,
         rating: parseFloat(driver.rating),
         completedDeliveries: driver.completed_deliveries
-      } : null
+      } : null,
+      // Include bidding drivers' locations for customers viewing pending orders
+      biddingDrivers: biddingDrivers
     });
   } catch (error) {
     logger.error('Get tracking error:', error);
