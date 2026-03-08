@@ -4,10 +4,10 @@ const MarketplaceOrderService = require('../../../backend/services/marketplaceOr
 jest.mock('../../../backend/repositories/marketplaceOrderRepository');
 
 const MarketplaceOrderRepository = require('../../../backend/repositories/marketplaceOrderRepository');
-const CartService = require('../../../backend/services/cartService');
 
-// Mock cart service
+// Mock cart service - import after jest.mock
 jest.mock('../../../backend/services/cartService');
+const cartService = require('../../../backend/services/cartService');
 
 describe('MarketplaceOrderService', () => {
   let service;
@@ -35,7 +35,7 @@ describe('MarketplaceOrderService', () => {
 
     // Mock the constructor and methods
     MarketplaceOrderRepository.mockImplementation(() => mockRepository);
-    CartService.mockImplementation(() => mockCartService);
+    cartService.mockImplementation(() => mockCartService);
 
     service = new MarketplaceOrderService();
   });
