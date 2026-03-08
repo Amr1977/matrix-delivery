@@ -29,11 +29,34 @@ const OrderCard = ({
   const { t } = useI18n();
   const [showRouteMapFullscreen, setShowRouteMapFullscreen] = React.useState(false);
   const [highlightedBidId, setHighlightedBidId] = React.useState(null);
+  const [isMapVisible, setIsMapVisible] = React.useState(false);
+  const mapContainerRef = React.useRef(null);
+
+  // Intersection Observer to detect map visibility
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsMapVisible(entry.isIntersecting);
+      },
+      { threshold: 0.1 } // 10% visibility is enough to trigger rapid updates
+    );
+
+    if (mapContainerRef.current) {
+      observer.observe(mapContainerRef.current);
+    }
+
+    return () => {
+      if (mapContainerRef.current) {
+        observer.unobserve(mapContainerRef.current);
+      }
+    };
+  }, []);
 
   // Fetch live locations for all drivers who bid on this order
   const { locations: bidLocations } = useBidsLocations(
     order.id, 
-    order.status === 'pending_bids' && currentUser?.primary_role === 'customer' && order.bids?.length > 0
+    order.status === 'pending_bids' && currentUser?.primary_role === 'customer' && order.bids?.length > 0,
+    isMapVisible // Use rapid polling when map is in viewport
   );
 
   // Scroll to highlighted bid section when it changes from the map
@@ -50,7 +73,8 @@ const OrderCard = ({
   // appDriverLocation comes from useDriver hook in App.js and has { latitude, longitude } format
   const driverLocation = appDriverLocation ? {
     lat: appDriverLocation.latitude,
-    lng: appDriverLocation.longitude
+    lng: appDriverLocation.longitude,
+    userId: currentUser?.id
   } : null;
 
 
@@ -847,11 +871,14 @@ const OrderCard = ({
       {/* Route Preview Map for Customers */}
       {
         order.status === 'pending_bids' && currentUser?.primary_role === 'customer' && (
-          <div style={{
-            borderTop: '2px solid var(--matrix-border)',
-            paddingTop: '1rem',
-            marginTop: '0.5rem'
-          }}>
+          <div 
+            ref={mapContainerRef}
+            style={{
+              borderTop: '2px solid var(--matrix-border)',
+              paddingTop: '1rem',
+              marginTop: '0.5rem'
+            }}
+          >
             <RoutePreviewMap
               pickup={order.from}
               dropoff={order.to}

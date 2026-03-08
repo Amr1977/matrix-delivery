@@ -65,11 +65,17 @@ async function getDriversLocationsForOrder(orderId) {
     try {
         const query = `
       SELECT 
-        dl.*,
+        COALESCE(dl.latitude, b.driver_location_lat) as latitude,
+        COALESCE(dl.longitude, b.driver_location_lng) as longitude,
+        dl.timestamp as last_location_update,
         u.name as driver_name,
+        b.user_id as "userId",
         b.bid_price,
         b.estimated_pickup_time,
-        b.estimated_delivery_time
+        b.estimated_delivery_time,
+        b.message,
+        u.rating as driver_rating,
+        u.completed_deliveries
       FROM bids b
       JOIN users u ON b.user_id = u.id
       LEFT JOIN LATERAL (
@@ -79,7 +85,7 @@ async function getDriversLocationsForOrder(orderId) {
         LIMIT 1
       ) dl ON true
       WHERE b.order_id = $1
-      AND dl.timestamp > NOW() - INTERVAL '5 minutes'
+      AND (dl.timestamp > NOW() - INTERVAL '30 minutes' OR b.driver_location_lat IS NOT NULL)
       ORDER BY b.created_at DESC
     `;
 
