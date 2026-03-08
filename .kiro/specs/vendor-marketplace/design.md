@@ -676,3 +676,435 @@ marketplace_orders
   └─→ vendor_payouts (1:1)
 ```
 
+
+
+## Correctness Properties
+
+A property is a characteristic or behavior that should hold true across all valid executions of a system—essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees.
+
+### Property 1: Vendor Registration Creates Pending Account
+
+*For any* valid vendor registration data, submitting the registration should create a vendor account with status 'pending' and all provided information persisted.
+
+**Validates: Requirements 1.1, 1.2**
+
+### Property 2: Vendor Approval State Transition
+
+*For any* pending vendor, when an admin approves the vendor, the status should transition to 'active', approval timestamp should be set, and notification should be sent.
+
+**Validates: Requirements 1.3, 1.4**
+
+### Property 3: Vendor Authentication JWT Contains Role
+
+*For any* active vendor with valid credentials, authentication should return a JWT token containing the 'vendor' role claim.
+
+**Validates: Requirements 1.5**
+
+### Property 4: Vendor Profile Updates Persist Immediately
+
+*For any* vendor and any valid profile update data, applying the update should persist all changes and update the modified timestamp.
+
+**Validates: Requirements 1.6**
+
+### Property 5: Store Creation Requires Complete Data
+
+*For any* store creation attempt missing required fields (name, location, contact), the system should reject the creation with validation error.
+
+**Validates: Requirements 2.1**
+
+
+
+### Property 6: Store Location Validation
+
+*For any* store with location coordinates, creating the store should validate that coordinates are within supported service areas using PostGIS spatial queries.
+
+**Validates: Requirements 2.2**
+
+### Property 7: Store Inventory Independence
+
+*For any* vendor with multiple stores, updating inventory in one store should not affect inventory in other stores owned by the same vendor.
+
+**Validates: Requirements 2.3**
+
+### Property 8: Store Update Timestamp Tracking
+
+*For any* store and any valid update data, applying the update should persist changes and update the updated_at timestamp to current time.
+
+**Validates: Requirements 2.4**
+
+### Property 9: Store Deactivation Preserves Data
+
+*For any* active store, deactivating it should set status to 'inactive', exclude it from customer searches, but preserve all store and item data in the database.
+
+**Validates: Requirements 2.5**
+
+### Property 10: Store Location Update Affects Search Results
+
+*For any* store, when location coordinates are updated, subsequent nearby store searches should reflect the new location in distance calculations and result ordering.
+
+**Validates: Requirements 2.6**
+
+### Property 11: Category Hierarchy Creation
+
+*For any* valid category with a parent_id, creating the category should establish the parent-child relationship and allow retrieval of the complete hierarchy.
+
+**Validates: Requirements 3.1, 3.3**
+
+### Property 12: Category Parent Validation
+
+*For any* category creation with a parent_id, the system should validate that the parent category exists and is active before allowing creation.
+
+**Validates: Requirements 3.2**
+
+
+
+### Property 13: Category Deletion Protection
+
+*For any* category with items assigned to it, attempting to delete the category should be rejected with an error indicating items must be reassigned first.
+
+**Validates: Requirements 3.4**
+
+### Property 14: Category Deactivation Cascade
+
+*For any* parent category with child categories, deactivating the parent should cascade the deactivation to all descendant categories in the hierarchy.
+
+**Validates: Requirements 3.5**
+
+### Property 15: Unlimited Category Nesting
+
+*For any* positive integer N, the system should support creating category hierarchies with depth N without errors or performance degradation.
+
+**Validates: Requirements 3.6**
+
+### Property 16: Item Creation Validation
+
+*For any* item creation attempt, the system should validate that all required fields (name, description, price, category_id, store_id) are provided and that price is positive.
+
+**Validates: Requirements 4.1, 4.2**
+
+### Property 17: Item Foreign Key Validation
+
+*For any* item creation, the system should validate that store_id references an existing store and category_id references an existing active category.
+
+**Validates: Requirements 4.3, 12.2**
+
+### Property 18: Item Image Upload Validation
+
+*For any* image upload, the system should validate file type (JPEG/PNG/WebP only), file size (max 5MB), and reject invalid uploads with descriptive errors.
+
+**Validates: Requirements 4.4, 15.1, 15.2**
+
+### Property 19: Item Inventory Tracking
+
+*For any* item inventory update, the system should record the previous quantity, new quantity, timestamp, and source of the change in audit logs.
+
+**Validates: Requirements 4.5, 18.3**
+
+
+
+### Property 20: Out of Stock Exclusion
+
+*For any* item with inventory_quantity = 0, the item should be marked as 'out_of_stock' and excluded from customer search results.
+
+**Validates: Requirements 4.6**
+
+### Property 21: Item Soft Delete Preservation
+
+*For any* item, deleting it should set is_deleted = true while preserving all item data and maintaining referential integrity with existing orders.
+
+**Validates: Requirements 4.7**
+
+### Property 22: Offer Creation Validation
+
+*For any* offer creation, the system should validate that all required fields are provided and that start_date < end_date.
+
+**Validates: Requirements 5.1, 5.2**
+
+### Property 23: Percentage Discount Validation
+
+*For any* offer with discount_type = 'percentage', the system should validate that discount_value is between 0 and 100 inclusive.
+
+**Validates: Requirements 5.3**
+
+### Property 24: Fixed Discount Validation
+
+*For any* offer with discount_type = 'fixed', the system should validate that discount_value is less than the item's current price.
+
+**Validates: Requirements 5.4**
+
+### Property 25: Active Offer Price Application
+
+*For any* item with an active offer (current time between start_date and end_date), customer views should display the discounted price calculated from the offer.
+
+**Validates: Requirements 5.5**
+
+### Property 26: Offer Expiration Handling
+
+*For any* offer where current time > end_date, the system should automatically deactivate the offer and display original item pricing.
+
+**Validates: Requirements 5.6**
+
+
+
+### Property 27: Highest Discount Precedence
+
+*For any* item with multiple active offers, the system should apply only the offer with the highest discount value to the displayed price.
+
+**Validates: Requirements 5.7**
+
+### Property 28: Nearby Store Search Radius
+
+*For any* customer location and search radius R, the system should return only stores where ST_Distance(customer_location, store_location) <= R using PostGIS spatial queries.
+
+**Validates: Requirements 6.1**
+
+### Property 29: Store Distance Calculation
+
+*For any* store in search results, the system should calculate and display the accurate distance from customer location using PostGIS ST_Distance function.
+
+**Validates: Requirements 6.2**
+
+### Property 30: Category Filter Accuracy
+
+*For any* category filter applied to store search, results should include only stores that have at least one active item in the specified category or its subcategories.
+
+**Validates: Requirements 6.3**
+
+### Property 31: Keyword Search Matching
+
+*For any* keyword search query, results should include stores where the keyword matches store name, item names, or item descriptions using full-text search.
+
+**Validates: Requirements 6.4**
+
+### Property 32: Empty Store Exclusion
+
+*For any* store with zero active items (all items inactive or deleted), the store should be excluded from customer search results.
+
+**Validates: Requirements 6.5**
+
+### Property 33: Store Display Completeness
+
+*For any* store in search results, the displayed data should include store name, distance from customer, rating, and at least one featured item if available.
+
+**Validates: Requirements 6.6**
+
+
+
+### Property 34: Cart Item Availability Validation
+
+*For any* item being added to cart, the system should validate that the item status is 'active' and inventory_quantity > 0 before allowing addition.
+
+**Validates: Requirements 7.1**
+
+### Property 35: Cart Item Data Persistence
+
+*For any* item added to cart, the system should store item_id, quantity, store_id, and the current price_at_add in the cart_items table.
+
+**Validates: Requirements 7.2**
+
+### Property 36: Single-Store Cart Constraint
+
+*For any* customer cart, when adding an item from a different store than existing cart items, the system should clear all existing cart items and create a new cart with only the new item.
+
+**Validates: Requirements 7.3, 7.8**
+
+### Property 37: Cart Quantity Stock Validation
+
+*For any* cart item quantity update, the system should validate that the new quantity does not exceed the item's current inventory_quantity.
+
+**Validates: Requirements 7.4**
+
+### Property 38: Cart Price Synchronization
+
+*For any* cart item, when the item's price changes in the items table, the next cart retrieval should update price_at_add to reflect the current price.
+
+**Validates: Requirements 7.5**
+
+### Property 39: Cart Item Removal
+
+*For any* cart item, removing it should immediately delete the cart_items record from the database.
+
+**Validates: Requirements 7.6**
+
+### Property 40: Cart Expiration Cleanup
+
+*For any* shopping cart where updated_at < (current_time - 7 days), the system should delete the cart and all associated cart_items.
+
+**Validates: Requirements 7.7**
+
+
+
+### Property 41: Single Order Per Checkout
+
+*For any* customer cart checkout, the system should create exactly one marketplace_orders record containing all cart items from the single store.
+
+**Validates: Requirements 8.1**
+
+### Property 42: Order Total Calculation
+
+*For any* marketplace order, the total_amount should equal items_subtotal + platform_commission + delivery_fee, where platform_commission = items_subtotal * 0.10.
+
+**Validates: Requirements 8.2, 8.3**
+
+### Property 43: Commission Excludes Delivery Fee
+
+*For any* marketplace order, the platform_commission should be calculated as 10% of items_subtotal only, excluding delivery_fee from the calculation.
+
+**Validates: Requirements 8.4, 9.2**
+
+### Property 44: Checkout Availability Validation
+
+*For any* order placement, the system should validate that all cart items are still active and have sufficient inventory_quantity before creating the order.
+
+**Validates: Requirements 8.5**
+
+### Property 45: Order Inventory Deduction
+
+*For any* confirmed marketplace order, the system should deduct the ordered quantity from each item's inventory_quantity atomically within a transaction.
+
+**Validates: Requirements 8.6**
+
+### Property 46: Driver Assignment Notifications
+
+*For any* marketplace order when a driver is assigned, the system should send notifications to both the vendor and customer containing driver details.
+
+**Validates: Requirements 8.7, 16.2**
+
+### Property 47: Delivery Triggers Payout
+
+*For any* marketplace order with status = 'delivered', the system should create a vendor_payouts record and initiate the payout process.
+
+**Validates: Requirements 8.8**
+
+
+
+### Property 48: Vendor Payout Calculation
+
+*For any* delivered marketplace order, the vendor_earnings should equal order_total - platform_commission, where platform_commission = items_subtotal * 0.10.
+
+**Validates: Requirements 9.1**
+
+### Property 49: Payout Transaction Record
+
+*For any* payout calculation, the system should create a vendor_payouts record containing order_total, platform_commission, and vendor_earnings breakdown.
+
+**Validates: Requirements 9.3**
+
+### Property 50: Vendor Earnings Display
+
+*For any* vendor viewing earnings, the display should show total_sales (sum of order_total), total_commission (sum of platform_commission), and net_earnings (sum of vendor_earnings).
+
+**Validates: Requirements 9.4**
+
+### Property 51: Payout Payment Integration
+
+*For any* payout with status = 'processing', the system should call the existing payment service with vendor account details and payout amount.
+
+**Validates: Requirements 9.5**
+
+### Property 52: Payout Retry Logic
+
+*For any* payout with status = 'failed', the system should automatically retry with exponential backoff and send notification to vendor after max retries.
+
+**Validates: Requirements 9.6, 19.2**
+
+### Property 53: Dashboard Metrics Calculation
+
+*For any* vendor dashboard view with date range filter, the system should calculate total_sales, order_count, and revenue accurately for orders within the date range.
+
+**Validates: Requirements 10.1, 10.4**
+
+### Property 54: Dashboard Analytics Completeness
+
+*For any* vendor dashboard, the analytics section should display top-selling items, category performance metrics, and order trend data.
+
+**Validates: Requirements 10.2**
+
+
+
+### Property 55: Order History Display
+
+*For any* vendor order history view, each order should display order_number, status, customer information, and item details.
+
+**Validates: Requirements 10.3**
+
+### Property 56: Low Stock Highlighting
+
+*For any* vendor inventory view, items where inventory_quantity <= low_stock_threshold should be visually highlighted or flagged.
+
+**Validates: Requirements 10.5, 16.4**
+
+### Property 57: Data Export CSV Format
+
+*For any* vendor data export request, the system should generate a valid CSV file containing all requested sales or inventory data with proper headers.
+
+**Validates: Requirements 10.6**
+
+### Property 58: Vendor Data Authorization
+
+*For any* vendor accessing store, item, or order data, the system should verify that the data belongs to that vendor before allowing access, rejecting unauthorized attempts with 403 Forbidden.
+
+**Validates: Requirements 11.1, 11.2, 11.6**
+
+### Property 59: Admin Full Access
+
+*For any* admin user accessing vendor data, the system should allow full read and write access to all vendors, stores, items, and orders.
+
+**Validates: Requirements 11.3**
+
+### Property 60: Customer Read-Only Access
+
+*For any* customer accessing vendor data, the system should allow read access only to public store and item information, rejecting write attempts with 403 Forbidden.
+
+**Validates: Requirements 11.4**
+
+### Property 61: JWT Authentication Validation
+
+*For any* API endpoint call, the system should validate the JWT token, extract the user role, and enforce role-based access control before processing the request.
+
+**Validates: Requirements 11.5**
+
+
+
+### Property 62: Foreign Key Referential Integrity
+
+*For any* entity creation (store, item, offer), the system should validate that all foreign key references (vendor_id, store_id, category_id, item_id) point to existing active records.
+
+**Validates: Requirements 12.1, 12.2, 12.3**
+
+### Property 63: Foreign Key Violation Errors
+
+*For any* database operation that would violate a foreign key constraint, the system should reject the operation and return a descriptive error message.
+
+**Validates: Requirements 12.4**
+
+### Property 64: Cascade Delete Protection
+
+*For any* vendor with active stores, attempting to delete the vendor should be rejected with an error indicating stores must be deactivated first.
+
+**Validates: Requirements 12.5**
+
+### Property 65: Transaction Rollback on Failure
+
+*For any* database transaction that encounters an error, the system should rollback all changes within that transaction to maintain data consistency.
+
+**Validates: Requirements 12.6, 19.1**
+
+### Property 66: API Rate Limiting
+
+*For any* vendor making API requests, when request count exceeds the configured rate limit within the time window, the system should return 429 Too Many Requests with Retry-After header.
+
+**Validates: Requirements 13.1, 13.2**
+
+### Property 67: File Upload Security Validation
+
+*For any* file upload, the system should validate file type against whitelist, validate size <= 5MB, and scan for malware before accepting the upload.
+
+**Validates: Requirements 13.3**
+
+### Property 68: SQL Injection Prevention
+
+*For any* database query, the system should use parameterized queries or prepared statements to prevent SQL injection attacks.
+
+**Validates: Requirements 13.4**
+

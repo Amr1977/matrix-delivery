@@ -45,6 +45,8 @@ const {
 const ordersRouter = require('./routes/orders');
 const cryptoPaymentRoutes = require('./routes/cryptoPayments');
 const reviewsRouter = require('./routes/reviews').default;
+const marketplaceVendorRoutes = require('./modules/marketplace/routes/vendorRoutes');
+const marketplaceStoreRoutes = require('./modules/marketplace/routes/storeRoutes');
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 const IS_TEST = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing';
@@ -104,6 +106,12 @@ const isVendor = requireRole('vendor', 'admin');
 
 // Load browse/marketplace endpoints
 app.use('/api/browse', require('./routes/browse'));
+
+// New modular marketplace vendor endpoints (Milestone 1)
+app.use('/api/marketplace/vendors', marketplaceVendorRoutes);
+
+// New modular marketplace store endpoints (Milestone 2)
+app.use('/api/marketplace/stores', marketplaceStoreRoutes);
 
 // Load vendor management endpoints
 app.use('/api/vendors', require('./routes/vendors'));
