@@ -26,6 +26,21 @@ router.patch('/:id/status', verifyToken, marketplaceOrderController.updateOrderS
 // Cancel order (customer or vendor)
 router.post('/:id/cancel', verifyToken, marketplaceOrderController.cancelOrder);
 
+// Customer confirms payment
+router.post('/:id/confirm-payment', verifyToken, marketplaceOrderController.confirmPayment);
+
+// Admin assigns driver to order
+router.post('/:id/assign-driver', verifyToken, marketplaceOrderController.assignDriver);
+
+// Driver picks up order
+router.post('/:id/pickup', verifyToken, marketplaceOrderController.pickupOrder);
+
+// Driver delivers order
+router.post('/:id/deliver', verifyToken, marketplaceOrderController.deliverOrder);
+
+// Customer confirms receipt
+router.post('/:id/confirm-receipt', verifyToken, marketplaceOrderController.confirmReceipt);
+
 // Get vendor statistics (vendor only)
 router.get('/vendor/stats', verifyToken, marketplaceOrderController.getVendorStats);
 
