@@ -2,13 +2,11 @@ const pool = require('../config/db');
 const { getDistance } = require('geolib');
 const logger = require('../config/logger');
 
-// Register ts-node disabled
-// require('ts-node/register');
-
 // Import BalanceService (JavaScript)
 const { BalanceService } = require('./balanceService.js');
 const { TakafulService } = require('./takafulService.js');
 const { PAYMENT_CONFIG } = require('../config/paymentConfig.js');
+const { orderFSMRegistry } = require('../fsm/OrderFSMRegistry');
 const balanceService = new BalanceService(pool);
 const takafulService = new TakafulService(pool);
 
@@ -1189,10 +1187,10 @@ RETURNING * `;
     const actionAlias = {
       'picked_up': 'pickup',
       'pickup': 'pickup',
-      'in_transit': 'in-transit',
-      'in-transit': 'in-transit',
-      'delivered': 'complete', // Handle frontend 'delivered' action
-      'complete': 'complete',
+      'in_transit': 'start_transit',
+      'in-transit': 'start_transit',
+      'delivered': 'complete_delivery', // Handle frontend 'delivered' action
+      'complete': 'complete_delivery',
       'confirm_delivery': 'confirm_delivery', // Customer confirms delivery
       'cancel': 'cancel', // Customer/Admin cancels order
       'cancelled': 'cancel' // Alternative name for cancel action
@@ -1217,8 +1215,19 @@ RETURNING * `;
     }
 
     const order = orderCheck.rows[0];
+    const orderWithType = { ...order, order_type: 'delivery' };
 
-    // Validate permissions and actions
+    // Validate transition using FSM registry
+    const transitionResult = orderFSMRegistry.validateTransition(orderWithType, normalizedAction, {
+      userId,
+      userRole: normalizedAction === 'confirm_delivery' || normalizedAction === 'cancel' ? 'customer' : 'driver'
+    });
+
+    if (!transitionResult.valid) {
+      throw new Error(transitionResult.error);
+    }
+
+    // Additional authorization checks
     if (normalizedAction === 'confirm_delivery' || normalizedAction === 'cancel') {
       // Customer actions
       if (order.customer_id !== userId) {
@@ -1231,42 +1240,23 @@ RETURNING * `;
       }
     }
 
-    // Validate status transitions
-    const statusMap = {
-      pickup: { from: ['accepted'], to: 'picked_up' },
-      'in-transit': { from: ['picked_up'], to: 'in_transit' },
-      // Driver marks as complete -> pending confirmation
-      complete: { from: ['in_transit', 'in-transit', 'picked_up'], to: 'delivered_pending' },
-      // Customer confirms -> delivered
-      confirm_delivery: { from: ['delivered_pending'], to: 'delivered' },
-      // Customer cancels order (before pickup)
-      cancel: { from: ['pending_bids', 'accepted'], to: 'cancelled' }
-    };
-
-    const transition = statusMap[normalizedAction];
-    if (!transition) {
-      throw new Error(`Invalid action transition for ${normalizedAction}`);
-    }
-
-    const expectedPreviousStatuses = transition.from;
-
-    if (!expectedPreviousStatuses.includes(order.status)) {
-      throw new Error(`Order must be in ${expectedPreviousStatuses.join(' or ')} status (current: ${order.status})`);
-    }
+    // Use the validated transition result
+    const newStatus = transitionResult.nextStatus;
 
     // Update order status safely using optimistic concurrency control
-            let query = `UPDATE orders SET status = $1 WHERE id = $2 AND status = ANY($3::text[])`;
-            let params = [transition.to, orderId, expectedPreviousStatuses];
+    let query = `UPDATE orders SET status = $1 WHERE id = $2 AND status = $3`;
+    let params = [newStatus, orderId, order.status];
 
-            const updateFields = {
-                pickup: 'picked_up_at = NOW()',
-                // complete (driver) -> no timestamp update yet, or maybe 'arrived_at'? 
-                complete: 'delivered_at = NOW()', // We can set it tentatively, or wait for confirm. Let's set it now.
-                confirm_delivery: 'completed_at = NOW()', // Maybe a new field? Or just leave delivered_at.
-                cancel: 'cancelled_at = NOW()' // Record when order was cancelled
-            };
+    const updateFields = {
+      pickup: 'picked_up_at = NOW()',
+      start_transit: 'in_transit_at = NOW()',
+      complete_delivery: 'delivered_at = NOW()', // Driver marks as complete
+      confirm_delivery: 'completed_at = NOW()', // Customer confirms
+      cancel: 'cancelled_at = NOW()' // Record when order was cancelled
+    };
 
-            if (updateFields[normalizedAction]) {
+    if (updateFields[normalizedAction]) {
+      query = `UPDATE orders SET status = $1, ${updateFields[normalizedAction]} WHERE id = $2 AND status = $3`;
                 query = `UPDATE orders SET status = $1, ${updateFields[normalizedAction]} WHERE id = $2 AND status = ANY($3::text[])`;
             }
 
