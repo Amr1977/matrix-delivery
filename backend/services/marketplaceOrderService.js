@@ -2,6 +2,7 @@ const MarketplaceOrderRepository = require('../repositories/marketplaceOrderRepo
 const VendorPayoutService = require('./vendorPayoutService');
 const cartService = require('./cartService');
 const { ORDER_STATUS } = require('../config/constants');
+const { multiFSMOrchestrator } = require('../fsm/MultiFSMOrchestrator');
 const logger = require('../config/logger');
 
 /**
@@ -13,115 +14,6 @@ class MarketplaceOrderService {
     this.marketplaceOrderRepository = new MarketplaceOrderRepository();
     this.vendorPayoutService = new VendorPayoutService();
     this.cartService = cartService;
-  }
-
-  /**
-   * Comprehensive marketplace order state machine
-   * Defines valid transitions for each status
-   */
-  getStateMachine() {
-    return {
-      [ORDER_STATUS.PENDING]: {
-        'confirm_payment': {
-          nextStatus: ORDER_STATUS.PAID,
-          allowedRoles: ['customer', 'system'],
-          description: 'Payment confirmed by customer or gateway'
-        },
-        'cancel_by_admin': {
-          nextStatus: ORDER_STATUS.CANCELLED,
-          allowedRoles: ['admin'],
-          description: 'Admin cancels order before vendor acceptance'
-        },
-        'system_failure': {
-          nextStatus: ORDER_STATUS.FAILED,
-          allowedRoles: ['system'],
-          description: 'Payment timeout or system error'
-        }
-      },
-      [ORDER_STATUS.PAID]: {
-        'accept_order': {
-          nextStatus: ORDER_STATUS.ACCEPTED,
-          allowedRoles: ['vendor'],
-          description: 'Vendor accepts and confirms order fulfillment'
-        },
-        'reject_order': {
-          nextStatus: ORDER_STATUS.REJECTED,
-          allowedRoles: ['vendor'],
-          description: 'Vendor rejects order, refund initiated'
-        },
-        'cancel_by_admin': {
-          nextStatus: ORDER_STATUS.CANCELLED,
-          allowedRoles: ['admin'],
-          description: 'Admin emergency cancellation'
-        }
-      },
-      [ORDER_STATUS.ACCEPTED]: {
-        'assign_driver': {
-          nextStatus: ORDER_STATUS.ASSIGNED,
-          allowedRoles: ['admin', 'system'],
-          description: 'Driver assigned for delivery'
-        },
-        'cancel_by_admin': {
-          nextStatus: ORDER_STATUS.CANCELLED,
-          allowedRoles: ['admin'],
-          description: 'Admin emergency cancellation'
-        }
-      },
-      [ORDER_STATUS.ASSIGNED]: {
-        'pickup_order': {
-          nextStatus: ORDER_STATUS.PICKED_UP,
-          allowedRoles: ['driver'],
-          description: 'Driver picked up order from vendor'
-        },
-        'cancel_by_admin': {
-          nextStatus: ORDER_STATUS.CANCELLED,
-          allowedRoles: ['admin'],
-          description: 'Admin emergency cancellation'
-        }
-      },
-      [ORDER_STATUS.PICKED_UP]: {
-        'deliver_order': {
-          nextStatus: ORDER_STATUS.DELIVERED,
-          allowedRoles: ['driver'],
-          description: 'Order delivered to customer'
-        },
-        'cancel_by_admin': {
-          nextStatus: ORDER_STATUS.CANCELLED,
-          allowedRoles: ['admin'],
-          description: 'Admin emergency cancellation'
-        }
-      },
-      [ORDER_STATUS.DELIVERED]: {
-        'confirm_receipt': {
-          nextStatus: ORDER_STATUS.COMPLETED,
-          allowedRoles: ['customer'],
-          description: 'Customer confirms order receipt'
-        },
-        'dispute_order': {
-          nextStatus: ORDER_STATUS.DISPUTED,
-          allowedRoles: ['customer'],
-          description: 'Customer reports issue with delivery'
-        }
-      },
-      [ORDER_STATUS.DISPUTED]: {
-        'resolve_dispute_completed': {
-          nextStatus: ORDER_STATUS.COMPLETED,
-          allowedRoles: ['admin'],
-          description: 'Admin resolves dispute in favor of completion'
-        },
-        'resolve_dispute_refund': {
-          nextStatus: ORDER_STATUS.REFUNDED,
-          allowedRoles: ['admin'],
-          description: 'Admin resolves dispute with refund'
-        }
-      },
-      // Final states - no transitions allowed
-      [ORDER_STATUS.COMPLETED]: {},
-      [ORDER_STATUS.CANCELLED]: {},
-      [ORDER_STATUS.REJECTED]: {},
-      [ORDER_STATUS.REFUNDED]: {},
-      [ORDER_STATUS.FAILED]: {}
-    };
   }
 
   /**
@@ -279,12 +171,12 @@ class MarketplaceOrderService {
   }
 
   /**
-   * Update order status using comprehensive state machine
+   * Update order status using multi-FSM orchestration
    * @param {number} orderId - Order ID
-   * @param {string} action - Action name (e.g., 'confirm_payment', 'accept_order')
-   * @param {number} userId - User ID performing the action
-   * @param {string} userRole - Role of user performing action ('customer', 'vendor', 'admin', 'driver', 'system')
-   * @param {Object} additionalData - Additional data for the transition
+   * @param {string} action - Action name (e.g., 'accept_order', 'confirm_payment')
+   * @param {number} userId - User ID performing action
+   * @param {string} userRole - User role ('vendor', 'customer', 'driver', 'admin')
+   * @param {Object} additionalData - Additional context data
    * @returns {Promise<Object>} Updated order
    */
   async updateOrderStatus(orderId, action, userId, userRole, additionalData = {}) {
@@ -295,42 +187,45 @@ class MarketplaceOrderService {
         throw new Error('Order not found');
       }
 
-      const currentStatus = order.status;
-      const stateMachine = this.getStateMachine();
-
-      // Validate current status exists in state machine
-      if (!stateMachine[currentStatus]) {
-        throw new Error(`Invalid current status: ${currentStatus}`);
+      // Map action to FSM type
+      const fsmType = this.mapActionToFSMType(action);
+      if (!fsmType) {
+        throw new Error(`Unknown action: ${action}`);
       }
 
-      // Validate action exists for current status
-      if (!stateMachine[currentStatus][action]) {
-        throw new Error(`Invalid action '${action}' for status '${currentStatus}'`);
-      }
+      // Prepare context for FSM transition
+      const context = {
+        userId,
+        userRole,
+        order,
+        metadata: additionalData
+      };
 
-      const transition = stateMachine[currentStatus][action];
+      // Validate action-specific authorization
+      await this.validateActionAuthorization(order, action, userId, userRole, additionalData);
 
-      // Validate user role is allowed for this action
-      if (!transition.allowedRoles.includes(userRole)) {
-        throw new Error(`Role '${userRole}' not authorized for action '${action}'`);
-      }
-
-      // Additional authorization checks based on action
-      await this.validateActionAuthorization(order, action, userId, userRole);
-
-      const newStatus = transition.nextStatus;
-
-      // Update order status
-      const updatedOrder = await this.marketplaceOrderRepository.updateOrderStatus(
+      // Execute FSM transition through orchestrator
+      const transitionResult = await multiFSMOrchestrator.executeFSMTransition(
         orderId,
-        newStatus,
-        additionalData
+        fsmType,
+        action,
+        context
       );
+
+      if (!transitionResult.valid) {
+        throw new Error(transitionResult.error);
+      }
+
+      // Update order status in main orders table (legacy compatibility)
+      const newStatus = this.mapFSMStateToOrderStatus(fsmType, transitionResult.nextStatus, order);
+      if (newStatus) {
+        await this.marketplaceOrderRepository.updateOrderStatus(orderId, newStatus, additionalData);
+      }
 
       // Handle status-specific side effects
       await this.handleStatusTransition(orderId, newStatus, additionalData);
 
-      // Log audit event
+      // Log comprehensive audit event
       await this.marketplaceOrderRepository.logAuditEvent({
         userId: userRole !== 'system' ? userId : null,
         vendorId: order.vendor_id,
@@ -338,25 +233,110 @@ class MarketplaceOrderService {
         action: action,
         entityType: 'marketplace_order',
         entityId: orderId,
-        oldValues: { status: currentStatus },
-        newValues: { status: newStatus },
-        changes: { status: { from: currentStatus, to: newStatus } }
+        oldValues: { status: order.status },
+        newValues: {
+          status: newStatus,
+          [`${fsmType}_fsm_state`]: transitionResult.nextStatus
+        },
+        changes: {
+          status: { from: order.status, to: newStatus },
+          fsm_transition: {
+            fsm_type: fsmType,
+            from_state: transitionResult.transition ? 'unknown' : null,
+            to_state: transitionResult.nextStatus
+          }
+        }
       });
 
-      logger.info(`Order ${order.order_number}: ${action} by ${userRole} - ${currentStatus} → ${newStatus}`, {
+      logger.info(`Order ${order.order_number}: ${action} by ${userRole} - ${fsmType} FSM: ${transitionResult.nextStatus}`, {
         orderId,
         action,
         userRole,
-        oldStatus: currentStatus,
-        newStatus,
+        fsmType,
+        newFSMState: transitionResult.nextStatus,
+        newOrderStatus: newStatus,
         category: 'marketplace_order'
       });
 
-      return updatedOrder;
+      // Return updated order with FSM states
+      const updatedOrder = await this.marketplaceOrderRepository.getOrderById(orderId);
+      const fsmStates = await multiFSMOrchestrator.getOrderFSMStates(orderId);
+
+      return {
+        ...updatedOrder,
+        fsm_states: fsmStates
+      };
     } catch (error) {
       logger.error('Error updating order status:', error);
       throw error;
     }
+  }
+
+  /**
+   * Map action to FSM type
+   * @param {string} action - Action name
+   * @returns {string|null} FSM type ('vendor', 'payment', 'delivery') or null if unknown
+   */
+  mapActionToFSMType(action) {
+    const actionToFSMMap = {
+      // Vendor FSM actions
+      'accept_order': 'vendor',
+      'reject_order': 'vendor',
+      'start_preparing_order': 'vendor',
+      'mark_prepared': 'vendor',
+
+      // Payment FSM actions
+      'confirm_payment': 'payment',
+      'payment_failed': 'payment',
+      'request_refund': 'payment',
+      'retry_payment': 'payment',
+
+      // Delivery FSM actions
+      'assign_driver': 'delivery',
+      'pickup_order': 'delivery',
+      'deliver_order': 'delivery',
+      'confirm_receipt': 'delivery',
+      'dispute_order': 'delivery',
+
+      // Admin actions (can affect multiple FSMs)
+      'cancel_by_admin': 'vendor', // Primarily affects vendor FSM
+      'resolve_dispute_completed': 'delivery',
+      'resolve_dispute_refund': 'payment'
+    };
+
+    return actionToFSMMap[action] || null;
+  }
+
+  /**
+   * Map FSM state to legacy order status for backward compatibility
+   * @param {string} fsmType - FSM type
+   * @param {string} fsmState - FSM state
+   * @param {Object} order - Order object
+   * @returns {string|null} Order status or null if no mapping needed
+   */
+  mapFSMStateToOrderStatus(fsmType, fsmState, order) {
+    // For now, maintain some backward compatibility with key states
+    // This can be refined based on business requirements
+    switch (fsmType) {
+      case 'vendor':
+        if (fsmState === 'order_rejected_by_vendor') return ORDER_STATUS.REJECTED;
+        if (fsmState === 'order_is_fully_prepared_and_ready_for_delivery') return ORDER_STATUS.PICKED_UP;
+        break;
+
+      case 'payment':
+        if (fsmState === 'payment_successfully_received_and_verified_for_order') return ORDER_STATUS.PAID;
+        if (fsmState === 'payment_has_been_refunded_to_customer') return ORDER_STATUS.REFUNDED;
+        break;
+
+      case 'delivery':
+        if (fsmState === 'courier_has_been_assigned_to_deliver_the_order') return ORDER_STATUS.ASSIGNED;
+        if (fsmState === 'courier_marks_order_as_delivered_to_customer') return ORDER_STATUS.DELIVERED;
+        if (fsmState === 'order_delivery_successfully_completed_and_confirmed_by_customer') return ORDER_STATUS.COMPLETED;
+        if (fsmState === 'delivery_disputed_by_customer_and_requires_resolution') return ORDER_STATUS.DISPUTED;
+        break;
+    }
+
+    return null; // No change to main order status
   }
 
   /**
@@ -365,6 +345,7 @@ class MarketplaceOrderService {
    * @param {string} action - Action name
    * @param {number} userId - User ID
    * @param {string} userRole - User role
+   * @param {Object} additionalData - Additional context data
    */
   async validateActionAuthorization(order, action, userId, userRole) {
     switch (action) {
@@ -467,7 +448,7 @@ class MarketplaceOrderService {
    * @returns {Promise<Object>} Updated order
    */
   async vendorAcceptOrder(orderId, vendorId) {
-    return this.updateOrderStatus(orderId, 'accept_order', vendorId, 'vendor');
+    return this.updateOrderStatus(orderId, 'vendor_confirms_order_is_available', vendorId, 'vendor');
   }
 
   /**
@@ -477,7 +458,7 @@ class MarketplaceOrderService {
    * @returns {Promise<Object>} Updated order
    */
   async vendorRejectOrder(orderId, vendorId) {
-    return this.updateOrderStatus(orderId, 'reject_order', vendorId, 'vendor');
+    return this.updateOrderStatus(orderId, 'vendor_rejects_order_due_to_unavailability', vendorId, 'vendor');
   }
 
   /**
@@ -487,7 +468,7 @@ class MarketplaceOrderService {
    * @returns {Promise<Object>} Updated order
    */
   async customerConfirmPayment(orderId, customerId) {
-    return this.updateOrderStatus(orderId, 'confirm_payment', customerId, 'customer');
+    return this.updateOrderStatus(orderId, 'customer_completes_payment_successfully', customerId, 'customer');
   }
 
   /**
@@ -498,7 +479,7 @@ class MarketplaceOrderService {
    * @returns {Promise<Object>} Updated order
    */
   async adminAssignDriver(orderId, adminId, driverId) {
-    return this.updateOrderStatus(orderId, 'assign_driver', adminId, 'admin', { assignedDriverId: driverId });
+    return this.updateOrderStatus(orderId, 'courier_accepts_delivery_request', adminId, 'admin', { assignedDriverId: driverId });
   }
 
   /**
@@ -508,7 +489,7 @@ class MarketplaceOrderService {
    * @returns {Promise<Object>} Updated order
    */
   async driverPickupOrder(orderId, driverId) {
-    return this.updateOrderStatus(orderId, 'pickup_order', driverId, 'driver');
+    return this.updateOrderStatus(orderId, 'courier_confirms_receipt_of_order_from_vendor', driverId, 'driver');
   }
 
   /**
@@ -518,7 +499,7 @@ class MarketplaceOrderService {
    * @returns {Promise<Object>} Updated order
    */
   async driverDeliverOrder(orderId, driverId) {
-    return this.updateOrderStatus(orderId, 'deliver_order', driverId, 'driver');
+    return this.updateOrderStatus(orderId, 'courier_marks_order_as_delivered_to_customer', driverId, 'driver');
   }
 
   /**
@@ -528,7 +509,7 @@ class MarketplaceOrderService {
    * @returns {Promise<Object>} Updated order
    */
   async customerConfirmReceipt(orderId, customerId) {
-    return this.updateOrderStatus(orderId, 'confirm_receipt', customerId, 'customer');
+    return this.updateOrderStatus(orderId, 'customer_confirms_receipt_of_order', customerId, 'customer');
   }
 
   /**
@@ -539,39 +520,151 @@ class MarketplaceOrderService {
    * @returns {Promise<Object>} Updated order
    */
   async customerDisputeOrder(orderId, customerId, disputeReason) {
-    return this.updateOrderStatus(orderId, 'dispute_order', customerId, 'customer', { disputeReason });
+    return this.updateOrderStatus(orderId, 'customer_reports_problem_with_delivery', customerId, 'customer', { disputeReason });
   }
 
   /**
-   * Convenience method: Admin resolves dispute (complete)
+   * Handle vendor rejection after payment started (edge case)
    * @param {number} orderId - Order ID
-   * @param {number} adminId - Admin ID
+   * @param {number} vendorId - Vendor ID
+   * @param {string} reason - Rejection reason
    * @returns {Promise<Object>} Updated order
    */
-  async adminResolveDisputeCompleted(orderId, adminId) {
-    return this.updateOrderStatus(orderId, 'resolve_dispute_completed', adminId, 'admin');
+  async handleLateVendorRejection(orderId, vendorId, reason) {
+    try {
+      const order = await this.marketplaceOrderRepository.getOrderById(orderId);
+      if (!order) {
+        throw new Error('Order not found');
+      }
+
+      // Check if payment has already been processed
+      const fsmStates = await multiFSMOrchestrator.getOrderFSMStates(orderId);
+      const paymentState = fsmStates.payment;
+
+      if (paymentState === 'payment_successfully_received_and_verified_for_order') {
+        // Payment processed - need to handle refund
+        logger.warn(`Late vendor rejection for order ${orderId} - payment already processed, initiating refund`);
+
+        // First, reject the order in vendor FSM
+        await this.vendorRejectOrder(orderId, vendorId);
+
+        // Then trigger automatic refund
+        await this.updateOrderStatus(orderId, 'admin_or_system_requests_refund', vendorId, 'system', {
+          refundReason: `Vendor rejection: ${reason}`,
+          isLateRejection: true
+        });
+
+        return await this.marketplaceOrderRepository.getOrderById(orderId);
+      } else {
+        // Payment not processed - normal rejection
+        return await this.vendorRejectOrder(orderId, vendorId);
+      }
+    } catch (error) {
+      logger.error('Error handling late vendor rejection:', error);
+      throw error;
+    }
   }
 
   /**
-   * Convenience method: Admin resolves dispute (refund)
+   * Handle payment failure after vendor preparation started (edge case)
    * @param {number} orderId - Order ID
-   * @param {number} adminId - Admin ID
-   * @param {string} refundReason - Reason for refund
+   * @param {string} failureReason - Payment failure reason
    * @returns {Promise<Object>} Updated order
    */
-  async adminResolveDisputeRefund(orderId, adminId, refundReason) {
-    return this.updateOrderStatus(orderId, 'resolve_dispute_refund', adminId, 'admin', { refundReason });
+  async handlePaymentFailureAfterPreparation(orderId, failureReason) {
+    try {
+      const order = await this.marketplaceOrderRepository.getOrderById(orderId);
+      if (!order) {
+        throw new Error('Order not found');
+      }
+
+      // Check vendor FSM state
+      const fsmStates = await multiFSMOrchestrator.getOrderFSMStates(orderId);
+      const vendorState = fsmStates.vendor;
+
+      if (vendorState === 'order_is_fully_prepared_and_ready_for_delivery') {
+        // Vendor already prepared - this is a complex case
+        logger.warn(`Payment failure after vendor preparation for order ${orderId} - requiring admin intervention`);
+
+        // Block delivery actions
+        await this.updateOrderStatus(orderId, 'payment_attempt_failed_or_timed_out', null, 'system', {
+          failureReason,
+          vendorAlreadyPrepared: true,
+          requiresAdminIntervention: true
+        });
+
+        // Could trigger admin notification here
+        return await this.marketplaceOrderRepository.getOrderById(orderId);
+      } else {
+        // Normal payment failure handling
+        return this.updateOrderStatus(orderId, 'payment_attempt_failed_or_timed_out', null, 'system', {
+          failureReason
+        });
+      }
+    } catch (error) {
+      logger.error('Error handling payment failure after preparation:', error);
+      throw error;
+    }
   }
 
   /**
-   * Convenience method: Admin cancels order
+   * Force cancel order across all FSMs (admin emergency action)
    * @param {number} orderId - Order ID
    * @param {number} adminId - Admin ID
    * @param {string} reason - Cancellation reason
    * @returns {Promise<Object>} Updated order
    */
-  async adminCancelOrder(orderId, adminId, reason) {
-    return this.updateOrderStatus(orderId, 'cancel_by_admin', adminId, 'admin', { cancellationReason: reason });
+  async forceCancelOrder(orderId, adminId, reason) {
+    try {
+      const order = await this.marketplaceOrderRepository.getOrderById(orderId);
+      if (!order) {
+        throw new Error('Order not found');
+      }
+
+      // Check current FSM states
+      const fsmStates = await multiFSMOrchestrator.getOrderFSMStates(orderId);
+
+      // Force cancel in appropriate FSM based on current state
+      if (fsmStates.vendor && !this.isTerminalFSMState('vendor', fsmStates.vendor)) {
+        // Cancel in vendor FSM if not terminal
+        await this.updateOrderStatus(orderId, 'cancel_by_admin', adminId, 'admin', {
+          cancellationReason: reason,
+          forceCancel: true,
+          cancelledBy: 'admin'
+        });
+      } else if (fsmStates.payment && !this.isTerminalFSMState('payment', fsmStates.payment)) {
+        // Cancel in payment FSM if vendor FSM is terminal
+        await this.updateOrderStatus(orderId, 'admin_or_system_requests_refund', adminId, 'admin', {
+          refundReason: `Force cancel: ${reason}`,
+          forceCancel: true
+        });
+      }
+
+      // Restore inventory regardless of which FSM was cancelled
+      await this.restoreOrderInventory(orderId);
+
+      logger.info(`Force cancelled order ${orderId} by admin ${adminId}: ${reason}`);
+      return await this.marketplaceOrderRepository.getOrderById(orderId);
+    } catch (error) {
+      logger.error('Error force cancelling order:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Check if FSM state is terminal
+   * @param {string} fsmType - FSM type
+   * @param {string} state - Current state
+   * @returns {boolean} True if terminal
+   */
+  isTerminalFSMState(fsmType, state) {
+    const terminalStates = {
+      vendor: ['order_rejected_by_vendor'],
+      payment: ['payment_successfully_received_and_verified_for_order', 'payment_has_been_refunded_to_customer', 'payment_attempt_failed_for_order'],
+      delivery: ['order_delivery_successfully_completed_and_confirmed_by_customer', 'delivery_disputed_by_customer_and_requires_resolution']
+    };
+
+    return terminalStates[fsmType]?.includes(state) || false;
   }
 
   /**

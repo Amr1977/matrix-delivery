@@ -1,11 +1,169 @@
 const { db } = require('../config/db');
 const logger = require('../config/logger');
+const { multiFSMOrchestrator } = require('../fsm/MultiFSMOrchestrator');
 
 /**
  * Vendor Payout Service
  * Handles all vendor payout operations for marketplace orders
+ * Integrated with Payment FSM for event-driven payout management
  */
 class VendorPayoutService {
+  constructor() {
+    // Register event listeners for Payment FSM integration
+    this.registerPaymentFSMListeners();
+  }
+
+  /**
+   * Register event listeners for Payment FSM integration
+   */
+  registerPaymentFSMListeners() {
+    // Listen for successful payment events
+    multiFSMOrchestrator.eventEmitter.on('PAYMENT_SUCCESSFUL', async (eventData) => {
+      await this.handlePaymentSuccessful(eventData);
+    });
+
+    // Listen for payment refund events
+    multiFSMOrchestrator.eventEmitter.on('PAYMENT_REFUNDED', async (eventData) => {
+      await this.handlePaymentRefunded(eventData);
+    });
+
+    // Listen for payment failure events
+    multiFSMOrchestrator.eventEmitter.on('PAYMENT_FAILED', async (eventData) => {
+      await this.handlePaymentFailed(eventData);
+    });
+  }
+
+  /**
+   * Handle successful payment event from Payment FSM
+   * @param {Object} eventData - Event data from Payment FSM
+   */
+  async handlePaymentSuccessful(eventData) {
+    try {
+      const { orderId } = eventData;
+
+      logger.info(`Payment successful for order ${orderId}, creating vendor payout`);
+
+      // Get order details to create payout
+      const orderResult = await db.query(`
+        SELECT mo.*, v.id as vendor_id, v.name as vendor_name
+        FROM marketplace_orders mo
+        JOIN vendors v ON mo.vendor_id = v.id
+        WHERE mo.id = $1
+      `, [orderId]);
+
+      if (orderResult.rows.length === 0) {
+        logger.error(`Order ${orderId} not found for payout creation`);
+        return;
+      }
+
+      const order = orderResult.rows[0];
+
+      // Check if payout already exists
+      const existingPayout = await db.query(
+        'SELECT id FROM vendor_payouts WHERE order_id = $1',
+        [orderId]
+      );
+
+      if (existingPayout.rows.length > 0) {
+        logger.info(`Payout already exists for order ${orderId}`, {
+          payoutId: existingPayout.rows[0].id,
+          category: 'vendor_payout'
+        });
+        return;
+      }
+
+      // Create payout using order data
+      const payout = await this.createPayout(orderId, {
+        vendor_id: order.vendor_id,
+        total_amount: order.total_amount,
+        commission_amount: order.commission_amount,
+        currency: order.currency || 'EGP'
+      });
+
+      logger.info(`Vendor payout created via Payment FSM event: ${payout.payout_number}`, {
+        orderId,
+        payoutId: payout.id,
+        vendorId: order.vendor_id,
+        payoutAmount: payout.payout_amount,
+        category: 'vendor_payout'
+      });
+
+    } catch (error) {
+      logger.error('Error handling payment successful event:', error);
+      // Don't throw - event handling should be resilient
+    }
+  }
+
+  /**
+   * Handle payment refund event from Payment FSM
+   * @param {Object} eventData - Event data from Payment FSM
+   */
+  async handlePaymentRefunded(eventData) {
+    try {
+      const { orderId, metadata } = eventData;
+      const refundReason = metadata?.refundReason || 'Payment refunded via Payment FSM';
+
+      logger.info(`Payment refunded for order ${orderId}, processing payout reversal`);
+
+      // Find existing payout for this order
+      const payoutResult = await db.query(
+        'SELECT * FROM vendor_payouts WHERE order_id = $1 AND status IN (\'pending\', \'processing\')',
+        [orderId]
+      );
+
+      if (payoutResult.rows.length === 0) {
+        logger.warn(`No pending payout found for refunded order ${orderId}`);
+        return;
+      }
+
+      const payout = payoutResult.rows[0];
+
+      // Cancel the payout
+      await this.cancelPayout(payout.id, refundReason);
+
+      logger.info(`Vendor payout cancelled due to refund: ${payout.payout_number}`, {
+        orderId,
+        payoutId: payout.id,
+        refundReason,
+        category: 'vendor_payout'
+      });
+
+    } catch (error) {
+      logger.error('Error handling payment refunded event:', error);
+      // Don't throw - event handling should be resilient
+    }
+  }
+
+  /**
+   * Handle payment failure event from Payment FSM
+   * @param {Object} eventData - Event data from Payment FSM
+   */
+  async handlePaymentFailed(eventData) {
+    try {
+      const { orderId } = eventData;
+
+      logger.info(`Payment failed for order ${orderId}, cleaning up any pending payouts`);
+
+      // Find and cancel any pending payouts for this order
+      const payoutResult = await db.query(
+        'SELECT * FROM vendor_payouts WHERE order_id = $1 AND status IN (\'pending\', \'processing\')',
+        [orderId]
+      );
+
+      for (const payout of payoutResult.rows) {
+        await this.cancelPayout(payout.id, 'Payment failed - order cancelled');
+        logger.info(`Payout cancelled due to payment failure: ${payout.payout_number}`, {
+          orderId,
+          payoutId: payout.id,
+          category: 'vendor_payout'
+        });
+      }
+
+    } catch (error) {
+      logger.error('Error handling payment failed event:', error);
+      // Don't throw - event handling should be resilient
+    }
+  }
   /**
    * Create a payout for a completed order
    * @param {number} orderId - Order ID
@@ -140,36 +298,36 @@ class VendorPayoutService {
   }
 
   /**
-   * Fail a payout
+   * Cancel a payout
    * @param {number} payoutId - Payout ID
-   * @param {string} failureReason - Reason for failure
+   * @param {string} cancellationReason - Reason for cancellation
    * @returns {Promise<Object>} Updated payout
    */
-  async failPayout(payoutId, failureReason) {
+  async cancelPayout(payoutId, cancellationReason) {
     try {
       const result = await db.query(`
         UPDATE vendor_payouts
-        SET status = 'failed',
-            failure_reason = $2,
-            failed_at = CURRENT_TIMESTAMP,
+        SET status = 'cancelled',
+            cancellation_reason = $2,
+            cancelled_at = CURRENT_TIMESTAMP,
             updated_at = CURRENT_TIMESTAMP
-        WHERE id = $1 AND status = 'processing'
+        WHERE id = $1 AND status IN ('pending', 'processing')
         RETURNING *
-      `, [payoutId, failureReason]);
+      `, [payoutId, cancellationReason]);
 
       if (result.rows.length === 0) {
-        throw new Error('Payout not found or not in processing status');
+        throw new Error('Payout not found or not in cancellable status');
       }
 
-      logger.warn(`Payout failed: ${result.rows[0].payout_number}`, {
+      logger.info(`Payout cancelled: ${result.rows[0].payout_number}`, {
         payoutId,
-        failureReason,
+        cancellationReason,
         category: 'vendor_payout'
       });
 
       return result.rows[0];
     } catch (error) {
-      logger.error('Error failing payout:', error);
+      logger.error('Error cancelling payout:', error);
       throw error;
     }
   }

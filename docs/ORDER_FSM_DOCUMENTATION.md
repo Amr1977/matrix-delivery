@@ -1,144 +1,94 @@
-# Order State Machine (FSM) Documentation
+# Verbose Multi-FSM Order Processing Documentation
 
 ## Overview
 
-This document outlines the Finite State Machines (FSM) for order processing in the Matrix Delivery platform. There are currently **two separate order systems** with conflicting status definitions:
+This document outlines the **Verbose Multi-Finite State Machine (FSM) Architecture** for order processing in the Matrix Delivery platform. The system now uses **three interconnected FSMs** working together through event-driven orchestration:
 
-1. **Marketplace Orders** - For vendor-to-customer marketplace transactions
-2. **Traditional Delivery Orders** - For customer-to-driver delivery requests
+1. **Vendor FSM** - Manages vendor preparation lifecycle
+2. **Payment FSM** - Handles customer payment processing
+3. **Delivery FSM** - Coordinates courier logistics
 
-**⚠️ CRITICAL ISSUE**: Both systems use overlapping status names (like 'accepted', 'picked_up', 'delivered', 'cancelled') with different meanings, causing data integrity and business logic conflicts.
+**🎯 Key Improvements:**
+- **Event-driven orchestration** for loose coupling
+- **Separate FSM state tables** for normalization and history tracking
+- **Comprehensive audit logging** for all state transitions
+- **Explicit edge case handling** for complex business scenarios
+- **Backward-compatible API design** maintaining existing contracts
 
 ---
 
-## 1. Marketplace Order FSM
+## 1. Vendor FSM - Preparation Lifecycle
 
-### States
-- `pending` - Order created but payment not confirmed
-- `paid` - Payment successfully processed
-- `accepted` - Vendor confirms fulfillment
-- `assigned` - Delivery driver assigned
-- `picked_up` - Driver collected from vendor
-- `delivered` - Package delivered to customer
-- `completed` - Order finished successfully
-- `rejected` - Vendor rejected after payment
-- `cancelled` - Order cancelled before completion
-- `disputed` - Customer reports issue after delivery
-- `refunded` - Payment returned to customer
-- `failed` - System or delivery error
+### States (Verbose Naming)
+- `awaiting_order_availability_vendor_confirmation` - Initial state, waiting for vendor decision
+- `order_rejected_by_vendor` - **Terminal**: Vendor declined to fulfill order
+- `awaiting_vendor_start_preparation` - Vendor confirmed, ready to start preparation
+- `vendor_is_actively_preparing_order` - Vendor actively preparing the order
+- `order_is_fully_prepared_and_ready_for_delivery` - Order ready for courier pickup
 
 ### State Transitions
 
-| From State | Event | Actor | To State | Notes |
-|------------|-------|-------|----------|-------|
-| pending | confirm_payment | customer | paid | Payment verified by gateway |
-| pending | cancel_order | admin | cancelled | Admin cancels before processing |
-| pending | payment_failed | system | failed | Payment error or timeout |
-| paid | accept_order | vendor | accepted | Vendor confirms order |
-| paid | reject_order | vendor | rejected | Vendor cannot fulfill |
-| paid | cancel_order | admin | cancelled | Admin intervention |
-| accepted | assign_driver | system/admin | assigned | Delivery driver assigned |
-| assigned | pickup_order | driver | picked_up | Driver collects order |
-| picked_up | deliver_order | driver | delivered | Package delivered |
-| delivered | confirm_receipt | customer | completed | Order finished successfully |
-| delivered | report_issue | customer | disputed | Customer dispute |
-| disputed | resolve_complete | admin | completed | Admin resolves dispute |
-| disputed | approve_refund | admin | refunded | Refund issued |
-| rejected | process_refund | system | refunded | Automatic refund |
-| assigned | cancel_order | admin | cancelled | Emergency cancel |
-| picked_up | delivery_failed | system | failed | Delivery issue |
+| From State | Event | Actor | To State | Guards | Events Emitted |
+|------------|-------|-------|----------|--------|----------------|
+| awaiting_order_availability_vendor_confirmation | vendor_confirms_order_is_available | Vendor | awaiting_vendor_start_preparation | vendor_is_active, vendor_has_inventory, order_not_expired | VENDOR_CONFIRMED |
+| awaiting_order_availability_vendor_confirmation | vendor_rejects_order_due_to_unavailability | Vendor | order_rejected_by_vendor | - | - |
+| awaiting_vendor_start_preparation | vendor_starts_preparing_order | Vendor | vendor_is_actively_preparing_order | - | PREPARATION_STARTED |
+| vendor_is_actively_preparing_order | vendor_marks_order_as_fully_prepared | Vendor | order_is_fully_prepared_and_ready_for_delivery | - | PREPARATION_COMPLETE |
 
-### Terminal States
-These states end the order lifecycle:
-- `completed`
-- `cancelled`
-- `refunded`
-- `failed`
-
-### Marketplace Order State Definitions
-
-| State | Description | Entry Condition | Exit Trigger | Terminal |
-|-------|-------------|-----------------|--------------|----------|
-| pending | Order created but payment not yet confirmed | Customer places order | Payment confirmed or order canceled | No |
-| paid | Payment successfully processed | Payment gateway confirms transaction | Vendor accepts or rejects order | No |
-| accepted | Vendor confirms they will fulfill the order | Vendor accepts order | Driver assignment | No |
-| assigned | Delivery driver assigned to the order | System/admin assigns driver | Driver picks up order | No |
-| picked_up | Driver has collected the order from vendor | Driver confirms pickup | Driver delivers order | No |
-| delivered | Order delivered to customer location | Driver confirms delivery | Customer confirms receipt or reports issue | No |
-| completed | Order successfully finished | Customer confirms delivery or dispute resolved | None | Yes |
-| rejected | Vendor rejected the order after payment | Vendor declines fulfillment | Refund processed | No |
-| cancelled | Order canceled before completion | Admin or system cancellation | None | Yes |
-| disputed | Customer reports issue after delivery | Customer files dispute | Admin resolves dispute | No |
-| refunded | Payment returned to customer | Refund approved or vendor rejection | None | Yes |
-| failed | Order failed due to system or delivery error | Payment failure or delivery failure | None | Yes |
+**Terminal States**: `order_rejected_by_vendor`
 
 ---
 
-## 2. Traditional Delivery Order FSM
+## 2. Payment FSM - Customer Payment Processing
 
-### States
-- `pending_bids` - Order posted, waiting for driver bids
-- `accepted` - Driver bid accepted by customer
-- `picked_up` - Driver picked up package
-- `in_transit` - Package in transit to destination
-- `delivered` - Package delivered successfully
-- `delivered_pending` - Delivered but awaiting confirmation
-- `cancelled` - Order cancelled
+### States (Verbose Naming)
+- `payment_pending_for_customer` - Waiting for customer payment
+- `payment_attempt_failed_for_order` - **Terminal**: Payment failed, customer can retry
+- `payment_successfully_received_and_verified_for_order` - **Terminal**: Payment completed successfully
+- `payment_has_been_refunded_to_customer` - **Terminal**: Payment refunded
 
 ### State Transitions
 
-| From State | Event | Actor | To State | Notes |
-|------------|-------|-------|----------|-------|
-| pending_bids | accept_bid | customer | accepted | Customer accepts driver bid |
-| pending_bids | cancel_order | customer/admin | cancelled | Order cancelled before acceptance |
-| accepted | pickup_package | driver | picked_up | Driver confirms pickup |
-| accepted | cancel_order | customer/driver | cancelled | Cancellation after acceptance |
-| picked_up | start_delivery | driver | in_transit | Driver begins delivery |
-| picked_up | cancel_order | customer/admin | cancelled | Emergency cancellation |
-| in_transit | complete_delivery | driver | delivered | Package delivered |
-| in_transit | delivery_issue | driver | cancelled | Cannot complete delivery |
-| delivered | confirm_delivery | customer | delivered_pending | Customer confirms receipt |
-| delivered_pending | finalize_order | system | completed | Order completion confirmed |
-| delivered_pending | dispute_delivery | customer | disputed | Customer reports issue |
+| From State | Event | Actor | To State | Guards | Events Emitted |
+|------------|-------|-------|----------|--------|----------------|
+| payment_pending_for_customer | customer_completes_payment_successfully | Customer | payment_successfully_received_and_verified_for_order | payment_amount_valid, payment_method_supported | PAYMENT_SUCCESSFUL |
+| payment_pending_for_customer | payment_attempt_failed_or_timed_out | System | payment_attempt_failed_for_order | - | PAYMENT_FAILED |
+| payment_successfully_received_and_verified_for_order | admin_or_system_requests_refund | Admin/System | payment_has_been_refunded_to_customer | refund_reason_provided, refund_not_already_processed | PAYMENT_REFUNDED |
+| payment_attempt_failed_for_order | customer_retries_payment | Customer | payment_pending_for_customer | retry_attempts_remaining, order_still_valid | PAYMENT_RETRY_INITIATED |
 
-### Terminal States
-- `completed`
-- `cancelled`
-- `disputed`
-
-### Traditional Delivery Order State Definitions
-
-| State | Description | Entry Condition | Exit Trigger | Terminal |
-|-------|-------------|-----------------|--------------|----------|
-| pending_bids | Order posted waiting for drivers | Customer creates delivery request | Driver bid accepted or order cancelled | No |
-| accepted | Driver assigned and accepted | Customer accepts driver bid | Driver picks up package | No |
-| picked_up | Driver has the package | Driver confirms pickup | Driver starts delivery | No |
-| in_transit | Package being delivered | Driver begins transit | Package delivered or issue occurs | No |
-| delivered | Package at destination | Driver confirms delivery | Customer confirms or reports issue | No |
-| delivered_pending | Delivery confirmed, awaiting finalization | Customer acknowledges delivery | System finalizes or dispute raised | No |
-| cancelled | Order cancelled | Customer/driver/admin cancels | None | Yes |
-| completed | Order successfully completed | System finalizes delivery | None | Yes |
-| disputed | Customer disputes delivery | Customer reports issue | Admin resolution | Yes |
+**Terminal States**: `payment_successfully_received_and_verified_for_order`, `payment_has_been_refunded_to_customer`, `payment_attempt_failed_for_order`
 
 ---
 
-## 3. CONFLICT ANALYSIS
+## 3. Delivery FSM - Courier Logistics
 
-### 🚨 Critical Conflicts Identified
+### States (Verbose Naming)
+- `delivery_request_created_waiting_for_courier_acceptance` - Waiting for courier assignment
+- `courier_has_been_assigned_to_deliver_the_order` - Courier assigned to order
+- `courier_has_arrived_at_vendor_pickup_location` - Courier at vendor location
+- `courier_confirms_receipt_of_order_from_vendor` - Order picked up from vendor
+- `courier_is_actively_transporting_order_to_customer` - Order in transit
+- `courier_has_arrived_at_customer_drop_off_location` - Courier at customer location
+- `courier_marks_order_as_delivered_to_customer` - Courier marked as delivered
+- `awaiting_customer_confirmation_of_order_delivery` - Waiting for customer confirmation
+- `order_delivery_successfully_completed_and_confirmed_by_customer` - **Terminal**: Order completed
+- `delivery_disputed_by_customer_and_requires_resolution` - **Terminal**: Customer dispute
 
-#### **Status Name Collisions**
+### State Transitions
 
-| Conflicting Status | Marketplace Meaning | Traditional Meaning | Impact |
-|-------------------|-------------------|-------------------|---------|
-| `accepted` | Vendor confirms fulfillment | Driver bid accepted | ❌ **MAJOR** - Different business logic |
-| `picked_up` | Driver collected from vendor | Driver picked up from customer | ❌ **MAJOR** - Different actors/locations |
-| `delivered` | Package delivered to customer | Package delivered to destination | ⚠️ **MODERATE** - Similar but different context |
-| `cancelled` | Order cancelled before completion | Order cancelled at any stage | ⚠️ **MODERATE** - Overlapping but different triggers |
+| From State | Event | Actor | To State | Guards | Events Emitted |
+|------------|-------|-------|----------|--------|----------------|
+| delivery_request_created_waiting_for_courier_acceptance | courier_accepts_delivery_request | Driver | courier_has_been_assigned_to_deliver_the_order | courier_available, courier_in_delivery_zone | COURIER_ASSIGNED |
+| courier_has_been_assigned_to_deliver_the_order | courier_arrives_at_vendor_pickup_location | Driver | courier_has_arrived_at_vendor_pickup_location | courier_assigned_to_order | COURIER_AT_VENDOR |
+| courier_has_arrived_at_vendor_pickup_location | courier_confirms_receipt_of_order_from_vendor | Driver | courier_is_actively_transporting_order_to_customer | courier_assigned_to_order, order_prepared_by_vendor | ORDER_PICKED_UP |
+| courier_is_actively_transporting_order_to_customer | courier_arrives_at_customer_drop_off_location | Driver | courier_has_arrived_at_customer_drop_off_location | courier_assigned_to_order | COURIER_AT_CUSTOMER |
+| courier_has_arrived_at_customer_drop_off_location | courier_marks_order_as_delivered_to_customer | Driver | awaiting_customer_confirmation_of_order_delivery | courier_assigned_to_order, customer_location_reachable | ORDER_DELIVERED_TO_CUSTOMER |
+| awaiting_customer_confirmation_of_order_delivery | customer_confirms_receipt_of_order | Customer | order_delivery_successfully_completed_and_confirmed_by_customer | order_delivered_by_courier, no_prior_dispute | DELIVERY_CONFIRMED |
+| awaiting_customer_confirmation_of_order_delivery | customer_reports_problem_with_delivery | Customer | delivery_disputed_by_customer_and_requires_resolution | dispute_reason_provided | DELIVERY_DISPUTED |
 
-#### **Business Logic Conflicts**
+**Terminal States**: `order_delivery_successfully_completed_and_confirmed_by_customer`, `delivery_disputed_by_customer_and_requires_resolution`
 
-1. **Actor Confusion**:
-   - Marketplace `picked_up`: Driver collects from **vendor**
+---
    - Traditional `picked_up`: Driver collects from **customer**
 
 2. **Process Flow Differences**:
@@ -176,69 +126,123 @@ await orderService.updateOrderStatus(orderId, 'accepted');
 
 ---
 
-## 4. RECOMMENDED SOLUTION
+## 4. RECOMMENDED SOLUTION (UPDATED BASED ON ARCHITECTURE REVIEW) ✅
 
-### Phase 1: Status Namespace Separation
+### Architecture Review Summary
 
-```javascript
-// Separate constants to eliminate conflicts
-const MARKETPLACE_ORDER_STATUS = {
-  PENDING: 'marketplace_pending',
-  PAID: 'marketplace_paid',
-  ACCEPTED: 'marketplace_accepted',     // ← Was 'accepted'
-  ASSIGNED: 'marketplace_assigned',
-  PICKED_UP: 'marketplace_picked_up',   // ← Was 'picked_up'
-  DELIVERED: 'marketplace_delivered',   // ← Was 'delivered'
-  COMPLETED: 'marketplace_completed',
-  CANCELLED: 'marketplace_cancelled',   // ← Was 'cancelled'
-  REJECTED: 'marketplace_rejected',
-  DISPUTED: 'marketplace_disputed',
-  REFUNDED: 'marketplace_refunded',
-  FAILED: 'marketplace_failed'
-};
+**Key Insight**: Avoid status namespacing. Instead use `order_type + status` combination.
 
-const TRADITIONAL_ORDER_STATUS = {
-  PENDING_BIDS: 'traditional_pending_bids',
-  ACCEPTED: 'traditional_accepted',      // ← Was 'accepted'
-  PICKED_UP: 'traditional_picked_up',    // ← Was 'picked_up'
-  IN_TRANSIT: 'traditional_in_transit',
-  DELIVERED: 'traditional_delivered',    // ← Was 'delivered'
-  DELIVERED_PENDING: 'traditional_delivered_pending',
-  CANCELLED: 'traditional_cancelled'     // ← Was 'cancelled'
-};
-```
+**Benefits**:
+- Preserves domain semantics
+- Avoids redundant state names
+- Scales better for future order types
+- Keeps database schema clean
 
-### Phase 2: Database Migration
+### Preferred Database Schema
 
 ```sql
--- Update existing data to use namespaced statuses
-UPDATE marketplace_orders SET status = 'marketplace_' || status;
-UPDATE orders SET status = 'traditional_' || status WHERE order_type = 'delivery';
+-- Clean schema without namespacing
+orders
+- id
+- order_type  -- 'marketplace' or 'delivery'
+- status      -- Clean status names like 'accepted', 'delivered'
 ```
 
-### Phase 3: Code Updates
+**Example Records**:
+```
+ id   order_type    status
+ ---- ------------- ----------
+ 1    marketplace   accepted    -- Vendor accepted marketplace order
+ 2    delivery      accepted    -- Driver bid accepted for delivery
+```
 
-1. Update all service methods to use namespaced constants
-2. Update controller endpoints to handle both systems
-3. Update test files with correct expectations
-4. Update frontend components to display appropriate statuses
-5. Update database queries to filter by order_type
-
-### Phase 4: Unified API Design
-
-Consider creating a unified order processing API that can handle both order types with appropriate status mappings internally.
+**Correct Query Pattern**:
+```sql
+-- Instead of: WHERE status = 'marketplace_accepted'
+-- Use:        WHERE order_type = 'marketplace' AND status = 'accepted'
+SELECT * FROM orders
+WHERE order_type = 'marketplace'
+AND status = 'accepted'
+```
 
 ---
 
-## 5. IMMEDIATE ACTIONS REQUIRED
+## 5. IMPLEMENTATION PLAN
 
-1. **STOP using conflicting status names immediately**
-2. **Add order_type field to all order tables if not present**
-3. **Implement namespaced status constants**
-4. **Create data migration script**
-5. **Update all code references**
-6. **Add comprehensive tests for both FSMs**
+### FSM Registry Architecture
 
-**Status**: **CRITICAL - IMMEDIATE FIX REQUIRED** 🔴
+```javascript
+// fsm/OrderFSMRegistry.js
+class OrderFSMRegistry {
+  constructor() {
+    this.fsms = {
+      marketplace: new MarketplaceOrderFSM(),
+      delivery: new DeliveryOrderFSM()
+    };
+  }
 
-**Risk**: Data corruption, incorrect business logic, customer service issues, financial reporting errors.
+  getFSM(orderType) {
+    const fsm = this.fsms[orderType];
+    if (!fsm) {
+      throw new Error(`No FSM found for order type: ${orderType}`);
+    }
+    return fsm;
+  }
+}
+
+// Usage
+const registry = new OrderFSMRegistry();
+const fsm = registry.getFSM(order.order_type);
+const canTransition = fsm.validateTransition(currentStatus, event);
+```
+
+### Separate FSM Classes
+
+Each FSM handles its own transitions, guards, and terminal states.
+
+**Benefits**:
+- Clear separation of business logic
+- Easier testing and maintenance
+- Prevents cross-FSM status misuse
+- Scales for future order types
+
+---
+
+## 6. UPDATED STATUS CONSTANTS
+
+### Clean Status Definitions (No Namespacing)
+
+```javascript
+// config/constants.js - UPDATED
+const ORDER_STATUS = {
+  // Shared statuses (different meanings by context)
+  PENDING: 'pending',
+  ACCEPTED: 'accepted',      // marketplace: vendor accepted, delivery: driver bid accepted
+  PICKED_UP: 'picked_up',    // marketplace: from vendor, delivery: from customer
+  DELIVERED: 'delivered',    // marketplace: to customer, delivery: to destination
+  CANCELED: 'canceled',      // Standardized spelling
+  COMPLETED: 'completed',
+
+  // Marketplace-specific statuses
+  PAID: 'paid',
+  ASSIGNED: 'assigned',
+  REJECTED: 'rejected',
+  DISPUTED: 'disputed',
+  REFUNDED: 'refunded',
+  FAILED: 'failed',
+
+  // Delivery-specific statuses
+  PENDING_BIDS: 'pending_bids',
+  IN_TRANSIT: 'in_transit',
+  DELIVERED_PENDING: 'delivered_pending'
+};
+```
+
+### Order Type Constants
+
+```javascript
+const ORDER_TYPES = {
+  MARKETPLACE: 'marketplace',
+  DELIVERY: 'delivery'
+};
+```

@@ -106,6 +106,7 @@ const getOrder = async (req, res) => {
     res.status(200).json({
       success: true,
       data: order
+      // FSM states are automatically included in order.data.fsm_states if present
     });
   } catch (error) {
     logger.error('Error getting marketplace order:', {

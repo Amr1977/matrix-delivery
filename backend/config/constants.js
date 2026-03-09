@@ -45,36 +45,35 @@ const COMMON_COUNTRIES = [
     'Uzbekistan', 'Vanuatu', 'Vatican City', 'Venezuela', 'Vietnam', 'Yemen', 'Zambia', 'Zimbabwe'
 ];
 
-// Order status values (comprehensive marketplace state machine)
+// Order status values - CLEAN DEFINITIONS (no namespacing)
+// Statuses are distinguished by order_type, not by namespacing
 const ORDER_STATUS = {
-    // Traditional delivery system statuses
-    PENDING_BIDS: 'pending_bids',
-    ACCEPTED: 'accepted',
-    PICKED_UP: 'picked_up',
-    IN_TRANSIT: 'in_transit',
-    DELIVERED: 'delivered',
-    DELIVERED_PENDING: 'delivered_pending',
-    CANCELLED: 'cancelled',
+  // Shared statuses (different meanings by context/order_type)
+  PENDING: 'pending',
+  ACCEPTED: 'accepted',        // marketplace: vendor accepted, delivery: driver bid accepted
+  PICKED_UP: 'picked_up',      // marketplace: from vendor, delivery: from customer
+  DELIVERED: 'delivered',      // marketplace: to customer, delivery: to destination
+  CANCELED: 'canceled',        // Standardized spelling per review feedback
+  COMPLETED: 'completed',
 
-    // Comprehensive marketplace order state machine
-    PENDING: 'pending',           // Order created, awaiting payment
-    PAID: 'paid',                 // Payment received, awaiting vendor confirmation
-    ACCEPTED: 'accepted',         // Vendor accepted, awaiting driver assignment
-    ASSIGNED: 'assigned',         // Driver assigned, awaiting pickup
-    PICKED_UP: 'picked_up',       // Driver picked up, en route to delivery
-    DELIVERED: 'delivered',       // Delivered to customer, awaiting confirmation
-    COMPLETED: 'completed',       // Customer confirmed receipt - final state
-    CANCELLED: 'cancelled',       // Order cancelled before completion
-    REJECTED: 'rejected',         // Vendor rejected after payment
-    DISPUTED: 'disputed',         // Customer disputed after delivery
-    REFUNDED: 'refunded',         // Refund processed - final state
-    FAILED: 'failed'              // System failure or timeout - final state
+  // Marketplace-specific statuses
+  PAID: 'paid',
+  ASSIGNED: 'assigned',
+  REJECTED: 'rejected',
+  DISPUTED: 'disputed',
+  REFUNDED: 'refunded',
+  FAILED: 'failed',
+
+  // Delivery-specific statuses
+  PENDING_BIDS: 'pending_bids',
+  IN_TRANSIT: 'in_transit',
+  DELIVERED_PENDING: 'delivered_pending'
 };
 
 // Order types to distinguish between systems
 const ORDER_TYPES = {
-    DELIVERY: 'delivery',         // Traditional customer-to-driver delivery
-    MARKETPLACE: 'marketplace'    // Vendor-to-customer marketplace orders
+  DELIVERY: 'delivery',         // Traditional customer-to-driver delivery
+  MARKETPLACE: 'marketplace'    // Vendor-to-customer marketplace orders
 };
 
 // Bid status values
