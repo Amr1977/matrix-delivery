@@ -69,10 +69,14 @@ const createOrder = async (req, res) => {
       category: 'marketplace_order'
     });
 
+    // Return order with FSM states included
     res.status(201).json({
       success: true,
       message: 'Order created successfully',
-      data: order
+      data: {
+        ...order,
+        fsm_states: order.fsm_states || null
+      }
     });
   } catch (error) {
     logger.error('Error creating marketplace order:', {

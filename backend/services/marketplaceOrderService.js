@@ -78,6 +78,17 @@ class MarketplaceOrderService {
         order.commission_amount
       );
 
+      // Initialize FSM orchestrator for this order
+      await this.initializeFSMOrchestrator(order.id, orderPayload.vendorId, orderPayload.userId);
+
+      // Create vendor payout
+      await this.marketplaceOrderRepository.createVendorPayout(
+        orderPayload.vendorId,
+        order.id,
+        order.total_amount,
+        order.commission_amount
+      );
+
       // Log audit event
       await this.marketplaceOrderRepository.logAuditEvent({
         userId,
@@ -99,11 +110,187 @@ class MarketplaceOrderService {
         category: 'marketplace_order'
       });
 
-      return order;
+      // Return order with FSM states
+      const fsmStates = await multiFSMOrchestrator.getOrderFSMStates(order.id);
+      return {
+        ...order,
+        fsm_states: fsmStates
+      };
     } catch (error) {
       logger.error('Error creating marketplace order:', error);
       throw error;
     }
+  }
+
+  /**
+   * Initialize FSM orchestrator for new order
+   * @param {number} orderId - Order ID
+   * @param {number} vendorId - Vendor ID
+   * @param {number} customerId - Customer ID
+   */
+  async initializeFSMOrchestrator(orderId, vendorId, customerId) {
+    try {
+      // Create a new orchestrator instance for this order
+      const { MultiFSMOrchestrator } = require('../fsm/MultiFSMOrchestrator');
+      const orchestrator = new MultiFSMOrchestrator(orderId);
+
+      // Get order details for context
+      const order = await this.marketplaceOrderRepository.getOrderById(orderId);
+
+      // Set up event handlers for FSM orchestration
+      this.setupFSMEventHandlers(orchestrator, orderId, order, vendorId, customerId);
+
+      // Start vendor confirmation timeout
+      await this.scheduleVendorTimeout(orchestrator, orderId, order);
+
+      logger.info(`FSM orchestrator initialized for order ${orderId}`, {
+        orderId,
+        vendorId,
+        customerId,
+        category: 'fsm_orchestration'
+      });
+
+    } catch (error) {
+      logger.error('Error initializing FSM orchestrator:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Set up event handlers for FSM orchestration
+   */
+  setupFSMEventHandlers(orchestrator, orderId, order, vendorId, customerId) {
+    // When vendor confirms, enable payment
+    orchestrator.on('VENDOR_CONFIRMED', async (eventData) => {
+      logger.info(`Vendor confirmed for order ${orderId}, payment can now proceed`, {
+        orderId,
+        vendorId: eventData.vendorId,
+        category: 'fsm_orchestration'
+      });
+
+      // Payment FSM is already initialized, just log that it's ready
+      await this.marketplaceOrderRepository.logAuditEvent({
+        userId: vendorId,
+        vendorId,
+        orderId,
+        action: 'vendor_confirmed_payment_enabled',
+        entityType: 'marketplace_order',
+        entityId: orderId,
+        changes: { payment_enabled: true }
+      });
+    });
+
+    // When payment succeeds, enable delivery
+    orchestrator.on('PAYMENT_SUCCESSFUL', async (eventData) => {
+      logger.info(`Payment successful for order ${orderId}, delivery can now be assigned`, {
+        orderId,
+        amount: eventData.amount,
+        category: 'fsm_orchestration'
+      });
+
+      // Create vendor payout since payment is confirmed
+      await this.vendorPayoutService.createPayout(orderId, {
+        vendor_id: vendorId,
+        total_amount: order.total_amount,
+        commission_amount: order.commission_amount,
+        currency: order.currency || 'EGP'
+      });
+
+      await this.marketplaceOrderRepository.logAuditEvent({
+        userId: customerId,
+        vendorId,
+        orderId,
+        action: 'payment_confirmed_payout_created',
+        entityType: 'marketplace_order',
+        entityId: orderId,
+        changes: { payout_created: true, delivery_enabled: true }
+      });
+    });
+
+    // When delivery is completed, finalize order
+    orchestrator.on('ORDER_COMPLETED', async (eventData) => {
+      logger.info(`Order ${orderId} completed successfully`, {
+        orderId,
+        completionTime: eventData.completionTime,
+        category: 'fsm_orchestration'
+      });
+
+      // Update final order status
+      await this.marketplaceOrderRepository.updateOrderStatus(orderId, ORDER_STATUS.COMPLETED);
+
+      await this.marketplaceOrderRepository.logAuditEvent({
+        userId: customerId,
+        vendorId,
+        orderId,
+        action: 'order_completed',
+        entityType: 'marketplace_order',
+        entityId: orderId,
+        changes: { final_status: 'completed' }
+      });
+    });
+
+    // Handle timeouts and failures
+    orchestrator.on('VENDOR_TIMEOUT', async (eventData) => {
+      logger.warn(`Vendor timeout for order ${orderId}`, { orderId, category: 'fsm_orchestration' });
+
+      await this.marketplaceOrderRepository.updateOrderStatus(orderId, ORDER_STATUS.CANCELLED);
+      await this.restoreOrderInventory(orderId);
+
+      // Send notification to customer
+      await this.sendNotification(customerId, 'vendor_timeout', { orderId });
+    });
+
+    orchestrator.on('PAYMENT_TIMEOUT', async (eventData) => {
+      logger.warn(`Payment timeout for order ${orderId}`, { orderId, category: 'fsm_orchestration' });
+
+      await this.marketplaceOrderRepository.updateOrderStatus(orderId, ORDER_STATUS.CANCELLED);
+      await this.restoreOrderInventory(orderId);
+
+      await this.sendNotification(customerId, 'payment_timeout', { orderId });
+    });
+
+    orchestrator.on('DELIVERY_AUTO_CONFIRMED', async (eventData) => {
+      logger.info(`Delivery auto-confirmed for order ${orderId}`, { orderId, category: 'fsm_orchestration' });
+
+      await this.marketplaceOrderRepository.updateOrderStatus(orderId, ORDER_STATUS.COMPLETED);
+
+      await this.marketplaceOrderRepository.logAuditEvent({
+        userId: customerId,
+        vendorId,
+        orderId,
+        action: 'delivery_auto_confirmed',
+        entityType: 'marketplace_order',
+        entityId: orderId,
+        changes: { auto_confirmed: true }
+      });
+    });
+  }
+
+  /**
+   * Schedule vendor confirmation timeout
+   */
+  async scheduleVendorTimeout(orchestrator, orderId, order) {
+    const { timeoutScheduler } = require('../services/timeoutScheduler');
+
+    await timeoutScheduler.scheduleTimeout(
+      orderId,
+      'vendor',
+      'awaiting_order_availability_vendor_confirmation',
+      15 * 60 * 1000, // 15 minutes
+      'timeout',
+      {
+        orderId,
+        vendorId: order.vendor_id,
+        customerId: order.user_id,
+        orderNumber: order.order_number
+      }
+    );
+
+    logger.info(`Vendor confirmation timeout scheduled for order ${orderId}`, {
+      orderId,
+      timeoutMs: 15 * 60 * 1000,
+      category: 'fsm_orchestration'
+    });
   }
 
   /**
@@ -280,23 +467,28 @@ class MarketplaceOrderService {
   mapActionToFSMType(action) {
     const actionToFSMMap = {
       // Vendor FSM actions
-      'accept_order': 'vendor',
-      'reject_order': 'vendor',
-      'start_preparing_order': 'vendor',
-      'mark_prepared': 'vendor',
+      'vendor_accepts_order': 'vendor',
+      'vendor_rejects_order': 'vendor',
+      'vendor_starts_preparing': 'vendor',
+      'vendor_marks_prepared': 'vendor',
 
       // Payment FSM actions
-      'confirm_payment': 'payment',
-      'payment_failed': 'payment',
-      'request_refund': 'payment',
-      'retry_payment': 'payment',
+      'customer_completes_payment': 'payment',
+      'payment_fails': 'payment',
+      'initiate_refund': 'payment',
 
       // Delivery FSM actions
-      'assign_driver': 'delivery',
-      'pickup_order': 'delivery',
-      'deliver_order': 'delivery',
-      'confirm_receipt': 'delivery',
-      'dispute_order': 'delivery',
+      'courier_accepts_delivery_request': 'delivery',
+      'courier_arrives_at_vendor': 'delivery',
+      'courier_confirms_receipt': 'delivery',
+      'courier_arrives_at_customer': 'delivery',
+      'courier_marks_delivered': 'delivery',
+      'customer_confirms_receipt': 'delivery',
+      'customer_reports_problem': 'delivery',
+      'courier_cancels_after_assignment': 'delivery',
+
+      // Timeout actions
+      'timeout': 'vendor', // Context-dependent, but vendor timeout is most common
 
       // Admin actions (can affect multiple FSMs)
       'cancel_by_admin': 'vendor', // Primarily affects vendor FSM
@@ -448,7 +640,7 @@ class MarketplaceOrderService {
    * @returns {Promise<Object>} Updated order
    */
   async vendorAcceptOrder(orderId, vendorId) {
-    return this.updateOrderStatus(orderId, 'vendor_confirms_order_is_available', vendorId, 'vendor');
+    return this.updateOrderStatus(orderId, 'vendor_accepts_order', vendorId, 'vendor');
   }
 
   /**
@@ -458,7 +650,7 @@ class MarketplaceOrderService {
    * @returns {Promise<Object>} Updated order
    */
   async vendorRejectOrder(orderId, vendorId) {
-    return this.updateOrderStatus(orderId, 'vendor_rejects_order_due_to_unavailability', vendorId, 'vendor');
+    return this.updateOrderStatus(orderId, 'vendor_rejects_order', vendorId, 'vendor');
   }
 
   /**
@@ -468,7 +660,7 @@ class MarketplaceOrderService {
    * @returns {Promise<Object>} Updated order
    */
   async customerConfirmPayment(orderId, customerId) {
-    return this.updateOrderStatus(orderId, 'customer_completes_payment_successfully', customerId, 'customer');
+    return this.updateOrderStatus(orderId, 'customer_completes_payment', customerId, 'customer');
   }
 
   /**
@@ -489,7 +681,7 @@ class MarketplaceOrderService {
    * @returns {Promise<Object>} Updated order
    */
   async driverPickupOrder(orderId, driverId) {
-    return this.updateOrderStatus(orderId, 'courier_confirms_receipt_of_order_from_vendor', driverId, 'driver');
+    return this.updateOrderStatus(orderId, 'courier_confirms_receipt', driverId, 'driver');
   }
 
   /**
@@ -499,7 +691,7 @@ class MarketplaceOrderService {
    * @returns {Promise<Object>} Updated order
    */
   async driverDeliverOrder(orderId, driverId) {
-    return this.updateOrderStatus(orderId, 'courier_marks_order_as_delivered_to_customer', driverId, 'driver');
+    return this.updateOrderStatus(orderId, 'courier_marks_delivered', driverId, 'driver');
   }
 
   /**
@@ -509,7 +701,7 @@ class MarketplaceOrderService {
    * @returns {Promise<Object>} Updated order
    */
   async customerConfirmReceipt(orderId, customerId) {
-    return this.updateOrderStatus(orderId, 'customer_confirms_receipt_of_order', customerId, 'customer');
+    return this.updateOrderStatus(orderId, 'customer_confirms_receipt', customerId, 'customer');
   }
 
   /**
@@ -520,315 +712,82 @@ class MarketplaceOrderService {
    * @returns {Promise<Object>} Updated order
    */
   async customerDisputeOrder(orderId, customerId, disputeReason) {
-    return this.updateOrderStatus(orderId, 'customer_reports_problem_with_delivery', customerId, 'customer', { disputeReason });
+    return this.updateOrderStatus(orderId, 'customer_reports_problem', customerId, 'customer', { disputeReason });
   }
 
   /**
-   * Handle vendor rejection after payment started (edge case)
-   * @param {number} orderId - Order ID
-   * @param {number} vendorId - Vendor ID
-   * @param {string} reason - Rejection reason
-   * @returns {Promise<Object>} Updated order
+   * Send notification to user
+   * @param {number} userId - User ID
+   * @param {string} notificationType - Type of notification
+   * @param {Object} data - Notification data
    */
-  async handleLateVendorRejection(orderId, vendorId, reason) {
+  async sendNotification(userId, notificationType, data) {
     try {
-      const order = await this.marketplaceOrderRepository.getOrderById(orderId);
-      if (!order) {
-        throw new Error('Order not found');
-      }
+      // Import notification service dynamically to avoid circular dependencies
+      const notificationService = require('./notificationService.ts');
 
-      // Check if payment has already been processed
-      const fsmStates = await multiFSMOrchestrator.getOrderFSMStates(orderId);
-      const paymentState = fsmStates.payment;
+      const notificationData = {
+        userId,
+        type: notificationType,
+        title: this.getNotificationTitle(notificationType),
+        message: this.getNotificationMessage(notificationType, data),
+        data,
+        priority: this.getNotificationPriority(notificationType)
+      };
 
-      if (paymentState === 'payment_successfully_received_and_verified_for_order') {
-        // Payment processed - need to handle refund
-        logger.warn(`Late vendor rejection for order ${orderId} - payment already processed, initiating refund`);
+      await notificationService.createNotification(notificationData);
 
-        // First, reject the order in vendor FSM
-        await this.vendorRejectOrder(orderId, vendorId);
-
-        // Then trigger automatic refund
-        await this.updateOrderStatus(orderId, 'admin_or_system_requests_refund', vendorId, 'system', {
-          refundReason: `Vendor rejection: ${reason}`,
-          isLateRejection: true
-        });
-
-        return await this.marketplaceOrderRepository.getOrderById(orderId);
-      } else {
-        // Payment not processed - normal rejection
-        return await this.vendorRejectOrder(orderId, vendorId);
-      }
+      logger.info(`Notification sent to user ${userId}: ${notificationType}`, {
+        userId,
+        notificationType,
+        category: 'notifications'
+      });
     } catch (error) {
-      logger.error('Error handling late vendor rejection:', error);
-      throw error;
+      logger.error('Error sending notification:', error);
+      // Don't throw - notifications are not critical
     }
   }
 
   /**
-   * Handle payment failure after vendor preparation started (edge case)
-   * @param {number} orderId - Order ID
-   * @param {string} failureReason - Payment failure reason
-   * @returns {Promise<Object>} Updated order
+   * Get notification title
    */
-  async handlePaymentFailureAfterPreparation(orderId, failureReason) {
-    try {
-      const order = await this.marketplaceOrderRepository.getOrderById(orderId);
-      if (!order) {
-        throw new Error('Order not found');
-      }
-
-      // Check vendor FSM state
-      const fsmStates = await multiFSMOrchestrator.getOrderFSMStates(orderId);
-      const vendorState = fsmStates.vendor;
-
-      if (vendorState === 'order_is_fully_prepared_and_ready_for_delivery') {
-        // Vendor already prepared - this is a complex case
-        logger.warn(`Payment failure after vendor preparation for order ${orderId} - requiring admin intervention`);
-
-        // Block delivery actions
-        await this.updateOrderStatus(orderId, 'payment_attempt_failed_or_timed_out', null, 'system', {
-          failureReason,
-          vendorAlreadyPrepared: true,
-          requiresAdminIntervention: true
-        });
-
-        // Could trigger admin notification here
-        return await this.marketplaceOrderRepository.getOrderById(orderId);
-      } else {
-        // Normal payment failure handling
-        return this.updateOrderStatus(orderId, 'payment_attempt_failed_or_timed_out', null, 'system', {
-          failureReason
-        });
-      }
-    } catch (error) {
-      logger.error('Error handling payment failure after preparation:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Force cancel order across all FSMs (admin emergency action)
-   * @param {number} orderId - Order ID
-   * @param {number} adminId - Admin ID
-   * @param {string} reason - Cancellation reason
-   * @returns {Promise<Object>} Updated order
-   */
-  async forceCancelOrder(orderId, adminId, reason) {
-    try {
-      const order = await this.marketplaceOrderRepository.getOrderById(orderId);
-      if (!order) {
-        throw new Error('Order not found');
-      }
-
-      // Check current FSM states
-      const fsmStates = await multiFSMOrchestrator.getOrderFSMStates(orderId);
-
-      // Force cancel in appropriate FSM based on current state
-      if (fsmStates.vendor && !this.isTerminalFSMState('vendor', fsmStates.vendor)) {
-        // Cancel in vendor FSM if not terminal
-        await this.updateOrderStatus(orderId, 'cancel_by_admin', adminId, 'admin', {
-          cancellationReason: reason,
-          forceCancel: true,
-          cancelledBy: 'admin'
-        });
-      } else if (fsmStates.payment && !this.isTerminalFSMState('payment', fsmStates.payment)) {
-        // Cancel in payment FSM if vendor FSM is terminal
-        await this.updateOrderStatus(orderId, 'admin_or_system_requests_refund', adminId, 'admin', {
-          refundReason: `Force cancel: ${reason}`,
-          forceCancel: true
-        });
-      }
-
-      // Restore inventory regardless of which FSM was cancelled
-      await this.restoreOrderInventory(orderId);
-
-      logger.info(`Force cancelled order ${orderId} by admin ${adminId}: ${reason}`);
-      return await this.marketplaceOrderRepository.getOrderById(orderId);
-    } catch (error) {
-      logger.error('Error force cancelling order:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Check if FSM state is terminal
-   * @param {string} fsmType - FSM type
-   * @param {string} state - Current state
-   * @returns {boolean} True if terminal
-   */
-  isTerminalFSMState(fsmType, state) {
-    const terminalStates = {
-      vendor: ['order_rejected_by_vendor'],
-      payment: ['payment_successfully_received_and_verified_for_order', 'payment_has_been_refunded_to_customer', 'payment_attempt_failed_for_order'],
-      delivery: ['order_delivery_successfully_completed_and_confirmed_by_customer', 'delivery_disputed_by_customer_and_requires_resolution']
+  getNotificationTitle(type) {
+    const titles = {
+      'vendor_timeout': 'Order Cancelled - Vendor Unresponsive',
+      'payment_timeout': 'Payment Timeout',
+      'order_completed': 'Order Completed Successfully',
+      'order_cancelled': 'Order Cancelled',
+      'vendor_confirmed': 'Vendor Confirmed Your Order'
     };
-
-    return terminalStates[fsmType]?.includes(state) || false;
+    return titles[type] || 'Order Update';
   }
 
   /**
-   * Process order delivery (create vendor payout)
-   * @param {number} orderId - Order ID
-   * @returns {Promise<void>}
+   * Get notification message
    */
-  async processOrderDelivery(orderId) {
-    try {
-      // Get order details to create payout
-      const order = await this.marketplaceOrderRepository.getOrderById(orderId);
-      if (!order) {
-        throw new Error('Order not found');
-      }
-
-      // Check if payout already exists
-      const existingPayout = await require('../config/db').query(
-        'SELECT id FROM vendor_payouts WHERE order_id = $1',
-        [orderId]
-      );
-
-      if (existingPayout.rows.length > 0) {
-        logger.info(`Payout already exists for order ${orderId}`, {
-          orderId,
-          payoutId: existingPayout.rows[0].id,
-          category: 'marketplace_order'
-        });
-        return;
-      }
-
-      // Create payout for the vendor
-      const payout = await this.vendorPayoutService.createPayout(orderId, {
-        vendor_id: order.vendor_id,
-        total_amount: order.total_amount,
-        commission_amount: order.commission_amount,
-        currency: order.currency || 'EGP'
-      });
-
-      logger.info(`Vendor payout created for delivered order: ${order.order_number}`, {
-        orderId,
-        payoutId: payout.id,
-        payoutNumber: payout.payout_number,
-        vendorId: order.vendor_id,
-        payoutAmount: payout.payout_amount,
-        category: 'marketplace_order'
-      });
-
-      // In a real implementation, this could trigger automatic payout processing
-      // For now, payouts remain in 'pending' status until manually processed
-
-    } catch (error) {
-      logger.error('Error processing order delivery:', error);
-      throw error;
-    }
+  getNotificationMessage(type, data) {
+    const messages = {
+      'vendor_timeout': `Your order #${data.orderId} has been cancelled because the vendor didn't respond within 15 minutes.`,
+      'payment_timeout': `Your payment for order #${data.orderId} timed out. Please try again.`,
+      'order_completed': `Your order #${data.orderId} has been delivered successfully!`,
+      'order_cancelled': `Your order #${data.orderId} has been cancelled.`,
+      'vendor_confirmed': `Great news! The vendor has confirmed your order #${data.orderId} and preparation will begin soon.`
+    };
+    return messages[type] || 'Your order status has been updated.';
   }
 
   /**
-   * Cancel order (customer or vendor)
-   * @param {number} orderId - Order ID
-   * @param {number} userId - User ID (customer or vendor)
-   * @param {string} reason - Cancellation reason
-   * @returns {Promise<Object>} Updated order
+   * Get notification priority
    */
-  async cancelOrder(orderId, userId, reason) {
-    try {
-      const order = await this.marketplaceOrderRepository.getOrderById(orderId);
-      if (!order) {
-        throw new Error('Order not found');
-      }
-
-      // Check authorization (customer can cancel their own orders, vendor can cancel their orders)
-      const isCustomer = order.user_id === userId;
-      const isVendor = order.vendor_id === userId;
-
-      if (!isCustomer && !isVendor) {
-        throw new Error('Access denied');
-      }
-
-      // Check if order can be cancelled (not in final states or after pickup)
-      const nonCancellableStatuses = [ORDER_STATUS.PICKED_UP, ORDER_STATUS.DELIVERED, ORDER_STATUS.COMPLETED, ORDER_STATUS.CANCELLED, ORDER_STATUS.REJECTED, ORDER_STATUS.REFUNDED, ORDER_STATUS.FAILED];
-      if (nonCancellableStatuses.includes(order.status)) {
-        throw new Error('Order cannot be cancelled at this stage');
-      }
-
-      // Use the state machine for cancellation
-      let updatedOrder;
-      if (isCustomer) {
-        // Customer cancellation - use admin action since no direct customer cancel action exists
-        // In a real system, this might need a different approach
-        updatedOrder = await this.updateOrderStatus(orderId, 'cancel_by_admin', userId, 'admin', { cancellationReason: reason, cancelledBy: 'customer' });
-      } else {
-        // Vendor cancellation
-        updatedOrder = await this.updateOrderStatus(orderId, 'cancel_by_admin', userId, 'admin', { cancellationReason: reason, cancelledBy: 'vendor' });
-      }
-
-      logger.info(`Order cancelled: ${order.order_number}`, {
-        orderId,
-        cancelledBy: isCustomer ? 'customer' : 'vendor',
-        reason,
-        category: 'marketplace_order'
-      });
-
-      return updatedOrder;
-    } catch (error) {
-      logger.error('Error cancelling order:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Restore inventory for cancelled order
-   * @param {number} orderId - Order ID
-   * @returns {Promise<void>}
-   */
-  async restoreOrderInventory(orderId) {
-    try {
-      const orderItems = await require('../config/db').query(`
-        SELECT item_id, quantity FROM marketplace_order_items WHERE order_id = $1
-      `, [orderId]);
-
-      // Restore inventory for each item
-      for (const item of orderItems.rows) {
-        await require('../config/db').query(`
-          UPDATE items
-          SET inventory_quantity = inventory_quantity + $1,
-              updated_at = CURRENT_TIMESTAMP
-          WHERE id = $2
-        `, [item.quantity, item.item_id]);
-      }
-
-      logger.info(`Inventory restored for cancelled order ${orderId}`, {
-        orderId,
-        itemsRestored: orderItems.rows.length,
-        category: 'marketplace_order'
-      });
-    } catch (error) {
-      logger.error('Error restoring order inventory:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Get order statistics for vendor
-   * @param {number} vendorId - Vendor ID
-   * @returns {Promise<Object>} Order statistics
-   */
-  async getOrderStats(vendorId) {
-    try {
-      const statsQuery = await require('../config/db').query(`
-        SELECT
-          COUNT(*) as total_orders,
-          COUNT(CASE WHEN status = 'delivered' THEN 1 END) as completed_orders,
-          COUNT(CASE WHEN status = 'cancelled' THEN 1 END) as cancelled_orders,
-          COALESCE(SUM(CASE WHEN status = 'delivered' THEN total_amount END), 0) as total_revenue,
-          COALESCE(AVG(CASE WHEN status = 'delivered' THEN total_amount END), 0) as avg_order_value
-        FROM marketplace_orders
-        WHERE vendor_id = $1
-      `, [vendorId]);
-
-      return statsQuery.rows[0];
-    } catch (error) {
-      logger.error('Error getting order stats:', error);
-      throw error;
-    }
+  getNotificationPriority(type) {
+    const priorities = {
+      'vendor_timeout': 'high',
+      'payment_timeout': 'high',
+      'order_completed': 'normal',
+      'order_cancelled': 'high',
+      'vendor_confirmed': 'normal'
+    };
+    return priorities[type] || 'normal';
   }
 }
 
