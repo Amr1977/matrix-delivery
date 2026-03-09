@@ -1,4 +1,5 @@
 const MarketplaceOrderRepository = require('../repositories/marketplaceOrderRepository');
+const VendorPayoutService = require('./vendorPayoutService');
 const cartService = require('./cartService');
 const { ORDER_STATUS } = require('../config/constants');
 const logger = require('../config/logger');
@@ -10,6 +11,7 @@ const logger = require('../config/logger');
 class MarketplaceOrderService {
   constructor() {
     this.marketplaceOrderRepository = new MarketplaceOrderRepository();
+    this.vendorPayoutService = new VendorPayoutService();
     this.cartService = cartService;
   }
 
@@ -573,26 +575,53 @@ class MarketplaceOrderService {
   }
 
   /**
-   * Process order delivery (trigger payout)
+   * Process order delivery (create vendor payout)
    * @param {number} orderId - Order ID
    * @returns {Promise<void>}
    */
   async processOrderDelivery(orderId) {
     try {
-      // Update payout status to 'processing'
-      await require('../config/db').query(`
-        UPDATE vendor_payouts
-        SET status = 'processing', processed_at = CURRENT_TIMESTAMP
-        WHERE order_id = $1 AND status = 'pending'
-      `, [orderId]);
+      // Get order details to create payout
+      const order = await this.marketplaceOrderRepository.getOrderById(orderId);
+      if (!order) {
+        throw new Error('Order not found');
+      }
 
-      logger.info(`Payout processing triggered for order ${orderId}`, {
+      // Check if payout already exists
+      const existingPayout = await require('../config/db').query(
+        'SELECT id FROM vendor_payouts WHERE order_id = $1',
+        [orderId]
+      );
+
+      if (existingPayout.rows.length > 0) {
+        logger.info(`Payout already exists for order ${orderId}`, {
+          orderId,
+          payoutId: existingPayout.rows[0].id,
+          category: 'marketplace_order'
+        });
+        return;
+      }
+
+      // Create payout for the vendor
+      const payout = await this.vendorPayoutService.createPayout(orderId, {
+        vendor_id: order.vendor_id,
+        total_amount: order.total_amount,
+        commission_amount: order.commission_amount,
+        currency: order.currency || 'EGP'
+      });
+
+      logger.info(`Vendor payout created for delivered order: ${order.order_number}`, {
         orderId,
+        payoutId: payout.id,
+        payoutNumber: payout.payout_number,
+        vendorId: order.vendor_id,
+        payoutAmount: payout.payout_amount,
         category: 'marketplace_order'
       });
 
-      // In a real implementation, this would trigger payout processing
-      // via payment gateway integration (Instapay, etc.)
+      // In a real implementation, this could trigger automatic payout processing
+      // For now, payouts remain in 'pending' status until manually processed
+
     } catch (error) {
       logger.error('Error processing order delivery:', error);
       throw error;
