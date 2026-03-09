@@ -59,14 +59,15 @@ Feature: Verbose Multi-FSM Order Lifecycle
     And an ORDER_DELIVERED_TO_CUSTOMER event should be emitted
 
     When the customer confirms receipt of the order
-    Then the delivery FSM should transition to "order_delivery_successfully_completed_and_confirmed_by_customer"
+    Then the delivery FSM should transition to "order_delivery_completed_and_confirmed_by_customer"
     And a DELIVERY_CONFIRMED event should be emitted
     And the order should be marked as completed
     And the vendor payout should be processed
 
   @verbose-fsm @vendor-rejection @edge-case
   Scenario: Vendor rejects order after payment - late rejection scenario
-    Given the customer successfully creates and pays for an order
+    Given the customer creates an order and vendor confirms acceptance
+    And the vendor FSM is in state "awaiting_vendor_start_preparation"
     And the payment FSM is in state "payment_successfully_received_and_verified_for_order"
     When the vendor rejects the order due to "item out of stock"
     Then the vendor FSM should transition to "order_rejected_by_vendor"
@@ -75,6 +76,38 @@ Feature: Verbose Multi-FSM Order Lifecycle
     And the delivery FSM should be cancelled if initialized
     And a PAYMENT_REFUNDED event should be emitted
     And the customer should receive a refund notification
+
+  @verbose-fsm @timeout @vendor-confirmation
+  Scenario: Vendor confirmation timeout - automatic order cancellation
+    Given the customer creates an order
+    And the vendor FSM is in state "awaiting_order_availability_vendor_confirmation"
+    When the vendor confirmation timeout expires after "15 minutes"
+    Then the vendor FSM should transition to "order_cancelled_vendor_unresponsive"
+    And the payment FSM should not be initialized
+    And the delivery FSM should not be initialized
+    And the customer should receive a vendor unresponsive notification
+    And a VENDOR_TIMEOUT event should be emitted
+
+  @verbose-fsm @timeout @payment
+  Scenario: Payment timeout - automatic payment failure
+    Given the customer creates an order and vendor confirms acceptance
+    And the payment FSM is in state "payment_pending_for_customer"
+    When the payment timeout expires after "10 minutes"
+    Then the payment FSM should transition to "payment_attempt_failed_for_order"
+    And the vendor FSM should transition to "order_cancelled_payment_timeout"
+    And the delivery FSM should be cancelled if initialized
+    And the customer should receive a payment timeout notification
+    And a PAYMENT_TIMEOUT event should be emitted
+
+  @verbose-fsm @timeout @customer-confirmation
+  Scenario: Customer confirmation timeout - automatic delivery confirmation
+    Given the order is delivered and awaiting customer confirmation
+    And the delivery FSM is in state "awaiting_customer_confirmation_of_order_delivery"
+    When the customer confirmation timeout expires after "24 hours"
+    Then the delivery FSM should transition to "order_delivery_auto_confirmed_due_to_timeout"
+    And a DELIVERY_AUTO_CONFIRMED event should be emitted
+    And the order should be marked as completed
+    And the vendor payout should be processed automatically
 
   @verbose-fsm @payment-failure @edge-case
   Scenario: Payment fails after vendor preparation - complex edge case
@@ -86,6 +119,17 @@ Feature: Verbose Multi-FSM Order Lifecycle
     And an admin notification should be triggered for manual intervention
     And the order should be flagged for admin review
 
+  @verbose-fsm @courier-reassignment @edge-case
+  Scenario: Courier cancels delivery after accepting - reassignment required
+    Given a courier has accepted a delivery request
+    And the delivery FSM is in state "courier_has_been_assigned_to_deliver_the_order"
+    When the courier cancels the assignment due to "vehicle breakdown"
+    Then the delivery FSM should transition to "delivery_request_created_waiting_for_courier_acceptance"
+    And a COURIER_CANCELLED event should be emitted
+    And the system should notify other available couriers
+    And the original courier should be marked as unavailable for this order
+    And a COURIER_REASSIGNMENT_REQUIRED event should be emitted
+
   @verbose-fsm @customer-dispute @edge-case
   Scenario: Customer disputes delivery after courier marks as delivered
     Given the order is delivered and awaiting customer confirmation
@@ -95,6 +139,18 @@ Feature: Verbose Multi-FSM Order Lifecycle
     And a DELIVERY_DISPUTED event should be emitted
     And an admin review should be triggered
     And the vendor payout should be held pending resolution
+
+  @verbose-fsm @race-conditions @concurrency
+  Scenario: Race condition prevention with atomic transactions and locking
+    Given multiple rapid state transitions occur across FSMs simultaneously
+    When concurrent requests attempt to modify the same order state
+    Then all FSM transitions should run inside atomic database transactions
+    And row-level locking should prevent concurrent modifications
+    And only one transition should succeed while others are rejected
+    And the audit log should record the successful transition with timestamp
+    And failed concurrent transitions should return appropriate error messages
+    And state consistency should be maintained across all FSMs
+    And no partial state updates should occur due to race conditions
 
   @verbose-fsm @state-synchronization
   Scenario: FSM state synchronization across multiple transitions
@@ -119,11 +175,50 @@ Feature: Verbose Multi-FSM Order Lifecycle
     When the vendor accepts the order
     Then VENDOR_CONFIRMED event should trigger Payment and Delivery FSM initialization
     When payment is successful
-    Then PAYMENT_SUCCESSFUL event should trigger payout creation
+    Then PAYMENT_SUCCESSFUL event should trigger payout creation in "payout_created" state
+    And the vendor payout should transition to "payout_held_until_delivery_confirmation"
     When vendor completes preparation
     Then PREPARATION_COMPLETE event should enable delivery pickup
     When delivery is confirmed
-    Then DELIVERY_CONFIRMED event should complete the order
+    Then DELIVERY_CONFIRMED event should trigger payout release to "payout_released_after_delivery_confirmation"
+    And the vendor should receive the payout amount
+
+  @verbose-fsm @payout-lifecycle @financial
+  Scenario: Vendor payout lifecycle states and transitions
+    Given the payment FSM transitions to "payment_successfully_received_and_verified_for_order"
+    When the PAYMENT_SUCCESSFUL event is emitted
+    Then a vendor payout should be created in state "payout_created"
+    And the payout should automatically transition to "payout_held_until_delivery_confirmation"
+
+    When the delivery FSM reaches terminal state "order_delivery_successfully_completed_and_confirmed_by_customer"
+    Then the payout should transition to "payout_released_after_delivery_confirmation"
+    And the vendor should receive payment notification
+
+    When delivery is disputed
+    Then the payout should remain in "payout_held_until_delivery_confirmation"
+    And admin resolution should be required before payout release
+
+  @verbose-fsm @event-bus @architecture
+  Scenario: Centralized event bus architecture for FSM transitions
+    Given the system uses a centralized event bus for domain events
+    When any FSM transition occurs
+    Then the transition must emit a domain event through the centralized event bus
+    And all domain events must include order_id, transition_type, from_state, to_state, timestamp, and actor_id
+    And the event bus must guarantee at-least-once delivery semantics
+    And event subscribers must be able to react to events asynchronously
+    And the event bus must support event replay for debugging and analytics
+    And events must be persisted for audit trail purposes
+
+    # Required domain events and their subscribers:
+    # VENDOR_CONFIRMED: Vendor accepts order → Payment FSM, Delivery FSM
+    # PAYMENT_SUCCESSFUL: Payment completed → Payout service, Notification service
+    # PREPARATION_STARTED: Vendor begins prep → Tracking service
+    # PREPARATION_COMPLETE: Vendor finishes prep → Delivery FSM, Notification service
+    # COURIER_ASSIGNED: Courier accepts delivery → Tracking service, Notification service
+    # ORDER_PICKED_UP: Courier collects order → Tracking service, Vendor notification
+    # ORDER_DELIVERED_TO_CUSTOMER: Courier arrives → Customer notification, Confirmation timeout
+    # DELIVERY_CONFIRMED: Customer confirms → Payout service, Analytics service
+    # PAYMENT_REFUNDED: Refund processed → Customer notification, Analytics service
 
   @verbose-fsm @tracking-info
   Scenario: Real-time delivery tracking information
