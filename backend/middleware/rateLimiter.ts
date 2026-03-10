@@ -1,10 +1,10 @@
-/**
+﻿/**
  * Rate Limiting Middleware for Balance API
  * 
  * Protects against abuse and ensures fair usage
  */
 
-import rateLimit from 'express-rate-limit';
+import rateLimit from 'express-rate-limit';\n// Shared IP resolver implemented in JS; TS can import via allowJs\n// eslint-disable-next-line @typescript-eslint/no-var-requires\nconst { ipKeyFromRequest } = require('./ipKey');
 import { Request } from 'express';
 
 // Extend Express Request type to include user property
@@ -56,7 +56,7 @@ export const withdrawalRateLimiter = rateLimit({
     legacyHeaders: false,
     // Key by user ID instead of IP for authenticated requests
     keyGenerator: (req: AuthenticatedRequest) => {
-        return req.user?.id?.toString() || req.user?.userId?.toString() || req.ip;
+        const fp = (req.headers as any)?.['x-device-fingerprint'] as string | undefined;\n        return req.user?.id?.toString() || req.user?.userId?.toString() || fp || ipKeyFromRequest(req as any);
     },
     // Skip rate limiting in test environment
     skip: (req: Request) => {
@@ -79,7 +79,7 @@ export const adminRateLimiter = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
     keyGenerator: (req: AuthenticatedRequest) => {
-        return req.user?.id?.toString() || req.user?.userId?.toString() || req.ip;
+        const fp = (req.headers as any)?.['x-device-fingerprint'] as string | undefined;\n        return req.user?.id?.toString() || req.user?.userId?.toString() || fp || ipKeyFromRequest(req as any);
     },
     // Skip rate limiting in test environment
     skip: (req: Request) => {
@@ -102,10 +102,11 @@ export const depositRateLimiter = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
     keyGenerator: (req: AuthenticatedRequest) => {
-        return req.user?.id?.toString() || req.user?.userId?.toString() || req.ip;
+        const fp = (req.headers as any)?.['x-device-fingerprint'] as string | undefined;\n        return req.user?.id?.toString() || req.user?.userId?.toString() || fp || ipKeyFromRequest(req as any);
     },
     // Skip rate limiting in test environment
     skip: (req: Request) => {
         return process.env.NODE_ENV === 'testing' || process.env.NODE_ENV === 'test';
     }
 });
+

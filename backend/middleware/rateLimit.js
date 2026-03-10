@@ -1,28 +1,8 @@
-const rateLimit = require('express-rate-limit');
+﻿const rateLimit = require('express-rate-limit');
 const { RedisStore } = require('rate-limit-redis');
 const redisClient = require('../config/redis');
 const logger = require('../config/logger');
-// Local IP key generator (replaces non-existent export from express-rate-limit)
-function ipKeyGenerator(req) {
-  try {
-    const xff = req.headers && (req.headers['x-forwarded-for'] || req.headers['X-Forwarded-For']);
-    if (xff) {
-      const first = Array.isArray(xff) ? xff[0] : String(xff).split(',')[0];
-      if (first && first.trim()) return first.trim();
-    }
-    const xRealIp = req.headers && (req.headers['x-real-ip'] || req.headers['X-Real-IP']);
-    if (xRealIp && String(xRealIp).trim()) return String(xRealIp).trim();
-    const cfIp = req.headers && (req.headers['cf-connecting-ip'] || req.headers['CF-Connecting-IP']);
-    if (cfIp && String(cfIp).trim()) return String(cfIp).trim();
-    if (req.ip) return req.ip;
-    if (req.connection && req.connection.remoteAddress) return req.connection.remoteAddress;
-    if (req.socket && req.socket.remoteAddress) return req.socket.remoteAddress;
-    if (req.connection && req.connection.socket && req.connection.socket.remoteAddress) return req.connection.socket.remoteAddress;
-  } catch (e) {
-    // no-op
-  }
-  return 'unknown';
-}
+const { ipKeyFromRequest } = require('./ipKey');
 
 const isTest = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing';
 
@@ -43,7 +23,7 @@ const createLimiter = (options, prefix = 'rl:') => {
     keyGenerator: (req) => {
       // Support FingerprintJS or similar device fingerprinting
       // Fallback to IP address if header is missing
-      return req.headers['x-device-fingerprint'] || ipKeyGenerator(req);
+      return req.headers['x-device-fingerprint'] || ipKeyFromRequest(req);
     },
     handler: (req, res, next, options) => {
       logger.security('Rate limit exceeded', {
@@ -72,7 +52,6 @@ const createLimiter = (options, prefix = 'rl:') => {
   return rateLimit(limitOptions);
 };
 
-// General API Rate Limit
 // General API Rate Limit
 // 1000 requests per 15 minutes (approx 1 req every second)
 const apiRateLimit = createLimiter({
@@ -109,7 +88,6 @@ const uploadRateLimit = createLimiter({
 
 // Top-Up Rate Limit (Egypt Payment Phase 1)
 // 10 requests per minute per user
-// Requirements: 8.1
 const topupRateLimit = createLimiter({
   windowMs: 60 * 1000, // 1 minute
   limit: 10,
@@ -119,13 +97,11 @@ const topupRateLimit = createLimiter({
     if (req.user && req.user.userId) {
       return `user:${req.user.userId}`;
     }
-    return req.headers['x-device-fingerprint'] || ipKeyGenerator(req);
+    return req.headers['x-device-fingerprint'] || ipKeyFromRequest(req);
   }
 }, 'rl:topup:');
 
-
-// Dummy functions for backward compatibility if needed, 
-// though cleanup is handled by Redis or express-rate-limit automatically
+// Dummy functions for backward compatibility if needed
 const startCleanup = () => { };
 const stopCleanup = () => { };
 
@@ -139,5 +115,3 @@ module.exports = {
   startCleanup,
   stopCleanup
 };
-
-
