@@ -407,6 +407,7 @@ const DriverBiddingMap = React.memo(({ order, driverLocation, driverVehicleType 
             <Marker
               position={[driverCoords.lat, driverCoords.lng]}
               icon={createCustomIcon('driver', '#4f46e5')}
+              zIndexOffset={1000}
             >
               <Popup>
                 <div style={{ fontSize: '0.875rem' }}>

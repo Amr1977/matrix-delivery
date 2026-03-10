@@ -42,25 +42,33 @@ const OrdersMap = ({
   const API_BASE = (process.env.REACT_APP_API_URL || 'http://localhost:5000/api').replace('/api', '');
   const tileUrl = `${API_BASE}/api/maps/tiles/{z}/{x}/{y}.png`;
 
-  // Check for fake location first (development/testing feature)
   const getActiveLocation = () => {
     try {
       const fakeLocationStr = localStorage.getItem('fakeDriverLocation');
       if (fakeLocationStr) {
         const fakeLoc = JSON.parse(fakeLocationStr);
-        if (fakeLoc && Number.isFinite(fakeLoc.latitude) && Number.isFinite(fakeLoc.longitude)) {
-          return fakeLoc;
+        const lat = fakeLoc?.lat || fakeLoc?.latitude;
+        const lng = fakeLoc?.lng || fakeLoc?.longitude;
+        if (fakeLoc && Number.isFinite(lat) && Number.isFinite(lng)) {
+          return { lat, lng };
         }
       }
     } catch (e) {
       // ignore parse errors
     }
-    return driverLocation;
+    if (driverLocation) {
+      const lat = driverLocation.lat || driverLocation.latitude;
+      const lng = driverLocation.lng || driverLocation.longitude;
+      if (Number.isFinite(lat) && Number.isFinite(lng)) {
+        return { lat, lng };
+      }
+    }
+    return null;
   };
 
   const activeLocation = getActiveLocation();
-  const hasDriver = activeLocation && Number.isFinite(activeLocation.latitude) && Number.isFinite(activeLocation.longitude);
-  const center = hasDriver ? [activeLocation.latitude, activeLocation.longitude] : [30.0444, 31.2357];
+  const hasDriver = activeLocation !== null;
+  const center = hasDriver ? [activeLocation.lat, activeLocation.lng] : [30.0444, 31.2357];
 
   const zoom = hasDriver ? 15 : 13;
 
@@ -97,12 +105,12 @@ const OrdersMap = ({
           />
 
           {hasDriver && (
-            <Marker position={[activeLocation.latitude, activeLocation.longitude]} icon={createPulseIcon()}>
+            <Marker position={[activeLocation.lat, activeLocation.lng]} icon={createPulseIcon()} zIndexOffset={1000}>
               <Popup>
                 <div style={{ fontSize: '0.875rem' }}>
                   <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Your Location</div>
-                  <div>Lat: {activeLocation.latitude.toFixed(6)}</div>
-                  <div>Lng: {activeLocation.longitude.toFixed(6)}</div>
+                  <div>Lat: {activeLocation.lat.toFixed(6)}</div>
+                  <div>Lng: {activeLocation.lng.toFixed(6)}</div>
                 </div>
               </Popup>
             </Marker>
