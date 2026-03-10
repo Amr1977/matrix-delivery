@@ -1,8 +1,8 @@
-import React from 'react';
+﻿import React from 'react';
 import { useI18n } from '../../i18n/i18nContext';
 import { formatCurrency, getStatusColor, getStatusLabel, formatDateTime } from '../../utils/formatters';
 import DriverBiddingMap from '../maps/DriverBiddingMap';
-import RoutePreviewMap from '../RoutePreviewMap';
+import AsyncOrderMap from '../AsyncOrderMap';
 import LiveTrackingMap from '../maps/LiveTrackingMap';
 import useAuth from '../../hooks/useAuth';
 import useBidsLocations from '../../hooks/useBidsLocations';
@@ -62,7 +62,7 @@ const OrderCard = ({
   // Debug log for bid locations
   React.useEffect(() => {
     if (order.status === 'pending_bids' && currentUser?.primary_role === 'customer') {
-      window.console.log(`📦 [Order ${order.id}] Bid Locations State:`, {
+      window.console.log(`ðŸ“¦ [Order ${order.id}] Bid Locations State:`, {
         loading: loadingLocations,
         locationsCount: bidLocations?.length || 0,
         bidsCount: order.bids?.length || 0,
@@ -93,7 +93,7 @@ const OrderCard = ({
 
 
   // Always log order data to debug
-  window.console.log('🎯 OrderCard Rendered:', {
+  window.console.log('ðŸŽ¯ OrderCard Rendered:', {
     orderId: order.id,
     orderNumber: order.orderNumber,
     status: order.status,
@@ -266,7 +266,7 @@ const OrderCard = ({
               toCoords: order.to
             };
             // Force console.log to show
-            window.console.log('📦 [CUSTOMER PENDING] OrderCard - Order data:', debugInfo);
+            window.console.log('ðŸ“¦ [CUSTOMER PENDING] OrderCard - Order data:', debugInfo);
             return null;
           })()}
           <RoutePreviewMap
@@ -307,7 +307,7 @@ const OrderCard = ({
             color: 'var(--matrix-bright-green)',
             fontSize: '0.875rem',
             boxShadow: '0 0 5px rgba(0, 255, 0, 0.5)'
-          }}>📍</div>
+          }}>ðŸ“</div>
           <div>
             <p style={{
               fontSize: '0.75rem',
@@ -347,7 +347,7 @@ const OrderCard = ({
             color: 'var(--matrix-bright-green)',
             fontSize: '0.875rem',
             boxShadow: '0 0 5px rgba(0, 255, 0, 0.5)'
-          }}>🎯</div>
+          }}>ðŸŽ¯</div>
           <div>
             <p style={{
               fontSize: '0.75rem',
@@ -392,14 +392,14 @@ const OrderCard = ({
               {order.assignedDriver.profilePicture ? (
                 <img src={order.assignedDriver.profilePicture} alt="Driver" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
               ) : (
-                '👤'
+                'ðŸ‘¤'
               )}
             </div>
             <div>
               <p style={{ color: '#F3F4F6', fontWeight: '600', fontSize: '1rem' }}>{order.assignedDriver.name || 'Unknown Driver'}</p>
               <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.875rem', color: '#9CA3AF', marginTop: '0.25rem' }}>
-                <span>⭐ {order.assignedDriver.rating?.toFixed(1) || 'New'}</span>
-                <span>•</span>
+                <span>â­ {order.assignedDriver.rating?.toFixed(1) || 'New'}</span>
+                <span>â€¢</span>
                 <span>{order.assignedDriver.totalDeliveries || 0} deliveries</span>
               </div>
             </div>
@@ -434,7 +434,7 @@ const OrderCard = ({
               textShadow: 'var(--shadow-glow)',
               fontFamily: 'Consolas, Monaco, Courier New, monospace'
             }}>
-              📦 Package
+              ðŸ“¦ Package
             </p>
             <p style={{
               fontSize: '0.875rem',
@@ -455,7 +455,7 @@ const OrderCard = ({
               textShadow: 'var(--shadow-glow)',
               fontFamily: 'Consolas, Monaco, Courier New, monospace'
             }}>
-              ⚖️ Weight
+              âš–ï¸ Weight
             </p>
             <p style={{
               fontSize: '0.875rem',
@@ -476,7 +476,7 @@ const OrderCard = ({
               textShadow: 'var(--shadow-glow)',
               fontFamily: 'Consolas, Monaco, Courier New, monospace'
             }}>
-              💰 Value
+              ðŸ’° Value
             </p>
             <p style={{
               fontSize: '0.875rem',
@@ -497,7 +497,7 @@ const OrderCard = ({
               textShadow: 'var(--shadow-glow)',
               fontFamily: 'Consolas, Monaco, Courier New, monospace'
             }}>
-              📝 Instructions
+              ðŸ“ Instructions
             </p>
             <p style={{
               fontSize: '0.875rem',
@@ -517,7 +517,7 @@ const OrderCard = ({
               marginBottom: '0.25rem',
               fontFamily: 'Consolas, Monaco, Courier New, monospace'
             }}>
-              ⚠️ Upfront Payment Required
+              âš ï¸ Upfront Payment Required
             </p>
             <p style={{
               fontSize: '0.875rem',
@@ -551,7 +551,7 @@ const OrderCard = ({
                   data-testid="review-driver-btn"
                   style={{ textShadow: '0 0 5px rgba(0, 0, 0, 0.5)' }}
                 >
-                  ⭐ {t('reviews.reviewDriver')}
+                  â­ {t('reviews.reviewDriver')}
                 </button>
               )}
               {currentUser?.primary_role === 'driver' && order.assignedDriver?.userId === currentUser?.id && !order.reviewStatus?.reviews.toCustomer && (
@@ -561,7 +561,7 @@ const OrderCard = ({
                   data-testid="review-customer-btn"
                   style={{ textShadow: '0 0 5px rgba(0, 0, 0, 0.5)' }}
                 >
-                  ⭐ {t('reviews.reviewCustomer')}
+                  â­ {t('reviews.reviewCustomer')}
                 </button>
               )}
               {!order.reviewStatus?.reviews.toPlatform && (
@@ -592,14 +592,14 @@ const OrderCard = ({
                     e.target.style.transform = 'translateY(0)';
                   }}
                 >
-                  🌟 Review Platform
+                  ðŸŒŸ Review Platform
                 </button>
               )}
               <button
                 onClick={() => onViewReviews(order.id)}
                 className="btn-warning"
               >
-                📝 View Reviews
+                ðŸ“ View Reviews
               </button>
             </>
           )}
@@ -611,7 +611,7 @@ const OrderCard = ({
               className="btn-danger"
               style={{ minHeight: '44px', textShadow: '0 0 5px rgba(0, 0, 0, 0.5)', opacity: loadingStates?.deleteOrder ? 0.5 : 1 }}
             >
-              🗑️ Cancel Order
+              ðŸ—‘ï¸ Cancel Order
             </button>
           )}
         </div>
@@ -643,7 +643,7 @@ const OrderCard = ({
                     fontFamily: 'Consolas, Monaco, Courier New, monospace',
                     textShadow: 'var(--shadow-glow)'
                   }}>
-                    👤 Customer Reputation
+                    ðŸ‘¤ Customer Reputation
                   </h4>
                   {order.customerIsVerified && (
                     <span style={{
@@ -657,7 +657,7 @@ const OrderCard = ({
                       textShadow: '0 0 5px rgba(0, 0, 0, 0.5)',
                       boxShadow: '0 0 5px rgba(0, 255, 0, 0.5)'
                     }}>
-                      ✓ Verified
+                      âœ“ Verified
                     </span>
                   )}
                   {!order.customerIsVerified && (
@@ -681,7 +681,7 @@ const OrderCard = ({
                       }}
                       title="Contact admin to verify account"
                     >
-                      📱 Verify
+                      ðŸ“± Verify
                     </button>
                   )}
                 </div>
@@ -772,7 +772,7 @@ const OrderCard = ({
                 fontFamily: 'Consolas, Monaco, Courier New, monospace',
                 textShadow: '0 0 5px rgba(0, 255, 0, 0.5)'
               }}>
-                📍 Distance from pickup: {order.distance ? `${order.distance.toFixed(2)} km` : 'Unknown'}
+                ðŸ“ Distance from pickup: {order.distance ? `${order.distance.toFixed(2)} km` : 'Unknown'}
               </div>
             )}
 
@@ -1045,6 +1045,25 @@ const OrderCard = ({
         )
       }
 
+      
+      {/* Live Map for Active Orders (driver marker via sockets) */}
+      {(order.status === 'accepted' || order.status === 'picked_up' || order.status === 'in_transit') && (
+        <div
+          data-testid={'order-card-live-map-' + order.id}
+          style={{ position: 'relative', height: '220px', marginTop: '0.5rem', border: '2px solid var(--matrix-border)', borderRadius: '0.5rem', overflow: 'hidden' }}
+        >
+          <AsyncOrderMap
+            order={order}
+            currentUser={currentUser}
+            driverLocation={driverLocation}
+            theme={'dark'}
+          />
+          <div data-testid="live-indicator" style={{ position: 'absolute', top: '8px', left: '8px', zIndex: 1000, background: 'rgba(0,17,0,0.85)', border: '1px solid var(--matrix-border)', padding: '2px 6px', borderRadius: '9999px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#00FF00', boxShadow: '0 0 10px #00FF00' }} />
+            <span style={{ fontSize: '0.625rem', color: '#00FF00', fontWeight: 700, letterSpacing: '0.06em' }}>Live</span>
+          </div>
+        </div>
+      )}
       {/* Status-specific action buttons */}
       {
         order.status === 'accepted' && currentUser?.primary_role === 'customer' && (
@@ -1327,7 +1346,7 @@ const renderStars = (rating, onRate = null) => {
             color: star <= rating ? '#FCD34D' : '#D1D5DB'
           }}
         >
-          ★
+          â˜…
         </span>
       ))}
     </div>
@@ -1335,3 +1354,6 @@ const renderStars = (rating, onRate = null) => {
 };
 
 export default OrderCard;
+
+
+

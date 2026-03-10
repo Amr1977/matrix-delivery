@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AsyncOrderMap from '../AsyncOrderMap';
 import OrderBiddingSection from './OrderBiddingSection';
@@ -128,7 +128,8 @@ const ActiveOrderCard = ({
             )}
 
             {/* Route Preview Map */}
-            <div style={{ position: 'relative', height: '250px', marginBottom: '1rem', borderRadius: '0.5rem', overflow: 'hidden', border: '2px solid var(--matrix-border)', boxShadow: 'var(--shadow-matrix)' }}>
+            <div data-testid={'active-order-live-map-' + order.id} style={{ position: 'relative', height: '250px', marginBottom: '1rem', borderRadius: '0.5rem', overflow: 'hidden', border: '2px solid var(--matrix-border)', boxShadow: 'var(--shadow-matrix)' }}>
+
                 <AsyncOrderMap
                     order={order}
                     currentUser={currentUser}
@@ -236,46 +237,46 @@ const ActiveOrderCard = ({
             {/* Order Details Grid */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem', padding: '1rem', background: '#F9FAFB', borderRadius: '0.375rem' }}>
                 <div>
-                    <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>📤 {t('activeOrder.pickup')}</p>
+                    <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>ðŸ“¤ {t('activeOrder.pickup')}</p>
                     <p style={{ fontSize: '0.875rem' }}>{order.pickupAddress || order.from?.name}</p>
                     {order.pickupContactName && (
                         <div style={{ marginTop: '0.25rem', fontSize: '0.8rem', color: '#4B5563' }}>
-                            <span role="img" aria-label="user">👤</span> {order.pickupContactName}
-                            {order.pickupContactPhone && <><br /><span role="img" aria-label="phone">📞</span> <a href={`tel:${order.pickupContactPhone}`} style={{ color: '#4F46E5', textDecoration: 'none' }}>{order.pickupContactPhone}</a></>}
+                            <span role="img" aria-label="user">ðŸ‘¤</span> {order.pickupContactName}
+                            {order.pickupContactPhone && <><br /><span role="img" aria-label="phone">ðŸ“ž</span> <a href={`tel:${order.pickupContactPhone}`} style={{ color: '#4F46E5', textDecoration: 'none' }}>{order.pickupContactPhone}</a></>}
                         </div>
                     )}
                 </div>
                 <div>
-                    <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>📥 {t('activeOrder.delivery')}</p>
+                    <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>ðŸ“¥ {t('activeOrder.delivery')}</p>
                     <p style={{ fontSize: '0.875rem' }}>{order.deliveryAddress || order.to?.name}</p>
                     {order.dropoffContactName && (
                         <div style={{ marginTop: '0.25rem', fontSize: '0.8rem', color: '#4B5563' }}>
-                            <span role="img" aria-label="user">👤</span> {order.dropoffContactName}
-                            {order.dropoffContactPhone && <><br /><span role="img" aria-label="phone">📞</span> <a href={`tel:${order.dropoffContactPhone}`} style={{ color: '#4F46E5', textDecoration: 'none' }}>{order.dropoffContactPhone}</a></>}
+                            <span role="img" aria-label="user">ðŸ‘¤</span> {order.dropoffContactName}
+                            {order.dropoffContactPhone && <><br /><span role="img" aria-label="phone">ðŸ“ž</span> <a href={`tel:${order.dropoffContactPhone}`} style={{ color: '#4F46E5', textDecoration: 'none' }}>{order.dropoffContactPhone}</a></>}
                         </div>
                     )}
                 </div>
                 {order.packageDescription && (
                     <div style={{ gridColumn: '1 / -1' }}>
-                        <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>📦 {t('activeOrder.package')}</p>
+                        <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>ðŸ“¦ {t('activeOrder.package')}</p>
                         <p style={{ fontSize: '0.875rem' }}>{order.packageDescription}</p>
                     </div>
                 )}
                 {order.packageWeight && (
                     <div>
-                        <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>⚖️ {t('activeOrder.weight')}</p>
+                        <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>âš–ï¸ {t('activeOrder.weight')}</p>
                         <p style={{ fontSize: '0.875rem' }}>{order.packageWeight} kg</p>
                     </div>
                 )}
                 {order.estimatedValue && (
                     <div>
-                        <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>💰 {t('activeOrder.value')}</p>
+                        <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>ðŸ’° {t('activeOrder.value')}</p>
                         <p style={{ fontSize: '0.875rem' }}>${parseFloat(order.estimatedValue).toFixed(2)}</p>
                     </div>
                 )}
                 {order.specialInstructions && (
                     <div style={{ gridColumn: '1 / -1' }}>
-                        <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>📝 {t('activeOrder.instructions')}</p>
+                        <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>ðŸ“ {t('activeOrder.instructions')}</p>
                         <p style={{ fontSize: '0.875rem' }}>{order.specialInstructions}</p>
                     </div>
                 )}
@@ -295,7 +296,7 @@ const ActiveOrderCard = ({
                                     onClick={() => openReviewModal(order.id, 'customer_to_driver')}
                                     style={{ padding: '0.5rem 1rem', background: '#10B981', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
                                 >
-                                    ⭐ {t('activeOrder.reviewDriver')}
+                                    â­ {t('activeOrder.reviewDriver')}
                                 </button>
                             )}
                             {currentUser?.primary_role === 'driver' && order.assignedDriver?.userId === currentUser?.id && !reviewStatus?.reviews.toCustomer && (
@@ -303,7 +304,7 @@ const ActiveOrderCard = ({
                                     onClick={() => openReviewModal(order.id, 'driver_to_customer')}
                                     style={{ padding: '0.5rem 1rem', background: '#10B981', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
                                 >
-                                    ⭐ {t('activeOrder.reviewCustomer')}
+                                    â­ {t('activeOrder.reviewCustomer')}
                                 </button>
                             )}
                             {!reviewStatus?.reviews.toPlatform && (
@@ -311,14 +312,14 @@ const ActiveOrderCard = ({
                                     onClick={() => openReviewModal(order.id, `${currentUser?.primary_role}_to_platform`)}
                                     style={{ padding: '0.5rem 1rem', background: '#6366F1', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
                                 >
-                                    🌟 {t('activeOrder.reviewPlatform')}
+                                    ðŸŒŸ {t('activeOrder.reviewPlatform')}
                                 </button>
                             )}
                             <button
                                 onClick={() => fetchOrderReviews(order.id)}
                                 style={{ padding: '0.5rem 1rem', background: '#F59E0B', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
                             >
-                                📝 {t('activeOrder.viewReviews')}
+                                ðŸ“ {t('activeOrder.viewReviews')}
                             </button>
                         </>
                     )}
@@ -330,7 +331,7 @@ const ActiveOrderCard = ({
                             disabled={loadingStates.deleteOrder}
                             style={{ padding: '0.5rem 1rem', background: '#EF4444', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: loadingStates.deleteOrder ? 'not-allowed' : 'pointer', fontSize: '0.875rem', fontWeight: '600', opacity: loadingStates.deleteOrder ? 0.5 : 1 }}
                         >
-                            🗑️ {t('activeOrder.deleteOrder')}
+                            ðŸ—‘ï¸ {t('activeOrder.deleteOrder')}
                         </button>
                     )}
 
@@ -339,7 +340,7 @@ const ActiveOrderCard = ({
                         onClick={openGoogleMaps}
                         style={{ padding: '0.5rem 1rem', background: '#0EA5E9', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
                     >
-                        🧭 {t('activeOrder.googleMaps')}
+                        ðŸ§­ {t('activeOrder.googleMaps')}
                     </button>
 
                     {/* Chat Button (Active Orders) */}
@@ -349,7 +350,7 @@ const ActiveOrderCard = ({
                             style={{ padding: '0.5rem 1rem', background: '#8B5CF6', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '600' }}
                             title="Chat with driver/customer"
                         >
-                            💬 {t('activeOrder.chat')}
+                            ðŸ’¬ {t('activeOrder.chat')}
                         </button>
                     )}
                 </div>
@@ -395,3 +396,5 @@ const ActiveOrderCard = ({
 };
 
 export default ActiveOrderCard;
+
+
