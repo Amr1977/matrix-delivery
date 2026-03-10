@@ -223,8 +223,8 @@ class PaymentService {
       // If payment succeeded, calculate commission and update order
       if (newStatus === 'completed') {
         // Import payment config for commission calculation
-        const { PAYMENT_CONFIG } = require('../config/paymentConfig.ts');
-        const { calculateCommission } = require('../config/paymentConfig.ts');
+        const { PAYMENT_CONFIG } = require('../config/paymentConfig.js') /* P0 FIX: .ts → .js */;
+        const { calculateCommission } = require('../config/paymentConfig.js') /* P0 FIX: .ts → .js */;
 
         // Calculate commission (15%)
         const { commission: platformCommission, payout: driverPayout } = calculateCommission(payment.amount);
@@ -678,8 +678,8 @@ class PaymentService {
       // If payment succeeded, calculate commission and update order
       if (newStatus === 'completed') {
         // Import payment config for commission calculation
-        const { PAYMENT_CONFIG } = require('../config/paymentConfig.ts');
-        const { calculateCommission } = require('../config/paymentConfig.ts');
+        const { PAYMENT_CONFIG } = require('../config/paymentConfig.js') /* P0 FIX: .ts → .js */;
+        const { calculateCommission } = require('../config/paymentConfig.js') /* P0 FIX: .ts → .js */;
 
         // Calculate commission (15%)
         const { commission: platformCommission, payout: driverPayout } = calculateCommission(payment.amount);

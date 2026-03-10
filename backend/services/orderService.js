@@ -1256,8 +1256,9 @@ RETURNING * `;
     };
 
     if (updateFields[normalizedAction]) {
+      // P0 FIX: Removed duplicate query assignment that used ANY($3::text[]) — $3 param is a plain
+      // string (order.status), not an array. Kept the simple equality check which is correct.
       query = `UPDATE orders SET status = $1, ${updateFields[normalizedAction]} WHERE id = $2 AND status = $3`;
-                query = `UPDATE orders SET status = $1, ${updateFields[normalizedAction]} WHERE id = $2 AND status = ANY($3::text[])`;
             }
 
             console.log(`[DEBUG] Executing update for order ${orderId}, action: ${normalizedAction}. Query: ${query}, Params: ${JSON.stringify(params)}`);
@@ -1267,14 +1268,16 @@ RETURNING * `;
             if (updateResult.rowCount === 0) {
                 // Check if already updated (idempotency)
                 const currentOrder = await pool.query('SELECT status FROM orders WHERE id = $1', [orderId]);
-                if (currentOrder.rows.length > 0 && currentOrder.rows[0].status === transition.to) {
-                    logger.info(`Order ${orderId} already updated to ${transition.to}, skipping duplicate processing`);
-                    console.log(`[DEBUG] Order ${orderId} already updated to ${transition.to}. Skipping payment logic.`);
+                // P0 FIX: Changed transition.to → newStatus (transitionResult.nextStatus) — transition var doesn't exist
+                if (currentOrder.rows.length > 0 && currentOrder.rows[0].status === newStatus) {
+                    logger.info(`Order ${orderId} already updated to ${newStatus}, skipping duplicate processing`);
+                    console.log(`[DEBUG] Order ${orderId} already updated to ${newStatus}. Skipping payment logic.`);
                     return { message: 'Order status already updated' };
                 }
                 throw new Error(`Order status update failed. Current status might have changed.`);
             } else {
-                console.log(`[DEBUG] Order ${orderId} status updated to ${transition.to}. Proceeding to payment logic if applicable.`);
+                // P0 FIX: Changed transition.to → newStatus
+                console.log(`[DEBUG] Order ${orderId} status updated to ${newStatus}. Proceeding to payment logic if applicable.`);
             }
 
     // ✅ ESCROW: Handle cancel action - forfeit with compensation
@@ -1406,7 +1409,7 @@ RETURNING * `;
     logger.order('Order status updated successfully', {
       orderId,
       action: normalizedAction,
-      newStatus: transition.to,
+      newStatus: newStatus, // P0 FIX: Changed transition.to → newStatus
       userId,
       category: 'order'
     });

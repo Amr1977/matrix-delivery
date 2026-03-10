@@ -8,7 +8,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const { verifyAdmin } = require('../middleware/auth');
 const { logAdminAction } = require('../services/adminService');
 const logger = require('../services/loggingService');
-const { createNotification } = require('../services/notificationService.ts');
+const { createNotification } = require('../services/notificationService') /* P0 FIX: removed .ts ext */;
 
 // ============ ADMIN DASHBOARD STATISTICS ============
 router.get('/stats', verifyAdmin, async (req, res) => {
