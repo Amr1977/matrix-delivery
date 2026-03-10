@@ -898,6 +898,7 @@ const LiveTrackingMap = ({ orderId, t, compact = false, theme = 'dark', isDriver
             <Marker
               position={[trackingData.currentLocation.lat, trackingData.currentLocation.lng]}
               icon={createCustomIcon('driver', 'current')}
+              zIndexOffset={1000}
             >
               <Popup>
                 <strong>Driver Current Location</strong><br />
