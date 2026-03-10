@@ -70,24 +70,8 @@ class MarketplaceOrderService {
       // Create order (this handles inventory deduction and cart clearing)
       const order = await this.marketplaceOrderRepository.createOrder(orderPayload);
 
-      // Create vendor payout
-      await this.marketplaceOrderRepository.createVendorPayout(
-        orderPayload.vendorId,
-        order.id,
-        order.total_amount,
-        order.commission_amount
-      );
-
       // Initialize FSM orchestrator for this order
       await this.initializeFSMOrchestrator(order.id, orderPayload.vendorId, orderPayload.userId);
-
-      // Create vendor payout
-      await this.marketplaceOrderRepository.createVendorPayout(
-        orderPayload.vendorId,
-        order.id,
-        order.total_amount,
-        order.commission_amount
-      );
 
       // Log audit event
       await this.marketplaceOrderRepository.logAuditEvent({
@@ -130,18 +114,17 @@ class MarketplaceOrderService {
    */
   async initializeFSMOrchestrator(orderId, vendorId, customerId) {
     try {
-      // Create a new orchestrator instance for this order
-      const { MultiFSMOrchestrator } = require('../fsm/MultiFSMOrchestrator');
-      const orchestrator = new MultiFSMOrchestrator(orderId);
+      // Initialize the shared orchestrator with this order context.
+      multiFSMOrchestrator.initializeOrderFSMs(orderId);
 
       // Get order details for context
       const order = await this.marketplaceOrderRepository.getOrderById(orderId);
 
       // Set up event handlers for FSM orchestration
-      this.setupFSMEventHandlers(orchestrator, orderId, order, vendorId, customerId);
+      this.setupFSMEventHandlers(multiFSMOrchestrator, orderId, order, vendorId, customerId);
 
       // Start vendor confirmation timeout
-      await this.scheduleVendorTimeout(orchestrator, orderId, order);
+      await this.scheduleVendorTimeout(multiFSMOrchestrator, orderId, order);
 
       logger.info(`FSM orchestrator initialized for order ${orderId}`, {
         orderId,
@@ -160,8 +143,20 @@ class MarketplaceOrderService {
    * Set up event handlers for FSM orchestration
    */
   setupFSMEventHandlers(orchestrator, orderId, order, vendorId, customerId) {
+    if (orchestrator.__marketplaceHandlersRegistered?.has(orderId)) {
+      return;
+    }
+
+    if (!orchestrator.__marketplaceHandlersRegistered) {
+      orchestrator.__marketplaceHandlersRegistered = new Set();
+    }
+
+    orchestrator.__marketplaceHandlersRegistered.add(orderId);
+
     // When vendor confirms, enable payment
     orchestrator.on('VENDOR_CONFIRMED', async (eventData) => {
+      if (eventData.orderId !== orderId) return;
+
       logger.info(`Vendor confirmed for order ${orderId}, payment can now proceed`, {
         orderId,
         vendorId: eventData.vendorId,
@@ -182,6 +177,8 @@ class MarketplaceOrderService {
 
     // When payment succeeds, enable delivery
     orchestrator.on('PAYMENT_SUCCESSFUL', async (eventData) => {
+      if (eventData.orderId !== orderId) return;
+
       logger.info(`Payment successful for order ${orderId}, delivery can now be assigned`, {
         orderId,
         amount: eventData.amount,
@@ -209,6 +206,8 @@ class MarketplaceOrderService {
 
     // When delivery is completed, finalize order
     orchestrator.on('ORDER_COMPLETED', async (eventData) => {
+      if (eventData.orderId !== orderId) return;
+
       logger.info(`Order ${orderId} completed successfully`, {
         orderId,
         completionTime: eventData.completionTime,
@@ -231,9 +230,11 @@ class MarketplaceOrderService {
 
     // Handle timeouts and failures
     orchestrator.on('VENDOR_TIMEOUT', async (eventData) => {
+      if (eventData.orderId !== orderId) return;
+
       logger.warn(`Vendor timeout for order ${orderId}`, { orderId, category: 'fsm_orchestration' });
 
-      await this.marketplaceOrderRepository.updateOrderStatus(orderId, ORDER_STATUS.CANCELLED);
+      await this.marketplaceOrderRepository.updateOrderStatus(orderId, ORDER_STATUS.CANCELED);
       await this.restoreOrderInventory(orderId);
 
       // Send notification to customer
@@ -241,15 +242,19 @@ class MarketplaceOrderService {
     });
 
     orchestrator.on('PAYMENT_TIMEOUT', async (eventData) => {
+      if (eventData.orderId !== orderId) return;
+
       logger.warn(`Payment timeout for order ${orderId}`, { orderId, category: 'fsm_orchestration' });
 
-      await this.marketplaceOrderRepository.updateOrderStatus(orderId, ORDER_STATUS.CANCELLED);
+      await this.marketplaceOrderRepository.updateOrderStatus(orderId, ORDER_STATUS.FAILED);
       await this.restoreOrderInventory(orderId);
 
       await this.sendNotification(customerId, 'payment_timeout', { orderId });
     });
 
     orchestrator.on('DELIVERY_AUTO_CONFIRMED', async (eventData) => {
+      if (eventData.orderId !== orderId) return;
+
       logger.info(`Delivery auto-confirmed for order ${orderId}`, { orderId, category: 'fsm_orchestration' });
 
       await this.marketplaceOrderRepository.updateOrderStatus(orderId, ORDER_STATUS.COMPLETED);
@@ -368,6 +373,8 @@ class MarketplaceOrderService {
    */
   async updateOrderStatus(orderId, action, userId, userRole, additionalData = {}) {
     try {
+      action = this.normalizeAction(action);
+
       // Get order details
       const order = await this.marketplaceOrderRepository.getOrderById(orderId);
       if (!order) {
@@ -381,15 +388,10 @@ class MarketplaceOrderService {
       }
 
       // Prepare context for FSM transition
-      const context = {
-        userId,
-        userRole,
-        order,
-        metadata: additionalData
-      };
-
       // Validate action-specific authorization
       await this.validateActionAuthorization(order, action, userId, userRole, additionalData);
+
+      const context = this.buildFSMContext(order, action, userId, userRole, additionalData);
 
       // Execute FSM transition through orchestrator
       const transitionResult = await multiFSMOrchestrator.executeFSMTransition(
@@ -404,7 +406,8 @@ class MarketplaceOrderService {
       }
 
       // Update order status in main orders table (legacy compatibility)
-      const newStatus = this.mapFSMStateToOrderStatus(fsmType, transitionResult.nextStatus, order);
+      const nextFSMState = transitionResult.nextStatus || transitionResult.toState;
+      const newStatus = this.mapFSMStateToOrderStatus(fsmType, nextFSMState, order);
       if (newStatus) {
         await this.marketplaceOrderRepository.updateOrderStatus(orderId, newStatus, additionalData);
       }
@@ -423,14 +426,14 @@ class MarketplaceOrderService {
         oldValues: { status: order.status },
         newValues: {
           status: newStatus,
-          [`${fsmType}_fsm_state`]: transitionResult.nextStatus
+          [`${fsmType}_fsm_state`]: nextFSMState
         },
         changes: {
           status: { from: order.status, to: newStatus },
           fsm_transition: {
             fsm_type: fsmType,
-            from_state: transitionResult.transition ? 'unknown' : null,
-            to_state: transitionResult.nextStatus
+            from_state: transitionResult.fromState || order[`${fsmType}_state`] || 'unknown',
+            to_state: nextFSMState
           }
         }
       });
@@ -440,7 +443,7 @@ class MarketplaceOrderService {
         action,
         userRole,
         fsmType,
-        newFSMState: transitionResult.nextStatus,
+        newFSMState: nextFSMState,
         newOrderStatus: newStatus,
         category: 'marketplace_order'
       });
@@ -475,6 +478,7 @@ class MarketplaceOrderService {
       // Payment FSM actions
       'customer_completes_payment': 'payment',
       'payment_fails': 'payment',
+      'payment_attempt_failed_or_timed_out': 'payment',
       'initiate_refund': 'payment',
 
       // Delivery FSM actions
@@ -486,6 +490,7 @@ class MarketplaceOrderService {
       'customer_confirms_receipt': 'delivery',
       'customer_reports_problem': 'delivery',
       'courier_cancels_after_assignment': 'delivery',
+      'customer_timeout': 'delivery',
 
       // Timeout actions
       'timeout': 'vendor', // Context-dependent, but vendor timeout is most common
@@ -497,6 +502,18 @@ class MarketplaceOrderService {
     };
 
     return actionToFSMMap[action] || null;
+  }
+
+  normalizeAction(action) {
+    const aliases = {
+      vendor_starts_preparing_order: 'vendor_starts_preparing',
+      vendor_marks_order_as_fully_prepared: 'vendor_marks_prepared',
+      courier_arrives_at_vendor_pickup_location: 'courier_arrives_at_vendor',
+      courier_arrives_at_customer_drop_off_location: 'courier_arrives_at_customer',
+      customer_reports_problem_with_delivery: 'customer_reports_problem'
+    };
+
+    return aliases[action] || action;
   }
 
   /**
@@ -511,19 +528,26 @@ class MarketplaceOrderService {
     // This can be refined based on business requirements
     switch (fsmType) {
       case 'vendor':
+        if (fsmState === 'awaiting_vendor_start_preparation') return ORDER_STATUS.ACCEPTED;
+        if (fsmState === 'vendor_is_actively_preparing_order') return ORDER_STATUS.ACCEPTED;
         if (fsmState === 'order_rejected_by_vendor') return ORDER_STATUS.REJECTED;
-        if (fsmState === 'order_is_fully_prepared_and_ready_for_delivery') return ORDER_STATUS.PICKED_UP;
+        if (fsmState === 'order_cancelled_vendor_unresponsive') return ORDER_STATUS.CANCELED;
         break;
 
       case 'payment':
-        if (fsmState === 'payment_successfully_received_and_verified_for_order') return ORDER_STATUS.PAID;
+        if (fsmState === 'payment_successfully_received_and_verified_for_order') {
+          return order.status === ORDER_STATUS.PENDING ? ORDER_STATUS.PAID : order.status;
+        }
+        if (fsmState === 'payment_attempt_failed_for_order') return ORDER_STATUS.FAILED;
         if (fsmState === 'payment_has_been_refunded_to_customer') return ORDER_STATUS.REFUNDED;
         break;
 
       case 'delivery':
         if (fsmState === 'courier_has_been_assigned_to_deliver_the_order') return ORDER_STATUS.ASSIGNED;
-        if (fsmState === 'courier_marks_order_as_delivered_to_customer') return ORDER_STATUS.DELIVERED;
+        if (fsmState === 'courier_is_actively_transporting_order_to_customer') return ORDER_STATUS.PICKED_UP;
+        if (fsmState === 'awaiting_customer_confirmation_of_order_delivery') return ORDER_STATUS.DELIVERED;
         if (fsmState === 'order_delivery_successfully_completed_and_confirmed_by_customer') return ORDER_STATUS.COMPLETED;
+        if (fsmState === 'order_delivery_auto_confirmed_due_to_timeout') return ORDER_STATUS.COMPLETED;
         if (fsmState === 'delivery_disputed_by_customer_and_requires_resolution') return ORDER_STATUS.DISPUTED;
         break;
     }
@@ -541,41 +565,179 @@ class MarketplaceOrderService {
    */
   async validateActionAuthorization(order, action, userId, userRole) {
     switch (action) {
-      case 'accept_order':
-      case 'reject_order':
+      case 'vendor_accepts_order':
+      case 'vendor_rejects_order':
+      case 'vendor_starts_preparing':
+      case 'vendor_marks_prepared':
+        if (userRole !== 'vendor') {
+          throw new Error('Only vendors can perform this action');
+        }
         if (order.vendor_id !== userId) {
-          throw new Error('Only the assigned vendor can accept/reject this order');
+          throw new Error('Only the assigned vendor can manage this order');
         }
         break;
 
-      case 'confirm_payment':
+      case 'customer_completes_payment':
+      case 'customer_confirms_receipt':
+      case 'customer_reports_problem':
+      case 'initiate_refund':
+      case 'payment_fails':
+      case 'payment_attempt_failed_or_timed_out':
+        if (!['customer', 'system', 'admin'].includes(userRole)) {
+          throw new Error('Only the customer or system can perform this action');
+        }
         if (order.user_id !== userId) {
-          throw new Error('Only the customer can confirm payment');
+          if (userRole !== 'system' && userRole !== 'admin') {
+            throw new Error('Only the customer can perform this action');
+          }
         }
         break;
 
-      case 'pickup_order':
-      case 'deliver_order':
-        // Driver authorization would be checked via assignment
-        // For now, assume proper driver assignment validation
+      case 'courier_accepts_delivery_request':
+        if (!['admin', 'driver'].includes(userRole)) {
+          throw new Error('Only an admin or driver can assign delivery');
+        }
         break;
 
-      case 'confirm_receipt':
-      case 'dispute_order':
-        if (order.user_id !== userId) {
-          throw new Error('Only the customer can confirm receipt or dispute');
+      case 'courier_arrives_at_vendor':
+      case 'courier_confirms_receipt':
+      case 'courier_arrives_at_customer':
+      case 'courier_marks_delivered':
+      case 'courier_cancels_after_assignment':
+        if (userRole !== 'driver') {
+          throw new Error('Only the assigned driver can perform this action');
         }
         break;
 
       // Admin actions don't need additional validation beyond role
       case 'cancel_by_admin':
-      case 'assign_driver':
       case 'resolve_dispute_completed':
       case 'resolve_dispute_refund':
+        if (userRole !== 'admin') {
+          throw new Error('Only admins can perform this action');
+        }
+        break;
+
+      case 'timeout':
+      case 'customer_timeout':
+        if (userRole !== 'system') {
+          throw new Error('Only system workflows can perform timeout actions');
+        }
         break;
 
       default:
         throw new Error(`Unknown action: ${action}`);
+    }
+  }
+
+  buildFSMContext(order, action, userId, userRole, additionalData = {}) {
+    const paymentData = additionalData.paymentData || {};
+    const deliveryAddress = this.normalizeDeliveryAddress(order, additionalData);
+    const deliveryZone = order.delivery_zone || additionalData.deliveryZone || 'default-zone';
+    const contextOrder = {
+      ...order,
+      id: order.id,
+      delivery_zone: deliveryZone,
+      delivery_address: deliveryAddress,
+      pickup_confirmed: action === 'courier_confirms_receipt',
+      status: order.status
+    };
+
+    const context = {
+      orderId: order.id,
+      userId,
+      userRole,
+      order: contextOrder,
+      metadata: additionalData
+    };
+
+    if (userRole === 'vendor') {
+      context.vendor = {
+        id: order.vendor_id,
+        is_active: true,
+        preparation_status: additionalData.preparationStatus || 'completed'
+      };
+      context.store = {
+        vendor_id: order.vendor_id
+      };
+    }
+
+    if (userRole === 'customer') {
+      context.customer = {
+        id: order.user_id,
+        can_receive_deliveries: true
+      };
+    }
+
+    if (['customer_completes_payment', 'initiate_refund', 'payment_fails', 'payment_attempt_failed_or_timed_out'].includes(action)) {
+      context.payment = {
+        method: paymentData.method || additionalData.paymentMethod || 'card',
+        completed_at: additionalData.completedAt || new Date().toISOString(),
+        settled: false
+      };
+      context.paymentId = additionalData.paymentId || paymentData.transactionId || `payment-${order.id}`;
+      context.amount = Number(paymentData.amount || additionalData.amount || order.total_amount);
+      context.customer_balance = Number(paymentData.amount || additionalData.amount || order.total_amount);
+    }
+
+    if (['admin', 'driver'].includes(userRole)) {
+      context.courier = {
+        id: additionalData.assignedDriverId || additionalData.driverId || userId,
+        status: this.getCourierStatusForAction(action),
+        delivery_zone: deliveryZone,
+        assigned_order_id: order.id
+      };
+    }
+
+    if (action === 'courier_arrives_at_vendor') {
+      context.location_update = { type: 'arrived_at_vendor' };
+    }
+
+    if (action === 'courier_arrives_at_customer') {
+      context.location_update = { type: 'arrived_at_customer' };
+    }
+
+    if (action === 'courier_marks_delivered') {
+      context.delivery_attempt = { success: true };
+    }
+
+    if (action === 'customer_reports_problem') {
+      context.delivery_time = additionalData.deliveryTime || new Date().toISOString();
+    }
+
+    return context;
+  }
+
+  normalizeDeliveryAddress(order, additionalData = {}) {
+    const lat = order.delivery_lat || order.deliveryLat || additionalData.deliveryLat || 30.0444;
+    const lng = order.delivery_lng || order.deliveryLng || additionalData.deliveryLng || 31.2357;
+    const rawAddress = order.delivery_address || additionalData.deliveryAddress || 'Unknown address';
+
+    if (typeof rawAddress === 'object' && rawAddress.coordinates) {
+      return rawAddress;
+    }
+
+    return {
+      text: rawAddress,
+      coordinates: {
+        lat,
+        lng
+      }
+    };
+  }
+
+  getCourierStatusForAction(action) {
+    switch (action) {
+      case 'courier_accepts_delivery_request':
+        return 'available';
+      case 'courier_arrives_at_vendor':
+      case 'courier_confirms_receipt':
+      case 'courier_arrives_at_customer':
+      case 'courier_marks_delivered':
+      case 'courier_cancels_after_assignment':
+        return 'in_transit';
+      default:
+        return 'available';
     }
   }
 
@@ -591,7 +753,7 @@ class MarketplaceOrderService {
         await this.processOrderDelivery(orderId);
         break;
 
-      case ORDER_STATUS.CANCELLED:
+      case ORDER_STATUS.CANCELED:
       case ORDER_STATUS.REJECTED:
         await this.restoreOrderInventory(orderId);
         break;
