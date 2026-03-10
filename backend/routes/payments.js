@@ -1,6 +1,6 @@
 const express = require('express');
 const paymentService = require('../services/paymentService');
-const paymobService = require('../services/paymobService.ts');
+const paymobService = require('../services/paymobService') /* P0 FIX: removed .ts ext */;
 const { verifyToken } = require('../middleware/auth');
 const { apiRateLimit } = require('../middleware/rateLimit');
 const logger = require('../config/logger');

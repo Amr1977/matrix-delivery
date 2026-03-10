@@ -9,7 +9,7 @@ if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing') {
     dotenv.config();
 }
 // Import resetDatabase directly from init.ts to force clean slate
-const { resetDatabase } = require('../database/init.ts');
+const { resetDatabase } = require('../database/init') /* P0 FIX: removed .ts extension for safer resolution */;
 
 const poolConfig = { connectionString: process.env.DATABASE_URL };
 const pool = new Pool(poolConfig);

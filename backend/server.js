@@ -207,7 +207,7 @@ process.on('SIGINT', async () => {
 
   // Stop activity tracker interval and flush pending updates
   try {
-    const { activityTracker } = require('./services/activityTracker.ts');
+    const { activityTracker } = require('./services/activityTracker') /* P0 FIX: removed .ts ext */;
     activityTracker.stopPeriodicCommit();
     await activityTracker.flush();
     console.log('✅ Activity tracker stopped');
