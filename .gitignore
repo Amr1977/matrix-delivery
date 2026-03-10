@@ -52,6 +52,10 @@ backend/**/*.js
 !backend/controllers/*.js
 !backend/models/*.js
 !backend/middleware/*.js
+!backend/fsm/*.js
+!backend/modules/**/*.js
+!backend/repositories/*.js
+
 
 # Explicitly ignore compiled files that have .ts counterparts
 backend/database/schema/*.js
