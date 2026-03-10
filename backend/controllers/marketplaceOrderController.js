@@ -23,6 +23,31 @@ const getVendorIdFromUser = async (userId) => {
   }
 };
 
+
+/**
+ * Helper to map FSM and validation errors to standard HTTP responses
+ */
+const mapErrorToResponse = (error, res) => {
+  const msg = error.message || "";
+  let statusCode = 400;
+
+  if (msg.includes("not found") || msg.includes("No order found")) {
+    statusCode = 404;
+  } else if (msg.includes("Access denied") || msg.includes("unauthorized") || msg.includes("Only") || msg.includes("vendor account")) {
+    statusCode = 403;
+  } else if (msg.includes("concurrency") || msg.includes("deadlock") || msg.includes("conflict")) {
+    statusCode = 409;
+  } else if (msg.includes("Invalid transition") || msg.includes("Cannot transition") || msg.includes("Guard failed")) {
+    statusCode = 400;
+  }
+
+  return res.status(statusCode).json({
+    success: false,
+    error: msg
+  });
+};
+
+
 /**
  * Create new marketplace order from cart
  * POST /api/marketplace/orders
@@ -86,13 +111,7 @@ const createOrder = async (req, res) => {
       category: 'marketplace_order'
     });
 
-    const statusCode = error.message.includes('not found') ? 404 :
-                      error.message.includes('validation failed') ? 400 : 400;
-
-    res.status(statusCode).json({
-      success: false,
-      error: error.message
-    });
+    return mapErrorToResponse(error, res);
   }
 };
 
@@ -120,13 +139,7 @@ const getOrder = async (req, res) => {
       category: 'marketplace_order'
     });
 
-    const statusCode = error.message.includes('not found') ? 404 :
-                      error.message.includes('Access denied') ? 403 : 400;
-
-    res.status(statusCode).json({
-      success: false,
-      error: error.message
-    });
+    return mapErrorToResponse(error, res);
   }
 };
 
@@ -227,14 +240,7 @@ const updateOrderStatus = async (req, res) => {
       category: 'marketplace_order'
     });
 
-    const statusCode = error.message.includes('not found') ? 404 :
-                      error.message.includes('Access denied') ? 403 :
-                      error.message.includes('Invalid') ? 400 : 400;
-
-    res.status(statusCode).json({
-      success: false,
-      error: error.message
-    });
+    return mapErrorToResponse(error, res);
   }
 };
 
@@ -278,14 +284,7 @@ const cancelOrder = async (req, res) => {
       category: 'marketplace_order'
     });
 
-    const statusCode = error.message.includes('not found') ? 404 :
-                      error.message.includes('Access denied') ? 403 :
-                      error.message.includes('cannot be cancelled') ? 400 : 400;
-
-    res.status(statusCode).json({
-      success: false,
-      error: error.message
-    });
+    return mapErrorToResponse(error, res);
   }
 };
 
@@ -321,14 +320,7 @@ const confirmPayment = async (req, res) => {
       category: 'marketplace_order'
     });
 
-    const statusCode = error.message.includes('not found') ? 404 :
-                      error.message.includes('Access denied') ? 403 :
-                      error.message.includes('Invalid') ? 400 : 400;
-
-    res.status(statusCode).json({
-      success: false,
-      error: error.message
-    });
+    return mapErrorToResponse(error, res);
   }
 };
 
@@ -376,14 +368,7 @@ const assignDriver = async (req, res) => {
       category: 'marketplace_order'
     });
 
-    const statusCode = error.message.includes('not found') ? 404 :
-                      error.message.includes('Access denied') ? 403 :
-                      error.message.includes('Invalid') ? 400 : 400;
-
-    res.status(statusCode).json({
-      success: false,
-      error: error.message
-    });
+    return mapErrorToResponse(error, res);
   }
 };
 
@@ -420,14 +405,7 @@ const pickupOrder = async (req, res) => {
       category: 'marketplace_order'
     });
 
-    const statusCode = error.message.includes('not found') ? 404 :
-                      error.message.includes('Access denied') ? 403 :
-                      error.message.includes('Invalid') ? 400 : 400;
-
-    res.status(statusCode).json({
-      success: false,
-      error: error.message
-    });
+    return mapErrorToResponse(error, res);
   }
 };
 
@@ -466,14 +444,7 @@ const deliverOrder = async (req, res) => {
       category: 'marketplace_order'
     });
 
-    const statusCode = error.message.includes('not found') ? 404 :
-                      error.message.includes('Access denied') ? 403 :
-                      error.message.includes('Invalid') ? 400 : 400;
-
-    res.status(statusCode).json({
-      success: false,
-      error: error.message
-    });
+    return mapErrorToResponse(error, res);
   }
 };
 
@@ -510,14 +481,7 @@ const confirmReceipt = async (req, res) => {
       category: 'marketplace_order'
     });
 
-    const statusCode = error.message.includes('not found') ? 404 :
-                      error.message.includes('Access denied') ? 403 :
-                      error.message.includes('Invalid') ? 400 : 400;
-
-    res.status(statusCode).json({
-      success: false,
-      error: error.message
-    });
+    return mapErrorToResponse(error, res);
   }
 };
 

@@ -59,7 +59,7 @@ Feature: Verbose Multi-FSM Order Lifecycle
     And an ORDER_DELIVERED_TO_CUSTOMER event should be emitted
 
     When the customer confirms receipt of the order
-    Then the delivery FSM should transition to "order_delivery_completed_and_confirmed_by_customer"
+    Then the delivery FSM should transition to "order_delivery_successfully_completed_and_confirmed_by_customer"
     And a DELIVERY_CONFIRMED event should be emitted
     And the order should be marked as completed
     And the vendor payout should be processed

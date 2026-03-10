@@ -396,7 +396,11 @@ Then('the order should have delivered_at timestamp', function () {
 });
 
 When('the customer confirms payment', async function () {
-  // Customer confirms payment - this transitions pending -> paid
+  const paymentResponse = await this.apiRequest('POST', `/api/marketplace/orders/${this.orderId}/confirm-payment`, {
+    paymentReference: 'BDD-TEST-TXN'
+  });
+  assert.equal(paymentResponse.status, 200, 'Payment confirmation should succeed');
+  this.currentOrder = paymentResponse.data.data;
 });
 
 When('the vendor accepts the order', async function () {
@@ -405,7 +409,7 @@ When('the vendor accepts the order', async function () {
   this.authToken = this.vendorToken;
 
   try {
-    const acceptResponse = await this.apiRequest('PATCH', `/api/marketplace/orders/${this.orderId}`, {
+    const acceptResponse = await this.apiRequest('PATCH', `/api/marketplace/orders/${this.orderId}/status`, {
       action: 'accept',
       vendorNotes: 'Order accepted and will be prepared'
     });

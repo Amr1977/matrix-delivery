@@ -175,15 +175,34 @@ class MarketplaceOrderService {
       });
     });
 
-    // When payment succeeds, enable delivery
+    // When payment succeeds, enable delivery and create vendor payout
     orchestrator.on('PAYMENT_SUCCESSFUL', async (eventData) => {
       if (eventData.orderId !== orderId) return;
 
-      logger.info(`Payment successful for order ${orderId}, delivery can now be assigned`, {
+      logger.info(`Payment successful for order ${orderId}, creating payout and enabling delivery`, {
         orderId,
         amount: eventData.amount,
         category: 'fsm_orchestration'
       });
+
+      try {
+        // Create vendor payout once payment is confirmed
+        const commissionAmount = (order.total_amount * order.commission_rate) / 100;
+        await this.marketplaceOrderRepository.createVendorPayout(
+          order.vendor_id,
+          orderId,
+          order.total_amount,
+          commissionAmount
+        );
+
+        logger.info(`Vendor payout created for order ${orderId}`, {
+          orderId,
+          vendorId: order.vendor_id,
+          category: 'payout'
+        });
+      } catch (error) {
+        logger.error(`Error creating vendor payout for order ${orderId}:`, error);
+      }
     });
 
     // When delivery is completed, finalize order
@@ -440,11 +459,12 @@ class MarketplaceOrderService {
       // Payment FSM actions
       'customer_completes_payment': 'payment',
       'payment_fails': 'payment',
-      'payment_attempt_failed_or_timed_out': 'payment',
       'initiate_refund': 'payment',
+      'payment_chargeback': 'payment',
 
       // Delivery FSM actions
       'courier_accepts_delivery_request': 'delivery',
+      'courier_cancels': 'delivery',
       'courier_arrives_at_vendor': 'delivery',
       'courier_confirms_receipt': 'delivery',
       'courier_arrives_at_customer': 'delivery',
@@ -544,7 +564,7 @@ class MarketplaceOrderService {
       case 'customer_reports_problem':
       case 'initiate_refund':
       case 'payment_fails':
-      case 'payment_attempt_failed_or_timed_out':
+      case 'payment_chargeback':
         if (!['customer', 'system', 'admin'].includes(userRole)) {
           throw new Error('Only the customer or system can perform this action');
         }
@@ -561,6 +581,7 @@ class MarketplaceOrderService {
         }
         break;
 
+      case 'courier_cancels':
       case 'courier_arrives_at_vendor':
       case 'courier_confirms_receipt':
       case 'courier_arrives_at_customer':
@@ -754,6 +775,43 @@ class MarketplaceOrderService {
     } catch (error) {
       logger.error('Error processing refund:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Restore inventory for cancelled/rejected orders
+   * @param {number} orderId - Order ID
+   */
+  async restoreOrderInventory(orderId) {
+    try {
+      const order = await this.marketplaceOrderRepository.getOrderById(orderId);
+      if (!order || !order.items) return;
+
+      const pool = require('../config/db');
+      for (const item of order.items) {
+        await pool.query(`
+          UPDATE items
+          SET inventory_quantity = inventory_quantity + $1,
+              updated_at = CURRENT_TIMESTAMP
+          WHERE id = $2
+        `, [item.quantity, item.item_id]);
+      }
+      logger.info(`Inventory restored for order ${orderId}`);
+    } catch (error) {
+      logger.error(`Error restoring inventory for order ${orderId}:`, error);
+    }
+  }
+
+  /**
+   * Process order delivery side-effects
+   * @param {number} orderId - Order ID
+   */
+  async processOrderDelivery(orderId) {
+    try {
+      // Delivery confirmation side-effects (e.g., unlocking payouts)
+      logger.info(`Processing delivery side-effects for order ${orderId}`);
+    } catch (error) {
+      logger.error(`Error processing delivery for order ${orderId}:`, error);
     }
   }
 
