@@ -38,6 +38,20 @@ VPS_*.md
 UPLOAD_*.md
 WSL_SETUP.md
 
+# Compiled TypeScript (keep .ts, ignore .js in specific dirs)
+backend/**/*.js
+!backend/server.js
+!backend/app.js
+!backend/config/**/*.js
+!backend/utils/**/*.js
+!backend/routes/**/*.js
+!backend/services/**/*.js
+!backend/controllers/**/*.js
+!backend/models/**/*.js
+!backend/middleware/**/*.js
+!backend/fsm/**/*.js
+!backend/modules/**/*.js
+!backend/repositories/**/*.js
 # Explicitly ignore compiled files that have .ts counterparts
 backend/database/schema/*.js
 backend/database/init.js
