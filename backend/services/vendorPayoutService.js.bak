@@ -1,4 +1,4 @@
-const pool = require('../config/db');
+const { db } = require('../config/db');
 const logger = require('../config/logger');
 const { multiFSMOrchestrator } = require('../fsm/MultiFSMOrchestrator');
 
@@ -44,7 +44,7 @@ class VendorPayoutService {
       logger.info(`Payment successful for order ${orderId}, creating vendor payout`);
 
       // Get order details to create payout
-      const orderResult = await pool.query(`
+      const orderResult = await db.query(`
         SELECT mo.*, v.id as vendor_id, v.name as vendor_name
         FROM marketplace_orders mo
         JOIN vendors v ON mo.vendor_id = v.id
@@ -59,7 +59,7 @@ class VendorPayoutService {
       const order = orderResult.rows[0];
 
       // Check if payout already exists
-      const existingPayout = await pool.query(
+      const existingPayout = await db.query(
         'SELECT id FROM vendor_payouts WHERE order_id = $1',
         [orderId]
       );
@@ -106,7 +106,7 @@ class VendorPayoutService {
       logger.info(`Payment refunded for order ${orderId}, processing payout reversal`);
 
       // Find existing payout for this order
-      const payoutResult = await pool.query(
+      const payoutResult = await db.query(
         'SELECT * FROM vendor_payouts WHERE order_id = $1 AND status IN (\'pending\', \'processing\')',
         [orderId]
       );
@@ -145,7 +145,7 @@ class VendorPayoutService {
       logger.info(`Payment failed for order ${orderId}, cleaning up any pending payouts`);
 
       // Find and cancel any pending payouts for this order
-      const payoutResult = await pool.query(
+      const payoutResult = await db.query(
         'SELECT * FROM vendor_payouts WHERE order_id = $1 AND status IN (\'pending\', \'processing\')',
         [orderId]
       );
@@ -190,7 +190,7 @@ class VendorPayoutService {
         status: 'pending'
       };
 
-      const result = await pool.query(`
+      const result = await db.query(`
         INSERT INTO vendor_payouts (
           payout_number, vendor_id, order_id, order_total,
           commission_amount, payout_amount, currency, payout_method, status
@@ -232,7 +232,7 @@ class VendorPayoutService {
    */
   async processPayout(payoutId, processedBy) {
     try {
-      const result = await pool.query(`
+      const result = await db.query(`
         UPDATE vendor_payouts
         SET status = 'processing',
             processed_by = $2,
@@ -268,7 +268,7 @@ class VendorPayoutService {
    */
   async completePayout(payoutId, referenceNumber = null, payoutDetails = {}) {
     try {
-      const result = await pool.query(`
+      const result = await db.query(`
         UPDATE vendor_payouts
         SET status = 'completed',
             reference_number = $2,
@@ -305,7 +305,7 @@ class VendorPayoutService {
    */
   async cancelPayout(payoutId, cancellationReason) {
     try {
-      const result = await pool.query(`
+      const result = await db.query(`
         UPDATE vendor_payouts
         SET status = 'cancelled',
             cancellation_reason = $2,
@@ -339,7 +339,7 @@ class VendorPayoutService {
    */
   async getPayoutById(payoutId) {
     try {
-      const result = await pool.query(`
+      const result = await db.query(`
         SELECT
           vp.*,
           v.name as vendor_name,
@@ -379,7 +379,7 @@ class VendorPayoutService {
         paramIndex++;
       }
 
-      const result = await pool.query(`
+      const result = await db.query(`
         SELECT
           vp.*,
           mo.order_number,
@@ -424,7 +424,7 @@ class VendorPayoutService {
         paramIndex++;
       }
 
-      const result = await pool.query(`
+      const result = await db.query(`
         SELECT
           vp.*,
           v.name as vendor_name,
@@ -455,7 +455,7 @@ class VendorPayoutService {
    */
   async updatePayoutMethod(payoutId, payoutMethod, payoutDetails = {}) {
     try {
-      const result = await pool.query(`
+      const result = await db.query(`
         UPDATE vendor_payouts
         SET payout_method = $2,
             payout_details = $3,
@@ -488,7 +488,7 @@ class VendorPayoutService {
    */
   async getPayoutStats(vendorId) {
     try {
-      const result = await pool.query(`
+      const result = await db.query(`
         SELECT
           COUNT(*) as total_payouts,
           COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_payouts,
@@ -538,7 +538,7 @@ class VendorPayoutService {
    */
   async payoutNumberExists(payoutNumber) {
     try {
-      const result = await pool.query(
+      const result = await db.query(
         'SELECT 1 FROM vendor_payouts WHERE payout_number = $1',
         [payoutNumber]
       );
@@ -557,7 +557,7 @@ class VendorPayoutService {
   async processPendingPayouts(limit = 10) {
     try {
       // Get pending payouts that are ready for processing
-      const pendingPayouts = await pool.query(`
+      const pendingPayouts = await db.query(`
         SELECT * FROM vendor_payouts
         WHERE status = 'pending'
         AND payout_method != 'pending'
