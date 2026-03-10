@@ -477,6 +477,96 @@ router.post('/:orderId/:action', verifyToken, async (req, res) => {
   }
 });
 
+// Get order tracking data (current location and history)
+router.get('/:orderId/tracking', verifyToken, async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const userId = req.user.userId;
+    const userRole = req.user.primary_role || req.user.role;
+    const userRoles = req.user.granted_roles || req.user.roles || [];
+    const isAdmin = userRole === 'admin' || (Array.isArray(userRoles) && userRoles.includes('admin'));
+
+    // 1. Check if order exists and get basic info
+    const orderResult = await pool.query(
+      'SELECT customer_id, assigned_driver_user_id, status FROM orders WHERE id = $1',
+      [orderId]
+    );
+
+    if (orderResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    const order = orderResult.rows[0];
+
+    // 2. Check authorization (Customer, Assigned Driver, or Admin)
+    const isCustomer = order.customer_id === userId;
+    const isAssignedDriver = order.assigned_driver_user_id === userId;
+
+    if (!isAdmin && !isCustomer && !isAssignedDriver) {
+      logger.security('Unauthorized tracking access attempt', {
+        userId,
+        orderId,
+        userRole,
+        category: 'security'
+      });
+      return res.status(403).json({ error: 'Access denied: You are not authorized to track this order' });
+    }
+
+    // 3. Fetch current location (latest entry from driver_locations)
+    const currentLocationResult = await pool.query(
+      'SELECT latitude, longitude, timestamp, speed_kmh, heading, accuracy_meters FROM driver_locations WHERE order_id = $1 ORDER BY timestamp DESC LIMIT 1',
+      [orderId]
+    );
+
+    let currentLocation = null;
+    if (currentLocationResult.rows.length > 0) {
+      const loc = currentLocationResult.rows[0];
+      currentLocation = {
+        lat: parseFloat(loc.latitude),
+        lng: parseFloat(loc.longitude),
+        timestamp: loc.timestamp,
+        speedKmh: loc.speed_kmh ? parseFloat(loc.speed_kmh) : null,
+        heading: loc.heading ? parseFloat(loc.heading) : null,
+        accuracyMeters: loc.accuracy_meters ? parseFloat(loc.accuracy_meters) : null
+      };
+    }
+
+    // 4. Fetch location history (last 100 points for route visualization)
+    const historyResult = await pool.query(
+      'SELECT latitude, longitude, timestamp FROM driver_locations WHERE order_id = $1 ORDER BY timestamp ASC LIMIT 100',
+      [orderId]
+    );
+
+    const locationHistory = historyResult.rows.map(loc => ({
+      lat: parseFloat(loc.latitude),
+      lng: parseFloat(loc.longitude),
+      timestamp: loc.timestamp
+    }));
+
+    logger.info('Order tracking data fetched', {
+      orderId,
+      userId,
+      hasCurrentLocation: !!currentLocation,
+      historyPoints: locationHistory.length,
+      category: 'tracking'
+    });
+
+    res.json({
+      currentLocation,
+      locationHistory,
+      orderStatus: order.status
+    });
+
+  } catch (error) {
+    logger.error(`Order tracking error: ${error.message}`, {
+      userId: req.user.userId,
+      orderId: req.params.orderId,
+      category: 'error'
+    });
+    res.status(500).json({ error: error.message || 'Failed to fetch tracking data' });
+  }
+});
+
 // Get order reviews
 router.get('/:orderId/reviews', verifyToken, async (req, res) => {
   try {
