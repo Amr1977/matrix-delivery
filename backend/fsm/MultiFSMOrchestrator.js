@@ -364,6 +364,7 @@ class MultiFSMOrchestrator extends EventEmitter {
     console.log(`Clearing all timeouts for order ${this.orderId}`);
     this.emit('TIMEOUTS_CLEARED', { orderId: this.orderId });
   }
+}
 
 // Export singleton instance
 const multiFSMOrchestrator = new MultiFSMOrchestrator();
