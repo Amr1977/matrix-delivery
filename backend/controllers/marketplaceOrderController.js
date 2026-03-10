@@ -521,6 +521,37 @@ const confirmReceipt = async (req, res) => {
   }
 };
 
+/**
+ * Get vendor stats
+ * GET /api/marketplace/vendor/stats
+ */
+const getVendorStats = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const vendorId = await getVendorIdFromUser(userId);
+
+    if (!vendorId) {
+      return res.status(403).json({ success: false, error: 'User is not associated with a vendor account' });
+    }
+
+    const result = await pool.query(`
+      SELECT
+        COUNT(*)::int AS total_orders,
+        COUNT(*) FILTER (WHERE status = 'completed')::int AS completed_orders,
+        COUNT(*) FILTER (WHERE status IN ('cancelled','canceled'))::int AS cancelled_orders,
+        COUNT(*) FILTER (WHERE status = 'rejected')::int AS rejected_orders,
+        COALESCE(SUM(total_amount),0)::float AS total_revenue,
+        COALESCE(AVG(total_amount),0)::float AS avg_order_value
+      FROM marketplace_orders
+      WHERE vendor_id = $1
+    `, [vendorId]);
+
+    return res.status(200).json({ success: true, data: result.rows[0] });
+  } catch (error) {
+    logger.error('Error getting vendor stats:', { error: error.message, userId: req.user?.userId, category: 'marketplace_order' });
+    return res.status(400).json({ success: false, error: error.message });
+  }
+};
 module.exports = {
   createOrder,
   getOrder,
@@ -534,3 +565,5 @@ module.exports = {
   confirmReceipt,
   getVendorStats
 };
+
+

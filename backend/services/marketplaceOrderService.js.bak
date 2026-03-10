@@ -184,6 +184,24 @@ class MarketplaceOrderService {
         amount: eventData.amount,
         category: 'fsm_orchestration'
       });
+
+      // Create vendor payout since payment is confirmed
+      await this.vendorPayoutService.createPayout(orderId, {
+        vendor_id: vendorId,
+        total_amount: order.total_amount,
+        commission_amount: order.commission_amount,
+        currency: order.currency || 'EGP'
+      });
+
+      await this.marketplaceOrderRepository.logAuditEvent({
+        userId: customerId,
+        vendorId,
+        orderId,
+        action: 'payment_confirmed_payout_created',
+        entityType: 'marketplace_order',
+        entityId: orderId,
+        changes: { payout_created: true, delivery_enabled: true }
+      });
     });
 
     // When delivery is completed, finalize order
@@ -198,6 +216,16 @@ class MarketplaceOrderService {
 
       // Update final order status
       await this.marketplaceOrderRepository.updateOrderStatus(orderId, ORDER_STATUS.COMPLETED);
+
+      await this.marketplaceOrderRepository.logAuditEvent({
+        userId: customerId,
+        vendorId,
+        orderId,
+        action: 'order_completed',
+        entityType: 'marketplace_order',
+        entityId: orderId,
+        changes: { final_status: 'completed' }
+      });
     });
 
     // Handle timeouts and failures
@@ -230,6 +258,16 @@ class MarketplaceOrderService {
       logger.info(`Delivery auto-confirmed for order ${orderId}`, { orderId, category: 'fsm_orchestration' });
 
       await this.marketplaceOrderRepository.updateOrderStatus(orderId, ORDER_STATUS.COMPLETED);
+
+      await this.marketplaceOrderRepository.logAuditEvent({
+        userId: customerId,
+        vendorId,
+        orderId,
+        action: 'delivery_auto_confirmed',
+        entityType: 'marketplace_order',
+        entityId: orderId,
+        changes: { auto_confirmed: true }
+      });
     });
   }
 
@@ -916,6 +954,3 @@ class MarketplaceOrderService {
 }
 
 module.exports = MarketplaceOrderService;
-
-
-

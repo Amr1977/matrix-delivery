@@ -1,0 +1,92 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Database files
+backend/database/*.json
+backend/deliverhub.db
+backend/deliverhub.db-*
+*.db
+*.db-shm
+*.db-wal
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Production log sync
+vps-logs/
+log-analysis-*.md
+.log-sync-state.json
+
+
+# Secrets and sensitive files
+secrets_*.txt
+*.key
+*.pem
+*.crt
+*.p12
+*.pfx
+keystore.*
+*.jks
+
+# Deployment guides (temporary)
+VPS_*.md
+UPLOAD_*.md
+WSL_SETUP.md
+
+# Explicitly ignore compiled files that have .ts counterparts
+backend/database/schema/*.js
+backend/database/init.js
+backend/middleware/validation/balanceValidation.js
+backend/migrationRunner.js
+backend/routes/heartbeat.js
+backend/services/activityTracker.js
+backend/services/notificationService.js
+backend/services/paymobService.js
+backend/services/pushNotificationService.js
+backend/types/api/*.js
+backend/utils/errors/ApiError.js
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+build/
+dist/
+.cache/
+
+# Temporary files
+*.tmp
+*.temp
+.pid
+
+# Process IDs
+*.pid
+
+reports/
+
+backend/nohup.out
+test-report*.txt
+
+# Test coverage
+# Test coverage
+backend/coverage/
+backend/uploads/
+frontend/src/git-info.json
+
+# Test Reports and Results
+frontend/smoke-tests/report/
+frontend/test-results/
+test-results.json
