@@ -24,8 +24,7 @@ ALTER TABLE orders ADD CONSTRAINT orders_status_check CHECK (
     'delivered',            -- Marked as delivered (awaiting confirmation)
     'delivered_pending',    -- Delivery: delivered, pending customer confirmation
     'completed',            -- Order fully completed and confirmed
-    'cancelled',            -- Order cancelled (British spelling variant)
-    'canceled',             -- Order cancelled (American spelling, used in constants.js)
+    'cancelled',            -- Order cancelled (unified British spelling across codebase)
     'disputed',             -- Order under dispute
     'refunded',             -- Payment refunded
     'rejected',             -- Marketplace: vendor rejected order
