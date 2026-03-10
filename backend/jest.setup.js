@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Jest Setup File
  * Loads test environment and configures test globals
  */
@@ -23,3 +23,10 @@ jest.setTimeout(10000);
 //   info: jest.fn(),
 //   warn: jest.fn(),
 // };
+
+// Mock logger to avoid filesystem writes during tests
+jest.mock('./config/logger', () => ({
+  info: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn(), http: jest.fn(),
+  security: jest.fn(), performance: jest.fn(), auth: jest.fn(),
+  requestLogger: (req,res,next)=>next(), errorLogger: (err,req,res,next)=>next()
+}), { virtual: true });
