@@ -39,6 +39,11 @@ UPLOAD_*.md
 WSL_SETUP.md
 
 # Explicitly ignore compiled files that have .ts counterparts
+backend/middleware/auditLogger.js
+backend/middleware/security.js
+backend/routes/v1/index.js
+backend/utils/encryption.js
+backend/utils/tokenManager.js
 backend/database/schema/*.js
 backend/database/init.js
 backend/middleware/validation/balanceValidation.js
