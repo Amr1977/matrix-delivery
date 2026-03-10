@@ -9,7 +9,7 @@ async function main() {
     console.log('Account balance:', hre.ethers.formatEther(await hre.ethers.provider.getBalance(deployer.address)), 'MATIC\n');
 
     // Import payment configuration
-    const { PAYMENT_CONFIG } = require('../config/paymentConfig.ts');
+    const { PAYMENT_CONFIG } = require('../config/paymentConfig.js') /* P0 FIX: .ts → .js, no .ts file exists */;
 
     // Configuration
     const platformWallet = process.env.PLATFORM_WALLET_ADDRESS || deployer.address;

@@ -173,7 +173,7 @@ const statisticsRouter = require('./routes/statistics');
 app.use('/api/stats', statisticsRouter);
 
 // Load heartbeat endpoint
-const heartbeatRouter = require('./routes/heartbeat.ts').default;
+const heartbeatRouter = require('./routes/heartbeat') /* P0 FIX: removed .ts ext */.default;
 const { verifyToken: heartbeatAuth } = require('./middleware/auth');
 app.use('/api/heartbeat', heartbeatAuth, heartbeatRouter);
 
@@ -3208,7 +3208,7 @@ app.use((err, req, res, next) => {
 });
 
 // Initialize notification service with null io (will be set by server.js)
-const { initializeNotificationService } = require('./services/notificationService.ts');
+const { initializeNotificationService } = require('./services/notificationService') /* P0 FIX: removed .ts ext */;
 initializeNotificationService(pool, null, logger);
 
 module.exports = app;

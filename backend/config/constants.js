@@ -53,7 +53,7 @@ const ORDER_STATUS = {
   ACCEPTED: 'accepted',        // marketplace: vendor accepted, delivery: driver bid accepted
   PICKED_UP: 'picked_up',      // marketplace: from vendor, delivery: from customer
   DELIVERED: 'delivered',      // marketplace: to customer, delivery: to destination
-  CANCELED: 'canceled',        // Standardized spelling per review feedback
+  CANCELED: 'cancelled',       // Unified to British spelling — matches DB columns and 95% of codebase
   COMPLETED: 'completed',
 
   // Marketplace-specific statuses

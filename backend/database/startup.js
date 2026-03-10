@@ -1,5 +1,5 @@
 const logger = require('../config/logger');
-const { initializeDatabase } = require('./init.ts');
+const { initializeDatabase } = require('./init') /* P0 FIX: removed .ts ext for robust module resolution */ /* NOTE: .ts loaded via ts-node/register */;
 const { initAuditLogger } = require('../middleware/auditLogger');
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
@@ -139,13 +139,13 @@ async function initDatabase(pool) {
         initAuditLogger(pool);
 
         // Initialize activity tracker for online status
-        const { activityTracker } = require('../services/activityTracker.ts');
+        const { activityTracker } = require('../services/activityTracker') /* P0 FIX: removed .ts ext */;
         activityTracker.initialize(pool);
         activityTracker.startPeriodicCommit();
 
         // Run database migrations automatically
         try {
-            const { runMigrationsOnStartup } = require('../migrationRunner.ts');
+            const { runMigrationsOnStartup } = require('../migrationRunner') /* P0 FIX: removed .ts ext */;
             const migrationResult = await runMigrationsOnStartup(pool);
             logger.info(`✅ Migrations complete: ${migrationResult.applied} applied, ${migrationResult.skipped} already applied`, {
                 category: 'database'

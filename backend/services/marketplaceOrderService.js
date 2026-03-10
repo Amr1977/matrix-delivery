@@ -906,7 +906,7 @@ class MarketplaceOrderService {
   async sendNotification(userId, notificationType, data) {
     try {
       // Import notification service dynamically to avoid circular dependencies
-      const notificationService = require('./notificationService.ts');
+      const notificationService = require('./notificationService') /* P0 FIX: removed .ts ext */;
 
       const notificationData = {
         userId,
