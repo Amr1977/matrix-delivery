@@ -1,4 +1,5 @@
-#!/bin/bash
+﻿#!/bin/bash
+set -Eeuo pipefail
 
 # Configuration
 # Run this script from the project root or adjust PROJECT_DIR accordingly
@@ -39,13 +40,13 @@ while true; do
     # Load Environment Variables (for FIREBASE_TOKEN)
     # Check both root .env and backend/.env
     if [ -f backend/.env ]; then
-        log "📄 Loading env from backend/.env"
+        log "ðŸ“„ Loading env from backend/.env"
         ENV_FILE="backend/.env"
     elif [ -f .env ]; then
-        log "📄 Loading env from .env"
+        log "ðŸ“„ Loading env from .env"
         ENV_FILE=".env"
     else
-        log "⚠️ No .env file found"
+        log "âš ï¸ No .env file found"
         ENV_FILE=""
     fi
     
@@ -62,9 +63,9 @@ while true; do
 
     # Debug: Check if Token is loaded (masked)
     if [ -n "$FIREBASE_TOKEN" ]; then
-        log "🔑 FIREBASE_TOKEN found (starts with: ${FIREBASE_TOKEN:0:4}...)"
+        log "ðŸ”‘ FIREBASE_TOKEN found (starts with: ${FIREBASE_TOKEN:0:4}...)"
     else
-        log "⚠️ FIREBASE_TOKEN is missing or empty"
+        log "âš ï¸ FIREBASE_TOKEN is missing or empty"
     fi
 
     # Capture current script hash for self-update check
@@ -72,7 +73,7 @@ while true; do
 
     # Fetch latest changes without merging
     if ! git fetch origin $BRANCH > /dev/null 2>&1; then
-        log "⚠️ Git fetch failed. Check network, remote URL, or credentials."
+        log "âš ï¸ Git fetch failed. Check network, remote URL, or credentials."
     fi
 
     # Get commit hashes
@@ -89,14 +90,14 @@ while true; do
         git pull origin $BRANCH
         
         if [ $? -ne 0 ]; then
-            log "❌ Git pull failed! Retrying next loop."
+            log "âŒ Git pull failed! Retrying next loop."
         else
-            log "✅ Git pull successful."
+            log "âœ… Git pull successful."
 
             # ---------------------------
             # 2. Backend Deployment
             # ---------------------------
-            log "🔧 Starting Backend Deployment..."
+            log "ðŸ”§ Starting Backend Deployment..."
             cd backend || exit
             
             log "Installing backend dependencies..."
@@ -106,7 +107,7 @@ while true; do
             exec_cmd npm audit fix --force
             
             if [ $? -ne 0 ]; then
-                 log "⚠️ Backend npm issues. Proceeding carefully..."
+                 log "âš ï¸ Backend npm issues. Proceeding carefully..."
             fi
             
             log "Compiling Backend TypeScript..."
@@ -126,18 +127,23 @@ while true; do
             # 3. Frontend Deployment
             # ---------------------------
             if [ -z "$FIREBASE_TOKEN" ]; then
-                log "⚠️ skipping Frontend Deploy: FIREBASE_TOKEN not set in .env"
+                log "âš ï¸ skipping Frontend Deploy: FIREBASE_TOKEN not set in .env"
             else
-                log "🎨 Starting Frontend Deployment..."
+                log "ðŸŽ¨ Starting Frontend Deployment..."
                 cd frontend || exit
 
-                log "Installing frontend dependencies..."
-                exec_cmd npm install --no-progress
-                
-                log "Running security audit (frontend)..."
-                exec_cmd npm audit fix --force
+                log "Installing frontend dependencies (clean, via npm ci)..."
+                exec_cmd npm ci --no-audit --fund=false || true
+                if [ ! -f node_modules/.bin/react-scripts ]; then
+                    log "npm ci may have failed or cache is cold; retrying with npm install..."
+                    exec_cmd npm install --no-progress --no-audit || true
+                fi
 
-                # Build Process (Custom for 1GB VPS)
+                # Verify react-scripts is available before build
+                if [ ! -f node_modules/.bin/react-scripts ]; then
+                    log "❌ react-scripts missing after install. Attempting targeted install..."
+                    exec_cmd npm install react-scripts@5 --no-save || true
+                fi
                 # We replicate 'npm run build:prod' steps but override memory limit
                 log "Building Frontend (Limit: 768MB)..."
                 
@@ -158,21 +164,21 @@ while true; do
                 exec_cmd npm run build
                 
                 if [ $? -ne 0 ]; then
-                    log "❌ Frontend Build Failed! Skipping deploy."
+                    log "âŒ Frontend Build Failed! Skipping deploy."
                 else
-                    log "✅ Build Successful. Deploying to Firebase..."
+                    log "âœ… Build Successful. Deploying to Firebase..."
                     exec_cmd npx firebase-tools deploy --only hosting --token "$FIREBASE_TOKEN"
                     
                     if [ $? -eq 0 ]; then
-                        log "🚀 Firebase Deployment Complete."
+                        log "ðŸš€ Firebase Deployment Complete."
                     else
-                        log "❌ Firebase Deployment Failed."
+                        log "âŒ Firebase Deployment Failed."
                     fi
                 fi
                 cd .. # Return to root
             fi
             
-            log "🎉 Full Deployment Sequence Finished."
+            log "ðŸŽ‰ Full Deployment Sequence Finished."
             
             # Check for self-update
             # We use git hash-object to compare the script file on disk vs what it was before validation
@@ -180,7 +186,7 @@ while true; do
             NEW_SCRIPT_HASH=$(git hash-object scripts/auto-deploy.sh)
             
             if [ "$INITIAL_SCRIPT_HASH" != "$NEW_SCRIPT_HASH" ]; then
-                log "🔄 Auto-deploy script updated. Exiting to allow PM2 to restart..."
+                log "ðŸ”„ Auto-deploy script updated. Exiting to allow PM2 to restart..."
                 exit 0
             fi
         fi
@@ -198,9 +204,12 @@ while true; do
         
         UPTIME_STR=$(uptime -p 2>/dev/null | sed 's/up //' || echo "N/A")
         
-        log "⏳ No changes | Mem: ${MEM_PCT}% (${MEM_FREE}MB avail) | PM2: ${PM2_INFO}(${PM2_MEM_TOTAL}MB total) | Up: ${UPTIME_STR}"
+        log "â³ No changes | Mem: ${MEM_PCT}% (${MEM_FREE}MB avail) | PM2: ${PM2_INFO}(${PM2_MEM_TOTAL}MB total) | Up: ${UPTIME_STR}"
     fi
 
     # Wait before next check
     sleep $CHECK_INTERVAL
 done
+
+
+
