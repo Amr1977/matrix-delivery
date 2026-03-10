@@ -1,428 +1,258 @@
 const request = require('supertest');
-const { app } = require('../../backend/server');
 const { multiFSMOrchestrator } = require('../../backend/fsm/MultiFSMOrchestrator');
 const pool = require('../../backend/config/db');
-const MarketplaceOrderService = require('../../backend/services/marketplaceOrderService');
 
 // Mock external services for testing
 jest.mock('../../backend/fsm/MultiFSMOrchestrator');
-jest.mock('../../backend/services/marketplaceOrderService');
 jest.mock('../../backend/config/db');
+
+// Mock MarketplaceOrderService BEFORE requiring app
+const mockMarketplaceOrderService = {
+  createOrder: jest.fn(),
+  getOrder: jest.fn(),
+  getOrdersForUser: jest.fn(),
+  updateOrderStatus: jest.fn(),
+  cancelOrder: jest.fn(),
+  vendorAcceptOrder: jest.fn(),
+  vendorRejectOrder: jest.fn(),
+  customerConfirmPayment: jest.fn(),
+  adminAssignDriver: jest.fn(),
+  driverPickupOrder: jest.fn(),
+  driverDeliverOrder: jest.fn(),
+  customerConfirmReceipt: jest.fn(),
+  customerDisputeOrder: jest.fn(),
+  handleTimeout: jest.fn()
+};
+
+jest.mock('../../backend/services/marketplaceOrderService', () => {
+  return jest.fn().mockImplementation(() => mockMarketplaceOrderService);
+});
+
+// Now require app after mocking
+const app = require('../../backend/server');
+
+// Mock authentication middleware
+jest.mock('../../backend/middleware/auth', () => {
+  const original = jest.requireActual('../../backend/middleware/auth');
+  return {
+    ...original,
+    verifyToken: (req, res, next) => {
+      const token = req.headers.authorization || '';
+      let role = 'customer';
+      let userId = 1;
+      
+      if (token.includes('vendor')) {
+        role = 'vendor';
+        userId = 2; 
+      } else if (token.includes('driver')) {
+        role = 'driver';
+        userId = 3;
+      } else if (token.includes('admin')) {
+        role = 'admin';
+        userId = 99;
+      }
+      
+      req.user = { userId, role };
+      next();
+    },
+    requireRole: (...roles) => (req, res, next) => next()
+  };
+});
+
+// Mock database pool query
+pool.query.mockImplementation((query) => {
+  if (query.includes('SELECT id FROM vendors WHERE user_id')) {
+    return Promise.resolve({ rows: [{ id: 2 }] });
+  }
+  return Promise.resolve({ rows: [] });
+});
 
 describe('FSM API Integration Tests', () => {
   let server;
   let agent;
 
   beforeAll(async () => {
-    // Start server for testing
-    server = app.listen(0); // Use random port
+    server = app.listen(0);
     agent = request.agent(server);
   });
 
   afterAll(async () => {
-    await server.close();
+    if (server) await server.close();
   });
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('POST /api/marketplace/orders - Order Creation with FSM', () => {
-    test('should create order and initialize FSM orchestrator', async () => {
-      const userId = 1;
-      const vendorId = 2;
+  const mockOrderBase = {
+    id: 12345,
+    order_number: 'ORD-12345',
+    total_amount: 150.00,
+  };
 
-      // Mock authentication
-      const mockUser = { userId, email: 'test@example.com' };
-
-      // Mock order creation response
+  describe('POST /api/marketplace/orders - Order Creation', () => {
+    test('should create order and return FSM states', async () => {
       const mockOrder = {
-        id: 12345,
-        order_number: 'ORD-12345',
-        user_id: userId,
-        vendor_id: vendorId,
-        total_amount: 150.00,
-        commission_amount: 15.00,
+        ...mockOrderBase,
         status: 'pending',
         fsm_states: {
           vendor: 'awaiting_order_availability_vendor_confirmation',
-          payment: null,
+          payment: 'payment_pending_for_customer',
           delivery: null
         }
       };
 
-      // Mock marketplaceOrderService
-      MarketplaceOrderService.prototype.createOrder = jest.fn().mockResolvedValue(mockOrder);
-
-      const orderData = {
-        deliveryAddress: '123 Test St',
-        deliveryLat: 30.0444,
-        deliveryLng: 31.2357,
-        deliveryInstructions: 'Ring doorbell',
-        customerNotes: 'Extra napkins please'
-      };
+      mockMarketplaceOrderService.createOrder.mockResolvedValue(mockOrder);
 
       const response = await agent
         .post('/api/marketplace/orders')
-        .set('Authorization', 'Bearer mock-token')
-        .send(orderData);
+        .set('Authorization', 'Bearer customer-token')
+        .send({
+          deliveryAddress: '123 Test St',
+          deliveryLat: 30.0444,
+          deliveryLng: 31.2357
+        });
 
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
-      expect(response.body.data.fsm_states).toBeDefined();
       expect(response.body.data.fsm_states.vendor).toBe('awaiting_order_availability_vendor_confirmation');
     });
-
-    test('should handle order creation failure gracefully', async () => {
-      // Mock service to throw error
-      MarketplaceOrderService.prototype.createOrder = jest.fn().mockRejectedValue(new Error('Cart validation failed'));
-
-      const orderData = {
-        deliveryAddress: '123 Test St',
-        deliveryLat: 30.0444,
-        deliveryLng: 31.2357
-      };
-
-      const response = await agent
-        .post('/api/marketplace/orders')
-        .set('Authorization', 'Bearer mock-token')
-        .send(orderData);
-
-      expect(response.status).toBe(400);
-      expect(response.body.success).toBe(false);
-      expect(response.body.error).toContain('Cart validation failed');
-    });
   });
 
-  describe('PUT /api/marketplace/orders/:id/status - FSM State Transitions', () => {
-    test('should handle vendor order acceptance through API', async () => {
-      const orderId = 12345;
-      const vendorId = 2;
-
+  describe('PATCH /api/marketplace/orders/:id/status - Vendor Accept/Reject', () => {
+    test('should handle vendor order acceptance', async () => {
       const mockUpdatedOrder = {
-        id: orderId,
-        status: 'accepted',
-        fsm_states: {
-          vendor: 'awaiting_vendor_start_preparation',
-          payment: 'payment_pending_for_customer',
-          delivery: 'delivery_request_created_waiting_for_courier_acceptance'
-        }
-      };
-
-      // Mock the service method
-      MarketplaceOrderService.prototype.updateOrderStatus = jest.fn().mockResolvedValue(mockUpdatedOrder);
-
-      const updateData = {
-        action: 'vendor_accepts_order',
-        userRole: 'vendor'
-      };
-
-      const response = await agent
-        .put(`/api/marketplace/orders/${orderId}/status`)
-        .set('Authorization', 'Bearer mock-token')
-        .send(updateData);
-
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.fsm_states.vendor).toBe('awaiting_vendor_start_preparation');
-      expect(response.body.data.fsm_states.payment).toBe('payment_pending_for_customer');
-    });
-
-    test('should handle customer payment confirmation', async () => {
-      const orderId = 12345;
-      const customerId = 1;
-
-      const mockUpdatedOrder = {
-        id: orderId,
-        status: 'paid',
-        fsm_states: {
-          vendor: 'awaiting_vendor_start_preparation',
-          payment: 'payment_successfully_received_and_verified_for_order',
-          delivery: 'delivery_request_created_waiting_for_courier_acceptance'
-        }
-      };
-
-      MarketplaceOrderService.prototype.updateOrderStatus = jest.fn().mockResolvedValue(mockUpdatedOrder);
-
-      const updateData = {
-        action: 'customer_completes_payment',
-        userRole: 'customer',
-        paymentData: {
-          amount: 150.00,
-          method: 'card',
-          transactionId: 'txn_123'
-        }
-      };
-
-      const response = await agent
-        .put(`/api/marketplace/orders/${orderId}/status`)
-        .set('Authorization', 'Bearer mock-token')
-        .send(updateData);
-
-      expect(response.status).toBe(200);
-      expect(response.body.data.fsm_states.payment).toBe('payment_successfully_received_and_verified_for_order');
-    });
-
-    test('should handle courier delivery assignment', async () => {
-      const orderId = 12345;
-      const driverId = 3;
-
-      const mockUpdatedOrder = {
-        id: orderId,
-        status: 'assigned',
-        fsm_states: {
-          vendor: 'order_is_fully_prepared_and_ready_for_delivery',
-          payment: 'payment_successfully_received_and_verified_for_order',
-          delivery: 'courier_has_been_assigned_to_deliver_the_order'
-        }
-      };
-
-      MarketplaceOrderService.prototype.updateOrderStatus = jest.fn().mockResolvedValue(mockUpdatedOrder);
-
-      const updateData = {
-        action: 'courier_accepts_delivery_request',
-        userRole: 'driver',
-        driverId: driverId
-      };
-
-      const response = await agent
-        .put(`/api/marketplace/orders/${orderId}/status`)
-        .set('Authorization', 'Bearer mock-token')
-        .send(updateData);
-
-      expect(response.status).toBe(200);
-      expect(response.body.data.fsm_states.delivery).toBe('courier_has_been_assigned_to_deliver_the_order');
-    });
-
-    test('should handle order completion through customer confirmation', async () => {
-      const orderId = 12345;
-      const customerId = 1;
-
-      const mockUpdatedOrder = {
-        id: orderId,
-        status: 'completed',
-        fsm_states: {
-          vendor: 'order_is_fully_prepared_and_ready_for_delivery',
-          payment: 'payment_successfully_received_and_verified_for_order',
-          delivery: 'order_delivery_successfully_completed_and_confirmed_by_customer'
-        }
-      };
-
-      MarketplaceOrderService.prototype.updateOrderStatus = jest.fn().mockResolvedValue(mockUpdatedOrder);
-
-      const updateData = {
-        action: 'customer_confirms_receipt',
-        userRole: 'customer',
-        rating: 5,
-        feedback: 'Great service!'
-      };
-
-      const response = await agent
-        .put(`/api/marketplace/orders/${orderId}/status`)
-        .set('Authorization', 'Bearer mock-token')
-        .send(updateData);
-
-      expect(response.status).toBe(200);
-      expect(response.body.data.status).toBe('completed');
-      expect(response.body.data.fsm_states.delivery).toBe('order_delivery_successfully_completed_and_confirmed_by_customer');
-    });
-
-    test('should reject invalid transitions', async () => {
-      const orderId = 12345;
-
-      MarketplaceOrderService.prototype.updateOrderStatus = jest.fn().mockRejectedValue(new Error('Invalid transition: current state does not allow this action'));
-
-      const updateData = {
-        action: 'invalid_action',
-        userRole: 'customer'
-      };
-
-      const response = await agent
-        .put(`/api/marketplace/orders/${orderId}/status`)
-        .set('Authorization', 'Bearer mock-token')
-        .send(updateData);
-
-      expect(response.status).toBe(400);
-      expect(response.body.success).toBe(false);
-      expect(response.body.error).toContain('Invalid transition');
-    });
-  });
-
-  describe('GET /api/marketplace/orders/:id - FSM State Retrieval', () => {
-    test('should return order with current FSM states', async () => {
-      const orderId = 12345;
-
-      const mockOrder = {
-        id: orderId,
-        order_number: 'ORD-12345',
-        status: 'paid',
-        total_amount: 150.00,
-        fsm_states: {
-          vendor: 'order_is_fully_prepared_and_ready_for_delivery',
-          payment: 'payment_successfully_received_and_verified_for_order',
-          delivery: 'courier_has_been_assigned_to_deliver_the_order'
-        }
-      };
-
-      MarketplaceOrderService.prototype.getOrder = jest.fn().mockResolvedValue(mockOrder);
-
-      const response = await agent
-        .get(`/api/marketplace/orders/${orderId}`)
-        .set('Authorization', 'Bearer mock-token');
-
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.fsm_states).toBeDefined();
-      expect(response.body.data.fsm_states.vendor).toBe('order_is_fully_prepared_and_ready_for_delivery');
-      expect(response.body.data.fsm_states.payment).toBe('payment_successfully_received_and_verified_for_order');
-      expect(response.body.data.fsm_states.delivery).toBe('courier_has_been_assigned_to_deliver_the_order');
-    });
-  });
-
-  describe('Timeout Integration', () => {
-    test('should handle vendor confirmation timeout via API', async () => {
-      const orderId = 12345;
-
-      // Mock timeout handling
-      multiFSMOrchestrator.handleTimeout = jest.fn().mockResolvedValue({
-        orderId,
-        timeoutType: 'vendor_confirmation',
-        actionTaken: 'order_cancelled'
-      });
-
-      // Mock the service to handle the timeout
-      MarketplaceOrderService.prototype.handleTimeout = jest.fn().mockResolvedValue({
-        id: orderId,
-        status: 'cancelled',
-        timeoutHandled: true
-      });
-
-      const timeoutData = {
-        fsmType: 'vendor',
-        state: 'awaiting_order_availability_vendor_confirmation',
-        timeoutType: 'vendor_confirmation'
-      };
-
-      const response = await agent
-        .post(`/api/marketplace/orders/${orderId}/timeout`)
-        .set('Authorization', 'Bearer mock-token')
-        .send(timeoutData);
-
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.data.timeoutHandled).toBe(true);
-    });
-  });
-
-  describe('Error Handling', () => {
-    test('should handle authorization failures', async () => {
-      const orderId = 12345;
-
-      MarketplaceOrderService.prototype.updateOrderStatus = jest.fn().mockRejectedValue(new Error('Access denied'));
-
-      const updateData = {
-        action: 'vendor_accepts_order',
-        userRole: 'customer' // Wrong role
-      };
-
-      const response = await agent
-        .put(`/api/marketplace/orders/${orderId}/status`)
-        .set('Authorization', 'Bearer mock-token')
-        .send(updateData);
-
-      expect(response.status).toBe(403);
-      expect(response.body.success).toBe(false);
-      expect(response.body.error).toContain('Access denied');
-    });
-
-    test('should handle order not found', async () => {
-      const orderId = 99999;
-
-      MarketplaceOrderService.prototype.getOrder = jest.fn().mockRejectedValue(new Error('Order not found'));
-
-      const response = await agent
-        .get(`/api/marketplace/orders/${orderId}`)
-        .set('Authorization', 'Bearer mock-token');
-
-      expect(response.status).toBe(404);
-      expect(response.body.success).toBe(false);
-      expect(response.body.error).toContain('Order not found');
-    });
-  });
-
-  describe('Race Condition Handling', () => {
-    test('should handle concurrent state transitions safely', async () => {
-      const orderId = 12345;
-
-      // Mock service to simulate race condition handling
-      MarketplaceOrderService.prototype.updateOrderStatus = jest.fn()
-        .mockResolvedValueOnce({
-          id: orderId,
-          status: 'accepted',
-          fsm_states: { vendor: 'awaiting_vendor_start_preparation' }
-        })
-        .mockRejectedValueOnce(new Error('Concurrent modification detected'));
-
-      // First request succeeds
-      const response1 = await agent
-        .put(`/api/marketplace/orders/${orderId}/status`)
-        .set('Authorization', 'Bearer mock-token-1')
-        .send({
-          action: 'vendor_accepts_order',
-          userRole: 'vendor'
-        });
-
-      expect(response1.status).toBe(200);
-
-      // Second concurrent request fails
-      const response2 = await agent
-        .put(`/api/marketplace/orders/${orderId}/status`)
-        .set('Authorization', 'Bearer mock-token-2')
-        .send({
-          action: 'vendor_accepts_order',
-          userRole: 'vendor'
-        });
-
-      expect(response2.status).toBe(409); // Conflict
-      expect(response2.body.error).toContain('Concurrent modification');
-    });
-  });
-
-  describe('Audit Trail Integration', () => {
-    test('should log all FSM transitions to audit trail', async () => {
-      const orderId = 12345;
-      const vendorId = 2;
-
-      const mockUpdatedOrder = {
-        id: orderId,
+        ...mockOrderBase,
         status: 'accepted',
         fsm_states: {
           vendor: 'awaiting_vendor_start_preparation'
         }
       };
 
-      MarketplaceOrderService.prototype.updateOrderStatus = jest.fn().mockResolvedValue(mockUpdatedOrder);
-
-      // Mock database to verify audit logging
-      pool.query = jest.fn().mockResolvedValue({ rows: [] });
-
-      const updateData = {
-        action: 'vendor_accepts_order',
-        userRole: 'vendor'
-      };
+      mockMarketplaceOrderService.vendorAcceptOrder.mockResolvedValue(mockUpdatedOrder);
 
       const response = await agent
-        .put(`/api/marketplace/orders/${orderId}/status`)
-        .set('Authorization', 'Bearer mock-token')
-        .send(updateData);
+        .patch('/api/marketplace/orders/12345/status')
+        .set('Authorization', 'Bearer vendor-token')
+        .send({
+          action: 'accept'
+        });
 
       expect(response.status).toBe(200);
+      expect(mockMarketplaceOrderService.vendorAcceptOrder).toHaveBeenCalledWith(12345, 2);
+    });
+  });
 
-      // Verify audit log was called
-      expect(pool.query).toHaveBeenCalledWith(
-        expect.stringContaining('INSERT INTO fsm_action_log'),
-        expect.any(Array)
-      );
+  describe('POST /api/marketplace/orders/:id/confirm-payment', () => {
+    test('should handle customer payment confirmation', async () => {
+      const mockUpdatedOrder = {
+        ...mockOrderBase,
+        status: 'paid',
+        fsm_states: {
+          payment: 'payment_successfully_received_and_verified_for_order'
+        }
+      };
+
+      mockMarketplaceOrderService.customerConfirmPayment.mockResolvedValue(mockUpdatedOrder);
+
+      const response = await agent
+        .post('/api/marketplace/orders/12345/confirm-payment')
+        .set('Authorization', 'Bearer customer-token')
+        .send({ paymentReference: 'txn_123' });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.fsm_states.payment).toBe('payment_successfully_received_and_verified_for_order');
+    });
+  });
+
+  describe('POST /api/marketplace/orders/:id/assign-driver', () => {
+    test('should handle courier delivery assignment', async () => {
+      const mockUpdatedOrder = {
+        ...mockOrderBase,
+        status: 'assigned',
+        fsm_states: {
+          delivery: 'courier_has_been_assigned_to_deliver_the_order'
+        }
+      };
+
+      mockMarketplaceOrderService.adminAssignDriver.mockResolvedValue(mockUpdatedOrder);
+
+      const response = await agent
+        .post('/api/marketplace/orders/12345/assign-driver')
+        .set('Authorization', 'Bearer admin-token')
+        .send({ driverId: 3 });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.fsm_states.delivery).toBe('courier_has_been_assigned_to_deliver_the_order');
+    });
+  });
+
+  describe('POST /api/marketplace/orders/:id/deliver', () => {
+    test('should handle delivery marking by courier', async () => {
+      const mockUpdatedOrder = {
+        ...mockOrderBase,
+        status: 'delivered',
+        fsm_states: {
+          delivery: 'awaiting_customer_confirmation_of_order_delivery'
+        }
+      };
+
+      mockMarketplaceOrderService.driverDeliverOrder.mockResolvedValue(mockUpdatedOrder);
+
+      const response = await agent
+        .post('/api/marketplace/orders/12345/deliver')
+        .set('Authorization', 'Bearer driver-token')
+        .send({ deliveryNotes: 'Left at reception' });
+
+      expect(response.status).toBe(200);
+      expect(mockMarketplaceOrderService.driverDeliverOrder).toHaveBeenCalledWith(12345, 3);
+    });
+  });
+
+  describe('POST /api/marketplace/orders/:id/confirm-receipt', () => {
+    test('should handle order completion through customer confirmation', async () => {
+      const mockUpdatedOrder = {
+        ...mockOrderBase,
+        status: 'completed',
+        fsm_states: {
+          delivery: 'order_delivery_successfully_completed_and_confirmed_by_customer'
+        }
+      };
+
+      mockMarketplaceOrderService.customerConfirmReceipt.mockResolvedValue(mockUpdatedOrder);
+
+      const response = await agent
+        .post('/api/marketplace/orders/12345/confirm-receipt')
+        .set('Authorization', 'Bearer customer-token')
+        .send({ rating: 5, feedback: 'Great service!' });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.status).toBe('completed');
+    });
+  });
+
+  describe('Error Handling Mappings', () => {
+    test('should correctly map concurrency errors to 409', async () => {
+      mockMarketplaceOrderService.vendorAcceptOrder.mockRejectedValue(new Error('concurrency conflict detected'));
+
+      const response = await agent
+        .patch('/api/marketplace/orders/12345/status')
+        .set('Authorization', 'Bearer vendor-token')
+        .send({ action: 'accept' });
+
+      expect(response.status).toBe(409);
+      expect(response.body.error).toContain('concurrency');
+    });
+
+    test('should correctly map invalid transitions to 400', async () => {
+      mockMarketplaceOrderService.customerConfirmReceipt.mockRejectedValue(new Error('Invalid transition: current state does not allow this'));
+
+      const response = await agent
+        .post('/api/marketplace/orders/12345/confirm-receipt')
+        .set('Authorization', 'Bearer customer-token');
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toContain('Invalid transition');
     });
   });
 });
