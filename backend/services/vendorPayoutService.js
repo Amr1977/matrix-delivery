@@ -18,17 +18,17 @@ class VendorPayoutService {
    */
   registerPaymentFSMListeners() {
     // Listen for successful payment events
-    multiFSMOrchestrator.eventEmitter.on('PAYMENT_SUCCESSFUL', async (eventData) => {
+    multiFSMOrchestrator.on('PAYMENT_SUCCESSFUL', async (eventData) => {
       await this.handlePaymentSuccessful(eventData);
     });
 
     // Listen for payment refund events
-    multiFSMOrchestrator.eventEmitter.on('PAYMENT_REFUNDED', async (eventData) => {
+    multiFSMOrchestrator.on('PAYMENT_REFUNDED', async (eventData) => {
       await this.handlePaymentRefunded(eventData);
     });
 
     // Listen for payment failure events
-    multiFSMOrchestrator.eventEmitter.on('PAYMENT_FAILED', async (eventData) => {
+    multiFSMOrchestrator.on('PAYMENT_FAILED', async (eventData) => {
       await this.handlePaymentFailed(eventData);
     });
   }
