@@ -34,6 +34,15 @@ const handleTelegramUpdate = (pool, balanceService) => {
         try {
             const update = req.body;
             
+            // Log ALL incoming updates
+            console.log('🔔 WEBHOOK UPDATE RECEIVED:', {
+                updateId: update.update_id,
+                hasMessage: !!update.message,
+                hasCallback: !!update.callback_query,
+                messageText: update.message?.text?.substring(0, 50),
+                chatId: update.message?.chat?.id || update.callback_query?.message?.chat?.id
+            });
+            
             // Always acknowledge the update to Telegram immediately
             res.status(200).json({ ok: true });
             
