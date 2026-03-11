@@ -4,6 +4,7 @@
 
 const { BalanceService } = require('../../services/balanceService');
 const { getNotificationService } = require('../../services/notificationService');
+const TelegramWithdrawalNotificationService = require('../../services/telegramWithdrawalNotificationService');
 const pool = require('../../config/db');
 
 // Simple error helpers equivalent to ApiError classes
@@ -26,6 +27,19 @@ class BalanceController {
         }
         if (notificationService && typeof this.balanceService.setNotificationService === 'function') {
             this.balanceService.setNotificationService(notificationService);
+        }
+
+        // Initialize Telegram service if configured
+        this.telegramService = null;
+        if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_ADMIN_CHAT_ID) {
+            try {
+                this.telegramService = new TelegramWithdrawalNotificationService(
+                    process.env.TELEGRAM_BOT_TOKEN,
+                    process.env.TELEGRAM_ADMIN_CHAT_ID
+                );
+            } catch (error) {
+                console.warn('Telegram service initialization failed:', error.message);
+            }
         }
     }
 
@@ -112,6 +126,29 @@ class BalanceController {
                 description: req.body.description,
                 metadata: req.body.metadata
             });
+
+            // Send Telegram notification to admin if service is configured
+            if (this.telegramService && result.withdrawal) {
+                try {
+                    // Fetch user info for the notification
+                    const userResult = await pool.query(
+                        'SELECT id, full_name, phone_number FROM users WHERE id = $1',
+                        [req.body.userId]
+                    );
+                    const user = userResult.rows[0];
+                    
+                    if (user) {
+                        await this.telegramService.notifyWithdrawalRequest(
+                            result.withdrawal,
+                            user
+                        );
+                    }
+                } catch (error) {
+                    console.error('Failed to send Telegram notification:', error.message);
+                    // Don't fail the withdrawal request if Telegram notification fails
+                }
+            }
+
             const data = {
                 withdrawalRequestId: result.withdrawalRequestId,
                 balance: this.toBalanceResponse(result.balance)
