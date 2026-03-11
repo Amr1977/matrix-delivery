@@ -108,6 +108,19 @@ async function handleCallbackQuery(callbackQuery, pool, balanceService) {
             return;
         }
 
+        // SECURITY: Verify the callback is from the admin
+        const expectedAdminId = parseInt(adminChatId);
+        if (from.id !== expectedAdminId) {
+            console.warn('⚠️ SECURITY: Unauthorized callback attempt', {
+                fromId: from.id,
+                expectedAdminId: expectedAdminId,
+                username: from.username,
+                data: data
+            });
+            await answerCallbackQuery(botToken, callbackQueryId, '❌ Unauthorized');
+            return;
+        }
+
         // Parse the callback data to determine type (withdrawal or deposit)
         const isDeposit = data.startsWith('approve_deposit:') || data.startsWith('reject_deposit:');
         const isWithdrawal = data.startsWith('approve_withdrawal:') || data.startsWith('reject_withdrawal:');
