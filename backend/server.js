@@ -5,34 +5,40 @@ const fs = require('fs');
 // Register ts-node to load TypeScript modules
 require('ts-node/register');
 
-// Load environment FIRST
-// Check ENV_FILE first (set by PM2), then fall back to NODE_ENV-based detection
-const envFile = process.env.ENV_FILE || 
-  (process.env.NODE_ENV === 'production' ? '.env.production' : 
-   process.env.NODE_ENV === 'staging' ? '.env.staging' : 
-   process.env.NODE_ENV === 'development' ? '.env.development' : 
-   process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing' ? '.env.testing' : '.env');
+// Load environment FIRST with ABSOLUTE paths
+const backendDir = __dirname;
 
-// Ensure we load the file (with fallback to .env if .env.production doesn't exist)
-let selectedEnvFile = envFile;
-if (!fs.existsSync(path.resolve(envFile))) {
-  console.warn(`${envFile} not found, falling back to .env`);
-  selectedEnvFile = '.env';
+let envFileToLoad = '.env';
+const nodeEnv = process.env.NODE_ENV || 'production';
+
+if (nodeEnv === 'test' || nodeEnv === 'testing') {
+  envFileToLoad = '.env.testing';
+} else if (nodeEnv === 'production') {
+  envFileToLoad = '.env.production';
+} else if (nodeEnv === 'staging') {
+  envFileToLoad = '.env.staging';
+} else if (nodeEnv === 'development') {
+  envFileToLoad = '.env.development';
 }
 
-if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing') {
-  dotenv.config({ path: '.env.testing' });
+const envPath = path.resolve(backendDir, envFileToLoad);
+const fallbackPath = path.resolve(backendDir, '.env');
+
+// Load primary env file
+if (fs.existsSync(envPath)) {
+  console.log(`📄 Loading environment from: ${envPath}`);
+  dotenv.config({ path: envPath });
 } else {
-  dotenv.config({ path: selectedEnvFile });
-  // Also load .env as fallback for any missing variables
-  if (selectedEnvFile !== '.env' && fs.existsSync('.env')) {
-    const result = dotenv.config({ path: '.env' });
-    // Merge: environment variables from first file take precedence
-    if (result.parsed) {
-      for (const [key, value] of Object.entries(result.parsed)) {
-        if (!process.env[key]) {
-          process.env[key] = value;
-        }
+  console.log(`⚠️ ${envFileToLoad} not found, using fallback`);
+}
+
+// Always load .env as well to fill in any missing values
+if (fs.existsSync(fallbackPath) && envPath !== fallbackPath) {
+  const result = dotenv.config({ path: fallbackPath });
+  if (result.parsed) {
+    for (const [key, value] of Object.entries(result.parsed)) {
+      if (!process.env[key]) {
+        process.env[key] = value;
       }
     }
   }
