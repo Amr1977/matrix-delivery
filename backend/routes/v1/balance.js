@@ -4,6 +4,9 @@
 
 const express = require('express');
 const { BalanceController } = require('../../controllers/v1/balanceController');
+const { verifyTelegramWebhook, handleTelegramUpdate } = require('../../middleware/telegramCallbackHandler');
+const { BalanceService } = require('../../services/balanceService');
+const pool = require('../../config/db');
 
 // Mock middlewares since we don't have JS versions of all validators yet
 // We will use basic auth middleware which is usually JS
@@ -42,5 +45,14 @@ router.post('/deposit', validateDeposit, verifyBalanceOwnership, controller.depo
 router.post('/withdraw', validateWithdrawal, verifyBalanceOwnership, controller.withdraw);
 router.post('/withdraw/:id/verify', validateWithdrawal, verifyBalanceOwnership, controller.verifyWithdrawal);
 router.post('/withdraw/:id/cancel', validateWithdrawal, verifyBalanceOwnership, controller.cancelWithdrawal);
+
+/**
+ * Telegram Webhook for withdrawal notifications
+ * POST /api/v1/balance/telegram/webhook
+ */
+router.post('/telegram/webhook', 
+    verifyTelegramWebhook(process.env.TELEGRAM_BOT_TOKEN),
+    handleTelegramUpdate(pool, new BalanceService(pool))
+);
 
 module.exports = router;
