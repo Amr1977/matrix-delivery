@@ -1,4 +1,6 @@
 const dotenv = require('dotenv');
+const path = require('path');
+const fs = require('fs');
 
 // Register ts-node to load TypeScript modules
 require('ts-node/register');
@@ -11,10 +13,29 @@ const envFile = process.env.ENV_FILE ||
    process.env.NODE_ENV === 'development' ? '.env.development' : 
    process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing' ? '.env.testing' : '.env');
 
+// Ensure we load the file (with fallback to .env if .env.production doesn't exist)
+let selectedEnvFile = envFile;
+if (!fs.existsSync(path.resolve(envFile))) {
+  console.warn(`${envFile} not found, falling back to .env`);
+  selectedEnvFile = '.env';
+}
+
 if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing') {
   dotenv.config({ path: '.env.testing' });
 } else {
-  dotenv.config({ path: envFile });
+  dotenv.config({ path: selectedEnvFile });
+  // Also load .env as fallback for any missing variables
+  if (selectedEnvFile !== '.env' && fs.existsSync('.env')) {
+    const result = dotenv.config({ path: '.env' });
+    // Merge: environment variables from first file take precedence
+    if (result.parsed) {
+      for (const [key, value] of Object.entries(result.parsed)) {
+        if (!process.env[key]) {
+          process.env[key] = value;
+        }
+      }
+    }
+  }
 }
 
 const app = require('./app');
