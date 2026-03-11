@@ -1,0 +1,127 @@
+Category,Subcategory,English String,Translation Key
+Navigation & UI,UI Elements,Close,nav.close
+Navigation & UI,UI Elements,Download,common.download
+Navigation & UI,UI Elements,Edit,common.edit
+Navigation & UI,UI Elements,Refresh wallets,nav.refreshWallets
+Navigation & UI,UI Elements,Select,forms.select
+Navigation & UI,UI Elements,Toggle menu,nav.toggleMenu
+Navigation & UI,UI Elements,Previous (←),nav.prevButton
+Navigation & UI,UI Elements,Next (→),nav.nextButton
+Authentication & Account,Wallet,"Click ""Connect Wallet"" above",auth.connectWallet
+Authentication & Account,Wallet,Connected Wallet,auth.connectedWallet
+Authentication & Account,Wallet,Disconnect,auth.disconnect
+Authentication & Account,Wallet,Deactivate Wallet,auth.deactivateWallet
+Authentication & Account,Account,Contact admin to verify account,auth.contactAdminVerify
+Authentication & Account,Account,Approve the connection in MetaMask,auth.approveMetaMask
+Authentication & Account,Account,Make sure MetaMask is installed and unlocked,auth.ensureMetaMask
+Order Management,Order Status,Active Orders,orders.activeOrders
+Order Management,Order Status,Available Orders,orders.availableOrders
+Order Management,Order Status,Completed Orders,orders.completedOrders
+Order Management,Order Status,In Transit,orders.inTransit
+Order Management,Order Status,Delivered,orders.delivered
+Order Management,Order Creation,New Order,orders.newOrder
+Order Management,Order Creation,Brief description of the delivery...,orders.briefDescription
+Order Management,Order Creation,Describe your package...,orders.describePackage
+Order Management,Bidding,WAITING FOR BIDS,orders.waitingForBids
+Order Management,Bidding,BID PLACED,orders.bidPlaced
+Order Management,Bidding,Bid Amount,orders.bidAmount
+Order Management,Bidding,Bid Price,orders.bidPrice
+Order Management,Location,Delivery Location,orders.deliveryLocation
+Order Management,Location,Dropoff Location,orders.dropoffLocation
+Order Management,Location,Pickup Location,orders.pickupLocation
+Order Management,Location,Pickup Time,orders.pickupTime
+Order Management,Delivery,Express Delivery,orders.expressDelivery
+Order Management,Delivery,Premium Delivery,orders.premiumDelivery
+Order Management,Delivery,Same Day,orders.sameDay
+Order Management,Delivery,Standard Delivery,orders.standardDelivery
+Order Management,Metrics,Cost per km,orders.costPerKm
+Order Management,Metrics,Estimated Distance,orders.estimatedDistance
+User Roles & Types,Roles,Courier,roles.courier
+User Roles & Types,Roles,Customer,roles.customer
+User Roles & Types,Roles,Driver,roles.driver
+User Roles & Types,Roles,Drivers,roles.drivers
+User Roles & Types,Roles,Customers,roles.customers
+User Roles & Types,Agreements,Driver Partner Agreement,roles.driverAgreement
+Delivery & Logistics,Actions,Pickup,delivery.pickup
+Delivery & Logistics,Actions,Dropoff,delivery.dropoff
+Delivery & Logistics,Actions,Delivery,delivery.deliveryLabel
+Delivery & Logistics,Metrics,Distance,delivery.distance
+Delivery & Logistics,Metrics,Delivery Fee,delivery.deliveryFee
+Delivery & Logistics,Status,In transit now,orders.inTransitNow
+Delivery & Logistics,Status,Delivered 2 days ago,orders.deliveredDaysAgo
+Delivery & Logistics,Status,Deliveries,orders.deliveries
+Forms & Inputs,Location Fields,Enter area,forms.enterArea
+Forms & Inputs,Location Fields,Enter city,forms.enterCity
+Forms & Inputs,Location Fields,Enter street,forms.enterStreet
+Forms & Inputs,Location Fields,Area,forms.area
+Forms & Inputs,Location Fields,City,forms.city
+Forms & Inputs,Location Fields,Street,forms.street
+Forms & Inputs,Contact Fields,Email Address,forms.emailAddress
+Forms & Inputs,Contact Fields,Phone: +201094450141,forms.phone
+Forms & Inputs,Contact Fields,Name,forms.name
+Forms & Inputs,General Fields,Category,forms.category
+Forms & Inputs,General Fields,Address:,forms.address
+Forms & Inputs,General Fields,Country,forms.country
+Forms & Inputs,Delivery Fields,Enter delivery address,forms.enterDeliveryAddress
+Forms & Inputs,Delivery Fields,Enter pickup address,forms.enterPickupAddress
+Forms & Inputs,Delivery Fields,Enter delivery location,forms.enterDeliveryLocation
+Payment & Financial,General,Amount,payment.amount
+Payment & Financial,General,Amount to Pay,payment.amountToPay
+Payment & Financial,General,Balance:,payment.balance
+Payment & Financial,General,Your Balance:,payment.yourBalance
+Payment & Financial,Wallet,Wallet Address,payment.walletAddress
+Payment & Financial,Wallet,Wallet Details:,payment.walletDetails
+Payment & Financial,Payments,Complete Your Payment,payment.completePayment
+Payment & Financial,Payments,Payment Methods,payment.paymentMethods
+Payment & Financial,Payments,Payment Error,payment.paymentError
+Payment & Financial,Crypto,Pay with Cryptocurrency,payment.payWithCrypto
+Payment & Financial,Crypto,Polygon Network,payment.polygonNetwork
+Currency,All Currencies,USD ($) - US Dollar,currencies.usd
+Currency,All Currencies,EUR (€) - Euro,currencies.eur
+Currency,All Currencies,GBP (£) - British Pound,currencies.gbp
+Currency,All Currencies,EGP (LE) - Egyptian Pound,currencies.egp
+Currency,All Currencies,SAR (﷼) - Saudi Riyal,currencies.sar
+Status,General,Active,status.active
+Status,General,Pending,status.pending
+Status,General,Completed,status.completed
+Status,General,Verified,status.verified
+Messages,General,Message,notifications.message
+Messages,General,Messages,notifications.messages
+Messages,General,No notifications,notifications.noNotifications
+Messages,General,Chat with driver/customer,notifications.chatWithDriver
+Location,Maps,Loading Map...,location.loadingMap
+Location,Maps,OpenStreetMap,location.openStreetMap
+Location,Access,Location access denied,location.accessDenied
+Location,Access,Location access granted,location.accessGranted
+Dashboard,Metrics,Active Orders,dashboard.activeOrders
+Dashboard,Metrics,Average Delivery Time,dashboard.avgDeliveryTime
+Dashboard,Metrics,Average Order Value,dashboard.avgOrderValue
+Dashboard,Metrics,Platform Performance,dashboard.platformPerformance
+Errors,Messages,Error,errors.error
+Errors,Messages,Invalid,errors.invalid
+Errors,Messages,File type not supported,errors.fileTypeNotSupported
+Profile,Account,Profile,profile.profile
+Profile,Account,User ID,profile.userId
+Profile,Account,Verified,profile.verified
+Settings,General,General Settings,settings.generalSettings
+Settings,General,Security Settings,settings.securitySettings
+Components,UI Library,Buttons,components.buttons
+Components,UI Library,Cards,components.cards
+Components,UI Library,Primary Buttons,components.primaryButtons
+Legal,Policies,Terms of Service,legal.termsOfService
+Legal,Policies,Privacy Policy,legal.privacyPolicy
+Legal,Policies,Cookie Policy,legal.cookiePolicy
+Legal,Rights,Driver Rights:,legal.driverRights
+Legal,Rights,Customer Rights:,legal.customerRights
+Vehicles,Transport,Car,vehicles.car
+Vehicles,Transport,Bike (Motorcycle),vehicles.bike
+Vehicles,Transport,Truck,vehicles.truck
+Vehicles,Transport,Van,vehicles.van
+Time & Dates,General,Today,dashboard.today
+Time & Dates,General,Date,forms.date
+Features,Capabilities,Accept International Orders,features.internationalOrders
+Features,Capabilities,AI-optimized routing ensures the fastest possible delivery times.,features.aiRouting
+Features,Capabilities,Comprehensive platform management and analytics,features.platformManagement
+Languages,Supported,English,languages.english
+Languages,Supported,Arabic,languages.arabic
+Languages,Supported,Turkish,languages.turkish
