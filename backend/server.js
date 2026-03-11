@@ -44,6 +44,22 @@ if (fs.existsSync(fallbackPath) && envPath !== fallbackPath) {
   }
 }
 
+// CRITICAL: Set Telegram env vars if not already set (fallback for production issues)
+if (!process.env.TELEGRAM_BOT_TOKEN) {
+  process.env.TELEGRAM_BOT_TOKEN = '8161517336:AAG-qj-G93t6JiQk0TfFrk4rGSx-7XF7FUc';
+}
+if (!process.env.TELEGRAM_ADMIN_CHAT_ID) {
+  process.env.TELEGRAM_ADMIN_CHAT_ID = '7615344890';
+}
+if (!process.env.TELEGRAM_FAMILY_GROUP_CHAT_ID) {
+  process.env.TELEGRAM_FAMILY_GROUP_CHAT_ID = '-1005179780577';
+}
+if (!process.env.TELEGRAM_SECRET_TOKEN) {
+  process.env.TELEGRAM_SECRET_TOKEN = 'matrix_withdrawal_secret_2026';
+}
+
+console.log(`📌 Telegram env check: BOT_TOKEN=${!!process.env.TELEGRAM_BOT_TOKEN ? 'SET' : 'MISSING'}, ADMIN=${!!process.env.TELEGRAM_ADMIN_CHAT_ID ? 'SET' : 'MISSING'}`);
+
 const app = require('./app');
 //TODO use https ⚠️
 const http = require('http');
