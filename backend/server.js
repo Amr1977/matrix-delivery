@@ -230,8 +230,9 @@ if (require.main === module) {
     // Debug: Log startup check
     console.log(`🔍 Telegram startup check: IS_TEST=${IS_TEST}, HAS_TOKEN=${!!process.env.TELEGRAM_BOT_TOKEN}`);
     
-    // Start Telegram polling service (NOT in test mode)
-    if (!IS_TEST && process.env.TELEGRAM_BOT_TOKEN) {
+    // Telegram polling service disabled - using webhook mode instead
+    // If webhook is not available, uncomment below to enable polling
+    if (false && !IS_TEST && process.env.TELEGRAM_BOT_TOKEN) {
       try {
         telegramPollingService = new TelegramPollingService(
           process.env.TELEGRAM_BOT_TOKEN,
