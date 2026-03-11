@@ -324,9 +324,13 @@ async function sendTelegramMessage(botToken, chatId, text) {
  */
 async function handleTelegramCommand(message, botToken) {
     try {
-        const command = message.text.split(' ')[0].toLowerCase();
+        // Remove @botname mention if present
+        let text = message.text.replace(/@\w+/g, '').trim();
+        const command = text.split(' ')[0].toLowerCase();
         const chatId = message.chat.id;
         let response = '';
+
+        console.log(`🔧 Processing command: "${command}" from chat ${chatId}`);
 
         switch (command) {
             case '/start':
@@ -356,6 +360,7 @@ async function handleTelegramCommand(message, botToken) {
         }
 
         // Send response to the group
+        console.log(`📤 Sending response to chat ${chatId}: "${response.substring(0, 50)}..."`);
         await sendTelegramMessage(botToken, chatId, response);
         console.log('✅ Command response sent:', { command, chatId });
     } catch (error) {
