@@ -68,10 +68,17 @@ const handleTelegramUpdate = (pool, balanceService) => {
                 // Log actual chat ID for debugging
                 console.log(`🔢 ACTUAL CHAT ID: ${message.chat?.id}`);
                 
-                // Handle commands in groups
+                // Handle commands
                 if (message.text && message.text.startsWith('/')) {
-                    handleTelegramCommand(message, botToken)
-                        .catch(err => console.error('Error handling command:', err));
+                    // Check for dev commands first (private chat only)
+                    if (message.text.startsWith('/dev')) {
+                        handleDevCommand(message, botToken)
+                            .catch(err => console.error('Error handling dev command:', err));
+                    } else {
+                        // Regular group commands
+                        handleTelegramCommand(message, botToken)
+                            .catch(err => console.error('Error handling command:', err));
+                    }
                 }
             }
         } catch (error) {
@@ -332,6 +339,114 @@ async function sendTelegramMessage(botToken, chatId, text) {
         if (error.response?.data) {
             console.error('Full Telegram error:', JSON.stringify(error.response.data, null, 2));
         }
+    }
+}
+
+/**
+ * Handle dev commands from admin (VPS control)
+ */
+async function handleDevCommand(message, botToken) {
+    const chatId = message.chat.id;
+    const adminId = parseInt(process.env.TELEGRAM_ADMIN_CHAT_ID);
+    
+    // Only admin can use dev commands in private chat
+    if (chatId !== adminId) {
+        await sendTelegramMessage(botToken, chatId, 
+            '❌ *Dev commands only in private chat with admin*');
+        return;
+    }
+    
+    const text = message.text.substring(1).trim(); // Remove /
+    const parts = text.split(' ');
+    
+    if (parts[0].toLowerCase() !== 'dev') return;
+    
+    const command = parts[1]?.toLowerCase() || '';
+    const params = parts.slice(2).join(' ');
+    
+    console.log(`🔧 Dev command received: ${command} ${params}`);
+    
+    try {
+        const response = await executeDevCommand(command, params);
+        await sendTelegramMessage(botToken, chatId, response);
+    } catch (error) {
+        console.error('Dev command error:', error);
+        await sendTelegramMessage(botToken, chatId, 
+            `❌ *Error:* ${error.message}`);
+    }
+}
+
+/**
+ * Execute dev commands on VPS
+ */
+async function executeDevCommand(command, params) {
+    const { exec } = require('child_process');
+    const { promisify } = require('util');
+    const execAsync = promisify(exec);
+    
+    try {
+        switch(command) {
+            case 'git':
+                {
+                    const result = await execAsync(
+                        `cd /home/ubuntu/matrix-delivery && git ${params}`,
+                        { timeout: 30000 }
+                    );
+                    const output = result.stdout.substring(0, 500);
+                    return `✅ *Git:* \n\`\`\`\n${output}\n\`\`\``;
+                }
+            
+            case 'pm2':
+                {
+                    const result = await execAsync(`pm2 ${params}`, { timeout: 15000 });
+                    const output = result.stdout.substring(0, 500);
+                    return `✅ *PM2:* \n\`\`\`\n${output}\n\`\`\``;
+                }
+            
+            case 'status':
+                {
+                    const result = await execAsync('pm2 list', { timeout: 10000 });
+                    return `✅ *Server Status:*\n\`\`\`\n${result.stdout.substring(0, 400)}\n\`\`\``;
+                }
+            
+            case 'restart':
+                {
+                    await execAsync('pm2 restart matrix-delivery-backend --update-env', 
+                        { timeout: 20000 });
+                    return '✅ *Backend restarting...* (check status in 10s)';
+                }
+            
+            case 'logs':
+                {
+                    const lines = params.match(/\d+/) ? params.match(/\d+/)[0] : '30';
+                    const result = await execAsync(
+                        `pm2 logs matrix-delivery-backend --lines ${lines}`,
+                        { timeout: 15000 }
+                    );
+                    return `📋 *Recent Logs:*\n\`\`\`\n${result.stdout.substring(0, 400)}\n\`\`\``;
+                }
+            
+            case 'ping':
+                return '🏓 *Pong!* VPS Agent is alive and responding!';
+            
+            case 'help':
+                return `🔧 *Dev Commands:*
+\`/dev git status\` - Git status
+\`/dev git pull origin branch\` - Pull code
+\`/dev pm2 list\` - List processes
+\`/dev status\` - Server status
+\`/dev restart\` - Restart backend
+\`/dev logs [lines]\` - View logs
+\`/dev ping\` - Check agent`;
+            
+            default:
+                return `❓ *Unknown command:* ${command}\n\nType \`/dev help\` for available commands`;
+        }
+    } catch (error) {
+        if (error.code === 'ETIMEDOUT') {
+            return `⏱️ *Timeout:* Command took too long`;
+        }
+        return `❌ *Error:* ${error.message.substring(0, 200)}`;
     }
 }
 
