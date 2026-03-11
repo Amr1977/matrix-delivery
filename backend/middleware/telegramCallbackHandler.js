@@ -106,28 +106,37 @@ async function handleCallbackQuery(callbackQuery, pool, balanceService) {
 /**
  * Handle deposit approval callback
  */
-async function handleDepositApprovalCallback(callbackQuery, transactionId, pool, balanceService, botToken) {
+async function handleDepositApprovalCallback(callbackQuery, depositId, pool, balanceService, botToken) {
     try {
         const adminChatId = callbackQuery.message.chat.id;
         
-        // Get the deposit transaction details
+        // Get the deposit request details
         const depositResult = await pool.query(
-            'SELECT * FROM transactions WHERE transaction_id = $1',
-            [transactionId]
+            'SELECT * FROM deposit_requests WHERE id = $1',
+            [depositId]
         );
         
         if (depositResult.rows.length === 0) {
             await sendTelegramMessage(botToken, adminChatId, 
-                `❌ لم يتم العثور على الإيداع: ${transactionId}`);
+                `❌ لم يتم العثور على الإيداع: ${depositId}`);
             return;
         }
         
         const deposit = depositResult.rows[0];
         
+        if (deposit.status !== 'pending') {
+            await sendTelegramMessage(botToken, adminChatId, 
+                `⚠️ الإيداع بالفعل ${deposit.status}`);
+            return;
+        }
+        
+        const reference = `DEP-${Date.now()}`;
+        const adminId = process.env.TELEGRAM_ADMIN_ID || 'system';
+        
         // Mark as approved in database
         await pool.query(
-            'UPDATE transactions SET status = $1, approved_by = $2, approved_at = NOW() WHERE transaction_id = $3',
-            ['completed', process.env.TELEGRAM_ADMIN_ID || 'system', transactionId]
+            'UPDATE deposit_requests SET status = $1, processed_by = $2, transaction_reference = $3, processed_at = NOW() WHERE id = $4',
+            ['completed', adminId, reference, depositId]
         );
         
         // Update user balance (add the amount)
@@ -141,7 +150,8 @@ async function handleDepositApprovalCallback(callbackQuery, transactionId, pool,
 
 👤 <b>المستخدم:</b> ${deposit.user_id}
 💰 <b>المبلغ:</b> ${deposit.amount.toFixed(2)} EGP
-💳 <b>معرف العملية:</b> <code>${transactionId}</code>`;
+🆔 <b>معرف الطلب:</b> <code>${depositId}</code>
+💳 <b>رقم المرجع:</b> <code>${reference}</code>`;
 
         await sendTelegramMessage(botToken, adminChatId, confirmMessage);
 
@@ -156,28 +166,37 @@ async function handleDepositApprovalCallback(callbackQuery, transactionId, pool,
 /**
  * Handle deposit rejection callback
  */
-async function handleDepositRejectionCallback(callbackQuery, transactionId, pool, balanceService, botToken) {
+async function handleDepositRejectionCallback(callbackQuery, depositId, pool, balanceService, botToken) {
     try {
         const adminChatId = callbackQuery.message.chat.id;
         
-        // Get the deposit transaction details
+        // Get the deposit request details
         const depositResult = await pool.query(
-            'SELECT * FROM transactions WHERE transaction_id = $1',
-            [transactionId]
+            'SELECT * FROM deposit_requests WHERE id = $1',
+            [depositId]
         );
         
         if (depositResult.rows.length === 0) {
             await sendTelegramMessage(botToken, adminChatId, 
-                `❌ لم يتم العثور على الإيداع: ${transactionId}`);
+                `❌ لم يتم العثور على الإيداع: ${depositId}`);
             return;
         }
         
         const deposit = depositResult.rows[0];
         
+        if (deposit.status !== 'pending') {
+            await sendTelegramMessage(botToken, adminChatId, 
+                `⚠️ الإيداع بالفعل ${deposit.status}`);
+            return;
+        }
+        
+        const adminId = process.env.TELEGRAM_ADMIN_ID || 'system';
+        const reason = 'تم الرفض من خلال Telegram';
+        
         // Mark as rejected in database
         await pool.query(
-            'UPDATE transactions SET status = $1, rejected_by = $2, rejected_at = NOW() WHERE transaction_id = $3',
-            ['rejected', process.env.TELEGRAM_ADMIN_ID || 'system', transactionId]
+            'UPDATE deposit_requests SET status = $1, processed_by = $2, rejection_reason = $3, processed_at = NOW() WHERE id = $4',
+            ['rejected', adminId, reason, depositId]
         );
 
         // Notify admin via Telegram
@@ -185,7 +204,8 @@ async function handleDepositRejectionCallback(callbackQuery, transactionId, pool
 
 👤 <b>المستخدم:</b> ${deposit.user_id}
 💰 <b>المبلغ:</b> ${deposit.amount.toFixed(2)} EGP
-💳 <b>معرف العملية:</b> <code>${transactionId}</code>`;
+🆔 <b>معرف الطلب:</b> <code>${depositId}</code>
+📝 <b>السبب:</b> ${reason}`;
 
         await sendTelegramMessage(botToken, adminChatId, confirmMessage);
 

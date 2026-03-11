@@ -48,6 +48,11 @@ router.get('/admin/withdrawals', requireAdmin, controller.getPendingWithdrawals)
 router.post('/admin/withdrawals/:id/approve', requireAdmin, controller.approveWithdrawal);
 router.post('/admin/withdrawals/:id/reject', requireAdmin, controller.rejectWithdrawal);
 
+// Deposit admin routes
+router.get('/admin/deposits', requireAdmin, controller.getPendingDeposits);
+router.post('/admin/deposits/:id/approve', requireAdmin, controller.approveDeposit);
+router.post('/admin/deposits/:id/reject', requireAdmin, controller.rejectDeposit);
+
 router.get('/:userId', validateUserId, verifyBalanceOwnership, controller.getBalance);
 router.get('/:userId/transactions', validateUserId, verifyBalanceOwnership, controller.getTransactionHistory);
 router.post('/deposit', validateDeposit, verifyBalanceOwnership, controller.deposit);
