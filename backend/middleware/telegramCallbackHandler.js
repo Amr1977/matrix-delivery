@@ -299,8 +299,8 @@ async function sendTelegramMessage(botToken, chatId, text) {
     try {
         const axios = require('axios');
         
-        // For now, allow all chats (debug mode)
         console.log(`📤 Sending message to chat: ${chatId}`);
+        console.log(`   Text: "${text.substring(0, 50)}..."`);
         
         const response = await axios.post(`https://api.telegram.org/bot${botToken}/sendMessage`, {
             chat_id: chatId,
@@ -312,10 +312,17 @@ async function sendTelegramMessage(botToken, chatId, text) {
         console.log(`✅ Message sent successfully to ${chatId}`);
         return response.data;
     } catch (error) {
+        const errorMsg = error.response?.data?.description || error.message;
         console.error('❌ Failed to send message:', {
             chatId,
-            error: error.response?.data?.description || error.message
+            statusCode: error.response?.status,
+            error: errorMsg
         });
+        
+        // Log full error for debugging
+        if (error.response?.data) {
+            console.error('Full Telegram error:', JSON.stringify(error.response.data, null, 2));
+        }
     }
 }
 
