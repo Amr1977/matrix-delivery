@@ -47,7 +47,18 @@ const handleTelegramUpdate = (pool, balanceService) => {
             
             // Handle regular messages
             if (update.message) {
-                console.log('Telegram message received:', update.message.text);
+                console.log('📱 Telegram message received:', {
+                    from: update.message.from?.username || update.message.from?.first_name,
+                    chat: update.message.chat?.title || update.message.chat?.username || 'DM',
+                    chat_id: update.message.chat?.id,
+                    text: update.message.text,
+                    type: update.message.chat?.type
+                });
+                
+                // For now, just log group messages
+                if (update.message.chat?.type === 'supergroup' || update.message.chat?.type === 'group') {
+                    console.log('✅ Group message logged for future processing');
+                }
             }
         } catch (error) {
             console.error('Error handling Telegram update:', error);
