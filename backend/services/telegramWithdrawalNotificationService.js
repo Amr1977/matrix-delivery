@@ -85,13 +85,19 @@ class TelegramWithdrawalNotificationService {
 
 👤 <b>المستخدم:</b> ${user.full_name}
 📱 <b>الهاتف:</b> <code>${user.phone_number}</code>
+🆔 <b>User ID:</b> <code>${withdrawal.user_id}</code>
 
 💰 <b>المبلغ:</b> ${formatCurrency(withdrawal.amount)}
 🏦 <b>طريقة السحب:</b> ${methodLabel}
 🔢 <b>رقم الحساب:</b> <code>${withdrawal.destination_details || withdrawal.account_number}</code>
 
 ⏰ <b>الوقت:</b> ${createdAt}
-🆔 <b>رقم الطلب:</b> <code>${withdrawal.id}</code>`;
+🆔 <b>Withdrawal ID:</b> <code>${withdrawal.id}</code>
+
+<b>📋 للتحقق من التحويل:</b>
+1. ادخل User ID في التطبيق
+2. شوف الحساب المسجل (رقم الحساب بالأعلى)
+3. تأكد من المبلغ في الـ app (Instapay أو Vodafone Cash)</b>`;
     }
 
     /**
