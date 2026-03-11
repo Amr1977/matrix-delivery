@@ -295,14 +295,27 @@ async function handleWithdrawalRejectionCallback(callbackQuery, withdrawalId, po
 async function sendTelegramMessage(botToken, chatId, text) {
     try {
         const axios = require('axios');
+        
+        // Check if bot is allowed to send to this chat
+        const adminChatId = process.env.TELEGRAM_ADMIN_CHAT_ID;
+        const familyGroupChatId = process.env.TELEGRAM_FAMILY_GROUP_CHAT_ID;
+        const allowedChats = [parseInt(adminChatId), parseInt(familyGroupChatId)];
+        
+        if (!allowedChats.includes(parseInt(chatId))) {
+            console.warn(`⚠️ Chat ID ${chatId} not in allowed list`);
+            return;
+        }
+        
         await axios.post(`https://api.telegram.org/bot${botToken}/sendMessage`, {
             chat_id: chatId,
             text: text,
             parse_mode: 'HTML',
             disable_web_page_preview: true
         });
+        
+        console.log(`✅ Message sent to chat ${chatId}`);
     } catch (error) {
-        console.error('Failed to send Telegram message:', error.message);
+        console.error('Failed to send Telegram message:', error.response?.data || error.message);
     }
 }
 
