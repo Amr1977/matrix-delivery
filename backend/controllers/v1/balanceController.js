@@ -128,8 +128,10 @@ class BalanceController {
             });
 
             // Send Telegram notification to admin if service is configured
-            if (this.telegramService && result.withdrawalRequestId) {
+            if (this.telegramService) {
                 try {
+                    console.log('🔔 Sending Telegram notification for withdrawal:', result.withdrawalRequestId);
+                    
                     // Fetch withdrawal request and user info for the notification
                     const withdrawalResult = await pool.query(
                         'SELECT id, amount, withdrawal_method, destination_details, created_at FROM withdrawal_requests WHERE id = $1',
@@ -144,17 +146,23 @@ class BalanceController {
                     const user = userResult.rows[0];
                     
                     if (withdrawal && user) {
+                        console.log('✅ Found withdrawal and user, sending notification');
                         // Format user object to match service expectations
                         const formattedUser = {
                             full_name: user.name,
                             phone_number: user.phone
                         };
                         await this.telegramService.notifyWithdrawalRequest(withdrawal, formattedUser);
+                        console.log('✅ Telegram notification sent successfully');
+                    } else {
+                        console.log('⚠️ Withdrawal or user not found');
                     }
                 } catch (error) {
-                    console.error('Failed to send Telegram notification:', error.message);
+                    console.error('❌ Failed to send Telegram notification:', error.message);
                     // Don't fail the withdrawal request if Telegram notification fails
                 }
+            } else {
+                console.log('⚠️ Telegram service not configured');
             }
 
             const data = {
