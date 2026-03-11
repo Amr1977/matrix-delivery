@@ -391,6 +391,8 @@ async function executeDevCommand(command, params) {
     const { promisify } = require('util');
     const execAsync = promisify(exec);
     
+    console.log(`⚙️ EXECUTING DEV COMMAND: ${command} ${params}`);
+    
     try {
         switch(command) {
             case 'git':
