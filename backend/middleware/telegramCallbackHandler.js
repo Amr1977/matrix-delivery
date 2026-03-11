@@ -34,22 +34,24 @@ const handleTelegramUpdate = (pool, balanceService) => {
         try {
             const update = req.body;
             
-            // Handle callback queries (button presses)
+            // Always acknowledge the update to Telegram immediately
+            res.status(200).json({ ok: true });
+            
+            // Handle callback queries (button presses) asynchronously
             if (update.callback_query) {
-                return await handleCallbackQuery(update.callback_query, pool, balanceService);
+                // Don't await - process in background
+                handleCallbackQuery(update.callback_query, pool, balanceService)
+                    .catch(err => console.error('Error handling callback:', err));
+                return;
             }
             
             // Handle regular messages
             if (update.message) {
                 console.log('Telegram message received:', update.message.text);
-                // You can add command handlers here if needed
             }
-
-            // Always acknowledge the update to Telegram
-            res.status(200).json({ ok: true });
         } catch (error) {
             console.error('Error handling Telegram update:', error);
-            res.status(200).json({ ok: true }); // Still acknowledge to prevent Telegram retries
+            res.status(200).json({ ok: true });
         }
     };
 };
