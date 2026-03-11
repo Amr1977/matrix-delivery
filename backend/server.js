@@ -1,21 +1,51 @@
 const dotenv = require('dotenv');
+const path = require('path');
+const fs = require('fs');
 
 // Register ts-node to load TypeScript modules
 require('ts-node/register');
 
-// Load environment FIRST
-// Check ENV_FILE first (set by PM2), then fall back to NODE_ENV-based detection
-const envFile = process.env.ENV_FILE || 
-  (process.env.NODE_ENV === 'production' ? '.env.production' : 
-   process.env.NODE_ENV === 'staging' ? '.env.staging' : 
-   process.env.NODE_ENV === 'development' ? '.env.development' : 
-   process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing' ? '.env.testing' : '.env');
+// Load environment FIRST with ABSOLUTE paths
+const backendDir = __dirname;
 
-if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing') {
-  dotenv.config({ path: '.env.testing' });
-} else {
-  dotenv.config({ path: envFile });
+let envFileToLoad = '.env';
+const nodeEnv = process.env.NODE_ENV || 'production';
+
+if (nodeEnv === 'test' || nodeEnv === 'testing') {
+  envFileToLoad = '.env.testing';
+} else if (nodeEnv === 'production') {
+  envFileToLoad = '.env.production';
+} else if (nodeEnv === 'staging') {
+  envFileToLoad = '.env.staging';
+} else if (nodeEnv === 'development') {
+  envFileToLoad = '.env.development';
 }
+
+const envPath = path.resolve(backendDir, envFileToLoad);
+const fallbackPath = path.resolve(backendDir, '.env');
+
+// Load primary env file
+if (fs.existsSync(envPath)) {
+  console.log(`📄 Loading environment from: ${envPath}`);
+  dotenv.config({ path: envPath });
+} else {
+  console.log(`⚠️ ${envFileToLoad} not found, using fallback`);
+}
+
+// Always load .env as well to fill in any missing values
+if (fs.existsSync(fallbackPath) && envPath !== fallbackPath) {
+  const result = dotenv.config({ path: fallbackPath });
+  if (result.parsed) {
+    for (const [key, value] of Object.entries(result.parsed)) {
+      if (!process.env[key]) {
+        process.env[key] = value;
+      }
+    }
+  }
+}
+
+// Telegram env vars should now be loaded from .env.production
+console.log(`📌 Telegram env check: BOT_TOKEN=${!!process.env.TELEGRAM_BOT_TOKEN ? 'SET' : 'MISSING'}, ADMIN=${!!process.env.TELEGRAM_ADMIN_CHAT_ID ? 'SET' : 'MISSING'}`);
 
 const app = require('./app');
 //TODO use https ⚠️
@@ -28,10 +58,15 @@ const pool = require('./config/db');
 const { getNotificationService } = require('./services/notificationService');
 const configureSocket = require('./config/socket');
 const { startCleanup, stopCleanup } = require('./middleware/rateLimit');
+const TelegramPollingService = require('./services/telegramPollingService');
+const { BalanceService } = require('./services/balanceService');
 
 const IS_TEST = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing';
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 const PORT = process.env.PORT || 5001;
+
+// Telegram polling service
+let telegramPollingService = null;
 
 // Create HTTP server wrapping the Express app
 const httpServer = http.createServer(app);
@@ -191,6 +226,26 @@ if (require.main === module) {
     console.log(`💾 Database: PostgreSQL`);
     console.log(`🔒 Environment: ${IS_TEST ? 'Testing' : (IS_PRODUCTION ? 'Production' : 'Development')}`);
     console.log('');
+    
+    // Debug: Log startup check
+    console.log(`🔍 Telegram startup check: IS_TEST=${IS_TEST}, HAS_TOKEN=${!!process.env.TELEGRAM_BOT_TOKEN}`);
+    
+    // Telegram polling service disabled - using webhook mode instead
+    // If webhook is not available, uncomment below to enable polling
+    if (false && !IS_TEST && process.env.TELEGRAM_BOT_TOKEN) {
+      try {
+        telegramPollingService = new TelegramPollingService(
+          process.env.TELEGRAM_BOT_TOKEN,
+          pool,
+          new BalanceService(pool)
+        );
+        telegramPollingService.start();
+        console.log('🤖 Telegram polling service started');
+      } catch (err) {
+        console.error('❌ Failed to start Telegram polling:', err.message);
+      }
+    }
+    
     // ... Additional endpoint logs omitted for brevity in entry point ...
 
     // Signal PM2 that the application is ready
@@ -203,6 +258,12 @@ if (require.main === module) {
 // Graceful shutdown
 process.on('SIGINT', async () => {
   console.log('\n🛑 Shutting down server...');
+  
+  // Stop Telegram polling
+  if (telegramPollingService) {
+    telegramPollingService.stop();
+  }
+  
   stopCleanup();
 
   // Stop activity tracker interval and flush pending updates

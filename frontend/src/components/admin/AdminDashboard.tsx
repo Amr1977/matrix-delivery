@@ -20,6 +20,7 @@ import { Button } from '../design-system/Button';
 import { Badge } from '../design-system/Badge';
 import SystemHealthDashboard from './SystemHealthDashboard';
 import AdminPaymentsPanel from './AdminPaymentsPanel';
+import { AdminDepositsPanel } from './AdminDepositsPanel';
 
 interface StatCard {
   label: string;
@@ -46,6 +47,7 @@ export const AdminDashboard: React.FC = () => {
     { icon: Home, label: 'Dashboard' },
     { icon: Activity, label: 'System Health' },
     { icon: CreditCard, label: 'Payments', badge: pendingPaymentsCount > 0 ? pendingPaymentsCount : undefined },
+    { icon: DollarSign, label: 'Deposits' },
     { icon: BarChart3, label: 'Analytics' },
     { icon: Package, label: 'Orders' },
     { icon: Users, label: 'Couriers' },
@@ -218,6 +220,11 @@ export const AdminDashboard: React.FC = () => {
         {/* Payments Tab */}
         {activeTab === 'payments' && (
           <AdminPaymentsPanel onPendingCountChange={setPendingPaymentsCount} />
+        )}
+
+        {/* Deposits Tab */}
+        {activeTab === 'deposits' && (
+          <AdminDepositsPanel />
         )}
       </div>
     </div>

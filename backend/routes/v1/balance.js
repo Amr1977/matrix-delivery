@@ -4,6 +4,9 @@
 
 const express = require('express');
 const { BalanceController } = require('../../controllers/v1/balanceController');
+const { verifyTelegramWebhook, handleTelegramUpdate } = require('../../middleware/telegramCallbackHandler');
+const { BalanceService } = require('../../services/balanceService');
+const pool = require('../../config/db');
 
 // Mock middlewares since we don't have JS versions of all validators yet
 // We will use basic auth middleware which is usually JS
@@ -28,13 +31,27 @@ const verifyBalanceOwnership = (req, res, next) => {
     next();
 };
 
-// Apply auth
+/**
+ * Telegram Webhook for withdrawal notifications (NO AUTH)
+ * POST /api/v1/balance/telegram/webhook
+ */
+router.post('/telegram/webhook', 
+    verifyTelegramWebhook(process.env.TELEGRAM_BOT_TOKEN),
+    handleTelegramUpdate(pool, new BalanceService(pool))
+);
+
+// Apply auth to all other routes
 router.use(verifyToken);
 
 // Admin routes (Must be defined before /:userId to avoid conflict)
 router.get('/admin/withdrawals', requireAdmin, controller.getPendingWithdrawals);
 router.post('/admin/withdrawals/:id/approve', requireAdmin, controller.approveWithdrawal);
 router.post('/admin/withdrawals/:id/reject', requireAdmin, controller.rejectWithdrawal);
+
+// Deposit admin routes
+router.get('/admin/deposits', requireAdmin, controller.getPendingDeposits);
+router.post('/admin/deposits/:id/approve', requireAdmin, controller.approveDeposit);
+router.post('/admin/deposits/:id/reject', requireAdmin, controller.rejectDeposit);
 
 router.get('/:userId', validateUserId, verifyBalanceOwnership, controller.getBalance);
 router.get('/:userId/transactions', validateUserId, verifyBalanceOwnership, controller.getTransactionHistory);

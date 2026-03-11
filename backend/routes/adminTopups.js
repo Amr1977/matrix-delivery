@@ -14,6 +14,7 @@ const { TopupService, VALID_PAYMENT_METHODS } = require('../services/topupServic
 const { PlatformWalletService } = require('../services/platformWalletService');
 const { BalanceService } = require('../services/balanceService');
 const { getNotificationService } = require('../services/notificationService');
+const TelegramWithdrawalNotificationService = require('../services/telegramWithdrawalNotificationService');
 
 // Helper to safely get notification service
 const safeGetNotificationService = () => {
@@ -387,6 +388,45 @@ router.post('/:id/verify', verifyAdmin, async (req, res, next) => {
       newBalance: result.newBalance,
       ip: req.ip
     });
+
+    // Send Telegram notification to admin if configured
+    if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_ADMIN_CHAT_ID) {
+      try {
+        const telegramService = new TelegramWithdrawalNotificationService(
+          process.env.TELEGRAM_BOT_TOKEN,
+          process.env.TELEGRAM_ADMIN_CHAT_ID
+        );
+
+        // Fetch user info
+        const userResult = await pool.query(
+          'SELECT name, phone FROM users WHERE id = $1',
+          [result.topup.user_id]
+        );
+        const user = userResult.rows[0];
+
+        if (user) {
+          const amount = typeof result.topup.amount === 'string' ? parseFloat(result.topup.amount) : result.topup.amount;
+          const message = `✅ <b>تم التحقق من top-up</b>
+
+👤 <b>المستخدم:</b> ${user.name}
+📱 <b>الهاتف:</b> <code>${user.phone}</code>
+🆔 <b>User ID:</b> <code>${result.topup.user_id}</code>
+
+💰 <b>المبلغ:</b> ${amount.toFixed(2)} EGP
+🏦 <b>طريقة الدفع:</b> ${result.topup.payment_method}
+
+⏰ <b>الوقت:</b> ${new Date().toLocaleString('ar-EG', { timeZone: 'Africa/Cairo' })}
+🆔 <b>رقم Top-up:</b> <code>${result.topup.id}</code>
+💳 <b>رقم المرجع:</b> <code>${result.topup.transaction_reference}</code>`;
+
+          await telegramService._sendMessage(message);
+          logger.info('Telegram topup approval notification sent', { topupId });
+        }
+      } catch (error) {
+        logger.error('Failed to send Telegram topup notification:', error.message);
+        // Don't fail the request if notification fails
+      }
+    }
 
     res.json({
       success: true,
