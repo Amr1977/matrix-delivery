@@ -299,35 +299,23 @@ async function sendTelegramMessage(botToken, chatId, text) {
     try {
         const axios = require('axios');
         
-        // Check if bot is allowed to send to this chat
-        const adminChatId = parseInt(process.env.TELEGRAM_ADMIN_CHAT_ID);
-        const familyGroupChatId = parseInt(process.env.TELEGRAM_FAMILY_GROUP_CHAT_ID);
-        const incomingChatId = parseInt(chatId);
+        // For now, allow all chats (debug mode)
+        console.log(`📤 Sending message to chat: ${chatId}`);
         
-        console.log('📊 Chat ID Debug:', {
-            incoming: incomingChatId,
-            admin: adminChatId,
-            familyGroup: familyGroupChatId,
-            allowed: [adminChatId, familyGroupChatId]
-        });
-        
-        const allowedChats = [adminChatId, familyGroupChatId];
-        
-        if (!allowedChats.includes(incomingChatId)) {
-            console.warn(`⚠️ Chat ID ${incomingChatId} not in allowed list:`, allowedChats);
-            return;
-        }
-        
-        await axios.post(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        const response = await axios.post(`https://api.telegram.org/bot${botToken}/sendMessage`, {
             chat_id: chatId,
             text: text,
             parse_mode: 'HTML',
             disable_web_page_preview: true
         });
         
-        console.log(`✅ Message sent to chat ${chatId}`);
+        console.log(`✅ Message sent successfully to ${chatId}`);
+        return response.data;
     } catch (error) {
-        console.error('Failed to send Telegram message:', error.response?.data || error.message);
+        console.error('❌ Failed to send message:', {
+            chatId,
+            error: error.response?.data?.description || error.message
+        });
     }
 }
 
