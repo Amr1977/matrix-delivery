@@ -31,7 +31,16 @@ const verifyBalanceOwnership = (req, res, next) => {
     next();
 };
 
-// Apply auth
+/**
+ * Telegram Webhook for withdrawal notifications (NO AUTH)
+ * POST /api/v1/balance/telegram/webhook
+ */
+router.post('/telegram/webhook', 
+    verifyTelegramWebhook(process.env.TELEGRAM_BOT_TOKEN),
+    handleTelegramUpdate(pool, new BalanceService(pool))
+);
+
+// Apply auth to all other routes
 router.use(verifyToken);
 
 // Admin routes (Must be defined before /:userId to avoid conflict)
@@ -45,14 +54,5 @@ router.post('/deposit', validateDeposit, verifyBalanceOwnership, controller.depo
 router.post('/withdraw', validateWithdrawal, verifyBalanceOwnership, controller.withdraw);
 router.post('/withdraw/:id/verify', validateWithdrawal, verifyBalanceOwnership, controller.verifyWithdrawal);
 router.post('/withdraw/:id/cancel', validateWithdrawal, verifyBalanceOwnership, controller.cancelWithdrawal);
-
-/**
- * Telegram Webhook for withdrawal notifications
- * POST /api/v1/balance/telegram/webhook
- */
-router.post('/telegram/webhook', 
-    verifyTelegramWebhook(process.env.TELEGRAM_BOT_TOKEN),
-    handleTelegramUpdate(pool, new BalanceService(pool))
-);
 
 module.exports = router;
