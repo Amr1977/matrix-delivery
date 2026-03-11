@@ -28,10 +28,15 @@ const pool = require('./config/db');
 const { getNotificationService } = require('./services/notificationService');
 const configureSocket = require('./config/socket');
 const { startCleanup, stopCleanup } = require('./middleware/rateLimit');
+const TelegramPollingService = require('./services/telegramPollingService');
+const { BalanceService } = require('./services/balanceService');
 
 const IS_TEST = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing';
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 const PORT = process.env.PORT || 5001;
+
+// Telegram polling service
+let telegramPollingService = null;
 
 // Create HTTP server wrapping the Express app
 const httpServer = http.createServer(app);
@@ -191,6 +196,22 @@ if (require.main === module) {
     console.log(`💾 Database: PostgreSQL`);
     console.log(`🔒 Environment: ${IS_TEST ? 'Testing' : (IS_PRODUCTION ? 'Production' : 'Development')}`);
     console.log('');
+    
+    // Start Telegram polling service (NOT in test mode)
+    if (!IS_TEST && process.env.TELEGRAM_BOT_TOKEN) {
+      try {
+        telegramPollingService = new TelegramPollingService(
+          process.env.TELEGRAM_BOT_TOKEN,
+          pool,
+          new BalanceService(pool)
+        );
+        telegramPollingService.start();
+        console.log('🤖 Telegram polling service started');
+      } catch (err) {
+        console.error('❌ Failed to start Telegram polling:', err.message);
+      }
+    }
+    
     // ... Additional endpoint logs omitted for brevity in entry point ...
 
     // Signal PM2 that the application is ready
@@ -203,6 +224,12 @@ if (require.main === module) {
 // Graceful shutdown
 process.on('SIGINT', async () => {
   console.log('\n🛑 Shutting down server...');
+  
+  // Stop Telegram polling
+  if (telegramPollingService) {
+    telegramPollingService.stop();
+  }
+  
   stopCleanup();
 
   // Stop activity tracker interval and flush pending updates
