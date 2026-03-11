@@ -93,7 +93,9 @@ const EXEMPT_POST_ROUTES = [
   '/locations/parse-maps-url',
   '/api/locations/parse-maps-url',
   '/maps/proxy',
-  '/api/maps/proxy'
+  '/api/maps/proxy',
+  '/v1/balance/telegram/webhook',  // Telegram webhook (external service, no CSRF needed)
+  '/balance/telegram/webhook'       // Alternate path
 ];
 
 /**
