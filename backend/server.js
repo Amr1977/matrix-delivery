@@ -197,6 +197,9 @@ if (require.main === module) {
     console.log(`🔒 Environment: ${IS_TEST ? 'Testing' : (IS_PRODUCTION ? 'Production' : 'Development')}`);
     console.log('');
     
+    // Debug: Log startup check
+    console.log(`🔍 Telegram startup check: IS_TEST=${IS_TEST}, HAS_TOKEN=${!!process.env.TELEGRAM_BOT_TOKEN}`);
+    
     // Start Telegram polling service (NOT in test mode)
     if (!IS_TEST && process.env.TELEGRAM_BOT_TOKEN) {
       try {
