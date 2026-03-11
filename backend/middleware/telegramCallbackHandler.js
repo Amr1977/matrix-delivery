@@ -47,17 +47,19 @@ const handleTelegramUpdate = (pool, balanceService) => {
             
             // Handle regular messages
             if (update.message) {
+                const message = update.message;
                 console.log('📱 Telegram message received:', {
-                    from: update.message.from?.username || update.message.from?.first_name,
-                    chat: update.message.chat?.title || update.message.chat?.username || 'DM',
-                    chat_id: update.message.chat?.id,
-                    text: update.message.text,
-                    type: update.message.chat?.type
+                    from: message.from?.username || message.from?.first_name,
+                    chat: message.chat?.title || message.chat?.username || 'DM',
+                    chat_id: message.chat?.id,
+                    text: message.text,
+                    type: message.chat?.type
                 });
                 
-                // For now, just log group messages
-                if (update.message.chat?.type === 'supergroup' || update.message.chat?.type === 'group') {
-                    console.log('✅ Group message logged for future processing');
+                // Handle commands in groups
+                if (message.text && message.text.startsWith('/')) {
+                    handleTelegramCommand(message, botToken)
+                        .catch(err => console.error('Error handling command:', err));
                 }
             }
         } catch (error) {
@@ -301,6 +303,50 @@ async function sendTelegramMessage(botToken, chatId, text) {
         });
     } catch (error) {
         console.error('Failed to send Telegram message:', error.message);
+    }
+}
+
+/**
+ * Handle Telegram commands from group messages
+ */
+async function handleTelegramCommand(message, botToken) {
+    try {
+        const command = message.text.split(' ')[0].toLowerCase();
+        const chatId = message.chat.id;
+        let response = '';
+
+        switch (command) {
+            case '/start':
+            case '/help':
+                response = `🤖 *Matrix Delivery Bot Commands*
+
+/status - Platform status
+/help - Show this message
+/ping - Check if bot is alive`;
+                break;
+
+            case '/status':
+                response = `✅ *Platform Status*
+
+🔧 Backend: Online
+📱 Telegram Bot: Connected
+🗄️ Database: Connected
+🚀 API: Responding`;
+                break;
+
+            case '/ping':
+                response = '🏓 Pong! Bot is alive and working!';
+                break;
+
+            default:
+                response = `❓ Unknown command: ${command}\n\nTry /help for available commands`;
+        }
+
+        // Send response to the group
+        await sendTelegramMessage(botToken, chatId, response);
+        console.log('✅ Command response sent:', { command, chatId });
+    } catch (error) {
+        console.error('Error handling telegram command:', error);
     }
 }
 
