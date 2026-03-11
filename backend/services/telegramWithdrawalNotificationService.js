@@ -77,12 +77,15 @@ class TelegramWithdrawalNotificationService {
             timeZone: 'Africa/Cairo'
         });
 
+        // Ensure amount is a number
+        const amount = typeof withdrawal.amount === 'string' ? parseFloat(withdrawal.amount) : withdrawal.amount;
+
         return `🔄 <b>طلب سحب جديد</b>
 
 👤 <b>المستخدم:</b> ${user.full_name}
 📱 <b>الهاتف:</b> <code>${user.phone_number}</code>
 
-💰 <b>المبلغ:</b> ${formatCurrency(withdrawal.amount)}
+💰 <b>المبلغ:</b> ${formatCurrency(amount)}
 🏦 <b>طريقة السحب:</b> ${methodLabel}
 🔢 <b>رقم الحساب:</b> <code>${withdrawal.account_number}</code>
 
