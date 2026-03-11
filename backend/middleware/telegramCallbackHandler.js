@@ -69,27 +69,138 @@ async function handleCallbackQuery(callbackQuery, pool, balanceService) {
             return;
         }
 
-        // Parse the callback data
-        const telegramService = new TelegramWithdrawalNotificationService(botToken, adminChatId);
-        const { action, withdrawalId } = telegramService.parseCallbackData(data);
+        // Parse the callback data to determine type (withdrawal or deposit)
+        const isDeposit = data.startsWith('approve_deposit:') || data.startsWith('reject_deposit:');
+        const isWithdrawal = data.startsWith('approve_withdrawal:') || data.startsWith('reject_withdrawal:');
 
-        if (action === 'approve') {
-            await handleApprovalCallback(callbackQuery, withdrawalId, pool, balanceService, botToken);
-        } else if (action === 'reject') {
-            await handleRejectionCallback(callbackQuery, withdrawalId, pool, balanceService, botToken);
+        if (isDeposit) {
+            // Handle deposit approval/rejection
+            const action = data.startsWith('approve_deposit:') ? 'approve' : 'reject';
+            const transactionId = data.split(':')[1];
+            
+            if (action === 'approve') {
+                await handleDepositApprovalCallback(callbackQuery, transactionId, pool, balanceService, botToken);
+            } else {
+                await handleDepositRejectionCallback(callbackQuery, transactionId, pool, balanceService, botToken);
+            }
+            
+            await answerCallbackQuery(botToken, callbackQueryId, `تم ${action === 'approve' ? 'الموافقة على الإيداع' : 'رفض الإيداع'}`);
+        } else if (isWithdrawal) {
+            // Handle withdrawal approval/rejection (existing logic)
+            const telegramService = new TelegramWithdrawalNotificationService(botToken, adminChatId);
+            const { action, withdrawalId } = telegramService.parseCallbackData(data);
+
+            if (action === 'approve') {
+                await handleWithdrawalApprovalCallback(callbackQuery, withdrawalId, pool, balanceService, botToken);
+            } else if (action === 'reject') {
+                await handleWithdrawalRejectionCallback(callbackQuery, withdrawalId, pool, balanceService, botToken);
+            }
+
+            await answerCallbackQuery(botToken, callbackQueryId, `تم ${action === 'approve' ? 'الموافقة' : 'الرفض'}`);
         }
-
-        // Answer the callback query to remove the loading state
-        await answerCallbackQuery(botToken, callbackQueryId, `تم ${action === 'approve' ? 'الموافقة' : 'الرفض'}`);
     } catch (error) {
         console.error('Error handling callback query:', error);
     }
 }
 
 /**
+ * Handle deposit approval callback
+ */
+async function handleDepositApprovalCallback(callbackQuery, transactionId, pool, balanceService, botToken) {
+    try {
+        const adminChatId = callbackQuery.message.chat.id;
+        
+        // Get the deposit transaction details
+        const depositResult = await pool.query(
+            'SELECT * FROM transactions WHERE transaction_id = $1',
+            [transactionId]
+        );
+        
+        if (depositResult.rows.length === 0) {
+            await sendTelegramMessage(botToken, adminChatId, 
+                `❌ لم يتم العثور على الإيداع: ${transactionId}`);
+            return;
+        }
+        
+        const deposit = depositResult.rows[0];
+        
+        // Mark as approved in database
+        await pool.query(
+            'UPDATE transactions SET status = $1, approved_by = $2, approved_at = NOW() WHERE transaction_id = $3',
+            ['completed', process.env.TELEGRAM_ADMIN_ID || 'system', transactionId]
+        );
+        
+        // Update user balance (add the amount)
+        await pool.query(
+            'UPDATE user_balances SET available_balance = available_balance + $1, updated_at = NOW() WHERE user_id = $2',
+            [deposit.amount, deposit.user_id]
+        );
+
+        // Notify admin via Telegram
+        const confirmMessage = `✅ <b>تم الموافقة على الإيداع</b>
+
+👤 <b>المستخدم:</b> ${deposit.user_id}
+💰 <b>المبلغ:</b> ${deposit.amount.toFixed(2)} EGP
+💳 <b>معرف العملية:</b> <code>${transactionId}</code>`;
+
+        await sendTelegramMessage(botToken, adminChatId, confirmMessage);
+
+    } catch (error) {
+        console.error('Error handling deposit approval callback:', error);
+        const adminChatId = callbackQuery.message.chat.id;
+        await sendTelegramMessage(botToken, adminChatId, 
+            `❌ حدث خطأ أثناء الموافقة: ${error.message}`);
+    }
+}
+
+/**
+ * Handle deposit rejection callback
+ */
+async function handleDepositRejectionCallback(callbackQuery, transactionId, pool, balanceService, botToken) {
+    try {
+        const adminChatId = callbackQuery.message.chat.id;
+        
+        // Get the deposit transaction details
+        const depositResult = await pool.query(
+            'SELECT * FROM transactions WHERE transaction_id = $1',
+            [transactionId]
+        );
+        
+        if (depositResult.rows.length === 0) {
+            await sendTelegramMessage(botToken, adminChatId, 
+                `❌ لم يتم العثور على الإيداع: ${transactionId}`);
+            return;
+        }
+        
+        const deposit = depositResult.rows[0];
+        
+        // Mark as rejected in database
+        await pool.query(
+            'UPDATE transactions SET status = $1, rejected_by = $2, rejected_at = NOW() WHERE transaction_id = $3',
+            ['rejected', process.env.TELEGRAM_ADMIN_ID || 'system', transactionId]
+        );
+
+        // Notify admin via Telegram
+        const confirmMessage = `❌ <b>تم رفض الإيداع</b>
+
+👤 <b>المستخدم:</b> ${deposit.user_id}
+💰 <b>المبلغ:</b> ${deposit.amount.toFixed(2)} EGP
+💳 <b>معرف العملية:</b> <code>${transactionId}</code>`;
+
+        await sendTelegramMessage(botToken, adminChatId, confirmMessage);
+
+    } catch (error) {
+        console.error('Error handling deposit rejection callback:', error);
+        const adminChatId = callbackQuery.message.chat.id;
+        await sendTelegramMessage(botToken, adminChatId, 
+            `❌ حدث خطأ أثناء الرفض: ${error.message}`);
+    }
+}
+
+/**
  * Handle withdrawal approval callback
  */
-async function handleApprovalCallback(callbackQuery, withdrawalId, pool, balanceService, botToken) {
+async function handleWithdrawalApprovalCallback(callbackQuery, withdrawalId, pool, balanceService, botToken) {
     try {
         // Ask for transaction reference via inline prompt or next message
         const adminChatId = callbackQuery.message.chat.id;
@@ -121,7 +232,7 @@ async function handleApprovalCallback(callbackQuery, withdrawalId, pool, balance
 /**
  * Handle withdrawal rejection callback
  */
-async function handleRejectionCallback(callbackQuery, withdrawalId, pool, balanceService, botToken) {
+async function handleWithdrawalRejectionCallback(callbackQuery, withdrawalId, pool, balanceService, botToken) {
     try {
         const adminChatId = callbackQuery.message.chat.id;
         const adminId = process.env.TELEGRAM_ADMIN_ID || 'system';

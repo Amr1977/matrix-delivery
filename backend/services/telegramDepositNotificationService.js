@@ -39,7 +39,8 @@ class TelegramDepositNotificationService {
             
             const message = this._buildDepositMessage(deposit, user, formatCurrency);
 
-            return await this._sendMessage(message);
+            // Send with buttons for approval
+            return await this._sendMessageWithButtons(message, deposit.id);
         } catch (error) {
             console.error('Failed to send Telegram deposit notification:', error);
             throw error;
@@ -69,6 +70,47 @@ class TelegramDepositNotificationService {
 
 ⏰ <b>الوقت:</b> ${createdAt}
 🆔 <b>Transaction ID:</b> <code>${deposit.id}</code>`;
+    }
+
+    /**
+     * Send message with approval/rejection buttons
+     * 
+     * @private
+     */
+    async _sendMessageWithButtons(text, transactionId) {
+        try {
+            const payload = {
+                chat_id: this.adminChatId,
+                text: text,
+                parse_mode: 'HTML',
+                disable_web_page_preview: true,
+                reply_markup: {
+                    inline_keyboard: [
+                        [
+                            {
+                                text: '✅ Approve Deposit',
+                                callback_data: `approve_deposit:${transactionId}`
+                            },
+                            {
+                                text: '❌ Reject Deposit',
+                                callback_data: `reject_deposit:${transactionId}`
+                            }
+                        ]
+                    ]
+                }
+            };
+
+            const response = await axios.post(`${this.baseUrl}/sendMessage`, payload);
+            
+            return {
+                success: true,
+                messageId: response.data.result.message_id,
+                chatId: response.data.result.chat.id
+            };
+        } catch (error) {
+            console.error('Telegram API error:', error.response?.data || error.message);
+            throw new Error(`Failed to send Telegram message: ${error.message}`);
+        }
     }
 
     /**
