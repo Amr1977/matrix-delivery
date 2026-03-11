@@ -75,6 +75,36 @@ class BalanceController {
         };
     }
 
+    // GET /api/v1/balance/admin/deposits
+    getPendingDeposits = async (req, res, next) => {
+        try {
+            const result = await pool.query(
+                'SELECT * FROM deposit_requests WHERE status = $1 ORDER BY created_at DESC',
+                ['pending']
+            );
+
+            const deposits = result.rows.map(row => ({
+                id: row.id,
+                requestNumber: row.request_number,
+                userId: row.user_id,
+                amount: row.amount,
+                currency: row.currency,
+                status: row.status,
+                createdAt: row.created_at,
+                updatedAt: row.updated_at
+            }));
+
+            res.status(200).json({
+                success: true,
+                data: deposits,
+                count: deposits.length
+            });
+        } catch (error) {
+            console.error('Error fetching pending deposits:', error);
+            return sendError(res, 500, error.message);
+        }
+    };
+
     // GET /api/v1/balance/:userId
     getBalance = async (req, res, next) => {
         try {
@@ -97,17 +127,30 @@ class BalanceController {
     // POST /api/v1/balance/deposit
     deposit = async (req, res, next) => {
         try {
-            const result = await this.balanceService.deposit({
-                userId: req.body.userId,
-                amount: req.body.amount,
-                description: req.body.description,
-                metadata: req.body.metadata
-            });
+            console.log('💳 Creating deposit request (pending approval)');
+            
+            // Create pending deposit request instead of direct balance update
+            const depositRequestResult = await pool.query(
+                'INSERT INTO deposit_requests (request_number, user_id, amount, deposit_method, destination_type, destination_details, status, requires_verification) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
+                [
+                    'DR-' + Date.now(),
+                    req.body.userId,
+                    req.body.amount,
+                    req.body.depositMethod || 'bank_transfer',
+                    req.body.destinationType || 'bank',
+                    JSON.stringify(req.body.metadata || {}),
+                    'pending',
+                    false
+                ]
+            );
+
+            const depositRequest = depositRequestResult.rows[0];
+            console.log('✅ Deposit request created:', depositRequest.id);
 
             // Send Telegram notification to admin if service is configured
             if (this.telegramDepositService) {
                 try {
-                    console.log('🔔 Sending Telegram notification for deposit');
+                    console.log('🔔 Sending Telegram notification for deposit approval');
                     
                     // Fetch user info for the notification
                     const userResult = await pool.query(
@@ -119,10 +162,10 @@ class BalanceController {
                     if (user) {
                         // Create a deposit object for notification
                         const deposit = {
-                            id: result.transaction.transactionId,
+                            id: depositRequest.id,
                             user_id: req.body.userId,
-                            amount: result.transaction.amount,
-                            created_at: new Date().toISOString()
+                            amount: depositRequest.amount,
+                            created_at: depositRequest.created_at
                         };
                         
                         const formattedUser = {
@@ -142,18 +185,115 @@ class BalanceController {
             res.status(201).json({
                 success: true,
                 data: {
-                    transactionId: result.transaction.transactionId,
-                    amount: result.transaction.amount,
-                    balanceBefore: result.transaction.balanceBefore,
-                    balanceAfter: result.transaction.balanceAfter,
-                    createdAt: new Date().toISOString(),
-                    balance: this.toBalanceResponse(result.balance)
+                    depositRequestId: depositRequest.id,
+                    requestNumber: depositRequest.request_number,
+                    amount: depositRequest.amount,
+                    status: depositRequest.status,
+                    createdAt: depositRequest.created_at,
+                    message: 'Deposit request created - awaiting admin approval'
                 },
-                message: 'Deposit successful'
+                message: 'Deposit request pending approval'
             });
         } catch (error) {
             if (error.message && error.message.includes('frozen')) return sendError(res, 403, error.message);
             if (error.message && (error.message.includes('Minimum') || error.message.includes('Maximum'))) return sendError(res, 400, error.message);
+            return sendError(res, 500, error.message);
+        }
+    };
+
+    // POST /api/v1/balance/admin/deposits/:id/approve
+    approveDeposit = async (req, res, next) => {
+        try {
+            const depositId = req.params.id;
+            const adminId = req.user?.id || process.env.TELEGRAM_ADMIN_ID;
+
+            console.log('✅ Admin approving deposit:', depositId);
+
+            const depositResult = await pool.query(
+                'SELECT * FROM deposit_requests WHERE id = $1',
+                [depositId]
+            );
+
+            if (depositResult.rows.length === 0) {
+                return sendError(res, 404, 'Deposit request not found');
+            }
+
+            const deposit = depositResult.rows[0];
+            if (deposit.status !== 'pending') {
+                return sendError(res, 400, `Deposit is already ${deposit.status}`);
+            }
+
+            const reference = req.body.reference || `DEP-${Date.now()}`;
+
+            await pool.query(
+                'UPDATE deposit_requests SET status = $1, processed_by = $2, transaction_reference = $3, processed_at = NOW() WHERE id = $4',
+                ['completed', adminId, reference, depositId]
+            );
+
+            await pool.query(
+                'UPDATE user_balances SET available_balance = available_balance + $1, updated_at = NOW() WHERE user_id = $2',
+                [deposit.amount, deposit.user_id]
+            );
+
+            console.log('✅ Deposit approved:', deposit.amount, 'EGP');
+
+            res.status(200).json({
+                success: true,
+                data: {
+                    depositId: deposit.id,
+                    status: 'completed',
+                    reference: reference,
+                    amount: deposit.amount
+                },
+                message: 'Deposit approved and balance updated'
+            });
+        } catch (error) {
+            console.error('Error approving deposit:', error);
+            return sendError(res, 500, error.message);
+        }
+    };
+
+    // POST /api/v1/balance/admin/deposits/:id/reject
+    rejectDeposit = async (req, res, next) => {
+        try {
+            const depositId = req.params.id;
+            const adminId = req.user?.id || process.env.TELEGRAM_ADMIN_ID;
+            const reason = req.body.reason || 'No reason provided';
+
+            console.log('❌ Admin rejecting deposit:', depositId);
+
+            const depositResult = await pool.query(
+                'SELECT * FROM deposit_requests WHERE id = $1',
+                [depositId]
+            );
+
+            if (depositResult.rows.length === 0) {
+                return sendError(res, 404, 'Deposit request not found');
+            }
+
+            const deposit = depositResult.rows[0];
+            if (deposit.status !== 'pending') {
+                return sendError(res, 400, `Deposit is already ${deposit.status}`);
+            }
+
+            await pool.query(
+                'UPDATE deposit_requests SET status = $1, processed_by = $2, rejection_reason = $3, processed_at = NOW() WHERE id = $4',
+                ['rejected', adminId, reason, depositId]
+            );
+
+            console.log('✅ Deposit rejected');
+
+            res.status(200).json({
+                success: true,
+                data: {
+                    depositId: deposit.id,
+                    status: 'rejected',
+                    reason: reason
+                },
+                message: 'Deposit rejected'
+            });
+        } catch (error) {
+            console.error('Error rejecting deposit:', error);
             return sendError(res, 500, error.message);
         }
     };
