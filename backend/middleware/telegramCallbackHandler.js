@@ -297,12 +297,21 @@ async function sendTelegramMessage(botToken, chatId, text) {
         const axios = require('axios');
         
         // Check if bot is allowed to send to this chat
-        const adminChatId = process.env.TELEGRAM_ADMIN_CHAT_ID;
-        const familyGroupChatId = process.env.TELEGRAM_FAMILY_GROUP_CHAT_ID;
-        const allowedChats = [parseInt(adminChatId), parseInt(familyGroupChatId)];
+        const adminChatId = parseInt(process.env.TELEGRAM_ADMIN_CHAT_ID);
+        const familyGroupChatId = parseInt(process.env.TELEGRAM_FAMILY_GROUP_CHAT_ID);
+        const incomingChatId = parseInt(chatId);
         
-        if (!allowedChats.includes(parseInt(chatId))) {
-            console.warn(`⚠️ Chat ID ${chatId} not in allowed list`);
+        console.log('📊 Chat ID Debug:', {
+            incoming: incomingChatId,
+            admin: adminChatId,
+            familyGroup: familyGroupChatId,
+            allowed: [adminChatId, familyGroupChatId]
+        });
+        
+        const allowedChats = [adminChatId, familyGroupChatId];
+        
+        if (!allowedChats.includes(incomingChatId)) {
+            console.warn(`⚠️ Chat ID ${incomingChatId} not in allowed list:`, allowedChats);
             return;
         }
         
