@@ -1440,4 +1440,146 @@ router.get('/reports/revenue', verifyAdmin, async (req, res) => {
 });
 
 
+// ============ DEPOSIT MANAGEMENT ============
+
+// Get pending deposits
+router.get('/deposits/pending', verifyAdmin, async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM deposit_requests WHERE status = $1 ORDER BY created_at DESC',
+      ['pending']
+    );
+
+    const deposits = result.rows.map(row => ({
+      id: row.id,
+      requestNumber: row.request_number,
+      userId: row.user_id,
+      amount: row.amount,
+      currency: row.currency,
+      status: row.status,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    }));
+
+    await logAdminAction(req.admin.id, 'VIEW_PENDING_DEPOSITS', 'deposits', null, {
+      count: deposits.length,
+      ip: req.ip
+    });
+
+    res.json({
+      success: true,
+      data: deposits,
+      count: deposits.length
+    });
+  } catch (error) {
+    console.error('Get pending deposits error:', error);
+    res.status(500).json({ error: 'Failed to fetch pending deposits' });
+  }
+});
+
+// Approve deposit
+router.post('/deposits/:id/approve', verifyAdmin, async (req, res) => {
+  try {
+    const depositId = req.params.id;
+    const reference = req.body.reference || `DEP-${Date.now()}`;
+
+    const depositResult = await pool.query(
+      'SELECT * FROM deposit_requests WHERE id = $1',
+      [depositId]
+    );
+
+    if (depositResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Deposit request not found' });
+    }
+
+    const deposit = depositResult.rows[0];
+
+    if (deposit.status !== 'pending') {
+      return res.status(400).json({ error: `Deposit is already ${deposit.status}` });
+    }
+
+    // Update deposit request
+    await pool.query(
+      'UPDATE deposit_requests SET status = $1, processed_by = $2, transaction_reference = $3, processed_at = NOW() WHERE id = $4',
+      ['completed', req.admin.id, reference, depositId]
+    );
+
+    // Update user balance
+    await pool.query(
+      'UPDATE user_balances SET available_balance = available_balance + $1, updated_at = NOW() WHERE user_id = $2',
+      [deposit.amount, deposit.user_id]
+    );
+
+    await logAdminAction(req.admin.id, 'APPROVE_DEPOSIT', 'deposits', depositId, {
+      userId: deposit.user_id,
+      amount: deposit.amount,
+      reference: reference,
+      ip: req.ip
+    });
+
+    res.json({
+      success: true,
+      data: {
+        depositId: deposit.id,
+        status: 'completed',
+        reference: reference,
+        amount: deposit.amount
+      },
+      message: 'Deposit approved and balance updated'
+    });
+  } catch (error) {
+    console.error('Approve deposit error:', error);
+    res.status(500).json({ error: 'Failed to approve deposit' });
+  }
+});
+
+// Reject deposit
+router.post('/deposits/:id/reject', verifyAdmin, async (req, res) => {
+  try {
+    const depositId = req.params.id;
+    const reason = req.body.reason || 'No reason provided';
+
+    const depositResult = await pool.query(
+      'SELECT * FROM deposit_requests WHERE id = $1',
+      [depositId]
+    );
+
+    if (depositResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Deposit request not found' });
+    }
+
+    const deposit = depositResult.rows[0];
+
+    if (deposit.status !== 'pending') {
+      return res.status(400).json({ error: `Deposit is already ${deposit.status}` });
+    }
+
+    // Update deposit request
+    await pool.query(
+      'UPDATE deposit_requests SET status = $1, processed_by = $2, rejection_reason = $3, processed_at = NOW() WHERE id = $4',
+      ['rejected', req.admin.id, reason, depositId]
+    );
+
+    await logAdminAction(req.admin.id, 'REJECT_DEPOSIT', 'deposits', depositId, {
+      userId: deposit.user_id,
+      amount: deposit.amount,
+      reason: reason,
+      ip: req.ip
+    });
+
+    res.json({
+      success: true,
+      data: {
+        depositId: deposit.id,
+        status: 'rejected',
+        reason: reason
+      },
+      message: 'Deposit rejected'
+    });
+  } catch (error) {
+    console.error('Reject deposit error:', error);
+    res.status(500).json({ error: 'Failed to reject deposit' });
+  }
+});
+
 module.exports = router;
