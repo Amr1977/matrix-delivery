@@ -355,10 +355,11 @@ async function sendTelegramMessage(botToken, chatId, text) {
 async function handleDevCommand(message, botToken) {
     const chatId = message.chat.id;
     const adminId = parseInt(process.env.TELEGRAM_ADMIN_CHAT_ID);
+    const token = botToken || process.env.TELEGRAM_BOT_TOKEN;
     
     // Only admin can use dev commands in private chat
     if (chatId !== adminId) {
-        await sendTelegramMessage(botToken, chatId, 
+        await sendTelegramMessage(token, chatId, 
             '❌ *Dev commands only in private chat with admin*');
         return;
     }
@@ -375,10 +376,10 @@ async function handleDevCommand(message, botToken) {
     
     try {
         const response = await executeDevCommand(command, params);
-        await sendTelegramMessage(botToken, chatId, response);
+        await sendTelegramMessage(token, chatId, response);
     } catch (error) {
         console.error('Dev command error:', error);
-        await sendTelegramMessage(botToken, chatId, 
+        await sendTelegramMessage(token, chatId, 
             `❌ *Error:* ${error.message}`);
     }
 }
@@ -463,6 +464,7 @@ async function executeDevCommand(command, params) {
  * Handle Telegram commands from group messages
  */
 async function handleTelegramCommand(message, botToken) {
+    const token = botToken || process.env.TELEGRAM_BOT_TOKEN;
     try {
         // Remove @botname mention if present
         let text = message.text.replace(/@\w+/g, '').trim();
@@ -501,7 +503,7 @@ async function handleTelegramCommand(message, botToken) {
 
         // Send response to the group
         console.log(`📤 Sending response to chat ${chatId}: "${response.substring(0, 50)}..."`);
-        await sendTelegramMessage(botToken, chatId, response);
+        await sendTelegramMessage(token, chatId, response);
         console.log('✅ Command response sent:', { command, chatId });
     } catch (error) {
         console.error('Error handling telegram command:', error);
