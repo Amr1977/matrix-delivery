@@ -35,11 +35,15 @@ class TelegramWithdrawalNotificationService {
      */
     async notifyWithdrawalRequest(withdrawal, user) {
         try {
-            const formatCurrency = (amount) => `${amount.toFixed(2)} EGP`;
-            const methodLabel = this.getMethodLabel(withdrawal.method);
+            // Ensure amount is a number
+            const amountNum = typeof withdrawal.amount === 'string' ? parseFloat(withdrawal.amount) : withdrawal.amount;
+            const withdrawalWithNumber = { ...withdrawal, amount: amountNum };
+            
+            const formatCurrency = (amount) => `${(typeof amount === 'string' ? parseFloat(amount) : amount).toFixed(2)} EGP`;
+            const methodLabel = this.getMethodLabel(withdrawal.withdrawal_method || withdrawal.method);
             
             const message = this._buildWithdrawalMessage(
-                withdrawal,
+                withdrawalWithNumber,
                 user,
                 methodLabel,
                 formatCurrency
@@ -77,17 +81,14 @@ class TelegramWithdrawalNotificationService {
             timeZone: 'Africa/Cairo'
         });
 
-        // Ensure amount is a number
-        const amount = typeof withdrawal.amount === 'string' ? parseFloat(withdrawal.amount) : withdrawal.amount;
-
         return `🔄 <b>طلب سحب جديد</b>
 
 👤 <b>المستخدم:</b> ${user.full_name}
 📱 <b>الهاتف:</b> <code>${user.phone_number}</code>
 
-💰 <b>المبلغ:</b> ${formatCurrency(amount)}
+💰 <b>المبلغ:</b> ${formatCurrency(withdrawal.amount)}
 🏦 <b>طريقة السحب:</b> ${methodLabel}
-🔢 <b>رقم الحساب:</b> <code>${withdrawal.account_number}</code>
+🔢 <b>رقم الحساب:</b> <code>${withdrawal.destination_details || withdrawal.account_number}</code>
 
 ⏰ <b>الوقت:</b> ${createdAt}
 🆔 <b>رقم الطلب:</b> <code>${withdrawal.id}</code>`;
