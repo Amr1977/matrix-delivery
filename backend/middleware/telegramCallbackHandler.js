@@ -56,6 +56,9 @@ const handleTelegramUpdate = (pool, balanceService) => {
                     type: message.chat?.type
                 });
                 
+                // Log actual chat ID for debugging
+                console.log(`🔢 ACTUAL CHAT ID: ${message.chat?.id}`);
+                
                 // Handle commands in groups
                 if (message.text && message.text.startsWith('/')) {
                     handleTelegramCommand(message, botToken)
