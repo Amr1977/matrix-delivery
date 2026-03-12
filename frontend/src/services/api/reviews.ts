@@ -8,7 +8,9 @@ export class ReviewsApi {
      */
     static async getReviews(filters: ReviewFilters = {}): Promise<Review[]> {
         const queryString = ApiClient.buildQueryString(filters);
-        return ApiClient.get<Review[]>(`/reviews${queryString}`);
+        const response = await ApiClient.get<{ reviews: Review[], pagination: any }>(`/reviews${queryString}`);
+        // API returns { reviews: [...], pagination: {...} } — extract reviews array
+        return (response as any)?.reviews || response as unknown as Review[];
     }
 
     /**
