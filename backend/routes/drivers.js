@@ -184,19 +184,26 @@ router.post('/status', verifyToken, requireRole('driver'), apiRateLimit, async (
       return res.status(400).json({ error: 'isOnline must be a boolean value' });
     }
 
-    // For now, we'll store this in memory. In a production app, you'd save this to the database
-    // and potentially use Redis for quick access to online drivers
+    // Persist to database
+    const result = await pool.query(
+      'UPDATE users SET is_available = $1 WHERE id = $2 RETURNING is_available',
+      [isOnline, req.user.userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Driver not found' });
+    }
 
     logger.info(`Driver status updated`, {
       userId: req.user.userId,
-      isOnline: isOnline,
+      isOnline: result.rows[0].is_available,
       category: 'driver'
     });
 
     res.json({
       success: true,
       message: `Driver ${isOnline ? 'went online' : 'went offline'}`,
-      isOnline: isOnline
+      isOnline: result.rows[0].is_available
     });
 
   } catch (error) {

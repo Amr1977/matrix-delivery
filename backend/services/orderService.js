@@ -455,7 +455,7 @@ END as sort_priority
           GROUP BY reviewee_id
 ) dr ON dr.reviewee_id = u.id
 WHERE(o.status = 'pending_bids' AND o.assigned_driver_user_id IS NULL${locationConditions})
-           OR o.assigned_driver_user_id = $1
+           OR (o.assigned_driver_user_id = $1 AND o.status NOT IN ('delivered', 'cancelled'))
         GROUP BY o.id, d.id, c.id, d.name, d.rating, d.completed_deliveries, r.id
         ORDER BY sort_priority, o.created_at DESC
   `;

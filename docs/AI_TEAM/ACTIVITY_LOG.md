@@ -82,3 +82,51 @@
 6. All context preserved in docs/AI_TEAM/ for continuity
 
 ---
+
+### i18n Analysis (13:15 UTC)
+
+**locales.js status:**
+- File size: 4,313 lines
+- English entries: 581 string values across 22 categories
+- Arabic entries: 3,396 string values across 132 categories (MORE than English!)
+- Empty Arabic translations: 0
+
+**Components using i18n:** 38 out of ~149 components
+- 38 components properly import useI18n ✅
+- 111 files do NOT use i18n (includes hooks, services, utilities — many don't need it)
+- ~40-50 UI components need i18n integration
+
+**Key findings:**
+- Arabic translations are AHEAD of English (132 vs 22 categories)
+- The main gap is NOT translations — it's COMPONENT INTEGRATION
+- 40-50 components have hardcoded strings instead of using t() function
+- Critical components: AdminDashboard, SideMenu, Footer, Legal pages, OrderCards
+
+**Priority for i18n:**
+1. High: ActiveOrderCard, OrderBiddingSection, OrderStatusSection
+2. High: SideMenu, MainLayout, Footer, MobileNavBar
+3. Medium: Admin panels (AdminDashboard, AdminPayments, etc.)
+4. Low: Legal pages (long content, can be later)
+5. Skip: Hooks, services, utilities (no user-facing strings)
+
+### Bug Investigation Results (13:15 UTC)
+
+**Bug 1: PM2 263 Restarts — MEDIUM**
+- Root cause: Memory leak. Process grows past 500MB, PM2 kills it. ~1 restart every 16 min.
+- Server only has 911MB RAM. Not crashes — planned memory-limit restarts.
+- Likely sources: Socket.io connection leaks, webhook 409 retry loop, driver location accumulation
+- Fix: Investigate leak + reduce to fork mode
+
+**Bug 2: Driver Toggle Not Persisting — HIGH, EASY FIX**
+- Root cause: POST /drivers/status never writes to DB! Comment says 'For now, store in memory'
+- A proper DB toggle EXISTS in users.js (UPDATE users SET is_available)
+- Fix: Wire the drivers/status endpoint to actually write to DB
+
+**Bug 3: Active Orders Showing Delivered — HIGH, EASY FIX**
+- Root cause: Driver query has no status filter: 
+- Missing: 
+- Fix: One line SQL change in orderService.js line 457
+
+**Bug 4: Map Auto-Snaps — MEDIUM, EASY FIX**
+- Root cause: fitBounds re-fires on every driver location update
+- Fix: Add hasFitted ref guard so fitBounds only runs once per order

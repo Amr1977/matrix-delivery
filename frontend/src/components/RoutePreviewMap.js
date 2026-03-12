@@ -136,10 +136,16 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, bids = []
 
   const MapEffect = () => {
     const map = useMap();
+    const hasFittedRef = React.useRef(false);
+    const lastOrderRef = React.useRef(null);
 
     React.useEffect(() => {
-      if (bounds && bounds.isValid()) {
+      // Only fit bounds on initial render or when order changes, not on every driver location update
+      const orderKey = pickup ? `${pickup[0]},${pickup[1]}-${dropoff?.[0]},${dropoff?.[1]}` : null;
+      if (bounds && bounds.isValid() && (!hasFittedRef.current || lastOrderRef.current !== orderKey)) {
         map.fitBounds(bounds, { padding: [50, 50] });
+        hasFittedRef.current = true;
+        lastOrderRef.current = orderKey;
       }
     }, [map, bounds]);
 
