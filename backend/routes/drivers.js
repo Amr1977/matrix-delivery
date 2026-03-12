@@ -176,7 +176,7 @@ router.get('/tracking/:orderId/status', verifyToken, async (req, res) => {
 });
 
 // Update driver online/offline status
-router.post('/status', verifyToken, requireRole('driver'), apiRateLimit, async (req, res) => {
+router.post('/status', verifyToken, requireRole('driver', 'admin'), apiRateLimit, async (req, res) => {
   try {
     const { isOnline } = req.body;
 
