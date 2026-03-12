@@ -130,3 +130,24 @@
 **Bug 4: Map Auto-Snaps — MEDIUM, EASY FIX**
 - Root cause: fitBounds re-fires on every driver location update
 - Fix: Add hasFitted ref guard so fitBounds only runs once per order
+
+### Bug Fixes Round 2 + i18n (13:15 - 13:29 UTC)
+
+**Bug 5 FIXED: Admin driver toggle**
+- requireRole("driver") now includes "admin"
+- Commit: 97dcb5f
+
+**Bug 6 FIXED: Google Maps customer route**
+- Customers: pickup→dropoff (no driver location)
+- Drivers: driver→pickup→dropoff
+- Commit: 97dcb5f
+
+**i18n: Arabic translations for 7 core components**
+- Added ~80 new translation keys (en + ar)
+- Components updated: ActiveOrderCard, OrderBiddingSection, OrderStatusSection, SideMenu, MainLayout, Footer
+- Categories: bidding, menu, footer, reputation, orders, activeOrder
+- Commit: 17d8813
+
+### Trello Board Updated
+- Moved to DEV-DONE: driver toggle, active orders, map snap, admin toggle, maps route (5 cards)
+- New critical bug received: Landing page crash on "Voice of the People" button
