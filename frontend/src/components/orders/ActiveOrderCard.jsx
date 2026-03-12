@@ -99,11 +99,18 @@ const ActiveOrderCard = ({
     const openGoogleMaps = () => {
         const pickup = order.pickupLocation?.coordinates || (order.from ? { lat: order.from.lat, lng: order.from.lng } : null);
         const dropoff = order.dropoffLocation?.coordinates || (order.to ? { lat: order.to.lat, lng: order.to.lng } : null);
-        const origin = driverLocation ? `${driverLocation.latitude},${driverLocation.longitude}` : '';
-        const waypoint = pickup ? `${pickup.lat},${pickup.lng}` : '';
-        const destination = dropoff ? `${dropoff.lat},${dropoff.lng}` : '';
+        const pickupStr = pickup ? `${pickup.lat},${pickup.lng}` : '';
+        const dropoffStr = dropoff ? `${dropoff.lat},${dropoff.lng}` : '';
         const travelmode = driverPricing.vehicleType === 'walker' ? 'walking' : (driverPricing.vehicleType === 'bicycle' ? 'bicycling' : 'driving');
-        const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&waypoints=${waypoint}&travelmode=${travelmode}`;
+        // For drivers: origin=driver location, waypoint=pickup, destination=dropoff
+        // For customers: origin=pickup, destination=dropoff (no driver location)
+        let url;
+        if (driverLocation && currentUser?.primary_role === 'driver') {
+            const driverStr = `${driverLocation.latitude},${driverLocation.longitude}`;
+            url = `https://www.google.com/maps/dir/?api=1&origin=${driverStr}&destination=${dropoffStr}&waypoints=${pickupStr}&travelmode=${travelmode}`;
+        } else {
+            url = `https://www.google.com/maps/dir/?api=1&origin=${pickupStr}&destination=${dropoffStr}&travelmode=${travelmode}`;
+        }
         window.open(url, '_blank');
     };
 
@@ -162,10 +169,10 @@ const ActiveOrderCard = ({
                             alignItems: 'center'
                         }}>
                             <span style={{ fontSize: '0.625rem', color: 'var(--matrix-green)', textTransform: 'uppercase' }}>
-                                To {telemetry.nextTarget}
+                                {t('activeOrder.to')} {telemetry.nextTarget}
                             </span>
                             <span className="text-matrix" style={{ fontSize: '1rem', fontWeight: 'bold', textShadow: 'var(--shadow-glow)' }}>
-                                {telemetry.distanceKm} km
+                                {telemetry.distanceKm} {t('activeOrder.km')}
                             </span>
                         </div>
                         
@@ -180,11 +187,9 @@ const ActiveOrderCard = ({
                             flexDirection: 'column',
                             alignItems: 'center'
                         }}>
-                            <span style={{ fontSize: '0.625rem', color: 'var(--matrix-green)', textTransform: 'uppercase' }}>
-                                ETA
-                            </span>
+                            <span style={{ fontSize: '0.625rem', color: 'var(--matrix-green)', textTransform: 'uppercase' }}>{t('activeOrder.eta')}</span>
                             <span className="text-matrix" style={{ fontSize: '1rem', fontWeight: 'bold', textShadow: 'var(--shadow-glow)' }}>
-                                {telemetry.etaMinutes} min
+                                {telemetry.etaMinutes} {t('activeOrder.min')}
                             </span>
                         </div>
 
@@ -200,11 +205,9 @@ const ActiveOrderCard = ({
                                 flexDirection: 'column',
                                 alignItems: 'center'
                             }}>
-                                <span style={{ fontSize: '0.625rem', color: 'var(--matrix-green)', textTransform: 'uppercase' }}>
-                                    Speed
-                                </span>
+                                <span style={{ fontSize: '0.625rem', color: 'var(--matrix-green)', textTransform: 'uppercase' }}>{t('activeOrder.speed')}</span>
                                 <span className="text-matrix" style={{ fontSize: '1rem', fontWeight: 'bold', textShadow: 'var(--shadow-glow)' }}>
-                                    {telemetry.speedKmh} km/h
+                                    {telemetry.speedKmh} {t('activeOrder.kmh')}
                                 </span>
                             </div>
                         )}
@@ -227,9 +230,7 @@ const ActiveOrderCard = ({
                         gap: '0.375rem'
                     }}>
                         <div className="pulse" style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#00FF00' }}></div>
-                        <span style={{ fontSize: '0.625rem', color: '#00FF00', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                            Live Tracking
-                        </span>
+                        <span style={{ fontSize: '0.625rem', color: '#00FF00', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>{t('tracking.liveTracking')}</span>
                     </div>
                 )}
             </div>

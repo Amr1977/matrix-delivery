@@ -38,11 +38,18 @@ const OrderBiddingSection = ({
     const openGoogleMaps = () => {
         const pickup = order.pickupLocation?.coordinates || (order.from ? { lat: order.from.lat, lng: order.from.lng } : null);
         const dropoff = order.dropoffLocation?.coordinates || (order.to ? { lat: order.to.lat, lng: order.to.lng } : null);
-        const origin = driverLocation ? `${driverLocation.latitude},${driverLocation.longitude}` : '';
-        const waypoint = pickup ? `${pickup.lat},${pickup.lng}` : '';
-        const destination = dropoff ? `${dropoff.lat},${dropoff.lng}` : '';
+        const pickupStr = pickup ? `${pickup.lat},${pickup.lng}` : '';
+        const dropoffStr = dropoff ? `${dropoff.lat},${dropoff.lng}` : '';
         const travelmode = driverPricing.vehicleType === 'walker' ? 'walking' : (driverPricing.vehicleType === 'bicycle' ? 'bicycling' : 'driving');
-        const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&waypoints=${waypoint}&travelmode=${travelmode}`;
+        // Driver: origin=driver, waypoint=pickup, dest=dropoff
+        // Bidding view is driver-only, so use driver location if available
+        let url;
+        if (driverLocation) {
+            const driverStr = `${driverLocation.latitude},${driverLocation.longitude}`;
+            url = `https://www.google.com/maps/dir/?api=1&origin=${driverStr}&destination=${dropoffStr}&waypoints=${pickupStr}&travelmode=${travelmode}`;
+        } else {
+            url = `https://www.google.com/maps/dir/?api=1&origin=${pickupStr}&destination=${dropoffStr}&travelmode=${travelmode}`;
+        }
         window.open(url, '_blank');
     };
 
@@ -55,13 +62,13 @@ const OrderBiddingSection = ({
                     onChange={(e) => saveDriverPricing({ vehicleType: e.target.value })}
                     style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
                 >
-                    <option value="walker">Walker</option>
-                    <option value="bicycle">Bicycle</option>
-                    <option value="scooter">Scooter</option>
-                    <option value="motorbike">Motorbike</option>
-                    <option value="car">Car</option>
-                    <option value="van">Van</option>
-                    <option value="truck">Truck</option>
+                    <option value="walker">{t('bidding.walker')}</option>
+                    <option value="bicycle">{t('bidding.bicycle')}</option>
+                    <option value="scooter">{t('bidding.scooter')}</option>
+                    <option value="motorbike">{t('bidding.motorbike')}</option>
+                    <option value="car">{t('bidding.car')}</option>
+                    <option value="van">{t('bidding.van')}</option>
+                    <option value="truck">{t('bidding.truck')}</option>
                 </select>
 
                 <input
@@ -69,7 +76,7 @@ const OrderBiddingSection = ({
                     step="0.01"
                     value={driverPricing.costPerKm}
                     onChange={(e) => saveDriverPricing({ costPerKm: parseFloat(e.target.value) || 0 })}
-                    placeholder="Cost per km"
+                    placeholder={t('bidding.costPerKmPlaceholder')}
                     style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
                 />
 
@@ -78,7 +85,7 @@ const OrderBiddingSection = ({
                     step="0.01"
                     value={driverPricing.waitingPerHour}
                     onChange={(e) => saveDriverPricing({ waitingPerHour: parseFloat(e.target.value) || 0 })}
-                    placeholder="Waiting per hour"
+                    placeholder={t('bidding.waitingPerHourPlaceholder')}
                     style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }}
                 />
 
@@ -124,57 +131,53 @@ const OrderBiddingSection = ({
                         setBidInput({ ...bidInput, [order.id]: s.recommendedBid.toFixed(2) });
                     }}
                     style={{ padding: '0.5rem 1rem', background: '#10B981', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600' }}
-                >
-                    Use Recommended Bid
-                </button>
+                >{t('bidding.useRecommendedBid')}</button>
 
                 <button
                     onClick={openGoogleMaps}
                     style={{ padding: '0.5rem 1rem', background: '#3B82F6', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600' }}
-                >
-                    Open in Google Maps
-                </button>
+                >{t('bidding.openInGoogleMaps')}</button>
             </div>
 
             {/* Customer Reputation Section */}
             <div style={{ background: '#F0F9FF', padding: '1rem', borderRadius: '0.5rem', marginBottom: '1rem', border: '1px solid #DBEAFE' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
                     <h4 style={{ fontSize: '0.875rem', fontWeight: '600', color: '#1E40AF' }}>
-                        👤 Customer Reputation
+                        👤 {t('reputation.customerReputation')}
                     </h4>
                     {order.customerIsVerified && (
                         <span style={{ background: '#10B981', color: 'white', padding: '0.125rem 0.5rem', borderRadius: '9999px', fontSize: '0.625rem', fontWeight: '600' }}>
-                            ✓ Verified
+                            ✓ {t('reputation.verified')}
                         </span>
                     )}
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
                     <div>
-                        <p style={{ fontSize: '0.75rem', color: '#6B7280', marginBottom: '0.25rem' }}>Rating</p>
+                        <p style={{ fontSize: '0.75rem', color: '#6B7280', marginBottom: '0.25rem' }}>{t('reputation.rating')}</p>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                             {renderStars(order.customerRating || 0)}
                             <span style={{ fontSize: '0.875rem', fontWeight: '600', color: '#1F2937' }}>
-                                {order.customerRating ? order.customerRating.toFixed(1) : 'New'}
+                                {order.customerRating ? order.customerRating.toFixed(1) : t('reputation.new')}
                             </span>
                         </div>
                     </div>
                     <div>
-                        <p style={{ fontSize: '0.75rem', color: '#6B7280', marginBottom: '0.25rem' }}>Deliveries</p>
+                        <p style={{ fontSize: '0.75rem', color: '#6B7280', marginBottom: '0.25rem' }}>{t('reputation.deliveries')}</p>
                         <p style={{ fontSize: '0.875rem', fontWeight: '600', color: '#1F2937' }}>
                             {order.customerCompletedOrders || 0}
                         </p>
                     </div>
                     <div>
-                        <p style={{ fontSize: '0.75rem', color: '#6B7280', marginBottom: '0.25rem' }}>Reviews</p>
+                        <p style={{ fontSize: '0.75rem', color: '#6B7280', marginBottom: '0.25rem' }}>{t('reputation.reviews')}</p>
                         <p style={{ fontSize: '0.875rem', fontWeight: '600', color: '#1F2937' }}>
                             {order.customerReviewCount || 0}
                         </p>
                     </div>
                     <div style={{ gridColumn: '1 / -1' }}>
-                        <p style={{ fontSize: '0.75rem', color: '#6B7280', marginBottom: '0.25rem' }}>Member Since</p>
+                        <p style={{ fontSize: '0.75rem', color: '#6B7280', marginBottom: '0.25rem' }}>{t('reputation.memberSince')}</p>
                         <p style={{ fontSize: '0.875rem', color: '#6B7280' }}>
-                            {order.customerJoinedAt ? new Date(order.customerJoinedAt).toLocaleDateString() : 'Unknown'}
+                            {order.customerJoinedAt ? new Date(order.customerJoinedAt).toLocaleDateString() : t('reputation.unknown')}
                         </p>
                     </div>
                 </div>
@@ -184,20 +187,20 @@ const OrderBiddingSection = ({
                         onClick={() => openReviewModal(order.id, 'view_customer_reviews')}
                         style={{ padding: '0.25rem 0.75rem', background: '#3B82F6', color: 'white', borderRadius: '0.25rem', border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: '500' }}
                     >
-                        📝 View Reviews ({order.customerReviewCount || 0})
+                        📝 {t('reputation.viewReviews')} ({order.customerReviewCount || 0})
                     </button>
                     <button
                         onClick={() => openReviewModal(order.id, 'view_customer_given_reviews')}
                         style={{ padding: '0.25rem 0.75rem', background: '#6366F1', color: 'white', borderRadius: '0.25rem', border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: '500' }}
                     >
-                        ⭐ Reviews Given ({order.customerGivenReviewCount || 0})
+                        ⭐ {t('reputation.reviewsGiven')} ({order.customerGivenReviewCount || 0})
                     </button>
                     {!order.customerIsVerified && (
                         <button
                             onClick={() => window.open(`https://wa.me/1234567890?text=Hello, I would like to verify my account for order ${order.orderNumber}`, '_blank')}
                             style={{ padding: '0.25rem 0.75rem', background: '#25D366', color: 'white', borderRadius: '0.25rem', border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
                         >
-                            📱 Verify Account
+                            📱 {t('reputation.verifyAccount')}
                         </button>
                     )}
                 </div>
@@ -206,7 +209,7 @@ const OrderBiddingSection = ({
             {/* Distance Display */}
             {order.distance && (
                 <div style={{ marginBottom: '0.75rem', fontSize: '0.875rem', color: '#6B7280' }}>
-                    📍 Distance from pickup: {order.distance ? `${order.distance.toFixed(2)} km` : 'Unknown'}
+                    📍 {t('bidding.distanceFromPickup')}: {order.distance ? `${order.distance.toFixed(2)} km` : t('reputation.unknown')}
                 </div>
             )}
 
@@ -260,16 +263,12 @@ const OrderBiddingSection = ({
                             onClick={() => handleModifyBid(order.id)}
                             disabled={loadingStates.placeBid}
                             style={{ padding: '0.5rem 1rem', background: '#F59E0B', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: loadingStates.placeBid ? 'not-allowed' : 'pointer', fontWeight: '600', opacity: loadingStates.placeBid ? 0.5 : 1 }}
-                        >
-                            Modify Bid
-                        </button>
+                        >{t('bidding.modifyBid')}</button>
                         <button
                             onClick={() => handleWithdrawBid(order.id)}
                             disabled={loadingStates.placeBid}
                             style={{ padding: '0.5rem 1rem', background: '#EF4444', color: 'white', borderRadius: '0.375rem', border: 'none', cursor: loadingStates.placeBid ? 'not-allowed' : 'pointer', fontWeight: '600', opacity: loadingStates.placeBid ? 0.5 : 1 }}
-                        >
-                            Withdraw Bid
-                        </button>
+                        >{t('bidding.withdrawBid')}</button>
                     </>
                 )}
             </div>

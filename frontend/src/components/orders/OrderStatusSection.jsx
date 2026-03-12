@@ -108,9 +108,7 @@ const OrderStatusSection = ({
                                                         fontWeight: '700',
                                                         boxShadow: '0 0 10px var(--status-delivered)',
                                                         border: '1px solid var(--matrix-black)'
-                                                    }}>
-                                                        ✓ Verified
-                                                    </div>
+                                                    }}>✓ {t('reputation.verified')}</div>
                                                 ) : (
                                                     <div style={{
                                                         position: 'absolute',
@@ -124,9 +122,7 @@ const OrderStatusSection = ({
                                                         fontWeight: '700',
                                                         boxShadow: '0 0 10px var(--status-cancelled)',
                                                         border: '1px solid var(--matrix-black)'
-                                                    }}>
-                                                        Unverified
-                                                    </div>
+                                                    }}>{t('reputation.unverified')}</div>
                                                 )}
                                             </div>
 
@@ -153,14 +149,14 @@ const OrderStatusSection = ({
                                                 color: 'var(--matrix-green)',
                                                 marginBottom: '0.25rem'
                                             }}>
-                                                Member since {memberSince}
+                                                {t('reputation.memberSince')} {memberSince}
                                             </p>
                                             <p style={{
                                                 fontSize: '0.75rem',
                                                 color: 'var(--matrix-green)',
                                                 marginBottom: '0.5rem'
                                             }}>
-                                                Overall Rating: <span className="text-matrix" style={{ fontWeight: '700' }}>{(bid.driverRating || 0).toFixed(1)}</span>
+                                                {t('reputation.overallRating')}: <span className="text-matrix" style={{ fontWeight: '700' }}>{(bid.driverRating || 0).toFixed(1)}</span>
                                             </p>
 
                                             {/* Stats Grid - Reviews and Deliveries Only */}
@@ -174,13 +170,13 @@ const OrderStatusSection = ({
                                                     <div className="text-matrix" style={{ fontSize: '1.25rem', fontWeight: '700' }}>
                                                         {bid.driverReviewCount || 0}
                                                     </div>
-                                                    <div style={{ fontSize: '0.625rem', color: 'var(--matrix-green)' }}>Reviews</div>
+                                                    <div style={{ fontSize: '0.625rem', color: 'var(--matrix-green)' }}>{t('reputation.reviews')}</div>
                                                 </div>
                                                 <div style={{ textAlign: 'center' }}>
                                                     <div className="text-matrix" style={{ fontSize: '1.25rem', fontWeight: '700' }}>
                                                         {bid.driverCompletedDeliveries || 0}
                                                     </div>
-                                                    <div style={{ fontSize: '0.625rem', color: 'var(--matrix-green)' }}>Deliveries</div>
+                                                    <div style={{ fontSize: '0.625rem', color: 'var(--matrix-green)' }}>{t('reputation.deliveries')}</div>
                                                 </div>
                                             </div>
                                         </div>
@@ -194,7 +190,7 @@ const OrderStatusSection = ({
                                             }}>
                                                 ${parseFloat(bid.bidPrice).toFixed(2)}
                                             </div>
-                                            <div style={{ fontSize: '0.625rem', color: 'var(--matrix-green)' }}>Bid Price</div>
+                                            <div style={{ fontSize: '0.625rem', color: 'var(--matrix-green)' }}>{t('reputation.bidPrice')}</div>
                                         </div>
                                     </div>
 
@@ -212,9 +208,7 @@ const OrderStatusSection = ({
                                         }}>
                                             {bid.estimatedPickupTime && (
                                                 <div>
-                                                    <div style={{ fontSize: '0.625rem', color: 'var(--matrix-green)', marginBottom: '0.25rem' }}>
-                                                        Pickup
-                                                    </div>
+                                                    <div style={{ fontSize: '0.625rem', color: 'var(--matrix-green)', marginBottom: '0.25rem' }}>{t('orders.pickup')}</div>
                                                     <div className="text-matrix" style={{ fontSize: '0.75rem' }}>
                                                         {new Date(bid.estimatedPickupTime).toLocaleString()}
                                                     </div>
@@ -222,9 +216,7 @@ const OrderStatusSection = ({
                                             )}
                                             {bid.estimatedDeliveryTime && (
                                                 <div>
-                                                    <div style={{ fontSize: '0.625rem', color: 'var(--matrix-green)', marginBottom: '0.25rem' }}>
-                                                        Delivery
-                                                    </div>
+                                                    <div style={{ fontSize: '0.625rem', color: 'var(--matrix-green)', marginBottom: '0.25rem' }}>{t('orders.delivery')}</div>
                                                     <div className="text-matrix" style={{ fontSize: '0.75rem' }}>
                                                         {new Date(bid.estimatedDeliveryTime).toLocaleString()}
                                                     </div>
@@ -264,14 +256,14 @@ const OrderStatusSection = ({
                                             className="btn"
                                             style={{ flex: '0 1 auto' }}
                                         >
-                                            📝 Customer Reviews ({bid.driverReviewCount || 0})
+                                            📝 {t('orders.customerReviews')} ({bid.driverReviewCount || 0})
                                         </button>
                                         <button
                                             onClick={() => openReviewModal(order.id, 'view_driver_given_reviews', bid)}
                                             className="btn"
                                             style={{ flex: '0 1 auto' }}
                                         >
-                                            ⭐ Driver Reviews ({bid.driverGivenReviewCount || 0})
+                                            ⭐ {t('orders.driverReviews')} ({bid.driverGivenReviewCount || 0})
                                         </button>
                                     </div>
                                 </div>
@@ -325,7 +317,7 @@ const OrderStatusSection = ({
                         )}
                         {order.acceptedBid?.estimatedPickupTime && (
                             <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem', color: '#4B5563', marginTop: '0.5rem' }}>
-                                <span>🚀 Pickup: {new Date(order.acceptedBid.estimatedPickupTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                <span>🚀 {t('orders.pickup')}: {new Date(order.acceptedBid.estimatedPickupTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                             </div>
                         )}
                     </div>
@@ -420,7 +412,7 @@ const OrderStatusSection = ({
                         <>
                             <div style={{ background: '#DBEAFE', padding: '1rem', borderRadius: '0.375rem', border: '1px solid #93C5FD', marginBottom: '1rem' }}>
                                 <p style={{ fontSize: '0.875rem', color: '#1E40AF' }}>
-                                    <strong>Driver marked as delivered.</strong> Please confirm receiving the package.
+                                    <strong>{t('orders.driverMarkedDelivered')}</strong> {t('orders.confirmReceivePackage')}
                                 </p>
                             </div>
                             <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -437,7 +429,7 @@ const OrderStatusSection = ({
                     ) : (
                         <div style={{ background: '#FEF3C7', padding: '1rem', borderRadius: '0.375rem', border: '1px solid #FCD34D' }}>
                             <p style={{ fontSize: '0.875rem', color: '#92400E' }}>
-                                ⏳ Waiting for customer confirmation...
+                                ⏳ {t('orders.waitingCustomerConfirmation')}
                             </p>
                         </div>
                     )}

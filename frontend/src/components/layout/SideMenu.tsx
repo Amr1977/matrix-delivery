@@ -181,7 +181,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
                                     <div style={{ fontSize: '0.75rem', color: '#9CA3AF', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                                         {currentUser?.completedDeliveries !== undefined && (
                                             <div>
-                                                🚚 {currentUser.completedDeliveries} {currentUser.completedDeliveries === 1 ? 'delivery' : 'deliveries'}
+                                                🚚 {currentUser.completedDeliveries} {currentUser.completedDeliveries === 1 ? t('menu.delivery') : t('menu.deliveries')}
                                             </div>
                                         )}
                                         {currentUser?.rating !== undefined && currentUser.rating > 0 && (
@@ -232,9 +232,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
 
                     {/* Navigation Links */}
                     <div className="mobile-menu-section" style={{ marginBottom: '2rem' }}>
-                        <h4 style={{ color: '#9CA3AF', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '1rem', letterSpacing: '0.05em' }}>
-                            Menu
-                        </h4>
+                        <h4 style={{ color: '#9CA3AF', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '1rem', letterSpacing: '0.05em' }}>{t('menu.menuTitle')}</h4>
 
                         <button
                             onClick={() => { onNavigate('home'); onClose(); }}
@@ -242,7 +240,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
                             onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
                             onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
                         >
-                            🏠 Home / Active Orders
+                            🏠 {t('menu.homeActiveOrders')}
                         </button>
 
                         {currentUser?.primary_role === 'driver' && (
@@ -252,7 +250,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
                                 onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
                                 onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
                             >
-                                💰 Earnings Dashboard
+                                💰 {t('menu.earningsDashboard')}
                             </button>
                         )}
 
@@ -262,7 +260,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
                             onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
                             onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
                         >
-                            <span>🔔 Notifications</span>
+                            <span>🔔 {t('menu.notifications')}</span>
                             {unreadCount > 0 && (
                                 <span style={{ background: '#EF4444', color: 'white', padding: '0.125rem 0.5rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 'bold' }}>
                                     {unreadCount}
@@ -276,7 +274,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
                             onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
                             onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
                         >
-                            💰 Balance
+                            💰 {t('menu.balance')}
                         </button>
 
                         <button
@@ -286,7 +284,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
                             onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
                             onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
                         >
-                            📜 My History
+                            📜 {t('menu.myHistory')}
                         </button>
 
                         <button
@@ -295,7 +293,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
                             onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
                             onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
                         >
-                            ⚙️ Settings
+                            ⚙️ {t('menu.settings')}
                         </button>
 
                         {/* Admin Panel - Only for admins */}
@@ -326,7 +324,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
                                     e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.3)';
                                 }}
                             >
-                                🛡️ Admin Panel
+                                🛡️ {t('menu.adminPanel')}
                             </button>
                         )}
                     </div>
@@ -334,9 +332,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
                     {/* Driver Actions */}
                     {currentUser?.primary_role === 'driver' && (
                         <div className="mobile-menu-section" style={{ marginBottom: '2rem' }}>
-                            <h4 style={{ color: '#9CA3AF', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '1rem', letterSpacing: '0.05em' }}>
-                                Driver Actions
-                            </h4>
+                            <h4 style={{ color: '#9CA3AF', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '1rem', letterSpacing: '0.05em' }}>{t('menu.driverActions')}</h4>
 
                             <button
                                 onClick={() => { onNavigate('bidding'); onClose(); }}
@@ -345,7 +341,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
                                 onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
                                 onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
                             >
-                                📋 Available Bids
+                                📋 {t('menu.availableBids')}
                             </button>
 
                             <button
@@ -355,7 +351,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
                                 onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
                                 onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
                             >
-                                🗺️ Orders Map
+                                🗺️ {t('menu.ordersMap')}
                             </button>
 
                             <button
@@ -365,7 +361,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
                                 onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
                                 onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
                             >
-                                🎯 My Bids
+                                🎯 {t('menu.myBids')}
                             </button>
 
                             <button
@@ -375,7 +371,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
                                 onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
                                 onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
                             >
-                                📍 Location
+                                📍 {t('menu.location')}
                             </button>
                         </div>
                     )}
@@ -383,9 +379,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
                     {/* Driver Controls */}
                     {currentUser?.primary_role === 'driver' && onToggleOnline && (
                         <div className="mobile-menu-section" style={{ marginBottom: '2rem', padding: '1rem', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '0.5rem' }}>
-                            <h4 style={{ color: '#9CA3AF', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '1rem', letterSpacing: '0.05em' }}>
-                                Driver Status
-                            </h4>
+                            <h4 style={{ color: '#9CA3AF', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '1rem', letterSpacing: '0.05em' }}>{t('menu.driverStatus')}</h4>
                             <button
                                 onClick={onToggleOnline}
                                 data-testid="toggle-online-btn"
@@ -404,38 +398,34 @@ const SideMenu: React.FC<SideMenuProps> = ({
                                     gap: '0.5rem'
                                 }}
                             >
-                                {isDriverOnline ? '🔴 Go Offline' : '🟢 Go Online'}
+                                {isDriverOnline ? '🔴 {t('menu.goOffline')}' : '🟢 {t('menu.goOnline')}'}
                             </button>
                         </div>
                     )}
 
                     {/* Legal Section */}
                     <div className="mobile-menu-section" style={{ marginTop: '2rem' }}>
-                        <h4 style={{ color: '#9CA3AF', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '1rem', letterSpacing: '0.05em' }}>
-                            Legal
-                        </h4>
+                        <h4 style={{ color: '#9CA3AF', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '1rem', letterSpacing: '0.05em' }}>{t('menu.legal')}</h4>
                         <button onClick={() => { onNavigate('legal_privacy'); onClose(); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', fontSize: '1rem', borderRadius: '0.5rem', marginBottom: '0.5rem', transition: 'background 0.2s' }} onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'} onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}>
-                            🔒 Privacy Policy
+                            🔒 {t('menu.privacyPolicy')}
                         </button>
                         <button onClick={() => { onNavigate('legal_terms'); onClose(); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', fontSize: '1rem', borderRadius: '0.5rem', marginBottom: '0.5rem', transition: 'background 0.2s' }} onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'} onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}>
-                            📜 Terms of Service
+                            📜 {t('menu.termsOfService')}
                         </button>
                         <button onClick={() => { onNavigate('legal_refund'); onClose(); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', fontSize: '1rem', borderRadius: '0.5rem', marginBottom: '0.5rem', transition: 'background 0.2s' }} onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'} onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}>
-                            💸 Refund Policy
+                            💸 {t('menu.refundPolicy')}
                         </button>
                         <button onClick={() => { onNavigate('legal_driver_agreement'); onClose(); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', fontSize: '1rem', borderRadius: '0.5rem', marginBottom: '0.5rem', transition: 'background 0.2s' }} onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'} onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}>
-                            🤝 Driver Agreement
+                            🤝 {t('menu.driverAgreement')}
                         </button>
                         <button onClick={() => { onNavigate('legal_cookies'); onClose(); }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', fontSize: '1rem', borderRadius: '0.5rem', marginBottom: '0.5rem', transition: 'background 0.2s' }} onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'} onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}>
-                            🍪 Cookie Policy
+                            🍪 {t('menu.cookiePolicy')}
                         </button>
                     </div>
 
                     {/* Settings & System */}
                     <div className="mobile-menu-section" style={{ marginTop: '2rem' }}>
-                        <h4 style={{ color: '#9CA3AF', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '1rem', letterSpacing: '0.05em' }}>
-                            System
-                        </h4>
+                        <h4 style={{ color: '#9CA3AF', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 'bold', marginBottom: '1rem', letterSpacing: '0.05em' }}>{t('menu.system')}</h4>
 
 
                         <button
@@ -444,7 +434,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
                             onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
                             onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
                         >
-                            📞 Contact Us
+                            📞 {t('menu.contactUs')}
                         </button>
 
                         {/* Crypto Test - Only in development/staging */}
@@ -475,7 +465,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
                                     e.currentTarget.style.borderColor = 'rgba(102, 126, 234, 0.3)';
                                 }}
                             >
-                                🧪 Crypto Test
+                                🧪 {t('menu.cryptoTest')}
                             </button>
                         )}
 
@@ -485,7 +475,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
                             onMouseOver={(e) => e.currentTarget.style.background = 'rgba(16, 185, 129, 0.1)'}
                             onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
                         >
-                            ☕ Support Developer
+                            ☕ {t('menu.supportDeveloper')}
                         </button>
 
 

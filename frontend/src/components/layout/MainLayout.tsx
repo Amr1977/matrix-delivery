@@ -88,7 +88,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                             onClick={() => onNavigate('notifications')}
                             className={`notification-bell ${unreadCount > 0 ? 'bell-notification' : ''}`}
                             style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', position: 'relative', overflow: 'visible' }}
-                            aria-label="Notifications"
+                            aria-label={t('menu.notifications')}
                         >
                             🔔
                             {unreadCount > 0 && (
@@ -115,7 +115,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                         <button
                             className={`hamburger-btn ${isSideMenuOpen ? 'open' : ''}`}
                             onClick={() => setIsSideMenuOpen(!isSideMenuOpen)}
-                            aria-label="Toggle menu"
+                            aria-label={t('common.menu')}
                             data-testid="hamburger-btn"
                             style={{
                                 background: 'none',

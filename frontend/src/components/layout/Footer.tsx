@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useI18n } from '../../i18n/i18nContext';
 import { Activity, Users, Truck, ShoppingBag, Globe, BarChart2 } from 'lucide-react';
 
 interface FooterProps {
@@ -26,6 +27,7 @@ interface FooterStats {
 }
 
 const Footer: React.FC<FooterProps> = ({ footerStats }) => {
+    const { t } = useI18n();
     const version = (typeof process !== 'undefined' && process.env && process.env.REACT_APP_VERSION) || '1.0.0';
     const commit = gitInfo.commit;
     const date = new Date(gitInfo.date).toLocaleDateString();
@@ -89,19 +91,19 @@ const Footer: React.FC<FooterProps> = ({ footerStats }) => {
                     borderBottom: '1px solid #003300',
                     paddingBottom: '1rem'
                 }}>
-                    <StatItem icon={Truck} label="Online Drivers" value={`${stats.drivers?.online ?? 0}/${stats.drivers?.total ?? 0}`} />
-                    <StatItem icon={Users} label="Online Customers" value={`${stats.customers?.online ?? 0}/${stats.customers?.total ?? 0}`} />
-                    {stats.support && <StatItem icon={Users} label="Online Support" value={`${stats.support.online}/${stats.support.total}`} />}
-                    {stats.admins && <StatItem icon={Users} label="Online Admins" value={`${stats.admins.online}/${stats.admins.total}`} />}
-                    <StatItem icon={ShoppingBag} label="Orders Today" value={stats.ordersCompletedToday ?? 0} />
-                    <StatItem icon={Activity} label="Active Orders" value={stats.activeOrders ?? 0} />
-                    <StatItem icon={Globe} label="Countries" value={stats.countriesReached ?? 0} />
-                    {stats.systemLoad && <StatItem icon={BarChart2} label="System Load" value={`${stats.systemLoad.status} (${stats.systemLoad.rpm} rpm)`} />}
+                    <StatItem icon={Truck} label={t('footer.onlineDrivers')} value={`${stats.drivers?.online ?? 0}/${stats.drivers?.total ?? 0}`} />
+                    <StatItem icon={Users} label={t('footer.onlineCustomers')} value={`${stats.customers?.online ?? 0}/${stats.customers?.total ?? 0}`} />
+                    {stats.support && <StatItem icon={Users} label={t('footer.onlineSupport')} value={`${stats.support.online}/${stats.support.total}`} />}
+                    {stats.admins && <StatItem icon={Users} label={t('footer.onlineAdmins')} value={`${stats.admins.online}/${stats.admins.total}`} />}
+                    <StatItem icon={ShoppingBag} label={t('footer.ordersToday')} value={stats.ordersCompletedToday ?? 0} />
+                    <StatItem icon={Activity} label={t('footer.activeOrders')} value={stats.activeOrders ?? 0} />
+                    <StatItem icon={Globe} label={t('footer.countries')} value={stats.countriesReached ?? 0} />
+                    {stats.systemLoad && <StatItem icon={BarChart2} label={t('footer.systemLoad')} value={`${stats.systemLoad.status} (${stats.systemLoad.rpm} rpm)`} />}
                 </div>
             )}
             <div style={{ maxWidth: '80rem', margin: '0 auto' }}>
                 <p style={{ margin: 0, color: '#004400' }}>
-                    {`Matrix Delivery v${version} | Commit: ${commit} | ${date} ${time}`}
+                    {`${t('footer.version')}${version} | ${t('footer.commit')}: ${commit} | ${date} ${time}`}
                 </p>
             </div>
         </footer>
