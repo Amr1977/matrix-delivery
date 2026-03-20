@@ -171,7 +171,7 @@ export const AdminDepositsPanel: React.FC<AdminDepositsPanelProps> = ({
                     <DollarSign className="w-6 h-6 text-green-500" />
                     <h2 className="text-2xl font-bold text-white">Pending Deposits</h2>
                     <Badge
-                        variant={pendingCount > 0 ? 'warning' : 'default'}
+                        variant={pendingCount > 0 ? 'warning' : 'secondary'}
                         className="ml-2"
                     >
                         {pendingCount} pending
