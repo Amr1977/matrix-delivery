@@ -47,12 +47,16 @@ const AsyncOrderMap = ({ order, currentUser, driverLocation, theme = 'dark', onT
   const fetchTracking = useCallback(async () => {
     try {
       setLoading(true);
+      console.log(`📡 [AsyncOrderMap] Fetching tracking for order ${order.id}, status: ${order.status}`);
       const res = await api.get(`/orders/${order.id}/tracking`);
+      console.log(`📡 [AsyncOrderMap] Tracking response:`, res);
       const loc = res?.currentLocation;
       if (loc && Number.isFinite(parseFloat(loc.lat)) && Number.isFinite(parseFloat(loc.lng))) {
         const lat = parseFloat(loc.lat), lng = parseFloat(loc.lng);
         setCurrentDriverLocation({ latitude: lat, longitude: lng, timestamp: loc.timestamp, heading: loc.heading, speedKmh: loc.speedKmh, accuracyMeters: loc.accuracyMeters });
         updateTelemetry(lat, lng);
+      } else {
+        console.log(`📡 [AsyncOrderMap] No current location in response`);
       }
       if (Array.isArray(res?.locationHistory) && res.locationHistory.length > 0) {
         const path = res.locationHistory.map(p => [parseFloat(p.lat), parseFloat(p.lng)]);
