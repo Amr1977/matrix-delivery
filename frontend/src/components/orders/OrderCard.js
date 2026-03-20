@@ -278,6 +278,7 @@ const OrderCard = ({
               route_found: !!order.routePolyline,
               osrm_used: !!order.routePolyline
             }}
+            bids={bidLocations && bidLocations.length > 0 ? bidLocations : (order.bids || [])}
             compact={true}
           />
         </div>

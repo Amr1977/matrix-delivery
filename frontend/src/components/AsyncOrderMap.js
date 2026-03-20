@@ -18,7 +18,7 @@ const AsyncOrderMap = ({ order, currentUser, driverLocation, theme = 'dark', onT
   const isActiveOrder = ['accepted', 'picked_up', 'in_transit'].includes(order.status);
   const canView = (
     currentUser?.primary_role === 'admin' ||
-    (currentUser?.primary_role === 'customer' && order.customerId === currentUser?.id) ||
+    (currentUser?.primary_role === 'customer' && (order.customerId === currentUser?.id || order.customer_id === currentUser?.id)) ||
     (currentUser?.primary_role === 'driver' && order.assignedDriver?.userId === currentUser?.id)
   );
   const shouldFetch = isActiveOrder && canView;
