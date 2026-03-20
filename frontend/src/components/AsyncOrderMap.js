@@ -2,6 +2,7 @@
 import api from '../api';
 import RoutePreviewMap from './RoutePreviewMap';
 import { MapsApi } from '../services/api/maps';
+import polyline from '@mapbox/polyline';
 import io from 'socket.io-client';
 
 const AsyncOrderMap = ({ order, currentUser, driverLocation, theme = 'dark', onTelemetryUpdate, ...props }) => {
@@ -132,7 +133,6 @@ const AsyncOrderMap = ({ order, currentUser, driverLocation, theme = 'dark', onT
         });
 
         if (leg1Response.polyline) {
-          const polyline = await import('polyline');
           const path = polyline.decode(leg1Response.polyline);
           setDriverToPickupPath(path);
         }
@@ -145,7 +145,6 @@ const AsyncOrderMap = ({ order, currentUser, driverLocation, theme = 'dark', onT
           });
 
           if (leg2Response.polyline) {
-            const polyline = await import('polyline');
             const path = polyline.decode(leg2Response.polyline);
             setPickupToDropoffPath(path);
           }

@@ -10,4 +10,9 @@ $env:REACT_APP_ENV = "production"
 $env:DISABLE_ESLINT_PLUGIN = "true"
 npm run build
 
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "Build failed! Skipping deployment." -ForegroundColor Red
+    exit 1
+}
+
 firebase deploy --only hosting
