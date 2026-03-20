@@ -1,11 +1,15 @@
 ﻿import React, { useState, useEffect, useRef, useCallback } from 'react';
 import api from '../api';
 import RoutePreviewMap from './RoutePreviewMap';
+import { MapsApi } from '../services/api/maps';
 import io from 'socket.io-client';
 
 const AsyncOrderMap = ({ order, currentUser, driverLocation, theme = 'dark', onTelemetryUpdate, ...props }) => {
   const [currentDriverLocation, setCurrentDriverLocation] = useState(null);
   const [actualRoute, setActualRoute] = useState(null);
+  const [driverToPickupPath, setDriverToPickupPath] = useState([]);
+  const [pickupToDropoffPath, setPickupToDropoffPath] = useState([]);
+  const [routeLoading, setRouteLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const socketRef = useRef(null);
   const pollRef = useRef(null);
@@ -99,9 +103,70 @@ const AsyncOrderMap = ({ order, currentUser, driverLocation, theme = 'dark', onT
     return () => { if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; } };
   }, [shouldFetch, fetchTracking]);
 
+  // Fetch two-leg route for drivers: driver→waypoint and waypoint→dropoff
+  useEffect(() => {
+    if (!shouldFetch) return;
+
+    const fetchRoutes = async () => {
+      const driverLoc = driverLocation || currentDriverLocation;
+      if (!driverLoc) return;
+
+      const driverLat = driverLoc.latitude || driverLoc.lat;
+      const driverLng = driverLoc.longitude || driverLoc.lng;
+      if (!Number.isFinite(driverLat) || !Number.isFinite(driverLng)) return;
+
+      // Get pickup and dropoff coordinates
+      const pickupLat = order.from?.lat || order.pickupLocation?.coordinates?.lat;
+      const pickupLng = order.from?.lng || order.pickupLocation?.coordinates?.lng;
+      const dropoffLat = order.to?.lat || order.dropoffLocation?.coordinates?.lat;
+      const dropoffLng = order.to?.lng || order.dropoffLocation?.coordinates?.lng;
+
+      if (!Number.isFinite(pickupLat) || !Number.isFinite(pickupLng)) return;
+
+      setRouteLoading(true);
+      try {
+        // Leg 1: Driver → Pickup (waypoint)
+        const leg1Response = await MapsApi.calculateRoute({
+          pickup: { lat: driverLat, lng: driverLng },
+          delivery: { lat: pickupLat, lng: pickupLng }
+        });
+
+        if (leg1Response.polyline) {
+          const polyline = await import('polyline');
+          const path = polyline.decode(leg1Response.polyline);
+          setDriverToPickupPath(path);
+        }
+
+        // Leg 2: Pickup → Dropoff (always fetch, regardless of status)
+        if (Number.isFinite(dropoffLat) && Number.isFinite(dropoffLng)) {
+          const leg2Response = await MapsApi.calculateRoute({
+            pickup: { lat: pickupLat, lng: pickupLng },
+            delivery: { lat: dropoffLat, lng: dropoffLng }
+          });
+
+          if (leg2Response.polyline) {
+            const polyline = await import('polyline');
+            const path = polyline.decode(leg2Response.polyline);
+            setPickupToDropoffPath(path);
+          }
+        }
+      } catch (err) {
+        console.warn('[AsyncOrderMap] Route fetch failed:', err?.message || err);
+      } finally {
+        setRouteLoading(false);
+      }
+    };
+
+    // Wait for driver location to be available before fetching routes
+    const timer = setTimeout(fetchRoutes, 500);
+    return () => clearTimeout(timer);
+  }, [shouldFetch, driverLocation, currentDriverLocation, order.from, order.to, order.pickupLocation, order.dropoffLocation]);
+
+  const isRouteLoading = loading || routeLoading;
+
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      {loading && (
+      {isRouteLoading && (
         <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 1000, background: 'rgba(0,0,0,0.7)', color: '#00FF00', padding: '4px 8px', borderRadius: 4, fontSize: '0.75rem', fontFamily: 'monospace', pointerEvents: 'none' }}>⚡ Loading route...</div>
       )}
       <RoutePreviewMap
@@ -115,6 +180,8 @@ const AsyncOrderMap = ({ order, currentUser, driverLocation, theme = 'dark', onT
           osrm_used: !!order.routePolyline,
           actualRoutePolyline: actualRoute
         }}
+        driverToPickupPath={driverToPickupPath}
+        pickupToDropoffPath={pickupToDropoffPath}
         compact={true}
         mapTitle={`Order #${order.orderNumber || order.id}`}
         theme={theme}

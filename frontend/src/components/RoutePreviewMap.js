@@ -13,7 +13,7 @@ L.Icon.Default.mergeOptions({
 });
 
 // ============ ROUTE PREVIEW MAP COMPONENT ============
-const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, bids = [], onBidAccept, onBidSelect, selectedBidId: externalSelectedBidId, loading, compact = false, t, mapTitle = "Route Preview", theme = 'dark' }) => {
+const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, driverToPickupPath = [], pickupToDropoffPath = [], bids = [], onBidAccept, onBidSelect, selectedBidId: externalSelectedBidId, loading, compact = false, t, mapTitle = "Route Preview", theme = 'dark' }) => {
   console.log(`\ud83d\uddfa\ufe0f [${mapTitle}] RoutePreviewMap entry: bids=${Array.isArray(bids) ? bids.length : 'not-array'}, hasCoordinates=${!!(pickup && dropoff)}`);
   const [internalSelectedBidId, setInternalSelectedBidId] = React.useState(null);
   const selectedBidId = externalSelectedBidId !== undefined ? externalSelectedBidId : internalSelectedBidId;
@@ -121,6 +121,22 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, bids = []
       });
     }
 
+    // Include driver to pickup route path points
+    if (driverToPickupPath && driverToPickupPath.length > 0) {
+      const sampleRate = Math.ceil(driverToPickupPath.length / 20);
+      for (let i = 0; i < driverToPickupPath.length; i += sampleRate) {
+        points.push(driverToPickupPath[i]);
+      }
+    }
+
+    // Include pickup to dropoff route path points
+    if (pickupToDropoffPath && pickupToDropoffPath.length > 0) {
+      const sampleRate = Math.ceil(pickupToDropoffPath.length / 20);
+      for (let i = 0; i < pickupToDropoffPath.length; i += sampleRate) {
+        points.push(pickupToDropoffPath[i]);
+      }
+    }
+
     // Also include route path points if available to ensure full route is visible
     if (routePath && routePath.length > 0) {
       // Sample points to avoid performance issues with large polylines
@@ -132,7 +148,7 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, bids = []
 
     if (points.length === 0) return null;
     return L.latLngBounds(points);
-  }, [pickup, dropoff, driverLocation, routePath, bids]);
+  }, [pickup, dropoff, driverLocation, routePath, bids, driverToPickupPath, pickupToDropoffPath]);
 
   const MapEffect = () => {
     const map = useMap();
@@ -231,8 +247,29 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, bids = []
                   />
                 )}
 
-                {/* Driver to Pickup Line (Dashed) */}
-                {hasDriverCoords && pickup && !actualDriverPath.length && (
+                {/* Two-leg route: Driver → Pickup (Blue Dashed) - from AsyncOrderMap */}
+                {driverToPickupPath && driverToPickupPath.length > 1 && (
+                  <Polyline
+                    positions={driverToPickupPath}
+                    color="#3B82F6"
+                    weight={5}
+                    opacity={0.8}
+                    dashArray="10, 10"
+                  />
+                )}
+
+                {/* Two-leg route: Pickup → Dropoff (Orange Solid) - from AsyncOrderMap */}
+                {pickupToDropoffPath && pickupToDropoffPath.length > 1 && (
+                  <Polyline
+                    positions={pickupToDropoffPath}
+                    color="#FF6B00"
+                    weight={6}
+                    opacity={1.0}
+                  />
+                )}
+
+                {/* Driver to Pickup Line (Dashed) - Fallback when no route path available */}
+                {hasDriverCoords && pickup && !actualDriverPath.length && driverToPickupPath.length === 0 && (
                   <Polyline
                     positions={[
                       [driverLat, driverLng],
