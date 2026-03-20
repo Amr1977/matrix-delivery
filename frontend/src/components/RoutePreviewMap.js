@@ -286,12 +286,18 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, driverToP
                 {(() => {
                   const normalizedBids = Array.isArray(bids) ? bids : [];
                   
+                  console.log(`📍 [${mapTitle}] Bids rendering check:`, {
+                    bidsLength: normalizedBids.length,
+                    bidsArray: normalizedBids,
+                    firstBid: normalizedBids[0]
+                  });
+                  
                   if (normalizedBids.length === 0) {
-                    console.log(`\ud83d\udccd [${mapTitle}] No bid markers to render. Bids type: ${typeof bids}, length: ${bids?.length}`);
+                    console.log(`📌 [${mapTitle}] No bid markers to render. Bids type: ${typeof bids}, length: ${bids?.length}`);
                     return null;
                   }
                   
-                  console.log(`\ud83d\udccd [${mapTitle}] Rendering ${normalizedBids.length} bid markers:`, normalizedBids);
+                  console.log(`📌 [${mapTitle}] Rendering ${normalizedBids.length} bid markers:`, normalizedBids);
                   
                   return normalizedBids.map((bid, index) => {
                     // Robust coordinate parsing

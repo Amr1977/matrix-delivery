@@ -62,16 +62,30 @@ const OrderCard = ({
   // Debug log for bid locations
   React.useEffect(() => {
     if (order.status === 'pending_bids' && currentUser?.primary_role === 'customer') {
-      window.console.log(`ðŸ“¦ [Order ${order.id}] Bid Locations State:`, {
+      window.console.log(`📦 [Order ${order.id}] Bid Locations State:`, {
         loading: loadingLocations,
         locationsCount: bidLocations?.length || 0,
         bidsCount: order.bids?.length || 0,
         isMapVisible,
         bidLocationsData: bidLocations,
-        orderBidsData: order.bids
+        orderBidsData: order.bids,
+        active: order.status === 'pending_bids' && currentUser?.primary_role === 'customer' && order.bids?.length > 0
       });
     }
   }, [order.id, bidLocations, loadingLocations, order.status, currentUser?.primary_role, order.bids, isMapVisible]);
+
+  // Debug log for bid markers
+  React.useEffect(() => {
+    if (order.status === 'pending_bids' && currentUser?.primary_role === 'customer') {
+      window.console.log(`📍 [Order ${order.id}] Bid Markers State:`, {
+        bidLocations: bidLocations,
+        orderBids: order.bids,
+        isMapVisible: isMapVisible,
+        highlightedBidId: highlightedBidId,
+        mapContainerRef: mapContainerRef.current
+      });
+    }
+  }, [order.id, bidLocations, order.bids, isMapVisible, highlightedBidId, mapContainerRef]);
 
   // Scroll to highlighted bid section when it changes from the map
   React.useEffect(() => {
