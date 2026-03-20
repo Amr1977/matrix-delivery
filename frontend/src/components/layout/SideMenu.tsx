@@ -398,7 +398,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
                                     gap: '0.5rem'
                                 }}
                             >
-                                {isDriverOnline ? '🔴 {t('menu.goOffline')}' : '🟢 {t('menu.goOnline')}'}
+                                {isDriverOnline ? `🔴 ${t('menu.goOffline')}` : `🟢 ${t('menu.goOnline')}`}
                             </button>
                         </div>
                     )}
