@@ -318,7 +318,7 @@ const useMessaging = (initialUserId = null) => {
 
   // Initialize WebSocket connection (Running ONCE on mount)
   useEffect(() => {
-    const apiUrl = (process.env.REACT_APP_API_URL || 'http://localhost:5000/api').replace('/api', '');
+    const apiUrl = (process.env.REACT_APP_API_URL || 'http://localhost:5000/api');
     console.log('🔌 Connecting Chat Socket.IO to:', apiUrl);
 
     const io = require('socket.io-client');

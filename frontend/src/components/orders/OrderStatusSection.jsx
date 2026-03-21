@@ -40,7 +40,7 @@ const OrderStatusSection = ({
                                 if (bid.driverProfilePicture) {
                                     // Handle relative paths (e.g. /uploads/...)
                                     if (bid.driverProfilePicture.startsWith('/')) {
-                                        return `${API_URL.replace('/api', '')}${bid.driverProfilePicture}`;
+                                        return `${API_URL}${bid.driverProfilePicture}`;
                                     }
                                     return bid.driverProfilePicture;
                                 }
@@ -290,7 +290,7 @@ const OrderStatusSection = ({
                                 <img
                                     src={(order.acceptedBid?.driverImage || order.assignedDriver?.profilePicture)
                                         ? ((order.acceptedBid?.driverImage || order.assignedDriver?.profilePicture).startsWith('/')
-                                            ? `http://localhost:5000${(order.acceptedBid?.driverImage || order.assignedDriver?.profilePicture).replace('/api', '')}`
+                                            ? `http://localhost:5000${(order.acceptedBid?.driverImage || order.assignedDriver?.profilePicture)}`
                                             : (order.acceptedBid?.driverImage || order.assignedDriver?.profilePicture))
                                         : '/assets/avatars/male_avatar_matrix.png'}
                                     alt="Driver"

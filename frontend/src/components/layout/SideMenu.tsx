@@ -142,7 +142,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
                                 onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
                             >
                                 {currentUser?.profile_picture_url ? (
-                                    <img src={currentUser.profile_picture_url.startsWith('/') ? `${(process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api').replace('/api', '')}${currentUser.profile_picture_url}` : currentUser.profile_picture_url} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    <img src={currentUser.profile_picture_url.startsWith('/') ? `${(process.env.REACT_APP_API_URL || 'https://matrix-api.oldantique50.com/api')}${currentUser.profile_picture_url}` : currentUser.profile_picture_url} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                 ) : (
                                     <img
                                         src={currentUser?.gender === 'female'

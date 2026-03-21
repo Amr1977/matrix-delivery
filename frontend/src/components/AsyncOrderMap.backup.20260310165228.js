@@ -54,7 +54,7 @@ const AsyncOrderMap = ({ order, currentUser, driverLocation, theme = 'dark', onT
     useEffect(() => {
         if (!shouldFetch || !order.id) return;
 
-        const apiUrl = (process.env.REACT_APP_API_URL || 'http://localhost:5000/api').replace('/api', '');
+        const apiUrl = (process.env.REACT_APP_API_URL || 'http://localhost:5000/api');
         const socket = io(apiUrl, {
             withCredentials: true,
             transports: ['websocket'],

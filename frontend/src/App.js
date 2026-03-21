@@ -741,7 +741,7 @@ export const MainApp = () => {
   useEffect(() => {
     if (!token || !currentUser?.id) return;
 
-    const apiUrl = API_URL.replace('/api', '');
+    const apiUrl = API_URL;
 
     console.log('🔌 Initializing Socket.IO connection for notifications');
 

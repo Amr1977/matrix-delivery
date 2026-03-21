@@ -130,7 +130,7 @@ const useNotifications = (token, currentUser) => {
   // Real-time notifications via WebSocket
   useEffect(() => {
     if (token && currentUser?.id) {
-      const apiUrl = API_URL.replace('/api', '');
+      const apiUrl = API_URL;
 
       console.log('🔌 Initializing Socket.IO connection to:', apiUrl);
 
