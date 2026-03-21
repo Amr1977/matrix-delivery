@@ -1914,6 +1914,8 @@ export const MainApp = () => {
                       style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
                     >
                       <option value="">{t('auth.selectVehicleType')}</option>
+                      <option value="walker">{t('auth.walker')}</option>
+                      <option value="bicycle">{t('auth.bicycle')}</option>
                       <option value="bike">{t('auth.bike')}</option>
                       <option value="car">{t('auth.car')}</option>
                       <option value="van">{t('auth.van')}</option>
