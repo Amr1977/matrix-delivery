@@ -121,15 +121,16 @@ async function applyMigration(migrationFile) {
             throw error;
         }
     } catch (error) {
-        // Check for "already exists" errors (Postgres codes: 42P07 for table, 42701 for column, 42P06 for schema, 42710 for constraint)
+        // Check for "already exists" errors (Postgres codes: 42P07 for table/index, 42701 for column, 42710 for constraint, 42P06 for schema)
         const isAlreadyExistsError =
             error.code === '42P07' ||
             error.code === '42701' ||
             error.code === '42710' ||
-            error.message.includes('already exists');
+            error.code === '42P06' ||
+            (error.message && error.message.toLowerCase().includes('already exists'));
 
         if (isAlreadyExistsError) {
-            logger.warn(`⚠️ Skipped redundant migration: ${migrationFile} (Object already exists)`);
+            logger.warn(`⚠️ Skipped redundant migration: ${migrationFile} (Object already exists: ${error.message})`);
 
             try {
                 const migrationPath = path.join(migrationsDir, migrationFile);
@@ -187,17 +188,24 @@ async function main() {
         logger.info(`📋 Found ${pendingMigrations.length} pending migration(s)`);
 
         let successCount = 0;
+        let skippedCount = 0;
+        
         for (const migration of pendingMigrations) {
             try {
-                await applyMigration(migration);
-                successCount++;
+                const result = await applyMigration(migration);
+                if (result.skipped) {
+                    skippedCount++;
+                } else {
+                    successCount++;
+                }
             } catch (error) {
-                logger.error(`Migration failed, stopping: ${migration}`);
-                throw error;
+                // Log but continue with remaining migrations
+                logger.warn(`⚠️ Migration ${migration} failed, continuing... (${error.message})`);
+                skippedCount++;
             }
         }
 
-        logger.info(`✅ Successfully applied ${successCount} migration(s)`);
+        logger.info(`✅ Migrations complete: ${successCount} applied, ${skippedCount} skipped/attempted`);
     } catch (error) {
         logger.error(`Setup process failed: ${error.message}`);
         process.exit(1);

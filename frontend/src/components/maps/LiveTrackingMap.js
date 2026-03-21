@@ -117,7 +117,7 @@ const LiveTrackingMap = ({ orderId, t, compact = false, theme = 'dark', isDriver
 
   // Get API base URL from environment, strip /api suffix for tile endpoint
   const API_BASE = (process.env.REACT_APP_API_URL || 'http://localhost:5000/api').replace('/api', '');
-  const tileUrl = `${API_BASE}/api/maps/tiles/{z}/{x}/{y}.png`;
+  const tileUrl = `${API_BASE}/api/maps/tiles/{z}/{x}/{y}.png?v=2`;
 
   // Fetch tracking data
   const fetchTrackingData = useCallback(async () => {

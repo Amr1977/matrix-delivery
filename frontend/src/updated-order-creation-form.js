@@ -1015,7 +1015,7 @@ const MapLocationPicker = ({ location, onChange, onAddressFill, userLocation, ma
             >
               <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url={`${(process.env.REACT_APP_API_URL || 'http://localhost:5000/api').replace('/api', '')}/api/maps/tiles/{z}/{x}/{y}.png`}
+                url={`${(process.env.REACT_APP_API_URL || 'http://localhost:5000/api').replace('/api', '')}/api/maps/tiles/{z}/{x}/{y}.png?v=2`}
                 maxZoom={19}
                 minZoom={1}
                 subdomains={[]}
@@ -1101,7 +1101,7 @@ const MapLocationPicker = ({ location, onChange, onAddressFill, userLocation, ma
             >
               <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url={`${(process.env.REACT_APP_API_URL || 'http://localhost:5000/api').replace('/api', '')}/api/maps/tiles/{z}/{x}/{y}.png`}
+                url={`${(process.env.REACT_APP_API_URL || 'http://localhost:5000/api').replace('/api', '')}/api/maps/tiles/{z}/{x}/{y}.png?v=2`}
                 maxZoom={19}
                 minZoom={1}
                 subdomains={[]}
