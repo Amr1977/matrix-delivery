@@ -35,7 +35,7 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, driverToP
 
   // Get API base URL from environment, strip /api suffix for tile endpoint
   const API_BASE = (process.env.REACT_APP_API_URL || 'http://localhost:5000/api').replace('/api', '');
-  const tileUrl = `${API_BASE}/api/maps/tiles/{z}/{x}/{y}.png?v=2`;
+  const tileUrl = `${API_BASE}/api/maps/tiles/{z}/{x}/{y}.png?v=3`;
 
   // Decode polyline if available from OSRM, otherwise use straight line
   let routePath = [];

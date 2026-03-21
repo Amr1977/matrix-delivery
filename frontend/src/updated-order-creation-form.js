@@ -1015,7 +1015,7 @@ const MapLocationPicker = ({ location, onChange, onAddressFill, userLocation, ma
             >
               <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url={`${process.env.REACT_APP_API_URL}/maps/tiles/{z}/{x}/{y}.png?v=2`}
+                url={`${process.env.REACT_APP_API_URL}/maps/tiles/{z}/{x}/{y}.png?v=3`}
                 maxZoom={19}
                 minZoom={1}
                 subdomains={[]}
@@ -1101,7 +1101,7 @@ const MapLocationPicker = ({ location, onChange, onAddressFill, userLocation, ma
             >
               <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url={`${process.env.REACT_APP_API_URL}/maps/tiles/{z}/{x}/{y}.png?v=2`}
+                url={`${process.env.REACT_APP_API_URL}/maps/tiles/{z}/{x}/{y}.png?v=3`}
                 maxZoom={19}
                 minZoom={1}
                 subdomains={[]}
