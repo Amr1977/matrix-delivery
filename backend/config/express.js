@@ -47,8 +47,16 @@ const configureExpress = (app) => {
                 return callback(null, 'https://matrix-delivery.web.app');
             }
 
-            // In production, allow all origins to fix CORS issues
+            // In production, allow specific origins
             if (IS_PRODUCTION) {
+                const productionOrigins = [
+                    'https://matrix-delivery.com',
+                    'https://api.matrix-delivery.com'
+                ];
+                if (productionOrigins.includes(origin)) {
+                    return callback(null, origin);
+                }
+                // Allow all for now in production to fix CORS issues
                 return callback(null, origin);
             }
 
