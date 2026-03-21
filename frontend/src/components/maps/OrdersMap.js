@@ -39,7 +39,7 @@ const OrdersMap = ({
   theme = 'dark'
 }) => {
   // Get API base URL from environment, strip /api suffix for tile endpoint
-  const API_BASE = (process.env.REACT_APP_API_URL || 'http://localhost:5000/api');
+  const API_BASE = process.env.REACT_APP_API_URL;
   const tileUrl = `${API_BASE}/maps/tiles/{z}/{x}/{y}.png?v=2`;
 
   const getActiveLocation = () => {
