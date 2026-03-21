@@ -41,6 +41,7 @@ const OrdersMap = ({
   // Get API base URL from environment, strip /api suffix for tile endpoint
   const API_BASE = process.env.REACT_APP_API_URL;
   const tileUrl = `${API_BASE}/maps/tiles/{z}/{x}/{y}.png?v=3`;
+  console.log('🗺️ OrdersMap tileUrl:', tileUrl, '| API_BASE:', API_BASE);
 
   const getActiveLocation = () => {
     try {

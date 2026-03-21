@@ -1029,8 +1029,6 @@ const MapLocationPicker = ({ location, onChange, onAddressFill, userLocation, ma
                 maxNativeZoom={18}
                 minNativeZoom={0}
                 zoomOffset={0}
-                errorTileUrl="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjU2IiBoZWlnaHQ9IjI1NiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2IiBzdHJva2U9IiNiMmIyYjIiIHN0cm9rZS13aWR0aD0iMSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjE2IiBmaWxsPSIjNjY2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+TWlzc2luZyBUaWxlPC90ZXh0Pjwvc3ZnPg=="
-                crossOrigin={null}
               />
               <MapClickHandler onMapClick={handleMapClick} />
               {location?.coordinates && (
