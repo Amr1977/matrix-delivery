@@ -124,61 +124,11 @@ while true; do
             exec_cmd pm2 reload matrix-delivery-backend || exec_cmd pm2 reload all
 
             # ---------------------------
-            # 3. Frontend Deployment
+            # 3. Frontend Deployment (DISABLED - deploy manually)
             # ---------------------------
-            if [ -z "$FIREBASE_TOKEN" ]; then
-                log "âš ï¸ skipping Frontend Deploy: FIREBASE_TOKEN not set in .env"
-            else
-                log "ðŸŽ¨ Starting Frontend Deployment..."
-                cd frontend || exit
-
-                log "Installing frontend dependencies (clean, via npm ci)..."
-                exec_cmd npm ci --no-audit --fund=false || true
-                if [ ! -f node_modules/.bin/react-scripts ]; then
-                    log "npm ci may have failed or cache is cold; retrying with npm install..."
-                    exec_cmd npm install --no-progress --no-audit || true
-                fi
-
-                # Verify react-scripts is available before build
-                if [ ! -f node_modules/.bin/react-scripts ]; then
-                    log "❌ react-scripts missing after install. Attempting targeted install..."
-                    exec_cmd npm install react-scripts@5 --no-save || true
-                fi
-                # We replicate 'npm run build:prod' steps but override memory limit
-                log "Building Frontend (Limit: 768MB)..."
-                
-                # Step A: Generate Git Info
-                node scripts/generate-git-info.js
-                
-                # Step B: Setup Env
-                if [ -f .env.production ]; then
-                    cp .env.production .env
-                fi
-
-                # Step C: Build with Memory Limit
-                # Using 768MB to be safe on 1GB VPS
-                export NODE_OPTIONS="--max-old-space-size=768"
-                export REACT_APP_ENV=production
-                export DISABLE_ESLINT_PLUGIN=true
-                
-                exec_cmd npm run build
-                
-                if [ $? -ne 0 ]; then
-                    log "âŒ Frontend Build Failed! Skipping deploy."
-                else
-                    log "âœ… Build Successful. Deploying to Firebase..."
-                    exec_cmd npx firebase-tools deploy --only hosting --token "$FIREBASE_TOKEN"
-                    
-                    if [ $? -eq 0 ]; then
-                        log "ðŸš€ Firebase Deployment Complete."
-                    else
-                        log "âŒ Firebase Deployment Failed."
-                    fi
-                fi
-                cd .. # Return to root
-            fi
+            log "⚠️ Frontend deployment disabled - deploy manually from local machine"
             
-            log "ðŸŽ‰ Full Deployment Sequence Finished."
+            log "🎉 Backend Deployment Finished."
             
             # Check for self-update
             # We use git hash-object to compare the script file on disk vs what it was before validation
