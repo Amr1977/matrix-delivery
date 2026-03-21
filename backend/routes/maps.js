@@ -69,15 +69,29 @@ router.get('/tiles/:z/:x/:y.png', async (req, res) => {
             headers: {
                 'User-Agent': 'Matrix-Delivery-App/1.0 (contact@matrixdelivery.com)'
             },
-            timeout: 5000 // 5 second timeout
+            timeout: 10000 // 10 second timeout
         });
 
+        // Validate response
+        if (!response.data || response.data.length === 0) {
+            throw new Error('Empty response from OSM');
+        }
+
         const tileData = Buffer.from(response.data);
+        
+        // Validate tile data before caching
+        if (tileData.length < 100) {
+            logger.warn(`Tile ${z}/${x}/${y} too small (${tileData.length} bytes), skipping cache`);
+            res.setHeader('Content-Type', 'image/png');
+            res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+            res.setHeader('Cache-Control', 'public, max-age=3600');
+            return res.send(tileData);
+        }
 
         // 3. Save to cache (async, don't block response too much)
         try {
             insertTileParams.run(z, x, y, tileData, Date.now());
-            // console.log(`💾 Saved tile ${z}/${x}/${y} to cache`);
+            console.log(`💾 Saved tile ${z}/${x}/${y} to cache (${tileData.length} bytes)`);
         } catch (saveError) {
             logger.error(`Failed to cache tile ${z}/${x}/${y}:`, saveError.message);
         }
