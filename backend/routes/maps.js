@@ -44,13 +44,18 @@ router.get('/tiles/:z/:x/:y.png', async (req, res) => {
     try {
         // 1. Check local cache
         const row = getTileParams.get(z, x, y);
-        if (row) {
-            // Serve from cache
-            console.log(`🗺️ Cache HIT for tile ${z}/${x}/${y}`); // DEBUG
-            res.setHeader('Content-Type', 'image/png');
-            res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-            res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 1 day in browser
-            return res.send(row.data);
+        if (row && row.data && row.data.length > 0) {
+            // Validate cache - ensure it's not blank/corrupted (minimum valid PNG is ~100 bytes)
+            if (row.data.length > 100) {
+                console.log(`🗺️ Cache HIT for tile ${z}/${x}/${y}`); // DEBUG
+                res.setHeader('Content-Type', 'image/png');
+                res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+                res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache for 1 day in browser
+                return res.send(row.data);
+            }
+            // Cache is corrupted/empty, delete and refetch
+            console.log(`⚠️ Corrupted cache for tile ${z}/${x}/${y}, refetching...`);
+            db.prepare('DELETE FROM tiles WHERE z = ? AND x = ? AND y = ?').run(z, x, y);
         }
 
         console.log(`🌍 Cache MISS for tile ${z}/${x}/${y} - Fetching from OSM`); // DEBUG
