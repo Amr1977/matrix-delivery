@@ -5,7 +5,7 @@ import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
 import ForgotPasswordForm from './ForgotPasswordForm';
 import ResetPasswordForm from './ResetPasswordForm';
-import { useAuth } from '../../hooks/useAuth';
+import useAuth from '../../hooks/useAuth';
 
 const AuthScreen = ({ onLogin, onRegister, loading, error, countries }) => {
   const { t, locale, changeLocale } = useI18n();
