@@ -19,6 +19,21 @@ const ChatInterface = ({ conversation }) => {
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef(null);
 
+  // Matrix theme colors
+  const theme = {
+    bg: '#001100',
+    text: '#00FF00',
+    dimText: '#00AA00',
+    border: '#00AA00',
+    accent: '#00FF00',
+    inputBg: '#003300',
+    ownBubble: '#003300',
+    otherBubble: '#001100'
+  };
+
+  // Check if mobile
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
   useEffect(() => {
     if (conversation) {
       fetchOrderMessages(conversation.orderId);
@@ -83,10 +98,11 @@ const ChatInterface = ({ conversation }) => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        color: '#6B7280'
+        background: theme.bg,
+        color: theme.dimText
       }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>💬</div>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem', color: theme.dimText }}>💬</div>
           <p>{t('messages.selectConversation')}</p>
         </div>
       </div>
@@ -97,42 +113,50 @@ const ChatInterface = ({ conversation }) => {
     <div style={{
       height: '100%',
       display: 'flex',
-      flexDirection: 'column'
+      flexDirection: 'column',
+      background: theme.bg
     }}>
       {/* Header */}
       <div style={{
-        padding: '1rem',
-        borderBottom: '1px solid #E5E7EB',
-        background: '#F9FAFB'
+        padding: isMobile ? '0.75rem' : '1rem',
+        borderBottom: `1px solid ${theme.border}`,
+        background: theme.bg
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <div style={{
-            width: '40px',
-            height: '40px',
+            width: isMobile ? '32px' : '40px',
+            height: isMobile ? '32px' : '40px',
             borderRadius: '50%',
-            background: '#4F46E5',
+            background: theme.inputBg,
+            border: `1px solid ${theme.border}`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: 'white',
-            fontSize: '1.125rem',
+            color: theme.accent,
+            fontSize: isMobile ? '0.875rem' : '1.125rem',
             fontWeight: '600'
           }}>
             {conversation.customerName.charAt(0).toUpperCase()}
           </div>
-          <div>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <h3 style={{
-              fontSize: '1rem',
+              fontSize: isMobile ? '0.875rem' : '1rem',
               fontWeight: '600',
-              color: '#1F2937',
-              margin: 0
+              color: theme.text,
+              margin: 0,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
             }}>
               {conversation.customerName}
             </h3>
             <p style={{
               fontSize: '0.75rem',
-              color: '#6B7280',
-              margin: '0.25rem 0 0 0'
+              color: theme.dimText,
+              margin: '0.25rem 0 0 0',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
             }}>
               {conversation.pickupAddress} → {conversation.deliveryAddress}
             </p>
@@ -144,15 +168,15 @@ const ChatInterface = ({ conversation }) => {
       <div style={{
         flex: 1,
         overflowY: 'auto',
-        padding: '1rem',
-        background: '#F9FAFB'
+        padding: isMobile ? '0.5rem' : '1rem',
+        background: theme.bg
       }}>
         {loading && messages.length === 0 ? (
           <div style={{
             display: 'flex',
             justifyContent: 'center',
             padding: '2rem',
-            color: '#6B7280'
+            color: theme.dimText
           }}>
             {t('messages.loading')}
           </div>
@@ -164,9 +188,9 @@ const ChatInterface = ({ conversation }) => {
             justifyContent: 'center',
             padding: '3rem 1rem',
             textAlign: 'center',
-            color: '#6B7280'
+            color: theme.dimText
           }}>
-            <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>💭</div>
+            <div style={{ fontSize: '2rem', marginBottom: '1rem', color: theme.dimText }}>💭</div>
             <p>{t('messages.noMessages')}</p>
           </div>
         ) : (
@@ -184,12 +208,13 @@ const ChatInterface = ({ conversation }) => {
                       margin: '1rem 0'
                     }}>
                       <span style={{
-                        background: '#E5E7EB',
-                        color: '#6B7280',
+                        background: theme.inputBg,
+                        color: theme.dimText,
                         padding: '0.25rem 0.75rem',
                         borderRadius: '9999px',
                         fontSize: '0.75rem',
-                        fontWeight: '600'
+                        fontWeight: '600',
+                        border: `1px solid ${theme.border}`
                       }}>
                         {formatDate(message.createdAt)}
                       </span>
@@ -201,19 +226,20 @@ const ChatInterface = ({ conversation }) => {
                     justifyContent: message.sender.name === conversation.customerName ? 'flex-start' : 'flex-end'
                   }}>
                     <div style={{
-                      maxWidth: '70%',
-                      background: message.sender.name === conversation.customerName ? '#FFF' : '#4F46E5',
-                      color: message.sender.name === conversation.customerName ? '#1F2937' : '#FFF',
+                      maxWidth: isMobile ? '85%' : '70%',
+                      background: message.sender.name === conversation.customerName ? theme.otherBubble : theme.ownBubble,
+                      color: theme.text,
                       padding: '0.75rem 1rem',
                       borderRadius: '1rem',
                       borderBottomLeftRadius: message.sender.name === conversation.customerName ? '0.25rem' : '1rem',
                       borderBottomRightRadius: message.sender.name !== conversation.customerName ? '0.25rem' : '1rem',
-                      boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
+                      border: `1px solid ${theme.border}`,
+                      boxShadow: '0 0 10px rgba(0, 255, 0, 0.1)',
                       position: 'relative'
                     }}>
                       <p style={{
                         margin: 0,
-                        fontSize: '0.875rem',
+                        fontSize: isMobile ? '0.8125rem' : '0.875rem',
                         lineHeight: '1.25'
                       }}>
                         {message.content}
@@ -222,7 +248,8 @@ const ChatInterface = ({ conversation }) => {
                         fontSize: '0.75rem',
                         opacity: 0.7,
                         marginTop: '0.25rem',
-                        display: 'block'
+                        display: 'block',
+                        color: theme.dimText
                       }}>
                         {formatTime(message.createdAt)}
                         {message.isRead && message.sender.name !== conversation.customerName && (
@@ -241,9 +268,9 @@ const ChatInterface = ({ conversation }) => {
 
       {/* Message Input */}
       <div style={{
-        padding: '1rem',
-        borderTop: '1px solid #E5E7EB',
-        background: '#FFF'
+        padding: isMobile ? '0.5rem' : '1rem',
+        borderTop: `1px solid ${theme.border}`,
+        background: theme.bg
       }}>
         <form onSubmit={handleSendMessage} style={{
           display: 'flex',
@@ -257,15 +284,17 @@ const ChatInterface = ({ conversation }) => {
               placeholder={t('messages.typeMessage')}
               style={{
                 width: '100%',
-                minHeight: '40px',
+                minHeight: isMobile ? '36px' : '40px',
                 maxHeight: '120px',
                 padding: '0.75rem',
-                border: '1px solid #D1D5DB',
+                border: `1px solid ${theme.border}`,
                 borderRadius: '0.5rem',
                 outline: 'none',
                 resize: 'none',
-                fontSize: '0.875rem',
-                fontFamily: 'inherit'
+                fontSize: isMobile ? '0.8125rem' : '0.875rem',
+                fontFamily: 'inherit',
+                background: theme.inputBg,
+                color: theme.text
               }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -280,12 +309,12 @@ const ChatInterface = ({ conversation }) => {
             type="submit"
             disabled={!newMessage.trim() || sending}
             style={{
-              padding: '0.75rem',
-              background: '#4F46E5',
-              color: 'white',
-              border: 'none',
+              padding: isMobile ? '0.625rem' : '0.75rem',
+              background: theme.inputBg,
+              color: theme.accent,
+              border: `1px solid ${theme.border}`,
               borderRadius: '0.5rem',
-              cursor: 'pointer',
+              cursor: !newMessage.trim() || sending ? 'not-allowed' : 'pointer',
               opacity: !newMessage.trim() || sending ? 0.5 : 1,
               display: 'flex',
               alignItems: 'center',

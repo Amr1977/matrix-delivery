@@ -126,6 +126,34 @@ class MessagingService {
         message: messageResponse
       });
       logger.info(`Emitted new_message event to order_${orderId}`, { category: 'websocket' });
+
+      // Create and emit notification for the recipient
+      try {
+        const notificationId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+        const notification = {
+          id: notificationId,
+          userId: recipientId,
+          orderId: orderId,
+          type: 'new_message',
+          title: 'New Message',
+          message: sanitizedContent.substring(0, 100),
+          isRead: false,
+          createdAt: new Date()
+        };
+
+        // Insert notification into database
+        await pool.query(
+          `INSERT INTO notifications (id, user_id, order_id, type, title, message, is_read, created_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+          [notificationId, recipientId, orderId, 'new_message', 'New Message', sanitizedContent.substring(0, 200), false, new Date()]
+        );
+
+        // Emit notification event to recipient
+        this.io.to(`user_${recipientId}`).emit('notification', notification);
+        logger.info(`Emitted notification to user_${recipientId}`, { category: 'websocket' });
+      } catch (notifyError) {
+        logger.error('Failed to create notification for message:', notifyError);
+      }
     }
 
     return messageResponse;

@@ -13,6 +13,21 @@ const ConversationsList = ({ onSelectConversation }) => {
     unreadCount
   } = useMessaging();
 
+  // Matrix theme colors
+  const theme = {
+    bg: '#001100',
+    text: '#00FF00',
+    dimText: '#00AA00',
+    border: '#00AA00',
+    accent: '#00FF00',
+    inputBg: '#003300',
+    hoverBg: '#002200',
+    selectedBg: '#003300'
+  };
+
+  // Check if mobile
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
   useEffect(() => {
     fetchConversations();
   }, [fetchConversations]);
@@ -43,7 +58,7 @@ const ConversationsList = ({ onSelectConversation }) => {
         alignItems: 'center',
         justifyContent: 'center',
         padding: '2rem',
-        color: '#6B7280'
+        color: theme.dimText
       }}>
         {t('messages.loading')}
       </div>
@@ -54,11 +69,11 @@ const ConversationsList = ({ onSelectConversation }) => {
     return (
       <div style={{
         padding: '1rem',
-        background: '#FEF2F2',
-        color: '#991B1B',
+        background: '#330000',
+        color: '#FF6666',
         borderRadius: '0.375rem',
         fontSize: '0.875rem',
-        border: '1px solid #FEE2E2'
+        border: '1px solid #FF0000'
       }}>
         ⚠️ {error}
       </div>
@@ -69,24 +84,25 @@ const ConversationsList = ({ onSelectConversation }) => {
     <div style={{
       height: '100%',
       display: 'flex',
-      flexDirection: 'column'
+      flexDirection: 'column',
+      background: theme.bg
     }}>
       {/* Header */}
       <div style={{
         padding: '1rem',
-        borderBottom: '1px solid #E5E7EB',
-        background: '#F9FAFB'
+        borderBottom: `1px solid ${theme.border}`,
+        background: theme.bg
       }}>
         <h2 style={{
-          fontSize: '1.125rem',
+          fontSize: isMobile ? '1rem' : '1.125rem',
           fontWeight: '600',
-          color: '#1F2937',
+          color: theme.text,
           margin: 0
         }}>
           {t('messages.conversations')}
           {unreadCount > 0 && (
             <span style={{
-              background: '#EF4444',
+              background: '#FF0000',
               color: 'white',
               borderRadius: '9999px',
               padding: '0.125rem 0.5rem',
@@ -113,18 +129,18 @@ const ConversationsList = ({ onSelectConversation }) => {
             justifyContent: 'center',
             padding: '3rem 1rem',
             textAlign: 'center',
-            color: '#6B7280'
+            color: theme.dimText
           }}>
-            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>💬</div>
+            <div style={{ fontSize: '3rem', marginBottom: '1rem', color: theme.dimText }}>💬</div>
             <h3 style={{
               fontSize: '1.125rem',
               fontWeight: '600',
-              color: '#1F2937',
+              color: theme.text,
               marginBottom: '0.5rem'
             }}>
               {t('messages.noConversations')}
             </h3>
-            <p style={{ fontSize: '0.875rem' }}>
+            <p style={{ fontSize: '0.875rem', color: theme.dimText }}>
               {t('messages.startConversation')}
             </p>
           </div>
@@ -134,22 +150,22 @@ const ConversationsList = ({ onSelectConversation }) => {
               key={conversation.orderId}
               onClick={() => onSelectConversation(conversation)}
               style={{
-                padding: '1rem',
-                borderBottom: '1px solid #E5E7EB',
+                padding: isMobile ? '0.75rem' : '1rem',
+                borderBottom: `1px solid ${theme.border}`,
                 cursor: 'pointer',
                 background: currentConversation?.orderId === conversation.orderId
-                  ? '#F3F4F6'
-                  : 'white',
+                  ? theme.selectedBg
+                  : theme.bg,
                 transition: 'background-color 0.15s ease'
               }}
               onMouseEnter={(e) => {
                 if (currentConversation?.orderId !== conversation.orderId) {
-                  e.target.style.background = '#F9FAFB';
+                  e.target.style.background = theme.hoverBg;
                 }
               }}
               onMouseLeave={(e) => {
                 if (currentConversation?.orderId !== conversation.orderId) {
-                  e.target.style.background = 'white';
+                  e.target.style.background = theme.bg;
                 }
               }}
             >
@@ -162,7 +178,7 @@ const ConversationsList = ({ onSelectConversation }) => {
                 <div style={{
                   fontSize: '0.875rem',
                   fontWeight: '600',
-                  color: '#1F2937',
+                  color: theme.text,
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
@@ -172,7 +188,7 @@ const ConversationsList = ({ onSelectConversation }) => {
                 </div>
                 <div style={{
                   fontSize: '0.75rem',
-                  color: '#6B7280',
+                  color: theme.dimText,
                   marginLeft: '0.5rem'
                 }}>
                   {formatTime(conversation.lastMessageAt)}
@@ -182,11 +198,11 @@ const ConversationsList = ({ onSelectConversation }) => {
               <div style={{
                 display: 'flex',
                 justifyContent: 'space-between',
-                alignItems: 'flex-end'
+                alignItems: 'end'
               }}>
                 <div style={{
                   fontSize: '0.875rem',
-                  color: '#6B7280',
+                  color: theme.dimText,
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
@@ -202,7 +218,7 @@ const ConversationsList = ({ onSelectConversation }) => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                   {conversation.unreadCount > 0 && (
                     <span style={{
-                      background: '#EF4444',
+                      background: '#FF0000',
                       color: 'white',
                       borderRadius: '9999px',
                       padding: '0.125rem 0.375rem',
@@ -216,7 +232,7 @@ const ConversationsList = ({ onSelectConversation }) => {
                   )}
                   <span style={{
                     fontSize: '0.75rem',
-                    color: '#6B7280',
+                    color: theme.dimText,
                     textTransform: 'capitalize'
                   }}>
                     {conversation.orderStatus.replace('_', ' ')}
