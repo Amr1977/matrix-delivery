@@ -87,6 +87,7 @@ function RoutePreviewMap({ pickup, dropoff, routeInfo, driverLocation, driverToP
     } catch (error) {
       // Silent fail for route decoding
     }
+  }
 
   // Calculate bounds to include all points
   const bounds = React.useMemo(() => {
