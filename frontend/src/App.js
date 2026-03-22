@@ -1736,53 +1736,13 @@ export const MainApp = () => {
   if (!token) {
     return (
       <div style={{ minHeight: '100vh', background: '#090909', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ position: 'fixed', top: 'calc(0.75rem + env(safe-area-inset-top))', right: 'calc(0.75rem + env(safe-area-inset-right))', zIndex: 2000 }}>
-          <LanguageSwitcher locale={locale} changeLocale={changeLocale} />
-        </div>
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-          <div className="card">
-            <img
-              src="/branding-hero-1.png"
-              alt="Matrix Heroes - Your trusted delivery heroes"
-              className="pulse"
-              style={{ width: '3rem', height: '3rem', display: 'block', margin: '0 auto var(--spacing-lg) auto' }}
-            />
-            <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: 'var(--matrix-bright-green)', marginBottom: 'var(--spacing-sm)', textAlign: 'center', textShadow: 'var(--shadow-glow)' }}>{t('common.appName')}</h1>
-            <p className="text-matrix" style={{ marginBottom: 'var(--spacing-lg)', textAlign: 'center' }}>{t('common.subtitle')}</p>
-
-            {error && (
-              <div style={{ background: '#FEF2F2', color: '#991B1B', padding: '0.75rem', borderRadius: '0.375rem', marginBottom: '1rem', fontSize: '0.875rem', border: '1px solid #FEE2E2' }}>
-                ⚠️ {error}
-              </div>
-            )}
-
-            <AuthScreen
-              onLogin={handleLogin}
-              onRegister={handleRegister}
-              loading={loading}
-              error={error}
-              countries={countries}
-            />
-          </div>
-        </div>
-
-        {/* Version Footer */}
-
-        {showLiveTracking && selectedOrder && token && (
-          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
-            <div className="modal-content" style={{ background: 'white', borderRadius: '0.5rem', maxWidth: '42rem', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
-              <div style={{ padding: '1.5rem', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Live Tracking - {selectedOrder.orderNumber}</h2>
-                <button onClick={() => setShowLiveTracking(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
-              </div>
-              <div style={{ padding: '1.5rem' }}>
-                <LiveTrackingMapView orderId={String(selectedOrder?.id || selectedOrder?.orderNumber || '')} t={t} />
-                <button onClick={() => setShowLiveTracking(false)} style={{ width: '100%', marginTop: '1rem', padding: '0.75rem', background: '#F3F4F6', color: '#374151', borderRadius: '0.375rem', border: 'none', cursor: 'pointer', fontWeight: '600' }}>{t('common.close')}</button>
-              </div>
-            </div>
-          </div>
-        )}
-
+        <AuthScreen
+          onLogin={handleLogin}
+          onRegister={handleRegister}
+          loading={loading}
+          error={error}
+          countries={countries}
+        />
       </div>
     );
   }
