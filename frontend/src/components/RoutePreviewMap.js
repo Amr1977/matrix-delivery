@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState, useMemo as useReactMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import polyline from '@mapbox/polyline';
@@ -12,10 +12,8 @@ L.Icon.Default.mergeOptions({
   shadowUrl: '/markers/marker-shadow.png',
 });
 
-// ============ ROUTE PREVIEW MAP COMPONENT ============
-const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, driverToPickupPath = [], pickupToDropoffPath = [], bids = [], onBidAccept, onBidSelect, selectedBidId: externalSelectedBidId, loading, compact = false, t, mapTitle = "Route Preview", theme = 'dark' }) => {
-  console.log(`\ud83d\uddfa\ufe0f [${mapTitle}] RoutePreviewMap entry: bids=${Array.isArray(bids) ? bids.length : 'not-array'}, hasCoordinates=${!!(pickup && dropoff)}`);
-  const [internalSelectedBidId, setInternalSelectedBidId] = React.useState(null);
+function RoutePreviewMap({ pickup, dropoff, routeInfo, driverLocation, driverToPickupPath = [], pickupToDropoffPath = [], bids = [], onBidAccept, onBidSelect, selectedBidId: externalSelectedBidId, loading, compact = false, t, mapTitle = "Route Preview", theme = 'dark' }) {
+  const [internalSelectedBidId, setInternalSelectedBidId] = useState(null);
   const selectedBidId = externalSelectedBidId !== undefined ? externalSelectedBidId : internalSelectedBidId;
   const setSelectedBidId = externalSelectedBidId !== undefined ? onBidSelect : setInternalSelectedBidId;
 
@@ -36,7 +34,6 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, driverToP
   // Get API base URL from environment, strip /api suffix for tile endpoint
   const API_BASE = (process.env.REACT_APP_API_URL || 'http://localhost:5000/api');
   const tileUrl = `${API_BASE}/maps/tiles/{z}/{x}/{y}.png?v=3`;
-  console.log('🗺️ RoutePreviewMap tileUrl:', tileUrl, '| API_BASE:', API_BASE);
 
   // Decode polyline if available from OSRM, otherwise use straight line
   let routePath = [];
@@ -64,19 +61,14 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, driverToP
   // window.console.log(`\ud83d\uddfa\ufe0f [${mapTitle}] RoutePreviewMap Debug:`, debugInfo);
 
   if (routeInfo?.biddingRoute) {
-    // Use pre-decoded bidding route (driver -> pickup -> dropoff)
     routePath = routeInfo.biddingRoute;
     isActualRoute = true;
-    console.log(`\u2705 [${mapTitle}] Using bidding route:`, routePath.length, 'points');
   } else if (routeInfo?.polyline) {
     try {
       // Decode OSRM polyline to array of [lat, lng] coordinates
       routePath = polyline.decode(routeInfo.polyline);
       isActualRoute = true;
-      console.log(`\u2705 [${mapTitle}] OSRM polyline decoded:`, routePath.length, 'points');
     } catch (error) {
-      console.error(`\u274c [${mapTitle}] Failed to decode polyline:`, error);
-      console.warn('Failed to decode polyline, using straight line:', error);
       routePath = hasCoordinates ? [[pickup.lat, pickup.lng], [dropoff.lat, dropoff.lng]] : [];
     }
   } else {
@@ -92,11 +84,9 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, driverToP
       } else if (Array.isArray(routeInfo.actualRoutePolyline)) {
         actualDriverPath = routeInfo.actualRoutePolyline;
       }
-      console.log(`\u2705 [${mapTitle}] Actual driver route decoded:`, actualDriverPath.length, 'points');
     } catch (error) {
-      console.error(`\u274c [${mapTitle}] Failed to decode actual route:`, error);
+      // Silent fail for route decoding
     }
-  }
 
   // Calculate bounds to include all points
   const bounds = React.useMemo(() => {
@@ -287,26 +277,15 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, driverToP
                 {(() => {
                   const normalizedBids = Array.isArray(bids) ? bids : [];
                   
-                  console.log(`📍 [${mapTitle}] Bids rendering check:`, {
-                    bidsLength: normalizedBids.length,
-                    bidsArray: normalizedBids,
-                    firstBid: normalizedBids[0]
-                  });
-                  
                   if (normalizedBids.length === 0) {
-                    console.log(`📌 [${mapTitle}] No bid markers to render. Bids type: ${typeof bids}, length: ${bids?.length}`);
                     return null;
                   }
                   
-                  console.log(`📌 [${mapTitle}] Rendering ${normalizedBids.length} bid markers:`, normalizedBids);
-                  
                   return normalizedBids.map((bid, index) => {
-                    // Robust coordinate parsing
                     const rawLat = bid.driverLocation?.lat ?? bid.latitude ?? bid.lat;
                     const rawLng = bid.driverLocation?.lng ?? bid.longitude ?? bid.lng;
                     
                     if (rawLat === null || rawLat === undefined || rawLng === null || rawLng === undefined) {
-                      console.warn(`\u26a0\ufe0f [${mapTitle}] Bid ${index} missing coordinates:`, bid);
                       return null;
                     }
                     
@@ -314,17 +293,14 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, driverToP
                     const bidLng = Number(rawLng);
                     
                     if (!Number.isFinite(bidLat) || !Number.isFinite(bidLng)) {
-                      console.warn(`\u26a0\ufe0f [${mapTitle}] Bid ${index} invalid coordinates:`, { bidLat, bidLng });
                       return null;
                     }
-                    if (bidLat === 0 && bidLng === 0) return null; // Likely invalid data if both are zero
+                    if (bidLat === 0 && bidLng === 0) return null;
 
                     const bidUserId = bid.userId || bid.driver_id || bid.user_id || `bid-${index}`;
                     const isSelected = (selectedBidId && String(selectedBidId) === String(bidUserId)) || 
                                      (driverLocation && (driverLocation.userId || driverLocation.id) && 
                                       String(driverLocation.userId || driverLocation.id) === String(bidUserId));
-
-                    console.log(`\u2705 [${mapTitle}] Marker ${index} (${bidUserId}) at:`, { bidLat, bidLng, isSelected });
 
                     return (
                       <React.Fragment key={bidUserId || index}>
@@ -418,8 +394,7 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, driverToP
                 });
               })()}
 
-                {/* Driver Location Marker - Enhanced visibility (Original) */}
-                {console.log('🚗 RoutePreviewMap Driver Marker Check:', { driverLocation })}
+                {/* Driver Location Marker */}
                 {(() => {
                   const dLat = Number(driverLocation?.lat || driverLocation?.latitude);
                   const dLng = Number(driverLocation?.lng || driverLocation?.longitude);
@@ -494,6 +469,6 @@ const RoutePreviewMap = ({ pickup, dropoff, routeInfo, driverLocation, driverToP
       {renderMapContent(compact)}
     </ClickableMap>
   );
-};
+}
 
-export default RoutePreviewMap;
+export default React.memo(RoutePreviewMap);
