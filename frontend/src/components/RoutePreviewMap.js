@@ -471,4 +471,4 @@ function RoutePreviewMap({ pickup, dropoff, routeInfo, driverLocation, driverToP
   );
 }
 
-export default React.memo(RoutePreviewMap);
+export default RoutePreviewMap;
