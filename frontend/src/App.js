@@ -44,6 +44,7 @@ import MatrixLanding from './pages/MatrixLanding';
 import ReviewsPage from './pages/ReviewsPage';
 import CreateOrderPage from './pages/CreateOrderPage';
 import ReviewModal from './components/reviews/ReviewModal';
+import AuthScreen from './components/auth/AuthScreen';
 
 // TypeScript API Services
 import { AuthApi, OrdersApi, NotificationsApi, UsersApi, DriversApi } from './services/api';
@@ -99,16 +100,6 @@ export const MainApp = () => {
   // Fixed: LiveTrackingMap component moved outside DeliveryApp function for proper scoping
   // State variables
   const location = useLocation();
-  const [authState, setAuthState] = useState(location.pathname === '/register' ? 'register' : 'login');
-
-  // Sync authState with URL changes
-  useEffect(() => {
-    if (location.pathname === '/register') {
-      setAuthState('register');
-    } else if (location.pathname === '/login') {
-      setAuthState('login');
-    }
-  }, [location.pathname]);
   const [token, setToken] = useState(null); // Remove localStorage - tokens are in httpOnly cookies
   const [authChecking, setAuthChecking] = useState(true); // Track initial auth check
   const [currentUser, setCurrentUser] = useState(null);
@@ -131,7 +122,6 @@ export const MainApp = () => {
   const [error, setError] = useState('');
   const [showOrderForm, setShowOrderForm] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const [showPassword, setShowPassword] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   // const [showMobileMenu, setShowMobileMenu] = useState(false); // Moved to MainLayout
 
@@ -361,22 +351,6 @@ export const MainApp = () => {
     timelinessRating: 0,
     conditionRating: 0
   });
-
-  const [authForm, setAuthForm] = useState({
-    name: '',
-    email: '',
-    password: '',
-    phone: '',
-    primary_role: 'customer',
-    vehicle_type: '',
-    country: '',
-    city: '',
-    area: ''
-  });
-
-  // Captcha refs
-  const registerCaptchaRef = useRef(null);
-  const loginCaptchaRef = useRef(null);
 
   const [bidInput, setBidInput] = useState({});
   const [bidDetails, setBidDetails] = useState({});
@@ -1138,21 +1112,19 @@ export const MainApp = () => {
   // ============ APP.JS PART 3: Event Handlers ============
   // Add this after Part 2
 
-  const handleRegister = async (e) => {
-    e.preventDefault();
-
-    if (!authForm.name || !authForm.email || !authForm.password || !authForm.phone || !authForm.country || !authForm.city) {
+  const handleRegister = async (formData) => {
+    if (!formData.name || !formData.email || !formData.password || !formData.phone || !formData.country || !formData.city) {
       console.warn('Registration validation failed: missing required fields');
       setError('All required fields must be filled');
       return;
     }
-    if (authForm.primary_role === 'driver' && !authForm.vehicle_type) {
+    if (formData.primary_role === 'driver' && !formData.vehicle_type) {
       console.warn('Registration validation failed: missing vehicle type for driver');
       setError('Vehicle type is required for drivers');
       return;
     }
 
-    const recaptchaToken = process.env.REACT_APP_RECAPTCHA_SITE_KEY ? registerCaptchaRef.current?.getValue() : null;
+    const recaptchaToken = formData.recaptchaToken;
     if (process.env.REACT_APP_RECAPTCHA_SITE_KEY && !recaptchaToken) {
       console.warn('Registration validation failed: missing captcha');
       setError('Please complete the captcha');
@@ -1164,8 +1136,8 @@ export const MainApp = () => {
 
     try {
       await AuthApi.register({
-        ...authForm,
-        primary_role: authForm.primary_role, // Backend expects primary_role
+        ...formData,
+        primary_role: formData.primary_role,
         recaptchaToken
       });
 
@@ -1178,7 +1150,6 @@ export const MainApp = () => {
       // Token is now set in httpOnly cookie by server, no need to store in localStorage
       setToken('authenticated'); // Just a flag to indicate user is logged in
       setCurrentUser(userData);
-      setAuthForm({ name: '', email: '', password: '', phone: '', primary_role: 'customer', vehicle_type: '', country: '', city: '', area: '' });
       setError('');
       navigate('/app');
 
@@ -1189,14 +1160,13 @@ export const MainApp = () => {
     }
   };
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    if (!authForm.email || !authForm.password) {
+  const handleLogin = async (formData) => {
+    if (!formData.email || !formData.password) {
       setError('Email and password required');
       return;
     }
 
-    const recaptchaToken = process.env.REACT_APP_RECAPTCHA_SITE_KEY ? loginCaptchaRef.current?.getValue() : null;
+    const recaptchaToken = formData.recaptchaToken;
     if (process.env.REACT_APP_RECAPTCHA_SITE_KEY && !recaptchaToken) {
       setError('Please complete the captcha');
       return;
@@ -1205,8 +1175,8 @@ export const MainApp = () => {
     setLoading(true);
     try {
       await AuthApi.login({
-        email: authForm.email,
-        password: authForm.password,
+        email: formData.email,
+        password: formData.password,
         recaptchaToken
       });
 
@@ -1219,7 +1189,6 @@ export const MainApp = () => {
       setToken('authenticated'); // Just a flag to indicate user is logged in
       setCurrentUser(userData);
       setAvailableRoles(userData.granted_roles || (userData.primary_role ? [userData.primary_role] : []));
-      setAuthForm({ name: '', email: '', password: '', phone: '', primary_role: 'customer', vehicle_type: '' });
       setError('');
       navigate('/app');
     } catch (err) {
@@ -1258,7 +1227,6 @@ export const MainApp = () => {
     setOrders([]);
     setOrdersLoaded(false);
     setNotifications([]);
-    setAuthState('login');
     setError('');
 
     // Clear tracking modal state on logout
@@ -1788,196 +1756,13 @@ export const MainApp = () => {
               </div>
             )}
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {authState === 'login' ? (
-                <>
-                  <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1F2937' }}>{t('auth.signIn')}</h2>
-                  <input
-                    data-testid="email-input"
-                    type="email"
-                    placeholder={t('auth.email')}
-                    value={authForm.email}
-                    onChange={(e) => setAuthForm({ ...authForm, email: e.target.value })}
-                    style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
-                  />
-                  <div style={{ position: 'relative', width: '100%' }}>
-                    <input
-                      data-testid="password-input"
-                      type={showPassword ? 'text' : 'password'}
-                      placeholder={t('auth.password')}
-                      value={authForm.password}
-                      onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })}
-                      style={{ width: '100%', padding: '0.5rem 3.5rem 0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none', height: '44px' }}
-                    />
-                    <button
-                      type="button"
-                      className="password-toggle-btn"
-                      onClick={() => setShowPassword(!showPassword)}
-                      aria-label={showPassword ? 'Hide password' : 'Show password'}
-                      style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#6B7280', cursor: 'pointer', width: '2rem', height: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                    >
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 5C7 5 3.1 8.1 1 12c2.1 3.9 6 7 11 7s8.9-3.1 11-7c-2.1-3.9-6-7-11-7z" stroke="currentColor" strokeWidth="2" fill="none" />
-                        <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" fill={showPassword ? 'currentColor' : 'none'} />
-                      </svg>
-                    </button>
-                  </div>
-                  {process.env.REACT_APP_RECAPTCHA_SITE_KEY && (
-                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem' }}>
-                      <ReCAPTCHA
-                        ref={loginCaptchaRef}
-                        sitekey={process.env.REACT_APP_RECAPTCHA_SITE_KEY}
-                      />
-                    </div>
-                  )}
-                  <button
-                    data-testid="login-submit-btn"
-                    onClick={handleLogin}
-                    disabled={loading}
-                    style={{ width: '100%', background: '#4F46E5', color: 'white', padding: '0.5rem', borderRadius: '0.5rem', fontWeight: '600', border: 'none', cursor: 'pointer', opacity: loading ? 0.5 : 1 }}
-                  >
-                    {loading ? t('auth.loading') : t('auth.login')}
-                  </button>
-                  <p style={{ textAlign: 'center', color: '#6B7280', fontSize: '0.875rem' }}>
-                    {t('auth.dontHaveAccount')}{' '}
-                    <button
-                      onClick={() => { setAuthState('register'); setError(''); }}
-                      style={{ color: '#4F46E5', textDecoration: 'underline', fontWeight: '600', background: 'none', border: 'none', cursor: 'pointer' }}
-                    >
-                      {t('auth.signUp')}
-                    </button>
-                  </p>
-                </>
-              ) : (
-                <>
-                  <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1F2937' }}>{t('auth.createAccount')}</h2>
-                  <input
-                    data-testid="name-input"
-                    type="text"
-                    placeholder={t('auth.fullName')}
-                    value={authForm.name}
-                    onChange={(e) => setAuthForm({ ...authForm, name: e.target.value })}
-                    style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
-                  />
-                  <input
-                    data-testid="email-input"
-                    type="email"
-                    placeholder={t('auth.email')}
-                    value={authForm.email}
-                    onChange={(e) => setAuthForm({ ...authForm, email: e.target.value })}
-                    style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
-                  />
-                  <input
-                    data-testid="phone-input"
-                    type="tel"
-                    placeholder={t('auth.phoneNumber')}
-                    value={authForm.phone}
-                    onChange={(e) => setAuthForm({ ...authForm, phone: e.target.value })}
-                    style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
-                  />
-                  <div style={{ position: 'relative', width: '100%' }}>
-                    <input
-                      data-testid="password-input"
-                      type={showPassword ? 'text' : 'password'}
-                      placeholder={t('auth.password')}
-                      value={authForm.password}
-                      onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })}
-                      style={{ width: '100%', padding: '0.5rem 3.5rem 0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none', height: '44px' }}
-                    />
-                    <button
-                      type="button"
-                      className="password-toggle-btn"
-                      onClick={() => setShowPassword(!showPassword)}
-                      aria-label={showPassword ? 'Hide password' : 'Show password'}
-                      style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#6B7280', cursor: 'pointer', width: '2rem', height: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                    >
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 5C7 5 3.1 8.1 1 12c2.1 3.9 6 7 11 7s8.9-3.1 11-7c-2.1-3.9-6-7-11-7z" stroke="currentColor" strokeWidth="2" fill="none" />
-                        <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" fill={showPassword ? 'currentColor' : 'none'} />
-                      </svg>
-                    </button>
-                  </div>
-                  <select
-                    data-testid="role-select"
-                    value={authForm.primary_role}
-                    onChange={(e) => setAuthForm({ ...authForm, primary_role: e.target.value })}
-                    style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
-                  >
-                    <option value="customer">{t('auth.customer')}</option>
-                    <option value="driver">{t('auth.driver')}</option>
-                  </select>
-                  {authForm.primary_role === 'driver' && (
-                    <select
-                      data-testid="vehicle-type-select"
-                      value={authForm.vehicle_type}
-                      onChange={(e) => setAuthForm({ ...authForm, vehicle_type: e.target.value })}
-                      style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
-                    >
-                      <option value="">{t('auth.selectVehicleType')}</option>
-                      <option value="walker">{t('auth.walker')}</option>
-                      <option value="bicycle">{t('auth.bicycle')}</option>
-                      <option value="bike">{t('auth.bike')}</option>
-                      <option value="car">{t('auth.car')}</option>
-                      <option value="van">{t('auth.van')}</option>
-                      <option value="truck">{t('auth.truck')}</option>
-                    </select>
-                  )}
-
-                  {/* Location Fields */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-                    <input
-                      data-testid="country-input"
-                      type="text"
-                      placeholder={t('orders.selectCountry')}
-                      value={authForm.country}
-                      onChange={(e) => setAuthForm({ ...authForm, country: e.target.value })}
-                      style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
-                    />
-                    <input
-                      data-testid="city-input"
-                      type="text"
-                      placeholder={t('orders.city')}
-                      value={authForm.city}
-                      onChange={(e) => setAuthForm({ ...authForm, city: e.target.value })}
-                      style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
-                    />
-                  </div>
-                  <input
-                    data-testid="area-input"
-                    type="text"
-                    placeholder={t('orders.area')}
-                    value={authForm.area}
-                    onChange={(e) => setAuthForm({ ...authForm, area: e.target.value })}
-                    style={{ width: '100%', padding: '0.5rem 1rem', border: '1px solid #D1D5DB', borderRadius: '0.5rem', outline: 'none' }}
-                  />
-                  {process.env.REACT_APP_RECAPTCHA_SITE_KEY && (
-                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem' }}>
-                      <ReCAPTCHA
-                        ref={registerCaptchaRef}
-                        sitekey={process.env.REACT_APP_RECAPTCHA_SITE_KEY}
-                      />
-                    </div>
-                  )}
-                  <button
-                    data-testid="register-submit-btn"
-                    onClick={handleRegister}
-                    disabled={loading}
-                    style={{ width: '100%', background: '#4F46E5', color: 'white', padding: '0.5rem', borderRadius: '0.5rem', fontWeight: '600', border: 'none', cursor: 'pointer', opacity: loading ? 0.5 : 1 }}
-                  >
-                    {loading ? t('auth.loading') : t('auth.register')}
-                  </button>
-                  <p style={{ textAlign: 'center', color: '#6B7280', fontSize: '0.875rem' }}>
-                    {t('auth.alreadyHaveAccount')}{' '}
-                    <button
-                      onClick={() => { setAuthState('login'); setError(''); }}
-                      style={{ color: '#4F46E5', textDecoration: 'underline', fontWeight: '600', background: 'none', border: 'none', cursor: 'pointer' }}
-                    >
-                      {t('auth.signIn')}
-                    </button>
-                  </p>
-                </>
-              )}
-            </div>
+            <AuthScreen
+              onLogin={handleLogin}
+              onRegister={handleRegister}
+              loading={loading}
+              error={error}
+              countries={countries}
+            />
           </div>
         </div>
 
