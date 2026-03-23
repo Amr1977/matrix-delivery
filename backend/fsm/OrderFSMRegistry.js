@@ -350,6 +350,14 @@ class MarketplaceOrderFSM extends BaseOrderFSM {
       description: 'Delivery driver assigned'
     });
 
+    // accepted -> picked_up (direct pickup without explicit assignment)
+    this.transitions.set('accepted:pickup_order', {
+      nextStatus: T.PICKED_UP,
+      allowedRoles: ['driver'],
+      guards: ['driver_assigned_to_order'],
+      description: 'Driver picks up order directly from accepted state'
+    });
+
     // assigned -> picked_up
     this.transitions.set('assigned:pickup_order', {
       nextStatus: T.PICKED_UP,
@@ -433,6 +441,10 @@ class MarketplaceOrderFSM extends BaseOrderFSM {
 
     this.guards.set('delivery_zone_supported', (context) => {
       return context.delivery_zone && context.delivery_zone.supported === true;
+    });
+
+    this.guards.set('driver_assigned_to_order', (context) => {
+      return context.order && context.order.assigned_driver_user_id != null;
     });
   }
 }

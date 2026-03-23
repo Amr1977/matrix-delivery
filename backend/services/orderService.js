@@ -1344,8 +1344,8 @@ RETURNING * `;
   async updateOrderStatus(orderId, userId, action) {
     // Alias map to handle frontend calling 'picked_up' instead of 'pickup'
     const actionAlias = {
-      picked_up: "pickup",
-      pickup: "pickup",
+      picked_up: "pickup_package",
+      pickup: "pickup_package",
       in_transit: "start_transit",
       "in-transit": "start_transit",
       delivered: "complete_delivery", // Handle frontend 'delivered' action
