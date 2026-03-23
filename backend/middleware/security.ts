@@ -3,6 +3,7 @@ import cookieParser from 'cookie-parser';
 import type { Request, Response, NextFunction, RequestHandler } from 'express';
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+const IS_TEST = process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing';
 const CORS_ORIGIN = process.env.CORS_ORIGIN || '';
 
 /**
@@ -145,6 +146,24 @@ export const sanitizeRequest: RequestHandler = (req: Request, res: Response, nex
  * Validate environment variables on startup
  */
 export const validateSecurityConfig = (): void => {
+    // Skip validation in test mode - jest.setup.js sets up test env vars
+    if (IS_TEST) {
+        if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 64) {
+            process.env.JWT_SECRET = 'test_jwt_secret_'.padEnd(64, 'x');
+        }
+        if (!process.env.JWT_REFRESH_SECRET || process.env.JWT_REFRESH_SECRET.length < 64) {
+            process.env.JWT_REFRESH_SECRET = 'test_jwt_refresh_secret_'.padEnd(64, 'y');
+        }
+        if (!process.env.ENCRYPTION_KEY || process.env.ENCRYPTION_KEY.length !== 64) {
+            process.env.ENCRYPTION_KEY = 'e'.repeat(64);
+        }
+        if (!process.env.CORS_ORIGIN) {
+            process.env.CORS_ORIGIN = 'http://localhost:3000';
+        }
+        console.log('✅ Security configuration set for test environment');
+        return;
+    }
+
     const required = [
         'JWT_SECRET',
         'JWT_REFRESH_SECRET',

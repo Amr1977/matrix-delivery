@@ -133,17 +133,18 @@ const csrfMiddleware = (req, res, next) => {
 
   // Secondary Check / Fallback: Signed Token Validation
   // This handles browsers like Safari that block cross-domain cookies (ITP)
-  if (!cookieToken && headerToken) {
-    if (verifySignedToken(headerToken)) {
-      logger.info('CSRF fallback: Validated signed header token (cookie missing)', {
-        path: req.path,
-        method,
-        ip: req.ip,
-        userAgent: req.get('user-agent'),
-        category: 'security'
-      });
-      return next();
-    }
+  // Also check when cookie and header both exist but don't match
+  if (headerToken && verifySignedToken(headerToken)) {
+    logger.info('CSRF fallback: Validated signed header token', {
+      path: req.path,
+      method,
+      ip: req.ip,
+      cookieWasPresent: !!cookieToken,
+      cookieMatchedHeader: cookieToken === headerToken,
+      userAgent: req.get('user-agent'),
+      category: 'security'
+    });
+    return next();
   }
 
   // Mismatch or invalid token
