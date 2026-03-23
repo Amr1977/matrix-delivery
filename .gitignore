@@ -24,6 +24,10 @@ log-analysis-*.md
 
 
 # Secrets and sensitive files
+.env
+.env.*
+!.env.example
+!.env.testing
 secrets_*.txt
 *.key
 *.pem

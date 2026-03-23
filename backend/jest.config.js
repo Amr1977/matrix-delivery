@@ -1,6 +1,9 @@
 /** @type {import('ts-jest').JestConfigWithTsJest} */
 module.exports = {
     testEnvironment: 'node',
+    testEnvironmentOptions: {
+        NODE_ENV: 'testing'
+    },
     roots: ['<rootDir>'],
     testMatch: ['**/__tests__/**/*.[jt]s', '**/?(*.)+(spec|test).[jt]s'],
     transform: {
@@ -13,7 +16,7 @@ module.exports = {
         '^.+\\.js$': ['babel-jest', { configFile: './babel.config.js' }],
     },
     moduleFileExtensions: ['ts', 'js', 'json', 'node'],
-    setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+    setupFiles: ['<rootDir>/jest.setup.js'],
     collectCoverageFrom: [
         'routes/**/*.{js,ts}',
         'services/**/*.{js,ts}',
