@@ -1,13 +1,13 @@
 Feature: COD Commission and Debt Management
   As a platform operator
-  I want to collect 15% commission on COD orders
+  I want to collect 10% commission on COD orders
   And manage driver debt to ensure platform sustainability
   So that drivers pay their fair share while maintaining cash flow
 
   Background:
-    Given the platform commission rate is 15%
-    And the maximum debt threshold is -200 EGP
-    And the warning debt threshold is -150 EGP
+    Given the platform commission rate is 10%
+    And the maximum debt threshold is -100 EGP
+    And the warning debt threshold is -80 EGP
 
   # ==========================================================================
   # Basic COD Commission Flow
@@ -16,23 +16,23 @@ Feature: COD Commission and Debt Management
   Scenario: Driver completes COD order with positive balance
     Given a driver with balance of 500 EGP
     When the driver completes a 100 EGP COD order
-    Then the platform should deduct 15 EGP commission
-    And the driver balance should be 485 EGP
-    And the driver should keep 85 EGP cash
+    Then the platform should deduct 10 EGP commission
+    And the driver balance should be 490 EGP
+    And the driver should keep 90 EGP cash
     And the payment record should show:
       | field            | value |
       | amount           | 100   |
-      | platform_fee     | 15    |
-      | driver_earnings  | 85    |
+      | platform_fee     | 10    |
+      | driver_earnings  | 90    |
       | payment_method   | cash  |
       | status           | completed |
 
   Scenario: Driver completes COD order with zero balance
     Given a driver with balance of 0 EGP
     When the driver completes a 100 EGP COD order
-    Then the platform should deduct 15 EGP commission
-    And the driver balance should be -15 EGP
-    And the driver should keep 85 EGP cash
+    Then the platform should deduct 10 EGP commission
+    And the driver balance should be -10 EGP
+    And the driver should keep 90 EGP cash
     And the driver should still be able to accept orders
 
   Scenario: Commission calculation is accurate for various amounts
@@ -43,8 +43,8 @@ Feature: COD Commission and Debt Management
       | 100    |
       | 200    |
       | 333.33 |
-    Then the total commission should be 102.50 EGP
-    And the driver balance should be 897.50 EGP
+    Then the total commission should be 68.33 EGP
+    And the driver balance should be 931.67 EGP
 
   # ==========================================================================
   # Debt Creation and Management
@@ -53,22 +53,22 @@ Feature: COD Commission and Debt Management
   Scenario: Driver balance goes negative creating debt
     Given a driver with balance of 10 EGP
     When the driver completes a 100 EGP COD order
-    Then the platform should deduct 15 EGP commission
-    And the driver balance should be -5 EGP
+    Then the platform should deduct 10 EGP commission
+    And the driver balance should be 0 EGP
     And the balance should be marked as debt
     And the driver should still be able to accept orders
 
   Scenario: Driver accumulates debt from multiple orders
     Given a driver with balance of 0 EGP
     When the driver completes 5 COD orders of 100 EGP each
-    Then the total commission should be 75 EGP
-    And the driver balance should be -75 EGP
+    Then the total commission should be 50 EGP
+    And the driver balance should be -50 EGP
     And the driver should still be able to accept orders
 
   Scenario: Driver approaches warning threshold
     Given a driver with balance of 0 EGP
-    When the driver completes 10 COD orders of 100 EGP each
-    Then the driver balance should be -150 EGP
+    When the driver completes 8 COD orders of 100 EGP each
+    Then the driver balance should be -80 EGP
     And the driver should receive a warning notification
     And the warning should say "Your balance is low. Please deposit funds to continue accepting orders."
     And the driver should still be able to accept orders
@@ -79,49 +79,48 @@ Feature: COD Commission and Debt Management
 
   Scenario: Driver is blocked at exact debt threshold
     Given a driver with balance of 0 EGP
-    When the driver completes 13 COD orders of 100 EGP each
-    And the driver completes 1 COD order of 66.67 EGP
-    Then the driver balance should be -200 EGP
+    When the driver completes 10 COD orders of 100 EGP each
+    Then the driver balance should be -100 EGP
     And the driver should NOT be able to accept new orders
     And the driver should receive a critical notification
-    And the notification should say "You cannot accept new orders until your balance is above -200 EGP"
+    And the notification should say "You cannot accept new orders until your balance is above -100 EGP"
 
   Scenario: Driver is blocked with excessive debt
     Given a driver with balance of 0 EGP
-    When the driver completes 20 COD orders of 100 EGP each
-    Then the driver balance should be -300 EGP
+    When the driver completes 15 COD orders of 100 EGP each
+    Then the driver balance should be -150 EGP
     And the driver should NOT be able to accept new orders
-    And the error message should contain "Balance (-300 EGP) below minimum threshold (-200 EGP)"
+    And the error message should contain "Balance (-150 EGP) below minimum threshold (-100 EGP)"
 
   Scenario: Blocked driver cannot accept bid
-    Given a driver with balance of -250 EGP
+    Given a driver with balance of -120 EGP
     And a customer creates an order worth 100 EGP
     When the driver tries to accept the order
     Then the bid acceptance should fail
-    And the error should say "Cannot accept order: Balance (-250 EGP) below minimum threshold (-200 EGP). Please deposit funds to continue accepting orders."
+    And the error should say "Cannot accept order: Balance (-120 EGP) below minimum threshold (-100 EGP). Please deposit funds to continue accepting orders."
 
   # ==========================================================================
   # Debt Recovery
   # ==========================================================================
 
   Scenario: Driver clears debt and can accept orders again
-    Given a driver with balance of -250 EGP
-    When the driver deposits 300 EGP
-    Then the driver balance should be 50 EGP
+    Given a driver with balance of -120 EGP
+    When the driver deposits 150 EGP
+    Then the driver balance should be 30 EGP
     And the driver should be able to accept new orders
     And no warning notifications should be shown
 
   Scenario: Driver makes partial debt payment
-    Given a driver with balance of -150 EGP
-    When the driver deposits 100 EGP
-    Then the driver balance should be -50 EGP
+    Given a driver with balance of -80 EGP
+    When the driver deposits 50 EGP
+    Then the driver balance should be -30 EGP
     And the driver should still be able to accept orders
     And no warning notifications should be shown
 
   Scenario: Driver clears debt exactly to threshold
-    Given a driver with balance of -200 EGP
+    Given a driver with balance of -100 EGP
     When the driver deposits 1 EGP
-    Then the driver balance should be -199 EGP
+    Then the driver balance should be -99 EGP
     And the driver should be able to accept new orders
 
   # ==========================================================================
@@ -130,30 +129,30 @@ Feature: COD Commission and Debt Management
 
   Scenario: Driver views earnings dashboard with COD summary
     Given a driver has completed 5 COD orders totaling 500 EGP
-    And the total commission deducted is 75 EGP
-    And the driver's current balance is -25 EGP
+    And the total commission deducted is 50 EGP
+    And the driver's current balance is 0 EGP
     When the driver views the balance dashboard
     Then the COD earnings section should show:
       | field                    | value  |
       | Cash Collected           | 500    |
-      | Platform Commission (15%)| -75    |
-      | Net Earnings             | 425    |
-      | Current Balance          | -25 (Debt) |
+      | Platform Commission (10%)| -50    |
+      | Net Earnings             | 450    |
+      | Current Balance          | 0 EGP  |
     And no warning should be displayed
 
   Scenario: Driver views earnings with warning
-    Given a driver has completed 10 COD orders totaling 1000 EGP
-    And the driver's current balance is -150 EGP
+    Given a driver has completed 8 COD orders totaling 800 EGP
+    And the driver's current balance is -80 EGP
     When the driver views the balance dashboard
     Then a warning box should be displayed
     And the warning should say "⚠️ Your balance is low. Please deposit funds to continue accepting orders."
 
   Scenario: Driver views earnings when blocked
-    Given a driver has completed 20 COD orders totaling 2000 EGP
-    And the driver's current balance is -300 EGP
+    Given a driver has completed 15 COD orders totaling 1500 EGP
+    And the driver's current balance is -150 EGP
     When the driver views the balance dashboard
     Then an error box should be displayed
-    And the error should say "🚫 You cannot accept new orders until your balance is above -200 EGP."
+    And the error should say "🚫 You cannot accept new orders until your balance is above -100 EGP."
     And a "Deposit Now" button should be visible
 
   # ==========================================================================
@@ -167,7 +166,7 @@ Feature: COD Commission and Debt Management
     Then the history should contain a transaction with:
       | field       | value                                  |
       | type        | commission_deduction                   |
-      | amount      | -15                                    |
+      | amount      | -10                                    |
       | description | Platform commission for order #[ORDER] |
       | status      | completed                              |
 
@@ -175,7 +174,7 @@ Feature: COD Commission and Debt Management
     Given a driver completes 3 COD orders of 100 EGP each
     When the driver views transaction history
     Then there should be 3 commission_deduction transactions
-    And each transaction should have amount -15 EGP
+    And each transaction should have amount -10 EGP
 
   # ==========================================================================
   # Edge Cases
@@ -184,14 +183,14 @@ Feature: COD Commission and Debt Management
   Scenario: Very small commission amount
     Given a driver with balance of 0 EGP
     When the driver completes a 10 EGP COD order
-    Then the platform should deduct 1.50 EGP commission
-    And the driver balance should be -1.50 EGP
+    Then the platform should deduct 1 EGP commission
+    And the driver balance should be -1 EGP
 
   Scenario: Large commission amount
     Given a driver with balance of 0 EGP
     When the driver completes a 1000 EGP COD order
-    Then the platform should deduct 150 EGP commission
-    And the driver balance should be -150 EGP
+    Then the platform should deduct 100 EGP commission
+    And the driver balance should be -100 EGP
     And the driver should still be able to accept orders
 
   Scenario: Zero commission (edge case)
@@ -203,8 +202,8 @@ Feature: COD Commission and Debt Management
   Scenario: Decimal precision in commission calculation
     Given a driver with balance of 0 EGP
     When the driver completes a 33.33 EGP COD order
-    Then the platform should deduct 5.00 EGP commission
-    And the driver balance should be -5.00 EGP
+    Then the platform should deduct 3.33 EGP commission
+    And the driver balance should be -3.33 EGP
 
   # ==========================================================================
   # Realistic Scenarios
@@ -225,23 +224,23 @@ Feature: COD Commission and Debt Management
       | 90     |
       | 100    |
     Then the total cash collected should be 1035 EGP
-    And the total commission should be 155.25 EGP
-    And the net earnings should be 879.75 EGP
-    And the driver balance should be -105.25 EGP
+    And the total commission should be 103.50 EGP
+    And the net earnings should be 931.50 EGP
+    And the driver balance should be -53.50 EGP
     And the driver should still be able to accept orders
 
   Scenario: Driver reaches threshold, deposits, and continues working
     Given a driver with balance of 0 EGP
-    When the driver completes 14 COD orders of 100 EGP each
-    Then the driver balance should be -210 EGP
+    When the driver completes 10 COD orders of 100 EGP each
+    Then the driver balance should be -100 EGP
     And the driver should NOT be able to accept new orders
     
-    When the driver deposits 250 EGP
-    Then the driver balance should be 40 EGP
+    When the driver deposits 150 EGP
+    Then the driver balance should be 50 EGP
     And the driver should be able to accept new orders
     
-    When the driver completes 3 more COD orders of 100 EGP each
-    Then the driver balance should be -5 EGP
+    When the driver completes 5 more COD orders of 100 EGP each
+    Then the driver balance should be 0 EGP
     And the driver should still be able to accept orders
 
   Scenario: Multiple drivers with different debt levels
@@ -249,15 +248,15 @@ Feature: COD Commission and Debt Management
       | driver_id | balance |
       | driver1   | 100     |
       | driver2   | -50     |
-      | driver3   | -150    |
-      | driver4   | -250    |
+      | driver3   | -80     |
+      | driver4   | -120    |
     When each driver tries to accept a new order
     Then the results should be:
       | driver_id | can_accept | reason                                    |
       | driver1   | true       |                                           |
       | driver2   | true       |                                           |
       | driver3   | true       |                                           |
-      | driver4   | false      | Balance below minimum threshold (-200 EGP)|
+      | driver4   | false      | Balance below minimum threshold (-100 EGP)|
 
   # ==========================================================================
   # Payment Record Integrity
@@ -269,8 +268,8 @@ Feature: COD Commission and Debt Management
     Then a payment record should be created with:
       | field            | value     |
       | amount           | 200       |
-      | platform_fee     | 30        |
-      | driver_earnings  | 170       |
+      | platform_fee     | 20        |
+      | driver_earnings  | 180       |
       | payment_method   | cash      |
       | status           | completed |
       | currency         | EGP       |
@@ -281,27 +280,27 @@ Feature: COD Commission and Debt Management
     Given a driver completes 5 COD orders of 100 EGP each
     When the platform queries payment records for the driver
     Then there should be 5 payment records
-    And each payment should have platform_fee of 15 EGP
-    And each payment should have driver_earnings of 85 EGP
-    And the total platform_fee should be 75 EGP
-    And the total driver_earnings should be 425 EGP
+    And each payment should have platform_fee of 10 EGP
+    And each payment should have driver_earnings of 90 EGP
+    And the total platform_fee should be 50 EGP
+    And the total driver_earnings should be 450 EGP
 
   # ==========================================================================
   # Notification System
   # ==========================================================================
 
   Scenario: Warning notification sent at threshold
-    Given a driver with balance of -140 EGP
+    Given a driver with balance of -70 EGP
     When the driver completes a 100 EGP COD order
-    Then the driver balance should be -155 EGP
+    Then the driver balance should be -80 EGP
     And a warning notification should be sent to the driver
     And the notification type should be "balance_warning"
     And the notification title should be "Balance Alert"
 
   Scenario: Critical notification sent when blocked
-    Given a driver with balance of -190 EGP
+    Given a driver with balance of -90 EGP
     When the driver completes a 100 EGP COD order
-    Then the driver balance should be -205 EGP
+    Then the driver balance should be -100 EGP
     And a critical notification should be sent to the driver
     And the notification type should be "balance_warning"
     And the notification message should contain "cannot accept new orders"
@@ -309,7 +308,7 @@ Feature: COD Commission and Debt Management
   Scenario: No notification when balance is healthy
     Given a driver with balance of 100 EGP
     When the driver completes a 100 EGP COD order
-    Then the driver balance should be 85 EGP
+    Then the driver balance should be 90 EGP
     And no balance warning notification should be sent
 
   # ==========================================================================
@@ -318,13 +317,13 @@ Feature: COD Commission and Debt Management
 
   Scenario: Verify debt management configuration
     When the system checks debt management settings
-    Then the MAX_DEBT_THRESHOLD should be -200 EGP
-    And the WARNING_THRESHOLD should be -150 EGP
+    Then the MAX_DEBT_THRESHOLD should be -100 EGP
+    And the WARNING_THRESHOLD should be -80 EGP
     And BLOCK_NEW_ORDERS should be true
     And ALLOW_NEGATIVE_BALANCE should be true
 
   Scenario: Verify commission rate configuration
     When the system checks commission settings
-    Then the COMMISSION_RATE should be 0.15
-    And the COMMISSION_RATE_PERCENT should be 15
+    Then the COMMISSION_RATE should be 0.10
+    And the COMMISSION_RATE_PERCENT should be 10
     And the COD fee should be 0
