@@ -1,125 +1,140 @@
-const express = require('express');
-const pool = require('../config/db');
-const orderService = require('../services/orderService');
-const driverLocationService = require('../services/driverLocationService');
-const { verifyToken, requireRole } = require('../middleware/auth');
-const { orderCreationRateLimit, apiRateLimit } = require('../middleware/rateLimit');
-const logger = require('../config/logger');
+const express = require("express");
+const pool = require("../config/db");
+const orderService = require("../services/orderService");
+const driverLocationService = require("../services/driverLocationService");
+const { verifyToken, requireRole } = require("../middleware/auth");
+const {
+  orderCreationRateLimit,
+  apiRateLimit,
+} = require("../middleware/rateLimit");
+const logger = require("../config/logger");
 
 const router = express.Router();
 
 // Routes
 
 // Get orders (filtered by user primary_role and location filters)
-router.get('/', verifyToken, async (req, res) => {
+router.get("/", verifyToken, async (req, res) => {
   try {
-    const {lat, lng, status } = req.query;
+    const { lat, lng, status } = req.query;
     let filters = {};
 
-    logger.info('GET /api/orders request received', {
-      userId: req.user?.userId || 'unauthenticated',
-      primary_role: req.user?.primary_role || 'unknown',
+    logger.info("GET /api/orders request received", {
+      userId: req.user?.userId || "unauthenticated",
+      primary_role: req.user?.primary_role || "unknown",
       query: req.query,
       hasLat: !!req.query.lat,
       hasLng: !!req.query.lng,
       isAuthenticated: !!req.user,
-      category: 'orders',
-      status: !!req.query.status
+      category: "orders",
+      status: !!req.query.status,
     });
 
     // For drivers, location-based filtering is preferred but no longer mandatory for fetching ASSIGNED orders
-    if ((req.user.primary_role || req.user.primary_role) === 'driver') {
+    if ((req.user.primary_role || req.user.primary_role) === "driver") {
       if (!lat || !lng) {
-        logger.warn('Driver fetching orders without location - showing only assigned orders', {
-          userId: req.user.userId,
-          primary_role: (req.user.primary_role || req.user.primary_role),
-          category: 'orders'
-        });
+        logger.warn(
+          "Driver fetching orders without location - showing only assigned orders",
+          {
+            userId: req.user.userId,
+            primary_role: req.user.primary_role || req.user.primary_role,
+            category: "orders",
+          },
+        );
         // We do NOT return 400 here anymore. We let it pass to the service,
         // which will handle filtering (showing only assigned orders, no pending bids)
       } else {
         filters.driverLat = parseFloat(lat);
         filters.driverLng = parseFloat(lng);
-        logger.info('Driver location filter applied', {
+        logger.info("Driver location filter applied", {
           driverLat: filters.driverLat,
           driverLng: filters.driverLng,
           rawLat: lat,
           rawLng: lng,
           userId: req.user.userId,
-          category: 'orders'
+          category: "orders",
         });
       }
 
       // Fetch driver's available cash for cash capacity filtering
-      const pool = require('../config/db');
+      const pool = require("../config/db");
       try {
         const cashResult = await pool.query(
-          'SELECT available_cash FROM users WHERE id = $1',
-          [req.user.userId]
+          "SELECT available_cash FROM users WHERE id = $1",
+          [req.user.userId],
         );
         if (cashResult.rows.length > 0) {
-          filters.driverCash = parseFloat(cashResult.rows[0].available_cash) || 0;
-          logger.info('Driver cash balance filter applied', {
+          filters.driverCash =
+            parseFloat(cashResult.rows[0].available_cash) || 0;
+          logger.info("Driver cash balance filter applied", {
             userId: req.user.userId,
             driverCash: filters.driverCash,
-            category: 'orders'
+            category: "orders",
           });
         }
       } catch (cashError) {
-        logger.warn('Failed to fetch driver cash balance', {
+        logger.warn("Failed to fetch driver cash balance", {
           userId: req.user.userId,
           error: cashError.message,
-          category: 'orders'
+          category: "orders",
         });
         // Continue without cash filtering if query fails
       }
     } else {
       // Non-drivers should not provide lat/lng parameters (they don't get filtered)
       if (lat || lng) {
-        logger.warn('Non-driver provided lat/lng parameters - ignoring (no filtering applied)', {
-          userId: req.user.userId,
-          primary_role: (req.user.primary_role || req.user.primary_role),
-          lat,
-          lng,
-          category: 'orders'
-        });
+        logger.warn(
+          "Non-driver provided lat/lng parameters - ignoring (no filtering applied)",
+          {
+            userId: req.user.userId,
+            primary_role: req.user.primary_role || req.user.primary_role,
+            lat,
+            lng,
+            category: "orders",
+          },
+        );
       }
     }
 
-    const orders = await orderService.getOrders(req.user.userId, (req.user.primary_role || req.user.primary_role), filters);
+    const orders = await orderService.getOrders(
+      req.user.userId,
+      req.user.primary_role || req.user.primary_role,
+      filters,
+    );
 
     if (orders.length > 0) {
-      console.log('📦 [DEBUG] First Order Stats:', {
+      console.log("📦 [DEBUG] First Order Stats:", {
         id: orders[0].id,
         completed: orders[0].customerCompletedOrders,
         reviews: orders[0].customerReviewCount,
-        rating: orders[0].customerRating
+        rating: orders[0].customerRating,
       });
     }
 
-    console.log('📦 ORDERS RESPONSE:', {
+    console.log("📦 ORDERS RESPONSE:", {
       userId: req.user.userId,
-      primary_role: (req.user.primary_role || req.user.primary_role),
+      primary_role: req.user.primary_role || req.user.primary_role,
       totalOrders: orders.length,
-      pendingBidsOrders: orders.filter(o => o.status === 'pending_bids').length,
-      assignedOrders: orders.filter(o => o.assignedDriver).length,
-      appliedFilters: filters
+      pendingBidsOrders: orders.filter((o) => o.status === "pending_bids")
+        .length,
+      assignedOrders: orders.filter((o) => o.assignedDriver).length,
+      appliedFilters: filters,
     });
 
     res.json(orders);
   } catch (error) {
     logger.error(`Get orders error: ${error.message}`, {
       userId: req.user.userId,
-      primary_role: (req.user.primary_role || req.user.primary_role),
+      primary_role: req.user.primary_role || req.user.primary_role,
       filters: req.query,
-      category: 'error'
+      category: "error",
     });
-    res.status(500).json({ error: error.message || 'Failed to fetch orders' });
+    res.status(500).json({ error: error.message || "Failed to fetch orders" });
   }
 });
 
 // Get single order by ID (with ownership check)
-router.get('/:orderId', verifyToken, async (req, res) => {
+router.get("/:orderId", verifyToken, async (req, res) => {
   try {
     const { orderId } = req.params;
 
@@ -127,27 +142,36 @@ router.get('/:orderId', verifyToken, async (req, res) => {
     const order = await orderService.getOrderById(orderId);
 
     if (!order) {
-      return res.status(404).json({ error: 'Order not found' });
+      return res.status(404).json({ error: "Order not found" });
     }
 
     // 2. Check Ownership (Customer, Assigned Driver, or Admin)
     const userId = req.user.userId;
     const userRole = req.user.primary_role || req.user.role;
     const userRoles = req.user.granted_roles || req.user.roles || [];
-    const isAdmin = userRole === 'admin' || (Array.isArray(userRoles) && userRoles.includes('admin'));
+    const isAdmin =
+      userRole === "admin" ||
+      (Array.isArray(userRoles) && userRoles.includes("admin"));
 
     const isCustomer = order.customer_id === userId;
     const isAssignedDriver = order.assigned_driver_user_id === userId;
 
     // Allow if: Admin, Customer (Owner), or Assigned Driver
     if (!isAdmin && !isCustomer && !isAssignedDriver) {
-      logger.security('IDOR attempt blocked: User tried to access order they do not own', {
-        userId,
-        orderId,
-        userRole,
-        category: 'security'
-      });
-      return res.status(403).json({ error: 'Access denied: You are not authorized to view this order' });
+      logger.security(
+        "IDOR attempt blocked: User tried to access order they do not own",
+        {
+          userId,
+          orderId,
+          userRole,
+          category: "security",
+        },
+      );
+      return res
+        .status(403)
+        .json({
+          error: "Access denied: You are not authorized to view this order",
+        });
     }
 
     res.json(order);
@@ -155,230 +179,316 @@ router.get('/:orderId', verifyToken, async (req, res) => {
     logger.error(`Get order error: ${error.message}`, {
       userId: req.user.userId,
       orderId: req.params.orderId,
-      category: 'error'
+      category: "error",
     });
-    res.status(500).json({ error: error.message || 'Failed to fetch order' });
+    res.status(500).json({ error: error.message || "Failed to fetch order" });
   }
 });
 
 // Get live locations of all drivers who bid on an order (Customer only)
-router.get('/:orderId/bids/locations', verifyToken, async (req, res) => {
+router.get("/:orderId/bids/locations", verifyToken, async (req, res) => {
   try {
     const { orderId } = req.params;
     const userId = req.user.userId;
 
     // Check if user is the customer who created the order
     const order = await pool.query(
-      'SELECT customer_id FROM orders WHERE id = $1',
-      [orderId]
+      "SELECT customer_id FROM orders WHERE id = $1",
+      [orderId],
     );
 
     if (order.rows.length === 0) {
-      return res.status(404).json({ error: 'Order not found' });
+      return res.status(404).json({ error: "Order not found" });
     }
 
     if (order.rows[0].customer_id !== userId) {
-      return res.status(403).json({ error: 'Access denied: You are not the owner of this order' });
+      return res
+        .status(403)
+        .json({ error: "Access denied: You are not the owner of this order" });
     }
 
-    const locations = await driverLocationService.getDriversLocationsForOrder(orderId);
-    console.log(`📍 [Order ${orderId}] Found ${locations.length} bid locations`);
+    const locations =
+      await driverLocationService.getDriversLocationsForOrder(orderId);
+    console.log(
+      `📍 [Order ${orderId}] Found ${locations.length} bid locations`,
+    );
     res.json(locations);
   } catch (error) {
     logger.error(`Get bid locations error: ${error.message}`, {
       userId: req.user.userId,
       orderId: req.params.orderId,
-      category: 'error'
+      category: "error",
     });
-    res.status(500).json({ error: error.message || 'Failed to fetch bid locations' });
+    res
+      .status(500)
+      .json({ error: error.message || "Failed to fetch bid locations" });
   }
 });
 
 // Create new order
-router.post('/', verifyToken, orderCreationRateLimit, async (req, res, next) => {
-  try {
-    if (!['customer', 'admin'].includes(req.user.primary_role)) {
-      return res.status(403).json({ error: 'Only customers and admins can create orders' });
+router.post(
+  "/",
+  verifyToken,
+  orderCreationRateLimit,
+  async (req, res, next) => {
+    try {
+      if (!["customer", "admin"].includes(req.user.primary_role)) {
+        return res
+          .status(403)
+          .json({ error: "Only customers and admins can create orders" });
+      }
+
+      // Explicitly select allowed fields to prevent mass assignment
+      console.log(
+        "📝 [DEBUG] POST /orders Payload:",
+        JSON.stringify(req.body, null, 2),
+      ); // Debug incoming data
+
+      const {
+        title,
+        price,
+        description,
+        package_description,
+        package_weight,
+        estimated_value,
+        special_instructions,
+        pickupAddress,
+        dropoffAddress,
+        pickupLocation,
+        dropoffLocation,
+        showManualEntry,
+        estimated_delivery_date,
+        upfront_payment,
+        require_upfront_payment,
+        routeInfo,
+        payment_method,
+      } = req.body;
+
+      // Validate payment_method
+      if (payment_method && !["COD", "PREPAID"].includes(payment_method)) {
+        return res
+          .status(400)
+          .json({ error: "Invalid payment_method. Must be COD or PREPAID" });
+      }
+
+      const orderData = {
+        title,
+        price,
+        description,
+        package_description,
+        package_weight,
+        estimated_value,
+        special_instructions,
+        pickupAddress,
+        dropoffAddress,
+        pickupLocation,
+        dropoffLocation,
+        showManualEntry,
+        estimated_delivery_date,
+        upfront_payment,
+        require_upfront_payment,
+        routeInfo,
+        payment_method: payment_method || "COD",
+      };
+
+      const order = await orderService.createOrder(
+        orderData,
+        req.user.userId,
+        req.user.name,
+      );
+      res.status(201).json(order);
+    } catch (error) {
+      logger.error(`Order creation error: ${error.message}`, {
+        userId: req.user.userId,
+        error: error.message,
+        category: "error",
+      });
+
+      // Handle business logic errors
+      if (error.message.includes("Insufficient balance")) {
+        return res.status(400).json({ error: error.message });
+      }
+      if (
+        error.message.includes("Order title is required") ||
+        error.message.includes("Order price must be greater than 0") ||
+        error.message.includes("Please set pickup and delivery locations")
+      ) {
+        return res.status(400).json({ error: error.message });
+      }
+
+      next(error);
     }
-
-    // Explicitly select allowed fields to prevent mass assignment
-    console.log('📝 [DEBUG] POST /orders Payload:', JSON.stringify(req.body, null, 2)); // Debug incoming data
-
-    const {
-      title, price, description, package_description, package_weight, estimated_value,
-      special_instructions, pickupAddress, dropoffAddress, pickupLocation, dropoffLocation,
-      showManualEntry, estimated_delivery_date,
-      upfront_payment, require_upfront_payment, // Added fields
-      routeInfo // Added route info
-    } = req.body;
-
-    const orderData = {
-      title, price, description, package_description, package_weight, estimated_value,
-      special_instructions, pickupAddress, dropoffAddress, pickupLocation, dropoffLocation,
-      showManualEntry, estimated_delivery_date,
-      upfront_payment, require_upfront_payment, // Added fields
-      routeInfo // Added route info
-    };
-
-    const order = await orderService.createOrder(orderData, req.user.userId, req.user.name);
-    res.status(201).json(order);
-  } catch (error) {
-    logger.error(`Order creation error: ${error.message}`, {
-      userId: req.user.userId,
-      error: error.message,
-      category: 'error'
-    });
-
-    // Handle business logic errors
-    if (error.message.includes('Insufficient balance')) {
-      return res.status(400).json({ error: error.message });
-    }
-    if (error.message.includes('Order title is required') ||
-      error.message.includes('Order price must be greater than 0') ||
-      error.message.includes('Please set pickup and delivery locations')) {
-      return res.status(400).json({ error: error.message });
-    }
-
-    next(error);
-  }
-});
+  },
+);
 
 // Place bid on order
-router.post('/:orderId/bid', verifyToken, async (req, res) => {
+router.post("/:orderId/bid", verifyToken, async (req, res) => {
   try {
     const userRole = req.user.primary_role;
-    if (userRole !== 'driver') {
-      return res.status(400).json({ error: 'Only drivers can place bids' });
+    if (userRole !== "driver") {
+      return res.status(400).json({ error: "Only drivers can place bids" });
     }
 
-    const result = await orderService.placeBid(req.params.orderId, req.user.userId, req.body);
+    const result = await orderService.placeBid(
+      req.params.orderId,
+      req.user.userId,
+      req.body,
+    );
     res.json(result);
   } catch (error) {
     logger.error(`Bid placement error: ${error.message}`, {
       orderId: req.params.orderId,
       userId: req.user.userId,
-      category: 'error'
+      category: "error",
     });
 
     // Return 400 for business logic errors (order not available, already bid, etc.)
-    if (error.message.includes('not available for bidding') ||
-      error.message.includes('already placed a bid') ||
-      error.message === 'Order not found') {
+    if (
+      error.message.includes("not available for bidding") ||
+      error.message.includes("already placed a bid") ||
+      error.message === "Order not found"
+    ) {
       return res.status(400).json({ error: error.message });
     }
 
-    res.status(500).json({ error: error.message || 'Failed to place bid' });
+    res.status(500).json({ error: error.message || "Failed to place bid" });
   }
 });
 
 // Modify bid
-router.put('/:orderId/bid', verifyToken, async (req, res) => {
+router.put("/:orderId/bid", verifyToken, async (req, res) => {
   try {
-    if ((req.user.primary_role || req.user.primary_role) !== 'driver') {
-      return res.status(403).json({ error: 'Only drivers can modify bids' });
+    if ((req.user.primary_role || req.user.primary_role) !== "driver") {
+      return res.status(403).json({ error: "Only drivers can modify bids" });
     }
 
-    const result = await orderService.modifyBid(req.params.orderId, req.user.userId, req.body);
+    const result = await orderService.modifyBid(
+      req.params.orderId,
+      req.user.userId,
+      req.body,
+    );
     res.json(result);
   } catch (error) {
     logger.error(`Bid modification error: ${error.message}`, {
       orderId: req.params.orderId,
       userId: req.user.userId,
-      category: 'error'
+      category: "error",
     });
-    res.status(500).json({ error: error.message || 'Failed to modify bid' });
+    res.status(500).json({ error: error.message || "Failed to modify bid" });
   }
 });
 
 // Withdraw bid
-router.delete('/:orderId/bid', verifyToken, async (req, res) => {
+router.delete("/:orderId/bid", verifyToken, async (req, res) => {
   try {
-    if ((req.user.primary_role || req.user.primary_role) !== 'driver') {
-      return res.status(403).json({ error: 'Only drivers can withdraw bids' });
+    if ((req.user.primary_role || req.user.primary_role) !== "driver") {
+      return res.status(403).json({ error: "Only drivers can withdraw bids" });
     }
 
-    const result = await orderService.withdrawBid(req.params.orderId, req.user.userId);
+    const result = await orderService.withdrawBid(
+      req.params.orderId,
+      req.user.userId,
+    );
     res.json(result);
   } catch (error) {
     logger.error(`Bid withdrawal error: ${error.message}`, {
       orderId: req.params.orderId,
       userId: req.user.userId,
-      category: 'error'
+      category: "error",
     });
 
     // Handle specific error messages
-    if (error.message === 'Order not found' || error.message === 'Bid not found for this driver') {
+    if (
+      error.message === "Order not found" ||
+      error.message === "Bid not found for this driver"
+    ) {
       return res.status(404).json({ error: error.message });
     }
-    if (error.message.includes('Cannot withdraw bid')) {
+    if (error.message.includes("Cannot withdraw bid")) {
       return res.status(400).json({ error: error.message });
     }
 
-    res.status(500).json({ error: error.message || 'Failed to withdraw bid' });
+    res.status(500).json({ error: error.message || "Failed to withdraw bid" });
   }
 });
 
 // Withdraw from accepted order (Driver)
-router.post('/:orderId/withdraw', verifyToken, async (req, res) => {
+router.post("/:orderId/withdraw", verifyToken, async (req, res) => {
   try {
-    if ((req.user.primary_role || req.user.primary_role) !== 'driver') {
-      return res.status(403).json({ error: 'Only drivers can withdraw from orders' });
+    if ((req.user.primary_role || req.user.primary_role) !== "driver") {
+      return res
+        .status(403)
+        .json({ error: "Only drivers can withdraw from orders" });
     }
 
-    const result = await orderService.withdrawOrder(req.params.orderId, req.user.userId);
+    const result = await orderService.withdrawOrder(
+      req.params.orderId,
+      req.user.userId,
+    );
     res.json(result);
   } catch (error) {
     logger.error(`Order withdrawal error: ${error.message}`, {
       orderId: req.params.orderId,
       userId: req.user.userId,
-      category: 'error'
+      category: "error",
     });
 
-    if (error.message === 'Order not found') {
+    if (error.message === "Order not found") {
       return res.status(404).json({ error: error.message });
     }
-    if (error.message.includes('Unauthorized') || error.message.includes('Only assigned driver')) {
+    if (
+      error.message.includes("Unauthorized") ||
+      error.message.includes("Only assigned driver")
+    ) {
       return res.status(403).json({ error: error.message });
     }
-    if (error.message.includes('Cannot withdraw')) {
+    if (error.message.includes("Cannot withdraw")) {
       return res.status(400).json({ error: error.message });
     }
 
-    res.status(500).json({ error: error.message || 'Failed to withdraw from order' });
+    res
+      .status(500)
+      .json({ error: error.message || "Failed to withdraw from order" });
   }
 });
 
 // Accept bid
-router.post('/:orderId/accept-bid', verifyToken, async (req, res) => {
+router.post("/:orderId/accept-bid", verifyToken, async (req, res) => {
   try {
-    if ((req.user.primary_role || req.user.primary_role) !== 'customer') {
-      return res.status(403).json({ error: 'Only customers can accept bids' });
+    if ((req.user.primary_role || req.user.primary_role) !== "customer") {
+      return res.status(403).json({ error: "Only customers can accept bids" });
     }
 
     const driverId = req.body.driverId || req.body.userId;
     if (!driverId) {
-      return res.status(400).json({ error: 'Invalid driver ID' });
+      return res.status(400).json({ error: "Invalid driver ID" });
     }
 
-    const result = await orderService.acceptBid(req.params.orderId, req.user.userId, driverId);
+    const result = await orderService.acceptBid(
+      req.params.orderId,
+      req.user.userId,
+      driverId,
+    );
     res.json(result);
   } catch (error) {
     logger.error(`Bid acceptance error: ${error.message}`, {
       orderId: req.params.orderId,
       userId: req.user.userId,
-      category: 'error'
+      category: "error",
     });
 
     // Return 400 for business logic/validation errors
-    if (error.message.includes('not available for bid acceptance') ||
-      error.message.includes('Unauthorized') ||
-      error.message.includes('not found') ||
-      error.message.includes('Bid not found') ||
-      error.message.includes('cannot accept')) {
+    if (
+      error.message.includes("not available for bid acceptance") ||
+      error.message.includes("Unauthorized") ||
+      error.message.includes("not found") ||
+      error.message.includes("Bid not found") ||
+      error.message.includes("cannot accept")
+    ) {
       return res.status(400).json({ error: error.message });
     }
 
-    res.status(500).json({ error: error.message || 'Failed to accept bid' });
+    res.status(500).json({ error: error.message || "Failed to accept bid" });
   }
 });
 
@@ -430,70 +540,87 @@ router.post('/:orderId/accept-bid', verifyToken, async (req, res) => {
 // });
 
 // Submit review for order
-router.post('/:orderId/review', verifyToken, async (req, res) => {
+router.post("/:orderId/review", verifyToken, async (req, res) => {
   try {
-    const result = await orderService.submitReview(req.params.orderId, req.user.userId, req.body);
+    const result = await orderService.submitReview(
+      req.params.orderId,
+      req.user.userId,
+      req.body,
+    );
     res.json(result);
   } catch (error) {
     logger.error(`Review submission error: ${error.message}`, {
       orderId: req.params.orderId,
       userId: req.user.userId,
-      category: 'error'
+      category: "error",
     });
-    res.status(500).json({ error: error.message || 'Failed to submit review' });
+    res.status(500).json({ error: error.message || "Failed to submit review" });
   }
 });
 
 // Update order status (pickup, in-transit, complete)
-router.post('/:orderId/:action', verifyToken, async (req, res) => {
+router.post("/:orderId/:action", verifyToken, async (req, res) => {
   try {
-    const result = await orderService.updateOrderStatus(req.params.orderId, req.user.userId, req.params.action);
+    const result = await orderService.updateOrderStatus(
+      req.params.orderId,
+      req.user.userId,
+      req.params.action,
+    );
     res.json(result);
   } catch (error) {
     logger.error(`Order status update error: ${error.message}`, {
       orderId: req.params.orderId,
       action: req.params.action,
       userId: req.user.userId,
-      category: 'error'
+      category: "error",
     });
 
     // Return 404 for not found errors
-    if (error.message === 'Order not found') {
+    if (error.message === "Order not found") {
       return res.status(404).json({ error: error.message });
     }
 
     // Return 403 for authorization errors
-    if (error.message.includes('Only assigned driver') ||
-      error.message.includes('Only customer can confirm')) {
+    if (
+      error.message.includes("Only assigned driver") ||
+      error.message.includes("Only customer can confirm")
+    ) {
       return res.status(403).json({ error: error.message });
     }
 
     // Return 400 for validation errors
-    if (error.message.includes('Order must be in') || error.message.includes('Invalid action')) {
+    if (
+      error.message.includes("Order must be in") ||
+      error.message.includes("Invalid action")
+    ) {
       return res.status(400).json({ error: error.message });
     }
 
-    res.status(500).json({ error: error.message || 'Failed to update order status' });
+    res
+      .status(500)
+      .json({ error: error.message || "Failed to update order status" });
   }
 });
 
 // Get order tracking data (current location and history)
-router.get('/:orderId/tracking', verifyToken, async (req, res) => {
+router.get("/:orderId/tracking", verifyToken, async (req, res) => {
   try {
     const { orderId } = req.params;
     const userId = req.user.userId;
     const userRole = req.user.primary_role || req.user.role;
     const userRoles = req.user.granted_roles || req.user.roles || [];
-    const isAdmin = userRole === 'admin' || (Array.isArray(userRoles) && userRoles.includes('admin'));
+    const isAdmin =
+      userRole === "admin" ||
+      (Array.isArray(userRoles) && userRoles.includes("admin"));
 
     // 1. Check if order exists and get basic info
     const orderResult = await pool.query(
-      'SELECT customer_id, assigned_driver_user_id, status FROM orders WHERE id = $1',
-      [orderId]
+      "SELECT customer_id, assigned_driver_user_id, status FROM orders WHERE id = $1",
+      [orderId],
     );
 
     if (orderResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Order not found' });
+      return res.status(404).json({ error: "Order not found" });
     }
 
     const order = orderResult.rows[0];
@@ -503,19 +630,23 @@ router.get('/:orderId/tracking', verifyToken, async (req, res) => {
     const isAssignedDriver = order.assigned_driver_user_id === userId;
 
     if (!isAdmin && !isCustomer && !isAssignedDriver) {
-      logger.security('Unauthorized tracking access attempt', {
+      logger.security("Unauthorized tracking access attempt", {
         userId,
         orderId,
         userRole,
-        category: 'security'
+        category: "security",
       });
-      return res.status(403).json({ error: 'Access denied: You are not authorized to track this order' });
+      return res
+        .status(403)
+        .json({
+          error: "Access denied: You are not authorized to track this order",
+        });
     }
 
     // 3. Fetch current location (latest entry from driver_locations)
     const currentLocationResult = await pool.query(
-      'SELECT latitude, longitude, timestamp, speed_kmh, heading, accuracy_meters FROM driver_locations WHERE order_id = $1 ORDER BY timestamp DESC LIMIT 1',
-      [orderId]
+      "SELECT latitude, longitude, timestamp, speed_kmh, heading, accuracy_meters FROM driver_locations WHERE order_id = $1 ORDER BY timestamp DESC LIMIT 1",
+      [orderId],
     );
 
     let currentLocation = null;
@@ -527,57 +658,60 @@ router.get('/:orderId/tracking', verifyToken, async (req, res) => {
         timestamp: loc.timestamp,
         speedKmh: loc.speed_kmh ? parseFloat(loc.speed_kmh) : null,
         heading: loc.heading ? parseFloat(loc.heading) : null,
-        accuracyMeters: loc.accuracy_meters ? parseFloat(loc.accuracy_meters) : null
+        accuracyMeters: loc.accuracy_meters
+          ? parseFloat(loc.accuracy_meters)
+          : null,
       };
     }
 
     // 4. Fetch location history (last 100 points for route visualization)
     const historyResult = await pool.query(
-      'SELECT latitude, longitude, timestamp FROM driver_locations WHERE order_id = $1 ORDER BY timestamp ASC LIMIT 100',
-      [orderId]
+      "SELECT latitude, longitude, timestamp FROM driver_locations WHERE order_id = $1 ORDER BY timestamp ASC LIMIT 100",
+      [orderId],
     );
 
-    const locationHistory = historyResult.rows.map(loc => ({
+    const locationHistory = historyResult.rows.map((loc) => ({
       lat: parseFloat(loc.latitude),
       lng: parseFloat(loc.longitude),
-      timestamp: loc.timestamp
+      timestamp: loc.timestamp,
     }));
 
-    logger.info('Order tracking data fetched', {
+    logger.info("Order tracking data fetched", {
       orderId,
       userId,
       hasCurrentLocation: !!currentLocation,
       historyPoints: locationHistory.length,
-      category: 'tracking'
+      category: "tracking",
     });
 
     res.json({
       currentLocation,
       locationHistory,
-      orderStatus: order.status
+      orderStatus: order.status,
     });
-
   } catch (error) {
     logger.error(`Order tracking error: ${error.message}`, {
       userId: req.user.userId,
       orderId: req.params.orderId,
-      category: 'error'
+      category: "error",
     });
-    res.status(500).json({ error: error.message || 'Failed to fetch tracking data' });
+    res
+      .status(500)
+      .json({ error: error.message || "Failed to fetch tracking data" });
   }
 });
 
 // Get order reviews
-router.get('/:orderId/reviews', verifyToken, async (req, res) => {
+router.get("/:orderId/reviews", verifyToken, async (req, res) => {
   try {
     const reviews = await orderService.getOrderReviews(req.params.orderId);
     res.json(reviews);
   } catch (error) {
     logger.error(`Get order reviews error: ${error.message}`, {
       orderId: req.params.orderId,
-      category: 'error'
+      category: "error",
     });
-    res.status(500).json({ error: error.message || 'Failed to get reviews' });
+    res.status(500).json({ error: error.message || "Failed to get reviews" });
   }
 });
 

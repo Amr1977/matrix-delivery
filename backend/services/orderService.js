@@ -753,16 +753,31 @@ END as acceptedBid
       throw new Error("Order price must be greater than 0");
     }
 
-    // ✅ ESCROW: Check customer balance before order creation
-    const balanceCheck = await balanceService.checkOrderBalance(
-      customerId,
-      upfrontPayment,
-      price,
-    );
-    if (!balanceCheck.canCreate) {
-      throw new Error(
-        `Insufficient balance. Required: ${balanceCheck.requiredBalance} EGP, Available: ${balanceCheck.availableBalance} EGP. Please top up ${balanceCheck.shortfall} EGP.`,
+    // ✅ PREPAID: Check customer balance for prepaid orders (full amount required)
+    const paymentMethod = orderData.payment_method || "COD";
+    if (paymentMethod === "PREPAID") {
+      const balanceCheck = await balanceService.checkOrderBalance(
+        customerId,
+        upfrontPayment,
+        price,
       );
+      if (!balanceCheck.canCreate) {
+        throw new Error(
+          `Insufficient balance for Prepaid order. Required: ${balanceCheck.requiredBalance} EGP, Available: ${balanceCheck.availableBalance} EGP. Please top up ${balanceCheck.shortfall} EGP.`,
+        );
+      }
+    } else {
+      // ✅ ESCROW: Check customer balance for upfront payment (COD orders)
+      const balanceCheck = await balanceService.checkOrderBalance(
+        customerId,
+        upfrontPayment,
+        price,
+      );
+      if (!balanceCheck.canCreate) {
+        throw new Error(
+          `Insufficient balance. Required: ${balanceCheck.requiredBalance} EGP, Available: ${balanceCheck.availableBalance} EGP. Please top up ${balanceCheck.shortfall} EGP.`,
+        );
+      }
     }
 
     const orderId = this.generateId();
@@ -874,8 +889,9 @@ END as acceptedBid
   upfront_payment,
   route_polyline, 
   estimated_distance_km, 
-  estimated_duration_minutes
-) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, NOW(), $26, $27, $28, $29, $30, $31, $32)
+  estimated_duration_minutes,
+  payment_method
+) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, NOW(), $26, $27, $28, $29, $30, $31, $32, $33)
 RETURNING * `;
 
     const result = await pool.query(queryText, [
@@ -917,6 +933,7 @@ RETURNING * `;
       routePolyline, // $30
       estimatedDistanceKm, // $31
       estimatedDurationMinutes ? Math.round(estimatedDurationMinutes) : null, // $32
+      orderData.payment_method || "COD", // $33
     ]);
 
     const order = result.rows[0];
@@ -1236,7 +1253,7 @@ RETURNING * `;
     const bidPrice = parseFloat(bidCheck.rows[0].bid_price);
     const upfrontPayment = parseFloat(order.upfront_payment) || 0;
 
-    // ✅ Check if driver can accept orders (debt check)
+    // Check if driver can accept orders (debt check)
     const driverStatus = await balanceService.canAcceptOrders(driverId);
 
     if (!driverStatus.canAccept) {
@@ -1250,8 +1267,24 @@ RETURNING * `;
       throw new Error(`Cannot accept order: ${driverStatus.reason} `);
     }
 
-    // ✅ ESCROW: Hold customer funds (upfront + bid price)
-    const holdAmount = upfrontPayment + bidPrice;
+    // Get payment method for this order
+    const paymentMethodResult = await pool.query(
+      "SELECT payment_method, price FROM orders WHERE id = $1",
+      [orderId],
+    );
+    const paymentMethod = paymentMethodResult.rows[0]?.payment_method || "COD";
+    const orderPrice =
+      parseFloat(paymentMethodResult.rows[0]?.price) || bidPrice;
+
+    // ✅ ESCROW/HOLD: Hold customer funds based on payment method
+    let holdAmount;
+    if (paymentMethod === "PREPAID") {
+      // Prepaid: hold full order price (customer already paid via balance)
+      holdAmount = orderPrice; // Customer prepaid, so we hold the full amount
+    } else {
+      // COD: hold upfront + bid price (if upfront payment required)
+      holdAmount = upfrontPayment + bidPrice;
+    }
     try {
       await balanceService.holdFunds(customerId, orderId, holdAmount);
       logger.info("Escrow hold applied", { orderId, customerId, holdAmount });

@@ -1,59 +1,73 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import api from './api';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useI18n } from './i18n/i18nContext';
-import LanguageSwitcher from './LanguageSwitcher';
-import AdminPanel from './AdminPanel';
-import ErrorBoundary from './ErrorBoundary';
-import LiveTrackingMapView from './components/maps/LiveTrackingMap';
-import OrdersMap from './components/maps/OrdersMap';
-import AsyncOrderMap from './components/AsyncOrderMap';
-import io from 'socket.io-client';
-import ReCAPTCHA from 'react-google-recaptcha';
-import './Mobile.css';
-import './MatrixTheme.css';
-import MessagingPanel from './components/messaging/MessagingPanel';
-import ChatPage from './components/messaging/ChatPage';
-import ActiveOrderCard from './components/orders/ActiveOrderCard';
-import PaymentMethodsManager from './components/payments/PaymentMethodsManager';
-import MainLayout from './components/layout/MainLayout';
-import ProfilePage from './pages/ProfilePage';
-import NotificationPanel from './components/notifications/NotificationPanel';
-import SettingsModal from './components/layout/SettingsModal';
-import DriverEarningsDashboard from './components/driver/DriverEarningsDashboard';
-import PrivacyPolicy from './components/legal/PrivacyPolicy';
-import TermsOfService from './components/legal/TermsOfService';
-import RefundPolicy from './components/legal/RefundPolicy';
-import DriverAgreement from './components/legal/DriverAgreement';
-import LoadingSpinner from './components/LoadingSpinner';
-import CookiePolicy from './components/legal/CookiePolicy';
-import MatrixLoader from './components/common/MatrixLoader';
-import CryptoTest from './pages/CryptoTest';
-import useDriver from './hooks/useDriver';
-import GeolocationStatus from './components/ui/GeolocationStatus';
-import InteractiveLocationPicker from './components/InteractiveLocationPicker';
-import usePageVisibility from './hooks/usePageVisibility';
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import api from "./api";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useI18n } from "./i18n/i18nContext";
+import LanguageSwitcher from "./LanguageSwitcher";
+import AdminPanel from "./AdminPanel";
+import ErrorBoundary from "./ErrorBoundary";
+import LiveTrackingMapView from "./components/maps/LiveTrackingMap";
+import OrdersMap from "./components/maps/OrdersMap";
+import AsyncOrderMap from "./components/AsyncOrderMap";
+import io from "socket.io-client";
+import ReCAPTCHA from "react-google-recaptcha";
+import "./Mobile.css";
+import "./MatrixTheme.css";
+import MessagingPanel from "./components/messaging/MessagingPanel";
+import ChatPage from "./components/messaging/ChatPage";
+import ActiveOrderCard from "./components/orders/ActiveOrderCard";
+import PaymentMethodsManager from "./components/payments/PaymentMethodsManager";
+import MainLayout from "./components/layout/MainLayout";
+import ProfilePage from "./pages/ProfilePage";
+import NotificationPanel from "./components/notifications/NotificationPanel";
+import SettingsModal from "./components/layout/SettingsModal";
+import DriverEarningsDashboard from "./components/driver/DriverEarningsDashboard";
+import PrivacyPolicy from "./components/legal/PrivacyPolicy";
+import TermsOfService from "./components/legal/TermsOfService";
+import RefundPolicy from "./components/legal/RefundPolicy";
+import DriverAgreement from "./components/legal/DriverAgreement";
+import LoadingSpinner from "./components/LoadingSpinner";
+import CookiePolicy from "./components/legal/CookiePolicy";
+import MatrixLoader from "./components/common/MatrixLoader";
+import CryptoTest from "./pages/CryptoTest";
+import useDriver from "./hooks/useDriver";
+import GeolocationStatus from "./components/ui/GeolocationStatus";
+import InteractiveLocationPicker from "./components/InteractiveLocationPicker";
+import usePageVisibility from "./hooks/usePageVisibility";
 // import { useBackendHealth } from './hooks/useBackendHealth';
-import { useHeartbeat } from './hooks/useHeartbeat';
-import MaintenancePage from './components/MaintenancePage';
-import './components/ui/GeolocationStatus.css';
+import { useHeartbeat } from "./hooks/useHeartbeat";
+import MaintenancePage from "./components/MaintenancePage";
+import "./components/ui/GeolocationStatus.css";
 
 // Balance Pages (with auth context)
-import { BalanceDashboardPage, TransactionHistoryPage, BalanceStatementPage } from './pages/BalancePages';
-import MatrixLanding from './pages/MatrixLanding';
-import ReviewsPage from './pages/ReviewsPage';
-import CreateOrderPage from './pages/CreateOrderPage';
-import ReviewModal from './components/reviews/ReviewModal';
-import AuthScreen from './components/auth/AuthScreen';
+import {
+  BalanceDashboardPage,
+  TransactionHistoryPage,
+  BalanceStatementPage,
+} from "./pages/BalancePages";
+import MatrixLanding from "./pages/MatrixLanding";
+import ReviewsPage from "./pages/ReviewsPage";
+import CreateOrderPage from "./pages/CreateOrderPage";
+import ReviewModal from "./components/reviews/ReviewModal";
+import AuthScreen from "./components/auth/AuthScreen";
 
 // TypeScript API Services
-import { AuthApi, OrdersApi, NotificationsApi, UsersApi, DriversApi } from './services/api';
+import {
+  AuthApi,
+  OrdersApi,
+  NotificationsApi,
+  UsersApi,
+  DriversApi,
+} from "./services/api";
 
-import { RouterProvider, createBrowserRouter, Navigate } from 'react-router-dom';
-import GlobalError from './components/GlobalError';
+import {
+  RouterProvider,
+  createBrowserRouter,
+  Navigate,
+} from "react-router-dom";
+import GlobalError from "./components/GlobalError";
 
-import { usePushNotifications } from './hooks/usePushNotifications';
-import { useForegroundMessages } from './hooks/useForegroundMessages';
+import { usePushNotifications } from "./hooks/usePushNotifications";
+import { useForegroundMessages } from "./hooks/useForegroundMessages";
 
 // Location data state and API functions
 export const MainApp = () => {
@@ -62,33 +76,33 @@ export const MainApp = () => {
   // Handle foreground push messages - add to existing notifications
   useForegroundMessages((message) => {
     // Defensive: ensure message has valid data
-    if (!message || typeof message !== 'object') {
-      console.warn('Invalid push message received:', message);
+    if (!message || typeof message !== "object") {
+      console.warn("Invalid push message received:", message);
       return;
     }
-    
+
     const newNotification = {
       id: Date.now().toString(),
-      title: String(message.title || 'Notification'),
-      message: String(message.body || ''),
-      body: String(message.body || ''),
-      data: message.data && typeof message.data === 'object' ? message.data : {},
+      title: String(message.title || "Notification"),
+      message: String(message.body || ""),
+      body: String(message.body || ""),
+      data:
+        message.data && typeof message.data === "object" ? message.data : {},
       isRead: false,
       createdAt: new Date().toISOString(),
-      type: 'push'
+      type: "push",
     };
-    setNotifications(prev => [newNotification, ...prev]);
+    setNotifications((prev) => [newNotification, ...prev]);
     playNotificationSound();
   });
 
   // Register for push on login/app start
   useEffect(() => {
-    if (permission === 'default') {
+    if (permission === "default") {
       // Auto-register on app start (will show permission prompt)
       registerForPush();
     }
   }, [permission]);
-
 
   const navigate = useNavigate();
   const { t, locale, changeLocale } = useI18n();
@@ -119,7 +133,7 @@ export const MainApp = () => {
   const [orders, setOrders] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [showOrderForm, setShowOrderForm] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -134,13 +148,13 @@ export const MainApp = () => {
 
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewOrderId, setReviewOrderId] = useState(null);
-  const [reviewType, setReviewType] = useState('');
+  const [reviewType, setReviewType] = useState("");
   const [reviewStatus, setReviewStatus] = useState(null);
   const [orderReviews, setOrderReviews] = useState([]);
   const [showReviewsModal, setShowReviewsModal] = useState(false);
   const [showUserReviewsModal, setShowUserReviewsModal] = useState(false);
   const [userReviews, setUserReviews] = useState([]);
-  const [userReviewsType, setUserReviewsType] = useState('');
+  const [userReviewsType, setUserReviewsType] = useState("");
   const [showLiveTracking, setShowLiveTracking] = useState(false);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [footerStats, setFooterStats] = useState(null);
@@ -148,7 +162,7 @@ export const MainApp = () => {
   const [showProfile, setShowProfile] = useState(false);
   const [profileData, setProfileData] = useState(() => {
     // Try to load theme from local storage on initial render
-    const savedTheme = localStorage.getItem('matrix_theme');
+    const savedTheme = localStorage.getItem("matrix_theme");
     return savedTheme ? { theme: savedTheme } : {};
   });
   const [preferencesData, setPreferencesData] = useState(null);
@@ -188,42 +202,49 @@ export const MainApp = () => {
       const ratio = Math.min(maxSide / img.width, maxSide / img.height, 1);
       const w = Math.max(1, Math.round(img.width * ratio));
       const h = Math.max(1, Math.round(img.height * ratio));
-      const canvas = document.createElement('canvas');
+      const canvas = document.createElement("canvas");
       canvas.width = w;
       canvas.height = h;
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext("2d");
       ctx.drawImage(img, 0, 0, w, h);
       URL.revokeObjectURL(imgUrl);
       let quality = 0.7;
-      let dataUrl = canvas.toDataURL('image/jpeg', quality);
+      let dataUrl = canvas.toDataURL("image/jpeg", quality);
       while (dataUrl.length > 150000 && quality > 0.4) {
         quality -= 0.1;
-        dataUrl = canvas.toDataURL('image/jpeg', quality);
+        dataUrl = canvas.toDataURL("image/jpeg", quality);
       }
       // Upload using FormData (file-based storage)
-      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', quality));
+      const blob = await new Promise((resolve) =>
+        canvas.toBlob(resolve, "image/jpeg", quality),
+      );
       const form = new FormData();
-      form.append('file', blob, (file.name || 'profile') + '.jpg');
+      form.append("file", blob, (file.name || "profile") + ".jpg");
       const d = await UsersApi.updateProfilePicture(form);
-      setProfileData(prev => ({ ...prev, profile_picture_url: d.profilePictureUrl }));
-      setCurrentUser(prev => prev ? { ...prev, profile_picture_url: d.profilePictureUrl } : null);
+      setProfileData((prev) => ({
+        ...prev,
+        profile_picture_url: d.profilePictureUrl,
+      }));
+      setCurrentUser((prev) =>
+        prev ? { ...prev, profile_picture_url: d.profilePictureUrl } : null,
+      );
     } catch (err) {
-      setError(err.message || 'Failed to upload picture');
+      setError(err.message || "Failed to upload picture");
     } finally {
       setUploadingProfilePicture(false);
     }
   };
 
-
   // Add viewport meta tag if not present
   useEffect(() => {
     let metaTag = document.querySelector('meta[name="viewport"]');
     if (!metaTag) {
-      metaTag = document.createElement('meta');
-      metaTag.name = 'viewport';
+      metaTag = document.createElement("meta");
+      metaTag.name = "viewport";
       document.head.appendChild(metaTag);
     }
-    metaTag.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+    metaTag.content =
+      "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no";
   }, []);
 
   // Mobile touch optimization
@@ -232,14 +253,12 @@ export const MainApp = () => {
 
   useEffect(() => {
     const handleResize = () => setMobileView(isMobile());
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-
   // Enhanced location state
-  const [locationPermission, setLocationPermission] = useState('unknown'); // 'unknown', 'granted', 'denied', 'prompt'
-
+  const [locationPermission, setLocationPermission] = useState("unknown"); // 'unknown', 'granted', 'denied', 'prompt'
 
   // Enhanced UX states
   const [loadingStates, setLoadingStates] = useState({
@@ -253,15 +272,18 @@ export const MainApp = () => {
     updateInTransit: false,
     completeOrder: false,
     submitReview: false,
-    trackOrder: false
+    trackOrder: false,
   });
-  const [successMessage, setSuccessMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState("");
   const [spokenNotifications, setSpokenNotifications] = useState(new Set());
   const ttsLastSpokenRef = useRef(0);
   const ttsSignaturesRef = useRef(new Set());
 
   const [driverPricing, setDriverPricing] = useState({
-    currency: 'USD', costPerKm: 1, waitingPerHour: 5, vehicleType: 'car'
+    currency: "USD",
+    costPerKm: 1,
+    waitingPerHour: 5,
+    vehicleType: "car",
   });
 
   const saveDriverPricing = (updates) => {
@@ -278,151 +300,193 @@ export const MainApp = () => {
     motorbike: 25,
     car: 35,
     van: 30,
-    truck: 25
+    truck: 25,
   };
 
   const haversineKm = (a, b) => {
-    if (!a || !b || a.lat == null || a.lng == null || b.lat == null || b.lng == null) return 0;
+    if (
+      !a ||
+      !b ||
+      a.lat == null ||
+      a.lng == null ||
+      b.lat == null ||
+      b.lng == null
+    )
+      return 0;
     const R = 6371;
-    const dLat = (b.lat - a.lat) * Math.PI / 180;
-    const dLng = (b.lng - a.lng) * Math.PI / 180;
-    const aa = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * Math.PI / 180) * Math.cos(b.lat * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+    const dLat = ((b.lat - a.lat) * Math.PI) / 180;
+    const dLng = ((b.lng - a.lng) * Math.PI) / 180;
+    const aa =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos((a.lat * Math.PI) / 180) *
+        Math.cos((b.lat * Math.PI) / 180) *
+        Math.sin(dLng / 2) ** 2;
     const c = 2 * Math.atan2(Math.sqrt(aa), Math.sqrt(1 - aa));
     return R * c;
   };
 
   const estimateMetrics = (order) => {
-    const pickup = order.pickupLocation?.coordinates || (order.from ? { lat: order.from.lat, lng: order.from.lng } : null);
-    const dropoff = order.dropoffLocation?.coordinates || (order.to ? { lat: order.to.lat, lng: order.to.lng } : null);
-    const driver = driverLocation ? { lat: driverLocation.latitude, lng: driverLocation.longitude } : null;
+    const pickup =
+      order.pickupLocation?.coordinates ||
+      (order.from ? { lat: order.from.lat, lng: order.from.lng } : null);
+    const dropoff =
+      order.dropoffLocation?.coordinates ||
+      (order.to ? { lat: order.to.lat, lng: order.to.lng } : null);
+    const driver = driverLocation
+      ? { lat: driverLocation.latitude, lng: driverLocation.longitude }
+      : null;
     const speed = vehicleSpeeds[driverPricing.vehicleType] || 35;
     const toPickupKm = haversineKm(driver, pickup);
     const pickupToDropoffKm = haversineKm(pickup, dropoff);
     const toPickupMin = speed > 0 ? Math.ceil((toPickupKm / speed) * 60) : 0;
-    const toDeliveryMin = speed > 0 ? Math.ceil((pickupToDropoffKm / speed) * 60) : 0;
+    const toDeliveryMin =
+      speed > 0 ? Math.ceil((pickupToDropoffKm / speed) * 60) : 0;
     return { toPickupKm, pickupToDropoffKm, toPickupMin, toDeliveryMin };
   };
 
   const computeBidSuggestions = (order) => {
     const { toPickupKm, pickupToDropoffKm } = estimateMetrics(order);
     const distanceKm = (toPickupKm || 0) + (pickupToDropoffKm || 0);
-    const base = distanceKm * (driverPricing.costPerKm || 0) + (driverPricing.waitingPerHour || 0) * 0.25; // 15 min buffer
+    const base =
+      distanceKm * (driverPricing.costPerKm || 0) +
+      (driverPricing.waitingPerHour || 0) * 0.25; // 15 min buffer
     const minBid = Math.max(1, base * 2);
     const recommendedBid = Math.max(minBid, base * 3);
     return { base, minBid, recommendedBid };
   };
 
   // Driver location functionality
-  const [viewType, setViewType] = useState('active'); // 'active', 'bidding', 'history', 'map', 'my_bids'
+  const [viewType, setViewType] = useState("active"); // 'active', 'bidding', 'history', 'map', 'my_bids'
   const [ordersLoaded, setOrdersLoaded] = useState(false);
   const [ordersMapRadiusKm, setOrdersMapRadiusKm] = useState(5);
   const [selectedOrderForMap, setSelectedOrderForMap] = useState(null);
   const [driverOnline, setDriverOnline] = useState(false); // Driver online/offline status
-  const [countryFilter, setCountryFilter] = useState(''); // Country filter for bidding orders
-  const [cityFilter, setCityFilter] = useState(''); // City filter for bidding orders
-  const [areaFilter, setAreaFilter] = useState(''); // Area filter for bidding orders
+  const [countryFilter, setCountryFilter] = useState(""); // Country filter for bidding orders
+  const [cityFilter, setCityFilter] = useState(""); // City filter for bidding orders
+  const [areaFilter, setAreaFilter] = useState(""); // Area filter for bidding orders
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState(""); // COD/Prepaid filter for bidding orders
   const initialViewRedirectDone = useRef(false);
 
   useEffect(() => {
     // Only proceed if user is a driver, orders are loaded, and we haven't done the initial redirect
-    if (currentUser?.primary_role === 'driver' && ordersLoaded && !initialViewRedirectDone.current) {
-      const hasActiveOrder = orders.some(order => 
-        order.assignedDriver?.userId === currentUser.id && 
-        !['delivered', 'cancelled', 'confirmed', 'pending_bids'].includes(order.status)
+    if (
+      currentUser?.primary_role === "driver" &&
+      ordersLoaded &&
+      !initialViewRedirectDone.current
+    ) {
+      const hasActiveOrder = orders.some(
+        (order) =>
+          order.assignedDriver?.userId === currentUser.id &&
+          !["delivered", "cancelled", "confirmed", "pending_bids"].includes(
+            order.status,
+          ),
       );
 
       if (hasActiveOrder) {
-        setViewType('active');
+        setViewType("active");
       } else {
-        setViewType('bidding');
+        setViewType("bidding");
       }
       initialViewRedirectDone.current = true;
-      console.log(`🚗 Driver default view set to: ${hasActiveOrder ? 'active' : 'bidding'}`);
+      console.log(
+        `🚗 Driver default view set to: ${hasActiveOrder ? "active" : "bidding"}`,
+      );
     }
   }, [orders, currentUser, ordersLoaded]);
 
-
-
   const [reviewForm, setReviewForm] = useState({
     rating: 0,
-    comment: '',
+    comment: "",
     professionalismRating: 0,
     communicationRating: 0,
     timelinessRating: 0,
-    conditionRating: 0
+    conditionRating: 0,
   });
 
   const [bidInput, setBidInput] = useState({});
   const [bidDetails, setBidDetails] = useState({});
 
-  const fetchOrders = useCallback(async (filters = {}) => {
-    setLoadingStates(prev => ({ ...prev, ordersFetch: true }));
-    try {
-      const queryParams = new URLSearchParams();
+  const fetchOrders = useCallback(
+    async (filters = {}) => {
+      setLoadingStates((prev) => ({ ...prev, ordersFetch: true }));
+      try {
+        const queryParams = new URLSearchParams();
 
-      if (filters.country) queryParams.append('country', filters.country);
-      if (filters.city) queryParams.append('city', filters.city);
-      if (filters.area) queryParams.append('area', filters.area);
+        if (filters.country) queryParams.append("country", filters.country);
+        if (filters.city) queryParams.append("city", filters.city);
+        if (filters.area) queryParams.append("area", filters.area);
 
-      // Check for fake location in localStorage (development feature)
-      const fakeLocation = localStorage.getItem('fakeDriverLocation');
-      if (fakeLocation && currentUser?.primary_role === 'driver') {
-        try {
-          const loc = JSON.parse(fakeLocation);
-          if (loc.lat && loc.lng) {
-            queryParams.append('lat', loc.lat.toString());
-            queryParams.append('lng', loc.lng.toString());
-            console.log('🔧 Using fake location for order filtering:', loc);
+        // Check for fake location in localStorage (development feature)
+        const fakeLocation = localStorage.getItem("fakeDriverLocation");
+        if (fakeLocation && currentUser?.primary_role === "driver") {
+          try {
+            const loc = JSON.parse(fakeLocation);
+            if (loc.lat && loc.lng) {
+              queryParams.append("lat", loc.lat.toString());
+              queryParams.append("lng", loc.lng.toString());
+              console.log("🔧 Using fake location for order filtering:", loc);
+            }
+          } catch (e) {
+            console.warn("Invalid fake location data:", e);
           }
-        } catch (e) {
-          console.warn('Invalid fake location data:', e);
+        } else if (
+          currentUser?.primary_role === "driver" &&
+          driverLocation?.latitude &&
+          driverLocation?.longitude
+        ) {
+          // Use real driver location for filtering if no fake location is set
+          queryParams.append("lat", driverLocation.latitude.toString());
+          queryParams.append("lng", driverLocation.longitude.toString());
+          console.log("📍 Using real driver location for order filtering:", {
+            lat: driverLocation.latitude,
+            lng: driverLocation.longitude,
+          });
         }
-      } else if (currentUser?.primary_role === 'driver' && driverLocation?.latitude && driverLocation?.longitude) {
-        // Use real driver location for filtering if no fake location is set
-        queryParams.append('lat', driverLocation.latitude.toString());
-        queryParams.append('lng', driverLocation.longitude.toString());
-        console.log('📍 Using real driver location for order filtering:', {
-          lat: driverLocation.latitude,
-          lng: driverLocation.longitude
-        });
+
+        const queryString = queryParams.toString();
+        const url = queryString
+          ? `${API_URL}/orders?${queryString}`
+          : `${API_URL}/orders`;
+
+        // Only require query parameters for drivers (they need lat/lng for distance filtering)
+        // Customers should be able to fetch their orders without any query parameters
+        if (currentUser?.primary_role === "driver" && !queryString) {
+          console.warn("⚠️ Driver location required for fetching orders");
+          return;
+        }
+
+        // Build query parameters object for OrdersApi
+        const queryOptions = {};
+        if (currentUser?.primary_role === "driver" && queryString) {
+          // Parse query params for driver
+          const params = new URLSearchParams(queryString);
+          if (params.has("lat")) queryOptions.lat = params.get("lat");
+          if (params.has("lng")) queryOptions.lng = params.get("lng");
+        }
+
+        const data = await OrdersApi.getOrders(queryOptions);
+
+        const ordersWithBids = data.filter(
+          (order) => order.bids && order.bids.length > 0,
+        );
+
+        setOrders(data);
+        setOrdersLoaded(true);
+      } catch (err) {
+        console.error("Error fetching orders:", err.message);
+      } finally {
+        setLoadingStates((prev) => ({ ...prev, ordersFetch: false }));
       }
-
-      const queryString = queryParams.toString();
-      const url = queryString ? `${API_URL}/orders?${queryString}` : `${API_URL}/orders`;
-
-      // Only require query parameters for drivers (they need lat/lng for distance filtering)
-      // Customers should be able to fetch their orders without any query parameters
-      if (currentUser?.primary_role === 'driver' && !queryString) {
-        console.warn('⚠️ Driver location required for fetching orders');
-        return;
-      }
-
-      // Build query parameters object for OrdersApi
-      const queryOptions = {};
-      if (currentUser?.primary_role === 'driver' && queryString) {
-        // Parse query params for driver
-        const params = new URLSearchParams(queryString);
-        if (params.has('lat')) queryOptions.lat = params.get('lat');
-        if (params.has('lng')) queryOptions.lng = params.get('lng');
-      }
-
-      const data = await OrdersApi.getOrders(queryOptions);
-
-      const ordersWithBids = data.filter(order => order.bids && order.bids.length > 0);
-
-      setOrders(data);
-      setOrdersLoaded(true);
-    } catch (err) {
-      console.error('Error fetching orders:', err.message);
-    } finally {
-      setLoadingStates(prev => ({ ...prev, ordersFetch: false }));
-    }
-  }, [API_URL, token, currentUser?.primary_role, driverLocation]);
+    },
+    [API_URL, token, currentUser?.primary_role, driverLocation],
+  );
 
   // Sound and Text-to-Speech Notifications (moved before fetchUpdates to avoid initialization error)
   const playNotificationSound = useCallback(() => {
     try {
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const audioContext = new (
+        window.AudioContext || window.webkitAudioContext
+      )();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
 
@@ -433,64 +497,83 @@ export const MainApp = () => {
       oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1); // Drop to lower frequency
 
       gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+      gainNode.gain.exponentialRampToValueAtTime(
+        0.01,
+        audioContext.currentTime + 0.3,
+      );
 
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + 0.3);
     } catch (error) {
-      console.warn('Could not play notification sound:', error);
+      console.warn("Could not play notification sound:", error);
     }
   }, []);
 
-  const speakNotification = useCallback((notification) => {
-    if ('speechSynthesis' in window) {
-      try {
-        const now = Date.now();
-        const cooldownMs = 8000;
-        const sig = `${notification.id || ''}|${notification.title || ''}|${notification.message || ''}`;
-        if (window.speechSynthesis.speaking) {
-          return;
+  const speakNotification = useCallback(
+    (notification) => {
+      if ("speechSynthesis" in window) {
+        try {
+          const now = Date.now();
+          const cooldownMs = 8000;
+          const sig = `${notification.id || ""}|${notification.title || ""}|${notification.message || ""}`;
+          if (window.speechSynthesis.speaking) {
+            return;
+          }
+          if (
+            ttsSignaturesRef.current.has(sig) &&
+            now - ttsLastSpokenRef.current < cooldownMs
+          ) {
+            return;
+          }
+          ttsSignaturesRef.current.add(sig);
+          ttsLastSpokenRef.current = now;
+          let message = notification.message;
+
+          const orderNumberRegex = /order\s+(\w+)/gi;
+          message = message.replace(orderNumberRegex, (match, orderNum) => {
+            const lastThree = orderNum.replace(/\D/g, "").slice(-3);
+            return `${t("tracking.orderNumber")} ${lastThree}`;
+          });
+
+          const utterance = new SpeechSynthesisUtterance();
+          utterance.text = `${t("notifications.newNotification")}: ${notification.title}. ${message}`;
+          utterance.volume = 0.8;
+          utterance.rate = 1;
+          utterance.pitch = 0.7;
+
+          const voices = speechSynthesis.getVoices();
+          const preferredVoice = voices.find(
+            (voice) =>
+              voice.name.includes("David") ||
+              voice.name.includes("Microsoft David") ||
+              voice.name.includes("Alex") ||
+              voice.name.includes("James") ||
+              voice.name.includes("Daniel") ||
+              voice.name.includes("Paul") ||
+              voice.name.includes("Mark") ||
+              voice.name.includes("George") ||
+              voice.name.includes("Michael") ||
+              voice.name.includes("Steven") ||
+              (voice.lang.includes("en-US") &&
+                !voice.name.toLowerCase().includes("female") &&
+                !voice.name.toLowerCase().includes("zira")),
+          );
+
+          if (preferredVoice) {
+            utterance.voice = preferredVoice;
+          }
+
+          try {
+            speechSynthesis.cancel();
+          } catch (_) {}
+          speechSynthesis.speak(utterance);
+        } catch (error) {
+          console.warn("Could not speak notification:", error);
         }
-        if (ttsSignaturesRef.current.has(sig) && (now - ttsLastSpokenRef.current) < cooldownMs) {
-          return;
-        }
-        ttsSignaturesRef.current.add(sig);
-        ttsLastSpokenRef.current = now;
-        let message = notification.message;
-
-        const orderNumberRegex = /order\s+(\w+)/gi;
-        message = message.replace(orderNumberRegex, (match, orderNum) => {
-          const lastThree = orderNum.replace(/\D/g, '').slice(-3);
-          return `${t('tracking.orderNumber')} ${lastThree}`;
-        });
-
-        const utterance = new SpeechSynthesisUtterance();
-        utterance.text = `${t('notifications.newNotification')}: ${notification.title}. ${message}`;
-        utterance.volume = 0.8;
-        utterance.rate = 1;
-        utterance.pitch = 0.7;
-
-        const voices = speechSynthesis.getVoices();
-        const preferredVoice = voices.find(voice =>
-          voice.name.includes('David') || voice.name.includes('Microsoft David') ||
-          voice.name.includes('Alex') || voice.name.includes('James') ||
-          voice.name.includes('Daniel') || voice.name.includes('Paul') ||
-          voice.name.includes('Mark') || voice.name.includes('George') ||
-          voice.name.includes('Michael') || voice.name.includes('Steven') ||
-          (voice.lang.includes('en-US') && !voice.name.toLowerCase().includes('female') && !voice.name.toLowerCase().includes('zira'))
-        );
-
-        if (preferredVoice) {
-          utterance.voice = preferredVoice;
-        }
-
-        try { speechSynthesis.cancel(); } catch (_) { }
-        speechSynthesis.speak(utterance);
-      } catch (error) {
-        console.warn('Could not speak notification:', error);
       }
-    }
-  }, [t]);
+    },
+    [t],
+  );
 
   // Combined fetch for performance
   const fetchUpdates = useCallback(async () => {
@@ -498,32 +581,38 @@ export const MainApp = () => {
       const queryParams = new URLSearchParams();
 
       // Driver location logic
-      if (currentUser?.primary_role === 'driver') {
-        const fakeLocation = localStorage.getItem('fakeDriverLocation');
+      if (currentUser?.primary_role === "driver") {
+        const fakeLocation = localStorage.getItem("fakeDriverLocation");
         let usedFake = false;
         if (fakeLocation) {
           try {
             const loc = JSON.parse(fakeLocation);
             if (loc.lat && loc.lng) {
-              queryParams.append('lat', loc.lat.toString());
-              queryParams.append('lng', loc.lng.toString());
+              queryParams.append("lat", loc.lat.toString());
+              queryParams.append("lng", loc.lng.toString());
               usedFake = true;
             }
-          } catch (e) { }
+          } catch (e) {}
         }
 
         // Use ref for driver location to avoid re-creating function on every location update
         const currentDriverLocation = driverLocationRef.current;
-        if (!usedFake && currentDriverLocation?.latitude && currentDriverLocation?.longitude) {
-          queryParams.append('lat', currentDriverLocation.latitude.toString());
-          queryParams.append('lng', currentDriverLocation.longitude.toString());
+        if (
+          !usedFake &&
+          currentDriverLocation?.latitude &&
+          currentDriverLocation?.longitude
+        ) {
+          queryParams.append("lat", currentDriverLocation.latitude.toString());
+          queryParams.append("lng", currentDriverLocation.longitude.toString());
         }
       }
 
       const queryString = queryParams.toString();
-      const url = `${API_URL}/updates${queryString ? '?' + queryString : ''}`;
+      const url = `${API_URL}/updates${queryString ? "?" + queryString : ""}`;
 
-      const data = await api.get(`/updates${queryString ? '?' + queryString : ''}`);
+      const data = await api.get(
+        `/updates${queryString ? "?" + queryString : ""}`,
+      );
 
       if (data.orders) {
         setOrders(data.orders);
@@ -534,16 +623,25 @@ export const MainApp = () => {
         const newNotifications = data.notifications;
 
         // Use functional update to avoid dependency on notifications
-        setNotifications(prevNotifications => {
-          const newUnreadCount = newNotifications.filter(n => !n.isRead).length;
-          const previousUnreadCount = prevNotifications.filter(n => !n.isRead).length;
+        setNotifications((prevNotifications) => {
+          const newUnreadCount = newNotifications.filter(
+            (n) => !n.isRead,
+          ).length;
+          const previousUnreadCount = prevNotifications.filter(
+            (n) => !n.isRead,
+          ).length;
 
-          if (newUnreadCount > previousUnreadCount && newNotifications.length > 0) {
+          if (
+            newUnreadCount > previousUnreadCount &&
+            newNotifications.length > 0
+          ) {
             playNotificationSound();
 
             // Use functional update for spokenNotifications too
-            setSpokenNotifications(prevSpoken => {
-              const unreadNotifications = newNotifications.filter(n => !n.isRead && !prevSpoken.has(n.id));
+            setSpokenNotifications((prevSpoken) => {
+              const unreadNotifications = newNotifications.filter(
+                (n) => !n.isRead && !prevSpoken.has(n.id),
+              );
               if (unreadNotifications.length > 0) {
                 const latestUnspoken = unreadNotifications[0];
                 speakNotification(latestUnspoken);
@@ -559,48 +657,72 @@ export const MainApp = () => {
         });
       }
     } catch (err) {
-      console.error('Fetch updates error:', err);
+      console.error("Fetch updates error:", err);
     }
-  }, [API_URL, token, currentUser?.primary_role, playNotificationSound, speakNotification]);
+  }, [
+    API_URL,
+    token,
+    currentUser?.primary_role,
+    playNotificationSound,
+    speakNotification,
+  ]);
 
   // Location picker callback - moved after fetchOrders to avoid initialization error
-  const handleLocationSelect = useCallback((lat, lng) => {
-    const location = { lat, lng };
-    localStorage.setItem('fakeDriverLocation', JSON.stringify(location));
-    setSuccessMessage(`Location set to ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
-    // Debounce the fetchOrders call to prevent excessive API requests
-    setTimeout(() => fetchOrders(), 500);
-  }, [fetchOrders]);
+  const handleLocationSelect = useCallback(
+    (lat, lng) => {
+      const location = { lat, lng };
+      localStorage.setItem("fakeDriverLocation", JSON.stringify(location));
+      setSuccessMessage(`Location set to ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+      // Debounce the fetchOrders call to prevent excessive API requests
+      setTimeout(() => fetchOrders(), 500);
+    },
+    [fetchOrders],
+  );
 
-  const fetchHistoryOrders = useCallback(async (page = 1) => {
-    if (!token) return;
+  const fetchHistoryOrders = useCallback(
+    async (page = 1) => {
+      if (!token) return;
 
-    try {
-      setHistoryLoading(true);
-      const data = await OrdersApi.getHistoryOrders({ page, limit: 20, status: 'history' });
+      try {
+        setHistoryLoading(true);
+        const data = await OrdersApi.getHistoryOrders({
+          page,
+          limit: 20,
+          status: "history",
+        });
 
-      // If page 1, replace all history orders; otherwise append
-      setHistoryOrders(prev => page === 1 ? data.orders : [...prev, ...data.orders]);
-      setHistoryPagination(data.pagination);
-      setHistoryAttempted(true);
-    } catch (err) {
-      console.error('Error fetching history orders:', err.message);
-      setError('Failed to load order history');
-      setHistoryAttempted(true);
-    } finally {
-      setHistoryLoading(false);
-    }
-  }, [token]);
+        // If page 1, replace all history orders; otherwise append
+        setHistoryOrders((prev) =>
+          page === 1 ? data.orders : [...prev, ...data.orders],
+        );
+        setHistoryPagination(data.pagination);
+        setHistoryAttempted(true);
+      } catch (err) {
+        console.error("Error fetching history orders:", err.message);
+        setError("Failed to load order history");
+        setHistoryAttempted(true);
+      } finally {
+        setHistoryLoading(false);
+      }
+    },
+    [token],
+  );
 
-  const markNotificationRead = useCallback(async (notificationId) => {
-    try {
-      await NotificationsApi.markAsRead(notificationId);
-      setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n));
-    } catch (err) {
-      console.error('markNotificationRead error:', err);
-    }
-  }, [API_URL])
-
+  const markNotificationRead = useCallback(
+    async (notificationId) => {
+      try {
+        await NotificationsApi.markAsRead(notificationId);
+        setNotifications((prev) =>
+          prev.map((n) =>
+            n.id === notificationId ? { ...n, isRead: true } : n,
+          ),
+        );
+      } catch (err) {
+        console.error("markNotificationRead error:", err);
+      }
+    },
+    [API_URL],
+  );
 
   // Initialize authentication on app mount - restore session from httpOnly cookies
   useEffect(() => {
@@ -622,7 +744,7 @@ export const MainApp = () => {
       // Adaptive polling interval based on page visibility
       // Visible: 60s (reduced from 30s for better battery)
       // Hidden: 5min (300s) - minimal background activity
-      const getPollingInterval = () => isPageVisible ? 60000 : 300000;
+      const getPollingInterval = () => (isPageVisible ? 60000 : 300000);
 
       const interval = setInterval(() => {
         // Only poll if page is visible or it's been a while
@@ -639,17 +761,20 @@ export const MainApp = () => {
   useEffect(() => {
     if (token && currentUser) {
       // For drivers, only fetch orders if we have location data
-      if (currentUser.primary_role === 'driver') {
-        const fakeLocation = localStorage.getItem('fakeDriverLocation');
-        const hasFakeLocation = fakeLocation && (() => {
-          try {
-            const loc = JSON.parse(fakeLocation);
-            return loc.lat && loc.lng;
-          } catch {
-            return false;
-          }
-        })();
-        const hasRealLocation = driverLocation?.latitude && driverLocation?.longitude;
+      if (currentUser.primary_role === "driver") {
+        const fakeLocation = localStorage.getItem("fakeDriverLocation");
+        const hasFakeLocation =
+          fakeLocation &&
+          (() => {
+            try {
+              const loc = JSON.parse(fakeLocation);
+              return loc.lat && loc.lng;
+            } catch {
+              return false;
+            }
+          })();
+        const hasRealLocation =
+          driverLocation?.latitude && driverLocation?.longitude;
 
         if (hasFakeLocation || hasRealLocation) {
           fetchOrders();
@@ -664,13 +789,13 @@ export const MainApp = () => {
 
   // Start location tracking when driver enters bidding view
   useEffect(() => {
-    if (currentUser?.primary_role === 'driver' && token) {
-      if (viewType === 'bidding') {
+    if (currentUser?.primary_role === "driver" && token) {
+      if (viewType === "bidding") {
         // Get initial location
         driverHook.getDriverLocation();
         // Start continuous location updates
         driverHook.updateDriverLocation();
-      } else if (viewType === 'history' && !historyAttempted) {
+      } else if (viewType === "history" && !historyAttempted) {
         fetchHistoryOrders(1);
       }
     }
@@ -678,19 +803,33 @@ export const MainApp = () => {
 
   // Lazy load history orders when customer opens history tab
   useEffect(() => {
-    if (currentUser?.primary_role === 'customer' && viewType === 'history' && !historyAttempted && !historyLoading) {
+    if (
+      currentUser?.primary_role === "customer" &&
+      viewType === "history" &&
+      !historyAttempted &&
+      !historyLoading
+    ) {
       fetchHistoryOrders(1);
     }
-  }, [viewType, currentUser?.primary_role, historyAttempted, historyLoading, fetchHistoryOrders]);
+  }, [
+    viewType,
+    currentUser?.primary_role,
+    historyAttempted,
+    historyLoading,
+    fetchHistoryOrders,
+  ]);
 
   // Debug "Create New Order" button visibility
   useEffect(() => {
-    console.log('Create Order Button Check', {
+    console.log("Create Order Button Check", {
       viewType,
       currentUserExists: !!currentUser,
       primaryRole: currentUser?.primary_role,
       loading,
-      shouldShow: viewType !== 'profile' && (currentUser?.primary_role === 'customer' || currentUser?.primary_role === 'admin')
+      shouldShow:
+        viewType !== "profile" &&
+        (currentUser?.primary_role === "customer" ||
+          currentUser?.primary_role === "admin"),
     });
   }, [viewType, currentUser, loading]);
 
@@ -717,35 +856,35 @@ export const MainApp = () => {
 
     const apiUrl = API_URL;
 
-    console.log('🔌 Initializing Socket.IO connection for notifications');
+    console.log("🔌 Initializing Socket.IO connection for notifications");
 
     // Don't send token in auth - use httpOnly cookie instead
     const socket = io(apiUrl, {
       withCredentials: true, // CRITICAL: Send cookies with Socket.IO requests
-      transports: ['websocket'], // CRITICAL: Use WebSocket only to avoid PM2 cluster sticky session issues
+      transports: ["websocket"], // CRITICAL: Use WebSocket only to avoid PM2 cluster sticky session issues
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
     });
 
-    socket.on('connect', () => {
-      console.log('📡 Connected to real-time notifications');
+    socket.on("connect", () => {
+      console.log("📡 Connected to real-time notifications");
 
       // Join user's notification room
       if (currentUserRef.current?.id) {
-        socket.emit('join_user_room', currentUserRef.current.id);
+        socket.emit("join_user_room", currentUserRef.current.id);
         console.log(`📡 Joined user room: user_${currentUserRef.current.id}`);
       }
     });
 
-    socket.on('notification', async (notification) => {
-      console.log('📡 Real-time notification received:', notification);
-      
-      setNotifications(prev => [notification, ...prev]);
+    socket.on("notification", async (notification) => {
+      console.log("📡 Real-time notification received:", notification);
+
+      setNotifications((prev) => [notification, ...prev]);
       playNotificationSound();
 
       if (!notification.isRead) {
-        setSpokenNotifications(prev => {
+        setSpokenNotifications((prev) => {
           if (prev.has(notification.id)) {
             return prev;
           }
@@ -758,19 +897,22 @@ export const MainApp = () => {
         });
       }
 
-      if (notification.type === 'order_delivered' || notification.type === 'order_cancelled') {
+      if (
+        notification.type === "order_delivered" ||
+        notification.type === "order_cancelled"
+      ) {
         setHistoryAttempted(false);
       }
 
-      const isOrderRelated = 
-        notification.type === 'new_bid' ||
-        notification.type === 'bid_accepted' ||
-        notification.type === 'order_picked_up' ||
-        notification.type === 'order_in_transit' ||
-        notification.type === 'order_delivered' ||
-        notification.message?.toLowerCase().includes('bid') ||
-        notification.message?.toLowerCase().includes('driver') ||
-        notification.message?.toLowerCase().includes('order');
+      const isOrderRelated =
+        notification.type === "new_bid" ||
+        notification.type === "bid_accepted" ||
+        notification.type === "order_picked_up" ||
+        notification.type === "order_in_transit" ||
+        notification.type === "order_delivered" ||
+        notification.message?.toLowerCase().includes("bid") ||
+        notification.message?.toLowerCase().includes("driver") ||
+        notification.message?.toLowerCase().includes("order");
 
       if (isOrderRelated) {
         try {
@@ -778,17 +920,17 @@ export const MainApp = () => {
             await fetchOrdersRef.current();
           }
         } catch (error) {
-          console.warn('Failed to refresh orders after notification:', error);
+          console.warn("Failed to refresh orders after notification:", error);
         }
       }
     });
 
-    socket.on('disconnect', (reason) => {
-      console.log('📡 Disconnected from real-time notifications:', reason);
+    socket.on("disconnect", (reason) => {
+      console.log("📡 Disconnected from real-time notifications:", reason);
     });
 
     return () => {
-      console.log('🔌 Cleaning up Socket.IO connection for notifications');
+      console.log("🔌 Cleaning up Socket.IO connection for notifications");
       socket.disconnect();
     };
   }, [token, currentUser?.id, API_URL]); // Only reconnect if token or user ID changes
@@ -831,50 +973,53 @@ export const MainApp = () => {
   // Fetch Functions
   const fetchCurrentUser = async () => {
     try {
-      console.log('Fetching current user...');
+      console.log("Fetching current user...");
       const data = await AuthApi.getCurrentUser();
-      console.log('Fetched current user:', data);
+      console.log("Fetched current user:", data);
       setCurrentUser(data);
-      setAvailableRoles(data.granted_roles || (data.primary_role ? [data.primary_role] : []));
-      setToken('authenticated'); // Set token flag to indicate logged in
-      setError('');
+      setAvailableRoles(
+        data.granted_roles || (data.primary_role ? [data.primary_role] : []),
+      );
+      setToken("authenticated"); // Set token flag to indicate logged in
+      setError("");
 
       // Also update profileData with the user data including profile_picture_url
-      setProfileData(prev => ({
+      setProfileData((prev) => ({
         ...prev,
-        ...data
+        ...data,
       }));
-
     } catch (err) {
-      console.error('fetchCurrentUser error:', err);
+      console.error("fetchCurrentUser error:", err);
 
       // Handle 401/403 errors (no session or expired session)
       if (err.statusCode === 401 || err.statusCode === 403) {
-        console.log('Auth error 401/403. Current user:', currentUser);
+        console.log("Auth error 401/403. Current user:", currentUser);
         // Only logout if we previously had a user (session expired)
         // Don't logout on initial page load when there's no session
         if (currentUser) {
-          console.log('Session expired, logging out');
+          console.log("Session expired, logging out");
           logout();
         } else {
-          console.log('No active session on initial load');
+          console.log("No active session on initial load");
         }
         return;
       }
 
       // Only show error for network/server issues, don't logout automatically
-      if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError') || err.statusCode === 500) {
-        setError('Connection issue: Failed to get user. Please try refreshing the page.');
+      if (
+        err.message?.includes("Failed to fetch") ||
+        err.message?.includes("NetworkError") ||
+        err.statusCode === 500
+      ) {
+        setError(
+          "Connection issue: Failed to get user. Please try refreshing the page.",
+        );
       } else if (currentUser) {
         // Only logout if we had a user before (session expired)
         logout();
       }
     }
   };
-
-
-
-
 
   const fetchNotifications = async () => {
     try {
@@ -883,21 +1028,23 @@ export const MainApp = () => {
 
       // Enhanced notifications with sound and TTS
       // Check for new notifications that haven't been spoken yet
-      const newUnreadCount = data.filter(n => !n.isRead).length;
-      const previousUnreadCount = notifications.filter(n => !n.isRead).length;
+      const newUnreadCount = data.filter((n) => !n.isRead).length;
+      const previousUnreadCount = notifications.filter((n) => !n.isRead).length;
 
       if (newUnreadCount > previousUnreadCount && data.length > 0) {
         // Play notification sound
         playNotificationSound();
 
         // Get the latest unread notification that hasn't been spoken yet
-        const unreadNotifications = data.filter(n => !n.isRead && !spokenNotifications.has(n.id));
+        const unreadNotifications = data.filter(
+          (n) => !n.isRead && !spokenNotifications.has(n.id),
+        );
 
         if (unreadNotifications.length > 0) {
           // Speak only the newest unplayed notification to avoid spam
           const latestUnspoken = unreadNotifications[0];
           speakNotification(latestUnspoken);
-          setSpokenNotifications(prev => {
+          setSpokenNotifications((prev) => {
             const next = new Set(prev);
             next.add(latestUnspoken.id);
             return next;
@@ -908,8 +1055,6 @@ export const MainApp = () => {
       console.error(err);
     }
   };
-
-
 
   const fetchReviewStatus = async (orderId) => {
     try {
@@ -935,21 +1080,21 @@ export const MainApp = () => {
       let userId;
       let endpoint;
 
-      if (type === 'view_customer_reviews') {
+      if (type === "view_customer_reviews") {
         // Get customer reviews received
-        const order = orders.find(o => o.id === orderId);
+        const order = orders.find((o) => o.id === orderId);
         if (order) {
           userId = order.customerId;
           endpoint = `/users/${userId}/reviews/received`;
         }
-      } else if (type === 'view_customer_given_reviews') {
+      } else if (type === "view_customer_given_reviews") {
         // Get customer reviews given
-        const order = orders.find(o => o.id === orderId);
+        const order = orders.find((o) => o.id === orderId);
         if (order) {
           userId = order.customerId;
           endpoint = `/users/${userId}/reviews/given`;
         }
-      } else if (type === 'view_driver_reviews') {
+      } else if (type === "view_driver_reviews") {
         // Get driver reviews received
         if (bid && bid.userId) {
           // For pending bids, use the bid's userId
@@ -957,13 +1102,13 @@ export const MainApp = () => {
           endpoint = `/users/${userId}/reviews/received`;
         } else {
           // For assigned orders, use the assigned driver's userId
-          const order = orders.find(o => o.id === orderId);
+          const order = orders.find((o) => o.id === orderId);
           if (order && order.assignedDriver) {
             userId = order.assignedDriver.userId;
             endpoint = `/users/${userId}/reviews/received`;
           }
         }
-      } else if (type === 'view_driver_given_reviews') {
+      } else if (type === "view_driver_given_reviews") {
         // Get driver reviews given
         if (bid && bid.userId) {
           // For pending bids, use the bid's userId
@@ -971,7 +1116,7 @@ export const MainApp = () => {
           endpoint = `/users/${userId}/reviews/given`;
         } else {
           // For assigned orders, use the assigned driver's userId
-          const order = orders.find(o => o.id === orderId);
+          const order = orders.find((o) => o.id === orderId);
           if (order && order.assignedDriver) {
             userId = order.assignedDriver.userId;
             endpoint = `/users/${userId}/reviews/given`;
@@ -981,12 +1126,15 @@ export const MainApp = () => {
 
       if (endpoint) {
         // Use UsersApi to fetch user reviews
-        const data = await UsersApi.getUserReviews(userId, endpoint.includes('received') ? 'received' : 'given');
+        const data = await UsersApi.getUserReviews(
+          userId,
+          endpoint.includes("received") ? "received" : "given",
+        );
         setUserReviews(data.reviews);
         setUserReviewsType(type);
       }
     } catch (err) {
-      console.error('fetchUserReviews error:', err);
+      console.error("fetchUserReviews error:", err);
     }
   };
 
@@ -995,15 +1143,20 @@ export const MainApp = () => {
     setReviewType(type);
     setReviewForm({
       rating: 0,
-      comment: '',
+      comment: "",
       professionalismRating: 0,
       communicationRating: 0,
       timelinessRating: 0,
-      conditionRating: 0
+      conditionRating: 0,
     });
 
     // Handle viewing user reviews
-    if (type === 'view_customer_reviews' || type === 'view_customer_given_reviews' || type === 'view_driver_reviews' || type === 'view_driver_given_reviews') {
+    if (
+      type === "view_customer_reviews" ||
+      type === "view_customer_given_reviews" ||
+      type === "view_driver_reviews" ||
+      type === "view_driver_given_reviews"
+    ) {
       setShowUserReviewsModal(true);
       await fetchUserReviews(orderId, type, bid);
     } else {
@@ -1014,7 +1167,7 @@ export const MainApp = () => {
 
   const handleSubmitReview = async (formData) => {
     if (!formData || formData.rating === 0) {
-      setError('Please provide an overall rating');
+      setError("Please provide an overall rating");
       return;
     }
 
@@ -1027,17 +1180,19 @@ export const MainApp = () => {
         professionalismRating: formData.professionalismRating || null,
         communicationRating: formData.communicationRating || null,
         timelinessRating: formData.timelinessRating || null,
-        conditionRating: formData.conditionRating || null
+        conditionRating: formData.conditionRating || null,
       });
 
       setShowReviewModal(false);
-      setError('');
-      showSuccess('Review submitted successfully!');
+      setError("");
+      showSuccess("Review submitted successfully!");
       fetchOrders();
     } catch (err) {
       // Handle "Review already submitted" error with a user-friendly message
-      if (err.message?.includes('Review already submitted for this order')) {
-        setError('⚠️ You have already submitted a review for this order. You can only review each order once.');
+      if (err.message?.includes("Review already submitted for this order")) {
+        setError(
+          "⚠️ You have already submitted a review for this order. You can only review each order once.",
+        );
         setShowReviewModal(false);
       } else {
         setError(err.message);
@@ -1049,15 +1204,15 @@ export const MainApp = () => {
 
   const renderStars = (rating, onRate = null) => {
     return (
-      <div style={{ display: 'flex', gap: '0.25rem' }}>
+      <div style={{ display: "flex", gap: "0.25rem" }}>
         {[1, 2, 3, 4, 5].map((star) => (
           <span
             key={star}
             onClick={() => onRate && onRate(star)}
             style={{
-              fontSize: '1.5rem',
-              cursor: onRate ? 'pointer' : 'default',
-              color: star <= rating ? '#FCD34D' : '#D1D5DB'
+              fontSize: "1.5rem",
+              cursor: onRate ? "pointer" : "default",
+              color: star <= rating ? "#FCD34D" : "#D1D5DB",
             }}
           >
             ★
@@ -1070,39 +1225,45 @@ export const MainApp = () => {
   // Enhanced UX Helper Functions
   const showSuccess = useCallback((message) => {
     setSuccessMessage(message);
-    setTimeout(() => setSuccessMessage(''), 5000);
+    setTimeout(() => setSuccessMessage(""), 5000);
   }, []);
 
   const setLoadingState = (key, value) => {
-    setLoadingStates(prev => ({ ...prev, [key]: value }));
+    setLoadingStates((prev) => ({ ...prev, [key]: value }));
   };
-
 
   // Extract location parts from address string
   const extractLocationParts = (address) => {
-    if (!address) return { personName: '', street: '', area: '', city: '', country: '' };
+    if (!address)
+      return { personName: "", street: "", area: "", city: "", country: "" };
     // Address format: "personName, street, buildingNumber, floor, apartmentNumber, area, city, country"
-    const parts = address.split(',').map(part => part.trim());
+    const parts = address.split(",").map((part) => part.trim());
     return {
-      personName: parts[0] || '',
-      street: parts[1] || '',
-      area: parts[parts.length - 3] || '',
-      city: parts[parts.length - 2] || '',
-      country: parts[parts.length - 1] || ''
+      personName: parts[0] || "",
+      street: parts[1] || "",
+      area: parts[parts.length - 3] || "",
+      city: parts[parts.length - 2] || "",
+      country: parts[parts.length - 1] || "",
     };
   };
-
 
   // Get title for driver view
   const getDriverViewTitle = (viewType) => {
     switch (viewType) {
-      case 'active': return t('driver.activeOrders');
-      case 'bidding': return t('driver.availableBids');
-      case 'history': return t('driver.myHistory');
-      case 'map': return 'Orders Map';
-      case 'my_bids': return 'My Pending Bids';
-      case 'earnings': return 'My Earnings';
-      default: return t('driver.availableBids');
+      case "active":
+        return t("driver.activeOrders");
+      case "bidding":
+        return t("driver.availableBids");
+      case "history":
+        return t("driver.myHistory");
+      case "map":
+        return "Orders Map";
+      case "my_bids":
+        return "My Pending Bids";
+      case "earnings":
+        return "My Earnings";
+      default:
+        return t("driver.availableBids");
     }
   };
 
@@ -1113,21 +1274,30 @@ export const MainApp = () => {
   // Add this after Part 2
 
   const handleRegister = async (formData) => {
-    if (!formData.name || !formData.email || !formData.password || !formData.phone || !formData.country || !formData.city) {
-      console.warn('Registration validation failed: missing required fields');
-      setError('All required fields must be filled');
+    if (
+      !formData.name ||
+      !formData.email ||
+      !formData.password ||
+      !formData.phone ||
+      !formData.country ||
+      !formData.city
+    ) {
+      console.warn("Registration validation failed: missing required fields");
+      setError("All required fields must be filled");
       return;
     }
-    if (formData.primary_role === 'driver' && !formData.vehicle_type) {
-      console.warn('Registration validation failed: missing vehicle type for driver');
-      setError('Vehicle type is required for drivers');
+    if (formData.primary_role === "driver" && !formData.vehicle_type) {
+      console.warn(
+        "Registration validation failed: missing vehicle type for driver",
+      );
+      setError("Vehicle type is required for drivers");
       return;
     }
 
     const recaptchaToken = formData.recaptchaToken;
     if (process.env.REACT_APP_RECAPTCHA_SITE_KEY && !recaptchaToken) {
-      console.warn('Registration validation failed: missing captcha');
-      setError('Please complete the captcha');
+      console.warn("Registration validation failed: missing captcha");
+      setError("Please complete the captcha");
       return;
     }
 
@@ -1138,7 +1308,7 @@ export const MainApp = () => {
       await AuthApi.register({
         ...formData,
         primary_role: formData.primary_role,
-        recaptchaToken
+        recaptchaToken,
       });
 
       // Verify cookie is set by making a request that uses it.
@@ -1148,11 +1318,10 @@ export const MainApp = () => {
 
       const duration = Date.now() - startTime;
       // Token is now set in httpOnly cookie by server, no need to store in localStorage
-      setToken('authenticated'); // Just a flag to indicate user is logged in
+      setToken("authenticated"); // Just a flag to indicate user is logged in
       setCurrentUser(userData);
-      setError('');
-      navigate('/app');
-
+      setError("");
+      navigate("/app");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -1162,13 +1331,13 @@ export const MainApp = () => {
 
   const handleLogin = async (formData) => {
     if (!formData.email || !formData.password) {
-      setError('Email and password required');
+      setError("Email and password required");
       return;
     }
 
     const recaptchaToken = formData.recaptchaToken;
     if (process.env.REACT_APP_RECAPTCHA_SITE_KEY && !recaptchaToken) {
-      setError('Please complete the captcha');
+      setError("Please complete the captcha");
       return;
     }
 
@@ -1177,7 +1346,7 @@ export const MainApp = () => {
       await AuthApi.login({
         email: formData.email,
         password: formData.password,
-        recaptchaToken
+        recaptchaToken,
       });
 
       // Verify cookie is set by making a request that uses it.
@@ -1186,11 +1355,14 @@ export const MainApp = () => {
       const userData = await AuthApi.getCurrentUser();
 
       // Token is now set in httpOnly cookie by server, no need to store in localStorage
-      setToken('authenticated'); // Just a flag to indicate user is logged in
+      setToken("authenticated"); // Just a flag to indicate user is logged in
       setCurrentUser(userData);
-      setAvailableRoles(userData.granted_roles || (userData.primary_role ? [userData.primary_role] : []));
-      setError('');
-      navigate('/app');
+      setAvailableRoles(
+        userData.granted_roles ||
+          (userData.primary_role ? [userData.primary_role] : []),
+      );
+      setError("");
+      navigate("/app");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -1203,12 +1375,12 @@ export const MainApp = () => {
     try {
       const data = await AuthApi.switchRole({ new_primary_role: primary_role });
       // Token is now in httpOnly cookie, just update the flag
-      setToken('authenticated');
+      setToken("authenticated");
       setCurrentUser((prev) => ({ ...(prev || {}), primary_role }));
       setOrdersLoaded(false);
       initialViewRedirectDone.current = false;
     } catch (err) {
-      setError(err.message || err.error || 'Failed to switch role');
+      setError(err.message || err.error || "Failed to switch role");
     }
   };
 
@@ -1217,7 +1389,7 @@ export const MainApp = () => {
       // Call backend logout to clear httpOnly cookie
       await AuthApi.logout();
     } catch (err) {
-      console.error('Logout error:', err);
+      console.error("Logout error:", err);
     }
 
     // Clear all client-side state
@@ -1227,7 +1399,7 @@ export const MainApp = () => {
     setOrders([]);
     setOrdersLoaded(false);
     setNotifications([]);
-    setError('');
+    setError("");
 
     // Clear tracking modal state on logout
     setShowLiveTracking(false);
@@ -1241,242 +1413,307 @@ export const MainApp = () => {
   // Given the instruction "Remove the old header and mobile menu JSX", this useEffect is part of the old mobile menu logic.
   // So, remove it.
 
-  const handlePublishOrder = useCallback(async (orderData) => { // eslint-disable-line react-hooks/exhaustive-deps
-    // Validation for required fields - must run BEFORE backend submission
-    const requiredFieldsError = [];
+  const handlePublishOrder = useCallback(
+    async (orderData) => {
+      // eslint-disable-line react-hooks/exhaustive-deps
+      // Validation for required fields - must run BEFORE backend submission
+      const requiredFieldsError = [];
 
-    // Validate order basics first
-    if (!orderData.title?.trim()) {
-      requiredFieldsError.push('Order title');
-    }
-    if (!orderData.price || parseFloat(orderData.price) <= 0) {
-      requiredFieldsError.push('Price');
-    }
+      // Validate order basics first
+      if (!orderData.title?.trim()) {
+        requiredFieldsError.push("Order title");
+      }
+      if (!orderData.price || parseFloat(orderData.price) <= 0) {
+        requiredFieldsError.push("Price");
+      }
 
-    //TODO 🛑🛑🛑!!!!!! BLOODY SHIT !!!!!! UNIFY THE BLOODY PICKUP/DROPOFF RETURNED DATA FORMAT !!!!!!! 🛑🛑🛑🛑
-    // Check for both data structure formats since the form can send either
-    const hasPickupData = orderData.pickupAddress?.country || orderData.pickupLocation?.address?.country;
-    const hasPickupCountry = (orderData.pickupAddress?.country || orderData.pickupLocation?.address?.country)?.trim();
-    const hasPickupCity = (orderData.pickupAddress?.city || orderData.pickupLocation?.address?.city)?.trim();
-    const hasPickupPersonName = (orderData.pickupAddress?.personName || orderData.pickupLocation?.address?.personName)?.trim();
-    const hasPickupPersonPhone = (orderData.pickupAddress?.personPhone || orderData.pickupLocation?.address?.personPhone)?.trim();
+      //TODO 🛑🛑🛑!!!!!! BLOODY SHIT !!!!!! UNIFY THE BLOODY PICKUP/DROPOFF RETURNED DATA FORMAT !!!!!!! 🛑🛑🛑🛑
+      // Check for both data structure formats since the form can send either
+      const hasPickupData =
+        orderData.pickupAddress?.country ||
+        orderData.pickupLocation?.address?.country;
+      const hasPickupCountry = (
+        orderData.pickupAddress?.country ||
+        orderData.pickupLocation?.address?.country
+      )?.trim();
+      const hasPickupCity = (
+        orderData.pickupAddress?.city || orderData.pickupLocation?.address?.city
+      )?.trim();
+      const hasPickupPersonName = (
+        orderData.pickupAddress?.personName ||
+        orderData.pickupLocation?.address?.personName
+      )?.trim();
+      const hasPickupPersonPhone = (
+        orderData.pickupAddress?.personPhone ||
+        orderData.pickupLocation?.address?.personPhone
+      )?.trim();
 
-    if (!hasPickupData || !hasPickupCountry || !hasPickupCity || !hasPickupPersonName || !hasPickupPersonPhone) {
-      requiredFieldsError.push('Pickup location (country, city, contact name, contact phone)');
-    }
+      if (
+        !hasPickupData ||
+        !hasPickupCountry ||
+        !hasPickupCity ||
+        !hasPickupPersonName ||
+        !hasPickupPersonPhone
+      ) {
+        requiredFieldsError.push(
+          "Pickup location (country, city, contact name, contact phone)",
+        );
+      }
 
-    const hasDropoffData = orderData.dropoffAddress?.country || orderData.dropoffLocation?.address?.country;
-    const hasDropoffCountry = (orderData.dropoffAddress?.country || orderData.dropoffLocation?.address?.country)?.trim();
-    const hasDropoffCity = (orderData.dropoffAddress?.city || orderData.dropoffLocation?.address?.city)?.trim();
-    const hasDropoffPersonName = (orderData.dropoffAddress?.personName || orderData.dropoffLocation?.address?.personName)?.trim();
-    const hasDropoffPersonPhone = (orderData.dropoffAddress?.personPhone || orderData.dropoffLocation?.address?.personPhone)?.trim();
+      const hasDropoffData =
+        orderData.dropoffAddress?.country ||
+        orderData.dropoffLocation?.address?.country;
+      const hasDropoffCountry = (
+        orderData.dropoffAddress?.country ||
+        orderData.dropoffLocation?.address?.country
+      )?.trim();
+      const hasDropoffCity = (
+        orderData.dropoffAddress?.city ||
+        orderData.dropoffLocation?.address?.city
+      )?.trim();
+      const hasDropoffPersonName = (
+        orderData.dropoffAddress?.personName ||
+        orderData.dropoffLocation?.address?.personName
+      )?.trim();
+      const hasDropoffPersonPhone = (
+        orderData.dropoffAddress?.personPhone ||
+        orderData.dropoffLocation?.address?.personPhone
+      )?.trim();
 
-    if (!hasDropoffData || !hasDropoffCountry || !hasDropoffCity || !hasDropoffPersonName || !hasDropoffPersonPhone) {
-      requiredFieldsError.push('Delivery location (country, city, contact name, contact phone)');
-    }
+      if (
+        !hasDropoffData ||
+        !hasDropoffCountry ||
+        !hasDropoffCity ||
+        !hasDropoffPersonName ||
+        !hasDropoffPersonPhone
+      ) {
+        requiredFieldsError.push(
+          "Delivery location (country, city, contact name, contact phone)",
+        );
+      }
 
-    // If validation fails, throw error for form to catch and display
-    if (requiredFieldsError.length > 0) {
-      const errorMessage = `Please fill all required fields: ${requiredFieldsError.join(', ')}`;
-      console.log('🛑 Frontend validation failed:', errorMessage);
-      console.log('📋 Current form data validation:', {
-        title: !!orderData.title?.trim(),
-        price: !!(orderData.price && parseFloat(orderData.price) > 0),
-        showManualEntry: orderData.showManualEntry,
-        pickup: orderData.showManualEntry ? {
-          country: !!orderData.pickupAddress?.country,
-          city: !!orderData.pickupAddress?.city,
-          personName: !!orderData.pickupAddress?.personName
-        } : {
-          country: !!orderData.pickupLocation?.address?.country,
-          city: !!orderData.pickupLocation?.address?.city,
-          personName: !!orderData.pickupLocation?.address?.personName
-        },
-        dropoff: orderData.showManualEntry ? {
-          country: !!orderData.dropoffAddress?.country,
-          city: !!orderData.dropoffAddress?.city,
-          personName: !!orderData.dropoffAddress?.personName
-        } : {
-          country: !!orderData.dropoffLocation?.address?.country,
-          city: !!orderData.dropoffLocation?.address?.city,
-          personName: !!orderData.dropoffLocation?.address?.personName
-        }
-      });
-      throw new Error(errorMessage);
-    }
+      // If validation fails, throw error for form to catch and display
+      if (requiredFieldsError.length > 0) {
+        const errorMessage = `Please fill all required fields: ${requiredFieldsError.join(", ")}`;
+        console.log("🛑 Frontend validation failed:", errorMessage);
+        console.log("📋 Current form data validation:", {
+          title: !!orderData.title?.trim(),
+          price: !!(orderData.price && parseFloat(orderData.price) > 0),
+          showManualEntry: orderData.showManualEntry,
+          pickup: orderData.showManualEntry
+            ? {
+                country: !!orderData.pickupAddress?.country,
+                city: !!orderData.pickupAddress?.city,
+                personName: !!orderData.pickupAddress?.personName,
+              }
+            : {
+                country: !!orderData.pickupLocation?.address?.country,
+                city: !!orderData.pickupLocation?.address?.city,
+                personName: !!orderData.pickupLocation?.address?.personName,
+              },
+          dropoff: orderData.showManualEntry
+            ? {
+                country: !!orderData.dropoffAddress?.country,
+                city: !!orderData.dropoffAddress?.city,
+                personName: !!orderData.dropoffAddress?.personName,
+              }
+            : {
+                country: !!orderData.dropoffLocation?.address?.country,
+                city: !!orderData.dropoffLocation?.address?.city,
+                personName: !!orderData.dropoffLocation?.address?.personName,
+              },
+        });
+        throw new Error(errorMessage);
+      }
 
-    console.log('✅ Frontend validation passed, proceeding to submit');
+      console.log("✅ Frontend validation passed, proceeding to submit");
 
-    setLoadingState('createOrder', true);
+      setLoadingState("createOrder", true);
 
-    try {
-      // Build the order data directly at root level to match backend expectations
-      const newOrder = {
-        // Order fields directly at root level (no nested orderData wrapper)
-        title: orderData.title,
-        description: orderData.description,
-        package_description: orderData.package_description,
-        package_weight: orderData.package_weight ? parseFloat(orderData.package_weight) : null,
-        estimated_value: orderData.estimated_value ? parseFloat(orderData.estimated_value) : null,
-        special_instructions: orderData.special_instructions,
-        estimated_delivery_date: orderData.estimated_delivery_date || null,
-        price: parseFloat(orderData.price),
-        showManualEntry: true,
-        // Location data at root level
-        pickupAddress: orderData.pickupAddress,
-        dropoffAddress: orderData.dropoffAddress,
-        // Include map location and route info if available
-        ...(orderData.pickupLocation && { pickupLocation: orderData.pickupLocation }),
-        ...(orderData.dropoffLocation && { dropoffLocation: orderData.dropoffLocation }),
-        ...(orderData.routeInfo && { routeInfo: orderData.routeInfo }),
+      try {
+        // Build the order data directly at root level to match backend expectations
+        const newOrder = {
+          // Order fields directly at root level (no nested orderData wrapper)
+          title: orderData.title,
+          description: orderData.description,
+          package_description: orderData.package_description,
+          package_weight: orderData.package_weight
+            ? parseFloat(orderData.package_weight)
+            : null,
+          estimated_value: orderData.estimated_value
+            ? parseFloat(orderData.estimated_value)
+            : null,
+          special_instructions: orderData.special_instructions,
+          estimated_delivery_date: orderData.estimated_delivery_date || null,
+          price: parseFloat(orderData.price),
+          showManualEntry: true,
+          // Location data at root level
+          pickupAddress: orderData.pickupAddress,
+          dropoffAddress: orderData.dropoffAddress,
+          // Include map location and route info if available
+          ...(orderData.pickupLocation && {
+            pickupLocation: orderData.pickupLocation,
+          }),
+          ...(orderData.dropoffLocation && {
+            dropoffLocation: orderData.dropoffLocation,
+          }),
+          ...(orderData.routeInfo && { routeInfo: orderData.routeInfo }),
 
-        // Critical Financial Fields (Ensure snake_case for backend)
-        upfront_payment: orderData.upfrontPayment || orderData.upfront_payment || null,
-        require_upfront_payment: !!(orderData.requireUpfrontPayment || orderData.require_upfront_payment)
-      };
+          // Critical Financial Fields (Ensure snake_case for backend)
+          upfront_payment:
+            orderData.upfrontPayment || orderData.upfront_payment || null,
+          require_upfront_payment: !!(
+            orderData.requireUpfrontPayment || orderData.require_upfront_payment
+          ),
+          payment_method: orderData.payment_method || "COD",
+        };
 
-      await OrdersApi.createOrder(newOrder);
+        await OrdersApi.createOrder(newOrder);
 
-      setShowOrderForm(false);
-      // Add a small delay to ensure database consistency
-      setTimeout(() => {
-        fetchOrders();
-      }, 500);
-      showSuccess('Order published successfully! Waiting for drivers in your area.');
-    } catch (err) {
-      setLoadingState('createOrder', false);
+        setShowOrderForm(false);
+        // Add a small delay to ensure database consistency
+        setTimeout(() => {
+          fetchOrders();
+        }, 500);
+        showSuccess(
+          "Order published successfully! Waiting for drivers in your area.",
+        );
+      } catch (err) {
+        setLoadingState("createOrder", false);
 
-      // Re-throw the error so OrderCreationForm can catch it
-      throw err;
-    } finally {
-      setLoadingState('createOrder', false);
-    }
-  }, [token, showSuccess, API_URL, fetchOrders]);
+        // Re-throw the error so OrderCreationForm can catch it
+        throw err;
+      } finally {
+        setLoadingState("createOrder", false);
+      }
+    },
+    [token, showSuccess, API_URL, fetchOrders],
+  );
 
   const handleBidOnOrder = async (orderId) => {
     const bidPrice = bidInput[orderId];
     if (!bidPrice || parseFloat(bidPrice) <= 0) {
-      setError('Enter a valid bid price');
+      setError("Enter a valid bid price");
       return;
     }
 
-    setLoadingState('placeBid', true);
-    setError('');
+    setLoadingState("placeBid", true);
+    setError("");
 
     try {
       const bidData = {
         bidPrice: parseFloat(bidPrice),
         estimatedPickupTime: bidDetails[orderId]?.pickupTime || null,
         estimatedDeliveryTime: bidDetails[orderId]?.deliveryTime || null,
-        message: bidDetails[orderId]?.message || null
+        message: bidDetails[orderId]?.message || null,
       };
 
       await OrdersApi.placeBid(orderId, bidData);
 
       fetchOrders();
-      setBidInput({ ...bidInput, [orderId]: '' });
+      setBidInput({ ...bidInput, [orderId]: "" });
       setBidDetails({ ...bidDetails, [orderId]: {} });
-      showSuccess('Bid placed successfully!');
+      showSuccess("Bid placed successfully!");
     } catch (err) {
       setError(err.message);
     } finally {
-      setLoadingState('placeBid', false);
+      setLoadingState("placeBid", false);
     }
   };
 
   const handleModifyBid = async (orderId) => {
     const bidPrice = bidInput[orderId];
-    setLoadingState('placeBid', true);
+    setLoadingState("placeBid", true);
     try {
       await OrdersApi.modifyBid(orderId, {
         bidPrice: parseFloat(bidPrice),
-        message: bidDetails[orderId]?.message || null
+        message: bidDetails[orderId]?.message || null,
       });
       fetchOrders();
-      showSuccess('Bid modified successfully!');
+      showSuccess("Bid modified successfully!");
     } catch (err) {
       setError(err.message);
     } finally {
-      setLoadingState('placeBid', false);
+      setLoadingState("placeBid", false);
     }
   };
 
   const handleWithdrawBid = async (orderId) => {
-    setLoadingState('placeBid', true);
+    setLoadingState("placeBid", true);
     try {
       await OrdersApi.withdrawBid(orderId);
       fetchOrders();
-      showSuccess('Bid withdrawn');
+      showSuccess("Bid withdrawn");
     } catch (err) {
       setError(err.message);
     } finally {
-      setLoadingState('placeBid', false);
+      setLoadingState("placeBid", false);
     }
   };
 
   const handleDeleteOrder = async (orderId) => {
-    setLoadingState('deleteOrder', true);
+    setLoadingState("deleteOrder", true);
     try {
       await OrdersApi.deleteOrder(orderId);
       fetchOrders();
-      showSuccess('Order deleted successfully');
+      showSuccess("Order deleted successfully");
     } catch (err) {
       setError(err.message);
     } finally {
-      setLoadingState('deleteOrder', false);
+      setLoadingState("deleteOrder", false);
     }
   };
 
   // Navigation handler for MainLayout
   const handleNavigate = (view) => {
     switch (view) {
-      case 'notifications':
-        setShowNotifications(prev => !prev);
+      case "notifications":
+        setShowNotifications((prev) => !prev);
         break;
-      case 'profile':
+      case "profile":
         setShowProfile(true);
         break;
-      case 'settings':
+      case "settings":
         setShowSettings(true);
         break;
-      case 'admin':
-      case 'admin_panel':
+      case "admin":
+      case "admin_panel":
         setShowAdminPanel(true);
         break;
-      case 'earnings':
+      case "earnings":
         // Driver earnings view
-        setViewType('earnings');
+        setViewType("earnings");
         break;
-      case 'crypto-test':
+      case "crypto-test":
         setShowCryptoTest(true);
         break;
       default:
-        console.log('Unknown navigation view:', view);
+        console.log("Unknown navigation view:", view);
     }
   };
 
   const handleAcceptBid = async (orderId, userId) => {
-    setLoadingState('acceptBid', true);
-    setError('');
+    setLoadingState("acceptBid", true);
+    setError("");
     try {
       await OrdersApi.acceptBid(orderId, { userId });
 
       fetchOrders();
-      showSuccess('Bid accepted successfully! Driver notified.');
+      showSuccess("Bid accepted successfully! Driver notified.");
     } catch (err) {
       setError(err.message);
     } finally {
-      setLoadingState('acceptBid', false);
+      setLoadingState("acceptBid", false);
     }
   };
 
   const handlePickupOrder = async (orderId) => {
     setLoading(true);
     try {
-      await OrdersApi.updateStatus(orderId, 'picked_up');
+      await OrdersApi.updateStatus(orderId, "picked_up");
 
       fetchOrders();
-      setError('');
+      setError("");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -1487,10 +1724,10 @@ export const MainApp = () => {
   const handleInTransit = async (orderId) => {
     setLoading(true);
     try {
-      await OrdersApi.updateStatus(orderId, 'in_transit');
+      await OrdersApi.updateStatus(orderId, "in_transit");
 
       fetchOrders();
-      setError('');
+      setError("");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -1501,11 +1738,11 @@ export const MainApp = () => {
   const handleCompleteOrder = async (orderId) => {
     setLoading(true);
     try {
-      await OrdersApi.updateStatus(orderId, 'delivered');
+      await OrdersApi.updateStatus(orderId, "delivered");
 
       fetchOrders();
       setSelectedOrder(null);
-      setError('');
+      setError("");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -1514,17 +1751,19 @@ export const MainApp = () => {
   };
 
   const handleConfirmDelivery = async (orderId) => {
-    setLoadingState('confirmDelivery', true);
+    setLoadingState("confirmDelivery", true);
     try {
-      await OrdersApi.updateStatus(orderId, 'confirm_delivery');
+      await OrdersApi.updateStatus(orderId, "confirm_delivery");
 
       fetchOrders();
-      setError('');
-      showSuccess(t('status.orderConfirmed') || 'Order confirmed and completed!');
+      setError("");
+      showSuccess(
+        t("status.orderConfirmed") || "Order confirmed and completed!",
+      );
     } catch (err) {
       setError(err.message);
     } finally {
-      setLoadingState('confirmDelivery', false);
+      setLoadingState("confirmDelivery", false);
     }
   };
 
@@ -1540,29 +1779,31 @@ export const MainApp = () => {
 
   // Driver status functions
   const hasActiveOrders = useCallback(() => {
-    if (currentUser?.primary_role !== 'driver') return false;
-    return orders.some(order =>
-      order.assignedDriver?.userId === currentUser.id &&
-      ['accepted', 'picked_up', 'in_transit'].includes(order.status)
+    if (currentUser?.primary_role !== "driver") return false;
+    return orders.some(
+      (order) =>
+        order.assignedDriver?.userId === currentUser.id &&
+        ["accepted", "picked_up", "in_transit"].includes(order.status),
     );
   }, [currentUser, orders]);
 
   const updateDriverStatus = async (isOnline) => {
-    if (currentUser?.primary_role !== 'driver') {
-      setError('Only drivers can toggle online/offline status');
+    if (currentUser?.primary_role !== "driver") {
+      setError("Only drivers can toggle online/offline status");
       return;
     }
     try {
       await DriversApi.updateStatus({ isOnline });
       // Backend tracks driver online/offline status
     } catch (err) {
-      console.error('Update status error:', err);
-      setError('Failed to update driver status');
+      console.error("Update status error:", err);
+      setError("Failed to update driver status");
     }
   };
 
   const updateDriverLocationOnce = useCallback(async () => {
-    if (currentUser?.primary_role !== 'driver' || !driverOnline || loading) return;
+    if (currentUser?.primary_role !== "driver" || !driverOnline || loading)
+      return;
 
     try {
       if (navigator.geolocation) {
@@ -1572,43 +1813,62 @@ export const MainApp = () => {
 
             // Update driver location using the hook
             const success = await driverHook.updateDriverLocation();
-            if (!success) throw new Error('Failed to update location');
-            const activeOrders = orders.filter(o => o.assignedDriver?.userId === currentUser.id && ['accepted', 'picked_up', 'in_transit'].includes(o.status));
+            if (!success) throw new Error("Failed to update location");
+            const activeOrders = orders.filter(
+              (o) =>
+                o.assignedDriver?.userId === currentUser.id &&
+                ["accepted", "picked_up", "in_transit"].includes(o.status),
+            );
             if (activeOrders.length > 0) {
-              await Promise.all(activeOrders.map(o => (
-                OrdersApi.updateLocation(o.id, { latitude, longitude })
-              )));
+              await Promise.all(
+                activeOrders.map((o) =>
+                  OrdersApi.updateLocation(o.id, { latitude, longitude }),
+                ),
+              );
             }
             fetchOrders(); // Refresh orders with new distance calculations
           },
           (error) => {
-            console.error('Geolocation error:', error);
-            setLocationPermission('denied');
+            console.error("Geolocation error:", error);
+            setLocationPermission("denied");
             if (driverOnline) {
-              setError('Location access denied. Please enable location services.');
+              setError(
+                "Location access denied. Please enable location services.",
+              );
             }
-          }
+          },
         );
       } else {
         if (driverOnline) {
-          setError('Geolocation is not supported by this browser.');
+          setError("Geolocation is not supported by this browser.");
         }
       }
     } catch (err) {
-      console.error('Update location error:', err);
+      console.error("Update location error:", err);
       if (driverOnline) {
-        setError('Failed to update location');
+        setError("Failed to update location");
       }
     }
-  }, [currentUser, driverOnline, loading, API_URL, token, orders, fetchOrders, driverHook]);
+  }, [
+    currentUser,
+    driverOnline,
+    loading,
+    API_URL,
+    token,
+    orders,
+    fetchOrders,
+    driverHook,
+  ]);
 
   const toggleOnline = async () => {
     if (driverOnline && hasActiveOrders()) {
-      setError("Cannot go offline while you have active orders. Complete deliveries first.");
+      setError(
+        "Cannot go offline while you have active orders. Complete deliveries first.",
+      );
       return;
     }
 
-    setLoadingState('toggleOnline', true);
+    setLoadingState("toggleOnline", true);
     try {
       if (!driverOnline) {
         await updateDriverStatus(true);
@@ -1617,7 +1877,9 @@ export const MainApp = () => {
         if (locationIntervalRef.current) {
           clearInterval(locationIntervalRef.current);
         }
-        const intervalMs = hasActiveOrders() ? DRIVER_LOCATION_UPDATE_INTERVAL_MS_ACTIVE_ORDER : DRIVER_LOCATION_UPDATE_INTERVAL_MS_NO_ACTIVE_ORDER;
+        const intervalMs = hasActiveOrders()
+          ? DRIVER_LOCATION_UPDATE_INTERVAL_MS_ACTIVE_ORDER
+          : DRIVER_LOCATION_UPDATE_INTERVAL_MS_NO_ACTIVE_ORDER;
         locationIntervalRef.current = setInterval(() => {
           updateDriverLocationOnce();
         }, intervalMs);
@@ -1630,13 +1892,13 @@ export const MainApp = () => {
           clearInterval(locationIntervalRef.current);
           locationIntervalRef.current = null;
         }
-        setLocationPermission('unknown');
+        setLocationPermission("unknown");
       }
     } catch (error) {
-      console.error('Failed to toggle driver status:', error);
-      setError('Failed to update driver status. Please try again.');
+      console.error("Failed to toggle driver status:", error);
+      setError("Failed to update driver status. Please try again.");
     } finally {
-      setLoadingState('toggleOnline', false);
+      setLoadingState("toggleOnline", false);
     }
   };
 
@@ -1644,18 +1906,20 @@ export const MainApp = () => {
   const handleUpdateProfile = async (field, value) => {
     try {
       const data = await UsersApi.updateProfile({ [field]: value });
-      setProfileData(prev => ({ ...prev, ...data.user }));
+      setProfileData((prev) => ({ ...prev, ...data.user }));
     } catch (err) {
-      setError(err.message || 'Failed to update profile');
+      setError(err.message || "Failed to update profile");
     }
   };
 
   const handleUpdateAvailability = async (isAvailable) => {
     try {
-      const data = await UsersApi.updateAvailability({ is_available: isAvailable });
-      setProfileData(prev => ({ ...prev, is_available: data.isAvailable }));
+      const data = await UsersApi.updateAvailability({
+        is_available: isAvailable,
+      });
+      setProfileData((prev) => ({ ...prev, is_available: data.isAvailable }));
     } catch (err) {
-      setError(err.message || 'Failed to update availability');
+      setError(err.message || "Failed to update availability");
     }
   };
 
@@ -1664,46 +1928,47 @@ export const MainApp = () => {
       const data = await UsersApi.updatePreferences(preferences);
       setPreferencesData(data);
     } catch (err) {
-      setError(err.message || 'Failed to update preferences');
+      setError(err.message || "Failed to update preferences");
     }
   };
 
   const handleAddPaymentMethod = async (paymentMethod) => {
     try {
       const pm = await UsersApi.addPaymentMethod(paymentMethod);
-      setPaymentMethods(prev => [pm, ...prev]);
+      setPaymentMethods((prev) => [pm, ...prev]);
     } catch (err) {
-      setError(err.message || 'Failed to add payment method');
+      setError(err.message || "Failed to add payment method");
     }
   };
 
   const handleDeletePaymentMethod = async (paymentMethodId) => {
     try {
       await UsersApi.deletePaymentMethod(paymentMethodId);
-      setPaymentMethods(prev => prev.filter(pm => pm.id !== paymentMethodId));
+      setPaymentMethods((prev) =>
+        prev.filter((pm) => pm.id !== paymentMethodId),
+      );
     } catch (err) {
-      setError(err.message || 'Failed to delete payment method');
+      setError(err.message || "Failed to delete payment method");
     }
   };
 
   const handleDeleteFavorite = async (userId) => {
     try {
       await UsersApi.deleteFavorite(userId);
-      setFavorites(prev => prev.filter(f => f.userId !== userId));
+      setFavorites((prev) => prev.filter((f) => f.userId !== userId));
     } catch (err) {
-      setError(err.message || 'Failed to remove favorite');
+      setError(err.message || "Failed to remove favorite");
     }
   };
 
-
   const getStatusLabel = (status) => {
     const statusKeyMap = {
-      'pending_bids': 'status.pendingBids',
-      'accepted': 'status.accepted',
-      'picked_up': 'status.pickedUp',
-      'in_transit': 'status.inTransit',
-      'delivered': 'status.delivered',
-      'cancelled': 'status.cancelled'
+      pending_bids: "status.pendingBids",
+      accepted: "status.accepted",
+      picked_up: "status.pickedUp",
+      in_transit: "status.inTransit",
+      delivered: "status.delivered",
+      cancelled: "status.cancelled",
     };
     const translationKey = statusKeyMap[status];
     return translationKey ? t(translationKey) : status;
@@ -1712,14 +1977,18 @@ export const MainApp = () => {
   // Admin Panel Navigation Handler
   const handleAdminPanelNavigation = () => {
     // Check if user has admin privileges
-    if (!currentUser || (!currentUser.primary_role === 'admin' && !availableRoles.includes('admin'))) {
-      setError('Access denied: Admin privileges required');
+    if (
+      !currentUser ||
+      (!currentUser.primary_role === "admin" &&
+        !availableRoles.includes("admin"))
+    ) {
+      setError("Access denied: Admin privileges required");
       return;
     }
 
     // Check if token is available
     if (!token) {
-      setError('Authentication required: Please log in');
+      setError("Authentication required: Please log in");
       return;
     }
 
@@ -1735,7 +2004,14 @@ export const MainApp = () => {
 
   if (!token) {
     return (
-      <div style={{ minHeight: '100vh', background: '#090909', display: 'flex', flexDirection: 'column' }}>
+      <div
+        style={{
+          minHeight: "100vh",
+          background: "#090909",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
         <AuthScreen
           onLogin={handleLogin}
           onRegister={handleRegister}
@@ -1747,26 +2023,26 @@ export const MainApp = () => {
     );
   }
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   // ============ END OF PART 4 ============
   // Continue with Part 5 for Main App UI (FINAL)
 
   // Legal Pages Routing
-  if (viewType === 'legal_privacy') {
-    return <PrivacyPolicy onBack={() => setViewType('active')} />;
+  if (viewType === "legal_privacy") {
+    return <PrivacyPolicy onBack={() => setViewType("active")} />;
   }
-  if (viewType === 'legal_terms') {
-    return <TermsOfService onBack={() => setViewType('active')} />;
+  if (viewType === "legal_terms") {
+    return <TermsOfService onBack={() => setViewType("active")} />;
   }
-  if (viewType === 'legal_refund') {
-    return <RefundPolicy onBack={() => setViewType('active')} />;
+  if (viewType === "legal_refund") {
+    return <RefundPolicy onBack={() => setViewType("active")} />;
   }
-  if (viewType === 'legal_driver_agreement') {
-    return <DriverAgreement onBack={() => setViewType('active')} />;
+  if (viewType === "legal_driver_agreement") {
+    return <DriverAgreement onBack={() => setViewType("active")} />;
   }
-  if (viewType === 'legal_cookies') {
-    return <CookiePolicy onBack={() => setViewType('active')} />;
+  if (viewType === "legal_cookies") {
+    return <CookiePolicy onBack={() => setViewType("active")} />;
   }
 
   // ============ APP.JS PART 5A: Main UI - Header & Modals ============
@@ -1777,25 +2053,25 @@ export const MainApp = () => {
     return <LoadingSpinner />;
   }
 
-
   return (
     <MainLayout
       currentUser={currentUser}
       notifications={notifications}
       onNavigate={(view) => {
-        if (view === 'home') setViewType('active');
-        else if (view === 'earnings') setViewType('earnings');
-        else if (view === 'profile') setViewType('profile');
-        else if (view === 'notifications') setShowNotifications(prev => !prev);
-        else if (view === 'settings') setShowSettings(true);
-        else if (view === 'bidding') setViewType('bidding');
-        else if (view === 'map') setViewType('map');
-        else if (view === 'my_bids') setViewType('my_bids');
-        else if (view === 'history') setViewType('history');
-        else if (view === 'location_settings') setViewType('location_settings');
-        else if (view === 'admin_panel') setShowAdminPanel(true);
-        else if (view === 'crypto-test') setShowCryptoTest(true);
-        else if (view.startsWith('legal_')) setViewType(view);
+        if (view === "home") setViewType("active");
+        else if (view === "earnings") setViewType("earnings");
+        else if (view === "profile") setViewType("profile");
+        else if (view === "notifications")
+          setShowNotifications((prev) => !prev);
+        else if (view === "settings") setShowSettings(true);
+        else if (view === "bidding") setViewType("bidding");
+        else if (view === "map") setViewType("map");
+        else if (view === "my_bids") setViewType("my_bids");
+        else if (view === "history") setViewType("history");
+        else if (view === "location_settings") setViewType("location_settings");
+        else if (view === "admin_panel") setShowAdminPanel(true);
+        else if (view === "crypto-test") setShowCryptoTest(true);
+        else if (view.startsWith("legal_")) setViewType(view);
       }}
       onLogout={logout}
       onToggleOnline={toggleOnline}
@@ -1808,7 +2084,6 @@ export const MainApp = () => {
       unreadCount={unreadCount}
       footerStats={footerStats}
     >
-
       {/* Matrix-styled loader for profile picture upload */}
       {uploadingProfilePicture && <MatrixLoader message="Uploading..." />}
 
@@ -1819,24 +2094,79 @@ export const MainApp = () => {
         changeLocale={changeLocale}
       />
 
-      <main style={{ maxWidth: '80rem', margin: '0 auto', padding: mobileView ? '1rem 0.5rem' : '2rem 1rem', flex: 1, width: '100%' }}>
+      <main
+        style={{
+          maxWidth: "80rem",
+          margin: "0 auto",
+          padding: mobileView ? "1rem 0.5rem" : "2rem 1rem",
+          flex: 1,
+          width: "100%",
+        }}
+      >
         {error && (
-          <div className="error-matrix" style={{ padding: 'var(--spacing-md)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--spacing-lg)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div
+            className="error-matrix"
+            style={{
+              padding: "var(--spacing-md)",
+              borderRadius: "var(--radius-md)",
+              marginBottom: "var(--spacing-lg)",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
             <span className="text-danger pulse">⚠️ {error}</span>
-            <button onClick={() => setError('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem', color: 'var(--status-cancelled)' }}>×</button>
+            <button
+              onClick={() => setError("")}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "1.25rem",
+                color: "var(--status-cancelled)",
+              }}
+            >
+              ×
+            </button>
           </div>
         )}
 
         {successMessage && (
-          <div className="success-matrix" style={{ background: 'linear-gradient(135deg, var(--matrix-dim-green) 0%, var(--matrix-dark-green) 100%)', color: 'var(--matrix-bright-green)', padding: 'var(--spacing-md)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--spacing-lg)', border: '2px solid var(--matrix-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: 'var(--shadow-matrix)' }}>
+          <div
+            className="success-matrix"
+            style={{
+              background:
+                "linear-gradient(135deg, var(--matrix-dim-green) 0%, var(--matrix-dark-green) 100%)",
+              color: "var(--matrix-bright-green)",
+              padding: "var(--spacing-md)",
+              borderRadius: "var(--radius-md)",
+              marginBottom: "var(--spacing-lg)",
+              border: "2px solid var(--matrix-border)",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              boxShadow: "var(--shadow-matrix)",
+            }}
+          >
             <span className="glow">✅ {successMessage}</span>
-            <button onClick={() => setSuccessMessage('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem', color: 'var(--matrix-bright-green)' }}>×</button>
+            <button
+              onClick={() => setSuccessMessage("")}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "1.25rem",
+                color: "var(--matrix-bright-green)",
+              }}
+            >
+              ×
+            </button>
           </div>
         )}
 
         {/* Email verification moved into profile modal */}
 
-        {viewType === 'profile' && profileData && (
+        {viewType === "profile" && profileData && (
           <ProfilePage
             profileData={profileData}
             API_URL={API_URL}
@@ -1854,60 +2184,69 @@ export const MainApp = () => {
             favorites={favorites}
             setFavorites={setFavorites}
             onNavigate={(view) => {
-              if (view === 'earnings') setViewType('earnings');
+              if (view === "earnings") setViewType("earnings");
             }}
           />
         )}
 
-        {viewType !== 'profile' && (currentUser?.primary_role === 'customer' || currentUser?.primary_role === 'admin') && (
-          <div style={{ marginBottom: '1.5rem' }}>
-            <button
-              onClick={() => navigate('/create-order')}
-              disabled={loading}
-              className="btn-primary"
-            >
-              📦 {t('orders.createOrder')}
-            </button>
+        {viewType !== "profile" &&
+          (currentUser?.primary_role === "customer" ||
+            currentUser?.primary_role === "admin") && (
+            <div style={{ marginBottom: "1.5rem" }}>
+              <button
+                onClick={() => navigate("/create-order")}
+                disabled={loading}
+                className="btn-primary"
+              >
+                📦 {t("orders.createOrder")}
+              </button>
 
-            {/* Customer Tab Switcher */}
-            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem', borderRadius: '0.375rem', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-              <button
-                onClick={() => setViewType('active')}
+              {/* Customer Tab Switcher */}
+              <div
                 style={{
-                  flex: 1,
-                  padding: '0.75rem 1rem',
-                  background: viewType === 'active' ? '#4F46E5' : '#F3F4F6',
-                  color: viewType === 'active' ? 'white' : '#374151',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontWeight: '600',
-                  fontSize: '0.875rem',
-                  transition: 'all 0.2s'
+                  display: "flex",
+                  gap: "0.5rem",
+                  marginTop: "1rem",
+                  borderRadius: "0.375rem",
+                  overflow: "hidden",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
                 }}
               >
-                📋 {t('orders.activeOrders') || 'Active Orders'}
-              </button>
-              <button
-                onClick={() => setViewType('history')}
-                style={{
-                  flex: 1,
-                  padding: '0.75rem 1rem',
-                  background: viewType === 'history' ? '#4F46E5' : '#F3F4F6',
-                  color: viewType === 'history' ? 'white' : '#374151',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontWeight: '600',
-                  fontSize: '0.875rem',
-                  transition: 'all 0.2s'
-                }}
-              >
-                📜 {t('driver.myHistory') || 'Order History'}
-              </button>
+                <button
+                  onClick={() => setViewType("active")}
+                  style={{
+                    flex: 1,
+                    padding: "0.75rem 1rem",
+                    background: viewType === "active" ? "#4F46E5" : "#F3F4F6",
+                    color: viewType === "active" ? "white" : "#374151",
+                    border: "none",
+                    cursor: "pointer",
+                    fontWeight: "600",
+                    fontSize: "0.875rem",
+                    transition: "all 0.2s",
+                  }}
+                >
+                  📋 {t("orders.activeOrders") || "Active Orders"}
+                </button>
+                <button
+                  onClick={() => setViewType("history")}
+                  style={{
+                    flex: 1,
+                    padding: "0.75rem 1rem",
+                    background: viewType === "history" ? "#4F46E5" : "#F3F4F6",
+                    color: viewType === "history" ? "white" : "#374151",
+                    border: "none",
+                    cursor: "pointer",
+                    fontWeight: "600",
+                    fontSize: "0.875rem",
+                    transition: "all 0.2s",
+                  }}
+                >
+                  📜 {t("driver.myHistory") || "Order History"}
+                </button>
+              </div>
             </div>
-          </div>
-        )}
-
-
+          )}
 
         <ReviewModal
           isOpen={showReviewModal}
@@ -1919,70 +2258,226 @@ export const MainApp = () => {
         />
 
         {showReviewsModal && (
-          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '1rem' }}>
-            <div className="modal-content" style={{ background: 'white', borderRadius: '0.5rem', maxWidth: '42rem', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
-              <div style={{ padding: '1.5rem', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>{t('reviews.orderReviews')}</h2>
-                <button onClick={() => setShowReviewsModal(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: "rgba(0, 0, 0, 0.5)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 50,
+              padding: "1rem",
+            }}
+          >
+            <div
+              className="modal-content"
+              style={{
+                background: "white",
+                borderRadius: "0.5rem",
+                maxWidth: "42rem",
+                width: "100%",
+                maxHeight: "90vh",
+                overflowY: "auto",
+              }}
+            >
+              <div
+                style={{
+                  padding: "1.5rem",
+                  borderBottom: "1px solid #E5E7EB",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <h2 style={{ fontSize: "1.25rem", fontWeight: "bold" }}>
+                  {t("reviews.orderReviews")}
+                </h2>
+                <button
+                  onClick={() => setShowReviewsModal(false)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    fontSize: "1.5rem",
+                    cursor: "pointer",
+                  }}
+                >
+                  ×
+                </button>
               </div>
-              <div style={{ padding: '1.5rem' }}>
+              <div style={{ padding: "1.5rem" }}>
                 {orderReviews.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '3rem', color: '#6B7280' }}>
-                    <p style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📝</p>
-                    <p>{t('reviews.noReviewsYet')}</p>
+                  <div
+                    style={{
+                      textAlign: "center",
+                      padding: "3rem",
+                      color: "#6B7280",
+                    }}
+                  >
+                    <p style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>
+                      📝
+                    </p>
+                    <p>{t("reviews.noReviewsYet")}</p>
                   </div>
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "1rem",
+                    }}
+                  >
                     {orderReviews.map((review, idx) => (
-                      <div key={idx} style={{ border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1rem', background: '#F9FAFB' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.75rem' }}>
+                      <div
+                        key={idx}
+                        style={{
+                          border: "1px solid #E5E7EB",
+                          borderRadius: "0.5rem",
+                          padding: "1rem",
+                          background: "#F9FAFB",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "start",
+                            marginBottom: "0.75rem",
+                          }}
+                        >
                           <div>
-                            <p style={{ fontWeight: '600', color: '#1F2937' }}>{review.reviewerName}</p>
-                            <p style={{ fontSize: '0.75rem', color: '#6B7280', textTransform: 'capitalize' }}>{review.reviewerRole}</p>
+                            <p style={{ fontWeight: "600", color: "#1F2937" }}>
+                              {review.reviewerName}
+                            </p>
+                            <p
+                              style={{
+                                fontSize: "0.75rem",
+                                color: "#6B7280",
+                                textTransform: "capitalize",
+                              }}
+                            >
+                              {review.reviewerRole}
+                            </p>
                           </div>
-                          <div style={{ textAlign: 'right' }}>
+                          <div style={{ textAlign: "right" }}>
                             {renderStars(review.rating)}
-                            <p style={{ fontSize: '0.75rem', color: '#6B7280', marginTop: '0.25rem' }}>
+                            <p
+                              style={{
+                                fontSize: "0.75rem",
+                                color: "#6B7280",
+                                marginTop: "0.25rem",
+                              }}
+                            >
                               {new Date(review.createdAt).toLocaleDateString()}
                             </p>
                           </div>
                         </div>
 
-                        <div style={{ marginBottom: '0.75rem' }}>
-                          <p style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-                            Review Type: {review.reviewType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        <div style={{ marginBottom: "0.75rem" }}>
+                          <p
+                            style={{
+                              fontSize: "0.875rem",
+                              fontWeight: "600",
+                              color: "#374151",
+                              marginBottom: "0.25rem",
+                            }}
+                          >
+                            Review Type:{" "}
+                            {review.reviewType
+                              .replace(/_/g, " ")
+                              .replace(/\b\w/g, (l) => l.toUpperCase())}
                           </p>
                           {review.revieweeName && (
-                            <p style={{ fontSize: '0.875rem', color: '#6B7280' }}>
+                            <p
+                              style={{ fontSize: "0.875rem", color: "#6B7280" }}
+                            >
                               Reviewing: {review.revieweeName}
                             </p>
                           )}
                         </div>
 
                         {review.professionalismRating && (
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                          <div
+                            style={{
+                              display: "grid",
+                              gridTemplateColumns:
+                                "repeat(auto-fit, minmax(150px, 1fr))",
+                              gap: "0.75rem",
+                              marginBottom: "0.75rem",
+                            }}
+                          >
                             <div>
-                              <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>Professionalism</p>
+                              <p
+                                style={{
+                                  fontSize: "0.75rem",
+                                  fontWeight: "600",
+                                  color: "#6B7280",
+                                  marginBottom: "0.25rem",
+                                }}
+                              >
+                                Professionalism
+                              </p>
                               {renderStars(review.professionalismRating)}
                             </div>
                             <div>
-                              <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>Communication</p>
+                              <p
+                                style={{
+                                  fontSize: "0.75rem",
+                                  fontWeight: "600",
+                                  color: "#6B7280",
+                                  marginBottom: "0.25rem",
+                                }}
+                              >
+                                Communication
+                              </p>
                               {renderStars(review.communicationRating)}
                             </div>
                             <div>
-                              <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>Timeliness</p>
+                              <p
+                                style={{
+                                  fontSize: "0.75rem",
+                                  fontWeight: "600",
+                                  color: "#6B7280",
+                                  marginBottom: "0.25rem",
+                                }}
+                              >
+                                Timeliness
+                              </p>
                               {renderStars(review.timelinessRating)}
                             </div>
                             <div>
-                              <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>Condition</p>
+                              <p
+                                style={{
+                                  fontSize: "0.75rem",
+                                  fontWeight: "600",
+                                  color: "#6B7280",
+                                  marginBottom: "0.25rem",
+                                }}
+                              >
+                                Condition
+                              </p>
                               {renderStars(review.conditionRating)}
                             </div>
                           </div>
                         )}
 
                         {review.comment && (
-                          <div style={{ background: 'white', padding: '1rem', borderRadius: '0.375rem', border: '1px solid #E5E7EB' }}>
-                            <p style={{ fontStyle: 'italic', color: '#374151' }}>"{review.comment}"</p>
+                          <div
+                            style={{
+                              background: "white",
+                              padding: "1rem",
+                              borderRadius: "0.375rem",
+                              border: "1px solid #E5E7EB",
+                            }}
+                          >
+                            <p
+                              style={{ fontStyle: "italic", color: "#374151" }}
+                            >
+                              "{review.comment}"
+                            </p>
                           </div>
                         )}
                       </div>
@@ -1995,79 +2490,242 @@ export const MainApp = () => {
         )}
 
         {showUserReviewsModal && (
-          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '1rem' }}>
-            <div className="modal-content" style={{ background: 'white', borderRadius: '0.5rem', maxWidth: '42rem', width: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
-              <div style={{ padding: '1.5rem', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>
-                  {userReviewsType === 'view_customer_reviews' && 'Customer Reviews Received'}
-                  {userReviewsType === 'view_customer_given_reviews' && 'Customer Reviews Given'}
-                  {userReviewsType === 'view_driver_reviews' && 'Driver Reviews Received'}
-                  {userReviewsType === 'view_driver_given_reviews' && 'Driver Reviews Given'}
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: "rgba(0, 0, 0, 0.5)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 50,
+              padding: "1rem",
+            }}
+          >
+            <div
+              className="modal-content"
+              style={{
+                background: "white",
+                borderRadius: "0.5rem",
+                maxWidth: "42rem",
+                width: "100%",
+                maxHeight: "90vh",
+                overflowY: "auto",
+              }}
+            >
+              <div
+                style={{
+                  padding: "1.5rem",
+                  borderBottom: "1px solid #E5E7EB",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <h2 style={{ fontSize: "1.25rem", fontWeight: "bold" }}>
+                  {userReviewsType === "view_customer_reviews" &&
+                    "Customer Reviews Received"}
+                  {userReviewsType === "view_customer_given_reviews" &&
+                    "Customer Reviews Given"}
+                  {userReviewsType === "view_driver_reviews" &&
+                    "Driver Reviews Received"}
+                  {userReviewsType === "view_driver_given_reviews" &&
+                    "Driver Reviews Given"}
                 </h2>
-                <button onClick={() => setShowUserReviewsModal(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
+                <button
+                  onClick={() => setShowUserReviewsModal(false)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    fontSize: "1.5rem",
+                    cursor: "pointer",
+                  }}
+                >
+                  ×
+                </button>
               </div>
-              <div style={{ padding: '1.5rem' }}>
+              <div style={{ padding: "1.5rem" }}>
                 {userReviews.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '3rem', color: '#6B7280' }}>
-                    <p style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📝</p>
+                  <div
+                    style={{
+                      textAlign: "center",
+                      padding: "3rem",
+                      color: "#6B7280",
+                    }}
+                  >
+                    <p style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>
+                      📝
+                    </p>
                     <p>No reviews found</p>
                   </div>
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "1rem",
+                    }}
+                  >
                     {userReviews.map((review, idx) => (
-                      <div key={idx} style={{ border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1rem', background: '#F9FAFB' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.75rem' }}>
+                      <div
+                        key={idx}
+                        style={{
+                          border: "1px solid #E5E7EB",
+                          borderRadius: "0.5rem",
+                          padding: "1rem",
+                          background: "#F9FAFB",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "start",
+                            marginBottom: "0.75rem",
+                          }}
+                        >
                           <div>
-                            <p style={{ fontWeight: '600', color: '#1F2937' }}>
-                              {userReviewsType.includes('given') ? review.revieweeName : review.reviewerName}
+                            <p style={{ fontWeight: "600", color: "#1F2937" }}>
+                              {userReviewsType.includes("given")
+                                ? review.revieweeName
+                                : review.reviewerName}
                             </p>
-                            <p style={{ fontSize: '0.75rem', color: '#6B7280', textTransform: 'capitalize' }}>
-                              {userReviewsType.includes('given') ? review.revieweeRole : review.reviewerRole}
+                            <p
+                              style={{
+                                fontSize: "0.75rem",
+                                color: "#6B7280",
+                                textTransform: "capitalize",
+                              }}
+                            >
+                              {userReviewsType.includes("given")
+                                ? review.revieweeRole
+                                : review.reviewerRole}
                             </p>
                             {review.orderTitle && (
-                              <p style={{ fontSize: '0.75rem', color: '#6B7280', marginTop: '0.25rem' }}>
-                                Order: {review.orderTitle} ({review.orderNumber})
+                              <p
+                                style={{
+                                  fontSize: "0.75rem",
+                                  color: "#6B7280",
+                                  marginTop: "0.25rem",
+                                }}
+                              >
+                                Order: {review.orderTitle} ({review.orderNumber}
+                                )
                               </p>
                             )}
                           </div>
-                          <div style={{ textAlign: 'right' }}>
+                          <div style={{ textAlign: "right" }}>
                             {renderStars(review.rating)}
-                            <p style={{ fontSize: '0.75rem', color: '#6B7280', marginTop: '0.25rem' }}>
+                            <p
+                              style={{
+                                fontSize: "0.75rem",
+                                color: "#6B7280",
+                                marginTop: "0.25rem",
+                              }}
+                            >
                               {new Date(review.createdAt).toLocaleDateString()}
                             </p>
                           </div>
                         </div>
 
-                        <div style={{ marginBottom: '0.75rem' }}>
-                          <p style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.25rem' }}>
-                            Review Type: {review.reviewType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        <div style={{ marginBottom: "0.75rem" }}>
+                          <p
+                            style={{
+                              fontSize: "0.875rem",
+                              fontWeight: "600",
+                              color: "#374151",
+                              marginBottom: "0.25rem",
+                            }}
+                          >
+                            Review Type:{" "}
+                            {review.reviewType
+                              .replace(/_/g, " ")
+                              .replace(/\b\w/g, (l) => l.toUpperCase())}
                           </p>
                         </div>
 
                         {review.professionalismRating && (
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                          <div
+                            style={{
+                              display: "grid",
+                              gridTemplateColumns:
+                                "repeat(auto-fit, minmax(150px, 1fr))",
+                              gap: "0.75rem",
+                              marginBottom: "0.75rem",
+                            }}
+                          >
                             <div>
-                              <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>Professionalism</p>
+                              <p
+                                style={{
+                                  fontSize: "0.75rem",
+                                  fontWeight: "600",
+                                  color: "#6B7280",
+                                  marginBottom: "0.25rem",
+                                }}
+                              >
+                                Professionalism
+                              </p>
                               {renderStars(review.professionalismRating)}
                             </div>
                             <div>
-                              <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>Communication</p>
+                              <p
+                                style={{
+                                  fontSize: "0.75rem",
+                                  fontWeight: "600",
+                                  color: "#6B7280",
+                                  marginBottom: "0.25rem",
+                                }}
+                              >
+                                Communication
+                              </p>
                               {renderStars(review.communicationRating)}
                             </div>
                             <div>
-                              <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>Timeliness</p>
+                              <p
+                                style={{
+                                  fontSize: "0.75rem",
+                                  fontWeight: "600",
+                                  color: "#6B7280",
+                                  marginBottom: "0.25rem",
+                                }}
+                              >
+                                Timeliness
+                              </p>
                               {renderStars(review.timelinessRating)}
                             </div>
                             <div>
-                              <p style={{ fontSize: '0.75rem', fontWeight: '600', color: '#6B7280', marginBottom: '0.25rem' }}>Condition</p>
+                              <p
+                                style={{
+                                  fontSize: "0.75rem",
+                                  fontWeight: "600",
+                                  color: "#6B7280",
+                                  marginBottom: "0.25rem",
+                                }}
+                              >
+                                Condition
+                              </p>
                               {renderStars(review.conditionRating)}
                             </div>
                           </div>
                         )}
 
                         {review.comment && (
-                          <div style={{ background: 'white', padding: '1rem', borderRadius: '0.375rem', border: '1px solid #E5E7EB' }}>
-                            <p style={{ fontStyle: 'italic', color: '#374151' }}>"{review.comment}"</p>
+                          <div
+                            style={{
+                              background: "white",
+                              padding: "1rem",
+                              borderRadius: "0.375rem",
+                              border: "1px solid #E5E7EB",
+                            }}
+                          >
+                            <p
+                              style={{ fontStyle: "italic", color: "#374151" }}
+                            >
+                              "{review.comment}"
+                            </p>
                           </div>
                         )}
                       </div>
@@ -2080,49 +2738,190 @@ export const MainApp = () => {
         )}
 
         {selectedOrderForMap && (
-          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-            <div style={{ background: 'white', borderRadius: '0.5rem', width: '95%', maxWidth: '64rem', maxHeight: '90vh', overflow: 'auto' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1rem', borderBottom: '1px solid #E5E7EB' }}>
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0,0,0,0.6)",
+              zIndex: 1500,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "1rem",
+            }}
+          >
+            <div
+              style={{
+                background: "white",
+                borderRadius: "0.5rem",
+                width: "95%",
+                maxWidth: "64rem",
+                maxHeight: "90vh",
+                overflow: "auto",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "0.75rem 1rem",
+                  borderBottom: "1px solid #E5E7EB",
+                }}
+              >
                 <div>
-                  <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '700' }}>{selectedOrderForMap.title || `Order #${selectedOrderForMap.orderNumber || selectedOrderForMap.id}`}</h2>
-                  <p style={{ margin: 0, fontSize: '0.875rem', color: '#6B7280' }}>Price offered: ${Number(selectedOrderForMap.price || 0).toFixed(2)}</p>
+                  <h2
+                    style={{
+                      margin: 0,
+                      fontSize: "1.25rem",
+                      fontWeight: "700",
+                    }}
+                  >
+                    {selectedOrderForMap.title ||
+                      `Order #${selectedOrderForMap.orderNumber || selectedOrderForMap.id}`}
+                  </h2>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: "0.875rem",
+                      color: "#6B7280",
+                    }}
+                  >
+                    Price offered: $
+                    {Number(selectedOrderForMap.price || 0).toFixed(2)}
+                  </p>
                 </div>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <button onClick={() => { setSelectedOrderForMap(null); setViewType('bidding'); }} style={{ padding: '0.5rem 0.75rem', background: '#4F46E5', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer' }}>Go to Order</button>
-                  <button onClick={() => setSelectedOrderForMap(null)} style={{ padding: '0.5rem 0.75rem', background: '#EF4444', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer' }}>Close</button>
+                <div style={{ display: "flex", gap: "0.5rem" }}>
+                  <button
+                    onClick={() => {
+                      setSelectedOrderForMap(null);
+                      setViewType("bidding");
+                    }}
+                    style={{
+                      padding: "0.5rem 0.75rem",
+                      background: "#4F46E5",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "0.375rem",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Go to Order
+                  </button>
+                  <button
+                    onClick={() => setSelectedOrderForMap(null)}
+                    style={{
+                      padding: "0.5rem 0.75rem",
+                      background: "#EF4444",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "0.375rem",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Close
+                  </button>
                 </div>
               </div>
-              <div style={{ padding: '1rem' }}>
+              <div style={{ padding: "1rem" }}>
                 <AsyncOrderMap
                   order={selectedOrderForMap}
                   currentUser={currentUser}
                   driverLocation={driverLocation}
-                  theme={profileData?.theme || 'dark'}
+                  theme={profileData?.theme || "dark"}
                 />
-                <div style={{ marginTop: '1rem', background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1rem' }}>
-                  <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, marginBottom: '0.5rem' }}>Cost Estimate</h4>
-                  <p style={{ margin: 0, fontSize: '0.875rem', color: '#374151' }}>
-                    Based on your preferences: cost per km {(preferencesData?.preferences || {}).cost_per_km || 1}, waiting per hour {(preferencesData?.preferences || {}).waiting_cost_per_hour || 0}, expected waiting hours {(preferencesData?.preferences || {}).expected_waiting_hours || 0}.
+                <div
+                  style={{
+                    marginTop: "1rem",
+                    background: "#F9FAFB",
+                    border: "1px solid #E5E7EB",
+                    borderRadius: "0.5rem",
+                    padding: "1rem",
+                  }}
+                >
+                  <h4
+                    style={{
+                      margin: 0,
+                      fontSize: "1rem",
+                      fontWeight: 600,
+                      marginBottom: "0.5rem",
+                    }}
+                  >
+                    Cost Estimate
+                  </h4>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: "0.875rem",
+                      color: "#374151",
+                    }}
+                  >
+                    Based on your preferences: cost per km{" "}
+                    {(preferencesData?.preferences || {}).cost_per_km || 1},
+                    waiting per hour{" "}
+                    {(preferencesData?.preferences || {})
+                      .waiting_cost_per_hour || 0}
+                    , expected waiting hours{" "}
+                    {(preferencesData?.preferences || {})
+                      .expected_waiting_hours || 0}
+                    .
                   </p>
-                  <p style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: '#374151' }}>
+                  <p
+                    style={{
+                      marginTop: "0.5rem",
+                      fontSize: "0.875rem",
+                      color: "#374151",
+                    }}
+                  >
                     {(() => {
                       const prefs = preferencesData?.preferences || {};
                       const cpk = Number(prefs.cost_per_km || 1);
                       const wph = Number(prefs.waiting_cost_per_hour || 0);
                       const wh = Number(prefs.expected_waiting_hours || 0);
-                      const pickupLat = parseFloat(selectedOrderForMap.from_lat || selectedOrderForMap.from?.lat || selectedOrderForMap.pickupLocation?.coordinates?.lat);
-                      const pickupLng = parseFloat(selectedOrderForMap.from_lng || selectedOrderForMap.from?.lng || selectedOrderForMap.pickupLocation?.coordinates?.lng);
-                      const dropoffLat = parseFloat(selectedOrderForMap.to_lat || selectedOrderForMap.to?.lat || selectedOrderForMap.dropoffLocation?.coordinates?.lat);
-                      const dropoffLng = parseFloat(selectedOrderForMap.to_lng || selectedOrderForMap.to?.lng || selectedOrderForMap.dropoffLocation?.coordinates?.lng);
+                      const pickupLat = parseFloat(
+                        selectedOrderForMap.from_lat ||
+                          selectedOrderForMap.from?.lat ||
+                          selectedOrderForMap.pickupLocation?.coordinates?.lat,
+                      );
+                      const pickupLng = parseFloat(
+                        selectedOrderForMap.from_lng ||
+                          selectedOrderForMap.from?.lng ||
+                          selectedOrderForMap.pickupLocation?.coordinates?.lng,
+                      );
+                      const dropoffLat = parseFloat(
+                        selectedOrderForMap.to_lat ||
+                          selectedOrderForMap.to?.lat ||
+                          selectedOrderForMap.dropoffLocation?.coordinates?.lat,
+                      );
+                      const dropoffLng = parseFloat(
+                        selectedOrderForMap.to_lng ||
+                          selectedOrderForMap.to?.lng ||
+                          selectedOrderForMap.dropoffLocation?.coordinates?.lng,
+                      );
 
-                      const pickup = (!isNaN(pickupLat) && !isNaN(pickupLng)) ? { lat: pickupLat, lng: pickupLng } : null;
-                      const dropoff = (!isNaN(dropoffLat) && !isNaN(dropoffLng)) ? { lat: dropoffLat, lng: dropoffLng } : null;
-                      const driver = driverLocation && Number.isFinite(driverLocation.latitude) && Number.isFinite(driverLocation.longitude)
-                        ? { lat: driverLocation.latitude, lng: driverLocation.longitude } : null;
+                      const pickup =
+                        !isNaN(pickupLat) && !isNaN(pickupLng)
+                          ? { lat: pickupLat, lng: pickupLng }
+                          : null;
+                      const dropoff =
+                        !isNaN(dropoffLat) && !isNaN(dropoffLng)
+                          ? { lat: dropoffLat, lng: dropoffLng }
+                          : null;
+                      const driver =
+                        driverLocation &&
+                        Number.isFinite(driverLocation.latitude) &&
+                        Number.isFinite(driverLocation.longitude)
+                          ? {
+                              lat: driverLocation.latitude,
+                              lng: driverLocation.longitude,
+                            }
+                          : null;
                       let distanceKm = 0;
-                      if (pickup && dropoff) distanceKm += haversineKm(pickup, dropoff);
-                      if (driver && pickup) distanceKm += haversineKm(driver, pickup);
-                      const baseCost = distanceKm * cpk + (wph * wh);
+                      if (pickup && dropoff)
+                        distanceKm += haversineKm(pickup, dropoff);
+                      if (driver && pickup)
+                        distanceKm += haversineKm(driver, pickup);
+                      const baseCost = distanceKm * cpk + wph * wh;
                       const min = (1 * baseCost).toFixed(2);
                       const low = (2 * baseCost).toFixed(2);
                       const high = (3 * baseCost).toFixed(2);
@@ -2135,23 +2934,112 @@ export const MainApp = () => {
           </div>
         )}
 
-        {!['profile', 'settings', 'admin_panel', 'location_settings'].includes(viewType) && (
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>
-            {currentUser?.primary_role === 'customer' ? t('orders.myOrders') : getDriverViewTitle(viewType)}
+        {!["profile", "settings", "admin_panel", "location_settings"].includes(
+          viewType,
+        ) && (
+          <h2
+            style={{
+              fontSize: "1.5rem",
+              fontWeight: "bold",
+              marginBottom: "1rem",
+            }}
+          >
+            {currentUser?.primary_role === "customer"
+              ? t("orders.myOrders")
+              : getDriverViewTitle(viewType)}
           </h2>
         )}
 
-        {currentUser?.primary_role === 'driver' && viewType === 'map' && (
-          <div style={{ marginBottom: '1rem' }}>
+        {/* Payment Method Filter for Drivers in Bidding View */}
+        {currentUser?.primary_role === "driver" && viewType === "bidding" && (
+          <div
+            style={{
+              display: "flex",
+              gap: "0.5rem",
+              marginBottom: "1rem",
+              flexWrap: "wrap",
+            }}
+          >
+            <button
+              onClick={() => setPaymentMethodFilter("")}
+              style={{
+                padding: "0.5rem 1rem",
+                borderRadius: "0.375rem",
+                border: "1px solid",
+                borderColor: paymentMethodFilter === "" ? "#4F46E5" : "#D1D5DB",
+                background: paymentMethodFilter === "" ? "#4F46E5" : "white",
+                color: paymentMethodFilter === "" ? "white" : "#374151",
+                cursor: "pointer",
+                fontWeight: "600",
+                fontSize: "0.875rem",
+              }}
+            >
+              All
+            </button>
+            <button
+              onClick={() => setPaymentMethodFilter("COD")}
+              style={{
+                padding: "0.5rem 1rem",
+                borderRadius: "0.375rem",
+                border: "1px solid",
+                borderColor: paymentMethodFilter === "COD" ? "#10B981" : "#D1D5DB",
+                background: paymentMethodFilter === "COD" ? "#10B981" : "white",
+                color: paymentMethodFilter === "COD" ? "white" : "#374151",
+                cursor: "pointer",
+                fontWeight: "600",
+                fontSize: "0.875rem",
+              }}
+            >
+              COD
+            </button>
+            <button
+              onClick={() => setPaymentMethodFilter("PREPAID")}
+              style={{
+                padding: "0.5rem 1rem",
+                borderRadius: "0.375rem",
+                border: "1px solid",
+                borderColor: paymentMethodFilter === "PREPAID" ? "#3B82F6" : "#D1D5DB",
+                background: paymentMethodFilter === "PREPAID" ? "#3B82F6" : "white",
+                color: paymentMethodFilter === "PREPAID" ? "white" : "#374151",
+                cursor: "pointer",
+                fontWeight: "600",
+                fontSize: "0.875rem",
+              }}
+            >
+              Prepaid
+            </button>
+          </div>
+        )}
+
+        {currentUser?.primary_role === "driver" && viewType === "map" && (
+          <div style={{ marginBottom: "1rem" }}>
             <OrdersMap
-              orders={orders.filter(order => {
-                if (order.status !== 'pending_bids') return false;
-                const hasDriverBid = Array.isArray(order.bids) && order.bids.some(b => b.userId === currentUser?.id);
+              orders={orders.filter((order) => {
+                if (order.status !== "pending_bids") return false;
+                const hasDriverBid =
+                  Array.isArray(order.bids) &&
+                  order.bids.some((b) => b.userId === currentUser?.id);
                 if (hasDriverBid) return false;
-                const pickup = order.pickupLocation?.coordinates || (order.from ? { lat: order.from.lat, lng: order.from.lng } : null);
-                if (!pickup || !Number.isFinite(pickup.lat) || !Number.isFinite(pickup.lng)) return false;
-                const driver = driverLocation && Number.isFinite(driverLocation.latitude) && Number.isFinite(driverLocation.longitude)
-                  ? { lat: driverLocation.latitude, lng: driverLocation.longitude } : null;
+                const pickup =
+                  order.pickupLocation?.coordinates ||
+                  (order.from
+                    ? { lat: order.from.lat, lng: order.from.lng }
+                    : null);
+                if (
+                  !pickup ||
+                  !Number.isFinite(pickup.lat) ||
+                  !Number.isFinite(pickup.lng)
+                )
+                  return false;
+                const driver =
+                  driverLocation &&
+                  Number.isFinite(driverLocation.latitude) &&
+                  Number.isFinite(driverLocation.longitude)
+                    ? {
+                        lat: driverLocation.latitude,
+                        lng: driverLocation.longitude,
+                      }
+                    : null;
                 if (!driver) return true;
                 const d = haversineKm(driver, pickup);
                 return d <= ordersMapRadiusKm;
@@ -2164,260 +3052,465 @@ export const MainApp = () => {
           </div>
         )}
 
-        {currentUser?.primary_role === 'driver' && viewType === 'earnings' && (
+        {currentUser?.primary_role === "driver" && viewType === "earnings" && (
           <DriverEarningsDashboard token={token} API_URL={API_URL} t={t} />
         )}
 
-        {currentUser?.primary_role === 'driver' && viewType === 'location_settings' && (
-          <div style={{ marginBottom: '1rem' }}>
-            <div style={{ background: 'white', padding: '1.5rem', borderRadius: '0.5rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}>
-              <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.25rem', fontWeight: 'bold', color: '#1F2937' }}>
-                📍 Location Settings (Development)
-              </h2>
-              <p style={{ margin: '0 0 1.5rem 0', color: '#6B7280', fontSize: '0.875rem' }}>
-                Set your fake location for testing distance filtering. This overrides your real GPS location.
-              </p>
-
-              {/* Current Location Display */}
-              <div style={{ marginBottom: '1.5rem', padding: '1rem', background: '#F8FAFC', borderRadius: '0.375rem', border: '1px solid #E2E8F0' }}>
-                <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem', fontWeight: '600', color: '#374151' }}>
-                  Current Location
-                </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', fontSize: '0.875rem' }}>
-                  <div>
-                    <span style={{ color: '#6B7280' }}>Real GPS:</span>
-                    <div style={{ fontFamily: 'monospace', color: '#1F2937', marginTop: '0.25rem' }}>
-                      {driverLocation ? (
-                        <>
-                          Lat: {driverLocation.latitude?.toFixed(6)}<br />
-                          Lng: {driverLocation.longitude?.toFixed(6)}
-                        </>
-                      ) : (
-                        <span style={{ color: '#EF4444' }}>Not available</span>
-                      )}
-                    </div>
-                  </div>
-                  <div>
-                    <span style={{ color: '#6B7280' }}>Fake Location:</span>
-                    <div style={{ fontFamily: 'monospace', color: '#1F2937', marginTop: '0.25rem' }}>
-                      {(() => {
-                        const fakeLocation = localStorage.getItem('fakeDriverLocation');
-                        if (fakeLocation) {
-                          try {
-                            const loc = JSON.parse(fakeLocation);
-                            return (
-                              <>
-                                Lat: {loc.lat?.toFixed(6)}<br />
-                                Lng: {loc.lng?.toFixed(6)}
-                              </>
-                            );
-                          } catch {
-                            return <span style={{ color: '#EF4444' }}>Invalid</span>;
-                          }
-                        }
-                        return <span style={{ color: '#6B7280' }}>Not set</span>;
-                      })()}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Interactive Map for Setting Location */}
-              <div style={{ marginBottom: '1.5rem' }}>
-                <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem', fontWeight: '600', color: '#374151' }}>
-                  Set Location on Interactive Map
-                </h3>
-                <div style={{
-                  height: '400px',
-                  borderRadius: '0.375rem',
-                  overflow: 'hidden',
-                  border: '2px solid #E5E7EB',
-                  background: '#F8FAFC'
-                }}>
-                  <InteractiveLocationPicker
-                    onLocationSelect={handleLocationSelect}
-                  />
-                </div>
-                <p style={{
-                  margin: '0.75rem 0 0 0',
-                  fontSize: '0.875rem',
-                  color: '#374151',
-                  textAlign: 'center',
-                  fontWeight: '500'
-                }}>
-                  🗺️ Click anywhere on the map to set your test location. You can pan, zoom, and navigate freely.
+        {currentUser?.primary_role === "driver" &&
+          viewType === "location_settings" && (
+            <div style={{ marginBottom: "1rem" }}>
+              <div
+                style={{
+                  background: "white",
+                  padding: "1.5rem",
+                  borderRadius: "0.5rem",
+                  boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1)",
+                }}
+              >
+                <h2
+                  style={{
+                    margin: "0 0 1rem 0",
+                    fontSize: "1.25rem",
+                    fontWeight: "bold",
+                    color: "#1F2937",
+                  }}
+                >
+                  📍 Location Settings (Development)
+                </h2>
+                <p
+                  style={{
+                    margin: "0 0 1.5rem 0",
+                    color: "#6B7280",
+                    fontSize: "0.875rem",
+                  }}
+                >
+                  Set your fake location for testing distance filtering. This
+                  overrides your real GPS location.
                 </p>
-              </div>
 
-              {/* Manual Location Input */}
-              <div style={{ marginBottom: '1.5rem', padding: '1rem', background: '#F8FAFC', borderRadius: '0.375rem', border: '1px solid #E2E8F0' }}>
-                <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem', fontWeight: '600', color: '#374151' }}>
-                  Manual Coordinates
-                </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.75rem', color: '#6B7280', marginBottom: '0.25rem' }}>
-                      Latitude
-                    </label>
-                    <input
-                      type="number"
-                      step="0.000001"
-                      placeholder="31.209709"
-                      style={{
-                        width: '100%',
-                        padding: '0.5rem',
-                        border: '1px solid #D1D5DB',
-                        borderRadius: '0.375rem',
-                        fontSize: '0.875rem'
-                      }}
-                      onChange={(e) => {
-                        const lat = parseFloat(e.target.value);
-                        const fakeLocation = localStorage.getItem('fakeDriverLocation');
-                        let location = fakeLocation ? JSON.parse(fakeLocation) : { lat: 0, lng: 0 };
-                        location.lat = lat;
-                        localStorage.setItem('fakeDriverLocation', JSON.stringify(location));
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.75rem', color: '#6B7280', marginBottom: '0.25rem' }}>
-                      Longitude
-                    </label>
-                    <input
-                      type="number"
-                      step="0.000001"
-                      placeholder="29.914654"
-                      style={{
-                        width: '100%',
-                        padding: '0.5rem',
-                        border: '1px solid #D1D5DB',
-                        borderRadius: '0.375rem',
-                        fontSize: '0.875rem'
-                      }}
-                      onChange={(e) => {
-                        const lng = parseFloat(e.target.value);
-                        const fakeLocation = localStorage.getItem('fakeDriverLocation');
-                        let location = fakeLocation ? JSON.parse(fakeLocation) : { lat: 0, lng: 0 };
-                        location.lng = lng;
-                        localStorage.setItem('fakeDriverLocation', JSON.stringify(location));
-                      }}
-                    />
+                {/* Current Location Display */}
+                <div
+                  style={{
+                    marginBottom: "1.5rem",
+                    padding: "1rem",
+                    background: "#F8FAFC",
+                    borderRadius: "0.375rem",
+                    border: "1px solid #E2E8F0",
+                  }}
+                >
+                  <h3
+                    style={{
+                      margin: "0 0 0.5rem 0",
+                      fontSize: "1rem",
+                      fontWeight: "600",
+                      color: "#374151",
+                    }}
+                  >
+                    Current Location
+                  </h3>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr",
+                      gap: "0.75rem",
+                      fontSize: "0.875rem",
+                    }}
+                  >
+                    <div>
+                      <span style={{ color: "#6B7280" }}>Real GPS:</span>
+                      <div
+                        style={{
+                          fontFamily: "monospace",
+                          color: "#1F2937",
+                          marginTop: "0.25rem",
+                        }}
+                      >
+                        {driverLocation ? (
+                          <>
+                            Lat: {driverLocation.latitude?.toFixed(6)}
+                            <br />
+                            Lng: {driverLocation.longitude?.toFixed(6)}
+                          </>
+                        ) : (
+                          <span style={{ color: "#EF4444" }}>
+                            Not available
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <span style={{ color: "#6B7280" }}>Fake Location:</span>
+                      <div
+                        style={{
+                          fontFamily: "monospace",
+                          color: "#1F2937",
+                          marginTop: "0.25rem",
+                        }}
+                      >
+                        {(() => {
+                          const fakeLocation =
+                            localStorage.getItem("fakeDriverLocation");
+                          if (fakeLocation) {
+                            try {
+                              const loc = JSON.parse(fakeLocation);
+                              return (
+                                <>
+                                  Lat: {loc.lat?.toFixed(6)}
+                                  <br />
+                                  Lng: {loc.lng?.toFixed(6)}
+                                </>
+                              );
+                            } catch {
+                              return (
+                                <span style={{ color: "#EF4444" }}>
+                                  Invalid
+                                </span>
+                              );
+                            }
+                          }
+                          return (
+                            <span style={{ color: "#6B7280" }}>Not set</span>
+                          );
+                        })()}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Action Buttons */}
-              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                <button
-                  onClick={() => {
-                    localStorage.removeItem('fakeDriverLocation');
-                    setSuccessMessage('Fake location cleared');
-                    fetchOrders();
-                  }}
+                {/* Interactive Map for Setting Location */}
+                <div style={{ marginBottom: "1.5rem" }}>
+                  <h3
+                    style={{
+                      margin: "0 0 0.5rem 0",
+                      fontSize: "1rem",
+                      fontWeight: "600",
+                      color: "#374151",
+                    }}
+                  >
+                    Set Location on Interactive Map
+                  </h3>
+                  <div
+                    style={{
+                      height: "400px",
+                      borderRadius: "0.375rem",
+                      overflow: "hidden",
+                      border: "2px solid #E5E7EB",
+                      background: "#F8FAFC",
+                    }}
+                  >
+                    <InteractiveLocationPicker
+                      onLocationSelect={handleLocationSelect}
+                    />
+                  </div>
+                  <p
+                    style={{
+                      margin: "0.75rem 0 0 0",
+                      fontSize: "0.875rem",
+                      color: "#374151",
+                      textAlign: "center",
+                      fontWeight: "500",
+                    }}
+                  >
+                    🗺️ Click anywhere on the map to set your test location. You
+                    can pan, zoom, and navigate freely.
+                  </p>
+                </div>
+
+                {/* Manual Location Input */}
+                <div
                   style={{
-                    padding: '0.75rem 1.5rem',
-                    background: '#EF4444',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '0.375rem',
-                    fontWeight: '600',
-                    cursor: 'pointer'
+                    marginBottom: "1.5rem",
+                    padding: "1rem",
+                    background: "#F8FAFC",
+                    borderRadius: "0.375rem",
+                    border: "1px solid #E2E8F0",
                   }}
                 >
-                  Clear Fake Location
-                </button>
-                <button
-                  onClick={() => {
-                    const fakeLocation = localStorage.getItem('fakeDriverLocation');
-                    if (fakeLocation) {
-                      try {
-                        const loc = JSON.parse(fakeLocation);
-                        setSuccessMessage(`Using fake location: ${loc.lat?.toFixed(4)}, ${loc.lng?.toFixed(4)}`);
-                        fetchOrders();
-                      } catch {
-                        setError('Invalid fake location data');
+                  <h3
+                    style={{
+                      margin: "0 0 0.5rem 0",
+                      fontSize: "1rem",
+                      fontWeight: "600",
+                      color: "#374151",
+                    }}
+                  >
+                    Manual Coordinates
+                  </h3>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr",
+                      gap: "0.75rem",
+                    }}
+                  >
+                    <div>
+                      <label
+                        style={{
+                          display: "block",
+                          fontSize: "0.75rem",
+                          color: "#6B7280",
+                          marginBottom: "0.25rem",
+                        }}
+                      >
+                        Latitude
+                      </label>
+                      <input
+                        type="number"
+                        step="0.000001"
+                        placeholder="31.209709"
+                        style={{
+                          width: "100%",
+                          padding: "0.5rem",
+                          border: "1px solid #D1D5DB",
+                          borderRadius: "0.375rem",
+                          fontSize: "0.875rem",
+                        }}
+                        onChange={(e) => {
+                          const lat = parseFloat(e.target.value);
+                          const fakeLocation =
+                            localStorage.getItem("fakeDriverLocation");
+                          let location = fakeLocation
+                            ? JSON.parse(fakeLocation)
+                            : { lat: 0, lng: 0 };
+                          location.lat = lat;
+                          localStorage.setItem(
+                            "fakeDriverLocation",
+                            JSON.stringify(location),
+                          );
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label
+                        style={{
+                          display: "block",
+                          fontSize: "0.75rem",
+                          color: "#6B7280",
+                          marginBottom: "0.25rem",
+                        }}
+                      >
+                        Longitude
+                      </label>
+                      <input
+                        type="number"
+                        step="0.000001"
+                        placeholder="29.914654"
+                        style={{
+                          width: "100%",
+                          padding: "0.5rem",
+                          border: "1px solid #D1D5DB",
+                          borderRadius: "0.375rem",
+                          fontSize: "0.875rem",
+                        }}
+                        onChange={(e) => {
+                          const lng = parseFloat(e.target.value);
+                          const fakeLocation =
+                            localStorage.getItem("fakeDriverLocation");
+                          let location = fakeLocation
+                            ? JSON.parse(fakeLocation)
+                            : { lat: 0, lng: 0 };
+                          location.lng = lng;
+                          localStorage.setItem(
+                            "fakeDriverLocation",
+                            JSON.stringify(location),
+                          );
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div
+                  style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}
+                >
+                  <button
+                    onClick={() => {
+                      localStorage.removeItem("fakeDriverLocation");
+                      setSuccessMessage("Fake location cleared");
+                      fetchOrders();
+                    }}
+                    style={{
+                      padding: "0.75rem 1.5rem",
+                      background: "#EF4444",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "0.375rem",
+                      fontWeight: "600",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Clear Fake Location
+                  </button>
+                  <button
+                    onClick={() => {
+                      const fakeLocation =
+                        localStorage.getItem("fakeDriverLocation");
+                      if (fakeLocation) {
+                        try {
+                          const loc = JSON.parse(fakeLocation);
+                          setSuccessMessage(
+                            `Using fake location: ${loc.lat?.toFixed(4)}, ${loc.lng?.toFixed(4)}`,
+                          );
+                          fetchOrders();
+                        } catch {
+                          setError("Invalid fake location data");
+                        }
+                      } else {
+                        setError("No fake location set");
                       }
-                    } else {
-                      setError('No fake location set');
-                    }
-                  }}
+                    }}
+                    style={{
+                      padding: "0.75rem 1.5rem",
+                      background: "#10B981",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "0.375rem",
+                      fontWeight: "600",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Apply Location
+                  </button>
+                </div>
+
+                {/* Instructions */}
+                <div
                   style={{
-                    padding: '0.75rem 1.5rem',
-                    background: '#10B981',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '0.375rem',
-                    fontWeight: '600',
-                    cursor: 'pointer'
+                    marginTop: "1.5rem",
+                    padding: "1rem",
+                    background: "#FEF3C7",
+                    borderRadius: "0.375rem",
+                    border: "1px solid #FCD34D",
                   }}
                 >
-                  Apply Location
-                </button>
-              </div>
-
-              {/* Instructions */}
-              <div style={{ marginTop: '1.5rem', padding: '1rem', background: '#FEF3C7', borderRadius: '0.375rem', border: '1px solid #FCD34D' }}>
-                <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '0.875rem', fontWeight: '600', color: '#92400E' }}>
-                  Instructions
-                </h4>
-                <ul style={{ margin: 0, paddingLeft: '1.5rem', fontSize: '0.875rem', color: '#92400E' }}>
-                  <li>Set your fake location using the map or manual coordinates</li>
-                  <li>Click "Apply Location" to use it for filtering orders</li>
-                  <li>Orders will be filtered to show only those within 7km of your fake location</li>
-                  <li>Clear the fake location to use your real GPS position</li>
-                </ul>
+                  <h4
+                    style={{
+                      margin: "0 0 0.5rem 0",
+                      fontSize: "0.875rem",
+                      fontWeight: "600",
+                      color: "#92400E",
+                    }}
+                  >
+                    Instructions
+                  </h4>
+                  <ul
+                    style={{
+                      margin: 0,
+                      paddingLeft: "1.5rem",
+                      fontSize: "0.875rem",
+                      color: "#92400E",
+                    }}
+                  >
+                    <li>
+                      Set your fake location using the map or manual coordinates
+                    </li>
+                    <li>
+                      Click "Apply Location" to use it for filtering orders
+                    </li>
+                    <li>
+                      Orders will be filtered to show only those within 7km of
+                      your fake location
+                    </li>
+                    <li>
+                      Clear the fake location to use your real GPS position
+                    </li>
+                  </ul>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {!['profile', 'settings', 'admin_panel', 'location_settings'].includes(viewType) && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        {!["profile", "settings", "admin_panel", "location_settings"].includes(
+          viewType,
+        ) && (
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
+          >
             {(() => {
               // Determine which orders to display based on primary_role and view type
               let ordersToDisplay = orders;
-              let emptyMessage = t('orders.noOrdersAvailable');
+              let emptyMessage = t("orders.noOrdersAvailable");
 
-
-              if (viewType === 'history') {
+              if (viewType === "history") {
                 ordersToDisplay = historyOrders;
-                emptyMessage = historyLoading ? t('common.loading') || 'Loading...' : (t('orders.noOrderHistory') || 'No order history');
-              } else {
-                ordersToDisplay = orders;
-                emptyMessage = t('orders.noOrdersAvailable');
+                emptyMessage = historyLoading
+                  ? t("common.loading") || "Loading..."
+                  : t("orders.noOrderHistory") || "No order history";
               }
 
+              // Apply payment method filter for drivers in bidding view (after history assignment)
+              if (currentUser?.primary_role === "driver" && paymentMethodFilter && viewType !== "history") {
+                ordersToDisplay = ordersToDisplay.filter(
+                  (order) => (order.payment_method || "COD") === paymentMethodFilter
+                );
+              }
 
               return ordersToDisplay?.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '3rem', background: 'black', borderRadius: '0.5rem' }}>
-                  <p style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>...</p>
-                  <p style={{ color: '#6B7280' }}>
-                    {currentUser?.primary_role === 'driver'
-                      ? viewType === 'active' ? t('driver.noActiveOrders')
-                        : viewType === 'bidding' ? t('orders.noAvailableBids')
-                          : t('orders.noOrderHistory')
-                      : emptyMessage
-                    }
+                <div
+                  style={{
+                    textAlign: "center",
+                    padding: "3rem",
+                    background: "black",
+                    borderRadius: "0.5rem",
+                  }}
+                >
+                  <p style={{ fontSize: "3rem", marginBottom: "0.5rem" }}>
+                    ...
+                  </p>
+                  <p style={{ color: "#6B7280" }}>
+                    {currentUser?.primary_role === "driver"
+                      ? viewType === "active"
+                        ? t("driver.noActiveOrders")
+                        : viewType === "bidding"
+                          ? t("orders.noAvailableBids")
+                          : t("orders.noOrderHistory")
+                      : emptyMessage}
                   </p>
                 </div>
               ) : (
                 ordersToDisplay?.map((order) => {
-                  const isDriverAssigned = order.assignedDriver?.userId === currentUser?.id;
-                  const hasDriverBid = Array.isArray(order.bids) && order.bids.some(b => b.userId === currentUser?.id);
-                  if (currentUser?.primary_role === 'driver') {
+                  const isDriverAssigned =
+                    order.assignedDriver?.userId === currentUser?.id;
+                  const hasDriverBid =
+                    Array.isArray(order.bids) &&
+                    order.bids.some((b) => b.userId === currentUser?.id);
+                  if (currentUser?.primary_role === "driver") {
                     // My Bids: Pending orders I have bid on
-                    if (viewType === 'my_bids' && (!hasDriverBid || order.status !== 'pending_bids')) return null;
+                    if (
+                      viewType === "my_bids" &&
+                      (!hasDriverBid || order.status !== "pending_bids")
+                    )
+                      return null;
 
                     // Available Bids: Pending orders I haven't bid on
-                    if (viewType === 'bidding' && (hasDriverBid || order.status !== 'pending_bids')) return null;
+                    if (
+                      viewType === "bidding" &&
+                      (hasDriverBid || order.status !== "pending_bids")
+                    )
+                      return null;
 
                     // History: Completed orders (using historyOrders array)
-                    if (viewType === 'history' && !['delivered', 'cancelled', 'confirmed'].includes(order.status)) return null;
+                    if (
+                      viewType === "history" &&
+                      !["delivered", "cancelled", "confirmed"].includes(
+                        order.status,
+                      )
+                    )
+                      return null;
 
                     // Active Orders: Assigned to me and NOT completed
-                    if (viewType === 'active') {
+                    if (viewType === "active") {
                       if (!isDriverAssigned) return null;
-                      if (['delivered', 'cancelled', 'confirmed', 'pending_bids'].includes(order.status)) return null;
+                      if (
+                        [
+                          "delivered",
+                          "cancelled",
+                          "confirmed",
+                          "pending_bids",
+                        ].includes(order.status)
+                      )
+                        return null;
                     }
                   }
 
@@ -2454,215 +3547,304 @@ export const MainApp = () => {
                     />
                   );
                 })
-              )
+              );
             })()}
 
             {/* Load More Button for History */}
-            {currentUser?.primary_role === 'customer' && viewType === 'history' && historyPagination?.hasMore && (
-              <button
-                onClick={() => fetchHistoryOrders(historyPagination.page + 1)}
-                disabled={historyLoading}
-                style={{
-                  padding: '0.75rem',
-                  background: 'white',
-                  color: '#4F46E5',
-                  border: '1px solid #E5E7EB',
-                  borderRadius: '0.375rem',
-                  cursor: historyLoading ? 'not-allowed' : 'pointer',
-                  fontWeight: '600',
-                  fontSize: '0.875rem',
-                  marginTop: '1rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.5rem'
-                }}
-              >
-                {historyLoading ? (
-                  <>
-                    <span className="spinner-small"></span>
-                    {t('common.loading') || 'Loading...'}
-                  </>
-                ) : (
-                  <>
-                    ⬇️ {t('common.loadMore') || 'Load More'} ({historyPagination.total - historyOrders?.length} remaining)
-                  </>
-                )}
-              </button>
-            )}
+            {currentUser?.primary_role === "customer" &&
+              viewType === "history" &&
+              historyPagination?.hasMore && (
+                <button
+                  onClick={() => fetchHistoryOrders(historyPagination.page + 1)}
+                  disabled={historyLoading}
+                  style={{
+                    padding: "0.75rem",
+                    background: "white",
+                    color: "#4F46E5",
+                    border: "1px solid #E5E7EB",
+                    borderRadius: "0.375rem",
+                    cursor: historyLoading ? "not-allowed" : "pointer",
+                    fontWeight: "600",
+                    fontSize: "0.875rem",
+                    marginTop: "1rem",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "0.5rem",
+                  }}
+                >
+                  {historyLoading ? (
+                    <>
+                      <span className="spinner-small"></span>
+                      {t("common.loading") || "Loading..."}
+                    </>
+                  ) : (
+                    <>
+                      ⬇️ {t("common.loadMore") || "Load More"} (
+                      {historyPagination.total - historyOrders?.length}{" "}
+                      remaining)
+                    </>
+                  )}
+                </button>
+              )}
           </div>
         )}
       </main>
 
-      {
-        showAdminPanel && (currentUser?.primary_role === 'admin' || availableRoles.includes('admin')) && (
-          <div style={{ position: 'fixed', inset: 0, background: 'var(--matrix-bg, #0a0a0a)', zIndex: 2000, overflowY: 'auto' }}>
+      {showAdminPanel &&
+        (currentUser?.primary_role === "admin" ||
+          availableRoles.includes("admin")) && (
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "var(--matrix-bg, #0a0a0a)",
+              zIndex: 2000,
+              overflowY: "auto",
+            }}
+          >
             <AdminPanel onClose={() => setShowAdminPanel(false)} />
           </div>
-        )
-      }
+        )}
 
-      {
-        showMessaging && (
-          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ width: '95%', height: '90%', maxWidth: '1200px', background: 'white', borderRadius: '0.5rem', overflow: 'hidden' }}>
-              <div style={{ padding: '1rem', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', margin: 0 }}>Messages</h2>
-                <button
-                  onClick={() => setShowMessaging(false)}
-                  style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', padding: '0.25rem' }}
-                >
-                  ×
-                </button>
-              </div>
-              <MessagingPanel />
-            </div>
-          </div>
-        )
-      }
-
-      {
-        showPaymentMethods && (
-          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1900, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-            <div style={{ width: '100%', maxWidth: '600px', background: 'white', borderRadius: '0.5rem', overflow: 'hidden' }}>
-              <div style={{ padding: '1rem', borderBottom: '1px solid #E5E7EB', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', margin: 0 }}>Payment Methods</h2>
-                <button
-                  onClick={() => setShowPaymentMethods(false)}
-                  style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', padding: '0.25rem' }}
-                >
-                  ×
-                </button>
-              </div>
-              <div style={{ maxHeight: '80vh', overflowY: 'auto' }}>
-                <PaymentMethodsManager />
-              </div>
-            </div>
-          </div>
-        )
-      }
-
-      {
-        showNotifications && (
-          <div
-            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1900, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
-            onClick={() => setShowNotifications(false)}
-          >
-            <NotificationPanel
-              notifications={notifications}
-              onMarkAsRead={markNotificationRead}
-              showHeader={false}
-            />
-          </div>
-        )
-      }
-
-      {
-        showCryptoTest && (
-          <div style={{
-            position: 'fixed',
+      {showMessaging && (
+        <div
+          style={{
+            position: "fixed",
             inset: 0,
-            background: 'rgba(0,0,0,0.8)',
-            zIndex: 2000,
-            overflow: 'auto'
-          }}>
-            <div style={{
-              width: '100%',
-              maxWidth: '1200px',
-              margin: '2rem auto',
-              background: '#f7fafc',
-              borderRadius: '16px',
-              position: 'relative'
-            }}>
+            background: "rgba(0,0,0,0.6)",
+            zIndex: 1900,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <div
+            style={{
+              width: "95%",
+              height: "90%",
+              maxWidth: "1200px",
+              background: "white",
+              borderRadius: "0.5rem",
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                padding: "1rem",
+                borderBottom: "1px solid #E5E7EB",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <h2
+                style={{ fontSize: "1.25rem", fontWeight: "bold", margin: 0 }}
+              >
+                Messages
+              </h2>
               <button
-                onClick={() => setShowCryptoTest(false)}
+                onClick={() => setShowMessaging(false)}
                 style={{
-                  position: 'absolute',
-                  top: '1rem',
-                  right: '1rem',
-                  padding: '0.5rem 1rem',
-                  background: '#e53e3e',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontWeight: '600',
-                  zIndex: 10,
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                  background: "none",
+                  border: "none",
+                  fontSize: "1.5rem",
+                  cursor: "pointer",
+                  padding: "0.25rem",
                 }}
               >
-                ✕ Close
+                ×
               </button>
-              <CryptoTest />
+            </div>
+            <MessagingPanel />
+          </div>
+        </div>
+      )}
+
+      {showPaymentMethods && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.6)",
+            zIndex: 1900,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "1rem",
+          }}
+        >
+          <div
+            style={{
+              width: "100%",
+              maxWidth: "600px",
+              background: "white",
+              borderRadius: "0.5rem",
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                padding: "1rem",
+                borderBottom: "1px solid #E5E7EB",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <h2
+                style={{ fontSize: "1.25rem", fontWeight: "bold", margin: 0 }}
+              >
+                Payment Methods
+              </h2>
+              <button
+                onClick={() => setShowPaymentMethods(false)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: "1.5rem",
+                  cursor: "pointer",
+                  padding: "0.25rem",
+                }}
+              >
+                ×
+              </button>
+            </div>
+            <div style={{ maxHeight: "80vh", overflowY: "auto" }}>
+              <PaymentMethodsManager />
             </div>
           </div>
-        )
-      }
+        </div>
+      )}
 
+      {showNotifications && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.6)",
+            zIndex: 1900,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "1rem",
+          }}
+          onClick={() => setShowNotifications(false)}
+        >
+          <NotificationPanel
+            notifications={notifications}
+            onMarkAsRead={markNotificationRead}
+            showHeader={false}
+          />
+        </div>
+      )}
 
-    </MainLayout >
+      {showCryptoTest && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.8)",
+            zIndex: 2000,
+            overflow: "auto",
+          }}
+        >
+          <div
+            style={{
+              width: "100%",
+              maxWidth: "1200px",
+              margin: "2rem auto",
+              background: "#f7fafc",
+              borderRadius: "16px",
+              position: "relative",
+            }}
+          >
+            <button
+              onClick={() => setShowCryptoTest(false)}
+              style={{
+                position: "absolute",
+                top: "1rem",
+                right: "1rem",
+                padding: "0.5rem 1rem",
+                background: "#e53e3e",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                cursor: "pointer",
+                fontWeight: "600",
+                zIndex: 10,
+                boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+              }}
+            >
+              ✕ Close
+            </button>
+            <CryptoTest />
+          </div>
+        </div>
+      )}
+    </MainLayout>
   );
 };
 
 // Router configuration - must be after MainApp definition to avoid circular dependency
 const router = createBrowserRouter([
   {
-    path: '/',
+    path: "/",
     element: <MatrixLanding />,
     errorElement: <GlobalError />,
   },
   {
-    path: '/app',
+    path: "/app",
     element: <MainApp />,
     errorElement: <GlobalError />,
   },
   {
-    path: '/login',
+    path: "/login",
     element: <MainApp />,
     errorElement: <GlobalError />,
   },
   {
-    path: '/register',
+    path: "/register",
     element: <MainApp />,
     errorElement: <GlobalError />,
   },
   {
-    path: '/landing', // Keep for backward compatibility/explicit access
+    path: "/landing", // Keep for backward compatibility/explicit access
     element: <MatrixLanding />,
     errorElement: <GlobalError />,
   },
   {
-    path: '/create-order',
+    path: "/create-order",
     element: <CreateOrderPage />,
     errorElement: <GlobalError />,
   },
   {
-    path: '/reviews',
+    path: "/reviews",
     element: <ReviewsPage />,
     errorElement: <GlobalError />,
   },
   {
-    path: '/chat/:orderId',
+    path: "/chat/:orderId",
     element: <ChatPage />,
     errorElement: <GlobalError />,
   },
   {
-    path: '/balance',
+    path: "/balance",
     element: <BalanceDashboardPage />,
     errorElement: <GlobalError />,
   },
   {
-    path: '/balance/transactions',
+    path: "/balance/transactions",
     element: <TransactionHistoryPage />,
     errorElement: <GlobalError />,
   },
   {
-    path: '/balance/statement',
+    path: "/balance/statement",
     element: <BalanceStatementPage />,
     errorElement: <GlobalError />,
   },
   {
-    path: '*',
+    path: "*",
     element: <Navigate to="/" replace />,
   },
 ]);
