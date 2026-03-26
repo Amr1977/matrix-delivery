@@ -359,8 +359,18 @@ app.delete("/api/orders/:id", verifyToken, async (req, res) => {
 
 // Update driver location
 app.post("/api/orders/:id/location", verifyToken, async (req, res) => {
+  console.log(
+    `📍 [BACKEND] POST /orders/${req.params.id}/location called by user ${req.user?.userId}`,
+  );
   try {
     const { latitude, longitude, heading, speed, accuracy } = req.body;
+    console.log(`📍 [BACKEND] Location data:`, {
+      latitude,
+      longitude,
+      heading,
+      speed,
+      accuracy,
+    });
     if (!latitude || !longitude)
       return res
         .status(400)
@@ -1013,11 +1023,9 @@ app.post("/api/orders/:id/payment/cod", verifyToken, async (req, res) => {
         userId: req.user.userId,
         category: "payment",
       });
-      return res
-        .status(400)
-        .json({
-          error: "Order must be delivered before payment can be confirmed",
-        });
+      return res.status(400).json({
+        error: "Order must be delivered before payment can be confirmed",
+      });
     }
 
     // Check if payment already exists

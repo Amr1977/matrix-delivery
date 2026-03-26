@@ -787,14 +787,18 @@ export const MainApp = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, currentUser]); // Removed driverLocation - it causes excessive refetches
 
-  // Start location tracking when driver enters bidding view
+  // Start location tracking when driver enters bidding OR active view (to track active orders)
   useEffect(() => {
     if (currentUser?.primary_role === "driver" && token) {
-      if (viewType === "bidding") {
+      console.log(`📍 [useEffect] Driver view changed to: ${viewType}`);
+      if (viewType === "bidding" || viewType === "active") {
         // Get initial location
         driverHook.getDriverLocation();
         // Start continuous location updates
         driverHook.updateDriverLocation();
+        console.log(
+          `📍 [useEffect] Started location tracking for ${viewType} view`,
+        );
       } else if (viewType === "history" && !historyAttempted) {
         fetchHistoryOrders(1);
       }
@@ -1802,12 +1806,25 @@ export const MainApp = () => {
   };
 
   const updateDriverLocationOnce = useCallback(async () => {
+    console.log(`📍 [updateDriverLocationOnce] === START ===`);
     console.log(
-      `📍 [updateDriverLocationOnce] Called - driverOnline=${driverOnline}, primary_role=${currentUser?.primary_role}, loading=${loading}, orders count=${orders.length}`,
+      `📍 [updateDriverLocationOnce] State: driverOnline=${driverOnline}, role=${currentUser?.primary_role}, loading=${loading}, ordersCount=${orders.length}`,
     );
+
+    // DEBUG: Log all orders to see what's there
+    console.log(
+      `📍 [updateDriverLocationOnce] ALL ORDERS:`,
+      orders.map((o) => ({
+        id: o.id,
+        status: o.status,
+        assignedDriver: o.assignedDriver?.userId,
+        customerId: o.customerId || o.customer_id,
+      })),
+    );
+
     if (currentUser?.primary_role !== "driver" || !driverOnline || loading) {
       console.log(
-        `📍 [updateDriverLocationOnce] Skipped - not a driver or not online`,
+        `📍 [updateDriverLocationOnce] Skipped: driverOnline=${driverOnline}, role=${currentUser?.primary_role}`,
       );
       return;
     }
@@ -1820,13 +1837,26 @@ export const MainApp = () => {
               position.coords;
 
             console.log(
-              `📍 [updateDriverLocationOnce] Got position:`,
+              `📍 [updateDriverLocationOnce] Got GPS:`,
               latitude,
               longitude,
             );
 
-            // Update driver location using the hook (general location, not tied to order)
-            await driverHook.updateDriverLocation();
+            // Update driver location using the hook (general location)
+            console.log(
+              `📍 [updateDriverLocationOnce] Calling driverHook.updateDriverLocation...`,
+            );
+            try {
+              await driverHook.updateDriverLocation();
+              console.log(
+                `📍 [updateDriverLocationOnce] Hook returned successfully`,
+              );
+            } catch (hookErr) {
+              console.error(
+                `📍 [updateDriverLocationOnce] Hook error:`,
+                hookErr.message,
+              );
+            }
 
             // Find active orders assigned to this driver
             const activeOrders = orders.filter(
@@ -1835,22 +1865,26 @@ export const MainApp = () => {
                 ["accepted", "picked_up", "in_transit"].includes(o.status),
             );
             console.log(
-              `📍 [updateDriverLocationOnce] Active orders:`,
-              activeOrders.length,
-              activeOrders.map((o) => ({
+              `📍 [updateDriverLocationOnce] Found ${activeOrders.length} active orders for driver ${currentUser.id}`,
+            );
+            console.log(
+              `📍 [updateDriverLocationOnce] Orders data:`,
+              orders.map((o) => ({
                 id: o.id,
                 status: o.status,
                 assignedDriver: o.assignedDriver?.userId,
-                myId: currentUser.id,
               })),
             );
 
             if (activeOrders.length > 0) {
               console.log(
-                `📍 [updateDriverLocationNow] Updating location for ${activeOrders.length} active orders...`,
+                `📍 [updateDriverLocationOnce] Updating location for ${activeOrders.length} orders...`,
               );
               for (const order of activeOrders) {
                 try {
+                  console.log(
+                    `📍 [updateDriverLocationNow] POST /orders/${order.id}/location`,
+                  );
                   await OrdersApi.updateLocation(order.id, {
                     latitude,
                     longitude,
@@ -1859,15 +1893,20 @@ export const MainApp = () => {
                     accuracy: accuracy !== null ? accuracy : null,
                   });
                   console.log(
-                    `📍 [updateDriverLocationNow] ✅ Updated order ${order.id}`,
+                    `📍 [updateDriverLocationNow] ✅ Success: order ${order.id}`,
                   );
                 } catch (err) {
                   console.error(
-                    `📍 [updateDriverLocationNow] ❌ Failed to update order ${order.id}:`,
+                    `📍 [updateDriverLocationNow] ❌ Failed: order ${order.id} -`,
                     err.message,
+                    err.response?.data,
                   );
                 }
               }
+            } else {
+              console.log(
+                `📍 [updateDriverLocationOnce] No active orders - skipping order location update`,
+              );
             }
             fetchOrders();
           },
@@ -1917,6 +1956,12 @@ export const MainApp = () => {
         await updateDriverStatus(true);
         setDriverOnline(true);
         updateDriverLocationOnce();
+
+        // DEBUG: Manual location test button
+        if (currentUser?.primary_role === "driver") {
+          console.log(`🧪 [DEBUG] Adding manual location test button`);
+        }
+
         if (locationIntervalRef.current) {
           clearInterval(locationIntervalRef.current);
         }
