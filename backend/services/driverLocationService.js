@@ -1,4 +1,4 @@
-const pool = require('../config/db');
+const pool = require("../config/db");
 
 /**
  * Driver Location Service
@@ -16,12 +16,21 @@ const pool = require('../config/db');
  * @param {string} context - Context: 'bidding', 'active_order', 'idle'
  * @param {number} orderId - Order ID if context is 'active_order' (optional)
  */
-async function updateDriverLocation(driverId, latitude, longitude, heading = null, speedKmh = null, accuracyMeters = null, context = 'idle', orderId = null) {
-    try {
-        const query = `
+async function updateDriverLocation(
+  driverId,
+  latitude,
+  longitude,
+  heading = null,
+  speedKmh = null,
+  accuracyMeters = null,
+  context = "idle",
+  orderId = null,
+) {
+  try {
+    const query = `
       INSERT INTO driver_locations (driver_id, order_id, latitude, longitude, heading, speed_kmh, accuracy_meters, context, timestamp)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
-      ON CONFLICT (driver_id) 
+      ON CONFLICT (driver_id, order_id) 
       DO UPDATE SET 
         latitude = EXCLUDED.latitude,
         longitude = EXCLUDED.longitude,
@@ -34,14 +43,23 @@ async function updateDriverLocation(driverId, latitude, longitude, heading = nul
       RETURNING *
     `;
 
-        const values = [driverId, orderId, latitude, longitude, heading, speedKmh, accuracyMeters, context];
-        const result = await pool.query(query, values);
+    const values = [
+      driverId,
+      orderId,
+      latitude,
+      longitude,
+      heading,
+      speedKmh,
+      accuracyMeters,
+      context,
+    ];
+    const result = await pool.query(query, values);
 
-        return result.rows[0];
-    } catch (error) {
-        console.error('Error updating driver location:', error);
-        throw error;
-    }
+    return result.rows[0];
+  } catch (error) {
+    console.error("Error updating driver location:", error);
+    throw error;
+  }
 }
 
 /**
@@ -50,20 +68,20 @@ async function updateDriverLocation(driverId, latitude, longitude, heading = nul
  * @returns {Object} Latest location data or null
  */
 async function getDriverLocation(driverId) {
-    try {
-        const query = `
+  try {
+    const query = `
       SELECT * FROM driver_locations
       WHERE driver_id = $1
       ORDER BY timestamp DESC
       LIMIT 1
     `;
 
-        const result = await pool.query(query, [driverId]);
-        return result.rows[0] || null;
-    } catch (error) {
-        console.error('Error getting driver location:', error);
-        throw error;
-    }
+    const result = await pool.query(query, [driverId]);
+    return result.rows[0] || null;
+  } catch (error) {
+    console.error("Error getting driver location:", error);
+    throw error;
+  }
 }
 
 /**
@@ -72,8 +90,8 @@ async function getDriverLocation(driverId) {
  * @returns {Array} Array of driver locations with driver info
  */
 async function getDriversLocationsForOrder(orderId) {
-    try {
-        const query = `
+  try {
+    const query = `
       SELECT 
         COALESCE(dl.latitude, b.driver_location_lat) as latitude,
         COALESCE(dl.longitude, b.driver_location_lng) as longitude,
@@ -99,36 +117,36 @@ async function getDriversLocationsForOrder(orderId) {
       ORDER BY b.created_at DESC
     `;
 
-        const result = await pool.query(query, [orderId]);
-        return result.rows;
-    } catch (error) {
-        console.error('Error getting drivers locations for order:', error);
-        throw error;
-    }
+    const result = await pool.query(query, [orderId]);
+    return result.rows;
+  } catch (error) {
+    console.error("Error getting drivers locations for order:", error);
+    throw error;
+  }
 }
 
 /**
  * Clean up old location records (keep last 24 hours only)
  */
 async function cleanupOldLocations() {
-    try {
-        const query = `
+  try {
+    const query = `
       DELETE FROM driver_locations
       WHERE timestamp < NOW() - INTERVAL '24 hours'
     `;
 
-        const result = await pool.query(query);
-        console.log(`Cleaned up ${result.rowCount} old location records`);
-        return result.rowCount;
-    } catch (error) {
-        console.error('Error cleaning up old locations:', error);
-        throw error;
-    }
+    const result = await pool.query(query);
+    console.log(`Cleaned up ${result.rowCount} old location records`);
+    return result.rowCount;
+  } catch (error) {
+    console.error("Error cleaning up old locations:", error);
+    throw error;
+  }
 }
 
 module.exports = {
-    updateDriverLocation,
-    getDriverLocation,
-    getDriversLocationsForOrder,
-    cleanupOldLocations
+  updateDriverLocation,
+  getDriverLocation,
+  getDriversLocationsForOrder,
+  cleanupOldLocations,
 };

@@ -376,7 +376,8 @@ export const MainApp = () => {
     ) {
       const hasActiveOrder = orders.some(
         (order) =>
-          order.assignedDriver?.userId === currentUser.id &&
+          (order.assignedDriver?.userId === currentUser.id ||
+            order.assigned_driver_user_id === currentUser.id) &&
           !["delivered", "cancelled", "confirmed", "pending_bids"].includes(
             order.status,
           ),
@@ -1786,7 +1787,8 @@ export const MainApp = () => {
     if (currentUser?.primary_role !== "driver") return false;
     return orders.some(
       (order) =>
-        order.assignedDriver?.userId === currentUser.id &&
+        (order.assignedDriver?.userId === currentUser.id ||
+          order.assigned_driver_user_id === currentUser.id) &&
         ["accepted", "picked_up", "in_transit"].includes(order.status),
     );
   }, [currentUser, orders]);
@@ -1861,7 +1863,8 @@ export const MainApp = () => {
             // Find active orders assigned to this driver
             const activeOrders = orders.filter(
               (o) =>
-                o.assignedDriver?.userId === currentUser.id &&
+                (o.assignedDriver?.userId === currentUser.id ||
+                  o.assigned_driver_user_id === currentUser.id) &&
                 ["accepted", "picked_up", "in_transit"].includes(o.status),
             );
             console.log(
@@ -3567,7 +3570,8 @@ export const MainApp = () => {
               ) : (
                 ordersToDisplay?.map((order) => {
                   const isDriverAssigned =
-                    order.assignedDriver?.userId === currentUser?.id;
+                    order.assignedDriver?.userId === currentUser?.id ||
+                    order.assigned_driver_user_id === currentUser?.id;
                   const hasDriverBid =
                     Array.isArray(order.bids) &&
                     order.bids.some((b) => b.userId === currentUser?.id);
