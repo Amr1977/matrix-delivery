@@ -1,6 +1,6 @@
-CREATE TABLE stores (
+CREATE TABLE IF NOT EXISTS stores (
   id SERIAL PRIMARY KEY,
-  vendor_id INTEGER NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
+  vendor_id VARCHAR(255) NOT NULL REFERENCES vendors(id) ON DELETE CASCADE,
   name VARCHAR(255) NOT NULL,
   description TEXT,
   address TEXT,
@@ -12,4 +12,4 @@ CREATE TABLE stores (
 );
 
 -- Index for faster lookups by vendor
-CREATE INDEX idx_stores_vendor_id ON stores(vendor_id);
+CREATE INDEX IF NOT EXISTS idx_stores_vendor_id ON stores(vendor_id);

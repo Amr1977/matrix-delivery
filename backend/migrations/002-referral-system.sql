@@ -56,13 +56,13 @@ CREATE TABLE IF NOT EXISTS referral_payouts (
 );
 
 -- Indexes for performance
-CREATE INDEX idx_referral_links_referrer ON referral_links(referrer_id);
-CREATE INDEX idx_referral_links_code ON referral_links(code);
-CREATE INDEX idx_referral_conversions_referrer ON referral_conversions(referrer_id);
-CREATE INDEX idx_referral_conversions_referee ON referral_conversions(referee_id);
-CREATE INDEX idx_referral_earnings_referrer ON referral_earnings(referrer_id);
-CREATE INDEX idx_referral_earnings_status ON referral_earnings(status);
-CREATE INDEX idx_referral_payouts_referrer ON referral_payouts(referrer_id);
+CREATE INDEX IF NOT EXISTS idx_referral_links_referrer ON referral_links(referrer_id);
+CREATE INDEX IF NOT EXISTS idx_referral_links_code ON referral_links(code);
+CREATE INDEX IF NOT EXISTS idx_referral_conversions_referrer ON referral_conversions(referrer_id);
+CREATE INDEX IF NOT EXISTS idx_referral_conversions_referee ON referral_conversions(referee_id);
+CREATE INDEX IF NOT EXISTS idx_referral_earnings_referrer ON referral_earnings(referrer_id);
+CREATE INDEX IF NOT EXISTS idx_referral_earnings_status ON referral_earnings(status);
+CREATE INDEX IF NOT EXISTS idx_referral_payouts_referrer ON referral_payouts(referrer_id);
 
 -- Comments for clarity
 COMMENT ON TABLE referral_links IS 'Unique referral codes for each courier';
