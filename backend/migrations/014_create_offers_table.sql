@@ -1,4 +1,4 @@
-CREATE TABLE offers (
+CREATE TABLE IF NOT EXISTS offers (
   id SERIAL PRIMARY KEY,
   item_id INTEGER NOT NULL REFERENCES items(id) ON DELETE CASCADE,
   title VARCHAR(255) NOT NULL,
@@ -13,13 +13,23 @@ CREATE TABLE offers (
 );
 
 -- Index for faster lookups by item
-CREATE INDEX idx_offers_item_id ON offers(item_id);
+CREATE INDEX IF NOT EXISTS idx_offers_item_id ON offers(item_id);
 
 -- Index for faster lookups by status
-CREATE INDEX idx_offers_status ON offers(status);
+CREATE INDEX IF NOT EXISTS idx_offers_status ON offers(status);
 
 -- Index for faster lookups by date range
-CREATE INDEX idx_offers_date_range ON offers(start_date, end_date);
+CREATE INDEX IF NOT EXISTS idx_offers_date_range ON offers(start_date, end_date);
 
 -- Add constraint to ensure end_date is after start_date
-ALTER TABLE offers ADD CONSTRAINT chk_date_range CHECK (end_date > start_date);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'chk_date_range'
+  ) THEN
+    ALTER TABLE offers
+      ADD CONSTRAINT chk_date_range CHECK (end_date > start_date);
+  END IF;
+END $$;

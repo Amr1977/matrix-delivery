@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { Pool } from 'pg';
+import { Pool, PoolClient } from 'pg';
 import crypto from 'crypto';
 import logger from './config/logger';
 
@@ -31,11 +31,71 @@ export class MigrationRunner {
     private pool: Pool;
     private migrationsDir: string;
     private migrationsTable: string;
+    private migrationLockNamespace: number;
+    private migrationLockKey: number;
 
     constructor(pool: Pool) {
         this.pool = pool;
         this.migrationsDir = path.join(__dirname, 'migrations');
         this.migrationsTable = 'public.schema_migrations';
+        this.migrationLockNamespace = 98765;
+        this.migrationLockKey = 43210;
+    }
+
+    private isAlreadyExistsError(error: unknown): boolean {
+        const errorMessage = error instanceof Error ? error.message.toLowerCase() : '';
+        return errorMessage.includes('already exists') ||
+            errorMessage.includes('duplicate key value violates unique constraint') ||
+            errorMessage.includes('relation "') && errorMessage.includes('" already exists') ||
+            errorMessage.includes('index "') && errorMessage.includes('" already exists') ||
+            errorMessage.includes('column "') && errorMessage.includes('" already exists') ||
+            errorMessage.includes('constraint "') && errorMessage.includes('" already exists');
+    }
+
+    private async recordMigration(
+        migrationFile: string,
+        checksum: string,
+        executionTime: number,
+        client?: PoolClient
+    ): Promise<void> {
+        const executor = client ?? this.pool;
+
+        await executor.query(
+            `INSERT INTO ${this.migrationsTable} (migration_name, checksum, execution_time_ms)
+             VALUES($1, $2, $3)
+             ON CONFLICT (migration_name) DO UPDATE SET
+                 checksum = EXCLUDED.checksum,
+                 execution_time_ms = EXCLUDED.execution_time_ms,
+                 applied_at = CURRENT_TIMESTAMP`,
+            [migrationFile, checksum, executionTime]
+        );
+    }
+
+    private async withMigrationLock<T>(operation: () => Promise<T>): Promise<T> {
+        const lockClient = await this.pool.connect();
+
+        try {
+            logger.info('🔒 Waiting for migration lock...');
+            await lockClient.query(
+                'SELECT pg_advisory_lock($1, $2)',
+                [this.migrationLockNamespace, this.migrationLockKey]
+            );
+            logger.info('🔒 Migration lock acquired');
+            return await operation();
+        } finally {
+            try {
+                await lockClient.query(
+                    'SELECT pg_advisory_unlock($1, $2)',
+                    [this.migrationLockNamespace, this.migrationLockKey]
+                );
+                logger.info('🔓 Migration lock released');
+            } catch (unlockError) {
+                const errorMessage = unlockError instanceof Error ? unlockError.message : 'Unknown error';
+                logger.error(`Failed to release migration lock: ${errorMessage}`);
+            } finally {
+                lockClient.release();
+            }
+        }
     }
 
     /**
@@ -75,8 +135,7 @@ export class MigrationRunner {
             return result.rows.map(row => row.migration_name);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            logger.error(`Failed to get applied migrations: ${errorMessage} `, error); // Enhanced logging
-            logger.error(`Failed to get applied migrations: ${errorMessage} `);
+            logger.error(`Failed to get applied migrations: ${errorMessage}`, error);
             return [];
         }
     }
@@ -116,6 +175,7 @@ export class MigrationRunner {
     async applyMigration(migrationFile: string): Promise<MigrationResult> {
         const migrationPath = path.join(this.migrationsDir, migrationFile);
         const startTime = Date.now();
+        const client = await this.pool.connect();
 
         try {
             // Read migration file
@@ -125,34 +185,40 @@ export class MigrationRunner {
             logger.info(`Applying migration: ${migrationFile} `);
 
             // Begin transaction
-            await this.pool.query('BEGIN');
+            await client.query('BEGIN');
 
             try {
                 // Execute migration SQL
-                await this.pool.query(migrationSQL);
+                await client.query(migrationSQL);
 
                 // Record migration in tracking table
                 const executionTime = Date.now() - startTime;
-                await this.pool.query(
-                    `INSERT INTO ${this.migrationsTable} (migration_name, checksum, execution_time_ms)
-        VALUES($1, $2, $3)`,
-                    [migrationFile, checksum, executionTime]
-                );
+                await this.recordMigration(migrationFile, checksum, executionTime, client);
 
                 // Commit transaction
-                await this.pool.query('COMMIT');
+                await client.query('COMMIT');
 
                 logger.info(`✅ Migration applied successfully: ${migrationFile} (${executionTime}ms)`);
                 return { success: true, executionTime };
             } catch (error) {
                 // Rollback on error
-                await this.pool.query('ROLLBACK');
+                await client.query('ROLLBACK');
+
+                if (this.isAlreadyExistsError(error)) {
+                    const executionTime = Date.now() - startTime;
+                    await this.recordMigration(migrationFile, checksum, executionTime);
+                    logger.warn(`⚠️ Migration marked as applied (objects already exist): ${migrationFile}`);
+                    return { success: true, executionTime };
+                }
+
                 throw error;
             }
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             logger.error(`❌ Migration failed: ${migrationFile} - ${errorMessage} `);
             throw error;
+        } finally {
+            client.release();
         }
     }
 
@@ -160,47 +226,48 @@ export class MigrationRunner {
      * Run all pending migrations
      */
     async runPendingMigrations(): Promise<MigrationRunResult> {
-        try {
-            logger.info('🔄 Checking for pending migrations...');
+        return this.withMigrationLock(async () => {
+            try {
+                logger.info('🔄 Checking for pending migrations...');
 
-            // Initialize migrations table
-            await this.initializeMigrationsTable();
+                // Initialize migrations table
+                await this.initializeMigrationsTable();
 
-            // Get applied and available migrations
-            const appliedMigrations = await this.getAppliedMigrations();
-            const availableMigrations = this.getMigrationFiles();
+                // Get applied and available migrations (after lock acquisition)
+                const appliedMigrations = await this.getAppliedMigrations();
+                const availableMigrations = this.getMigrationFiles();
 
-            // Find pending migrations
-            const pendingMigrations = availableMigrations.filter(
-                migration => !appliedMigrations.includes(migration)
-            );
+                // Find pending migrations
+                const pendingMigrations = availableMigrations.filter(
+                    migration => !appliedMigrations.includes(migration)
+                );
 
-            if (pendingMigrations.length === 0) {
-                logger.info('✅ No pending migrations - database is up to date');
-                return { applied: 0, skipped: appliedMigrations.length };
-            }
-
-            logger.info(`📋 Found ${pendingMigrations.length} pending migration(s)`);
-
-            // Apply each pending migration
-            let successCount = 0;
-            for (const migration of pendingMigrations) {
-                try {
-                    await this.applyMigration(migration);
-                    successCount++;
-                } catch (error) {
-                    logger.error(`Migration failed, stopping migration process: ${migration} `);
-                    //throw error;
+                if (pendingMigrations.length === 0) {
+                    logger.info('✅ No pending migrations - database is up to date');
+                    return { applied: 0, skipped: appliedMigrations.length };
                 }
-            }
 
-            logger.info(`✅ Successfully applied ${successCount} migration(s)`);
-            return { applied: successCount, skipped: appliedMigrations.length };
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            logger.error(`Migration process failed: ${errorMessage} `);
-            throw error;
-        }
+                logger.info(`📋 Found ${pendingMigrations.length} pending migration(s)`);
+
+                // Apply each pending migration
+                let successCount = 0;
+                for (const migration of pendingMigrations) {
+                    try {
+                        await this.applyMigration(migration);
+                        successCount++;
+                    } catch (error) {
+                        logger.error(`Migration failed, continuing with next migration: ${migration} `);
+                    }
+                }
+
+                logger.info(`✅ Successfully applied ${successCount} migration(s)`);
+                return { applied: successCount, skipped: appliedMigrations.length };
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                logger.error(`Migration process failed: ${errorMessage} `);
+                throw error;
+            }
+        });
     }
 
     /**

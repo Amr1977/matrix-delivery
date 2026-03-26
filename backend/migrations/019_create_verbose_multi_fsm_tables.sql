@@ -3,8 +3,8 @@
 -- Includes audit logging table for all FSM transitions
 
 -- Vendor FSM state table
-CREATE TABLE marketplace_order_vendor_fsm (
-  order_id UUID PRIMARY KEY REFERENCES marketplace_orders(id) ON DELETE CASCADE,
+CREATE TABLE IF NOT EXISTS marketplace_order_vendor_fsm (
+  order_id INTEGER PRIMARY KEY REFERENCES marketplace_orders(id) ON DELETE CASCADE,
   current_state TEXT NOT NULL DEFAULT 'awaiting_order_availability_vendor_confirmation'
     CHECK (current_state IN (
       'awaiting_order_availability_vendor_confirmation',
@@ -18,8 +18,8 @@ CREATE TABLE marketplace_order_vendor_fsm (
 );
 
 -- Payment FSM state table
-CREATE TABLE marketplace_order_payment_fsm (
-  order_id UUID PRIMARY KEY REFERENCES marketplace_orders(id) ON DELETE CASCADE,
+CREATE TABLE IF NOT EXISTS marketplace_order_payment_fsm (
+  order_id INTEGER PRIMARY KEY REFERENCES marketplace_orders(id) ON DELETE CASCADE,
   current_state TEXT DEFAULT NULL
     CHECK (current_state IS NULL OR current_state IN (
       'payment_pending_for_customer',
@@ -32,8 +32,8 @@ CREATE TABLE marketplace_order_payment_fsm (
 );
 
 -- Delivery FSM state table
-CREATE TABLE marketplace_order_delivery_fsm (
-  order_id UUID PRIMARY KEY REFERENCES marketplace_orders(id) ON DELETE CASCADE,
+CREATE TABLE IF NOT EXISTS marketplace_order_delivery_fsm (
+  order_id INTEGER PRIMARY KEY REFERENCES marketplace_orders(id) ON DELETE CASCADE,
   current_state TEXT DEFAULT NULL
     CHECK (current_state IS NULL OR current_state IN (
       'delivery_request_created_waiting_for_courier_acceptance',
@@ -52,9 +52,9 @@ CREATE TABLE marketplace_order_delivery_fsm (
 );
 
 -- FSM Action Audit Log table
-CREATE TABLE fsm_action_log (
+CREATE TABLE IF NOT EXISTS fsm_action_log (
   id SERIAL PRIMARY KEY,
-  order_id UUID REFERENCES marketplace_orders(id) ON DELETE CASCADE,
+  order_id INTEGER REFERENCES marketplace_orders(id) ON DELETE CASCADE,
   fsm_type TEXT NOT NULL CHECK (fsm_type IN ('vendor', 'payment', 'delivery')),
   from_state TEXT,
   to_state TEXT NOT NULL,
@@ -68,34 +68,37 @@ CREATE TABLE fsm_action_log (
 );
 
 -- Indexes for performance
-CREATE INDEX idx_vendor_fsm_state ON marketplace_order_vendor_fsm(current_state);
-CREATE INDEX idx_payment_fsm_state ON marketplace_order_payment_fsm(current_state);
-CREATE INDEX idx_delivery_fsm_state ON marketplace_order_delivery_fsm(current_state);
-CREATE INDEX idx_action_log_order_id ON fsm_action_log(order_id);
-CREATE INDEX idx_action_log_fsm_type ON fsm_action_log(fsm_type);
-CREATE INDEX idx_action_log_timestamp ON fsm_action_log(timestamp);
-CREATE INDEX idx_action_log_actor ON fsm_action_log(actor);
+CREATE INDEX IF NOT EXISTS idx_vendor_fsm_state ON marketplace_order_vendor_fsm(current_state);
+CREATE INDEX IF NOT EXISTS idx_payment_fsm_state ON marketplace_order_payment_fsm(current_state);
+CREATE INDEX IF NOT EXISTS idx_delivery_fsm_state ON marketplace_order_delivery_fsm(current_state);
+CREATE INDEX IF NOT EXISTS idx_action_log_order_id ON fsm_action_log(order_id);
+CREATE INDEX IF NOT EXISTS idx_action_log_fsm_type ON fsm_action_log(fsm_type);
+CREATE INDEX IF NOT EXISTS idx_action_log_timestamp ON fsm_action_log(timestamp);
+CREATE INDEX IF NOT EXISTS idx_action_log_actor ON fsm_action_log(actor);
 
 -- Triggers to update last_updated timestamps
 CREATE OR REPLACE FUNCTION update_fsm_last_updated()
 RETURNS TRIGGER AS $$
 BEGIN
-    NEW.last_updated = NOW();
-    RETURN NEW;
+  NEW.last_updated = NOW();
+  RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS vendor_fsm_updated ON marketplace_order_vendor_fsm;
 CREATE TRIGGER vendor_fsm_updated
-    BEFORE UPDATE ON marketplace_order_vendor_fsm
-    FOR EACH ROW EXECUTE FUNCTION update_fsm_last_updated();
+  BEFORE UPDATE ON marketplace_order_vendor_fsm
+  FOR EACH ROW EXECUTE FUNCTION update_fsm_last_updated();
 
+DROP TRIGGER IF EXISTS payment_fsm_updated ON marketplace_order_payment_fsm;
 CREATE TRIGGER payment_fsm_updated
-    BEFORE UPDATE ON marketplace_order_payment_fsm
-    FOR EACH ROW EXECUTE FUNCTION update_fsm_last_updated();
+  BEFORE UPDATE ON marketplace_order_payment_fsm
+  FOR EACH ROW EXECUTE FUNCTION update_fsm_last_updated();
 
+DROP TRIGGER IF EXISTS delivery_fsm_updated ON marketplace_order_delivery_fsm;
 CREATE TRIGGER delivery_fsm_updated
-    BEFORE UPDATE ON marketplace_order_delivery_fsm
-    FOR EACH ROW EXECUTE FUNCTION update_fsm_last_updated();
+  BEFORE UPDATE ON marketplace_order_delivery_fsm
+  FOR EACH ROW EXECUTE FUNCTION update_fsm_last_updated();
 
 -- Migration logic for existing orders
 -- All existing marketplace orders start with vendor FSM in initial state
