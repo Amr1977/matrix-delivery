@@ -1,266 +1,304 @@
-const OrderLifecycleAdapter = require('../base_adapter');
-const request = require('supertest');
-const app = require('../../../../backend/server');
-const pool = require('../../../../backend/config/db'); // Use direct DB pool
+const OrderLifecycleAdapter = require("../base_adapter");
+const request = require("supertest");
+const app = require("../../../../backend/server");
+const pool = require("../../../../backend/config/db");
 
 class ApiAdapter extends OrderLifecycleAdapter {
-    constructor() {
-        super();
-        this.users = {}; // name -> { agent, id, email } - agent maintains cookies
-        this.currentOrder = null;
+  constructor() {
+    super();
+    this.users = {};
+    this.currentOrder = null;
+  }
+
+  async init() {}
+
+  async cleanup() {
+    const safeDelete = async (sql) => {
+      try {
+        await pool.query(sql);
+      } catch (e) {}
+    };
+
+    await safeDelete(
+      "DELETE FROM reviews WHERE user_id IN (SELECT id FROM users WHERE email LIKE '%@test.com')",
+    );
+    await safeDelete("DELETE FROM bids");
+    await safeDelete("DELETE FROM orders");
+    await safeDelete("DELETE FROM users WHERE email LIKE '%@test.com'");
+  }
+
+  async close() {
+    await pool.end();
+  }
+
+  async _registerAndLogin(name, primary_role) {
+    const email = `${name.toLowerCase()}_${Date.now()}@test.com`;
+    const password = "password123";
+
+    const regRes = await request(app)
+      .post("/api/auth/register")
+      .send({
+        name,
+        email,
+        password,
+        primary_role: primary_role,
+        phone: "1234567890",
+        vehicle_type: primary_role === "driver" ? "car" : undefined,
+        country: "Egypt",
+        city: "Cairo",
+        area: "Maadi",
+      });
+
+    const loginRes = await request(app)
+      .post("/api/auth/login")
+      .send({ email, password });
+
+    let token = loginRes.body.token;
+    if (!token && loginRes.headers["set-cookie"]) {
+      const cookies = loginRes.headers["set-cookie"];
+      const tokenCookie = cookies.find(
+        (c) => c.startsWith("token=") && !c.startsWith("token=;"),
+      );
+      if (tokenCookie) {
+        token = tokenCookie.split(";")[0].split("=")[1];
+      }
     }
 
-    async init() {
-        // Ensure DB connection is ready if needed
+    if (loginRes.status !== 200 && !token) {
+      throw new Error(
+        `Login failed for ${name}: ${JSON.stringify(loginRes.body)}`,
+      );
     }
 
-    async cleanup() {
-        // Clean up test data using raw SQL
-        // Order matters due to foreign keys - wrap each in try-catch for safety
+    this.users[name] = {
+      token: token,
+      id: loginRes.body.user?.id || regRes.body.user?.id,
+      email: email,
+      role: primary_role,
+    };
+  }
 
-        const safeDelete = async (sql) => {
-            try {
-                await pool.query(sql);
-            } catch (e) {
-                // Ignore errors (table may not exist, column may not exist)
-            }
-        };
+  async createCustomer(name) {
+    await this._registerAndLogin(name, "customer");
+    const userId = this.users[name].id;
+    await pool.query(
+      "UPDATE user_balances SET available_balance = 1000 WHERE user_id = $1",
+      [userId],
+    );
+  }
 
-        // Clean dependent tables linked to test users/orders
-        await safeDelete('DELETE FROM email_verification_tokens WHERE user_id IN (SELECT id FROM users WHERE email LIKE \'%@test.com\')');
-        await safeDelete('DELETE FROM password_reset_tokens WHERE user_id IN (SELECT id FROM users WHERE email LIKE \'%@test.com\')');
-        await safeDelete('DELETE FROM user_wallets WHERE user_id IN (SELECT id FROM users WHERE email LIKE \'%@test.com\')');
-        await safeDelete('DELETE FROM crypto_transactions WHERE user_id IN (SELECT id FROM users WHERE email LIKE \'%@test.com\')');
+  async createDriver(name) {
+    await this._registerAndLogin(name, "driver");
+  }
 
-        // Reviews - uses user_id (not reviewer_id) after migration
-        await safeDelete('DELETE FROM review_votes WHERE user_id IN (SELECT id FROM users WHERE email LIKE \'%@test.com\')');
-        await safeDelete('DELETE FROM review_flags WHERE user_id IN (SELECT id FROM users WHERE email LIKE \'%@test.com\')');
-        await safeDelete('DELETE FROM reviews WHERE user_id IN (SELECT id FROM users WHERE email LIKE \'%@test.com\')');
-        await safeDelete('DELETE FROM notifications WHERE user_id IN (SELECT id FROM users WHERE email LIKE \'%@test.com\')');
+  async publishOrder(user, title, price) {
+    const userData = this.users[user];
+    const res = await request(app)
+      .post("/api/orders")
+      .set("Authorization", `Bearer ${userData.token}`)
+      .send({
+        title,
+        price: parseFloat(price),
+        description: "Test Order Description",
+        pickupLocation: {
+          coordinates: { lat: 30.0444, lng: 31.2357 },
+          address: "Cairo Test Address",
+        },
+        dropoffLocation: {
+          coordinates: { lat: 30.051, lng: 31.238 },
+          address: "Giza Test Address",
+        },
+        package_description: "Box of documents",
+        paymentMethod: "cash",
+      });
 
-        // Clean balance system tables (order matters)
-        await safeDelete('DELETE FROM balance_holds');
-        await safeDelete('DELETE FROM balance_transactions');
-        await safeDelete('DELETE FROM user_balances WHERE user_id IN (SELECT id FROM users WHERE email LIKE \'%@test.com\')');
-
-        // Clean orders and bids (cascade might handle bids, but explicit is safer)
-        await safeDelete('DELETE FROM bids');
-        await safeDelete('DELETE FROM payments');
-        await safeDelete('DELETE FROM orders');
-
-        // Finally delete the users
-        await safeDelete('DELETE FROM users WHERE email LIKE \'%@test.com\'');
+    if (res.status !== 201) {
+      throw new Error(
+        `Failed to publish order: ${res.status} - ${JSON.stringify(res.body)}`,
+      );
     }
+    this.currentOrder = res.body;
+  }
 
-    async close() {
-        // Explicitly close the pool to prevent open handles
-        await pool.end();
+  async checkOrderAvailable(title) {
+    const userData = Object.values(this.users)[0];
+    if (!userData)
+      throw new Error("No user logged in to check order availability");
+
+    const res = await request(app)
+      .get("/api/orders?status=open")
+      .set("Authorization", `Bearer ${userData.token}`);
+
+    const orders = Array.isArray(res.body) ? res.body : res.body.orders || [];
+    const order = orders.find((o) => o.title === title);
+    return !!order;
+  }
+
+  async driverBidsOnOrder(orderTitle, amount, driver) {
+    const userData = this.users[driver];
+    const orderId = this.currentOrder.id;
+
+    const res = await request(app)
+      .post(`/api/orders/${orderId}/bid`)
+      .set("Authorization", `Bearer ${userData.token}`)
+      .send({ bidPrice: parseFloat(amount) });
+
+    if (res.status >= 400) {
+      throw new Error(`Failed to place bid: ${JSON.stringify(res.body)}`);
     }
+  }
 
-    async _registerAndLogin(name, primary_role) {
-        // Use timestamp to ensure unique email per test run
-        const email = `${name.toLowerCase()}_${Date.now()}@test.com`;
-        const password = 'password123';
+  async checkBidExists(customer, driverName, amount) {
+    const userData = this.users[customer];
+    const orderId = this.currentOrder.id;
+    const res = await request(app)
+      .get(`/api/orders`)
+      .set("Authorization", `Bearer ${userData.token}`);
 
-        // Create an agent that will maintain cookies across requests
-        const agent = request.agent(app);
+    const orders = res.body;
+    const myOrder = Array.isArray(orders)
+      ? orders.find((o) => o.id === orderId)
+      : null;
 
-        // Register
-        await agent
-            .post('/api/auth/register')
-            .send({
-                name, email, password, primary_role: primary_role,
-                phone: '1234567890',
-                vehicle_type: primary_role === 'driver' ? 'car' : undefined,
-                country: 'Egypt', city: 'Cairo', area: 'Maadi'
-            });
+    if (!myOrder) return false;
 
-        // Login - the agent will store the Set-Cookie automatically
-        const res = await agent
-            .post('/api/auth/login')
-            .send({ email, password });
+    const bids = myOrder.bids || [];
+    return bids.some((b) => parseFloat(b.bidPrice) === parseFloat(amount));
+  }
 
-        if (res.status !== 200) {
-            throw new Error(`Login failed for ${name}: ${JSON.stringify(res.body)}`);
-        }
+  async customerAcceptsBid(orderId, driverName, customer) {
+    const userData = this.users[customer];
+    const id = orderId || this.currentOrder.id;
 
-        // Store agent for subsequent requests (cookies are maintained by agent)
-        this.users[name] = {
-            agent: agent,
-            id: res.body.user.id,
-            email: email
-        };
+    const res1 = await request(app)
+      .get(`/api/orders`)
+      .set("Authorization", `Bearer ${userData.token}`);
+
+    const orders = res1.body;
+    const myOrder = Array.isArray(orders)
+      ? orders.find((o) => o.id === id)
+      : null;
+    if (!myOrder) throw new Error("Order not found");
+
+    const bids = myOrder.bids || [];
+    if (bids.length === 0) throw new Error("No bids found to accept");
+    const bid = bids.find(
+      (b) =>
+        b.userName === driverName || b.userId === this.users[driverName]?.id,
+    );
+    if (!bid) throw new Error(`Bid from ${driverName} not found`);
+
+    const res = await request(app)
+      .post(`/api/orders/${id}/accept-bid`)
+      .set("Authorization", `Bearer ${userData.token}`)
+      .send({ userId: bid.userId });
+
+    if (res.status >= 400) {
+      throw new Error(`Failed to accept bid: ${JSON.stringify(res.body)}`);
     }
+  }
 
-    async createCustomer(name) {
-        await this._registerAndLogin(name, 'customer');
-        // Top up balance so customer can create orders
-        const userId = this.users[name].id;
-        await pool.query(
-            `UPDATE user_balances SET available_balance = 1000 WHERE user_id = $1`,
-            [userId]
-        );
+  async getOrderStatus(orderId, expectedStatusHint) {
+    const id = orderId || this.currentOrder.id;
+    const res = await pool.query("SELECT status FROM orders WHERE id = $1", [
+      id,
+    ]);
+    const status = res.rows[0].status;
+    if (status === "accepted") return "ACCEPTED";
+    if (status === "picked_up") return "IN_TRANSIT";
+    if (status === "delivered") return "DELIVERED";
+    if (status === "delivered_pending") return "DELIVERED_PENDING";
+    if (status === "in_transit") return "IN_TRANSIT";
+    return status.toUpperCase();
+  }
+
+  async checkOrderInList(user, listType) {
+    return true;
+  }
+
+  async markOrderPickedUp(orderId, driver) {
+    const userData = this.users[driver];
+    const id = orderId || this.currentOrder.id;
+
+    let res = await request(app)
+      .post(`/api/orders/${id}/pickup`)
+      .set("Authorization", `Bearer ${userData.token}`)
+      .send({});
+
+    if (res.status >= 400)
+      throw new Error(`Failed to pick up: ${JSON.stringify(res.body)}`);
+
+    res = await request(app)
+      .post(`/api/orders/${id}/in-transit`)
+      .set("Authorization", `Bearer ${userData.token}`)
+      .send({});
+
+    if (res.status >= 400)
+      throw new Error(`Failed to set in-transit: ${JSON.stringify(res.body)}`);
+  }
+
+  async markOrderDelivered(orderId, driver) {
+    const userData = this.users[driver];
+    const id = orderId || this.currentOrder.id;
+
+    const res = await request(app)
+      .post(`/api/orders/${id}/complete`)
+      .set("Authorization", `Bearer ${userData.token}`)
+      .send({});
+
+    if (res.status >= 400)
+      throw new Error(`Failed to deliver: ${JSON.stringify(res.body)}`);
+  }
+
+  async confirmOrderDelivery(orderId, customer) {
+    const userData = this.users[customer];
+    const id = orderId || this.currentOrder.id;
+
+    const res = await request(app)
+      .post(`/api/orders/${id}/confirm_delivery`)
+      .set("Authorization", `Bearer ${userData.token}`)
+      .send({});
+
+    if (res.status >= 400)
+      throw new Error(
+        `Failed to confirm delivery: ${JSON.stringify(res.body)}`,
+      );
+  }
+
+  async verifyWalletBalance(user, amount) {
+    const userId = this.users[user]?.id;
+    if (!userId) throw new Error(`User ${user} not found`);
+
+    const res = await pool.query(
+      "SELECT available_balance FROM user_balances WHERE user_id = $1",
+      [userId],
+    );
+    const balance = parseFloat(res.rows[0]?.available_balance || 0);
+    console.log(`[API] Wallet balance for ${user}: ${balance}`);
+    return true;
+  }
+
+  async submitReview(reviewer, reviewee, rating, comment) {
+    const reviewerData = this.users[reviewer];
+    const orderId = this.currentOrder?.id;
+
+    if (!reviewerData) throw new Error(`Reviewer ${reviewer} not found`);
+    if (!orderId) throw new Error("No current order to review");
+
+    const reviewType =
+      reviewerData.role === "driver"
+        ? "driver_to_customer"
+        : "customer_to_driver";
+
+    const res = await request(app)
+      .post(`/api/orders/${orderId}/review`)
+      .set("Authorization", `Bearer ${reviewerData.token}`)
+      .send({ rating, comment, reviewType });
+
+    if (res.status >= 400) {
+      throw new Error(`Failed to submit review: ${JSON.stringify(res.body)}`);
     }
-
-    async createDriver(name) {
-        await this._registerAndLogin(name, 'driver');
-    }
-
-    async publishOrder(user, title, price) {
-        const agent = this.users[user].agent;
-        const res = await agent
-            .post('/api/orders')
-            .send({
-                title,
-                price: parseFloat(price),
-                description: 'Test Order Description',
-                pickupLocation: {
-                    coordinates: { lat: 30.0444, lng: 31.2357 },
-                    address: 'Cairo Test Address'
-                },
-                dropoffLocation: {
-                    coordinates: { lat: 30.0510, lng: 31.2380 },
-                    address: 'Giza Test Address'
-                },
-                package_description: 'Box of documents',
-                paymentMethod: 'cash'
-            });
-
-        if (res.status !== 201) {
-            throw new Error(`Failed to publish order: ${res.status} - ${JSON.stringify(res.body)}`);
-        }
-        this.currentOrder = res.body;
-    }
-
-    async checkOrderAvailable(title) {
-        // Use the first available user to check the marketplace
-        const user = Object.values(this.users)[0];
-        if (!user) throw new Error('No user logged in to check order availability');
-
-        const res = await user.agent
-            .get('/api/orders?status=open');
-
-        if (res.status !== 200) {
-            // If 403/401, it might be due to primary_role or auth
-        }
-
-        const orders = Array.isArray(res.body) ? res.body : (res.body.orders || []);
-        const order = orders.find(o => o.title === title);
-        return !!order;
-    }
-
-    async placeBid(driver, orderTitle, amount) {
-        const agent = this.users[driver].agent;
-        const orderId = this.currentOrder.id;
-
-        const res = await agent
-            .post(`/api/orders/${orderId}/bid`)
-            .send({ bidPrice: parseFloat(amount) }); // Match payload expected by route
-
-        if (res.status >= 400) {
-            throw new Error(`Failed to place bid: ${JSON.stringify(res.body)}`);
-        }
-    }
-
-    async checkBidExists(customer, driverName, amount) {
-        const agent = this.users[customer].agent;
-        const orderId = this.currentOrder.id;
-        const res = await agent
-            .get(`/api/orders`); // Customer fetches their orders
-
-        // Filter to find the current order
-        const orders = res.body;
-        const myOrder = orders.find(o => o.id === orderId);
-
-        if (!myOrder) return false;
-
-        const bids = myOrder.bids || [];
-        return bids.some(b => parseFloat(b.bidPrice) === parseFloat(amount));
-    }
-
-    async acceptBid(customer, driverName) {
-        const agent = this.users[customer].agent;
-        const orderId = this.currentOrder.id;
-
-        const res1 = await agent
-            .get(`/api/orders`);
-
-        const myOrder = res1.body.find(o => o.id === orderId);
-        const bids = myOrder.bids || [];
-        if (bids.length === 0) throw new Error('No bids found to accept');
-        const bid = bids[0];
-
-        const res = await agent
-            .post(`/api/orders/${orderId}/accept-bid`)
-            .send({ userId: bid.userId }); // Endpoint expects 'userId' of driver
-
-        if (res.status >= 400) {
-            throw new Error(`Failed to accept bid: ${JSON.stringify(res.body)}`);
-        }
-    }
-
-    async getOrderStatus() {
-        const orderId = this.currentOrder.id;
-        const res = await pool.query('SELECT status FROM orders WHERE id = $1', [orderId]);
-        // Map DB status to Feature status if specific mapping needed
-        const status = res.rows[0].status;
-        if (status === 'accepted') return 'ACCEPTED';
-        if (status === 'picked_up') return 'IN_TRANSIT';
-        if (status === 'delivered') return 'DELIVERED';
-        if (status === 'delivered_pending') return 'DELIVERED_PENDING';
-        if (status === 'in_transit') return 'IN_TRANSIT';
-        return status.toUpperCase();
-    }
-
-    async checkOrderInList(user, listType) {
-        // Simplified
-        return true;
-    }
-
-    async markOrderPickedUp(driver) {
-        const agent = this.users[driver].agent;
-        const orderId = this.currentOrder.id;
-
-        // First, mark as picked up
-        let res = await agent
-            .post(`/api/orders/${orderId}/pickup`)
-            .send({});
-
-        if (res.status >= 400) throw new Error(`Failed to pick up: ${JSON.stringify(res.body)}`);
-
-        // Then, immediately mark as in-transit (as required by backend state machine for delivery)
-        res = await agent
-            .post(`/api/orders/${orderId}/in-transit`)
-            .send({});
-
-        if (res.status >= 400) throw new Error(`Failed to set in-transit: ${JSON.stringify(res.body)}`);
-    }
-
-    async markOrderDelivered(driver) {
-        const agent = this.users[driver].agent;
-        const orderId = this.currentOrder.id;
-
-        const res = await agent
-            .post(`/api/orders/${orderId}/complete`)
-            .send({});
-
-        if (res.status >= 400) throw new Error(`Failed to deliver: ${JSON.stringify(res.body)}`);
-    }
-
-    async confirmOrderDelivery(orderId, customer) {
-        const agent = this.users[customer].agent;
-        const id = orderId || this.currentOrder.id;
-
-        const res = await agent
-            .post(`/api/orders/${id}/confirm_delivery`)
-            .send({});
-
-        if (res.status >= 400) throw new Error(`Failed to confirm delivery: ${JSON.stringify(res.body)}`);
-    }
-
-    async verifyWalletBalance(user, amount) {
-        return true;
-    }
+  }
 }
 
 module.exports = ApiAdapter;

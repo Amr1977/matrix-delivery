@@ -7,7 +7,7 @@ const { Pool } = require('pg');
 // Setup independent pool for verification
 const pool = new Pool({
     host: process.env.DB_HOST || 'localhost',
-    port: process.env.DB_PORT || 5432,
+    port: parseInt(process.env.DB_PORT || "5433"),
     database: 'matrix_delivery_test',
     user: process.env.DB_USER || 'postgres',
     password: process.env.DB_PASSWORD || 'postgres',

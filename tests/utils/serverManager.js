@@ -1,63 +1,71 @@
-const { spawn } = require('child_process');
-const path = require('path');
+const { spawn } = require("child_process");
+const path = require("path");
 
 class ServerManager {
   constructor() {
     this.backendProcess = null;
     this.frontendProcess = null;
-    this.backendPort = process.env.BACKEND_PORT || '5000';
-    this.frontendPort = process.env.FRONTEND_PORT || '3000';
+    this.backendPort = process.env.BACKEND_PORT || "5000";
+    this.frontendPort = process.env.FRONTEND_PORT || "3000";
     this.backendUrl = `http://localhost:${this.backendPort}`;
     this.frontendUrl = `http://localhost:${this.frontendPort}`;
   }
 
   async startBackend() {
     if (this.backendProcess) {
-      console.log('Backend already running');
+      console.log("Backend already running");
       return;
     }
 
-    console.log('🚀 Starting backend server...');
+    console.log("🚀 Starting backend server...");
 
     return new Promise((resolve, reject) => {
-      this.backendProcess = spawn('node', ['server.js'], {
-        cwd: path.join(__dirname, '../../backend'),
+      const spawnEnv = {
+        ...process.env,
+        NODE_ENV: "testing",
+        ENV_FILE: ".env.testing",
+        DATABASE_URL:
+          "postgres://postgres:***REDACTED***@localhost:5433/matrix_delivery_test",
+      };
+
+      this.backendProcess = spawn("node", ["server.js"], {
+        cwd: path.join(__dirname, "../../backend"),
         shell: true,
-        env: {
-            ...process.env,
-            ENV_FILE: '.env.testing',
-            INIT_TEST_DB: 'true',
-            NODE_ENV: 'testing',
-            DATABASE_URL: process.env.TEST_DATABASE_URL || 'postgres://postgres:***REDACTED***@localhost:5432/matrix_delivery_test'
-          }
+        env: spawnEnv,
+        stdio: ["ignore", "pipe", "pipe"],
       });
 
-      let output = '';
+      let output = "";
       let hasResolved = false;
 
-      this.backendProcess.stdout.on('data', (data) => {
-        process.stdout.write('[BACKEND] ' + data.toString()); // Pipe to terminal
+      this.backendProcess.stdout.on("data", (data) => {
+        process.stdout.write("[BACKEND] " + data.toString());
         output += data.toString();
-        if (!hasResolved && output.includes('Server running')) {
+        if (!hasResolved && output.includes("Server running")) {
           hasResolved = true;
-          console.log('   ✅ Backend server started');
+          console.log("   ✅ Backend server started");
           resolve();
         }
       });
 
-      this.backendProcess.stderr.on('data', (data) => {
-        process.stderr.write('[BACKEND ERROR] ' + data.toString()); // Pipe to terminal
-        console.error('Backend error:', data.toString());
+      this.backendProcess.stderr.on("data", (data) => {
+        process.stderr.write("[BACKEND ERROR] " + data.toString());
+        console.error("Backend error:", data.toString());
       });
 
-      this.backendProcess.on('error', (error) => {
-        console.error('Failed to start backend:', error);
+      this.backendProcess.on("error", (error) => {
+        console.error("Failed to start backend:", error);
         reject(error);
       });
 
       setTimeout(() => {
-        if (!hasResolved && !output.includes('Server running')) {
-          reject(new Error('Backend server did not start in time. Output: ' + output.slice(-500)));
+        if (!hasResolved && !output.includes("Server running")) {
+          reject(
+            new Error(
+              "Backend server did not start in time. Output: " +
+                output.slice(-500),
+            ),
+          );
         }
       }, 60000);
     });
@@ -65,68 +73,81 @@ class ServerManager {
 
   async startFrontend() {
     if (this.frontendProcess) {
-      console.log('Frontend already running');
+      console.log("Frontend already running");
       return;
     }
 
-    console.log('🚀 Starting frontend server...');
+    console.log("🚀 Starting frontend server...");
 
     return new Promise((resolve, reject) => {
       // Use dev server - handles REACT_APP_API_URL at runtime
-      this.frontendProcess = spawn('npm.cmd', ['start'], {
-        cwd: path.join(__dirname, '../../frontend'),
+      this.frontendProcess = spawn("npm.cmd", ["start"], {
+        cwd: path.join(__dirname, "../../frontend"),
         shell: true,
         env: {
           ...process.env,
           PORT: this.frontendPort,
           // HOST: 'localhost',
-          BROWSER: 'none',
-          REACT_APP_API_URL: '/api',
-          REACT_APP_RECAPTCHA_SITE_KEY: '',
-          REACT_APP_RECAPTCHA_SECRET_KEY: '',
-          NODE_OPTIONS: '--max-old-space-size=4096'
-        }
+          BROWSER: "none",
+          REACT_APP_API_URL: "/api",
+          REACT_APP_RECAPTCHA_SITE_KEY: "",
+          REACT_APP_RECAPTCHA_SECRET_KEY: "",
+          NODE_OPTIONS: "--max-old-space-size=4096",
+        },
       });
 
-      let output = '';
+      let output = "";
       let hasResolved = false;
 
-      this.frontendProcess.stdout.on('data', (data) => {
-        process.stdout.write('[FRONTEND] ' + data.toString()); // Pipe to terminal
+      this.frontendProcess.stdout.on("data", (data) => {
+        process.stdout.write("[FRONTEND] " + data.toString()); // Pipe to terminal
         output += data.toString();
-        if (!hasResolved && (output.includes('webpack compiled') || output.includes('Compiled successfully') || output.includes('Local:'))) {
+        if (
+          !hasResolved &&
+          (output.includes("webpack compiled") ||
+            output.includes("Compiled successfully") ||
+            output.includes("Local:"))
+        ) {
           hasResolved = true;
-          console.log('   ✅ Frontend server started');
+          console.log("   ✅ Frontend server started");
           resolve();
         }
       });
 
-      this.frontendProcess.stderr.on('data', (data) => {
-        process.stderr.write('[FRONTEND ERROR] ' + data.toString()); // Pipe to terminal
+      this.frontendProcess.stderr.on("data", (data) => {
+        process.stderr.write("[FRONTEND ERROR] " + data.toString()); // Pipe to terminal
         const msg = data.toString();
         output += msg;
-        if (!hasResolved && (output.includes('Compiled successfully') || output.includes('Local:'))) {
+        if (
+          !hasResolved &&
+          (output.includes("Compiled successfully") ||
+            output.includes("Local:"))
+        ) {
           hasResolved = true;
-          console.log('   ✅ Frontend server started');
+          console.log("   ✅ Frontend server started");
           resolve();
         }
       });
 
-      this.frontendProcess.on('error', (error) => {
-        console.error('Failed to start frontend:', error);
+      this.frontendProcess.on("error", (error) => {
+        console.error("Failed to start frontend:", error);
         reject(error);
       });
 
       setTimeout(() => {
         if (!hasResolved) {
-          reject(new Error('Frontend server did not start in time: ' + output.slice(-300)));
+          reject(
+            new Error(
+              "Frontend server did not start in time: " + output.slice(-300),
+            ),
+          );
         }
-      }, 180000);  // 3 minutes - dev server is slower
+      }, 180000); // 3 minutes - dev server is slower
     });
   }
 
   async stop() {
-    console.log('\n🛑 Stopping servers...');
+    console.log("\n🛑 Stopping servers...");
 
     const killProcess = (process, name) => {
       return new Promise((resolve) => {
@@ -140,9 +161,9 @@ class ServerManager {
         try {
           if (process.pid) {
             // Windows specific kill
-            spawn('taskkill', ['/pid', process.pid, '/f', '/t'], {
+            spawn("taskkill", ["/pid", process.pid, "/f", "/t"], {
               shell: true,
-              stdio: 'ignore'
+              stdio: "ignore",
             });
           }
         } catch (e) {
@@ -153,8 +174,8 @@ class ServerManager {
     };
 
     await Promise.all([
-      killProcess(this.frontendProcess, 'frontend'),
-      killProcess(this.backendProcess, 'backend')
+      killProcess(this.frontendProcess, "frontend"),
+      killProcess(this.backendProcess, "backend"),
     ]);
 
     this.frontendProcess = null;
@@ -162,15 +183,19 @@ class ServerManager {
 
     // Cleanup ports
     try {
-      const killPort = (port) => new Promise(resolve => {
-        spawn('npx', ['kill-port', port], { shell: true, stdio: 'ignore' }).on('close', resolve);
-      });
+      const killPort = (port) =>
+        new Promise((resolve) => {
+          spawn("npx", ["kill-port", port], {
+            shell: true,
+            stdio: "ignore",
+          }).on("close", resolve);
+        });
       await Promise.all([killPort(3000), killPort(5000)]);
     } catch (e) {
       // ignore
     }
 
-    console.log('   ✅ All servers stopped\n');
+    console.log("   ✅ All servers stopped\n");
   }
 }
 
