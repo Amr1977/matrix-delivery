@@ -3,6 +3,7 @@ const { initializeDatabase } = require('./init') /* P0 FIX: removed .ts ext for 
 const { initAuditLogger } = require('../middleware/auditLogger');
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+let initDatabaseInFlight = null;
 
 /**
  * Create admin-specific database tables
@@ -108,6 +109,14 @@ async function createUserTables(pool) {
  * Orchestrates all database setup including schema, admin tables, audit logging, and migrations
  */
 async function initDatabase(pool) {
+    if (initDatabaseInFlight) {
+        logger.warn('⚠️ initDatabase already running in this process; reusing in-flight initialization', {
+            category: 'database'
+        });
+        return initDatabaseInFlight;
+    }
+
+    initDatabaseInFlight = (async () => {
     try {
         // Enable PostGIS extension
         try {
@@ -164,6 +173,13 @@ async function initDatabase(pool) {
     } catch (error) {
         logger.error('❌ Database initialization error:', error);
         throw error;
+    }
+    })();
+
+    try {
+        return await initDatabaseInFlight;
+    } finally {
+        initDatabaseInFlight = null;
     }
 }
 

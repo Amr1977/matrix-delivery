@@ -228,6 +228,10 @@ export class MigrationRunner {
     async runPendingMigrations(): Promise<MigrationRunResult> {
         return this.withMigrationLock(async () => {
             try {
+                logger.info('🧭 Migration runner version: 2026-03-26-lock-v2', {
+                    migrationRunnerFile: __filename,
+                    migrationsDir: this.migrationsDir
+                });
                 logger.info('🔄 Checking for pending migrations...');
 
                 // Initialize migrations table
