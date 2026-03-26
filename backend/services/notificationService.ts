@@ -133,6 +133,56 @@ export class NotificationService {
     ): Promise<NotificationRecord | null> {
         return this.createNotification({ userId, orderId, type, title, message });
     }
+
+    /**
+     * Get all notifications for a user
+     */
+    async getNotificationsByUser(userId: string): Promise<NotificationRecord[]> {
+        try {
+            const result = await this.pool.query(
+                `SELECT id, user_id, order_id, type, title, message, is_read, created_at, metadata
+                 FROM notifications 
+                 WHERE user_id = $1 
+                 ORDER BY created_at DESC 
+                 LIMIT 100`,
+                [userId]
+            );
+            return result.rows;
+        } catch (error) {
+            this.logger.error('Error getting notifications:', error);
+            return [];
+        }
+    }
+
+    /**
+     * Mark a notification as read
+     */
+    async markAsRead(notificationId: string, userId: string): Promise<void> {
+        await this.pool.query(
+            'UPDATE notifications SET is_read = true WHERE id = $1 AND user_id = $2',
+            [notificationId, userId]
+        );
+    }
+
+    /**
+     * Mark all notifications as read for a user
+     */
+    async markAllAsRead(userId: string): Promise<void> {
+        await this.pool.query(
+            'UPDATE notifications SET is_read = true WHERE user_id = $1 AND is_read = false',
+            [userId]
+        );
+    }
+
+    /**
+     * Delete a notification
+     */
+    async deleteNotification(notificationId: string, userId: string): Promise<void> {
+        await this.pool.query(
+            'DELETE FROM notifications WHERE id = $1 AND user_id = $2',
+            [notificationId, userId]
+        );
+    }
 }
 
 /**
