@@ -1802,8 +1802,15 @@ export const MainApp = () => {
   };
 
   const updateDriverLocationOnce = useCallback(async () => {
-    if (currentUser?.primary_role !== "driver" || !driverOnline || loading)
+    console.log(
+      `📍 [updateDriverLocationOnce] Called - driverOnline=${driverOnline}, primary_role=${currentUser?.primary_role}, loading=${loading}, orders count=${orders.length}`,
+    );
+    if (currentUser?.primary_role !== "driver" || !driverOnline || loading) {
+      console.log(
+        `📍 [updateDriverLocationOnce] Skipped - not a driver or not online`,
+      );
       return;
+    }
 
     try {
       if (navigator.geolocation) {
@@ -1812,28 +1819,57 @@ export const MainApp = () => {
             const { latitude, longitude, heading, speed, accuracy } =
               position.coords;
 
-            // Update driver location using the hook
-            const success = await driverHook.updateDriverLocation();
-            if (!success) throw new Error("Failed to update location");
+            console.log(
+              `📍 [updateDriverLocationOnce] Got position:`,
+              latitude,
+              longitude,
+            );
+
+            // Update driver location using the hook (general location, not tied to order)
+            await driverHook.updateDriverLocation();
+
+            // Find active orders assigned to this driver
             const activeOrders = orders.filter(
               (o) =>
                 o.assignedDriver?.userId === currentUser.id &&
                 ["accepted", "picked_up", "in_transit"].includes(o.status),
             );
+            console.log(
+              `📍 [updateDriverLocationOnce] Active orders:`,
+              activeOrders.length,
+              activeOrders.map((o) => ({
+                id: o.id,
+                status: o.status,
+                assignedDriver: o.assignedDriver?.userId,
+                myId: currentUser.id,
+              })),
+            );
+
             if (activeOrders.length > 0) {
-              await Promise.all(
-                activeOrders.map((o) =>
-                  OrdersApi.updateLocation(o.id, {
+              console.log(
+                `📍 [updateDriverLocationNow] Updating location for ${activeOrders.length} active orders...`,
+              );
+              for (const order of activeOrders) {
+                try {
+                  await OrdersApi.updateLocation(order.id, {
                     latitude,
                     longitude,
                     heading: heading !== null ? heading : null,
-                    speed: speed !== null ? speed * 3.6 : null, // Convert m/s to km/h
+                    speed: speed !== null ? speed * 3.6 : null,
                     accuracy: accuracy !== null ? accuracy : null,
-                  }),
-                ),
-              );
+                  });
+                  console.log(
+                    `📍 [updateDriverLocationNow] ✅ Updated order ${order.id}`,
+                  );
+                } catch (err) {
+                  console.error(
+                    `📍 [updateDriverLocationNow] ❌ Failed to update order ${order.id}:`,
+                    err.message,
+                  );
+                }
+              }
             }
-            fetchOrders(); // Refresh orders with new distance calculations
+            fetchOrders();
           },
           (error) => {
             console.error("Geolocation error:", error);

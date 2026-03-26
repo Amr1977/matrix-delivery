@@ -78,7 +78,7 @@ const AsyncOrderMap = ({
     try {
       setLoading(true);
       console.log(
-        `📡 [AsyncOrderMap] Fetching tracking for order ${order.id}, status: ${order.status}, user: ${currentUser?.primary_role}`,
+        `📡 [AsyncOrderMap] Fetching tracking for order ${order.id}, status: ${order.status}, user: ${currentUser?.primary_role}, customer_id=${order.customer_id}, user_id=${currentUser?.id}`,
       );
       const res = await api.get(`/orders/${order.id}/tracking`);
       console.log(`📡 [AsyncOrderMap] Tracking response:`, res);
