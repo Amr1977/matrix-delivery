@@ -1,11 +1,18 @@
-﻿import React, { useState, useEffect, useRef, useCallback } from 'react';
-import api from '../api';
-import RoutePreviewMap from './RoutePreviewMap';
-import { MapsApi } from '../services/api/maps';
-import polyline from '@mapbox/polyline';
-import io from 'socket.io-client';
+﻿import React, { useState, useEffect, useRef, useCallback } from "react";
+import api from "../api";
+import RoutePreviewMap from "./RoutePreviewMap";
+import { MapsApi } from "../services/api/maps";
+import polyline from "@mapbox/polyline";
+import io from "socket.io-client";
 
-const AsyncOrderMap = ({ order, currentUser, driverLocation, theme = 'dark', onTelemetryUpdate, ...props }) => {
+const AsyncOrderMap = ({
+  order,
+  currentUser,
+  driverLocation,
+  theme = "dark",
+  onTelemetryUpdate,
+  ...props
+}) => {
   const [currentDriverLocation, setCurrentDriverLocation] = useState(null);
   const [actualRoute, setActualRoute] = useState(null);
   const [driverToPickupPath, setDriverToPickupPath] = useState([]);
@@ -15,12 +22,21 @@ const AsyncOrderMap = ({ order, currentUser, driverLocation, theme = 'dark', onT
   const socketRef = useRef(null);
   const pollRef = useRef(null);
 
-  const isActiveOrder = ['accepted', 'picked_up', 'in_transit'].includes(order.status);
-  const canView = (
-    currentUser?.primary_role === 'admin' ||
-    (currentUser?.primary_role === 'customer' && (order.customerId === currentUser?.id || order.customer_id === currentUser?.id)) ||
-    (currentUser?.primary_role === 'driver' && order.assignedDriver?.userId === currentUser?.id)
+  console.log(
+    `📡 [AsyncOrderMap] INPUT: orderId=${order?.id}, status=${order?.status}, driverLocation=`,
+    driverLocation,
   );
+
+  const isActiveOrder = ["accepted", "picked_up", "in_transit"].includes(
+    order.status,
+  );
+  const canView =
+    currentUser?.primary_role === "admin" ||
+    (currentUser?.primary_role === "customer" &&
+      (order.customerId === currentUser?.id ||
+        order.customer_id === currentUser?.id)) ||
+    (currentUser?.primary_role === "driver" &&
+      order.assignedDriver?.userId === currentUser?.id);
   const shouldFetch = isActiveOrder && canView;
 
   const calculateDistanceKm = (a, b) => {
@@ -30,40 +46,80 @@ const AsyncOrderMap = ({ order, currentUser, driverLocation, theme = 'dark', onT
     const dLon = toRad(b.lng - a.lng);
     const lat1 = toRad(a.lat);
     const lat2 = toRad(b.lat);
-    const h = Math.sin(dLat/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLon/2)**2;
+    const h =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
     return 2 * R * Math.asin(Math.sqrt(h));
   };
 
-  const updateTelemetry = useCallback((lat, lng) => {
-    if (!onTelemetryUpdate) return;
-    const nextTarget = order.status === 'accepted' ? order.from : order.to;
-    if (!nextTarget?.lat || !nextTarget?.lng) return;
-    const distanceKm = calculateDistanceKm({ lat, lng }, { lat: nextTarget.lat, lng: nextTarget.lng });
-    const speed = 30; // fallback if unknown
-    const etaMinutes = Math.ceil((distanceKm / speed) * 60);
-    onTelemetryUpdate({ distanceKm: distanceKm.toFixed(1), etaMinutes, speedKmh: '0', lastUpdated: new Date().toISOString(), nextTarget: order.status === 'accepted' ? 'pickup' : 'delivery' });
-  }, [onTelemetryUpdate, order.status, order.from, order.to]);
+  const updateTelemetry = useCallback(
+    (lat, lng) => {
+      if (!onTelemetryUpdate) return;
+      const nextTarget = order.status === "accepted" ? order.from : order.to;
+      if (!nextTarget?.lat || !nextTarget?.lng) return;
+      const distanceKm = calculateDistanceKm(
+        { lat, lng },
+        { lat: nextTarget.lat, lng: nextTarget.lng },
+      );
+      const speed = 30; // fallback if unknown
+      const etaMinutes = Math.ceil((distanceKm / speed) * 60);
+      onTelemetryUpdate({
+        distanceKm: distanceKm.toFixed(1),
+        etaMinutes,
+        speedKmh: "0",
+        lastUpdated: new Date().toISOString(),
+        nextTarget: order.status === "accepted" ? "pickup" : "delivery",
+      });
+    },
+    [onTelemetryUpdate, order.status, order.from, order.to],
+  );
 
   const fetchTracking = useCallback(async () => {
     try {
       setLoading(true);
-      console.log(`📡 [AsyncOrderMap] Fetching tracking for order ${order.id}, status: ${order.status}`);
+      console.log(
+        `📡 [AsyncOrderMap] Fetching tracking for order ${order.id}, status: ${order.status}, user: ${currentUser?.primary_role}`,
+      );
       const res = await api.get(`/orders/${order.id}/tracking`);
       console.log(`📡 [AsyncOrderMap] Tracking response:`, res);
       const loc = res?.currentLocation;
-      if (loc && Number.isFinite(parseFloat(loc.lat)) && Number.isFinite(parseFloat(loc.lng))) {
-        const lat = parseFloat(loc.lat), lng = parseFloat(loc.lng);
-        setCurrentDriverLocation({ latitude: lat, longitude: lng, timestamp: loc.timestamp, heading: loc.heading, speedKmh: loc.speedKmh, accuracyMeters: loc.accuracyMeters });
+      if (
+        loc &&
+        Number.isFinite(parseFloat(loc.lat)) &&
+        Number.isFinite(parseFloat(loc.lng))
+      ) {
+        const lat = parseFloat(loc.lat),
+          lng = parseFloat(loc.lng);
+        console.log(`📍 [AsyncOrderMap] Driver location found:`, lat, lng);
+        setCurrentDriverLocation({
+          latitude: lat,
+          longitude: lng,
+          timestamp: loc.timestamp,
+          heading: loc.heading,
+          speedKmh: loc.speedKmh,
+          accuracyMeters: loc.accuracyMeters,
+        });
         updateTelemetry(lat, lng);
       } else {
-        console.log(`📡 [AsyncOrderMap] No current location in response`);
+        console.log(
+          `📡 [AsyncOrderMap] No current location in response - order may not have driver location updates yet`,
+        );
       }
-      if (Array.isArray(res?.locationHistory) && res.locationHistory.length > 0) {
-        const path = res.locationHistory.map(p => [parseFloat(p.lat), parseFloat(p.lng)]);
+      if (
+        Array.isArray(res?.locationHistory) &&
+        res.locationHistory.length > 0
+      ) {
+        const path = res.locationHistory.map((p) => [
+          parseFloat(p.lat),
+          parseFloat(p.lng),
+        ]);
         setActualRoute(path);
       }
     } catch (err) {
-      console.warn('[AsyncOrderMap] tracking fetch failed', err?.message || err);
+      console.warn(
+        "[AsyncOrderMap] tracking fetch failed",
+        err?.message || err,
+      );
     } finally {
       setLoading(false);
     }
@@ -76,23 +132,39 @@ const AsyncOrderMap = ({ order, currentUser, driverLocation, theme = 'dark', onT
 
   useEffect(() => {
     if (!shouldFetch) return;
-    const apiUrl = (process.env.REACT_APP_API_URL || 'http://localhost:5000/api');
-    const socket = io(apiUrl, { withCredentials: true, transports: ['websocket'], reconnection: true });
+    const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+    const socket = io(apiUrl, {
+      withCredentials: true,
+      transports: ["websocket"],
+      reconnection: true,
+    });
     socketRef.current = socket;
 
-    socket.on('connect', () => { socket.emit('join_order', { orderId: order.id }); });
-    socket.on('connect_error', () => fetchTracking());
-    socket.on('error', () => {});
-    socket.on('location_update', (data) => {
+    socket.on("connect", () => {
+      socket.emit("join_order", { orderId: order.id });
+    });
+    socket.on("connect_error", () => fetchTracking());
+    socket.on("error", () => {});
+    socket.on("location_update", (data) => {
       if (data.orderId !== order.id) return;
-      const lat = parseFloat(data.latitude), lng = parseFloat(data.longitude);
+      const lat = parseFloat(data.latitude),
+        lng = parseFloat(data.longitude);
       if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
-      setCurrentDriverLocation({ latitude: lat, longitude: lng, timestamp: data.timestamp, heading: data.heading, speedKmh: data.speedKmh, accuracyMeters: data.accuracyMeters });
+      setCurrentDriverLocation({
+        latitude: lat,
+        longitude: lng,
+        timestamp: data.timestamp,
+        heading: data.heading,
+        speedKmh: data.speedKmh,
+        accuracyMeters: data.accuracyMeters,
+      });
       updateTelemetry(lat, lng);
     });
 
     return () => {
-      try { socket.emit('leave_order', order.id); } catch {}
+      try {
+        socket.emit("leave_order", order.id);
+      } catch {}
       socket.disconnect();
       socketRef.current = null;
     };
@@ -100,12 +172,20 @@ const AsyncOrderMap = ({ order, currentUser, driverLocation, theme = 'dark', onT
 
   useEffect(() => {
     if (!shouldFetch) return;
-    if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
+    if (pollRef.current) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
     pollRef.current = setInterval(() => {
       const s = socketRef.current;
       if (!s || s.disconnected) fetchTracking();
     }, 15000);
-    return () => { if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; } };
+    return () => {
+      if (pollRef.current) {
+        clearInterval(pollRef.current);
+        pollRef.current = null;
+      }
+    };
   }, [shouldFetch, fetchTracking]);
 
   // Fetch two-leg route for drivers: driver→waypoint and waypoint→dropoff
@@ -121,10 +201,14 @@ const AsyncOrderMap = ({ order, currentUser, driverLocation, theme = 'dark', onT
       if (!Number.isFinite(driverLat) || !Number.isFinite(driverLng)) return;
 
       // Get pickup and dropoff coordinates
-      const pickupLat = order.from?.lat || order.pickupLocation?.coordinates?.lat;
-      const pickupLng = order.from?.lng || order.pickupLocation?.coordinates?.lng;
-      const dropoffLat = order.to?.lat || order.dropoffLocation?.coordinates?.lat;
-      const dropoffLng = order.to?.lng || order.dropoffLocation?.coordinates?.lng;
+      const pickupLat =
+        order.from?.lat || order.pickupLocation?.coordinates?.lat;
+      const pickupLng =
+        order.from?.lng || order.pickupLocation?.coordinates?.lng;
+      const dropoffLat =
+        order.to?.lat || order.dropoffLocation?.coordinates?.lat;
+      const dropoffLng =
+        order.to?.lng || order.dropoffLocation?.coordinates?.lng;
 
       if (!Number.isFinite(pickupLat) || !Number.isFinite(pickupLng)) return;
 
@@ -133,7 +217,7 @@ const AsyncOrderMap = ({ order, currentUser, driverLocation, theme = 'dark', onT
         // Leg 1: Driver → Pickup (waypoint)
         const leg1Response = await MapsApi.calculateRoute({
           pickup: { lat: driverLat, lng: driverLng },
-          delivery: { lat: pickupLat, lng: pickupLng }
+          delivery: { lat: pickupLat, lng: pickupLng },
         });
 
         if (leg1Response.polyline) {
@@ -145,7 +229,7 @@ const AsyncOrderMap = ({ order, currentUser, driverLocation, theme = 'dark', onT
         if (Number.isFinite(dropoffLat) && Number.isFinite(dropoffLng)) {
           const leg2Response = await MapsApi.calculateRoute({
             pickup: { lat: pickupLat, lng: pickupLng },
-            delivery: { lat: dropoffLat, lng: dropoffLng }
+            delivery: { lat: dropoffLat, lng: dropoffLng },
           });
 
           if (leg2Response.polyline) {
@@ -154,7 +238,10 @@ const AsyncOrderMap = ({ order, currentUser, driverLocation, theme = 'dark', onT
           }
         }
       } catch (err) {
-        console.warn('[AsyncOrderMap] Route fetch failed:', err?.message || err);
+        console.warn(
+          "[AsyncOrderMap] Route fetch failed:",
+          err?.message || err,
+        );
       } finally {
         setRouteLoading(false);
       }
@@ -163,14 +250,69 @@ const AsyncOrderMap = ({ order, currentUser, driverLocation, theme = 'dark', onT
     // Wait for driver location to be available before fetching routes
     const timer = setTimeout(fetchRoutes, 500);
     return () => clearTimeout(timer);
-  }, [shouldFetch, driverLocation, currentDriverLocation, order.from, order.to, order.pickupLocation, order.dropoffLocation]);
+  }, [
+    shouldFetch,
+    driverLocation,
+    currentDriverLocation,
+    order.from,
+    order.to,
+    order.pickupLocation,
+    order.dropoffLocation,
+  ]);
 
   const isRouteLoading = loading || routeLoading;
 
+  console.log(
+    `🎯 [AsyncOrderMap] Rendering: order=${order.id}, status=${order.status}, shouldFetch=${shouldFetch}, canView=${canView}, currentDriverLocation=`,
+    currentDriverLocation,
+    "driverLocation prop=",
+    driverLocation,
+  );
+
   return (
-    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+    <div style={{ width: "100%", height: "100%", position: "relative" }}>
+      <div
+        style={{
+          position: "absolute",
+          top: 5,
+          left: 5,
+          zIndex: 2000,
+          background: "rgba(0,0,0,0.8)",
+          color: "#00FF00",
+          padding: "4px 8px",
+          fontSize: "10px",
+          fontFamily: "monospace",
+        }}
+      >
+        Order: {order?.id}
+        <br />
+        Status: {order?.status}
+        <br />
+        Fetch: {shouldFetch ? "YES" : "NO"}
+        <br />
+        Loc:{" "}
+        {currentDriverLocation || driverLocation
+          ? `${(currentDriverLocation || driverLocation).latitude?.toFixed(4)},${(currentDriverLocation || driverLocation).longitude?.toFixed(4)}`
+          : "NONE"}
+      </div>
       {isRouteLoading && (
-        <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 1000, background: 'rgba(0,0,0,0.7)', color: '#00FF00', padding: '4px 8px', borderRadius: 4, fontSize: '0.75rem', fontFamily: 'monospace', pointerEvents: 'none' }}>⚡ Loading route...</div>
+        <div
+          style={{
+            position: "absolute",
+            top: 10,
+            right: 10,
+            zIndex: 1000,
+            background: "rgba(0,0,0,0.7)",
+            color: "#00FF00",
+            padding: "4px 8px",
+            borderRadius: 4,
+            fontSize: "0.75rem",
+            fontFamily: "monospace",
+            pointerEvents: "none",
+          }}
+        >
+          ⚡ Loading route...
+        </div>
       )}
       <RoutePreviewMap
         pickup={order.from}
@@ -181,7 +323,7 @@ const AsyncOrderMap = ({ order, currentUser, driverLocation, theme = 'dark', onT
           distance_km: order.estimatedDistanceKm,
           route_found: !!order.routePolyline,
           osrm_used: !!order.routePolyline,
-          actualRoutePolyline: actualRoute
+          actualRoutePolyline: actualRoute,
         }}
         driverToPickupPath={driverToPickupPath}
         pickupToDropoffPath={pickupToDropoffPath}

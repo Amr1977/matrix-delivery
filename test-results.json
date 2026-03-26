@@ -13,9 +13,8 @@
             "keyword": "Before",
             "hidden": true,
             "result": {
-              "status": "failed",
-              "duration": 2168071499,
-              "error_message": "browserType.launch: Executable doesn't exist at C:\\Users\\amr\\AppData\\Local\\ms-playwright\\chromium_headless_shell-1208\\chrome-headless-shell-win64\\chrome-headless-shell.exe\n╔═════════════════════════════════════════════════════════════════════════╗\n║ Looks like Playwright Test or Playwright was just installed or updated. ║\n║ Please run the following command to download new browsers:              ║\n║                                                                         ║\n║     npx playwright install                                              ║\n║                                                                         ║\n║ <3 Playwright Team                                                      ║\n╚═════════════════════════════════════════════════════════════════════════╝\n    at CustomWorld.<anonymous> (D:\\matrix-delivery\\tests\\support\\hooks.js:194:33)"
+              "status": "passed",
+              "duration": 3081000
             }
           },
           {
@@ -27,8 +26,9 @@
               "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:7"
             },
             "result": {
-              "status": "skipped",
-              "duration": 0
+              "status": "failed",
+              "duration": 2675100,
+              "error_message": "TypeError: Cannot read properties of undefined (reading 'cleanup')\n    at CustomWorld.<anonymous> (D:\\matrix-delivery\\tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:8:20)"
             }
           },
           {
@@ -49,8 +49,11 @@
             "keyword": "And ",
             "line": 10,
             "name": "a driver named \"Bob\" exists",
+            "match": {
+              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:16"
+            },
             "result": {
-              "status": "undefined",
+              "status": "skipped",
               "duration": 0
             }
           },
@@ -73,7 +76,7 @@
             "line": 16,
             "name": "the order \"Urgent Documents\" should be available in the marketplace",
             "match": {
-              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:24"
+              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:27"
             },
             "result": {
               "status": "skipped",
@@ -86,7 +89,7 @@
             "line": 19,
             "name": "\"Bob\" places a bid of \"45.00\" on order \"Urgent Documents\"",
             "match": {
-              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:30"
+              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:36"
             },
             "result": {
               "status": "skipped",
@@ -99,7 +102,7 @@
             "line": 20,
             "name": "\"Alice\" should see a bid of \"45.00\" from \"Bob\"",
             "match": {
-              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:34"
+              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:47"
             },
             "result": {
               "status": "skipped",
@@ -112,7 +115,7 @@
             "line": 23,
             "name": "\"Alice\" accepts the bid from \"Bob\"",
             "match": {
-              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:44"
+              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:64"
             },
             "result": {
               "status": "skipped",
@@ -125,7 +128,7 @@
             "line": 24,
             "name": "the order status should be \"ACCEPTED\"",
             "match": {
-              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:53"
+              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:76"
             },
             "result": {
               "status": "skipped",
@@ -138,7 +141,7 @@
             "line": 25,
             "name": "\"Bob\" should see the order in their \"Active\" list",
             "match": {
-              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:58"
+              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:81"
             },
             "result": {
               "status": "skipped",
@@ -151,7 +154,7 @@
             "line": 28,
             "name": "\"Bob\" picks up the order",
             "match": {
-              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:65"
+              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:91"
             },
             "result": {
               "status": "skipped",
@@ -164,7 +167,7 @@
             "line": 29,
             "name": "the order status should be \"IN_TRANSIT\"",
             "match": {
-              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:53"
+              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:76"
             },
             "result": {
               "status": "skipped",
@@ -177,7 +180,7 @@
             "line": 31,
             "name": "\"Bob\" delivers the order",
             "match": {
-              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:69"
+              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:95"
             },
             "result": {
               "status": "skipped",
@@ -190,7 +193,7 @@
             "line": 32,
             "name": "the order status should be \"DELIVERED_PENDING\"",
             "match": {
-              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:53"
+              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:76"
             },
             "result": {
               "status": "skipped",
@@ -203,7 +206,7 @@
             "line": 34,
             "name": "\"Alice\" confirms the delivery",
             "match": {
-              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:73"
+              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:99"
             },
             "result": {
               "status": "skipped",
@@ -216,7 +219,7 @@
             "line": 35,
             "name": "the order status should be \"DELIVERED\"",
             "match": {
-              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:53"
+              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:76"
             },
             "result": {
               "status": "skipped",
@@ -229,7 +232,7 @@
             "line": 36,
             "name": "\"Bob\" wallet should be credited with \"45.00\" less commission",
             "match": {
-              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:77"
+              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:103"
             },
             "result": {
               "status": "skipped",
@@ -242,7 +245,7 @@
             "line": 37,
             "name": "\"Alice\" wallet should be \"955.00\"",
             "match": {
-              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:83"
+              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:112"
             },
             "result": {
               "status": "skipped",
@@ -255,7 +258,7 @@
             "line": 40,
             "name": "\"Bob\" reviews \"Alice\" with \"5\" stars and comment \"Great customer, easy pickup.\"",
             "match": {
-              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:89"
+              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:118"
             },
             "result": {
               "status": "skipped",
@@ -268,7 +271,7 @@
             "line": 41,
             "name": "the review should be submitted successfully",
             "match": {
-              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:95"
+              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:132"
             },
             "result": {
               "status": "skipped",
@@ -281,7 +284,7 @@
             "line": 43,
             "name": "\"Alice\" reviews \"Bob\" with \"5\" stars and comment \"Excellent driver, very fast.\"",
             "match": {
-              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:89"
+              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:118"
             },
             "result": {
               "status": "skipped",
@@ -294,7 +297,7 @@
             "line": 44,
             "name": "the review should be submitted successfully",
             "match": {
-              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:95"
+              "location": "tests\\step_definitions\\ui\\order_lifecycle_adapter_steps.js:132"
             },
             "result": {
               "status": "skipped",
@@ -306,7 +309,7 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 1334399
+              "duration": 695799
             }
           }
         ],

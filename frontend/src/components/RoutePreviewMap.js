@@ -1,38 +1,100 @@
-import React, { useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
-import L from 'leaflet';
-import polyline from '@mapbox/polyline';
-import { ClickableMap } from './FullscreenMapModal';
+import React, { useState } from "react";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  Polyline,
+  useMap,
+} from "react-leaflet";
+import L from "leaflet";
+import polyline from "@mapbox/polyline";
+import { ClickableMap } from "./FullscreenMapModal";
 
 // Fix Leaflet default icon issue
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: '/markers/marker-icon-2x.png',
-  iconUrl: '/markers/marker-icon.png',
-  shadowUrl: '/markers/marker-shadow.png',
+  iconRetinaUrl: "/markers/marker-icon-2x.png",
+  iconUrl: "/markers/marker-icon.png",
+  shadowUrl: "/markers/marker-shadow.png",
 });
 
-function RoutePreviewMap({ pickup, dropoff, routeInfo, driverLocation, driverToPickupPath = [], pickupToDropoffPath = [], bids = [], onBidAccept, onBidSelect, selectedBidId: externalSelectedBidId, loading, compact = false, t, mapTitle = "Route Preview", theme = 'dark' }) {
+function RoutePreviewMap({
+  pickup,
+  dropoff,
+  routeInfo,
+  driverLocation,
+  driverToPickupPath = [],
+  pickupToDropoffPath = [],
+  bids = [],
+  onBidAccept,
+  onBidSelect,
+  selectedBidId: externalSelectedBidId,
+  loading,
+  compact = false,
+  t,
+  mapTitle = "Route Preview",
+  theme = "dark",
+}) {
   const [internalSelectedBidId, setInternalSelectedBidId] = useState(null);
-  const selectedBidId = externalSelectedBidId !== undefined ? externalSelectedBidId : internalSelectedBidId;
-  const setSelectedBidId = externalSelectedBidId !== undefined ? onBidSelect : setInternalSelectedBidId;
+  const selectedBidId =
+    externalSelectedBidId !== undefined
+      ? externalSelectedBidId
+      : internalSelectedBidId;
+  const setSelectedBidId =
+    externalSelectedBidId !== undefined
+      ? onBidSelect
+      : setInternalSelectedBidId;
 
-  const hasCoordinates = pickup && dropoff;
-  
+  // Always show map if we have at least pickup coordinates
+  const showMap = true; // For debugging
+
+  // Debug: check if coordinates are valid before passing to MapContainer
+  const hasPickupCoords =
+    pickup?.lat &&
+    pickup?.lng &&
+    Number.isFinite(pickup.lat) &&
+    Number.isFinite(pickup.lng);
+  const hasDropoffCoords =
+    dropoff?.lat &&
+    dropoff?.lng &&
+    Number.isFinite(dropoff.lat) &&
+    Number.isFinite(dropoff.lng);
+  const hasCoords = hasPickupCoords || hasDropoffCoords;
+
+  console.log(
+    `🗺️ [RoutePreviewMap] Coordinates check: pickup=${pickup}, dropoff=${dropoff}, hasPickup=${hasPickupCoords}, hasDropoff=${hasDropoffCoords}, hasCoords=${hasCoords}`,
+  );
+
   // Normalize driverLocation coordinates
   const driverLat = Number(driverLocation?.lat || driverLocation?.latitude);
   const driverLng = Number(driverLocation?.lng || driverLocation?.longitude);
-  const hasDriverCoords = Number.isFinite(driverLat) && Number.isFinite(driverLng);
+  const hasDriverCoords =
+    Number.isFinite(driverLat) && Number.isFinite(driverLng);
+
+  console.log(
+    `🗺️ [RoutePreviewMap] driverLocation prop:`,
+    driverLocation,
+    "| normalized:",
+    driverLat,
+    driverLng,
+    "| hasCoords:",
+    hasDriverCoords,
+  );
 
   const centerLat = hasCoordinates ? (pickup.lat + dropoff.lat) / 2 : 30.0444;
   const centerLng = hasCoordinates ? (pickup.lng + dropoff.lng) / 2 : 31.2357;
 
   // If driver location is provided, adjust center to include driver
-  const effectiveCenterLat = hasDriverCoords ? (centerLat + driverLat) / 2 : centerLat;
-  const effectiveCenterLng = hasDriverCoords ? (centerLng + driverLng) / 2 : centerLng;
+  const effectiveCenterLat = hasDriverCoords
+    ? (centerLat + driverLat) / 2
+    : centerLat;
+  const effectiveCenterLng = hasDriverCoords
+    ? (centerLng + driverLng) / 2
+    : centerLng;
 
   // Get API base URL from environment, strip /api suffix for tile endpoint
-  const API_BASE = (process.env.REACT_APP_API_URL || 'http://localhost:5000/api');
+  const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
   const tileUrl = `${API_BASE}/maps/tiles/{z}/{x}/{y}.png?v=3`;
 
   // Decode polyline if available from OSRM, otherwise use straight line
@@ -54,7 +116,7 @@ function RoutePreviewMap({ pickup, dropoff, routeInfo, driverLocation, driverToP
     hasDriverLocation: !!driverLocation,
     hasBiddingRoute: !!routeInfo?.biddingRoute,
     hasActualRoute: !!routeInfo?.actualRoutePolyline,
-    theme
+    theme,
   };
 
   // Debug logging (can be removed in production)
@@ -69,17 +131,27 @@ function RoutePreviewMap({ pickup, dropoff, routeInfo, driverLocation, driverToP
       routePath = polyline.decode(routeInfo.polyline);
       isActualRoute = true;
     } catch (error) {
-      routePath = hasCoordinates ? [[pickup.lat, pickup.lng], [dropoff.lat, dropoff.lng]] : [];
+      routePath = hasCoordinates
+        ? [
+            [pickup.lat, pickup.lng],
+            [dropoff.lat, dropoff.lng],
+          ]
+        : [];
     }
   } else {
     // Fallback to straight line if no polyline available (this is normal for orders without route calculation)
-    routePath = hasCoordinates ? [[pickup.lat, pickup.lng], [dropoff.lat, dropoff.lng]] : [];
+    routePath = hasCoordinates
+      ? [
+          [pickup.lat, pickup.lng],
+          [dropoff.lat, dropoff.lng],
+        ]
+      : [];
   }
 
   // Decode actual driver route if available
   if (routeInfo?.actualRoutePolyline) {
     try {
-      if (typeof routeInfo.actualRoutePolyline === 'string') {
+      if (typeof routeInfo.actualRoutePolyline === "string") {
         actualDriverPath = polyline.decode(routeInfo.actualRoutePolyline);
       } else if (Array.isArray(routeInfo.actualRoutePolyline)) {
         actualDriverPath = routeInfo.actualRoutePolyline;
@@ -94,17 +166,17 @@ function RoutePreviewMap({ pickup, dropoff, routeInfo, driverLocation, driverToP
     const points = [];
     if (pickup) points.push([pickup.lat, pickup.lng]);
     if (dropoff) points.push([dropoff.lat, dropoff.lng]);
-    
+
     // Normalize driverLocation
     const dLat = driverLocation?.lat || driverLocation?.latitude;
     const dLng = driverLocation?.lng || driverLocation?.longitude;
     if (Number.isFinite(Number(dLat)) && Number.isFinite(Number(dLng))) {
       points.push([Number(dLat), Number(dLng)]);
     }
-    
+
     // Add bid locations to bounds
     if (Array.isArray(bids)) {
-      bids.forEach(bid => {
+      bids.forEach((bid) => {
         const lat = bid.driverLocation?.lat || bid.latitude || bid.lat;
         const lng = bid.driverLocation?.lng || bid.longitude || bid.lng;
         if (Number.isFinite(Number(lat)) && Number.isFinite(Number(lng))) {
@@ -140,7 +212,15 @@ function RoutePreviewMap({ pickup, dropoff, routeInfo, driverLocation, driverToP
 
     if (points.length === 0) return null;
     return L.latLngBounds(points);
-  }, [pickup, dropoff, driverLocation, routePath, bids, driverToPickupPath, pickupToDropoffPath]);
+  }, [
+    pickup,
+    dropoff,
+    driverLocation,
+    routePath,
+    bids,
+    driverToPickupPath,
+    pickupToDropoffPath,
+  ]);
 
   const MapEffect = () => {
     const map = useMap();
@@ -149,8 +229,14 @@ function RoutePreviewMap({ pickup, dropoff, routeInfo, driverLocation, driverToP
 
     React.useEffect(() => {
       // Only fit bounds on initial render or when order changes, not on every driver location update
-      const orderKey = pickup ? `${pickup[0]},${pickup[1]}-${dropoff?.[0]},${dropoff?.[1]}` : null;
-      if (bounds && bounds.isValid() && (!hasFittedRef.current || lastOrderRef.current !== orderKey)) {
+      const orderKey = pickup
+        ? `${pickup[0]},${pickup[1]}-${dropoff?.[0]},${dropoff?.[1]}`
+        : null;
+      if (
+        bounds &&
+        bounds.isValid() &&
+        (!hasFittedRef.current || lastOrderRef.current !== orderKey)
+      ) {
         map.fitBounds(bounds, { padding: [50, 50] });
         hasFittedRef.current = true;
         lastOrderRef.current = orderKey;
@@ -161,26 +247,37 @@ function RoutePreviewMap({ pickup, dropoff, routeInfo, driverLocation, driverToP
   };
 
   const renderMapContent = (isCompact) => {
-    const isLightMode = theme === 'light';
+    const isLightMode = theme === "light";
     return (
-      <div style={{
-        width: '100%',
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        position: 'relative'
-      }}>
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          position: "relative",
+        }}
+      >
         {loading ? (
-          <div style={{ color: isLightMode ? '#059669' : '#00FF00', fontFamily: 'monospace', padding: '1rem', textAlign: 'center' }}>Loading Map...</div>
+          <div
+            style={{
+              color: isLightMode ? "#059669" : "#00FF00",
+              fontFamily: "monospace",
+              padding: "1rem",
+              textAlign: "center",
+            }}
+          >
+            Loading Map...
+          </div>
         ) : (
           <MapContainer
             center={[effectiveCenterLat, effectiveCenterLng]}
             zoom={13}
             style={{
-              height: '100%',
-              width: '100%',
-              background: isLightMode ? '#e5e7eb' : '#000000',
-              zIndex: 1
+              height: "100%",
+              width: "100%",
+              background: isLightMode ? "#e5e7eb" : "#000000",
+              zIndex: 1,
             }}
             zoomControl={!isCompact}
             scrollWheelZoom={!isCompact}
@@ -194,30 +291,53 @@ function RoutePreviewMap({ pickup, dropoff, routeInfo, driverLocation, driverToP
             />
             <MapEffect />
             {/* Show markers only if coordinates exist */}
-            {hasCoordinates && (
+            {hasCoords && (
               <>
+                {/* Debug: Show all props */}
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 5,
+                    right: 5,
+                    zIndex: 1000,
+                    background: "rgba(0,0,0,0.7)",
+                    color: "#00FF00",
+                    padding: "4px",
+                    fontSize: "10px",
+                    fontFamily: "monospace",
+                  }}
+                >
+                  dl: {driverLat?.toFixed(4)},{driverLng?.toFinite?.()}
+                  <br />
+                  hDC: {hasDriverCoords ? "YES" : "NO"}
+                  <br />
+                  bids: {bids?.length || 0}
+                </div>
                 {/* Driver Location Marker - only show if driverLocation is provided */}
-
 
                 <Marker
                   position={[pickup.lat, pickup.lng]}
                   icon={L.icon({
-                    iconUrl: '/markers/marker-icon-2x-green.png',
+                    iconUrl: "/markers/marker-icon-2x-green.png",
                     iconSize: [25, 41],
-                    iconAnchor: [12, 41]
+                    iconAnchor: [12, 41],
                   })}
                 >
-                  <Popup><strong>Pickup Location</strong></Popup>
+                  <Popup>
+                    <strong>Pickup Location</strong>
+                  </Popup>
                 </Marker>
                 <Marker
                   position={[dropoff.lat, dropoff.lng]}
                   icon={L.icon({
-                    iconUrl: '/markers/marker-icon-2x-red.png',
+                    iconUrl: "/markers/marker-icon-2x-red.png",
                     iconSize: [25, 41],
-                    iconAnchor: [12, 41]
+                    iconAnchor: [12, 41],
                   })}
                 >
-                  <Popup><strong>Dropoff Location</strong></Popup>
+                  <Popup>
+                    <strong>Dropoff Location</strong>
+                  </Popup>
                 </Marker>
 
                 {/* Route Polyline - Solid for OSRM routes, dashed for estimated */}
@@ -261,166 +381,270 @@ function RoutePreviewMap({ pickup, dropoff, routeInfo, driverLocation, driverToP
                 )}
 
                 {/* Driver to Pickup Line (Dashed) - Fallback when no route path available */}
-                {hasDriverCoords && pickup && !actualDriverPath.length && driverToPickupPath.length === 0 && (
-                  <Polyline
-                    positions={[
-                      [driverLat, driverLng],
-                      [pickup.lat, pickup.lng]
-                    ]}
-                    color="#3B82F6"
-                    weight={4}
-                    opacity={0.8}
-                    dashArray="10, 10"
-                  />
-                )}
+                {hasDriverCoords &&
+                  pickup &&
+                  !actualDriverPath.length &&
+                  driverToPickupPath.length === 0 && (
+                    <Polyline
+                      positions={[
+                        [driverLat, driverLng],
+                        [pickup.lat, pickup.lng],
+                      ]}
+                      color="#3B82F6"
+                      weight={4}
+                      opacity={0.8}
+                      dashArray="10, 10"
+                    />
+                  )}
 
                 {/* All Bids Markers */}
                 {(() => {
                   const normalizedBids = Array.isArray(bids) ? bids : [];
-                  
+
                   if (normalizedBids.length === 0) {
                     return null;
                   }
-                  
+
                   return normalizedBids.map((bid, index) => {
-                    const rawLat = bid.driverLocation?.lat ?? bid.latitude ?? bid.lat;
-                    const rawLng = bid.driverLocation?.lng ?? bid.longitude ?? bid.lng;
-                    
-                    if (rawLat === null || rawLat === undefined || rawLng === null || rawLng === undefined) {
+                    const rawLat =
+                      bid.driverLocation?.lat ?? bid.latitude ?? bid.lat;
+                    const rawLng =
+                      bid.driverLocation?.lng ?? bid.longitude ?? bid.lng;
+
+                    if (
+                      rawLat === null ||
+                      rawLat === undefined ||
+                      rawLng === null ||
+                      rawLng === undefined
+                    ) {
                       return null;
                     }
-                    
+
                     const bidLat = Number(rawLat);
                     const bidLng = Number(rawLng);
-                    
+
                     if (!Number.isFinite(bidLat) || !Number.isFinite(bidLng)) {
                       return null;
                     }
                     if (bidLat === 0 && bidLng === 0) return null;
 
-                    const bidUserId = bid.userId || bid.driver_id || bid.user_id || `bid-${index}`;
-                    const isSelected = (selectedBidId && String(selectedBidId) === String(bidUserId)) || 
-                                     (driverLocation && (driverLocation.userId || driverLocation.id) && 
-                                      String(driverLocation.userId || driverLocation.id) === String(bidUserId));
+                    const bidUserId =
+                      bid.userId ||
+                      bid.driver_id ||
+                      bid.user_id ||
+                      `bid-${index}`;
+                    const isSelected =
+                      (selectedBidId &&
+                        String(selectedBidId) === String(bidUserId)) ||
+                      (driverLocation &&
+                        (driverLocation.userId || driverLocation.id) &&
+                        String(driverLocation.userId || driverLocation.id) ===
+                          String(bidUserId));
 
                     return (
                       <React.Fragment key={bidUserId || index}>
-                      {/* Highlighted pickup leg for selected bid */}
-                      {isSelected && pickup && (
-                        <Polyline
-                          positions={[
-                            [bidLat, bidLng],
-                            [pickup.lat, pickup.lng]
-                          ]}
-                          color="#3B82F6"
-                          weight={6}
-                          opacity={1.0}
-                          dashArray="10, 10"
-                        />
-                      )}
+                        {/* Highlighted pickup leg for selected bid */}
+                        {isSelected && pickup && (
+                          <Polyline
+                            positions={[
+                              [bidLat, bidLng],
+                              [pickup.lat, pickup.lng],
+                            ]}
+                            color="#3B82F6"
+                            weight={6}
+                            opacity={1.0}
+                            dashArray="10, 10"
+                          />
+                        )}
 
-                      <Marker
-                        position={[bidLat, bidLng]}
-                        icon={L.icon({
-                          iconUrl: isSelected ? '/markers/user-location.svg' : '/markers/marker-icon.png',
-                          iconSize: isSelected ? [60, 60] : [25, 41],
-                          iconAnchor: isSelected ? [30, 30] : [12, 41],
-                          popupAnchor: [0, -30]
-                        })}
-                        eventHandlers={{
-                          click: () => {
-                            if (externalSelectedBidId !== undefined) {
-                              if (onBidSelect) onBidSelect(bidUserId);
-                            } else {
-                              setInternalSelectedBidId(bidUserId);
-                              if (onBidSelect) onBidSelect(bidUserId);
-                            }
-                          }
-                        }}
-                      >
-                        <Popup>
-                          <div style={{ 
-                            fontSize: '0.875rem', 
-                            minWidth: '200px',
-                            color: isLightMode ? '#000' : '#fff',
-                            background: isLightMode ? '#fff' : '#000',
-                            padding: '0.5rem'
-                          }}>
-                            <div style={{ fontWeight: '600', color: '#3B82F6', marginBottom: '0.25rem', fontSize: '1rem' }}>
-                              🚗 {bid.driverName || bid.driver_name || 'Driver'}
-                            </div>
-                            <div style={{ color: '#059669', fontWeight: 'bold', marginBottom: '0.5rem' }}>
-                              Bid: {bid.bidPrice || bid.bid_price ? `${bid.bidPrice || bid.bid_price} EGP` : 'Price not set'}
-                            </div>
-                            
-                            <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.5rem', fontSize: '0.75rem' }}>
-                              <div>⭐ {bid.driverRating || bid.rating || bid.driver_rating || 'No rating'}</div>
-                              <div>📦 {bid.driverCompletedDeliveries || bid.completed_deliveries || 0} orders</div>
-                            </div>
-
-                            {bid.message && (
-                              <div style={{ 
-                                fontStyle: 'italic', 
-                                borderLeft: '3px solid #3B82F6', 
-                                paddingLeft: '0.5rem',
-                                marginBottom: '0.75rem',
-                                fontSize: '0.8125rem'
-                              }}>
-                                "{bid.message}"
-                              </div>
-                            )}
-
-                            <button
-                              onClick={() => {
-                                if (onBidAccept) onBidAccept(bidUserId);
-                              }}
+                        <Marker
+                          position={[bidLat, bidLng]}
+                          icon={L.icon({
+                            iconUrl: isSelected
+                              ? "/markers/user-location.svg"
+                              : "/markers/marker-icon.png",
+                            iconSize: isSelected ? [60, 60] : [25, 41],
+                            iconAnchor: isSelected ? [30, 30] : [12, 41],
+                            popupAnchor: [0, -30],
+                          })}
+                          eventHandlers={{
+                            click: () => {
+                              if (externalSelectedBidId !== undefined) {
+                                if (onBidSelect) onBidSelect(bidUserId);
+                              } else {
+                                setInternalSelectedBidId(bidUserId);
+                                if (onBidSelect) onBidSelect(bidUserId);
+                              }
+                            },
+                          }}
+                        >
+                          <Popup>
+                            <div
                               style={{
-                                width: '100%',
-                                padding: '0.5rem',
-                                background: '#059669',
-                                color: '#fff',
-                                border: 'none',
-                                borderRadius: '0.25rem',
-                                cursor: 'pointer',
-                                fontWeight: 'bold'
+                                fontSize: "0.875rem",
+                                minWidth: "200px",
+                                color: isLightMode ? "#000" : "#fff",
+                                background: isLightMode ? "#fff" : "#000",
+                                padding: "0.5rem",
                               }}
                             >
-                              Accept Bid
-                            </button>
-                          </div>
-                        </Popup>
-                      </Marker>
-                    </React.Fragment>
-                  );
-                });
-              })()}
+                              <div
+                                style={{
+                                  fontWeight: "600",
+                                  color: "#3B82F6",
+                                  marginBottom: "0.25rem",
+                                  fontSize: "1rem",
+                                }}
+                              >
+                                🚗{" "}
+                                {bid.driverName || bid.driver_name || "Driver"}
+                              </div>
+                              <div
+                                style={{
+                                  color: "#059669",
+                                  fontWeight: "bold",
+                                  marginBottom: "0.5rem",
+                                }}
+                              >
+                                Bid:{" "}
+                                {bid.bidPrice || bid.bid_price
+                                  ? `${bid.bidPrice || bid.bid_price} EGP`
+                                  : "Price not set"}
+                              </div>
+
+                              <div
+                                style={{
+                                  display: "flex",
+                                  gap: "1rem",
+                                  marginBottom: "0.5rem",
+                                  fontSize: "0.75rem",
+                                }}
+                              >
+                                <div>
+                                  ⭐{" "}
+                                  {bid.driverRating ||
+                                    bid.rating ||
+                                    bid.driver_rating ||
+                                    "No rating"}
+                                </div>
+                                <div>
+                                  📦{" "}
+                                  {bid.driverCompletedDeliveries ||
+                                    bid.completed_deliveries ||
+                                    0}{" "}
+                                  orders
+                                </div>
+                              </div>
+
+                              {bid.message && (
+                                <div
+                                  style={{
+                                    fontStyle: "italic",
+                                    borderLeft: "3px solid #3B82F6",
+                                    paddingLeft: "0.5rem",
+                                    marginBottom: "0.75rem",
+                                    fontSize: "0.8125rem",
+                                  }}
+                                >
+                                  "{bid.message}"
+                                </div>
+                              )}
+
+                              <button
+                                onClick={() => {
+                                  if (onBidAccept) onBidAccept(bidUserId);
+                                }}
+                                style={{
+                                  width: "100%",
+                                  padding: "0.5rem",
+                                  background: "#059669",
+                                  color: "#fff",
+                                  border: "none",
+                                  borderRadius: "0.25rem",
+                                  cursor: "pointer",
+                                  fontWeight: "bold",
+                                }}
+                              >
+                                Accept Bid
+                              </button>
+                            </div>
+                          </Popup>
+                        </Marker>
+                      </React.Fragment>
+                    );
+                  });
+                })()}
 
                 {/* Driver Location Marker */}
                 {(() => {
-                  const dLat = Number(driverLocation?.lat || driverLocation?.latitude);
-                  const dLng = Number(driverLocation?.lng || driverLocation?.longitude);
+                  // Use the pre-normalized values from earlier
+                  console.log(
+                    `🚗 [DriverMarker] Using pre-normalized: driverLat=${driverLat}, driverLng=${driverLng}, hasDriverCoords=${hasDriverCoords}`,
+                  );
+                  console.log(
+                    `🚗 [DriverMarker] driverLocation raw:`,
+                    driverLocation,
+                  );
+
+                  const dLat = driverLat;
+                  const dLng = driverLng;
                   const dUserId = driverLocation?.userId || driverLocation?.id;
-                  
-                  if (!Number.isFinite(dLat) || !Number.isFinite(dLng)) return null;
-                  
-                  // Skip if this driver is already shown in the bids list
+
+                  console.log(
+                    `🚗 [DriverMarker] Final coords: dLat=${dLat}, dLng=${dLng}, dUserId=${dUserId}`,
+                  );
+
+                  console.log(
+                    `🚗 [RoutePreviewMap] Driver marker check: lat=${dLat}, lng=${dLng}, userId=${dUserId}, bids count=${bids?.length}`,
+                  );
+
+                  if (!Number.isFinite(dLat) || !Number.isFinite(dLng)) {
+                    console.log(
+                      `🚗 [RoutePreviewMap] Driver marker NOT rendered: invalid coordinates`,
+                    );
+                    return null;
+                  }
+
+                  // Skip if this driver is already shown in the bids list (but allow for own location)
                   const normalizedBids = Array.isArray(bids) ? bids : [];
-                  if (normalizedBids.some(b => String(b.userId || b.driver_id || b.user_id) === String(dUserId))) return null;
-                  
+                  const inBids = normalizedBids.some(
+                    (b) =>
+                      String(b.userId || b.driver_id || b.user_id) ===
+                      String(dUserId),
+                  );
+
+                  // DEBUG: Always show the marker regardless of bids to test
+                  if (false && inBids) {
+                    console.log(
+                      `🚗 [RoutePreviewMap] Driver marker skipped: driver already in bids list`,
+                    );
+                    return null;
+                  }
+
+                  console.log(
+                    `🚗 [RoutePreviewMap] Rendering driver marker at:`,
+                    dLat,
+                    dLng,
+                    "(inBids:",
+                    inBids,
+                    ")",
+                  );
+                  // Always render marker for real-time driver location (not bid locations)
+                  // The bids locations are stale, driverLocation prop has live location
                   return (
                     <Marker
                       position={[dLat, dLng]}
                       icon={L.icon({
-                        iconUrl: '/markers/user-location.svg',
+                        iconUrl: "/markers/user-location.svg",
                         iconSize: [60, 60],
                         iconAnchor: [30, 30],
                         popupAnchor: [0, -30],
-                        className: ''
+                        className: "",
                       })}
                       zIndexOffset={1000}
                     >
                       <Popup>
-                        <div style={{ fontSize: '0.875rem' }}>
+                        <div style={{ fontSize: "0.875rem" }}>
                           <strong>🚗 Driver Location</strong>
                           <div>Lat: {dLat.toFixed(6)}</div>
                           <div>Lng: {dLng.toFixed(6)}</div>
@@ -436,19 +660,27 @@ function RoutePreviewMap({ pickup, dropoff, routeInfo, driverLocation, driverToP
 
         {/* Notice if no coordinates */}
         {!hasCoordinates && (
-          <div style={{
-            textAlign: 'center',
-            padding: '0.5rem',
-            background: isLightMode ? 'rgba(245, 158, 11, 0.1)' : 'rgba(245, 166, 11, 0.1)',
-            borderTop: `2px solid ${isLightMode ? '#D97706' : '#F59E0B'}`,
-            fontFamily: 'Consolas, Monaco, Courier New, monospace'
-          }}>
-            <p style={{
-              color: isLightMode ? '#B45309' : '#FBBF24',
-              margin: 0,
-              fontSize: '0.75rem',
-              textShadow: isLightMode ? 'none' : '0 0 10px rgba(251, 191, 36, 0.8)'
-            }}>
+          <div
+            style={{
+              textAlign: "center",
+              padding: "0.5rem",
+              background: isLightMode
+                ? "rgba(245, 158, 11, 0.1)"
+                : "rgba(245, 166, 11, 0.1)",
+              borderTop: `2px solid ${isLightMode ? "#D97706" : "#F59E0B"}`,
+              fontFamily: "Consolas, Monaco, Courier New, monospace",
+            }}
+          >
+            <p
+              style={{
+                color: isLightMode ? "#B45309" : "#FBBF24",
+                margin: 0,
+                fontSize: "0.75rem",
+                textShadow: isLightMode
+                  ? "none"
+                  : "0 0 10px rgba(251, 191, 36, 0.8)",
+              }}
+            >
               ⚠️ Default city view (no coordinates)
             </p>
           </div>

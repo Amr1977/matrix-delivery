@@ -167,11 +167,9 @@ router.get("/:orderId", verifyToken, async (req, res) => {
           category: "security",
         },
       );
-      return res
-        .status(403)
-        .json({
-          error: "Access denied: You are not authorized to view this order",
-        });
+      return res.status(403).json({
+        error: "Access denied: You are not authorized to view this order",
+      });
     }
 
     res.json(order);
@@ -636,17 +634,19 @@ router.get("/:orderId/tracking", verifyToken, async (req, res) => {
         userRole,
         category: "security",
       });
-      return res
-        .status(403)
-        .json({
-          error: "Access denied: You are not authorized to track this order",
-        });
+      return res.status(403).json({
+        error: "Access denied: You are not authorized to track this order",
+      });
     }
 
     // 3. Fetch current location (latest entry from driver_locations)
     const currentLocationResult = await pool.query(
       "SELECT latitude, longitude, timestamp, speed_kmh, heading, accuracy_meters FROM driver_locations WHERE order_id = $1 ORDER BY timestamp DESC LIMIT 1",
       [orderId],
+    );
+
+    console.log(
+      `📍 [Order ${orderId}] Tracking query: found ${currentLocationResult.rows.length} location records`,
     );
 
     let currentLocation = null;
