@@ -1809,7 +1809,8 @@ export const MainApp = () => {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           async (position) => {
-            const { latitude, longitude } = position.coords;
+            const { latitude, longitude, heading, speed, accuracy } =
+              position.coords;
 
             // Update driver location using the hook
             const success = await driverHook.updateDriverLocation();
@@ -1822,7 +1823,13 @@ export const MainApp = () => {
             if (activeOrders.length > 0) {
               await Promise.all(
                 activeOrders.map((o) =>
-                  OrdersApi.updateLocation(o.id, { latitude, longitude }),
+                  OrdersApi.updateLocation(o.id, {
+                    latitude,
+                    longitude,
+                    heading: heading !== null ? heading : null,
+                    speed: speed !== null ? speed * 3.6 : null, // Convert m/s to km/h
+                    accuracy: accuracy !== null ? accuracy : null,
+                  }),
                 ),
               );
             }
@@ -2982,7 +2989,8 @@ export const MainApp = () => {
                 padding: "0.5rem 1rem",
                 borderRadius: "0.375rem",
                 border: "1px solid",
-                borderColor: paymentMethodFilter === "COD" ? "#10B981" : "#D1D5DB",
+                borderColor:
+                  paymentMethodFilter === "COD" ? "#10B981" : "#D1D5DB",
                 background: paymentMethodFilter === "COD" ? "#10B981" : "white",
                 color: paymentMethodFilter === "COD" ? "white" : "#374151",
                 cursor: "pointer",
@@ -2998,8 +3006,10 @@ export const MainApp = () => {
                 padding: "0.5rem 1rem",
                 borderRadius: "0.375rem",
                 border: "1px solid",
-                borderColor: paymentMethodFilter === "PREPAID" ? "#3B82F6" : "#D1D5DB",
-                background: paymentMethodFilter === "PREPAID" ? "#3B82F6" : "white",
+                borderColor:
+                  paymentMethodFilter === "PREPAID" ? "#3B82F6" : "#D1D5DB",
+                background:
+                  paymentMethodFilter === "PREPAID" ? "#3B82F6" : "white",
                 color: paymentMethodFilter === "PREPAID" ? "white" : "#374151",
                 cursor: "pointer",
                 fontWeight: "600",
@@ -3440,9 +3450,14 @@ export const MainApp = () => {
               }
 
               // Apply payment method filter for drivers in bidding view (after history assignment)
-              if (currentUser?.primary_role === "driver" && paymentMethodFilter && viewType !== "history") {
+              if (
+                currentUser?.primary_role === "driver" &&
+                paymentMethodFilter &&
+                viewType !== "history"
+              ) {
                 ordersToDisplay = ordersToDisplay.filter(
-                  (order) => (order.payment_method || "COD") === paymentMethodFilter
+                  (order) =>
+                    (order.payment_method || "COD") === paymentMethodFilter,
                 );
               }
 

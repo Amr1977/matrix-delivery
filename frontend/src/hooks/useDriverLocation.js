@@ -68,12 +68,22 @@ const useDriverLocation = (driverId = null, shouldTrack = false, isOwnLocation =
         if (!driverId) return;
 
         try {
-            // Note: Backend doesn't currently support fetching other drivers' locations
-            // For now, we'll set location to null for other drivers
-            // TODO: Implement backend endpoint to fetch other drivers' bidding locations
-            setLocation(null);
-            setIsLive(false);
-            setError(null);
+            const response = await api.get(`/drivers/location/bidding/${driverId}`);
+            if (response.location) {
+                setLocation({
+                    latitude: response.location.latitude,
+                    longitude: response.location.longitude,
+                    heading: response.location.heading,
+                    speed_kmh: response.location.speed_kmh,
+                    accuracy_meters: response.location.accuracy_meters,
+                    timestamp: response.location.timestamp
+                });
+                setIsLive(true);
+                setError(null);
+            } else {
+                setLocation(null);
+                setIsLive(false);
+            }
         } catch (err) {
             console.error('Failed to fetch driver location:', err);
             setError(err.message || 'Failed to fetch location');

@@ -127,4 +127,32 @@ export class OrdersApi {
     static async getReviewStatus(orderId: string): Promise<any> {
         return ApiClient.get<any>(`/orders/${orderId}/review-status`);
     }
+
+    /**
+     * Get order tracking data (current location and history)
+     */
+    static async getTracking(orderId: string): Promise<any> {
+        return ApiClient.get<any>(`/orders/${orderId}/tracking`);
+    }
+
+    /**
+     * Start driver tracking for an order
+     */
+    static async startTracking(orderId: string): Promise<any> {
+        return ApiClient.post<any>(`/drivers/tracking/${orderId}/start`);
+    }
+
+    /**
+     * Stop driver tracking for an order
+     */
+    static async stopTracking(orderId: string): Promise<any> {
+        return ApiClient.post<any>(`/drivers/tracking/${orderId}/stop`);
+    }
+
+    /**
+     * Get tracking status for an order
+     */
+    static async getTrackingStatus(orderId: string): Promise<any> {
+        return ApiClient.get<any>(`/drivers/tracking/${orderId}/status`);
+    }
 }
