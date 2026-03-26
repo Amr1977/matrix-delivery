@@ -47,7 +47,7 @@ function RoutePreviewMap({
       : setInternalSelectedBidId;
 
   // Always show map if we have at least pickup coordinates
-  const showMap = true; // For debugging
+  const showMap = true;
 
   // Debug: check if coordinates are valid before passing to MapContainer
   const hasPickupCoords =
@@ -61,6 +61,7 @@ function RoutePreviewMap({
     Number.isFinite(dropoff.lat) &&
     Number.isFinite(dropoff.lng);
   const hasCoords = hasPickupCoords || hasDropoffCoords;
+  const hasCoordinates = hasCoords; // Alias for existing code
 
   console.log(
     `🗺️ [RoutePreviewMap] Coordinates check: pickup=${pickup}, dropoff=${dropoff}, hasPickup=${hasPickupCoords}, hasDropoff=${hasDropoffCoords}, hasCoords=${hasCoords}`,
