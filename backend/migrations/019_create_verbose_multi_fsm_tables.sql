@@ -67,6 +67,14 @@ CREATE TABLE IF NOT EXISTS fsm_action_log (
   user_agent TEXT
 );
 
+-- Backfill compatibility when table existed from older schema without timestamp column
+ALTER TABLE fsm_action_log
+  ADD COLUMN IF NOT EXISTS timestamp TIMESTAMP DEFAULT NOW();
+
+UPDATE fsm_action_log
+SET timestamp = NOW()
+WHERE timestamp IS NULL;
+
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_vendor_fsm_state ON marketplace_order_vendor_fsm(current_state);
 CREATE INDEX IF NOT EXISTS idx_payment_fsm_state ON marketplace_order_payment_fsm(current_state);
