@@ -2320,6 +2320,22 @@ export const MainApp = () => {
                   📋 {t("orders.activeOrders") || "Active Orders"}
                 </button>
                 <button
+                  onClick={() => setViewType("map")}
+                  style={{
+                    flex: 1,
+                    padding: "0.75rem 1rem",
+                    background: viewType === "map" ? "#4F46E5" : "#F3F4F6",
+                    color: viewType === "map" ? "white" : "#374151",
+                    border: "none",
+                    cursor: "pointer",
+                    fontWeight: "600",
+                    fontSize: "0.875rem",
+                    transition: "all 0.2s",
+                  }}
+                >
+                  🗺️ {t("menu.ordersMap") || "Orders Map"}
+                </button>
+                <button
                   onClick={() => setViewType("history")}
                   style={{
                     flex: 1,
@@ -3105,39 +3121,47 @@ export const MainApp = () => {
           </div>
         )}
 
-        {currentUser?.primary_role === "driver" && viewType === "map" && (
+        {(currentUser?.primary_role === "driver" && viewType === "map") || 
+         (currentUser?.primary_role === "customer" && viewType === "map") && (
           <div style={{ marginBottom: "1rem" }}>
             <OrdersMap
-              orders={orders.filter((order) => {
-                if (order.status !== "pending_bids") return false;
-                const hasDriverBid =
-                  Array.isArray(order.bids) &&
-                  order.bids.some((b) => b.userId === currentUser?.id);
-                if (hasDriverBid) return false;
-                const pickup =
-                  order.pickupLocation?.coordinates ||
-                  (order.from
-                    ? { lat: order.from.lat, lng: order.from.lng }
-                    : null);
-                if (
-                  !pickup ||
-                  !Number.isFinite(pickup.lat) ||
-                  !Number.isFinite(pickup.lng)
-                )
-                  return false;
-                const driver =
-                  driverLocation &&
-                  Number.isFinite(driverLocation.latitude) &&
-                  Number.isFinite(driverLocation.longitude)
-                    ? {
-                        lat: driverLocation.latitude,
-                        lng: driverLocation.longitude,
-                      }
-                    : null;
-                if (!driver) return true;
-                const d = haversineKm(driver, pickup);
-                return d <= ordersMapRadiusKm;
-              })}
+              orders={currentUser?.primary_role === "driver" 
+                ? orders.filter((order) => {
+                    if (order.status !== "pending_bids") return false;
+                    const hasDriverBid =
+                      Array.isArray(order.bids) &&
+                      order.bids.some((b) => b.userId === currentUser?.id);
+                    if (hasDriverBid) return false;
+                    const pickup =
+                      order.pickupLocation?.coordinates ||
+                      (order.from
+                        ? { lat: order.from.lat, lng: order.from.lng }
+                        : null);
+                    if (
+                      !pickup ||
+                      !Number.isFinite(pickup.lat) ||
+                      !Number.isFinite(pickup.lng)
+                    )
+                      return false;
+                    const driver =
+                      driverLocation &&
+                      Number.isFinite(driverLocation.latitude) &&
+                      Number.isFinite(driverLocation.longitude)
+                        ? {
+                            lat: driverLocation.latitude,
+                            lng: driverLocation.longitude,
+                          }
+                        : null;
+                    if (!driver) return true;
+                    const d = haversineKm(driver, pickup);
+                    return d <= ordersMapRadiusKm;
+                  })
+                : orders.filter(order => 
+                    order.status === "pending_bids" && 
+                    order.pickupLocation?.coordinates &&
+                    Number.isFinite(order.pickupLocation.coordinates.lat) &&
+                    Number.isFinite(order.pickupLocation.coordinates.lng)
+                  ),
               driverLocation={driverLocation}
               radiusKm={ordersMapRadiusKm}
               onRadiusChange={setOrdersMapRadiusKm}

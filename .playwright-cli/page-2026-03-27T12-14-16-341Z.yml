@@ -1,0 +1,117 @@
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - img [ref=e8]
+        - generic [ref=e10]:
+          - heading "MATRIX" [level=1] [ref=e11]
+          - paragraph [ref=e12]: PLATFORM
+      - generic [ref=e13]:
+        - link "Vision" [ref=e14] [cursor=pointer]:
+          - /url: "#vision"
+        - link "Live Stats" [ref=e15] [cursor=pointer]:
+          - /url: "#stats"
+        - button "Reviews" [ref=e16] [cursor=pointer]
+        - button "Login" [ref=e17] [cursor=pointer]
+        - button "EN" [ref=e19] [cursor=pointer]:
+          - img [ref=e20]
+          - generic [ref=e23]: EN
+  - generic [ref=e25]:
+    - generic [ref=e26]: "Evolution Badge: Beta Phase"
+    - heading "P2P Delivery Marketplace" [level=1] [ref=e27]
+    - paragraph [ref=e28]: The world's first decentralized logistics network powered by the people, for the people. Experience the freedom of peer-to-peer delivery.
+    - generic [ref=e29]:
+      - button "Get Started" [ref=e30] [cursor=pointer]:
+        - img [ref=e31]
+        - text: Get Started
+      - button "Voice of the People" [ref=e33] [cursor=pointer]:
+        - img [ref=e34]
+        - text: Voice of the People
+      - button "Watch Manifesto" [ref=e36] [cursor=pointer]:
+        - img [ref=e37]
+        - text: Watch Manifesto
+  - generic [ref=e40]:
+    - generic [ref=e41]:
+      - heading "Our Core Vision" [level=2] [ref=e42]
+      - paragraph [ref=e43]: The four pillars that define the Matrix.
+    - generic [ref=e44]:
+      - generic [ref=e45]:
+        - img [ref=e47]
+        - heading "Freedom" [level=3] [ref=e50]
+        - paragraph [ref=e51]: Break free from traditional logistics constraints. Delivery without borders.
+      - generic [ref=e52]:
+        - img [ref=e54]
+        - heading "Justice" [level=3] [ref=e56]
+        - paragraph [ref=e57]: Fair wages for couriers. Fair prices for customers. No hidden fees.
+      - generic [ref=e58]:
+        - img [ref=e60]
+        - heading "Efficiency" [level=3] [ref=e62]
+        - paragraph [ref=e63]: AI-optimized routing ensures the fastest possible delivery times.
+      - generic [ref=e64]:
+        - img [ref=e66]
+        - heading "Transparency" [level=3] [ref=e69]
+        - paragraph [ref=e70]: Open source protocols. Real-time tracking. Verify everything.
+  - generic [ref=e72]:
+    - heading "Global Roadmap" [level=2] [ref=e73]
+    - generic [ref=e76]:
+      - generic [ref=e77]:
+        - generic [ref=e78]:
+          - generic [ref=e79]: Completed
+          - generic [ref=e80]: Q1 2025
+        - heading "P2P Delivery Marketplace." [level=4] [ref=e81]
+        - paragraph [ref=e82]: Awakening
+      - generic [ref=e83]:
+        - generic [ref=e84]:
+          - generic [ref=e85]: Active
+          - generic [ref=e86]: Q2 2025
+        - heading "Vision" [level=4] [ref=e87]
+        - paragraph [ref=e88]: Expansion
+      - generic [ref=e89]:
+        - generic [ref=e90]:
+          - generic [ref=e91]: Upcoming
+          - generic [ref=e92]: Q4 2025
+        - heading "Freedom" [level=4] [ref=e93]
+        - paragraph [ref=e94]: Liberation
+      - generic [ref=e95]:
+        - generic [ref=e96]:
+          - generic [ref=e97]: Planned
+          - generic [ref=e98]: "2026"
+        - heading "The Source" [level=4] [ref=e99]
+        - paragraph [ref=e100]: The Source
+  - generic [ref=e102]:
+    - generic [ref=e103]:
+      - img [ref=e104]
+      - heading "Live Matrix Statistics" [level=2] [ref=e106]
+    - generic [ref=e107]:
+      - generic [ref=e108]:
+        - paragraph [ref=e109]: Registered Couriers
+        - paragraph [ref=e110]: "0"
+        - paragraph [ref=e111]:
+          - img [ref=e112]
+          - text: Licensed
+      - generic [ref=e114]:
+        - paragraph [ref=e115]: Registered Clients
+        - paragraph [ref=e116]: "0"
+        - paragraph [ref=e117]:
+          - img [ref=e118]
+          - text: Growing
+      - generic [ref=e123]:
+        - paragraph [ref=e124]: Registered Vendors
+        - paragraph [ref=e125]: "0"
+        - paragraph [ref=e126]:
+          - img [ref=e127]
+          - text: Partners
+      - generic [ref=e131]:
+        - paragraph [ref=e132]: Total Deliveries
+        - paragraph [ref=e133]: "0"
+        - paragraph [ref=e134]:
+          - img [ref=e135]
+          - text: Lifetime
+      - generic [ref=e140]:
+        - paragraph [ref=e141]: System Uptime
+        - paragraph [ref=e142]: 0m
+        - paragraph [ref=e143]:
+          - img [ref=e144]
+          - text: Online
+  - contentinfo [ref=e146]:
+    - paragraph [ref=e147]: © 2025 Matrix Delivery. A Living Platform.
