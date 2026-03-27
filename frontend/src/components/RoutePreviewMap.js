@@ -76,47 +76,36 @@ function RoutePreviewMap({
     hasDriverCoords,
   );
 
-  const haversineKm = (a, b) => {
-    if (
-      !a ||
-      !b ||
-      !Number.isFinite(Number(a.lat)) ||
-      !Number.isFinite(Number(a.lng)) ||
-      !Number.isFinite(Number(b.lat)) ||
-      !Number.isFinite(Number(b.lng))
-    ) {
-      return null;
+  const decodePath = (pathOrPolyline) => {
+    if (Array.isArray(pathOrPolyline)) {
+      return pathOrPolyline;
     }
-    const R = 6371;
-    const dLat = ((Number(b.lat) - Number(a.lat)) * Math.PI) / 180;
-    const dLng = ((Number(b.lng) - Number(a.lng)) * Math.PI) / 180;
-    const aa =
-      Math.sin(dLat / 2) ** 2 +
-      Math.cos((Number(a.lat) * Math.PI) / 180) *
-        Math.cos((Number(b.lat) * Math.PI) / 180) *
-        Math.sin(dLng / 2) ** 2;
-    const c = 2 * Math.atan2(Math.sqrt(aa), Math.sqrt(1 - aa));
-    return R * c;
+    if (typeof pathOrPolyline === "string" && pathOrPolyline.length > 0) {
+      try {
+        return polyline.decode(pathOrPolyline);
+      } catch (error) {
+        return [];
+      }
+    }
+    return [];
   };
 
-  const getBidPickupTelemetry = (bid, bidLat, bidLng) => {
+  const getBidPickupTelemetry = (bid) => {
     const rawDistance = Number(
       bid.pickupDistanceKm ?? bid.pickup_distance_km ?? bid.distance_km,
     );
     const distanceKm =
       Number.isFinite(rawDistance) && rawDistance > 0
         ? rawDistance
-        : pickup
-          ? haversineKm({ lat: bidLat, lng: bidLng }, pickup)
-          : null;
+        : null;
 
-    const rawEta = Number(bid.pickupEtaMinutes ?? bid.pickup_eta_minutes);
+    const rawEta = Number(
+      bid.pickupEtaMinutes ?? bid.pickup_eta_minutes ?? bid.eta_minutes,
+    );
     const etaMinutes =
       Number.isFinite(rawEta) && rawEta > 0
         ? rawEta
-        : Number.isFinite(distanceKm)
-          ? Math.max(1, Math.ceil((distanceKm / 30) * 60))
-          : null;
+        : null;
 
     return { distanceKm, etaMinutes };
   };
@@ -220,6 +209,16 @@ function RoutePreviewMap({
         const lng = bid.driverLocation?.lng || bid.longitude || bid.lng;
         if (Number.isFinite(Number(lat)) && Number.isFinite(Number(lng))) {
           points.push([Number(lat), Number(lng)]);
+        }
+
+        const bidRoutePath = decodePath(
+          bid.driverToPickupPolyline || bid.driver_to_pickup_polyline,
+        );
+        if (bidRoutePath.length > 1) {
+          const sampleRate = Math.ceil(bidRoutePath.length / 20);
+          for (let i = 0; i < bidRoutePath.length; i += sampleRate) {
+            points.push(bidRoutePath[i]);
+          }
         }
       });
     }
@@ -479,21 +478,26 @@ function RoutePreviewMap({
                         (driverLocation.userId || driverLocation.id) &&
                         String(driverLocation.userId || driverLocation.id) ===
                           String(bidUserId));
-                    const { distanceKm, etaMinutes } = getBidPickupTelemetry(
-                      bid,
-                      bidLat,
-                      bidLng,
+                    const { distanceKm, etaMinutes } =
+                      getBidPickupTelemetry(bid);
+                    const bidRoutePath = decodePath(
+                      bid.driverToPickupPolyline || bid.driver_to_pickup_polyline,
                     );
+                    const hasBidRoutePath = bidRoutePath.length > 1;
 
                     return (
                       <React.Fragment key={bidUserId || index}>
                         {/* Route leg from each bidding driver to pickup */}
                         {pickup && (
                           <Polyline
-                            positions={[
-                              [bidLat, bidLng],
-                              [pickup.lat, pickup.lng],
-                            ]}
+                            positions={
+                              hasBidRoutePath
+                                ? bidRoutePath
+                                : [
+                                    [bidLat, bidLng],
+                                    [pickup.lat, pickup.lng],
+                                  ]
+                            }
                             color={isSelected ? "#3B82F6" : "#6B7280"}
                             weight={isSelected ? 6 : 3}
                             opacity={isSelected ? 1.0 : 0.45}
@@ -556,7 +560,8 @@ function RoutePreviewMap({
                                   : "Price not set"}
                               </div>
 
-                              {(distanceKm || etaMinutes) && (
+                              {(Number.isFinite(distanceKm) ||
+                                Number.isFinite(etaMinutes)) && (
                                 <div
                                   style={{
                                     marginBottom: "0.5rem",

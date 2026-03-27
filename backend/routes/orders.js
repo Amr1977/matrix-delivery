@@ -2,6 +2,7 @@ const express = require("express");
 const pool = require("../config/db");
 const orderService = require("../services/orderService");
 const driverLocationService = require("../services/driverLocationService");
+const routeService = require("../services/routeService");
 const { verifyToken, requireRole } = require("../middleware/auth");
 const {
   orderCreationRateLimit,
@@ -613,7 +614,11 @@ router.get("/:orderId/tracking", verifyToken, async (req, res) => {
 
     // 1. Check if order exists and get basic info
     const orderResult = await pool.query(
-      "SELECT customer_id, assigned_driver_user_id, status FROM orders WHERE id = $1",
+      `SELECT customer_id, assigned_driver_user_id, status,
+              from_lat, from_lng, to_lat, to_lng,
+              estimated_distance_km, estimated_duration_minutes, route_polyline
+       FROM orders
+       WHERE id = $1`,
       [orderId],
     );
 
@@ -676,11 +681,58 @@ router.get("/:orderId/tracking", verifyToken, async (req, res) => {
       timestamp: loc.timestamp,
     }));
 
+    let nextWaypoint = null;
+    if (
+      currentLocation &&
+      ["accepted", "picked_up", "in_transit"].includes(order.status)
+    ) {
+      const targetType = order.status === "accepted" ? "pickup" : "delivery";
+      const targetLat =
+        targetType === "pickup"
+          ? Number(order.from_lat)
+          : Number(order.to_lat);
+      const targetLng =
+        targetType === "pickup"
+          ? Number(order.from_lng)
+          : Number(order.to_lng);
+
+      if (Number.isFinite(targetLat) && Number.isFinite(targetLng)) {
+        try {
+          const route = await routeService.calculateRoute(
+            { lat: Number(currentLocation.lat), lng: Number(currentLocation.lng) },
+            { lat: targetLat, lng: targetLng },
+          );
+
+          nextWaypoint = {
+            type: targetType,
+            location: { lat: targetLat, lng: targetLng },
+            distance_km: route.distance_km,
+            eta_minutes:
+              route.estimates?.car?.duration_minutes ?? route.duration_minutes,
+            polyline: route.polyline || null,
+            route_found: !!route.route_found,
+            osrm_used: !!route.osrm_used,
+          };
+        } catch (routeError) {
+          nextWaypoint = {
+            type: targetType,
+            location: { lat: targetLat, lng: targetLng },
+            distance_km: null,
+            eta_minutes: null,
+            polyline: null,
+            route_found: false,
+            osrm_used: false,
+          };
+        }
+      }
+    }
+
     logger.info("Order tracking data fetched", {
       orderId,
       userId,
       hasCurrentLocation: !!currentLocation,
       historyPoints: locationHistory.length,
+      hasNextWaypoint: !!nextWaypoint,
       category: "tracking",
     });
 
@@ -688,6 +740,10 @@ router.get("/:orderId/tracking", verifyToken, async (req, res) => {
       currentLocation,
       locationHistory,
       orderStatus: order.status,
+      nextWaypoint,
+      routePolyline: order.route_polyline || null,
+      estimatedDistanceKm: order.estimated_distance_km,
+      estimatedDurationMinutes: order.estimated_duration_minutes,
     });
   } catch (error) {
     logger.error(`Order tracking error: ${error.message}`, {

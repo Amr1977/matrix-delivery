@@ -1,4 +1,5 @@
 const pool = require("../config/db");
+const routeService = require("./routeService");
 
 /**
  * Driver Location Service
@@ -103,9 +104,12 @@ async function getDriversLocationsForOrder(orderId) {
         b.estimated_delivery_time,
         b.message,
         u.rating as driver_rating,
-        u.completed_deliveries
+        u.completed_deliveries,
+        o.from_lat as pickup_lat,
+        o.from_lng as pickup_lng
       FROM bids b
       JOIN users u ON b.user_id = u.id
+      JOIN orders o ON o.id = b.order_id
       LEFT JOIN LATERAL (
         SELECT * FROM driver_locations
         WHERE driver_id = b.user_id
@@ -118,7 +122,59 @@ async function getDriversLocationsForOrder(orderId) {
     `;
 
     const result = await pool.query(query, [orderId]);
-    return result.rows;
+
+    const enriched = await Promise.all(
+      result.rows.map(async (row) => {
+        const driverLat = Number(row.latitude);
+        const driverLng = Number(row.longitude);
+        const pickupLat = Number(row.pickup_lat);
+        const pickupLng = Number(row.pickup_lng);
+
+        if (
+          !Number.isFinite(driverLat) ||
+          !Number.isFinite(driverLng) ||
+          !Number.isFinite(pickupLat) ||
+          !Number.isFinite(pickupLng)
+        ) {
+          return {
+            ...row,
+            pickup_distance_km: null,
+            pickup_eta_minutes: null,
+            driver_to_pickup_polyline: null,
+            driver_to_pickup_route_found: false,
+            driver_to_pickup_osrm_used: false,
+          };
+        }
+
+        try {
+          const route = await routeService.calculateRoute(
+            { lat: driverLat, lng: driverLng },
+            { lat: pickupLat, lng: pickupLng },
+          );
+
+          return {
+            ...row,
+            pickup_distance_km: route.distance_km,
+            pickup_eta_minutes:
+              route.estimates?.car?.duration_minutes ?? route.duration_minutes,
+            driver_to_pickup_polyline: route.polyline || null,
+            driver_to_pickup_route_found: !!route.route_found,
+            driver_to_pickup_osrm_used: !!route.osrm_used,
+          };
+        } catch (routeError) {
+          return {
+            ...row,
+            pickup_distance_km: null,
+            pickup_eta_minutes: null,
+            driver_to_pickup_polyline: null,
+            driver_to_pickup_route_found: false,
+            driver_to_pickup_osrm_used: false,
+          };
+        }
+      }),
+    );
+
+    return enriched.map(({ pickup_lat, pickup_lng, ...safeRow }) => safeRow);
   } catch (error) {
     console.error("Error getting drivers locations for order:", error);
     throw error;

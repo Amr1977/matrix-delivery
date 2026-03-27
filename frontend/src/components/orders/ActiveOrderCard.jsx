@@ -75,7 +75,6 @@ const ActiveOrderCard = ({
     const [highlightedBidId, setHighlightedBidId] = useState(null);
     const [isMapVisible, setIsMapVisible] = useState(false);
     const mapContainerRef = useRef(null);
-    const isDriverAssigned = order.assignedDriver?.userId === currentUser?.id;
 
     // Determine if order is trackable (in progress)
     const isTrackable = ['accepted', 'picked_up', 'in_transit'].includes(order.status);
@@ -149,29 +148,6 @@ const ActiveOrderCard = ({
         }
     }, [highlightedBidId]);
 
-    const haversineKm = (a, b) => {
-        if (
-            !a ||
-            !b ||
-            !Number.isFinite(Number(a.lat)) ||
-            !Number.isFinite(Number(a.lng)) ||
-            !Number.isFinite(Number(b.lat)) ||
-            !Number.isFinite(Number(b.lng))
-        ) {
-            return null;
-        }
-        const R = 6371;
-        const dLat = ((Number(b.lat) - Number(a.lat)) * Math.PI) / 180;
-        const dLng = ((Number(b.lng) - Number(a.lng)) * Math.PI) / 180;
-        const aa =
-            Math.sin(dLat / 2) ** 2 +
-            Math.cos((Number(a.lat) * Math.PI) / 180) *
-                Math.cos((Number(b.lat) * Math.PI) / 180) *
-                Math.sin(dLng / 2) ** 2;
-        const c = 2 * Math.atan2(Math.sqrt(aa), Math.sqrt(1 - aa));
-        return R * c;
-    };
-
     const enrichedBidMarkers = useMemo(() => {
         const sourceBids =
             Array.isArray(bidLocations) && bidLocations.length > 0
@@ -192,17 +168,13 @@ const ActiveOrderCard = ({
                     ? Number(bid.pickupDistanceKm)
                     : Number.isFinite(Number(bid.pickup_distance_km))
                       ? Number(bid.pickup_distance_km)
-                      : hasCoords && pickupCoordinates
-                        ? haversineKm({ lat, lng }, pickupCoordinates)
-                        : null;
+                      : null;
             const pickupEtaMinutes =
                 Number.isFinite(Number(bid.pickupEtaMinutes))
                     ? Number(bid.pickupEtaMinutes)
                     : Number.isFinite(Number(bid.pickup_eta_minutes))
                       ? Number(bid.pickup_eta_minutes)
-                      : Number.isFinite(pickupDistanceKm)
-                        ? Math.max(1, Math.ceil((pickupDistanceKm / 30) * 60))
-                        : null;
+                      : null;
 
             return {
                 ...bid,
@@ -213,9 +185,11 @@ const ActiveOrderCard = ({
                 bidPrice: bid.bidPrice ?? bid.bid_price,
                 pickupDistanceKm,
                 pickupEtaMinutes,
+                driverToPickupPolyline:
+                    bid.driverToPickupPolyline || bid.driver_to_pickup_polyline || null,
             };
         });
-    }, [bidLocations, order.bids, pickupCoordinates]);
+    }, [bidLocations, order.bids]);
 
     const bidTelemetryByDriver = useMemo(() => {
         return enrichedBidMarkers.reduce((acc, bid) => {
