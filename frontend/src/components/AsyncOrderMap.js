@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import api from "../api";
 import RoutePreviewMap from "./RoutePreviewMap";
 import { MapsApi } from "../services/api/maps";
@@ -40,6 +40,61 @@ const AsyncOrderMap = ({
       (order.assignedDriver?.userId === currentUser?.id ||
         order.assigned_driver_user_id === currentUser?.id));
   const shouldFetch = isActiveOrder && canView;
+
+  const normalizeOrderPoint = useCallback(
+    (primary, fallbackCoordinates, latRaw, lngRaw) => {
+      const lat = Number(
+        primary?.lat ??
+          primary?.latitude ??
+          fallbackCoordinates?.lat ??
+          fallbackCoordinates?.latitude ??
+          latRaw,
+      );
+      const lng = Number(
+        primary?.lng ??
+          primary?.longitude ??
+          fallbackCoordinates?.lng ??
+          fallbackCoordinates?.longitude ??
+          lngRaw,
+      );
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+      return { lat, lng };
+    },
+    [],
+  );
+
+  const pickupPoint = useMemo(
+    () =>
+      normalizeOrderPoint(
+        order.from,
+        order.pickupLocation?.coordinates,
+        order.from_lat,
+        order.from_lng,
+      ),
+    [
+      normalizeOrderPoint,
+      order.from,
+      order.pickupLocation,
+      order.from_lat,
+      order.from_lng,
+    ],
+  );
+  const dropoffPoint = useMemo(
+    () =>
+      normalizeOrderPoint(
+        order.to,
+        order.dropoffLocation?.coordinates,
+        order.to_lat,
+        order.to_lng,
+      ),
+    [
+      normalizeOrderPoint,
+      order.to,
+      order.dropoffLocation,
+      order.to_lat,
+      order.to_lng,
+    ],
+  );
 
   const updateTelemetry = useCallback(
     (lat, lng, backendNextWaypoint = null) => {
@@ -233,14 +288,10 @@ const AsyncOrderMap = ({
       if (!Number.isFinite(driverLat) || !Number.isFinite(driverLng)) return;
 
       // Get pickup and dropoff coordinates
-      const pickupLat =
-        order.from?.lat || order.pickupLocation?.coordinates?.lat;
-      const pickupLng =
-        order.from?.lng || order.pickupLocation?.coordinates?.lng;
-      const dropoffLat =
-        order.to?.lat || order.dropoffLocation?.coordinates?.lat;
-      const dropoffLng =
-        order.to?.lng || order.dropoffLocation?.coordinates?.lng;
+      const pickupLat = pickupPoint?.lat;
+      const pickupLng = pickupPoint?.lng;
+      const dropoffLat = dropoffPoint?.lat;
+      const dropoffLng = dropoffPoint?.lng;
 
       if (!Number.isFinite(pickupLat) || !Number.isFinite(pickupLng)) return;
 
@@ -287,10 +338,8 @@ const AsyncOrderMap = ({
     driverLocation,
     currentDriverLocation,
     nextWaypoint,
-    order.from,
-    order.to,
-    order.pickupLocation,
-    order.dropoffLocation,
+    pickupPoint,
+    dropoffPoint,
   ]);
 
   const isRouteLoading = loading || routeLoading;
@@ -348,8 +397,8 @@ const AsyncOrderMap = ({
         </div>
       )}
       <RoutePreviewMap
-        pickup={order.from}
-        dropoff={order.to}
+        pickup={pickupPoint}
+        dropoff={dropoffPoint}
         driverLocation={driverLocation || currentDriverLocation}
         routeInfo={{
           polyline: order.routePolyline,

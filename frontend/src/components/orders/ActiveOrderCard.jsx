@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AsyncOrderMap from '../AsyncOrderMap';
 import RoutePreviewMap from '../RoutePreviewMap';
@@ -81,31 +81,49 @@ const ActiveOrderCard = ({
     const isPendingCustomerOrder =
         order.status === 'pending_bids' && currentUser?.primary_role === 'customer';
 
+    const normalizePoint = useCallback((point, latRaw, lngRaw, coordinatesRaw = null) => {
+        let parsedFromCoordinates = null;
+        if (typeof coordinatesRaw === 'string' && coordinatesRaw.includes(',')) {
+            const [cLat, cLng] = coordinatesRaw.split(',');
+            parsedFromCoordinates = { lat: Number(cLat), lng: Number(cLng) };
+        }
+
+        const lat = Number(
+            point?.lat ??
+            point?.latitude ??
+            parsedFromCoordinates?.lat ??
+            latRaw,
+        );
+        const lng = Number(
+            point?.lng ??
+            point?.longitude ??
+            parsedFromCoordinates?.lng ??
+            lngRaw,
+        );
+
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+        return { lat, lng };
+    }, []);
+
     const pickupCoordinates = useMemo(() => {
-        if (order.pickupLocation?.coordinates) {
-            return {
-                lat: Number(order.pickupLocation.coordinates.lat),
-                lng: Number(order.pickupLocation.coordinates.lng),
-            };
-        }
-        if (order.from) {
-            return { lat: Number(order.from.lat), lng: Number(order.from.lng) };
-        }
-        return null;
-    }, [order.pickupLocation, order.from]);
+        const point = order.pickupLocation?.coordinates || order.from || null;
+        return normalizePoint(
+            point,
+            order.from_lat,
+            order.from_lng,
+            order.from_coordinates,
+        );
+    }, [order.pickupLocation, order.from, order.from_lat, order.from_lng, order.from_coordinates, normalizePoint]);
 
     const dropoffCoordinates = useMemo(() => {
-        if (order.dropoffLocation?.coordinates) {
-            return {
-                lat: Number(order.dropoffLocation.coordinates.lat),
-                lng: Number(order.dropoffLocation.coordinates.lng),
-            };
-        }
-        if (order.to) {
-            return { lat: Number(order.to.lat), lng: Number(order.to.lng) };
-        }
-        return null;
-    }, [order.dropoffLocation, order.to]);
+        const point = order.dropoffLocation?.coordinates || order.to || null;
+        return normalizePoint(
+            point,
+            order.to_lat,
+            order.to_lng,
+            order.to_coordinates,
+        );
+    }, [order.dropoffLocation, order.to, order.to_lat, order.to_lng, order.to_coordinates, normalizePoint]);
 
     const hasPendingBids = Array.isArray(order.bids) && order.bids.length > 0;
     const shouldPollBidLocations = isPendingCustomerOrder && hasPendingBids;

@@ -42,19 +42,20 @@ function RoutePreviewMap({
       ? externalSelectedBidId
       : internalSelectedBidId;
 
-  // Debug: check if coordinates are valid before passing to MapContainer
-  const hasPickupCoords =
-    pickup?.lat &&
-    pickup?.lng &&
-    Number.isFinite(pickup.lat) &&
-    Number.isFinite(pickup.lng);
-  const hasDropoffCoords =
-    dropoff?.lat &&
-    dropoff?.lng &&
-    Number.isFinite(dropoff.lat) &&
-    Number.isFinite(dropoff.lng);
+  const getLatLng = (point) => {
+    if (!point) return null;
+    const lat = Number(point.lat ?? point.latitude);
+    const lng = Number(point.lng ?? point.longitude);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+    return { lat, lng };
+  };
+
+  const pickupPoint = getLatLng(pickup);
+  const dropoffPoint = getLatLng(dropoff);
+  const hasPickupCoords = !!pickupPoint;
+  const hasDropoffCoords = !!dropoffPoint;
   const hasCoords = hasPickupCoords || hasDropoffCoords;
-  const hasCoordinates = hasCoords; // Alias for existing code
+  const hasCoordinates = hasCoords;
 
   console.log(
     `🗺️ [RoutePreviewMap] Coordinates check: pickup=${pickup}, dropoff=${dropoff}, hasPickup=${hasPickupCoords}, hasDropoff=${hasDropoffCoords}, hasCoords=${hasCoords}`,
@@ -110,16 +111,30 @@ function RoutePreviewMap({
     return { distanceKm, etaMinutes };
   };
 
-  const centerLat = hasCoordinates ? (pickup.lat + dropoff.lat) / 2 : 30.0444;
-  const centerLng = hasCoordinates ? (pickup.lng + dropoff.lng) / 2 : 31.2357;
+  const baseCenterLat =
+    hasPickupCoords && hasDropoffCoords
+      ? (pickupPoint.lat + dropoffPoint.lat) / 2
+      : hasPickupCoords
+        ? pickupPoint.lat
+        : hasDropoffCoords
+          ? dropoffPoint.lat
+          : 30.0444;
+  const baseCenterLng =
+    hasPickupCoords && hasDropoffCoords
+      ? (pickupPoint.lng + dropoffPoint.lng) / 2
+      : hasPickupCoords
+        ? pickupPoint.lng
+        : hasDropoffCoords
+          ? dropoffPoint.lng
+          : 31.2357;
 
   // If driver location is provided, adjust center to include driver
   const effectiveCenterLat = hasDriverCoords
-    ? (centerLat + driverLat) / 2
-    : centerLat;
+    ? (baseCenterLat + driverLat) / 2
+    : baseCenterLat;
   const effectiveCenterLng = hasDriverCoords
-    ? (centerLng + driverLng) / 2
-    : centerLng;
+    ? (baseCenterLng + driverLng) / 2
+    : baseCenterLng;
 
   // Get API base URL from environment, strip /api suffix for tile endpoint
   const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
@@ -159,21 +174,23 @@ function RoutePreviewMap({
       routePath = polyline.decode(routeInfo.polyline);
       isActualRoute = true;
     } catch (error) {
-      routePath = hasCoordinates
-        ? [
-            [pickup.lat, pickup.lng],
-            [dropoff.lat, dropoff.lng],
-          ]
-        : [];
+      routePath =
+        hasPickupCoords && hasDropoffCoords
+          ? [
+              [pickupPoint.lat, pickupPoint.lng],
+              [dropoffPoint.lat, dropoffPoint.lng],
+            ]
+          : [];
     }
   } else {
     // Fallback to straight line if no polyline available (this is normal for orders without route calculation)
-    routePath = hasCoordinates
-      ? [
-          [pickup.lat, pickup.lng],
-          [dropoff.lat, dropoff.lng],
-        ]
-      : [];
+    routePath =
+      hasPickupCoords && hasDropoffCoords
+        ? [
+            [pickupPoint.lat, pickupPoint.lng],
+            [dropoffPoint.lat, dropoffPoint.lng],
+          ]
+        : [];
   }
 
   // Decode actual driver route if available
@@ -192,8 +209,8 @@ function RoutePreviewMap({
   // Calculate bounds to include all points
   const bounds = React.useMemo(() => {
     const points = [];
-    if (pickup) points.push([pickup.lat, pickup.lng]);
-    if (dropoff) points.push([dropoff.lat, dropoff.lng]);
+    if (hasPickupCoords) points.push([pickupPoint.lat, pickupPoint.lng]);
+    if (hasDropoffCoords) points.push([dropoffPoint.lat, dropoffPoint.lng]);
 
     // Normalize driverLocation
     const dLat = driverLocation?.lat || driverLocation?.latitude;
@@ -267,9 +284,7 @@ function RoutePreviewMap({
 
     React.useEffect(() => {
       // Only fit bounds on initial render or when order changes, not on every driver location update
-      const orderKey = pickup
-        ? `${pickup[0]},${pickup[1]}-${dropoff?.[0]},${dropoff?.[1]}`
-        : null;
+      const orderKey = `${pickupPoint?.lat ?? "na"},${pickupPoint?.lng ?? "na"}-${dropoffPoint?.lat ?? "na"},${dropoffPoint?.lng ?? "na"}`;
       if (
         bounds &&
         bounds.isValid() &&
@@ -328,8 +343,7 @@ function RoutePreviewMap({
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             />
             <MapEffect />
-            {/* Show markers only if coordinates exist */}
-            {hasCoords && (
+            {(
               <>
                 {/* Debug: Show all props */}
                 <div
@@ -353,39 +367,45 @@ function RoutePreviewMap({
                 </div>
                 {/* Driver Location Marker - only show if driverLocation is provided */}
 
-                <Marker
-                  position={[pickup.lat, pickup.lng]}
-                  icon={L.icon({
-                    iconUrl: "/markers/marker-icon-2x-green.png",
-                    iconSize: [25, 41],
-                    iconAnchor: [12, 41],
-                  })}
-                >
-                  <Popup>
-                    <strong>Pickup Location</strong>
-                  </Popup>
-                </Marker>
-                <Marker
-                  position={[dropoff.lat, dropoff.lng]}
-                  icon={L.icon({
-                    iconUrl: "/markers/marker-icon-2x-red.png",
-                    iconSize: [25, 41],
-                    iconAnchor: [12, 41],
-                  })}
-                >
-                  <Popup>
-                    <strong>Dropoff Location</strong>
-                  </Popup>
-                </Marker>
+                {hasPickupCoords && (
+                  <Marker
+                    position={[pickupPoint.lat, pickupPoint.lng]}
+                    icon={L.icon({
+                      iconUrl: "/markers/marker-icon-2x-green.png",
+                      iconSize: [25, 41],
+                      iconAnchor: [12, 41],
+                    })}
+                  >
+                    <Popup>
+                      <strong>Pickup Location</strong>
+                    </Popup>
+                  </Marker>
+                )}
+                {hasDropoffCoords && (
+                  <Marker
+                    position={[dropoffPoint.lat, dropoffPoint.lng]}
+                    icon={L.icon({
+                      iconUrl: "/markers/marker-icon-2x-red.png",
+                      iconSize: [25, 41],
+                      iconAnchor: [12, 41],
+                    })}
+                  >
+                    <Popup>
+                      <strong>Dropoff Location</strong>
+                    </Popup>
+                  </Marker>
+                )}
 
                 {/* Route Polyline - Solid for OSRM routes, dashed for estimated */}
-                <Polyline
-                  positions={routePath}
-                  color={isActualRoute ? "#00FF00" : "#FF6B00"}
-                  weight={isActualRoute ? 8 : 6}
-                  opacity={1.0}
-                  dashArray={isActualRoute ? undefined : "12, 8"}
-                />
+                {routePath.length > 1 && (
+                  <Polyline
+                    positions={routePath}
+                    color={isActualRoute ? "#00FF00" : "#FF6B00"}
+                    weight={isActualRoute ? 8 : 6}
+                    opacity={1.0}
+                    dashArray={isActualRoute ? undefined : "12, 8"}
+                  />
+                )}
 
                 {/* Actual Driver Route - Solid Green/Blue */}
                 {actualDriverPath && actualDriverPath.length > 0 && (
@@ -420,13 +440,13 @@ function RoutePreviewMap({
 
                 {/* Driver to Pickup Line (Dashed) - Fallback when no route path available */}
                 {hasDriverCoords &&
-                  pickup &&
+                  hasPickupCoords &&
                   !actualDriverPath.length &&
                   driverToPickupPath.length === 0 && (
                     <Polyline
                       positions={[
                         [driverLat, driverLng],
-                        [pickup.lat, pickup.lng],
+                        [pickupPoint.lat, pickupPoint.lng],
                       ]}
                       color="#3B82F6"
                       weight={4}
@@ -488,14 +508,14 @@ function RoutePreviewMap({
                     return (
                       <React.Fragment key={bidUserId || index}>
                         {/* Route leg from each bidding driver to pickup */}
-                        {pickup && (
+                        {hasPickupCoords && (
                           <Polyline
                             positions={
                               hasBidRoutePath
                                 ? bidRoutePath
                                 : [
                                     [bidLat, bidLng],
-                                    [pickup.lat, pickup.lng],
+                                    [pickupPoint.lat, pickupPoint.lng],
                                   ]
                             }
                             color={isSelected ? "#3B82F6" : "#6B7280"}
