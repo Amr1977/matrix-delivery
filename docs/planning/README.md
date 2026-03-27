@@ -4,6 +4,23 @@ This directory contains planning documents and design proposals for future featu
 
 ## Documents
 
+### Architecture Remediation Plan
+**File:** `2026-03-26_ARCHITECTURE_REMEDIATION_PLAN.md`  
+**Date:** March 26, 2026  
+**Status:** Active  
+**Effort:** 16-week phased program  
+
+Program-level refactor roadmap focused on strangler migration, safety gates, and architecture consistency.
+
+### Architecture Remediation Progress Tracker
+**File:** `2026-03-26_ARCHITECTURE_REMEDIATION_PROGRESS.md`  
+**Date:** March 26, 2026  
+**Status:** Active  
+
+Living checklist and dated implementation log for tracking refactor execution.
+
+---
+
 ### Order State Enhancement Plan
 **File:** `2025-12-09_order-state-enhancement-plan.md`  
 **Date:** December 9, 2025  

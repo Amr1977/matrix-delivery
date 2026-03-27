@@ -1,26 +1,11 @@
 const express = require("express");
-console.log("!!! APP.JS LOADED [RELOAD-TEST-" + Date.now() + "] !!!");
 
 const cors = require("cors");
-const dotenv = require("dotenv");
+const { loadEnvironment } = require("./config/load-env");
 
-// Load environment-specific .env file
-if (process.env.NODE_ENV === "test" || process.env.NODE_ENV === "testing") {
-  dotenv.config({ path: ".env.testing" });
-  console.log("✅ Loaded .env.testing for testing");
-} else {
-  // Check ENV_FILE first (set by PM2), then fall back to NODE_ENV-based detection
-  const envFile =
-    process.env.ENV_FILE ||
-    (process.env.NODE_ENV === "production"
-      ? ".env.production"
-      : process.env.NODE_ENV === "staging"
-        ? ".env.staging"
-        : process.env.NODE_ENV === "development"
-          ? ".env.development"
-          : ".env");
-  dotenv.config({ path: envFile });
-}
+// Load env through a shared, idempotent loader.
+// This keeps app imports safe in tests while avoiding duplicated loading logic.
+loadEnvironment({ silent: true });
 
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
@@ -96,22 +81,6 @@ app.use("/api", csrfMiddleware);
 
 // Endpoint to obtain CSRF token (used by SPA before state-changing requests)
 app.get("/api/csrf-token", csrfTokenRoute);
-
-// ============================================================================
-// DATABASE & ENVIRONMENT SETUP
-// ============================================================================
-const {
-  validateDatabaseEnvironment,
-  initializeDatabaseConnection,
-} = require("./config/database-init");
-
-// Validate DB Environment variables
-validateDatabaseEnvironment();
-
-// Initialize Database Connection (also registers ts-node)
-(async () => {
-  await initializeDatabaseConnection();
-})();
 
 // ============================================================================
 // ROUTES & MIDDLEWARE SETUP

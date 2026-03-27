@@ -1,9 +1,11 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AsyncOrderMap from '../AsyncOrderMap';
+import RoutePreviewMap from '../RoutePreviewMap';
 import OrderBiddingSection from './OrderBiddingSection';
 import OrderStatusSection from './OrderStatusSection';
 import DriverBiddingCard from './DriverBiddingCard';
+import useBidsLocations from '../../hooks/useBidsLocations';
 
 /**
  * ActiveOrderCard Component
@@ -70,10 +72,163 @@ const ActiveOrderCard = ({
 }) => {
     const navigate = useNavigate();
     const [telemetry, setTelemetry] = useState(null);
+    const [highlightedBidId, setHighlightedBidId] = useState(null);
+    const [isMapVisible, setIsMapVisible] = useState(false);
+    const mapContainerRef = useRef(null);
     const isDriverAssigned = order.assignedDriver?.userId === currentUser?.id;
 
     // Determine if order is trackable (in progress)
     const isTrackable = ['accepted', 'picked_up', 'in_transit'].includes(order.status);
+    const isPendingCustomerOrder =
+        order.status === 'pending_bids' && currentUser?.primary_role === 'customer';
+
+    const pickupCoordinates = useMemo(() => {
+        if (order.pickupLocation?.coordinates) {
+            return {
+                lat: Number(order.pickupLocation.coordinates.lat),
+                lng: Number(order.pickupLocation.coordinates.lng),
+            };
+        }
+        if (order.from) {
+            return { lat: Number(order.from.lat), lng: Number(order.from.lng) };
+        }
+        return null;
+    }, [order.pickupLocation, order.from]);
+
+    const dropoffCoordinates = useMemo(() => {
+        if (order.dropoffLocation?.coordinates) {
+            return {
+                lat: Number(order.dropoffLocation.coordinates.lat),
+                lng: Number(order.dropoffLocation.coordinates.lng),
+            };
+        }
+        if (order.to) {
+            return { lat: Number(order.to.lat), lng: Number(order.to.lng) };
+        }
+        return null;
+    }, [order.dropoffLocation, order.to]);
+
+    const hasPendingBids = Array.isArray(order.bids) && order.bids.length > 0;
+    const shouldPollBidLocations = isPendingCustomerOrder && hasPendingBids;
+    const { locations: bidLocations, loading: loadingBidLocations } = useBidsLocations(
+        order.id,
+        shouldPollBidLocations,
+        isMapVisible,
+    );
+
+    useEffect(() => {
+        setHighlightedBidId(null);
+    }, [order.id]);
+
+    useEffect(() => {
+        if (typeof IntersectionObserver === 'undefined') {
+            setIsMapVisible(true);
+            return undefined;
+        }
+        const observer = new IntersectionObserver(
+            ([entry]) => setIsMapVisible(entry.isIntersecting),
+            { threshold: 0.1 },
+        );
+
+        if (mapContainerRef.current) {
+            observer.observe(mapContainerRef.current);
+        }
+
+        return () => {
+            if (mapContainerRef.current) {
+                observer.unobserve(mapContainerRef.current);
+            }
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!highlightedBidId) return;
+        const section = document.getElementById(`bid-section-${highlightedBidId}`);
+        if (section) {
+            section.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, [highlightedBidId]);
+
+    const haversineKm = (a, b) => {
+        if (
+            !a ||
+            !b ||
+            !Number.isFinite(Number(a.lat)) ||
+            !Number.isFinite(Number(a.lng)) ||
+            !Number.isFinite(Number(b.lat)) ||
+            !Number.isFinite(Number(b.lng))
+        ) {
+            return null;
+        }
+        const R = 6371;
+        const dLat = ((Number(b.lat) - Number(a.lat)) * Math.PI) / 180;
+        const dLng = ((Number(b.lng) - Number(a.lng)) * Math.PI) / 180;
+        const aa =
+            Math.sin(dLat / 2) ** 2 +
+            Math.cos((Number(a.lat) * Math.PI) / 180) *
+                Math.cos((Number(b.lat) * Math.PI) / 180) *
+                Math.sin(dLng / 2) ** 2;
+        const c = 2 * Math.atan2(Math.sqrt(aa), Math.sqrt(1 - aa));
+        return R * c;
+    };
+
+    const enrichedBidMarkers = useMemo(() => {
+        const sourceBids =
+            Array.isArray(bidLocations) && bidLocations.length > 0
+                ? bidLocations
+                : Array.isArray(order.bids)
+                  ? order.bids
+                  : [];
+
+        return sourceBids.map((bid, index) => {
+            const bidId = bid.userId || bid.driver_id || bid.user_id || `bid-${index}`;
+            const rawLat = bid.driverLocation?.lat ?? bid.latitude ?? bid.lat;
+            const rawLng = bid.driverLocation?.lng ?? bid.longitude ?? bid.lng;
+            const lat = Number(rawLat);
+            const lng = Number(rawLng);
+            const hasCoords = Number.isFinite(lat) && Number.isFinite(lng);
+            const pickupDistanceKm =
+                Number.isFinite(Number(bid.pickupDistanceKm))
+                    ? Number(bid.pickupDistanceKm)
+                    : Number.isFinite(Number(bid.pickup_distance_km))
+                      ? Number(bid.pickup_distance_km)
+                      : hasCoords && pickupCoordinates
+                        ? haversineKm({ lat, lng }, pickupCoordinates)
+                        : null;
+            const pickupEtaMinutes =
+                Number.isFinite(Number(bid.pickupEtaMinutes))
+                    ? Number(bid.pickupEtaMinutes)
+                    : Number.isFinite(Number(bid.pickup_eta_minutes))
+                      ? Number(bid.pickup_eta_minutes)
+                      : Number.isFinite(pickupDistanceKm)
+                        ? Math.max(1, Math.ceil((pickupDistanceKm / 30) * 60))
+                        : null;
+
+            return {
+                ...bid,
+                userId: bidId,
+                latitude: hasCoords ? lat : undefined,
+                longitude: hasCoords ? lng : undefined,
+                driverName: bid.driverName || bid.driver_name || 'Driver',
+                bidPrice: bid.bidPrice ?? bid.bid_price,
+                pickupDistanceKm,
+                pickupEtaMinutes,
+            };
+        });
+    }, [bidLocations, order.bids, pickupCoordinates]);
+
+    const bidTelemetryByDriver = useMemo(() => {
+        return enrichedBidMarkers.reduce((acc, bid) => {
+            const bidId = bid.userId || bid.driver_id || bid.user_id;
+            if (!bidId) return acc;
+            acc[String(bidId)] = {
+                pickupDistanceKm: bid.pickupDistanceKm,
+                pickupEtaMinutes: bid.pickupEtaMinutes,
+                lastLocationUpdate: bid.last_location_update || bid.lastLocationUpdate || null,
+            };
+            return acc;
+        }, {});
+    }, [enrichedBidMarkers]);
 
     // ---------------------------------------------------------------------------
     // NEW: Dedicated Driver Bidding Card View
@@ -135,15 +290,39 @@ const ActiveOrderCard = ({
             )}
 
             {/* Route Preview Map */}
-            <div data-testid={'active-order-live-map-' + order.id} style={{ position: 'relative', height: '250px', marginBottom: '1rem', borderRadius: '0.5rem', overflow: 'hidden', border: '2px solid var(--matrix-border)', boxShadow: 'var(--shadow-matrix)' }}>
-
-                <AsyncOrderMap
-                    order={order}
-                    currentUser={currentUser}
-                    driverLocation={driverLocation}
-                    theme={profileData?.theme || 'dark'}
-                    onTelemetryUpdate={setTelemetry}
-                />
+            <div
+                ref={mapContainerRef}
+                data-testid={'active-order-live-map-' + order.id}
+                style={{ position: 'relative', height: '250px', marginBottom: '1rem', borderRadius: '0.5rem', overflow: 'hidden', border: '2px solid var(--matrix-border)', boxShadow: 'var(--shadow-matrix)' }}
+            >
+                {isPendingCustomerOrder ? (
+                    <RoutePreviewMap
+                        pickup={pickupCoordinates}
+                        dropoff={dropoffCoordinates}
+                        routeInfo={{
+                            polyline: order.routePolyline,
+                            distance_km: order.estimatedDistanceKm,
+                            route_found: !!order.routePolyline,
+                            osrm_used: !!order.routePolyline,
+                        }}
+                        bids={enrichedBidMarkers}
+                        selectedBidId={highlightedBidId}
+                        onBidSelect={(bidId) => setHighlightedBidId(bidId)}
+                        onBidAccept={(bidId) => handleAcceptBid(order.id, bidId)}
+                        loading={loadingBidLocations && enrichedBidMarkers.length === 0}
+                        compact={true}
+                        mapTitle={`Order #${order.orderNumber || order.id} - Bids`}
+                        theme={profileData?.theme || 'dark'}
+                    />
+                ) : (
+                    <AsyncOrderMap
+                        order={order}
+                        currentUser={currentUser}
+                        driverLocation={driverLocation}
+                        theme={profileData?.theme || 'dark'}
+                        onTelemetryUpdate={setTelemetry}
+                    />
+                )}
                 
                 {/* Live Telemetry Overlay */}
                 {isTrackable && telemetry && (
@@ -211,6 +390,27 @@ const ActiveOrderCard = ({
                                 </span>
                             </div>
                         )}
+                    </div>
+                )}
+
+                {isPendingCustomerOrder && hasPendingBids && (
+                    <div style={{
+                        position: 'absolute',
+                        top: '10px',
+                        right: '10px',
+                        zIndex: 1000,
+                        background: 'rgba(0, 17, 0, 0.85)',
+                        border: '1px solid var(--matrix-border)',
+                        padding: '0.25rem 0.5rem',
+                        borderRadius: '1rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.375rem'
+                    }}>
+                        <div className="pulse" style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#3B82F6' }}></div>
+                        <span style={{ fontSize: '0.625rem', color: '#93C5FD', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                            Live Bids Map
+                        </span>
                     </div>
                 )}
 
@@ -391,11 +591,12 @@ const ActiveOrderCard = ({
                 handleCompleteOrder={handleCompleteOrder}
                 handleConfirmDelivery={handleConfirmDelivery}
                 openReviewModal={openReviewModal}
+                highlightedBidId={highlightedBidId}
+                onBidHighlight={setHighlightedBidId}
+                bidTelemetryByDriver={bidTelemetryByDriver}
             />
         </div>
     );
 };
 
 export default ActiveOrderCard;
-
-

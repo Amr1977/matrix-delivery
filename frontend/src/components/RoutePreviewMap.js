@@ -41,13 +41,6 @@ function RoutePreviewMap({
     externalSelectedBidId !== undefined
       ? externalSelectedBidId
       : internalSelectedBidId;
-  const setSelectedBidId =
-    externalSelectedBidId !== undefined
-      ? onBidSelect
-      : setInternalSelectedBidId;
-
-  // Always show map if we have at least pickup coordinates
-  const showMap = true;
 
   // Debug: check if coordinates are valid before passing to MapContainer
   const hasPickupCoords =
@@ -82,6 +75,51 @@ function RoutePreviewMap({
     "| hasCoords:",
     hasDriverCoords,
   );
+
+  const haversineKm = (a, b) => {
+    if (
+      !a ||
+      !b ||
+      !Number.isFinite(Number(a.lat)) ||
+      !Number.isFinite(Number(a.lng)) ||
+      !Number.isFinite(Number(b.lat)) ||
+      !Number.isFinite(Number(b.lng))
+    ) {
+      return null;
+    }
+    const R = 6371;
+    const dLat = ((Number(b.lat) - Number(a.lat)) * Math.PI) / 180;
+    const dLng = ((Number(b.lng) - Number(a.lng)) * Math.PI) / 180;
+    const aa =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos((Number(a.lat) * Math.PI) / 180) *
+        Math.cos((Number(b.lat) * Math.PI) / 180) *
+        Math.sin(dLng / 2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(aa), Math.sqrt(1 - aa));
+    return R * c;
+  };
+
+  const getBidPickupTelemetry = (bid, bidLat, bidLng) => {
+    const rawDistance = Number(
+      bid.pickupDistanceKm ?? bid.pickup_distance_km ?? bid.distance_km,
+    );
+    const distanceKm =
+      Number.isFinite(rawDistance) && rawDistance > 0
+        ? rawDistance
+        : pickup
+          ? haversineKm({ lat: bidLat, lng: bidLng }, pickup)
+          : null;
+
+    const rawEta = Number(bid.pickupEtaMinutes ?? bid.pickup_eta_minutes);
+    const etaMinutes =
+      Number.isFinite(rawEta) && rawEta > 0
+        ? rawEta
+        : Number.isFinite(distanceKm)
+          ? Math.max(1, Math.ceil((distanceKm / 30) * 60))
+          : null;
+
+    return { distanceKm, etaMinutes };
+  };
 
   const centerLat = hasCoordinates ? (pickup.lat + dropoff.lat) / 2 : 30.0444;
   const centerLng = hasCoordinates ? (pickup.lng + dropoff.lng) / 2 : 31.2357;
@@ -441,19 +479,24 @@ function RoutePreviewMap({
                         (driverLocation.userId || driverLocation.id) &&
                         String(driverLocation.userId || driverLocation.id) ===
                           String(bidUserId));
+                    const { distanceKm, etaMinutes } = getBidPickupTelemetry(
+                      bid,
+                      bidLat,
+                      bidLng,
+                    );
 
                     return (
                       <React.Fragment key={bidUserId || index}>
-                        {/* Highlighted pickup leg for selected bid */}
-                        {isSelected && pickup && (
+                        {/* Route leg from each bidding driver to pickup */}
+                        {pickup && (
                           <Polyline
                             positions={[
                               [bidLat, bidLng],
                               [pickup.lat, pickup.lng],
                             ]}
-                            color="#3B82F6"
-                            weight={6}
-                            opacity={1.0}
+                            color={isSelected ? "#3B82F6" : "#6B7280"}
+                            weight={isSelected ? 6 : 3}
+                            opacity={isSelected ? 1.0 : 0.45}
                             dashArray="10, 10"
                           />
                         )}
@@ -512,6 +555,29 @@ function RoutePreviewMap({
                                   ? `${bid.bidPrice || bid.bid_price} EGP`
                                   : "Price not set"}
                               </div>
+
+                              {(distanceKm || etaMinutes) && (
+                                <div
+                                  style={{
+                                    marginBottom: "0.5rem",
+                                    padding: "0.375rem 0.5rem",
+                                    borderRadius: "0.375rem",
+                                    border: "1px solid rgba(147, 197, 253, 0.5)",
+                                    background: "rgba(59, 130, 246, 0.12)",
+                                    fontSize: "0.75rem",
+                                  }}
+                                >
+                                  <div style={{ color: "#93C5FD", marginBottom: "0.125rem" }}>
+                                    Route to pickup
+                                  </div>
+                                  {Number.isFinite(distanceKm) && (
+                                    <div>{distanceKm.toFixed(1)} km away</div>
+                                  )}
+                                  {Number.isFinite(etaMinutes) && (
+                                    <div>ETA {etaMinutes} min</div>
+                                  )}
+                                </div>
+                              )}
 
                               <div
                                 style={{

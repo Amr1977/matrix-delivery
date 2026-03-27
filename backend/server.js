@@ -1,51 +1,10 @@
-const dotenv = require("dotenv");
-const path = require("path");
-const fs = require("fs");
+const { loadEnvironment } = require("./config/load-env");
 
 // Register ts-node to load TypeScript modules
 require("ts-node/register");
 
-// Load environment FIRST with ABSOLUTE paths
-const backendDir = __dirname;
-
-let envFileToLoad = ".env";
-const envFileOverride = process.env.ENV_FILE;
-const nodeEnv = process.env.NODE_ENV || "production";
-
-if (envFileOverride) {
-  envFileToLoad = envFileOverride;
-} else if (nodeEnv === "test" || nodeEnv === "testing") {
-  envFileToLoad = ".env.testing";
-} else if (nodeEnv === "production") {
-  envFileToLoad = ".env.production";
-} else if (nodeEnv === "staging") {
-  envFileToLoad = ".env.staging";
-} else if (nodeEnv === "development") {
-  envFileToLoad = ".env.development";
-}
-
-const envPath = path.resolve(backendDir, envFileToLoad);
-const fallbackPath = path.resolve(backendDir, ".env");
-
-// Load primary env file
-if (fs.existsSync(envPath)) {
-  console.log(`📄 Loading environment from: ${envPath}`);
-  dotenv.config({ path: envPath });
-} else {
-  console.log(`⚠️ ${envFileToLoad} not found, using fallback`);
-}
-
-// Always load .env as well to fill in any missing values
-if (fs.existsSync(fallbackPath) && envPath !== fallbackPath) {
-  const result = dotenv.config({ path: fallbackPath });
-  if (result.parsed) {
-    for (const [key, value] of Object.entries(result.parsed)) {
-      if (!process.env[key]) {
-        process.env[key] = value;
-      }
-    }
-  }
-}
+// Load environment FIRST via shared loader (single source of truth)
+loadEnvironment();
 
 // Telegram env vars should now be loaded from .env.production
 console.log(
@@ -65,6 +24,10 @@ const configureSocket = require("./config/socket");
 const { startCleanup, stopCleanup } = require("./middleware/rateLimit");
 const TelegramPollingService = require("./services/telegramPollingService");
 const { BalanceService } = require("./services/balanceService");
+const {
+  validateDatabaseEnvironment,
+  initializeDatabaseConnection,
+} = require("./config/database-init");
 
 const IS_TEST =
   process.env.NODE_ENV === "test" || process.env.NODE_ENV === "testing";
@@ -134,57 +97,59 @@ const io = socketIo(httpServer, {
 // This enables session sharing across multiple PM2 instances
 // Redis is optional - server will work without it (single instance mode)
 // ============================================================================
-if (process.env.REDIS_URL && process.env.ENABLE_REDIS === "true" && !IS_TEST) {
-  // Only use Redis adapter if explicitly enabled
-  try {
-    const pubClient = new Redis(process.env.REDIS_URL, {
-      maxRetriesPerRequest: 3,
-      enableReadyCheck: false,
-      lazyConnect: true,
-      connectTimeout: 10000,
-    });
-    const subClient = pubClient.duplicate();
-
-    // Try to connect with timeout
-    const connectPromise = Promise.all([
-      pubClient.connect(),
-      subClient.connect(),
-    ]);
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error("Redis connection timeout")), 5000),
-    );
-
-    Promise.race([connectPromise, timeoutPromise])
-      .then(() => {
-        io.adapter(createAdapter(pubClient, subClient));
-        logger.info(
-          "✅ Socket.IO Redis adapter connected - cluster mode enabled",
-        );
-      })
-      .catch((err) => {
-        pubClient.disconnect().catch(() => {});
-        subClient.disconnect().catch(() => {});
-        logger.warn(
-          `⚠️ Redis unavailable for Socket.IO: ${err.message} - using in-memory adapter (single instance)`,
-        );
+const setupSocketRedisAdapter = () => {
+  if (process.env.REDIS_URL && process.env.ENABLE_REDIS === "true" && !IS_TEST) {
+    // Only use Redis adapter if explicitly enabled
+    try {
+      const pubClient = new Redis(process.env.REDIS_URL, {
+        maxRetriesPerRequest: 3,
+        enableReadyCheck: false,
+        lazyConnect: true,
+        connectTimeout: 10000,
       });
+      const subClient = pubClient.duplicate();
 
-    pubClient.on("error", (err) => {
-      logger.debug(`Redis pubClient error: ${err.message}`);
-    });
-    subClient.on("error", (err) => {
-      logger.debug(`Redis subClient error: ${err.message}`);
-    });
-  } catch (err) {
-    logger.warn(
-      `⚠️ Redis setup skipped for Socket.IO: ${err.message} - using in-memory adapter`,
+      // Try to connect with timeout
+      const connectPromise = Promise.all([
+        pubClient.connect(),
+        subClient.connect(),
+      ]);
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Redis connection timeout")), 5000),
+      );
+
+      Promise.race([connectPromise, timeoutPromise])
+        .then(() => {
+          io.adapter(createAdapter(pubClient, subClient));
+          logger.info(
+            "✅ Socket.IO Redis adapter connected - cluster mode enabled",
+          );
+        })
+        .catch((err) => {
+          pubClient.disconnect().catch(() => {});
+          subClient.disconnect().catch(() => {});
+          logger.warn(
+            `⚠️ Redis unavailable for Socket.IO: ${err.message} - using in-memory adapter (single instance)`,
+          );
+        });
+
+      pubClient.on("error", (err) => {
+        logger.debug(`Redis pubClient error: ${err.message}`);
+      });
+      subClient.on("error", (err) => {
+        logger.debug(`Redis subClient error: ${err.message}`);
+      });
+    } catch (err) {
+      logger.warn(
+        `⚠️ Redis setup skipped for Socket.IO: ${err.message} - using in-memory adapter`,
+      );
+    }
+  } else if (!IS_TEST) {
+    logger.info(
+      "ℹ️ Socket.IO using in-memory adapter (set ENABLE_REDIS=true for cluster mode)",
     );
   }
-} else if (!IS_TEST) {
-  logger.info(
-    "ℹ️ Socket.IO using in-memory adapter (set ENABLE_REDIS=true for cluster mode)",
-  );
-}
+};
 
 // Configure Socket.IO
 configureSocket(io);
@@ -201,87 +166,107 @@ messagingService.setSocketIo(io);
 
 let server;
 
-process.on("uncaughtException", (err) => {
-  console.error("❌ UNCAUGHT EXCEPTION:", err);
-  logger.error("❌ UNCAUGHT EXCEPTION:", err);
-  process.exit(1);
-});
+const registerRuntimeProcessHandlers = () => {
+  process.on("uncaughtException", (err) => {
+    console.error("❌ UNCAUGHT EXCEPTION:", err);
+    logger.error("❌ UNCAUGHT EXCEPTION:", err);
+    process.exit(1);
+  });
 
-process.on("unhandledRejection", (reason, promise) => {
-  console.error("❌ UNHANDLED REJECTION:", reason);
-  logger.error("❌ UNHANDLED REJECTION:", reason);
-  process.exit(1);
-});
+  process.on("unhandledRejection", (reason) => {
+    console.error("❌ UNHANDLED REJECTION:", reason);
+    logger.error("❌ UNHANDLED REJECTION:", reason);
+    process.exit(1);
+  });
+};
 
 if (require.main === module) {
-  // Start rate limit cleanup only when running the server directly
-  startCleanup();
+  const startServer = async () => {
+    registerRuntimeProcessHandlers();
 
-  // Start cache cleanup to prevent memory leaks
-  const { startCacheCleanup } = require("./utils/cache");
-  startCacheCleanup();
-  logger.info("✅ Cache cleanup scheduled (every 5 minutes)");
+    // Validate and initialize DB explicitly before starting network listeners.
+    validateDatabaseEnvironment();
+    await initializeDatabaseConnection();
+    setupSocketRedisAdapter();
 
-  // Schedule driver location cleanup every 6 hours
-  const { cleanupOldLocations } = require("./services/driverLocationService");
-  const locationCleanupInterval = setInterval(
-    async () => {
-      try {
-        const count = await cleanupOldLocations();
-        if (count > 0) {
-          logger.info(`Driver location cleanup: removed ${count} records`);
+    // Start rate limit cleanup only when running the server directly
+    startCleanup();
+
+    // Start cache cleanup to prevent memory leaks
+    const { startCacheCleanup } = require("./utils/cache");
+    startCacheCleanup();
+    logger.info("✅ Cache cleanup scheduled (every 5 minutes)");
+
+    // Schedule driver location cleanup every 6 hours
+    const { cleanupOldLocations } = require("./services/driverLocationService");
+    const locationCleanupInterval = setInterval(
+      async () => {
+        try {
+          const count = await cleanupOldLocations();
+          if (count > 0) {
+            logger.info(`Driver location cleanup: removed ${count} records`);
+          }
+        } catch (err) {
+          logger.error("Driver location cleanup error:", err.message);
         }
-      } catch (err) {
-        logger.error("Driver location cleanup error:", err.message);
+      },
+      6 * 60 * 60 * 1000,
+    );
+    locationCleanupInterval.unref();
+
+    server = httpServer.listen(PORT, "0.0.0.0", () => {
+      console.log("");
+      console.log("╔════════════════════════════════════════════════════╗");
+      console.log("         🚚 Matrix Delivery Server (PostgreSQL)");
+      console.log("╚════════════════════════════════════════════════════╝");
+      console.log("");
+      console.log(`✅ Server running on: http://localhost:${PORT}`);
+      console.log(
+        `📍 API Base URL: http://localhost:${PORT}/api [RELOAD-TEST-${Date.now()}]`,
+      );
+      console.log(`💾 Database: PostgreSQL`);
+      console.log(
+        `🔒 Environment: ${IS_TEST ? "Testing" : IS_PRODUCTION ? "Production" : "Development"}`,
+      );
+      console.log("");
+
+      // Debug: Log startup check
+      console.log(
+        `🔍 Telegram startup check: IS_TEST=${IS_TEST}, HAS_TOKEN=${!!process.env.TELEGRAM_BOT_TOKEN}`,
+      );
+
+      // Telegram polling service disabled - using webhook mode instead
+      // If webhook is not available, uncomment below to enable polling
+      if (false && !IS_TEST && process.env.TELEGRAM_BOT_TOKEN) {
+        try {
+          telegramPollingService = new TelegramPollingService(
+            process.env.TELEGRAM_BOT_TOKEN,
+            pool,
+            new BalanceService(pool),
+          );
+          telegramPollingService.start();
+          console.log("🤖 Telegram polling service started");
+        } catch (err) {
+          console.error("❌ Failed to start Telegram polling:", err.message);
+        }
       }
-    },
-    6 * 60 * 60 * 1000,
-  );
-  locationCleanupInterval.unref();
 
-  server = httpServer.listen(PORT, "0.0.0.0", () => {
-    console.log("");
-    console.log("╔════════════════════════════════════════════════════╗");
-    console.log("         🚚 Matrix Delivery Server (PostgreSQL)");
-    console.log("╚════════════════════════════════════════════════════╝");
-    console.log("");
-    console.log(`✅ Server running on: http://localhost:${PORT}`);
-    console.log(
-      `📍 API Base URL: http://localhost:${PORT}/api [RELOAD-TEST-${Date.now()}]`,
-    );
-    console.log(`💾 Database: PostgreSQL`);
-    console.log(
-      `🔒 Environment: ${IS_TEST ? "Testing" : IS_PRODUCTION ? "Production" : "Development"}`,
-    );
-    console.log("");
+      // ... Additional endpoint logs omitted for brevity in entry point ...
 
-    // Debug: Log startup check
-    console.log(
-      `🔍 Telegram startup check: IS_TEST=${IS_TEST}, HAS_TOKEN=${!!process.env.TELEGRAM_BOT_TOKEN}`,
-    );
-
-    // Telegram polling service disabled - using webhook mode instead
-    // If webhook is not available, uncomment below to enable polling
-    if (false && !IS_TEST && process.env.TELEGRAM_BOT_TOKEN) {
-      try {
-        telegramPollingService = new TelegramPollingService(
-          process.env.TELEGRAM_BOT_TOKEN,
-          pool,
-          new BalanceService(pool),
-        );
-        telegramPollingService.start();
-        console.log("🤖 Telegram polling service started");
-      } catch (err) {
-        console.error("❌ Failed to start Telegram polling:", err.message);
+      // Signal PM2 that the application is ready
+      if (process.send) {
+        process.send("ready");
       }
-    }
+    });
+  };
 
-    // ... Additional endpoint logs omitted for brevity in entry point ...
-
-    // Signal PM2 that the application is ready
-    if (process.send) {
-      process.send("ready");
-    }
+  startServer().catch((err) => {
+    logger.error("❌ Server startup failed", {
+      category: "startup",
+      error: err.message,
+      stack: err.stack,
+    });
+    process.exit(1);
   });
 }
 

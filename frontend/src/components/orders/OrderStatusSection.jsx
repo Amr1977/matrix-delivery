@@ -21,6 +21,9 @@ const OrderStatusSection = ({
     handleCompleteOrder,
     handleConfirmDelivery,
     openReviewModal,
+    highlightedBidId,
+    onBidHighlight,
+    bidTelemetryByDriver = {},
 }) => {
     const isDriverAssigned = order.assignedDriver?.userId === currentUser?.id;
 
@@ -34,6 +37,16 @@ const OrderStatusSection = ({
                     </h4>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
                         {order.bids.map((bid, index) => {
+                            const bidId = bid.userId || bid.driver_id || bid.user_id;
+                            const isHighlighted = bidId && String(highlightedBidId) === String(bidId);
+                            const bidTelemetry = bidId ? bidTelemetryByDriver[String(bidId)] : null;
+                            const pickupDistanceKm = Number.isFinite(Number(bidTelemetry?.pickupDistanceKm))
+                                ? Number(bidTelemetry.pickupDistanceKm)
+                                : null;
+                            const pickupEtaMinutes = Number.isFinite(Number(bidTelemetry?.pickupEtaMinutes))
+                                ? Number(bidTelemetry.pickupEtaMinutes)
+                                : null;
+
                             // Helper function to get avatar
                             const getDriverAvatar = () => {
                                 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -56,13 +69,21 @@ const OrderStatusSection = ({
 
                             return (
                                 <div
-                                    key={index}
+                                    key={bidId || index}
+                                    id={`bid-section-${bidId || index}`}
+                                    data-testid={`bid-section-${order.id}-${bidId || index}`}
                                     className="card"
                                     style={{
                                         padding: 'var(--spacing-lg)',
                                         marginBottom: 0,
-                                        position: 'relative'
+                                        position: 'relative',
+                                        border: isHighlighted ? '2px solid #3B82F6' : '1px solid var(--matrix-border)',
+                                        boxShadow: isHighlighted ? '0 0 18px rgba(59, 130, 246, 0.35)' : undefined,
+                                        transform: isHighlighted ? 'translateY(-1px)' : 'translateY(0)',
+                                        transition: 'all 0.2s ease'
                                     }}
+                                    onClick={() => onBidHighlight?.(bidId)}
+                                    onMouseEnter={() => onBidHighlight?.(bidId)}
                                 >
                                     {/* Profile Section */}
                                     <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)', alignItems: 'start' }}>
@@ -188,11 +209,41 @@ const OrderStatusSection = ({
                                                 fontWeight: '700',
                                                 textShadow: '0 0 15px var(--status-pending)'
                                             }}>
-                                                ${parseFloat(bid.bidPrice).toFixed(2)}
+                                                ${parseFloat(bid.bidPrice ?? bid.bid_price ?? 0).toFixed(2)}
                                             </div>
                                             <div style={{ fontSize: '0.625rem', color: 'var(--matrix-green)' }}>{t('reputation.bidPrice')}</div>
                                         </div>
                                     </div>
+
+                                    {(pickupDistanceKm !== null || pickupEtaMinutes !== null) && (
+                                        <div
+                                            data-testid={`bid-telemetry-${order.id}-${bidId || index}`}
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '0.75rem',
+                                                marginBottom: 'var(--spacing-md)',
+                                                padding: '0.5rem 0.75rem',
+                                                borderRadius: 'var(--radius-sm)',
+                                                background: 'rgba(59, 130, 246, 0.12)',
+                                                border: '1px solid rgba(147, 197, 253, 0.4)',
+                                            }}
+                                        >
+                                            <span style={{ fontSize: '0.75rem', color: '#93C5FD', fontWeight: 600 }}>
+                                                Route to pickup
+                                            </span>
+                                            {pickupDistanceKm !== null && (
+                                                <span className="text-matrix" style={{ fontSize: '0.8rem' }}>
+                                                    {pickupDistanceKm.toFixed(1)} km
+                                                </span>
+                                            )}
+                                            {pickupEtaMinutes !== null && (
+                                                <span className="text-matrix" style={{ fontSize: '0.8rem' }}>
+                                                    ETA {pickupEtaMinutes} min
+                                                </span>
+                                            )}
+                                        </div>
+                                    )}
 
                                     {/* Estimated Times */}
                                     {(bid.estimatedPickupTime || bid.estimatedDeliveryTime) && (
@@ -243,8 +294,8 @@ const OrderStatusSection = ({
                                     {/* Action Buttons */}
                                     <div className="btn-group" style={{ display: 'flex', gap: 'var(--spacing-sm)', flexWrap: 'wrap' }}>
                                         <button
-                                            data-testid={`accept-bid-btn-${order.id}-${bid.userId}`}
-                                            onClick={() => handleAcceptBid(order.id, bid.userId)}
+                                            data-testid={`accept-bid-btn-${order.id}-${bidId || bid.userId}`}
+                                            onClick={() => handleAcceptBid(order.id, bidId || bid.userId)}
                                             disabled={loadingStates.acceptBid}
                                             className="btn-success"
                                             style={{ flex: '1 1 auto', minWidth: '120px' }}
