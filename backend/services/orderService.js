@@ -767,17 +767,7 @@ END as acceptedBid
         );
       }
     } else {
-      // ✅ ESCROW: Check customer balance for upfront payment (COD orders)
-      const balanceCheck = await balanceService.checkOrderBalance(
-        customerId,
-        upfrontPayment,
-        price,
-      );
-      if (!balanceCheck.canCreate) {
-        throw new Error(
-          `Insufficient balance. Required: ${balanceCheck.requiredBalance} EGP, Available: ${balanceCheck.availableBalance} EGP. Please top up ${balanceCheck.shortfall} EGP.`,
-        );
-      }
+      // COD: No balance check needed - courier collects cash on delivery
     }
 
     const orderId = this.generateId();
