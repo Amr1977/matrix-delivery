@@ -10,18 +10,21 @@
   /* Matrix Colors */
   --matrix-black: #000000;
   --matrix-dark-green: #001100;
-  --matrix-green: #00FF00;
-  --matrix-bright-green: #30FF30;
+  --matrix-green: #00ff00;
+  --matrix-bright-green: #30ff30;
   --matrix-dim-green: #003300;
-  --matrix-border: #00AA00;
+  --matrix-border: #00aa00;
 
   /* Status Colors */
-  --status-pending: #FCD34D;
-  --status-accepted: #60A5FA;
-  --status-picked: #A78BFA;
-  --status-transit: #F472B6;
-  --status-delivered: #34D399;
-  --status-cancelled: #F87171;
+  --status-pending: #fcd34d;
+  --status-accepted: #60a5fa;
+  --status-picked: #a78bfa;
+  --status-transit: #f472b6;
+  --status-delivered: #34d399;
+  --status-courier-delivered: #34d399;
+  --status-customer-delivered: #10b981;
+  --status-completed: #059669;
+  --status-cancelled: #f87171;
 
   /* Spacing */
   --spacing-xs: 0.25rem;
@@ -53,7 +56,7 @@
 body {
   background: var(--matrix-black);
   color: var(--matrix-bright-green);
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-family: "Consolas", "Monaco", "Courier New", monospace;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
@@ -81,21 +84,21 @@ body {
    MATRIX ANIMATIONS
    ============================================ */
 @keyframes matrix-glow {
-
   0%,
   100% {
-    box-shadow: 0 0 5px rgba(0, 255, 0, 0.2),
+    box-shadow:
+      0 0 5px rgba(0, 255, 0, 0.2),
       inset 0 0 5px rgba(0, 255, 0, 0.1);
   }
 
   50% {
-    box-shadow: 0 0 20px rgba(0, 255, 0, 0.4),
+    box-shadow:
+      0 0 20px rgba(0, 255, 0, 0.4),
       inset 0 0 10px rgba(0, 255, 0, 0.2);
   }
 }
 
 @keyframes matrix-pulse {
-
   0%,
   100% {
     opacity: 1;
@@ -119,7 +122,6 @@ body {
 }
 
 @keyframes bell-ring {
-
   0%,
   100% {
     transform: rotate(0deg);
@@ -141,7 +143,11 @@ body {
    HEADER - MOBILE FIRST WITH HAMBURGER
    ============================================ */
 header {
-  background: linear-gradient(135deg, var(--matrix-black) 0%, var(--matrix-dark-green) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--matrix-black) 0%,
+    var(--matrix-dark-green) 100%
+  );
   border-bottom: 2px solid var(--matrix-border);
   position: sticky;
   top: 0;
@@ -256,7 +262,11 @@ header {
   width: 80%;
   max-width: 300px;
   height: 100vh;
-  background: linear-gradient(135deg, var(--matrix-black) 0%, var(--matrix-dark-green) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--matrix-black) 0%,
+    var(--matrix-dark-green) 100%
+  );
   border-left: 2px solid var(--matrix-border);
   padding: var(--spacing-xl);
   padding-top: 5rem;
@@ -363,7 +373,7 @@ header {
   position: absolute;
   top: -0.5rem;
   right: -0.5rem;
-  background: #DC2626;
+  background: #dc2626;
   color: white;
   border-radius: 9999px;
   min-width: 1.25rem;
@@ -383,7 +393,7 @@ header {
    ============================================ */
 button,
 .btn {
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-family: "Consolas", "Monaco", "Courier New", monospace;
   font-weight: 600;
   border: 2px solid var(--matrix-border);
   border-radius: var(--radius-md);
@@ -415,27 +425,35 @@ button:disabled,
 
 /* Primary Button */
 .btn-primary {
-  background: linear-gradient(135deg, var(--matrix-dim-green) 0%, var(--matrix-dark-green) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--matrix-dim-green) 0%,
+    var(--matrix-dark-green) 100%
+  );
   color: var(--matrix-bright-green);
   border-color: var(--matrix-border);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, var(--matrix-dark-green) 0%, var(--matrix-green) 20%);
+  background: linear-gradient(
+    135deg,
+    var(--matrix-dark-green) 0%,
+    var(--matrix-green) 20%
+  );
 }
 
 /* Success Button */
 .btn-success {
-  background: linear-gradient(135deg, #065F46 0%, #10B981 100%);
+  background: linear-gradient(135deg, #065f46 0%, #10b981 100%);
   color: white;
-  border-color: #34D399;
+  border-color: #34d399;
 }
 
 /* Danger Button */
 .btn-danger {
-  background: linear-gradient(135deg, #991B1B 0%, #DC2626 100%);
+  background: linear-gradient(135deg, #991b1b 0%, #dc2626 100%);
   color: white;
-  border-color: #F87171;
+  border-color: #f87171;
   text-align: center;
   white-space: nowrap;
   min-width: fit-content;
@@ -444,7 +462,6 @@ button:disabled,
 
 /* Mobile: Full width buttons by default */
 @media (max-width: 767px) {
-
   button,
   .btn {
     width: 100%;
@@ -473,7 +490,11 @@ button:disabled,
 .card,
 .order-card,
 .modal-content {
-  background: linear-gradient(135deg, var(--matrix-black) 0%, var(--matrix-dark-green) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--matrix-black) 0%,
+    var(--matrix-dark-green) 100%
+  );
   border: 2px solid var(--matrix-border);
   border-radius: var(--radius-lg);
   padding: var(--spacing-lg);
@@ -489,7 +510,6 @@ button:disabled,
 
 /* Mobile: Reduce padding */
 @media (max-width: 767px) {
-
   .card,
   .order-card {
     padding: var(--spacing-md);
@@ -509,7 +529,7 @@ textarea {
   padding: var(--spacing-sm) var(--spacing-md);
   font-size: 16px;
   /* Prevents iOS zoom */
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-family: "Consolas", "Monaco", "Courier New", monospace;
   width: 100%;
   transition: all 0.3s ease;
 }
@@ -529,7 +549,6 @@ textarea::placeholder {
 
 /* Mobile: Ensure proper sizing */
 @media (max-width: 767px) {
-
   input,
   select,
   textarea {
@@ -619,6 +638,24 @@ textarea::placeholder {
   border-color: var(--status-delivered);
 }
 
+.status-courier_delivered {
+  background: rgba(52, 211, 153, 0.2);
+  color: var(--status-courier-delivered);
+  border-color: var(--status-courier-delivered);
+}
+
+.status-customer_delivered {
+  background: rgba(16, 185, 129, 0.2);
+  color: var(--status-customer-delivered);
+  border-color: var(--status-customer-delivered);
+}
+
+.status-completed {
+  background: rgba(5, 150, 105, 0.2);
+  color: var(--status-completed);
+  border-color: var(--status-completed);
+}
+
 .status-cancelled {
   background: rgba(248, 113, 113, 0.2);
   color: var(--status-cancelled);
@@ -632,7 +669,11 @@ textarea::placeholder {
   position: absolute;
   right: 1rem;
   top: 4rem;
-  background: linear-gradient(135deg, var(--matrix-black) 0%, var(--matrix-dark-green) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--matrix-black) 0%,
+    var(--matrix-dark-green) 100%
+  );
   border: 2px solid var(--matrix-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-strong);
@@ -884,7 +925,11 @@ tr {
 }
 
 .tab-button.active {
-  background: linear-gradient(135deg, var(--matrix-dim-green) 0%, var(--matrix-dark-green) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--matrix-dim-green) 0%,
+    var(--matrix-dark-green) 100%
+  );
   color: var(--matrix-bright-green);
   border-bottom-color: var(--matrix-border);
 }
@@ -899,17 +944,17 @@ tr {
 }
 
 .expected-route-pickup {
-  filter: drop-shadow(0 0 8px rgba(255, 107, 0, 1.0));
+  filter: drop-shadow(0 0 8px rgba(255, 107, 0, 1));
   stroke-width: 6px;
 }
 
 .expected-route-delivery {
-  filter: drop-shadow(0 0 8px rgba(0, 102, 255, 1.0));
+  filter: drop-shadow(0 0 8px rgba(0, 102, 255, 1));
   stroke-width: 6px;
 }
 
 .actual-route {
-  filter: drop-shadow(0 0 10px rgba(0, 255, 0, 1.0));
+  filter: drop-shadow(0 0 10px rgba(0, 255, 0, 1));
   stroke-width: 8px;
 }
 
@@ -928,7 +973,6 @@ tr {
 }
 
 @media (prefers-reduced-motion: reduce) {
-
   *,
   *::before,
   *::after {
@@ -940,7 +984,6 @@ tr {
 
 /* Touch feedback */
 @media (hover: none) and (pointer: coarse) {
-
   button:active,
   .clickable:active {
     opacity: 0.7;

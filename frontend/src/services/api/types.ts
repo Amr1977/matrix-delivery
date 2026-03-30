@@ -106,6 +106,9 @@ export interface Order {
     | "picked_up"
     | "in_transit"
     | "delivered"
+    | "courier_delivered"
+    | "customer_delivered"
+    | "completed"
     | "cancelled";
   customerId: string;
   customerName?: string;

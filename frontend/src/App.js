@@ -378,7 +378,7 @@ export const MainApp = () => {
         (order) =>
           (order.assignedDriver?.userId === currentUser.id ||
             order.assigned_driver_user_id === currentUser.id) &&
-          !["delivered", "cancelled", "confirmed", "pending_bids"].includes(
+          !["delivered", "courier_delivered", "customer_delivered", "completed", "cancelled", "confirmed", "pending_bids"].includes(
             order.status,
           ),
       );
@@ -1743,7 +1743,7 @@ export const MainApp = () => {
   const handleCompleteOrder = async (orderId) => {
     setLoading(true);
     try {
-      await OrdersApi.updateStatus(orderId, "delivered");
+      await OrdersApi.updateStatus(orderId, "delivered"); // Maps to courier_delivered in backend via action alias
 
       fetchOrders();
       setSelectedOrder(null);
@@ -2059,6 +2059,9 @@ export const MainApp = () => {
       picked_up: "status.pickedUp",
       in_transit: "status.inTransit",
       delivered: "status.delivered",
+      courier_delivered: "status.courierDelivered",
+      customer_delivered: "status.customerDelivered",
+      completed: "status.completed",
       cancelled: "status.cancelled",
     };
     const translationKey = statusKeyMap[status];
@@ -3121,11 +3124,11 @@ export const MainApp = () => {
           </div>
         )}
 
-        {(currentUser?.primary_role === "driver" && viewType === "map") || 
-         (currentUser?.primary_role === "customer" && viewType === "map") && (
+        {((currentUser?.primary_role === "driver" || currentUser?.primary_role === "customer") && 
+          viewType === "map") && (
           <div style={{ marginBottom: "1rem" }}>
             <OrdersMap
-              orders={currentUser?.primary_role === "driver" 
+              orders={(currentUser?.primary_role === "driver" 
                 ? orders.filter((order) => {
                     if (order.status !== "pending_bids") return false;
                     const hasDriverBid =
@@ -3155,17 +3158,17 @@ export const MainApp = () => {
                     if (!driver) return true;
                     const d = haversineKm(driver, pickup);
                     return d <= ordersMapRadiusKm;
-                  })
+                    })
                 : orders.filter(order => 
                     order.status === "pending_bids" && 
                     order.pickupLocation?.coordinates &&
                     Number.isFinite(order.pickupLocation.coordinates.lat) &&
                     Number.isFinite(order.pickupLocation.coordinates.lng)
                   ),
-              driverLocation={driverLocation}
-              radiusKm={ordersMapRadiusKm}
-              onRadiusChange={setOrdersMapRadiusKm}
-              onSelectOrder={(order) => setSelectedOrderForMap(order)}
+                driverLocation={driverLocation}
+                radiusKm={ordersMapRadiusKm}
+                onRadiusChange={setOrdersMapRadiusKm}
+                onSelectOrder={(order) => setSelectedOrderForMap(order)}
             />
           </div>
         )}
@@ -3617,7 +3620,7 @@ export const MainApp = () => {
                     // History: Completed orders (using historyOrders array)
                     if (
                       viewType === "history" &&
-                      !["delivered", "cancelled", "confirmed"].includes(
+                      !["delivered", "courier_delivered", "customer_delivered", "completed", "cancelled", "confirmed"].includes(
                         order.status,
                       )
                     )

@@ -153,6 +153,9 @@ const translations = {
       pickedUp: "Picked Up",
       inTransit: "In Transit",
       delivered: "Delivered",
+      courierDelivered: "Delivered by Courier",
+      customerDelivered: "Delivery Confirmed",
+      completed: "Completed",
       cancelled: "Cancelled",
     },
     driver: {
@@ -883,6 +886,9 @@ const translations = {
       pickedUp: "تم الاستلام",
       inTransit: "قيد التوصيل",
       delivered: "تم التسليم",
+      courierDelivered: "تم التسليم بواسطة السائق",
+      customerDelivered: "تم تأكيد التسليم",
+      completed: "مكتمل",
       cancelled: "ملغى",
     },
     driver: {
@@ -1596,6 +1602,9 @@ const translations = {
       pickedUp: "Recogido",
       inTransit: "En Tránsito",
       delivered: "Entregado",
+      courierDelivered: "Entregado por el repartidor",
+      customerDelivered: "Entrega confirmada",
+      completed: "Completado",
       cancelled: "Cancelado",
     },
     driver: {
@@ -1911,6 +1920,9 @@ const translations = {
       pickedUp: "Ramassé",
       inTransit: "En Transit",
       delivered: "Livré",
+      courierDelivered: "Livré par le coursier",
+      customerDelivered: "Livraison confirmée",
+      completed: "Terminé",
       cancelled: "Annulé",
     },
     driver: {
@@ -2225,6 +2237,9 @@ const translations = {
       pickedUp: "已取货",
       inTransit: "运输中",
       delivered: "已交付",
+      courierDelivered: "骑手已送达",
+      customerDelivered: "已确认收货",
+      completed: "已完成",
       cancelled: "已取消",
     },
     driver: {
@@ -2534,6 +2549,9 @@ const translations = {
       pickedUp: "Abgeholt",
       inTransit: "Unterwegs",
       delivered: "Geliefert",
+      courierDelivered: "Vom Kurier zugestellt",
+      customerDelivered: "Zustellung bestätigt",
+      completed: "Abgeschlossen",
       cancelled: "Storniert",
     },
     driver: {
@@ -2848,6 +2866,9 @@ const translations = {
       pickedUp: "Coletado",
       inTransit: "Em Trânsito",
       delivered: "Entregue",
+      courierDelivered: "Entregue pelo entregador",
+      customerDelivered: "Entrega confirmada",
+      completed: "Concluído",
       cancelled: "Cancelado",
     },
     driver: {
@@ -3162,6 +3183,9 @@ const translations = {
       pickedUp: "Получен",
       inTransit: "В пути",
       delivered: "Доставлен",
+      courierDelivered: "Доставлено курьером",
+      customerDelivered: "Доставка подтверждена",
+      completed: "Завершено",
       cancelled: "Отменен",
     },
     driver: {
@@ -3475,6 +3499,9 @@ const translations = {
       pickedUp: "集荷済み",
       inTransit: "配送中",
       delivered: "配送完了",
+      courierDelivered: "配達員が配達完了",
+      customerDelivered: "配達確認済み",
+      completed: "完了",
       cancelled: "キャンセル済み",
     },
     driver: {
@@ -3788,6 +3815,9 @@ const translations = {
       pickedUp: "Alındı",
       inTransit: "Yolda",
       delivered: "Teslim Edildi",
+      courierDelivered: "Kurye tarafından teslim edildi",
+      customerDelivered: "Teslimat onaylandı",
+      completed: "Tamamlandı",
       cancelled: "İptal Edildi",
     },
     driver: {
@@ -4101,6 +4131,9 @@ const translations = {
       pickedUp: "پک اپ کر لیا گیا",
       inTransit: "راستے میں",
       delivered: "ڈیلیور کر دیا گیا",
+      courierDelivered: "کوریر نے پہنچا دیا",
+      customerDelivered: "ترسیل کی تصدیق ہو گئی",
+      completed: "مکمل",
       cancelled: "منسوخ کر دیا گیا",
     },
     driver: {
@@ -4415,6 +4448,9 @@ const translations = {
       pickedUp: "पिकअप किया गया",
       inTransit: "मार्ग में",
       delivered: "डिलीवर किया गया",
+      courierDelivered: "कूरियर द्वारा डिलीवर किया गया",
+      customerDelivered: "डिलीवरी की पुष्टि हो गई",
+      completed: "पूर्ण",
       cancelled: "रद्द किया गया",
     },
     driver: {
