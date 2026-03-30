@@ -1,8 +1,7 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { Marker, Popup, Polyline, Tooltip } from "react-leaflet";
 import L from "leaflet";
 import polyline from "@mapbox/polyline";
-import api from "../../api";
 
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
@@ -55,11 +54,13 @@ const profileImageIcon = (imageUrl, bidPrice, isLive) => {
         width:12px; height:12px; border-radius:50%;
         background:#10B981; border:2px solid #fff;
         box-shadow:0 0 6px rgba(16,185,129,0.6);
+        animation:pulse-dot 2s ease-in-out infinite;
       "></div>`
     : "";
 
   return L.divIcon({
     html: `<div style="position:relative;width:${size}px;height:${size + 20}px;display:flex;align-items:center;justify-content:center;">
+      <style>@keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.3)}}</style>
       <img src="${imageUrl}" style="
         width:${size}px; height:${size}px; border-radius:50%;
         border:3px solid ${isLive ? "#10B981" : "#4F46E5"};
@@ -79,15 +80,10 @@ const profileImageIcon = (imageUrl, bidPrice, isLive) => {
 const BidDriverMarker = ({
   bid,
   pickup,
+  liveLocation,
   isSelected,
   onSelect,
-  pollInterval = 30000,
 }) => {
-  const [liveLoc, setLiveLoc] = useState(null);
-  const [routePath, setRoutePath] = useState([]);
-  const [eta, setEta] = useState(null);
-  const intervalRef = useRef(null);
-
   const driverId = bid.driver_id || bid.userId || bid.user_id;
   const driverName = bid.driverName || bid.driver_name || "Driver";
   const bidPrice = bid.bid_price || bid.bidPrice || bid.price;
@@ -99,41 +95,13 @@ const BidDriverMarker = ({
   const bidDeliveries =
     bid.driverCompletedDeliveries || bid.driver_completed_deliveries || 0;
 
-  // Bid location fallback
+  // Bid location fallback (from when bid was placed)
   const bidLat = bid.driverLocation?.lat ?? bid.latitude ?? bid.lat;
   const bidLng = bid.driverLocation?.lng ?? bid.longitude ?? bid.lng;
 
-  // Decode stored polyline from bid
-  const storedRoute = decodePolyline(
-    bid.driverToPickupPolyline || bid.driver_to_pickup_polyline,
-  );
-
-  // Poll live location
-  useEffect(() => {
-    if (!driverId) return;
-
-    const fetchLocation = async () => {
-      try {
-        const res = await api.get(`/drivers/location/bidding/${driverId}`);
-        if (res.location) {
-          setLiveLoc(res.location);
-        }
-      } catch {
-        // keep fallback
-      }
-    };
-
-    fetchLocation();
-    intervalRef.current = setInterval(fetchLocation, pollInterval);
-
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [driverId, pollInterval]);
-
-  // Resolve current position: live > bid fallback
-  const currentLat = liveLoc?.latitude ?? bidLat;
-  const currentLng = liveLoc?.longitude ?? bidLng;
+  // Live location takes priority
+  const currentLat = liveLocation?.latitude ?? bidLat;
+  const currentLng = liveLocation?.longitude ?? bidLng;
 
   if (
     !Number.isFinite(Number(currentLat)) ||
@@ -142,9 +110,16 @@ const BidDriverMarker = ({
     return null;
   if (Number(currentLat) === 0 && Number(currentLng) === 0) return null;
 
-  const isLive = !!liveLoc;
+  const isLive = !!liveLocation;
 
-  // Calculate straight-line distance and ETA
+  // Decode stored polyline
+  const storedRoute = decodePolyline(
+    bid.driverToPickupPolyline || bid.driver_to_pickup_polyline,
+  );
+  const hasStoredRoute = storedRoute.length > 1;
+
+  // Calculate ETA
+  const [eta, setEta] = useState(null);
   useEffect(() => {
     if (!pickup?.lat || !pickup?.lng) return;
     const dist = haversineKm(
@@ -157,10 +132,8 @@ const BidDriverMarker = ({
     setEta(Math.round((dist / avgSpeedKmh) * 60));
   }, [currentLat, currentLng, pickup?.lat, pickup?.lng]);
 
-  // Build route path: use stored polyline if driver hasn't moved, otherwise straight line
-  const hasStoredRoute = storedRoute.length > 1;
   const polylinePositions =
-    hasStoredRoute && !liveLoc
+    hasStoredRoute && !liveLocation
       ? storedRoute
       : [
           [Number(currentLat), Number(currentLng)],
@@ -169,18 +142,16 @@ const BidDriverMarker = ({
 
   return (
     <>
-      {/* Route polyline to pickup */}
       {pickup?.lat && pickup?.lng && (
         <Polyline
           positions={polylinePositions}
           color={isSelected ? "#3B82F6" : isLive ? "#10B981" : "#6B7280"}
           weight={isSelected ? 5 : 3}
           opacity={isSelected ? 0.9 : 0.5}
-          dashArray={hasStoredRoute && !liveLoc ? null : "8, 8"}
+          dashArray={hasStoredRoute && !liveLocation ? null : "8, 8"}
         />
       )}
 
-      {/* Driver marker with profile image */}
       <Marker
         position={[Number(currentLat), Number(currentLng)]}
         icon={profileImageIcon(profilePic, bidPrice, isLive)}

@@ -488,6 +488,54 @@ router.post(
         "bidding",
       );
 
+      // Emit live location to customers who have active bids or assignments from this driver
+      try {
+        if (global.io) {
+          // Find all orders where this driver has pending bids or is assigned
+          const activeOrdersResult = await pool.query(
+            `SELECT DISTINCT o.customer_id, o.id as order_id
+             FROM orders o
+             WHERE o.status = 'pending_bids'
+               AND EXISTS (
+                 SELECT 1 FROM bids b WHERE b.order_id = o.id AND b.driver_id = $1
+               )
+             UNION
+             SELECT customer_id, id as order_id
+             FROM orders
+             WHERE assigned_driver_user_id = $1
+               AND status IN ('accepted', 'picked_up', 'in_transit')`,
+            [driverId],
+          );
+
+          const driverInfo = await pool.query(
+            "SELECT name, profile_picture FROM users WHERE id = $1",
+            [driverId],
+          );
+          const driverName = driverInfo.rows[0]?.name || "Driver";
+
+          for (const row of activeOrdersResult.rows) {
+            global.io
+              .to(`user_${row.customer_id}`)
+              .emit("bid_location_update", {
+                driverId,
+                driverName,
+                orderId: row.order_id,
+                latitude: parseFloat(latitude.toFixed(8)),
+                longitude: parseFloat(longitude.toFixed(8)),
+                heading,
+                speed_kmh: speed,
+                accuracy_meters: accuracy,
+                timestamp: locationData.timestamp || new Date().toISOString(),
+              });
+          }
+        }
+      } catch (socketError) {
+        logger.warn(
+          `Location socket emit error (non-critical): ${socketError.message}`,
+          { driverId, category: "socket" },
+        );
+      }
+
       logger.info(`Driver location updated (bidding)`, {
         driverId,
         latitude,

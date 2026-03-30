@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Tooltip } from "react-leaflet";
 import L from "leaflet";
+import io from "socket.io-client";
 import BidDriverMarker from "./BidDriverMarker";
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -20,18 +21,6 @@ const createPulseIcon = () => {
   });
 };
 
-const priceIcon = (price) =>
-  L.divIcon({
-    html: `<div style="
-    background: #111827; color: #fff; border: 2px solid #4F46E5;
-    border-radius: 9999px; padding: 4px 8px; font-size: 12px; font-weight: 700;
-    box-shadow: 0 6px 12px rgba(0,0,0,0.25);
-  ">$${Number(price || 0).toFixed(2)}</div>`,
-    className: "",
-    iconSize: [60, 24],
-    iconAnchor: [30, 30],
-  });
-
 const OrdersMap = ({
   orders,
   driverLocation,
@@ -40,10 +29,8 @@ const OrdersMap = ({
   onSelectOrder,
   theme = "dark",
 }) => {
-  // Get API base URL from environment, strip /api suffix for tile endpoint
   const API_BASE = process.env.REACT_APP_API_URL;
   const tileUrl = `${API_BASE}/maps/tiles/{z}/{x}/{y}.png?v=3`;
-  console.log("🗺️ OrdersMap tileUrl:", tileUrl, "| API_BASE:", API_BASE);
 
   const getActiveLocation = () => {
     try {
@@ -57,7 +44,7 @@ const OrdersMap = ({
         }
       }
     } catch (e) {
-      // ignore parse errors
+      // ignore
     }
     if (driverLocation) {
       const lat = driverLocation.lat || driverLocation.latitude;
@@ -74,18 +61,60 @@ const OrdersMap = ({
   const center = hasDriver
     ? [activeLocation.lat, activeLocation.lng]
     : [30.0444, 31.2357];
-
   const zoom = hasDriver ? 15 : 13;
 
   const [map, setMap] = useState(null);
 
+  // Live bid locations from socket events
+  const [liveBidLocations, setLiveBidLocations] = useState({});
+  const socketRef = useRef(null);
+
+  // Connect to socket and listen for bid_location_update events
   useEffect(() => {
-    if (map && hasDriver) {
-      try {
-        map.setView(center, zoom, { animate: true });
-      } catch (e) {
-        /* ignore if map not ready */
+    if (!API_BASE) return;
+
+    const apiUrl = API_BASE.replace("/api", "");
+    const socket = io(apiUrl, {
+      transports: ["websocket"],
+      reconnection: true,
+      reconnectionDelay: 5000,
+      path: "/socket.io/",
+    });
+
+    socketRef.current = socket;
+
+    socket.on("connect", () => {
+      console.log("🗺️ OrdersMap socket connected");
+    });
+
+    socket.on("bid_location_update", (data) => {
+      const { driverId, latitude, longitude, heading, speed_kmh, timestamp } =
+        data;
+      if (driverId && Number.isFinite(latitude) && Number.isFinite(longitude)) {
+        setLiveBidLocations((prev) => ({
+          ...prev,
+          [driverId]: { latitude, longitude, heading, speed_kmh, timestamp },
+        }));
       }
+    });
+
+    socket.on("disconnect", () => {
+      console.log("🗺️ OrdersMap socket disconnected");
+    });
+
+    return () => {
+      socket.disconnect();
+      socketRef.current = null;
+    };
+  }, [API_BASE]);
+
+  // Auto-fit map to show all bid locations
+  useEffect(() => {
+    if (!map) return;
+    try {
+      map.setView(center, zoom, { animate: true });
+    } catch (e) {
+      /* ignore */
     }
   }, [map, driverLocation]);
 
@@ -196,14 +225,19 @@ const OrdersMap = ({
                 </Marker>
 
                 {/* Bid driver markers with live location and routes */}
-                {bids.map((bid) => (
-                  <BidDriverMarker
-                    key={`bid-${order.id}-${bid.driver_id || bid.userId || bid.user_id}`}
-                    bid={bid}
-                    pickup={pickup}
-                    onSelect={() => onSelectOrder(order)}
-                  />
-                ))}
+                {bids.map((bid) => {
+                  const bidDriverId =
+                    bid.driver_id || bid.userId || bid.user_id;
+                  return (
+                    <BidDriverMarker
+                      key={`bid-${order.id}-${bidDriverId}`}
+                      bid={bid}
+                      pickup={pickup}
+                      liveLocation={liveBidLocations[bidDriverId] || null}
+                      onSelect={() => onSelectOrder(order)}
+                    />
+                  );
+                })}
               </React.Fragment>
             );
           })}
