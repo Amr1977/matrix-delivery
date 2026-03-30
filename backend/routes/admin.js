@@ -1,34 +1,36 @@
 // ============ ADMIN ROUTES ============
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const pool = require('../config/db');
-const jwt = require('jsonwebtoken');
-const { generateId } = require('../utils/generators');
+const pool = require("../config/db");
+const jwt = require("jsonwebtoken");
+const { generateId } = require("../utils/generators");
 const JWT_SECRET = process.env.JWT_SECRET;
-const { verifyAdmin } = require('../middleware/auth');
-const { logAdminAction } = require('../services/adminService');
-const logger = require('../services/loggingService');
-const { createNotification } = require('../services/notificationService') /* P0 FIX: removed .ts ext */;
+const { verifyAdmin } = require("../middleware/auth");
+const { logAdminAction } = require("../services/adminService");
+const logger = require("../services/loggingService");
+const {
+  createNotification,
+} = require("../services/notificationService"); /* P0 FIX: removed .ts ext */
 
 // ============ ADMIN DASHBOARD STATISTICS ============
-router.get('/stats', verifyAdmin, async (req, res) => {
+router.get("/stats", verifyAdmin, async (req, res) => {
   try {
-    const { range = '7d' } = req.query;
+    const { range = "7d" } = req.query;
 
     // Calculate date range
     const now = new Date();
     let startDate = new Date();
     switch (range) {
-      case '24h':
+      case "24h":
         startDate.setHours(startDate.getHours() - 24);
         break;
-      case '7d':
+      case "7d":
         startDate.setDate(startDate.getDate() - 7);
         break;
-      case '30d':
+      case "30d":
         startDate.setDate(startDate.getDate() - 30);
         break;
-      case '90d':
+      case "90d":
         startDate.setDate(startDate.getDate() - 90);
         break;
       default:
@@ -36,68 +38,74 @@ router.get('/stats', verifyAdmin, async (req, res) => {
     }
 
     // Get total users
-    const totalUsersResult = await pool.query('SELECT COUNT(*) as count FROM users');
+    const totalUsersResult = await pool.query(
+      "SELECT COUNT(*) as count FROM users",
+    );
     const totalUsers = parseInt(totalUsersResult.rows[0].count);
 
     // Get new users in range
     const newUsersResult = await pool.query(
-      'SELECT COUNT(*) as count FROM users WHERE created_at >= $1',
-      [startDate]
+      "SELECT COUNT(*) as count FROM users WHERE created_at >= $1",
+      [startDate],
     );
     const newUsers = parseInt(newUsersResult.rows[0].count);
 
     // Get users by primary_role
     const usersByRoleResult = await pool.query(
-      `SELECT primary_role, COUNT(*) as count FROM users GROUP BY primary_role`
+      `SELECT primary_role, COUNT(*) as count FROM users GROUP BY primary_role`,
     );
     const usersByRole = {};
-    usersByRoleResult.rows.forEach(row => {
+    usersByRoleResult.rows.forEach((row) => {
       usersByRole[row.primary_role] = parseInt(row.count);
     });
 
     // Get total orders
-    const totalOrdersResult = await pool.query('SELECT COUNT(*) as count FROM orders');
+    const totalOrdersResult = await pool.query(
+      "SELECT COUNT(*) as count FROM orders",
+    );
     const totalOrders = parseInt(totalOrdersResult.rows[0].count);
 
     // Get orders by status
     const ordersByStatusResult = await pool.query(
-      `SELECT status, COUNT(*) as count FROM orders GROUP BY status`
+      `SELECT status, COUNT(*) as count FROM orders GROUP BY status`,
     );
     const ordersByStatus = [];
     const statusColors = {
-      'pending_bids': '#FCD34D',
-      'accepted': '#60A5FA',
-      'picked_up': '#C084FC',
-      'in_transit': '#F472B6',
-      'delivered': '#34D399',
-      'cancelled': '#F87171'
+      pending_bids: "#FCD34D",
+      accepted: "#60A5FA",
+      picked_up: "#C084FC",
+      in_transit: "#F472B6",
+      delivered: "#34D399",
+      cancelled: "#F87171",
     };
 
-    ordersByStatusResult.rows.forEach(row => {
+    ordersByStatusResult.rows.forEach((row) => {
       ordersByStatus.push({
-        name: row.status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+        name: row.status
+          .replace(/_/g, " ")
+          .replace(/\b\w/g, (l) => l.toUpperCase()),
         value: parseInt(row.count),
-        color: statusColors[row.status] || '#9CA3AF'
+        color: statusColors[row.status] || "#9CA3AF",
       });
     });
 
     // Get active orders
     const activeOrdersResult = await pool.query(
       `SELECT COUNT(*) as count FROM orders 
-       WHERE status IN ('accepted', 'picked_up', 'in_transit')`
+       WHERE status IN ('accepted', 'picked_up', 'in_transit')`,
     );
     const activeOrders = parseInt(activeOrdersResult.rows[0].count);
 
     // Get completed orders
     const completedOrdersResult = await pool.query(
-      `SELECT COUNT(*) as count FROM orders WHERE status = 'delivered'`
+      `SELECT COUNT(*) as count FROM orders WHERE status IN ('delivered', 'courier_delivered', 'customer_delivered')`,
     );
     const completedOrders = parseInt(completedOrdersResult.rows[0].count);
 
     // Calculate revenue
     const revenueResult = await pool.query(
       `SELECT COALESCE(SUM(assigned_driver_bid_price), 0) as total 
-       FROM orders WHERE status = 'delivered' AND assigned_driver_bid_price IS NOT NULL`
+       FROM orders WHERE status IN ('delivered', 'courier_delivered', 'customer_delivered') AND assigned_driver_bid_price IS NOT NULL`,
     );
     const revenue = parseFloat(revenueResult.rows[0].total);
 
@@ -107,15 +115,15 @@ router.get('/stats', verifyAdmin, async (req, res) => {
         TO_CHAR(delivered_at, 'Mon') as month,
         COALESCE(SUM(assigned_driver_bid_price), 0) as revenue
        FROM orders 
-       WHERE status = 'delivered' 
+       WHERE status IN ('delivered', 'courier_delivered', 'customer_delivered') 
          AND delivered_at >= NOW() - INTERVAL '6 months'
          AND assigned_driver_bid_price IS NOT NULL
        GROUP BY TO_CHAR(delivered_at, 'Mon'), DATE_TRUNC('month', delivered_at)
-       ORDER BY DATE_TRUNC('month', delivered_at) ASC`
+       ORDER BY DATE_TRUNC('month', delivered_at) ASC`,
     );
-    const revenueData = revenueDataResult.rows.map(row => ({
+    const revenueData = revenueDataResult.rows.map((row) => ({
       month: row.month,
-      revenue: parseFloat(row.revenue)
+      revenue: parseFloat(row.revenue),
     }));
 
     // Get user growth
@@ -126,15 +134,15 @@ router.get('/stats', verifyAdmin, async (req, res) => {
        FROM users 
        WHERE created_at >= NOW() - INTERVAL '6 months'
        GROUP BY TO_CHAR(created_at, 'YYYY-MM')
-       ORDER BY TO_CHAR(created_at, 'YYYY-MM') ASC`
+       ORDER BY TO_CHAR(created_at, 'YYYY-MM') ASC`,
     );
 
     let cumulativeUsers = totalUsers - newUsers;
-    const userGrowth = userGrowthResult.rows.map(row => {
+    const userGrowth = userGrowthResult.rows.map((row) => {
       cumulativeUsers += parseInt(row.users);
       return {
         date: row.date,
-        users: cumulativeUsers
+        users: cumulativeUsers,
       };
     });
 
@@ -142,29 +150,31 @@ router.get('/stats', verifyAdmin, async (req, res) => {
     const avgOrderValueResult = await pool.query(
       `SELECT AVG(assigned_driver_bid_price) as avg_value 
        FROM orders 
-       WHERE status = 'delivered' AND assigned_driver_bid_price IS NOT NULL`
+       WHERE status IN ('delivered', 'courier_delivered', 'customer_delivered') AND assigned_driver_bid_price IS NOT NULL`,
     );
-    const avgOrderValue = parseFloat(avgOrderValueResult.rows[0].avg_value) || 0;
+    const avgOrderValue =
+      parseFloat(avgOrderValueResult.rows[0].avg_value) || 0;
 
     const completionRateResult = await pool.query(
       `SELECT 
-        COUNT(CASE WHEN status = 'delivered' THEN 1 END) * 100.0 / 
+        COUNT(CASE WHEN status IN ('delivered', 'courier_delivered', 'customer_delivered') THEN 1 END) * 100.0 / 
         NULLIF(COUNT(CASE WHEN status != 'pending_bids' THEN 1 END), 0) as rate
-       FROM orders`
+       FROM orders`,
     );
     const completionRate = parseFloat(completionRateResult.rows[0].rate) || 0;
 
     const avgDeliveryTimeResult = await pool.query(
       `SELECT AVG(EXTRACT(EPOCH FROM (delivered_at - accepted_at)) / 3600) as avg_hours
        FROM orders 
-       WHERE status = 'delivered' 
+       WHERE status IN ('delivered', 'courier_delivered', 'customer_delivered') 
          AND accepted_at IS NOT NULL 
-         AND delivered_at IS NOT NULL`
+         AND delivered_at IS NOT NULL`,
     );
-    const avgDeliveryTime = parseFloat(avgDeliveryTimeResult.rows[0].avg_hours) || 0;
+    const avgDeliveryTime =
+      parseFloat(avgDeliveryTimeResult.rows[0].avg_hours) || 0;
 
     const avgRatingResult = await pool.query(
-      `SELECT AVG(rating) as avg_rating FROM reviews`
+      `SELECT AVG(rating) as avg_rating FROM reviews`,
     );
     const avgRating = parseFloat(avgRatingResult.rows[0].avg_rating) || 0;
 
@@ -183,21 +193,30 @@ router.get('/stats', verifyAdmin, async (req, res) => {
         avgOrderValue,
         completionRate,
         avgDeliveryTime,
-        avgRating
-      }
+        avgRating,
+      },
     });
 
-    await logAdminAction(req.admin.id, 'VIEW_STATS', 'dashboard', null, { range, ip: req.ip });
+    await logAdminAction(req.admin.id, "VIEW_STATS", "dashboard", null, {
+      range,
+      ip: req.ip,
+    });
   } catch (error) {
-    console.error('Get admin stats error:', error);
-    res.status(500).json({ error: 'Failed to get statistics' });
+    console.error("Get admin stats error:", error);
+    res.status(500).json({ error: "Failed to get statistics" });
   }
 });
 
 // ============ USER MANAGEMENT ============
-router.get('/users', verifyAdmin, async (req, res) => {
+router.get("/users", verifyAdmin, async (req, res) => {
   try {
-    const { page = 1, limit = 20, search = '', primary_role = 'all', status = 'all' } = req.query;
+    const {
+      page = 1,
+      limit = 20,
+      search = "",
+      primary_role = "all",
+      status = "all",
+    } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
 
     let whereConditions = [];
@@ -214,23 +233,26 @@ router.get('/users', verifyAdmin, async (req, res) => {
       paramCount++;
     }
 
-    if (primary_role !== 'all') {
+    if (primary_role !== "all") {
       whereConditions.push(`primary_role = $${paramCount}`);
       queryParams.push(primary_role);
       paramCount++;
     }
 
-    if (status === 'verified') {
+    if (status === "verified") {
       whereConditions.push(`is_verified = true`);
-    } else if (status === 'unverified') {
+    } else if (status === "unverified") {
       whereConditions.push(`is_verified = false`);
     }
 
-    const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
+    const whereClause =
+      whereConditions.length > 0
+        ? `WHERE ${whereConditions.join(" AND ")}`
+        : "";
 
     const countResult = await pool.query(
       `SELECT COUNT(*) as count FROM users ${whereClause}`,
-      queryParams
+      queryParams,
     );
     const totalCount = parseInt(countResult.rows[0].count);
 
@@ -244,10 +266,10 @@ router.get('/users', verifyAdmin, async (req, res) => {
        ${whereClause}
        ORDER BY u.created_at DESC
        LIMIT $${paramCount} OFFSET $${paramCount + 1}`,
-      queryParams
+      queryParams,
     );
 
-    const users = usersResult.rows.map(user => ({
+    const users = usersResult.rows.map((user) => ({
       id: user.id,
       name: user.name,
       email: user.email,
@@ -264,7 +286,7 @@ router.get('/users', verifyAdmin, async (req, res) => {
       area: user.area,
       totalOrders: parseInt(user.total_orders),
       totalReviews: parseInt(user.total_reviews),
-      createdAt: user.created_at
+      createdAt: user.created_at,
     }));
 
     res.json({
@@ -273,19 +295,25 @@ router.get('/users', verifyAdmin, async (req, res) => {
         page: parseInt(page),
         limit: parseInt(limit),
         totalCount,
-        totalPages: Math.ceil(totalCount / parseInt(limit))
-      }
+        totalPages: Math.ceil(totalCount / parseInt(limit)),
+      },
     });
 
-    await logAdminAction(req.admin.id, 'VIEW_USERS', 'users', null, { page, limit, search, primary_role, ip: req.ip });
+    await logAdminAction(req.admin.id, "VIEW_USERS", "users", null, {
+      page,
+      limit,
+      search,
+      primary_role,
+      ip: req.ip,
+    });
   } catch (error) {
-    console.error('Get users error:', error);
-    res.status(500).json({ error: 'Failed to get users' });
+    console.error("Get users error:", error);
+    res.status(500).json({ error: "Failed to get users" });
   }
 });
 
 // Get single user details
-router.get('/users/:id', verifyAdmin, async (req, res) => {
+router.get("/users/:id", verifyAdmin, async (req, res) => {
   try {
     const userResult = await pool.query(
       `SELECT 
@@ -297,11 +325,11 @@ router.get('/users/:id', verifyAdmin, async (req, res) => {
         (SELECT AVG(rating) FROM reviews WHERE reviewee_id = u.id) as avg_rating
        FROM users u
        WHERE u.id = $1`,
-      [req.params.id]
+      [req.params.id],
     );
 
     if (userResult.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
 
     const user = userResult.rows[0];
@@ -310,7 +338,7 @@ router.get('/users/:id', verifyAdmin, async (req, res) => {
       `SELECT * FROM orders 
        WHERE customer_id = $1 OR assigned_driver_user_id = $1
        ORDER BY created_at DESC LIMIT 10`,
-      [req.params.id]
+      [req.params.id],
     );
 
     const reviewsResult = await pool.query(
@@ -320,7 +348,7 @@ router.get('/users/:id', verifyAdmin, async (req, res) => {
        LEFT JOIN users reviewee ON r.reviewee_id = reviewee.id
        WHERE r.reviewer_id = $1 OR r.reviewee_id = $1
        ORDER BY r.created_at DESC LIMIT 10`,
-      [req.params.id]
+      [req.params.id],
     );
 
     res.json({
@@ -343,29 +371,35 @@ router.get('/users/:id', verifyAdmin, async (req, res) => {
         reviewsReceived: parseInt(user.reviews_received),
         reviewsGiven: parseInt(user.reviews_given),
         avgRating: parseFloat(user.avg_rating) || 0,
-        createdAt: user.created_at
+        createdAt: user.created_at,
       },
       recentOrders: ordersResult.rows,
-      recentReviews: reviewsResult.rows
+      recentReviews: reviewsResult.rows,
     });
 
-    await logAdminAction(req.admin.id, 'VIEW_USER_DETAILS', 'user', req.params.id, { ip: req.ip });
+    await logAdminAction(
+      req.admin.id,
+      "VIEW_USER_DETAILS",
+      "user",
+      req.params.id,
+      { ip: req.ip },
+    );
   } catch (error) {
-    console.error('Get user details error:', error);
-    res.status(500).json({ error: 'Failed to get user details' });
+    console.error("Get user details error:", error);
+    res.status(500).json({ error: "Failed to get user details" });
   }
 });
 
 // Verify user
-router.post('/users/:id/verify', verifyAdmin, async (req, res) => {
+router.post("/users/:id/verify", verifyAdmin, async (req, res) => {
   try {
     const result = await pool.query(
-      'UPDATE users SET is_verified = true WHERE id = $1 RETURNING *',
-      [req.params.id]
+      "UPDATE users SET is_verified = true WHERE id = $1 RETURNING *",
+      [req.params.id],
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
 
     const user = result.rows[0];
@@ -373,30 +407,30 @@ router.post('/users/:id/verify', verifyAdmin, async (req, res) => {
     await createNotification(
       user.id,
       null,
-      'account_verified',
-      'Account Verified',
-      'Your account has been verified by an administrator.'
+      "account_verified",
+      "Account Verified",
+      "Your account has been verified by an administrator.",
     );
 
     console.log(`✅ Admin ${req.admin.name} verified user: ${user.email}`);
-    await logAdminAction(req.admin.id, 'VERIFY_USER', 'user', req.params.id, {
+    await logAdminAction(req.admin.id, "VERIFY_USER", "user", req.params.id, {
       userName: user.name,
       userEmail: user.email,
-      ip: req.ip
+      ip: req.ip,
     });
 
     res.json({
-      message: 'User verified successfully',
+      message: "User verified successfully",
       user: {
         id: user.id,
         name: user.name,
         email: user.email,
-        isVerified: user.is_verified
-      }
+        isVerified: user.is_verified,
+      },
     });
   } catch (error) {
-    console.error('Verify user error:', error);
-    res.status(500).json({ error: 'Failed to verify user' });
+    console.error("Verify user error:", error);
+    res.status(500).json({ error: "Failed to verify user" });
   }
 });
 
@@ -406,17 +440,17 @@ router.post('/users/:id/verify', verifyAdmin, async (req, res) => {
 // Continue from Part 1
 
 // Suspend user
-router.post('/users/:id/suspend', verifyAdmin, async (req, res) => {
+router.post("/users/:id/suspend", verifyAdmin, async (req, res) => {
   try {
     const { reason } = req.body;
 
     const result = await pool.query(
-      'UPDATE users SET is_available = false WHERE id = $1 RETURNING *',
-      [req.params.id]
+      "UPDATE users SET is_available = false WHERE id = $1 RETURNING *",
+      [req.params.id],
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
 
     const user = result.rows[0];
@@ -424,44 +458,44 @@ router.post('/users/:id/suspend', verifyAdmin, async (req, res) => {
     await createNotification(
       user.id,
       null,
-      'account_suspended',
-      'Account Suspended',
-      `Your account has been suspended. ${reason ? `Reason: ${reason}` : 'Please contact support.'}`
+      "account_suspended",
+      "Account Suspended",
+      `Your account has been suspended. ${reason ? `Reason: ${reason}` : "Please contact support."}`,
     );
 
     console.log(`⚠️ Admin ${req.admin.name} suspended user: ${user.email}`);
-    await logAdminAction(req.admin.id, 'SUSPEND_USER', 'user', req.params.id, {
+    await logAdminAction(req.admin.id, "SUSPEND_USER", "user", req.params.id, {
       userName: user.name,
       userEmail: user.email,
       reason,
-      ip: req.ip
+      ip: req.ip,
     });
 
     res.json({
-      message: 'User suspended successfully',
+      message: "User suspended successfully",
       user: {
         id: user.id,
         name: user.name,
         email: user.email,
-        isAvailable: user.is_available
-      }
+        isAvailable: user.is_available,
+      },
     });
   } catch (error) {
-    console.error('Suspend user error:', error);
-    res.status(500).json({ error: 'Failed to suspend user' });
+    console.error("Suspend user error:", error);
+    res.status(500).json({ error: "Failed to suspend user" });
   }
 });
 
 // Unsuspend user
-router.post('/users/:id/unsuspend', verifyAdmin, async (req, res) => {
+router.post("/users/:id/unsuspend", verifyAdmin, async (req, res) => {
   try {
     const result = await pool.query(
-      'UPDATE users SET is_available = true WHERE id = $1 RETURNING *',
-      [req.params.id]
+      "UPDATE users SET is_available = true WHERE id = $1 RETURNING *",
+      [req.params.id],
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
 
     const user = result.rows[0];
@@ -469,47 +503,53 @@ router.post('/users/:id/unsuspend', verifyAdmin, async (req, res) => {
     await createNotification(
       user.id,
       null,
-      'account_unsuspended',
-      'Account Reactivated',
-      'Your account has been reactivated.'
+      "account_unsuspended",
+      "Account Reactivated",
+      "Your account has been reactivated.",
     );
 
     console.log(`✅ Admin ${req.admin.name} unsuspended user: ${user.email}`);
-    await logAdminAction(req.admin.id, 'UNSUSPEND_USER', 'user', req.params.id, {
-      userName: user.name,
-      userEmail: user.email,
-      ip: req.ip
-    });
+    await logAdminAction(
+      req.admin.id,
+      "UNSUSPEND_USER",
+      "user",
+      req.params.id,
+      {
+        userName: user.name,
+        userEmail: user.email,
+        ip: req.ip,
+      },
+    );
 
     res.json({
-      message: 'User unsuspended successfully',
+      message: "User unsuspended successfully",
       user: {
         id: user.id,
         name: user.name,
         email: user.email,
-        isAvailable: user.is_available
-      }
+        isAvailable: user.is_available,
+      },
     });
   } catch (error) {
-    console.error('Unsuspend user error:', error);
-    res.status(500).json({ error: 'Failed to unsuspend user' });
+    console.error("Unsuspend user error:", error);
+    res.status(500).json({ error: "Failed to unsuspend user" });
   }
 });
 
 // Update user granted_roles (add/remove roles)
-router.post('/users/:id/granted_roles', verifyAdmin, async (req, res) => {
+router.post("/users/:id/granted_roles", verifyAdmin, async (req, res) => {
   try {
     const { add = [], remove = [] } = req.body;
     const userId = req.params.id;
 
     // Get current user
     const userResult = await pool.query(
-      'SELECT id, name, email, primary_role, granted_roles FROM users WHERE id = $1',
-      [userId]
+      "SELECT id, name, email, primary_role, granted_roles FROM users WHERE id = $1",
+      [userId],
     );
 
     if (userResult.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
 
     const user = userResult.rows[0];
@@ -530,142 +570,150 @@ router.post('/users/:id/granted_roles', verifyAdmin, async (req, res) => {
     // Remove roles (but never remove primary_role)
     for (const role of remove) {
       if (role !== user.primary_role) {
-        currentRoles = currentRoles.filter(r => r !== role);
+        currentRoles = currentRoles.filter((r) => r !== role);
       }
     }
 
     // Update user
     const result = await pool.query(
-      'UPDATE users SET granted_roles = $1 WHERE id = $2 RETURNING *',
-      [currentRoles, userId]
+      "UPDATE users SET granted_roles = $1 WHERE id = $2 RETURNING *",
+      [currentRoles, userId],
     );
 
     const updatedUser = result.rows[0];
 
     // Notify user about role change
-    if (add.includes('admin')) {
+    if (add.includes("admin")) {
       await createNotification(
         userId,
         null,
-        'role_granted',
-        'Admin Access Granted',
-        'You have been granted admin access to the platform.'
+        "role_granted",
+        "Admin Access Granted",
+        "You have been granted admin access to the platform.",
       );
     }
 
-    if (add.includes('support')) {
+    if (add.includes("support")) {
       await createNotification(
         userId,
         null,
-        'role_granted',
-        'Support Role Granted',
-        'You have been granted support role access.'
+        "role_granted",
+        "Support Role Granted",
+        "You have been granted support role access.",
       );
     }
 
-    console.log(`🔐 Admin ${req.admin.name} updated roles for user ${user.email}: added [${add.join(', ')}], removed [${remove.join(', ')}]`);
-    await logAdminAction(req.admin.id, 'UPDATE_USER_ROLES', 'user', userId, {
+    console.log(
+      `🔐 Admin ${req.admin.name} updated roles for user ${user.email}: added [${add.join(", ")}], removed [${remove.join(", ")}]`,
+    );
+    await logAdminAction(req.admin.id, "UPDATE_USER_ROLES", "user", userId, {
       userName: user.name,
       userEmail: user.email,
       rolesAdded: add,
       rolesRemoved: remove,
       newRoles: currentRoles,
-      ip: req.ip
+      ip: req.ip,
     });
 
     res.json({
-      message: 'User roles updated successfully',
+      message: "User roles updated successfully",
       user: {
         id: updatedUser.id,
         name: updatedUser.name,
         email: updatedUser.email,
-        granted_roles: updatedUser.granted_roles
-      }
+        granted_roles: updatedUser.granted_roles,
+      },
     });
   } catch (error) {
-    console.error('Update user roles error:', error);
-    res.status(500).json({ error: 'Failed to update user roles' });
+    console.error("Update user roles error:", error);
+    res.status(500).json({ error: "Failed to update user roles" });
   }
 });
 
 // ============ ADMIN ORDER MANAGEMENT ============
 
 // Cancel order (admin only)
-router.post('/orders/:orderId/cancel', verifyAdmin, async (req, res) => {
+router.post("/orders/:orderId/cancel", verifyAdmin, async (req, res) => {
   try {
     const { orderId } = req.params;
 
     // Check if order exists
     const orderResult = await pool.query(
-      'SELECT id, status, customer_id FROM orders WHERE id = $1',
-      [orderId]
+      "SELECT id, status, customer_id FROM orders WHERE id = $1",
+      [orderId],
     );
 
     if (orderResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Order not found' });
+      return res.status(404).json({ error: "Order not found" });
     }
 
     const order = orderResult.rows[0];
 
     // Only allow cancellation of certain statuses
-    const cancellableStatuses = ['pending_bids', 'accepted'];
+    const cancellableStatuses = ["pending_bids", "accepted"];
     if (!cancellableStatuses.includes(order.status)) {
       return res.status(400).json({
-        error: `Cannot cancel order with status '${order.status}'`
+        error: `Cannot cancel order with status '${order.status}'`,
       });
     }
 
     // Update order status to cancelled
     await pool.query(
       `UPDATE orders SET status = 'cancelled', cancelled_at = NOW() WHERE id = $1`,
-      [orderId]
+      [orderId],
     );
 
     const { reason } = req.body;
 
     // Log admin action
-    await logAdminAction(req.user.userId, 'cancel_order', 'order', orderId, { previousStatus: order.status, reason });
+    await logAdminAction(req.user.userId, "cancel_order", "order", orderId, {
+      previousStatus: order.status,
+      reason,
+    });
 
     // Notify customer
     try {
       await createNotification(
         order.customer_id,
         orderId,
-        'admin_cancellation', // Changed type to match test expectation
-        'Order Cancelled',
-        reason ? `Your order has been cancelled by an administrator: ${reason}` : 'Your order has been cancelled by an administrator'
+        "admin_cancellation", // Changed type to match test expectation
+        "Order Cancelled",
+        reason
+          ? `Your order has been cancelled by an administrator: ${reason}`
+          : "Your order has been cancelled by an administrator",
       );
     } catch (notifyError) {
-      logger.error('Failed to send cancellation notification', { error: notifyError.message });
+      logger.error("Failed to send cancellation notification", {
+        error: notifyError.message,
+      });
     }
 
-    res.json({ message: 'Order cancelled successfully' });
+    res.json({ message: "Order cancelled successfully" });
   } catch (error) {
     logger.error(`Admin cancel order error: ${error.message}`, {
       orderId: req.params.orderId,
       userId: req.user?.userId,
-      category: 'error'
+      category: "error",
     });
-    res.status(500).json({ error: error.message || 'Failed to cancel order' });
+    res.status(500).json({ error: error.message || "Failed to cancel order" });
   }
 });
 
 // ============ ADMIN USER MANAGEMENT ============
 
 // Delete user
-router.delete('/users/:id', verifyAdmin, async (req, res) => {
+router.delete("/users/:id", verifyAdmin, async (req, res) => {
   const client = await pool.connect();
   try {
-    await client.query('BEGIN');
+    await client.query("BEGIN");
 
-    const userResult = await client.query(
-      'SELECT * FROM users WHERE id = $1',
-      [req.params.id]
-    );
+    const userResult = await client.query("SELECT * FROM users WHERE id = $1", [
+      req.params.id,
+    ]);
 
     if (userResult.rows.length === 0) {
-      await client.query('ROLLBACK');
-      return res.status(404).json({ error: 'User not found' });
+      await client.query("ROLLBACK");
+      return res.status(404).json({ error: "User not found" });
     }
 
     const user = userResult.rows[0];
@@ -674,47 +722,47 @@ router.delete('/users/:id', verifyAdmin, async (req, res) => {
       `SELECT COUNT(*) as count FROM orders 
        WHERE (customer_id = $1 OR assigned_driver_user_id = $1)
        AND status IN ('pending_bids', 'accepted', 'picked_up', 'in_transit')`,
-      [req.params.id]
+      [req.params.id],
     );
 
     if (parseInt(activeOrdersResult.rows[0].count) > 0) {
-      await client.query('ROLLBACK');
+      await client.query("ROLLBACK");
       return res.status(400).json({
-        error: 'Cannot delete user with active orders.'
+        error: "Cannot delete user with active orders.",
       });
     }
 
-    await client.query('DELETE FROM users WHERE id = $1', [req.params.id]);
-    await client.query('COMMIT');
+    await client.query("DELETE FROM users WHERE id = $1", [req.params.id]);
+    await client.query("COMMIT");
 
     console.log(`🗑️ Admin ${req.admin.name} deleted user: ${user.email}`);
-    await logAdminAction(req.admin.id, 'DELETE_USER', 'user', req.params.id, {
+    await logAdminAction(req.admin.id, "DELETE_USER", "user", req.params.id, {
       userName: user.name,
       userEmail: user.email,
-      ip: req.ip
+      ip: req.ip,
     });
 
-    res.json({ message: 'User deleted successfully' });
+    res.json({ message: "User deleted successfully" });
   } catch (error) {
-    await client.query('ROLLBACK');
-    console.error('Delete user error:', error);
-    res.status(500).json({ error: 'Failed to delete user' });
+    await client.query("ROLLBACK");
+    console.error("Delete user error:", error);
+    res.status(500).json({ error: "Failed to delete user" });
   } finally {
     client.release();
   }
 });
 
 // ============ ORDER MANAGEMENT ============
-router.get('/orders', verifyAdmin, async (req, res) => {
+router.get("/orders", verifyAdmin, async (req, res) => {
   try {
-    const { page = 1, limit = 20, status = 'all', search = '' } = req.query;
+    const { page = 1, limit = 20, status = "all", search = "" } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
 
     let whereConditions = [];
     let queryParams = [];
     let paramCount = 1;
 
-    if (status !== 'all') {
+    if (status !== "all") {
       whereConditions.push(`o.status = $${paramCount}`);
       queryParams.push(status);
       paramCount++;
@@ -732,13 +780,16 @@ router.get('/orders', verifyAdmin, async (req, res) => {
       paramCount++;
     }
 
-    const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
+    const whereClause =
+      whereConditions.length > 0
+        ? `WHERE ${whereConditions.join(" AND ")}`
+        : "";
 
     const countResult = await pool.query(
       `SELECT COUNT(*) as count FROM orders o
        LEFT JOIN users c ON o.customer_id = c.id
        ${whereClause}`,
-      queryParams
+      queryParams,
     );
     const totalCount = parseInt(countResult.rows[0].count);
 
@@ -757,10 +808,10 @@ router.get('/orders', verifyAdmin, async (req, res) => {
        ${whereClause}
        ORDER BY o.created_at DESC
        LIMIT $${paramCount} OFFSET $${paramCount + 1}`,
-      queryParams
+      queryParams,
     );
 
-    const orders = ordersResult.rows.map(order => ({
+    const orders = ordersResult.rows.map((order) => ({
       id: order.id,
       orderNumber: order.order_number,
       title: order.title,
@@ -775,13 +826,15 @@ router.get('/orders', verifyAdmin, async (req, res) => {
       driverId: order.assigned_driver_user_id,
       driverName: order.driver_name,
       driverEmail: order.driver_email,
-      assignedDriverBidPrice: order.assigned_driver_bid_price ? parseFloat(order.assigned_driver_bid_price) : null,
+      assignedDriverBidPrice: order.assigned_driver_bid_price
+        ? parseFloat(order.assigned_driver_bid_price)
+        : null,
       bidCount: parseInt(order.bid_count),
       createdAt: order.created_at,
       acceptedAt: order.accepted_at,
       pickedUpAt: order.picked_up_at,
       deliveredAt: order.delivered_at,
-      cancelledAt: order.cancelled_at
+      cancelledAt: order.cancelled_at,
     }));
 
     res.json({
@@ -790,19 +843,25 @@ router.get('/orders', verifyAdmin, async (req, res) => {
         page: parseInt(page),
         limit: parseInt(limit),
         totalCount,
-        totalPages: Math.ceil(totalCount / parseInt(limit))
-      }
+        totalPages: Math.ceil(totalCount / parseInt(limit)),
+      },
     });
 
-    await logAdminAction(req.admin.id, 'VIEW_ORDERS', 'orders', null, { page, limit, status, search, ip: req.ip });
+    await logAdminAction(req.admin.id, "VIEW_ORDERS", "orders", null, {
+      page,
+      limit,
+      status,
+      search,
+      ip: req.ip,
+    });
   } catch (error) {
-    console.error('Get orders error:', error);
-    res.status(500).json({ error: 'Failed to get orders' });
+    console.error("Get orders error:", error);
+    res.status(500).json({ error: "Failed to get orders" });
   }
 });
 
 // Get single order details
-router.get('/orders/:id', verifyAdmin, async (req, res) => {
+router.get("/orders/:id", verifyAdmin, async (req, res) => {
   try {
     const orderResult = await pool.query(
       `SELECT 
@@ -818,11 +877,11 @@ router.get('/orders/:id', verifyAdmin, async (req, res) => {
        LEFT JOIN users c ON o.customer_id = c.id
        LEFT JOIN users d ON o.assigned_driver_user_id = d.id
        WHERE o.id = $1`,
-      [req.params.id]
+      [req.params.id],
     );
 
     if (orderResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Order not found' });
+      return res.status(404).json({ error: "Order not found" });
     }
 
     const order = orderResult.rows[0];
@@ -834,19 +893,19 @@ router.get('/orders/:id', verifyAdmin, async (req, res) => {
        JOIN users u ON b.user_id = u.id
        WHERE b.order_id = $1
        ORDER BY b.created_at DESC`,
-      [req.params.id]
+      [req.params.id],
     );
 
     const locationUpdatesResult = await pool.query(
       `SELECT * FROM location_updates 
        WHERE order_id = $1 
        ORDER BY created_at DESC LIMIT 50`,
-      [req.params.id]
+      [req.params.id],
     );
 
     const paymentResult = await pool.query(
       `SELECT * FROM payments WHERE order_id = $1`,
-      [req.params.id]
+      [req.params.id],
     );
 
     res.json({
@@ -860,16 +919,20 @@ router.get('/orders/:id', verifyAdmin, async (req, res) => {
         from: {
           lat: parseFloat(order.from_lat),
           lng: parseFloat(order.from_lng),
-          name: order.pickup_contact_name
+          name: order.pickup_contact_name,
         },
         to: {
           lat: parseFloat(order.to_lat),
           lng: parseFloat(order.to_lng),
-          name: order.dropoff_contact_name
+          name: order.dropoff_contact_name,
         },
         packageDescription: order.package_description,
-        packageWeight: order.package_weight ? parseFloat(order.package_weight) : null,
-        estimatedValue: order.estimated_value ? parseFloat(order.estimated_value) : null,
+        packageWeight: order.package_weight
+          ? parseFloat(order.package_weight)
+          : null,
+        estimatedValue: order.estimated_value
+          ? parseFloat(order.estimated_value)
+          : null,
         specialInstructions: order.special_instructions,
         price: parseFloat(order.price),
         status: order.status,
@@ -877,96 +940,115 @@ router.get('/orders/:id', verifyAdmin, async (req, res) => {
           id: order.customer_id,
           name: order.customer_name,
           email: order.customer_email,
-          phone: order.customer_phone
+          phone: order.customer_phone,
         },
-        driver: order.assigned_driver_user_id ? {
-          id: order.assigned_driver_user_id,
-          name: order.driver_name,
-          email: order.driver_email,
-          phone: order.driver_phone,
-          vehicleType: order.driver_vehicle_type
-        } : null,
-        assignedDriverBidPrice: order.assigned_driver_bid_price ? parseFloat(order.assigned_driver_bid_price) : null,
+        driver: order.assigned_driver_user_id
+          ? {
+              id: order.assigned_driver_user_id,
+              name: order.driver_name,
+              email: order.driver_email,
+              phone: order.driver_phone,
+              vehicleType: order.driver_vehicle_type,
+            }
+          : null,
+        assignedDriverBidPrice: order.assigned_driver_bid_price
+          ? parseFloat(order.assigned_driver_bid_price)
+          : null,
         createdAt: order.created_at,
         acceptedAt: order.accepted_at,
         pickedUpAt: order.picked_up_at,
         deliveredAt: order.delivered_at,
-        cancelledAt: order.cancelled_at
+        cancelledAt: order.cancelled_at,
       },
       bids: bidsResult.rows,
       locationUpdates: locationUpdatesResult.rows,
-      payment: paymentResult.rows[0] || null
+      payment: paymentResult.rows[0] || null,
     });
 
-    await logAdminAction(req.admin.id, 'VIEW_ORDER_DETAILS', 'order', req.params.id, { ip: req.ip });
+    await logAdminAction(
+      req.admin.id,
+      "VIEW_ORDER_DETAILS",
+      "order",
+      req.params.id,
+      { ip: req.ip },
+    );
   } catch (error) {
-    console.error('Get order details error:', error);
-    res.status(500).json({ error: 'Failed to get order details' });
+    console.error("Get order details error:", error);
+    res.status(500).json({ error: "Failed to get order details" });
   }
 });
 
 // Cancel order
-router.post('/orders/:id/cancel', verifyAdmin, async (req, res) => {
+router.post("/orders/:id/cancel", verifyAdmin, async (req, res) => {
   const client = await pool.connect();
   try {
-    await client.query('BEGIN');
+    await client.query("BEGIN");
 
     const { reason } = req.body;
 
     const orderResult = await client.query(
-      'SELECT * FROM orders WHERE id = $1',
-      [req.params.id]
+      "SELECT * FROM orders WHERE id = $1",
+      [req.params.id],
     );
 
     if (orderResult.rows.length === 0) {
-      await client.query('ROLLBACK');
-      return res.status(404).json({ error: 'Order not found' });
+      await client.query("ROLLBACK");
+      return res.status(404).json({ error: "Order not found" });
     }
 
     const order = orderResult.rows[0];
 
-    if (order.status === 'delivered' || order.status === 'cancelled') {
-      await client.query('ROLLBACK');
-      return res.status(400).json({ error: 'Cannot cancel completed or already cancelled order' });
+    if (
+      ["delivered", "courier_delivered", "customer_delivered"].includes(
+        order.status,
+      ) ||
+      order.status === "cancelled"
+    ) {
+      await client.query("ROLLBACK");
+      return res
+        .status(400)
+        .json({ error: "Cannot cancel completed or already cancelled order" });
     }
 
     await client.query(
       `UPDATE orders SET status = 'cancelled', cancelled_at = CURRENT_TIMESTAMP WHERE id = $1`,
-      [req.params.id]
+      [req.params.id],
     );
 
     await createNotification(
       order.customer_id,
       order.id,
-      'order_cancelled',
-      'Order Cancelled',
-      `Your order ${order.order_number} has been cancelled. ${reason ? `Reason: ${reason}` : ''}`
+      "order_cancelled",
+      "Order Cancelled",
+      `Your order ${order.order_number} has been cancelled. ${reason ? `Reason: ${reason}` : ""}`,
     );
 
     if (order.assigned_driver_user_id) {
       await createNotification(
         order.assigned_driver_user_id,
         order.id,
-        'order_cancelled',
-        'Order Cancelled',
-        `Order ${order.order_number} has been cancelled. ${reason ? `Reason: ${reason}` : ''}`
+        "order_cancelled",
+        "Order Cancelled",
+        `Order ${order.order_number} has been cancelled. ${reason ? `Reason: ${reason}` : ""}`,
       );
     }
 
-    await client.query('COMMIT');
+    await client.query("COMMIT");
 
-    console.log(`❌ Admin ${req.admin.name} cancelled order: ${order.order_number}`);
-    await logAdminAction(req.admin.id, 'CANCEL_ORDER', 'order', req.params.id, {
+    console.log(
+      `❌ Admin ${req.admin.name} cancelled order: ${order.order_number}`,
+    );
+    await logAdminAction(req.admin.id, "CANCEL_ORDER", "order", req.params.id, {
       orderNumber: order.order_number,
       reason,
-      ip: req.ip
+      ip: req.ip,
     });
 
-    res.json({ message: 'Order cancelled successfully' });
+    res.json({ message: "Order cancelled successfully" });
   } catch (error) {
-    await client.query('ROLLBACK');
-    console.error('Cancel order error:', error);
-    res.status(500).json({ error: 'Failed to cancel order' });
+    await client.query("ROLLBACK");
+    console.error("Cancel order error:", error);
+    res.status(500).json({ error: "Failed to cancel order" });
   } finally {
     client.release();
   }
@@ -978,23 +1060,23 @@ router.post('/orders/:id/cancel', verifyAdmin, async (req, res) => {
 // Continue from Part 2
 
 // ============ ANALYTICS & REPORTS ============
-router.get('/analytics/performance', verifyAdmin, async (req, res) => {
+router.get("/analytics/performance", verifyAdmin, async (req, res) => {
   try {
-    const { range = '30d' } = req.query;
+    const { range = "30d" } = req.query;
 
     const now = new Date();
     let startDate = new Date();
     switch (range) {
-      case '24h':
+      case "24h":
         startDate.setHours(startDate.getHours() - 24);
         break;
-      case '7d':
+      case "7d":
         startDate.setDate(startDate.getDate() - 7);
         break;
-      case '30d':
+      case "30d":
         startDate.setDate(startDate.getDate() - 30);
         break;
-      case '90d':
+      case "90d":
         startDate.setDate(startDate.getDate() - 90);
         break;
       default:
@@ -1004,36 +1086,36 @@ router.get('/analytics/performance', verifyAdmin, async (req, res) => {
     const avgOrderValueResult = await pool.query(
       `SELECT AVG(assigned_driver_bid_price) as avg_value 
        FROM orders 
-       WHERE status = 'delivered' 
+       WHERE status IN ('delivered', 'courier_delivered', 'customer_delivered') 
          AND assigned_driver_bid_price IS NOT NULL
          AND delivered_at >= $1`,
-      [startDate]
+      [startDate],
     );
 
     const completionRateResult = await pool.query(
       `SELECT 
-        COUNT(CASE WHEN status = 'delivered' THEN 1 END) * 100.0 / 
+        COUNT(CASE WHEN status IN ('delivered', 'courier_delivered', 'customer_delivered') THEN 1 END) * 100.0 / 
         NULLIF(COUNT(CASE WHEN status != 'pending_bids' THEN 1 END), 0) as rate
        FROM orders
        WHERE created_at >= $1`,
-      [startDate]
+      [startDate],
     );
 
     const avgDeliveryTimeResult = await pool.query(
       `SELECT AVG(EXTRACT(EPOCH FROM (delivered_at - accepted_at)) / 3600) as avg_hours
        FROM orders 
-       WHERE status = 'delivered' 
+       WHERE status IN ('delivered', 'courier_delivered', 'customer_delivered') 
          AND accepted_at IS NOT NULL 
          AND delivered_at IS NOT NULL
          AND delivered_at >= $1`,
-      [startDate]
+      [startDate],
     );
 
     const avgRatingResult = await pool.query(
       `SELECT AVG(rating) as avg_rating 
        FROM reviews 
        WHERE created_at >= $1`,
-      [startDate]
+      [startDate],
     );
 
     const topDriversResult = await pool.query(
@@ -1044,12 +1126,12 @@ router.get('/analytics/performance', verifyAdmin, async (req, res) => {
        FROM users u
        JOIN orders o ON o.assigned_driver_user_id = u.id
        WHERE u.primary_role = 'driver' 
-         AND o.status = 'delivered'
+          AND o.status IN ('delivered', 'courier_delivered', 'customer_delivered')
          AND o.delivered_at >= $1
        GROUP BY u.id, u.name, u.email, u.rating
        ORDER BY deliveries DESC, earnings DESC
        LIMIT 10`,
-      [startDate]
+      [startDate],
     );
 
     const ordersByHourResult = await pool.query(
@@ -1060,48 +1142,59 @@ router.get('/analytics/performance', verifyAdmin, async (req, res) => {
        WHERE created_at >= $1
        GROUP BY EXTRACT(HOUR FROM created_at)
        ORDER BY hour`,
-      [startDate]
+      [startDate],
     );
 
     res.json({
       performance: {
         avgOrderValue: parseFloat(avgOrderValueResult.rows[0].avg_value) || 0,
         completionRate: parseFloat(completionRateResult.rows[0].rate) || 0,
-        avgDeliveryTime: parseFloat(avgDeliveryTimeResult.rows[0].avg_hours) || 0,
-        customerSatisfaction: parseFloat(avgRatingResult.rows[0].avg_rating) || 0
+        avgDeliveryTime:
+          parseFloat(avgDeliveryTimeResult.rows[0].avg_hours) || 0,
+        customerSatisfaction:
+          parseFloat(avgRatingResult.rows[0].avg_rating) || 0,
       },
-      topDrivers: topDriversResult.rows.map(driver => ({
+      topDrivers: topDriversResult.rows.map((driver) => ({
         id: driver.id,
         name: driver.name,
         email: driver.email,
         rating: parseFloat(driver.rating),
         deliveries: parseInt(driver.deliveries),
-        earnings: parseFloat(driver.earnings)
+        earnings: parseFloat(driver.earnings),
       })),
-      ordersByHour: ordersByHourResult.rows.map(row => ({
-        hour: `${String(row.hour).padStart(2, '0')}:00`,
-        orders: parseInt(row.count)
-      }))
+      ordersByHour: ordersByHourResult.rows.map((row) => ({
+        hour: `${String(row.hour).padStart(2, "0")}:00`,
+        orders: parseInt(row.count),
+      })),
     });
 
-    await logAdminAction(req.admin.id, 'VIEW_ANALYTICS', 'analytics', null, { range, ip: req.ip });
+    await logAdminAction(req.admin.id, "VIEW_ANALYTICS", "analytics", null, {
+      range,
+      ip: req.ip,
+    });
   } catch (error) {
-    console.error('Get analytics error:', error);
-    res.status(500).json({ error: 'Failed to get analytics' });
+    console.error("Get analytics error:", error);
+    res.status(500).json({ error: "Failed to get analytics" });
   }
 });
 
 // ============ SYSTEM LOGS ============
-router.get('/logs', verifyAdmin, async (req, res) => {
+router.get("/logs", verifyAdmin, async (req, res) => {
   try {
-    const { page = 1, limit = 50, type = 'all', startDate, endDate } = req.query;
+    const {
+      page = 1,
+      limit = 50,
+      type = "all",
+      startDate,
+      endDate,
+    } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
 
     let whereConditions = [];
     let queryParams = [];
     let paramCount = 1;
 
-    if (type !== 'all') {
+    if (type !== "all") {
       whereConditions.push(`action LIKE $${paramCount}`);
       queryParams.push(`${type.toUpperCase()}%`);
       paramCount++;
@@ -1119,11 +1212,14 @@ router.get('/logs', verifyAdmin, async (req, res) => {
       paramCount++;
     }
 
-    const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
+    const whereClause =
+      whereConditions.length > 0
+        ? `WHERE ${whereConditions.join(" AND ")}`
+        : "";
 
     const countResult = await pool.query(
       `SELECT COUNT(*) as count FROM admin_logs ${whereClause}`,
-      queryParams
+      queryParams,
     );
     const totalCount = parseInt(countResult.rows[0].count);
 
@@ -1138,10 +1234,10 @@ router.get('/logs', verifyAdmin, async (req, res) => {
        ${whereClause}
        ORDER BY al.created_at DESC
        LIMIT $${paramCount} OFFSET $${paramCount + 1}`,
-      queryParams
+      queryParams,
     );
 
-    const logs = logsResult.rows.map(log => ({
+    const logs = logsResult.rows.map((log) => ({
       id: log.id,
       adminId: log.admin_id,
       adminName: log.admin_name,
@@ -1151,7 +1247,7 @@ router.get('/logs', verifyAdmin, async (req, res) => {
       targetId: log.target_id,
       details: log.details,
       ipAddress: log.ip_address,
-      createdAt: log.created_at
+      createdAt: log.created_at,
     }));
 
     res.json({
@@ -1160,22 +1256,22 @@ router.get('/logs', verifyAdmin, async (req, res) => {
         page: parseInt(page),
         limit: parseInt(limit),
         totalCount,
-        totalPages: Math.ceil(totalCount / parseInt(limit))
-      }
+        totalPages: Math.ceil(totalCount / parseInt(limit)),
+      },
     });
   } catch (error) {
-    console.error('Get logs error:', error);
-    res.status(500).json({ error: 'Failed to get logs' });
+    console.error("Get logs error:", error);
+    res.status(500).json({ error: "Failed to get logs" });
   }
 });
 
 // Clear old logs
-router.delete('/logs/clear', verifyAdmin, async (req, res) => {
+router.delete("/logs/clear", verifyAdmin, async (req, res) => {
   try {
-    const { olderThan = '90d' } = req.body;
+    const { olderThan = "90d" } = req.body;
 
     let daysAgo = 90;
-    if (olderThan.endsWith('d')) {
+    if (olderThan.endsWith("d")) {
       daysAgo = parseInt(olderThan);
     }
 
@@ -1184,54 +1280,58 @@ router.delete('/logs/clear', verifyAdmin, async (req, res) => {
 
     const result = await pool.query(
       `DELETE FROM admin_logs WHERE created_at < $1`,
-      [dateThreshold]
+      [dateThreshold],
     );
 
-    console.log(`🗑️ Admin ${req.admin.name} cleared ${result.rowCount} old logs`);
-    await logAdminAction(req.admin.id, 'CLEAR_LOGS', 'system', null, {
+    console.log(
+      `🗑️ Admin ${req.admin.name} cleared ${result.rowCount} old logs`,
+    );
+    await logAdminAction(req.admin.id, "CLEAR_LOGS", "system", null, {
       olderThan,
       deletedCount: result.rowCount,
-      ip: req.ip
+      ip: req.ip,
     });
 
     res.json({
-      message: 'Logs cleared successfully',
-      deletedCount: result.rowCount
+      message: "Logs cleared successfully",
+      deletedCount: result.rowCount,
     });
   } catch (error) {
-    console.error('Clear logs error:', error);
-    res.status(500).json({ error: 'Failed to clear logs' });
+    console.error("Clear logs error:", error);
+    res.status(500).json({ error: "Failed to clear logs" });
   }
 });
 
 // ============ SYSTEM SETTINGS ============
-router.get('/settings', verifyAdmin, async (req, res) => {
+router.get("/settings", verifyAdmin, async (req, res) => {
   try {
     const settingsResult = await pool.query(
-      'SELECT * FROM system_settings ORDER BY key'
+      "SELECT * FROM system_settings ORDER BY key",
     );
 
     const settings = {};
-    settingsResult.rows.forEach(row => {
+    settingsResult.rows.forEach((row) => {
       settings[row.key] = {
         value: row.value,
         type: row.type,
         description: row.description,
-        updatedAt: row.updated_at
+        updatedAt: row.updated_at,
       };
     });
 
     res.json(settings);
 
-    await logAdminAction(req.admin.id, 'VIEW_SETTINGS', 'system', null, { ip: req.ip });
+    await logAdminAction(req.admin.id, "VIEW_SETTINGS", "system", null, {
+      ip: req.ip,
+    });
   } catch (error) {
-    console.error('Get settings error:', error);
-    res.status(500).json({ error: 'Failed to get settings' });
+    console.error("Get settings error:", error);
+    res.status(500).json({ error: "Failed to get settings" });
   }
 });
 
 // Update system setting
-router.put('/settings/:key', verifyAdmin, async (req, res) => {
+router.put("/settings/:key", verifyAdmin, async (req, res) => {
   try {
     const { value } = req.body;
 
@@ -1241,86 +1341,103 @@ router.put('/settings/:key', verifyAdmin, async (req, res) => {
        ON CONFLICT (key) 
        DO UPDATE SET value = $2, updated_at = CURRENT_TIMESTAMP, updated_by = $3
        RETURNING *`,
-      [req.params.key, value, req.admin.id]
+      [req.params.key, value, req.admin.id],
     );
 
-    console.log(`⚙️ Admin ${req.admin.name} updated setting: ${req.params.key} = ${value}`);
-    await logAdminAction(req.admin.id, 'UPDATE_SETTING', 'system', req.params.key, {
-      key: req.params.key,
-      value,
-      ip: req.ip
-    });
+    console.log(
+      `⚙️ Admin ${req.admin.name} updated setting: ${req.params.key} = ${value}`,
+    );
+    await logAdminAction(
+      req.admin.id,
+      "UPDATE_SETTING",
+      "system",
+      req.params.key,
+      {
+        key: req.params.key,
+        value,
+        ip: req.ip,
+      },
+    );
 
     res.json({
-      message: 'Setting updated successfully',
-      setting: result.rows[0]
+      message: "Setting updated successfully",
+      setting: result.rows[0],
     });
   } catch (error) {
-    console.error('Update setting error:', error);
-    res.status(500).json({ error: 'Failed to update setting' });
+    console.error("Update setting error:", error);
+    res.status(500).json({ error: "Failed to update setting" });
   }
 });
 
 // ============ BULK OPERATIONS ============
-router.post('/users/bulk/verify', verifyAdmin, async (req, res) => {
+router.post("/users/bulk/verify", verifyAdmin, async (req, res) => {
   const client = await pool.connect();
   try {
-    await client.query('BEGIN');
+    await client.query("BEGIN");
 
     const { userIds } = req.body;
 
     if (!Array.isArray(userIds) || userIds.length === 0) {
-      await client.query('ROLLBACK');
-      return res.status(400).json({ error: 'User IDs array required' });
+      await client.query("ROLLBACK");
+      return res.status(400).json({ error: "User IDs array required" });
     }
 
     const result = await client.query(
       `UPDATE users SET is_verified = true 
        WHERE id = ANY($1::varchar[])
        RETURNING id, name, email`,
-      [userIds]
+      [userIds],
     );
 
     for (const user of result.rows) {
       await createNotification(
         user.id,
         null,
-        'account_verified',
-        'Account Verified',
-        'Your account has been verified by an administrator.'
+        "account_verified",
+        "Account Verified",
+        "Your account has been verified by an administrator.",
       );
     }
 
-    await client.query('COMMIT');
+    await client.query("COMMIT");
 
-    console.log(`✅ Admin ${req.admin.name} bulk verified ${result.rowCount} users`);
-    await logAdminAction(req.admin.id, 'BULK_VERIFY_USERS', 'users', null, {
+    console.log(
+      `✅ Admin ${req.admin.name} bulk verified ${result.rowCount} users`,
+    );
+    await logAdminAction(req.admin.id, "BULK_VERIFY_USERS", "users", null, {
       count: result.rowCount,
       userIds,
-      ip: req.ip
+      ip: req.ip,
     });
 
     res.json({
-      message: 'Users verified successfully',
+      message: "Users verified successfully",
       count: result.rowCount,
-      users: result.rows
+      users: result.rows,
     });
   } catch (error) {
-    await client.query('ROLLBACK');
-    console.error('Bulk verify error:', error);
-    res.status(500).json({ error: 'Failed to verify users' });
+    await client.query("ROLLBACK");
+    console.error("Bulk verify error:", error);
+    res.status(500).json({ error: "Failed to verify users" });
   } finally {
     client.release();
   }
 });
 
 // ============ DATABASE BACKUP ============
-router.post('/backup/create', verifyAdmin, async (req, res) => {
+router.post("/backup/create", verifyAdmin, async (req, res) => {
   try {
     const backupId = generateId();
     const timestamp = new Date().toISOString();
 
-    const tables = ['users', 'orders', 'bids', 'notifications', 'reviews', 'payments'];
+    const tables = [
+      "users",
+      "orders",
+      "bids",
+      "notifications",
+      "reviews",
+      "payments",
+    ];
     const tableCounts = {};
 
     for (const table of tables) {
@@ -1331,52 +1448,57 @@ router.post('/backup/create', verifyAdmin, async (req, res) => {
     await pool.query(
       `INSERT INTO backups (id, created_by, table_counts, status, created_at)
        VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)`,
-      [backupId, req.admin.id, JSON.stringify(tableCounts), 'completed']
+      [backupId, req.admin.id, JSON.stringify(tableCounts), "completed"],
     );
 
-    console.log(`💾 Admin ${req.admin.name} created database backup: ${backupId}`);
-    await logAdminAction(req.admin.id, 'CREATE_BACKUP', 'system', backupId, {
+    console.log(
+      `💾 Admin ${req.admin.name} created database backup: ${backupId}`,
+    );
+    await logAdminAction(req.admin.id, "CREATE_BACKUP", "system", backupId, {
       backupId,
       tableCounts,
-      ip: req.ip
+      ip: req.ip,
     });
 
     res.json({
-      message: 'Backup created successfully',
+      message: "Backup created successfully",
       backupId,
       timestamp,
-      tableCounts
+      tableCounts,
     });
   } catch (error) {
-    console.error('Create backup error:', error);
-    res.status(500).json({ error: 'Failed to create backup' });
+    console.error("Create backup error:", error);
+    res.status(500).json({ error: "Failed to create backup" });
   }
 });
 
 // ============ REPORTS GENERATION ============
-router.get('/reports/revenue', verifyAdmin, async (req, res) => {
+router.get("/reports/revenue", verifyAdmin, async (req, res) => {
   try {
-    const { startDate, endDate, groupBy = 'day' } = req.query;
+    const { startDate, endDate, groupBy = "day" } = req.query;
 
     let dateFormat;
     switch (groupBy) {
-      case 'hour':
-        dateFormat = 'YYYY-MM-DD HH24:00:00';
+      case "hour":
+        dateFormat = "YYYY-MM-DD HH24:00:00";
         break;
-      case 'day':
-        dateFormat = 'YYYY-MM-DD';
+      case "day":
+        dateFormat = "YYYY-MM-DD";
         break;
-      case 'week':
-        dateFormat = 'IYYY-IW';
+      case "week":
+        dateFormat = "IYYY-IW";
         break;
-      case 'month':
-        dateFormat = 'YYYY-MM';
+      case "month":
+        dateFormat = "YYYY-MM";
         break;
       default:
-        dateFormat = 'YYYY-MM-DD';
+        dateFormat = "YYYY-MM-DD";
     }
 
-    let whereConditions = ['status = \'delivered\'', 'assigned_driver_bid_price IS NOT NULL'];
+    let whereConditions = [
+      "status IN ('delivered', 'courier_delivered', 'customer_delivered')",
+      "assigned_driver_bid_price IS NOT NULL",
+    ];
     let queryParams = [];
     let paramCount = 1;
 
@@ -1392,7 +1514,7 @@ router.get('/reports/revenue', verifyAdmin, async (req, res) => {
       paramCount++;
     }
 
-    const whereClause = `WHERE ${whereConditions.join(' AND ')}`;
+    const whereClause = `WHERE ${whereConditions.join(" AND ")}`;
 
     const result = await pool.query(
       `SELECT 
@@ -1406,51 +1528,58 @@ router.get('/reports/revenue', verifyAdmin, async (req, res) => {
        ${whereClause}
        GROUP BY TO_CHAR(delivered_at, '${dateFormat}')
        ORDER BY period`,
-      queryParams
+      queryParams,
     );
 
-    const report = result.rows.map(row => ({
+    const report = result.rows.map((row) => ({
       period: row.period,
       orderCount: parseInt(row.order_count),
       totalRevenue: parseFloat(row.total_revenue),
       avgOrderValue: parseFloat(row.avg_order_value),
       minOrderValue: parseFloat(row.min_order_value),
-      maxOrderValue: parseFloat(row.max_order_value)
+      maxOrderValue: parseFloat(row.max_order_value),
     }));
 
-    await logAdminAction(req.admin.id, 'GENERATE_REVENUE_REPORT', 'reports', null, {
-      startDate,
-      endDate,
-      groupBy,
-      ip: req.ip
-    });
+    await logAdminAction(
+      req.admin.id,
+      "GENERATE_REVENUE_REPORT",
+      "reports",
+      null,
+      {
+        startDate,
+        endDate,
+        groupBy,
+        ip: req.ip,
+      },
+    );
 
     res.json({
       report,
       summary: {
         totalOrders: report.reduce((sum, r) => sum + r.orderCount, 0),
         totalRevenue: report.reduce((sum, r) => sum + r.totalRevenue, 0),
-        avgOrderValue: report.reduce((sum, r) => sum + r.avgOrderValue, 0) / report.length || 0
-      }
+        avgOrderValue:
+          report.reduce((sum, r) => sum + r.avgOrderValue, 0) / report.length ||
+          0,
+      },
     });
   } catch (error) {
-    console.error('Generate revenue report error:', error);
-    res.status(500).json({ error: 'Failed to generate report' });
+    console.error("Generate revenue report error:", error);
+    res.status(500).json({ error: "Failed to generate report" });
   }
 });
-
 
 // ============ DEPOSIT MANAGEMENT ============
 
 // Get pending deposits
-router.get('/deposits/pending', verifyAdmin, async (req, res) => {
+router.get("/deposits/pending", verifyAdmin, async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT * FROM deposit_requests WHERE status = $1 ORDER BY created_at DESC',
-      ['pending']
+      "SELECT * FROM deposit_requests WHERE status = $1 ORDER BY created_at DESC",
+      ["pending"],
     );
 
-    const deposits = result.rows.map(row => ({
+    const deposits = result.rows.map((row) => ({
       id: row.id,
       requestNumber: row.request_number,
       userId: row.user_id,
@@ -1458,127 +1587,149 @@ router.get('/deposits/pending', verifyAdmin, async (req, res) => {
       currency: row.currency,
       status: row.status,
       createdAt: row.created_at,
-      updatedAt: row.updated_at
+      updatedAt: row.updated_at,
     }));
 
-    await logAdminAction(req.admin.id, 'VIEW_PENDING_DEPOSITS', 'deposits', null, {
-      count: deposits.length,
-      ip: req.ip
-    });
+    await logAdminAction(
+      req.admin.id,
+      "VIEW_PENDING_DEPOSITS",
+      "deposits",
+      null,
+      {
+        count: deposits.length,
+        ip: req.ip,
+      },
+    );
 
     res.json({
       success: true,
       data: deposits,
-      count: deposits.length
+      count: deposits.length,
     });
   } catch (error) {
-    console.error('Get pending deposits error:', error);
-    res.status(500).json({ error: 'Failed to fetch pending deposits' });
+    console.error("Get pending deposits error:", error);
+    res.status(500).json({ error: "Failed to fetch pending deposits" });
   }
 });
 
 // Approve deposit
-router.post('/deposits/:id/approve', verifyAdmin, async (req, res) => {
+router.post("/deposits/:id/approve", verifyAdmin, async (req, res) => {
   try {
     const depositId = req.params.id;
     const reference = req.body.reference || `DEP-${Date.now()}`;
 
     const depositResult = await pool.query(
-      'SELECT * FROM deposit_requests WHERE id = $1',
-      [depositId]
+      "SELECT * FROM deposit_requests WHERE id = $1",
+      [depositId],
     );
 
     if (depositResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Deposit request not found' });
+      return res.status(404).json({ error: "Deposit request not found" });
     }
 
     const deposit = depositResult.rows[0];
 
-    if (deposit.status !== 'pending') {
-      return res.status(400).json({ error: `Deposit is already ${deposit.status}` });
+    if (deposit.status !== "pending") {
+      return res
+        .status(400)
+        .json({ error: `Deposit is already ${deposit.status}` });
     }
 
     // Update deposit request
     await pool.query(
-      'UPDATE deposit_requests SET status = $1, processed_by = $2, transaction_reference = $3, processed_at = NOW() WHERE id = $4',
-      ['completed', req.admin.id, reference, depositId]
+      "UPDATE deposit_requests SET status = $1, processed_by = $2, transaction_reference = $3, processed_at = NOW() WHERE id = $4",
+      ["completed", req.admin.id, reference, depositId],
     );
 
     // Update user balance
     await pool.query(
-      'UPDATE user_balances SET available_balance = available_balance + $1, updated_at = NOW() WHERE user_id = $2',
-      [deposit.amount, deposit.user_id]
+      "UPDATE user_balances SET available_balance = available_balance + $1, updated_at = NOW() WHERE user_id = $2",
+      [deposit.amount, deposit.user_id],
     );
 
-    await logAdminAction(req.admin.id, 'APPROVE_DEPOSIT', 'deposits', depositId, {
-      userId: deposit.user_id,
-      amount: deposit.amount,
-      reference: reference,
-      ip: req.ip
-    });
+    await logAdminAction(
+      req.admin.id,
+      "APPROVE_DEPOSIT",
+      "deposits",
+      depositId,
+      {
+        userId: deposit.user_id,
+        amount: deposit.amount,
+        reference: reference,
+        ip: req.ip,
+      },
+    );
 
     res.json({
       success: true,
       data: {
         depositId: deposit.id,
-        status: 'completed',
+        status: "completed",
         reference: reference,
-        amount: deposit.amount
+        amount: deposit.amount,
       },
-      message: 'Deposit approved and balance updated'
+      message: "Deposit approved and balance updated",
     });
   } catch (error) {
-    console.error('Approve deposit error:', error);
-    res.status(500).json({ error: 'Failed to approve deposit' });
+    console.error("Approve deposit error:", error);
+    res.status(500).json({ error: "Failed to approve deposit" });
   }
 });
 
 // Reject deposit
-router.post('/deposits/:id/reject', verifyAdmin, async (req, res) => {
+router.post("/deposits/:id/reject", verifyAdmin, async (req, res) => {
   try {
     const depositId = req.params.id;
-    const reason = req.body.reason || 'No reason provided';
+    const reason = req.body.reason || "No reason provided";
 
     const depositResult = await pool.query(
-      'SELECT * FROM deposit_requests WHERE id = $1',
-      [depositId]
+      "SELECT * FROM deposit_requests WHERE id = $1",
+      [depositId],
     );
 
     if (depositResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Deposit request not found' });
+      return res.status(404).json({ error: "Deposit request not found" });
     }
 
     const deposit = depositResult.rows[0];
 
-    if (deposit.status !== 'pending') {
-      return res.status(400).json({ error: `Deposit is already ${deposit.status}` });
+    if (deposit.status !== "pending") {
+      return res
+        .status(400)
+        .json({ error: `Deposit is already ${deposit.status}` });
     }
 
     // Update deposit request
     await pool.query(
-      'UPDATE deposit_requests SET status = $1, processed_by = $2, rejection_reason = $3, processed_at = NOW() WHERE id = $4',
-      ['rejected', req.admin.id, reason, depositId]
+      "UPDATE deposit_requests SET status = $1, processed_by = $2, rejection_reason = $3, processed_at = NOW() WHERE id = $4",
+      ["rejected", req.admin.id, reason, depositId],
     );
 
-    await logAdminAction(req.admin.id, 'REJECT_DEPOSIT', 'deposits', depositId, {
-      userId: deposit.user_id,
-      amount: deposit.amount,
-      reason: reason,
-      ip: req.ip
-    });
+    await logAdminAction(
+      req.admin.id,
+      "REJECT_DEPOSIT",
+      "deposits",
+      depositId,
+      {
+        userId: deposit.user_id,
+        amount: deposit.amount,
+        reason: reason,
+        ip: req.ip,
+      },
+    );
 
     res.json({
       success: true,
       data: {
         depositId: deposit.id,
-        status: 'rejected',
-        reason: reason
+        status: "rejected",
+        reason: reason,
       },
-      message: 'Deposit rejected'
+      message: "Deposit rejected",
     });
   } catch (error) {
-    console.error('Reject deposit error:', error);
-    res.status(500).json({ error: 'Failed to reject deposit' });
+    console.error("Reject deposit error:", error);
+    res.status(500).json({ error: "Failed to reject deposit" });
   }
 });
 
