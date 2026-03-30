@@ -115,3 +115,14 @@ module.exports = {
   startCleanup,
   stopCleanup
 };
+
+// Location Update Rate Limit (more lenient for real-time tracking)
+// 5000 requests per 15 minutes (approx 5.5 req/sec per driver)
+const locationRateLimit = createLimiter({
+  windowMs: 15 * 60 * 1000,
+  limit: 5000,
+  message: 'Location update limit exceeded',
+  skip: (req) => req.url.includes('/maps/')
+}, 'rl:location:');
+
+module.exports.locationRateLimit = locationRateLimit;
