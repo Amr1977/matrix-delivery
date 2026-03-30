@@ -378,9 +378,15 @@ export const MainApp = () => {
         (order) =>
           (order.assignedDriver?.userId === currentUser.id ||
             order.assigned_driver_user_id === currentUser.id) &&
-          !["delivered", "courier_delivered", "customer_delivered", "completed", "cancelled", "confirmed", "pending_bids"].includes(
-            order.status,
-          ),
+          ![
+            "delivered",
+            "courier_delivered",
+            "customer_delivered",
+            "completed",
+            "cancelled",
+            "confirmed",
+            "pending_bids",
+          ].includes(order.status),
       );
 
       if (hasActiveOrder) {
@@ -3124,54 +3130,60 @@ export const MainApp = () => {
           </div>
         )}
 
-        {((currentUser?.primary_role === "driver" || currentUser?.primary_role === "customer") && 
-          viewType === "map") && (
-          <div style={{ marginBottom: "1rem" }}>
-            <OrdersMap
-              orders={(currentUser?.primary_role === "driver" 
-                ? orders.filter((order) => {
-                    if (order.status !== "pending_bids") return false;
-                    const hasDriverBid =
-                      Array.isArray(order.bids) &&
-                      order.bids.some((b) => b.userId === currentUser?.id);
-                    if (hasDriverBid) return false;
-                    const pickup =
-                      order.pickupLocation?.coordinates ||
-                      (order.from
-                        ? { lat: order.from.lat, lng: order.from.lng }
-                        : null);
-                    if (
-                      !pickup ||
-                      !Number.isFinite(pickup.lat) ||
-                      !Number.isFinite(pickup.lng)
-                    )
-                      return false;
-                    const driver =
-                      driverLocation &&
-                      Number.isFinite(driverLocation.latitude) &&
-                      Number.isFinite(driverLocation.longitude)
-                        ? {
-                            lat: driverLocation.latitude,
-                            lng: driverLocation.longitude,
-                          }
-                        : null;
-                    if (!driver) return true;
-                    const d = haversineKm(driver, pickup);
-                    return d <= ordersMapRadiusKm;
-                    })
-                : orders.filter(order => 
-                    order.status === "pending_bids" && 
-                    order.pickupLocation?.coordinates &&
-                    Number.isFinite(order.pickupLocation.coordinates.lat) &&
-                    Number.isFinite(order.pickupLocation.coordinates.lng)
-                  ),
+        {(currentUser?.primary_role === "driver" ||
+          currentUser?.primary_role === "customer") &&
+          viewType === "map" && (
+            <div style={{ marginBottom: "1rem" }}>
+              <OrdersMap
+                orders={
+                  currentUser?.primary_role === "driver"
+                    ? orders.filter((order) => {
+                        if (order.status !== "pending_bids") return false;
+                        const hasDriverBid =
+                          Array.isArray(order.bids) &&
+                          order.bids.some((b) => b.userId === currentUser?.id);
+                        if (hasDriverBid) return false;
+                        const pickup =
+                          order.pickupLocation?.coordinates ||
+                          (order.from
+                            ? { lat: order.from.lat, lng: order.from.lng }
+                            : null);
+                        if (
+                          !pickup ||
+                          !Number.isFinite(pickup.lat) ||
+                          !Number.isFinite(pickup.lng)
+                        )
+                          return false;
+                        const driver =
+                          driverLocation &&
+                          Number.isFinite(driverLocation.latitude) &&
+                          Number.isFinite(driverLocation.longitude)
+                            ? {
+                                lat: driverLocation.latitude,
+                                lng: driverLocation.longitude,
+                              }
+                            : null;
+                        if (!driver) return true;
+                        const d = haversineKm(driver, pickup);
+                        return d <= ordersMapRadiusKm;
+                      })
+                    : orders.filter(
+                        (order) =>
+                          order.status === "pending_bids" &&
+                          order.pickupLocation?.coordinates &&
+                          Number.isFinite(
+                            order.pickupLocation.coordinates.lat,
+                          ) &&
+                          Number.isFinite(order.pickupLocation.coordinates.lng),
+                      )
+                }
                 driverLocation={driverLocation}
                 radiusKm={ordersMapRadiusKm}
                 onRadiusChange={setOrdersMapRadiusKm}
                 onSelectOrder={(order) => setSelectedOrderForMap(order)}
-            />
-          </div>
-        )}
+              />
+            </div>
+          )}
 
         {currentUser?.primary_role === "driver" && viewType === "earnings" && (
           <DriverEarningsDashboard token={token} API_URL={API_URL} t={t} />
@@ -3620,9 +3632,14 @@ export const MainApp = () => {
                     // History: Completed orders (using historyOrders array)
                     if (
                       viewType === "history" &&
-                      !["delivered", "courier_delivered", "customer_delivered", "completed", "cancelled", "confirmed"].includes(
-                        order.status,
-                      )
+                      ![
+                        "delivered",
+                        "courier_delivered",
+                        "customer_delivered",
+                        "completed",
+                        "cancelled",
+                        "confirmed",
+                      ].includes(order.status)
                     )
                       return null;
 
