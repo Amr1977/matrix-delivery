@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
 import api from "../api";
 import RoutePreviewMap from "./RoutePreviewMap";
 import { MapsApi } from "../services/api/maps";
@@ -99,7 +105,8 @@ const AsyncOrderMap = ({
   const updateTelemetry = useCallback(
     (lat, lng, backendNextWaypoint = null) => {
       if (!onTelemetryUpdate) return;
-      if (!Number.isFinite(Number(lat)) || !Number.isFinite(Number(lng))) return;
+      if (!Number.isFinite(Number(lat)) || !Number.isFinite(Number(lng)))
+        return;
       if (
         backendNextWaypoint &&
         Number.isFinite(Number(backendNextWaypoint.distance_km)) &&
@@ -209,7 +216,14 @@ const AsyncOrderMap = ({
     } finally {
       setLoading(false);
     }
-  }, [order.id, order.status, currentUser?.primary_role, currentUser?.id, order.customer_id, updateTelemetry]);
+  }, [
+    order.id,
+    order.status,
+    currentUser?.primary_role,
+    currentUser?.id,
+    order.customer_id,
+    updateTelemetry,
+  ]);
 
   useEffect(() => {
     if (!shouldFetch) return;
@@ -227,14 +241,20 @@ const AsyncOrderMap = ({
     socketRef.current = socket;
 
     socket.on("connect", () => {
+      console.log(
+        `📡 [AsyncOrderMap] Socket connected, joining order room:`,
+        order.id,
+      );
       socket.emit("join_order", { orderId: order.id });
     });
     socket.on("connect_error", () => fetchTracking());
     socket.on("error", () => {});
     socket.on("location_update", (data) => {
+      console.log(`📍 [AsyncOrderMap] location_update received:`, data);
       if (data.orderId !== order.id) return;
       const lat = parseFloat(data.latitude),
         lng = parseFloat(data.longitude);
+      console.log(`📍 [AsyncOrderMap] Parsed location:`, lat, lng);
       if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
       setCurrentDriverLocation({
         latitude: lat,
@@ -244,6 +264,11 @@ const AsyncOrderMap = ({
         speedKmh: data.speedKmh,
         accuracyMeters: data.accuracyMeters,
       });
+      console.log(
+        `📍 [AsyncOrderMap] Updated currentDriverLocation:`,
+        lat,
+        lng,
+      );
       updateTelemetry(lat, lng, nextWaypoint);
     });
 
