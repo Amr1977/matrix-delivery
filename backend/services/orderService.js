@@ -1341,6 +1341,7 @@ RETURNING * `;
       delivered: "complete_delivery", // Handle frontend 'delivered' action
       complete: "complete_delivery",
       confirm_delivery: "confirm_delivery", // Customer confirms delivery
+      finalize_order: "finalize_order", // System finalizes order after delivery confirmation
       cancel: "cancel", // Customer/Admin cancels order
       cancelled: "cancel", // Alternative name for cancel action
     };
@@ -1376,7 +1377,9 @@ RETURNING * `;
           normalizedAction === "confirm_delivery" ||
           normalizedAction === "cancel"
             ? "customer"
-            : "driver",
+            : normalizedAction === "finalize_order"
+              ? "customer"
+              : "driver",
       },
     );
 
@@ -1394,6 +1397,14 @@ RETURNING * `;
         throw new Error(
           `Only customer can ${normalizedAction === "cancel" ? "cancel" : "confirm delivery"}`,
         );
+      }
+    } else if (normalizedAction === "finalize_order") {
+      // finalize_order can be called by system, customer, or driver
+      if (
+        order.customer_id !== userId &&
+        order.assigned_driver_user_id !== userId
+      ) {
+        throw new Error("Only order participants can finalize the order");
       }
     } else {
       // Driver actions
@@ -1563,23 +1574,26 @@ RETURNING * `;
       const orderFull = orderDetails.rows[0];
       const paymentMethod = orderFull.payment_method || "COD";
 
-      // ✅ COD MODEL: Deduct 10% platform fee from courier balance
-      if (paymentMethod === "COD") {
-        const courierBid = parseFloat(orderFull.assigned_driver_bid_price) || 0;
-        const platformFee = courierBid * 0.1; // 10% of bid price
+      // Commission rate: 10% platform + 5% Takaful = 15% total
+      const deliveryFee = parseFloat(orderFull.price) || 0;
+      const platformCommission = deliveryFee * PAYMENT_CONFIG.COMMISSION_RATE; // 10%
+      const takafulContribution = deliveryFee * 0.05; // 5%
+      const escrowAmount = parseFloat(orderFull.escrow_amount) || 0;
 
-        if (platformFee > 0) {
+      if (paymentMethod === "COD") {
+        // ✅ COD MODEL: Deduct platform fee from courier balance
+        if (platformCommission > 0) {
           try {
             await balanceService.deductPlatformFee(
               order.assigned_driver_user_id,
               orderId,
-              platformFee,
+              platformCommission,
             );
 
             logger.info("Platform fee deducted for COD delivery", {
               orderId,
-              courierBid,
-              platformFee,
+              deliveryFee,
+              platformCommission,
               courierId: order.assigned_driver_user_id,
             });
           } catch (feeError) {
@@ -1590,15 +1604,83 @@ RETURNING * `;
             // Continue - don't block order completion
           }
         }
+
+        // ✅ COD: Release held escrow funds back to customer
+        if (escrowAmount > 0 && orderFull.escrow_status === "held") {
+          try {
+            await balanceService.releaseHold(
+              order.customer_id,
+              orderId,
+              escrowAmount,
+            );
+
+            await pool.query(
+              "UPDATE orders SET escrow_status = $1 WHERE id = $2",
+              ["released", orderId],
+            );
+
+            logger.info("COD escrow released on delivery confirmation", {
+              orderId,
+              escrowAmount,
+            });
+          } catch (escrowError) {
+            logger.error("Failed to release COD escrow", {
+              orderId,
+              error: escrowError.message,
+            });
+          }
+        }
+
+        // ✅ COD: Record payment in payments table
+        try {
+          const existingPayment = await pool.query(
+            "SELECT id FROM payments WHERE order_id = $1",
+            [orderId],
+          );
+          if (existingPayment.rows.length === 0) {
+            const { generateId } = require("../config/utils");
+            const paymentId = generateId();
+            const driverEarnings = deliveryFee - platformCommission;
+            await pool.query(
+              `INSERT INTO payments (id, order_id, amount, currency, payment_method, status, payer_id, payee_id, platform_fee, driver_earnings, processed_at)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP)`,
+              [
+                paymentId,
+                orderId,
+                deliveryFee,
+                "EGP",
+                "cash",
+                "completed",
+                orderFull.customer_id,
+                order.assigned_driver_user_id,
+                platformCommission,
+                driverEarnings,
+              ],
+            );
+          }
+        } catch (paymentError) {
+          logger.error("Failed to record COD payment", {
+            orderId,
+            error: paymentError.message,
+          });
+        }
+
+        // ✅ COD: Record Takaful contribution
+        try {
+          await takafulService.recordContribution(
+            order.assigned_driver_user_id,
+            orderId,
+            deliveryFee,
+          );
+        } catch (takafulError) {
+          logger.error("Failed to record Takaful contribution", {
+            orderId,
+            error: takafulError.message,
+          });
+        }
       } else {
         // ✅ PREPAID MODEL: Release held funds to driver with commission deduction
-        const escrowAmount = parseFloat(order.escrow_amount) || 0;
-        if (escrowAmount > 0 && order.escrow_status === "held") {
-          // Calculate commission: 10% platform + 5% Takaful = 15%
-          const deliveryFee = parseFloat(order.price) || 0;
-          const platformCommission = deliveryFee * 0.1; // 10%
-          const takafulContribution = deliveryFee * 0.05; // 5%
-
+        if (escrowAmount > 0 && orderFull.escrow_status === "held") {
           try {
             console.log(
               `[DEBUG] Calling releaseHold for order ${orderId} from orderService. Confirming delivery.`,
@@ -2044,7 +2126,9 @@ o.*,
     }
 
     const order = orderCheck.rows[0];
-    if (order.status !== "delivered") {
+    if (
+      !["delivered", "delivered_pending", "completed"].includes(order.status)
+    ) {
       throw new Error("Can only review delivered orders");
     }
 

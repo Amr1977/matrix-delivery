@@ -1,5 +1,5 @@
-const { ORDER_STATUS } = require('../config/constants');
-const EventEmitter = require('events');
+const { ORDER_STATUS } = require("../config/constants");
+const EventEmitter = require("events");
 
 /**
  * Enhanced Base FSM class with event emission and timeout support
@@ -35,7 +35,7 @@ class BaseOrderFSM extends EventEmitter {
    * Get the initial state (must be implemented by subclasses)
    */
   getInitialState() {
-    throw new Error('getInitialState() must be implemented by subclass');
+    throw new Error("getInitialState() must be implemented by subclass");
   }
 
   /**
@@ -52,7 +52,7 @@ class BaseOrderFSM extends EventEmitter {
     if (this.isTerminalState(currentStatus)) {
       return {
         valid: false,
-        error: `Cannot transition from terminal state: ${currentStatus}`
+        error: `Cannot transition from terminal state: ${currentStatus}`,
       };
     }
 
@@ -62,7 +62,7 @@ class BaseOrderFSM extends EventEmitter {
     if (!transition) {
       return {
         valid: false,
-        error: `Invalid transition: ${currentStatus} -> ${event}`
+        error: `Invalid transition: ${currentStatus} -> ${event}`,
       };
     }
 
@@ -72,7 +72,7 @@ class BaseOrderFSM extends EventEmitter {
         if (!this.checkGuard(guard, context)) {
           return {
             valid: false,
-            error: `Guard failed: ${guard}`
+            error: `Guard failed: ${guard}`,
           };
         }
       }
@@ -82,7 +82,7 @@ class BaseOrderFSM extends EventEmitter {
       valid: true,
       nextStatus: transition.nextStatus,
       transition,
-      event: transition.event || event
+      event: transition.event || event,
     };
   }
 
@@ -94,13 +94,13 @@ class BaseOrderFSM extends EventEmitter {
 
     if (!validation.valid) {
       // Emit failure event
-      this.emitEvent('FSM_TRANSITION_FAILED', {
+      this.emitEvent("FSM_TRANSITION_FAILED", {
         orderId: this.orderId,
         fsm: this.constructor.name,
         fromState: currentStatus,
         event: event,
         error: validation.error,
-        context: context
+        context: context,
       });
 
       throw new Error(validation.error);
@@ -116,18 +116,18 @@ class BaseOrderFSM extends EventEmitter {
       toState: newState,
       event: event,
       timestamp: new Date(),
-      context: context
+      context: context,
     };
 
     // Emit transition event
-    this.emitEvent('FSM_TRANSITION_COMPLETED', {
+    this.emitEvent("FSM_TRANSITION_COMPLETED", {
       orderId: this.orderId,
       fsm: this.constructor.name,
       fromState: previousState,
       toState: newState,
       event: event,
       transition: validation.transition,
-      context: context
+      context: context,
     });
 
     // Emit specific event if defined in transition
@@ -137,7 +137,7 @@ class BaseOrderFSM extends EventEmitter {
         fsm: this.constructor.name,
         fromState: previousState,
         toState: newState,
-        context: context
+        context: context,
       });
     }
 
@@ -148,7 +148,7 @@ class BaseOrderFSM extends EventEmitter {
       success: true,
       fromState: previousState,
       toState: newState,
-      event: event
+      event: event,
     };
   }
 
@@ -160,7 +160,7 @@ class BaseOrderFSM extends EventEmitter {
       this.eventEmitter.emit(eventType, {
         ...payload,
         timestamp: new Date(),
-        fsm: this.constructor.name
+        fsm: this.constructor.name,
       });
     } else {
       // Fallback to local emission
@@ -199,7 +199,10 @@ class BaseOrderFSM extends EventEmitter {
       try {
         await this.handleTimeout(state, timeoutConfig, context);
       } catch (error) {
-        console.error(`Timeout handling failed for ${this.constructor.name}:${state}:`, error);
+        console.error(
+          `Timeout handling failed for ${this.constructor.name}:${state}:`,
+          error,
+        );
       }
     }, timeoutConfig.duration);
 
@@ -210,7 +213,7 @@ class BaseOrderFSM extends EventEmitter {
    * Handle timeout expiration (must be implemented by subclasses)
    */
   async handleTimeout(state, timeoutConfig, context) {
-    throw new Error('handleTimeout() must be implemented by subclass');
+    throw new Error("handleTimeout() must be implemented by subclass");
   }
 
   /**
@@ -249,7 +252,7 @@ class BaseOrderFSM extends EventEmitter {
   getPossibleEvents(currentStatus) {
     const events = [];
     for (const [key, transition] of this.transitions) {
-      const [fromStatus, event] = key.split(':');
+      const [fromStatus, event] = key.split(":");
       if (fromStatus === currentStatus) {
         events.push(event);
       }
@@ -286,7 +289,7 @@ class MarketplaceOrderFSM extends BaseOrderFSM {
       ORDER_STATUS.COMPLETED,
       ORDER_STATUS.CANCELED,
       ORDER_STATUS.REFUNDED,
-      ORDER_STATUS.FAILED
+      ORDER_STATUS.FAILED,
     ]);
 
     // Define transitions
@@ -300,150 +303,150 @@ class MarketplaceOrderFSM extends BaseOrderFSM {
     const T = ORDER_STATUS;
 
     // pending -> paid
-    this.transitions.set('pending:confirm_payment', {
+    this.transitions.set("pending:confirm_payment", {
       nextStatus: T.PAID,
-      allowedRoles: ['customer', 'system'],
-      description: 'Payment verified by gateway'
+      allowedRoles: ["customer", "system"],
+      description: "Payment verified by gateway",
     });
 
     // pending -> canceled
-    this.transitions.set('pending:cancel_order', {
+    this.transitions.set("pending:cancel_order", {
       nextStatus: T.CANCELED,
-      allowedRoles: ['admin'],
-      description: 'Admin cancels before processing'
+      allowedRoles: ["admin"],
+      description: "Admin cancels before processing",
     });
 
     // pending -> failed
-    this.transitions.set('pending:payment_failed', {
+    this.transitions.set("pending:payment_failed", {
       nextStatus: T.FAILED,
-      allowedRoles: ['system'],
-      description: 'Payment error or timeout'
+      allowedRoles: ["system"],
+      description: "Payment error or timeout",
     });
 
     // paid -> accepted
-    this.transitions.set('paid:accept_order', {
+    this.transitions.set("paid:accept_order", {
       nextStatus: T.ACCEPTED,
-      allowedRoles: ['vendor'],
-      guards: ['vendor_is_active', 'vendor_has_inventory', 'payment_captured'],
-      description: 'Vendor confirms order'
+      allowedRoles: ["vendor"],
+      guards: ["vendor_is_active", "vendor_has_inventory", "payment_captured"],
+      description: "Vendor confirms order",
     });
 
     // paid -> rejected
-    this.transitions.set('paid:reject_order', {
+    this.transitions.set("paid:reject_order", {
       nextStatus: T.REJECTED,
-      allowedRoles: ['vendor'],
-      description: 'Vendor cannot fulfill'
+      allowedRoles: ["vendor"],
+      description: "Vendor cannot fulfill",
     });
 
     // paid -> canceled
-    this.transitions.set('paid:cancel_order', {
+    this.transitions.set("paid:cancel_order", {
       nextStatus: T.CANCELED,
-      allowedRoles: ['admin'],
-      description: 'Admin intervention'
+      allowedRoles: ["admin"],
+      description: "Admin intervention",
     });
 
     // accepted -> assigned
-    this.transitions.set('accepted:assign_driver', {
+    this.transitions.set("accepted:assign_driver", {
       nextStatus: T.ASSIGNED,
-      allowedRoles: ['system', 'admin'],
-      guards: ['driver_available', 'delivery_zone_supported'],
-      description: 'Delivery driver assigned'
+      allowedRoles: ["system", "admin"],
+      guards: ["driver_available", "delivery_zone_supported"],
+      description: "Delivery driver assigned",
     });
 
     // accepted -> picked_up (direct pickup without explicit assignment)
-    this.transitions.set('accepted:pickup_order', {
+    this.transitions.set("accepted:pickup_order", {
       nextStatus: T.PICKED_UP,
-      allowedRoles: ['driver'],
-      guards: ['driver_assigned_to_order'],
-      description: 'Driver picks up order directly from accepted state'
+      allowedRoles: ["driver"],
+      guards: ["driver_assigned_to_order"],
+      description: "Driver picks up order directly from accepted state",
     });
 
     // assigned -> picked_up
-    this.transitions.set('assigned:pickup_order', {
+    this.transitions.set("assigned:pickup_order", {
       nextStatus: T.PICKED_UP,
-      allowedRoles: ['driver'],
-      description: 'Driver collects order'
+      allowedRoles: ["driver"],
+      description: "Driver collects order",
     });
 
     // picked_up -> delivered
-    this.transitions.set('picked_up:deliver_order', {
+    this.transitions.set("picked_up:deliver_order", {
       nextStatus: T.DELIVERED,
-      allowedRoles: ['driver'],
-      description: 'Package delivered'
+      allowedRoles: ["driver"],
+      description: "Package delivered",
     });
 
     // delivered -> completed
-    this.transitions.set('delivered:confirm_receipt', {
+    this.transitions.set("delivered:confirm_receipt", {
       nextStatus: T.COMPLETED,
-      allowedRoles: ['customer'],
-      description: 'Order finished successfully'
+      allowedRoles: ["customer"],
+      description: "Order finished successfully",
     });
 
     // delivered -> disputed
-    this.transitions.set('delivered:report_issue', {
+    this.transitions.set("delivered:report_issue", {
       nextStatus: T.DISPUTED,
-      allowedRoles: ['customer'],
-      description: 'Customer dispute'
+      allowedRoles: ["customer"],
+      description: "Customer dispute",
     });
 
     // disputed -> completed
-    this.transitions.set('disputed:resolve_complete', {
+    this.transitions.set("disputed:resolve_complete", {
       nextStatus: T.COMPLETED,
-      allowedRoles: ['admin'],
-      description: 'Admin resolves dispute'
+      allowedRoles: ["admin"],
+      description: "Admin resolves dispute",
     });
 
     // disputed -> refunded
-    this.transitions.set('disputed:approve_refund', {
+    this.transitions.set("disputed:approve_refund", {
       nextStatus: T.REFUNDED,
-      allowedRoles: ['admin'],
-      description: 'Refund issued'
+      allowedRoles: ["admin"],
+      description: "Refund issued",
     });
 
     // rejected -> refunded
-    this.transitions.set('rejected:process_refund', {
+    this.transitions.set("rejected:process_refund", {
       nextStatus: T.REFUNDED,
-      allowedRoles: ['system'],
-      description: 'Automatic refund'
+      allowedRoles: ["system"],
+      description: "Automatic refund",
     });
 
     // assigned -> canceled
-    this.transitions.set('assigned:cancel_order', {
+    this.transitions.set("assigned:cancel_order", {
       nextStatus: T.CANCELED,
-      allowedRoles: ['admin'],
-      description: 'Emergency cancel'
+      allowedRoles: ["admin"],
+      description: "Emergency cancel",
     });
 
     // picked_up -> failed
-    this.transitions.set('picked_up:delivery_failed', {
+    this.transitions.set("picked_up:delivery_failed", {
       nextStatus: T.FAILED,
-      allowedRoles: ['system'],
-      description: 'Delivery issue'
+      allowedRoles: ["system"],
+      description: "Delivery issue",
     });
   }
 
   defineGuards() {
-    this.guards.set('vendor_is_active', (context) => {
+    this.guards.set("vendor_is_active", (context) => {
       return context.vendor && context.vendor.is_active === true;
     });
 
-    this.guards.set('vendor_has_inventory', (context) => {
+    this.guards.set("vendor_has_inventory", (context) => {
       return context.order && context.order.has_inventory !== false;
     });
 
-    this.guards.set('payment_captured', (context) => {
+    this.guards.set("payment_captured", (context) => {
       return context.payment && context.payment.captured === true;
     });
 
-    this.guards.set('driver_available', (context) => {
+    this.guards.set("driver_available", (context) => {
       return context.driver && context.driver.available === true;
     });
 
-    this.guards.set('delivery_zone_supported', (context) => {
+    this.guards.set("delivery_zone_supported", (context) => {
       return context.delivery_zone && context.delivery_zone.supported === true;
     });
 
-    this.guards.set('driver_assigned_to_order', (context) => {
+    this.guards.set("driver_assigned_to_order", (context) => {
       return context.order && context.order.assigned_driver_user_id != null;
     });
   }
@@ -460,7 +463,7 @@ class DeliveryOrderFSM extends BaseOrderFSM {
     this.terminalStates = new Set([
       ORDER_STATUS.COMPLETED,
       ORDER_STATUS.CANCELED,
-      ORDER_STATUS.DISPUTED
+      ORDER_STATUS.DISPUTED,
     ]);
 
     // Define transitions
@@ -474,93 +477,95 @@ class DeliveryOrderFSM extends BaseOrderFSM {
     const T = ORDER_STATUS;
 
     // pending_bids -> accepted
-    this.transitions.set('pending_bids:accept_bid', {
+    this.transitions.set("pending_bids:accept_bid", {
       nextStatus: T.ACCEPTED,
-      allowedRoles: ['customer'],
-      description: 'Customer accepts driver bid'
+      allowedRoles: ["customer"],
+      description: "Customer accepts driver bid",
     });
 
     // pending_bids -> canceled
-    this.transitions.set('pending_bids:cancel_order', {
+    this.transitions.set("pending_bids:cancel_order", {
       nextStatus: T.CANCELED,
-      allowedRoles: ['customer', 'admin'],
-      description: 'Order cancelled before acceptance'
+      allowedRoles: ["customer", "admin"],
+      description: "Order cancelled before acceptance",
     });
 
     // accepted -> picked_up
-    this.transitions.set('accepted:pickup_package', {
+    this.transitions.set("accepted:pickup_package", {
       nextStatus: T.PICKED_UP,
-      allowedRoles: ['driver'],
-      description: 'Driver confirms pickup'
+      allowedRoles: ["driver"],
+      description: "Driver confirms pickup",
     });
 
     // accepted -> canceled
-    this.transitions.set('accepted:cancel_order', {
+    this.transitions.set("accepted:cancel_order", {
       nextStatus: T.CANCELED,
-      allowedRoles: ['customer', 'driver'],
-      description: 'Cancellation after acceptance'
+      allowedRoles: ["customer", "driver"],
+      description: "Cancellation after acceptance",
     });
 
     // picked_up -> in_transit
-    this.transitions.set('picked_up:start_transit', {
+    this.transitions.set("picked_up:start_transit", {
       nextStatus: T.IN_TRANSIT,
-      allowedRoles: ['driver'],
-      description: 'Driver begins delivery'
+      allowedRoles: ["driver"],
+      description: "Driver begins delivery",
     });
 
     // picked_up -> canceled
-    this.transitions.set('picked_up:cancel_order', {
+    this.transitions.set("picked_up:cancel_order", {
       nextStatus: T.CANCELED,
-      allowedRoles: ['customer', 'admin'],
-      description: 'Emergency cancellation'
+      allowedRoles: ["customer", "admin"],
+      description: "Emergency cancellation",
     });
 
     // in_transit -> delivered
-    this.transitions.set('in_transit:complete_delivery', {
+    this.transitions.set("in_transit:complete_delivery", {
       nextStatus: T.DELIVERED,
-      allowedRoles: ['driver'],
-      description: 'Package delivered'
+      allowedRoles: ["driver"],
+      description: "Package delivered",
     });
 
     // in_transit -> canceled
-    this.transitions.set('in_transit:delivery_issue', {
+    this.transitions.set("in_transit:delivery_issue", {
       nextStatus: T.CANCELED,
-      allowedRoles: ['driver'],
-      description: 'Cannot complete delivery'
+      allowedRoles: ["driver"],
+      description: "Cannot complete delivery",
     });
 
     // delivered -> delivered_pending
-    this.transitions.set('delivered:confirm_delivery', {
+    this.transitions.set("delivered:confirm_delivery", {
       nextStatus: T.DELIVERED_PENDING,
-      allowedRoles: ['customer'],
-      description: 'Customer confirms receipt'
+      allowedRoles: ["customer"],
+      description: "Customer confirms receipt",
     });
 
     // delivered_pending -> completed
-    this.transitions.set('delivered_pending:finalize_order', {
+    this.transitions.set("delivered_pending:finalize_order", {
       nextStatus: T.COMPLETED,
-      allowedRoles: ['system'],
-      description: 'Order completion confirmed'
+      allowedRoles: ["system", "customer", "driver"],
+      description: "Order completion confirmed",
     });
 
     // delivered_pending -> disputed
-    this.transitions.set('delivered_pending:dispute_delivery', {
+    this.transitions.set("delivered_pending:dispute_delivery", {
       nextStatus: T.DISPUTED,
-      allowedRoles: ['customer'],
-      description: 'Customer reports issue'
+      allowedRoles: ["customer"],
+      description: "Customer reports issue",
     });
   }
 
   defineGuards() {
-    this.guards.set('bid_exists', (context) => {
+    this.guards.set("bid_exists", (context) => {
       return context.accepted_bid && context.accepted_bid.id;
     });
 
-    this.guards.set('driver_assigned', (context) => {
-      return context.driver_id && context.driver_id === context.accepted_bid.user_id;
+    this.guards.set("driver_assigned", (context) => {
+      return (
+        context.driver_id && context.driver_id === context.accepted_bid.user_id
+      );
     });
 
-    this.guards.set('payment_sufficient', (context) => {
+    this.guards.set("payment_sufficient", (context) => {
       return context.customer_balance >= context.order_price;
     });
   }
@@ -576,8 +581,8 @@ class OrderFSMRegistry {
   }
 
   initializeFSMs() {
-    this.fsms.set('marketplace', new MarketplaceOrderFSM());
-    this.fsms.set('delivery', new DeliveryOrderFSM());
+    this.fsms.set("marketplace", new MarketplaceOrderFSM());
+    this.fsms.set("delivery", new DeliveryOrderFSM());
   }
 
   /**
@@ -586,7 +591,9 @@ class OrderFSMRegistry {
   getFSM(orderType) {
     const fsm = this.fsms.get(orderType);
     if (!fsm) {
-      throw new Error(`No FSM found for order type: ${orderType}. Supported types: ${Array.from(this.fsms.keys()).join(', ')}`);
+      throw new Error(
+        `No FSM found for order type: ${orderType}. Supported types: ${Array.from(this.fsms.keys()).join(", ")}`,
+      );
     }
     return fsm;
   }
@@ -632,5 +639,5 @@ module.exports = {
   MarketplaceOrderFSM,
   DeliveryOrderFSM,
   OrderFSMRegistry,
-  orderFSMRegistry
+  orderFSMRegistry,
 };

@@ -940,11 +940,14 @@ app.get("/api/orders/:id/review-status", verifyToken, async (req, res) => {
 // Add this after Part 5
 
 // Process COD payment (mark as payment received)
+// ⚠️ DEPRECATED: COD commission and payment are now handled automatically
+// in orderService.updateOrderStatus on confirm_delivery.
+// This endpoint is kept for backward compatibility but should not be the primary flow.
 app.post("/api/orders/:id/payment/cod", verifyToken, async (req, res) => {
   const startTime = Date.now();
   const client = await pool.connect();
 
-  logger.payment(`COD payment confirmation attempt`, {
+  logger.payment(`COD payment confirmation attempt (deprecated endpoint)`, {
     orderId: req.params.id,
     userId: req.user.userId,
     userName: req.user.name,
@@ -960,11 +963,6 @@ app.post("/api/orders/:id/payment/cod", verifyToken, async (req, res) => {
     );
     if (orderResult.rows.length === 0) {
       await client.query("ROLLBACK");
-      logger.warn(`COD payment failed: order not found`, {
-        orderId: req.params.id,
-        userId: req.user.userId,
-        category: "payment",
-      });
       return res.status(404).json({ error: "Order not found" });
     }
 
@@ -973,52 +971,44 @@ app.post("/api/orders/:id/payment/cod", verifyToken, async (req, res) => {
     // Only the assigned driver can confirm COD payment on delivery
     if (order.assigned_driver_user_id !== req.user.userId) {
       await client.query("ROLLBACK");
-      logger.security(`COD payment unauthorized attempt`, {
-        orderId: req.params.id,
-        userId: req.user.userId,
-        assignedDriverId: order.assigned_driver_user_id,
-        category: "security",
-      });
       return res
         .status(403)
         .json({ error: "Only assigned driver can confirm payment" });
     }
 
-    if (order.status !== "delivered") {
-      await client.query("ROLLBACK");
-      logger.warn(`COD payment failed: order not delivered`, {
-        orderId: req.params.id,
-        orderStatus: order.status,
-        userId: req.user.userId,
-        category: "payment",
-      });
-      return res.status(400).json({
-        error: "Order must be delivered before payment can be confirmed",
-      });
-    }
-
-    // Check if payment already exists
+    // Check if payment already processed (idempotency)
     const existingPayment = await client.query(
       "SELECT * FROM payments WHERE order_id = $1",
       [req.params.id],
     );
     if (existingPayment.rows.length > 0) {
       await client.query("ROLLBACK");
-      logger.warn(`COD payment failed: payment already exists`, {
-        orderId: req.params.id,
-        existingPaymentId: existingPayment.rows[0].id,
-        userId: req.user.userId,
-        category: "payment",
+      return res.status(400).json({
+        error: "Payment already recorded",
+        payment: existingPayment.rows[0],
       });
-      return res.status(400).json({ error: "Payment already recorded" });
     }
 
-    // ✅ NEW: Calculate commission (15%)
+    // Check if commission was already deducted via confirm_delivery
+    const { PAYMENT_CONFIG } = require("./config/paymentConfig");
+    const existingCommission = await client.query(
+      `SELECT id FROM balance_transactions WHERE order_id = $1 AND type = 'platform_fee' LIMIT 1`,
+      [req.params.id],
+    );
+
+    if (existingCommission.rows.length > 0) {
+      await client.query("ROLLBACK");
+      return res.status(400).json({
+        error:
+          "Commission already deducted via delivery confirmation. Use POST /orders/:id/confirm_delivery instead.",
+      });
+    }
+
+    // Legacy fallback: deduct commission if confirm_delivery wasn't used
     const totalAmount = parseFloat(order.assigned_driver_bid_price);
     const { calculateCommission } = require("./config/paymentConfig");
     const { commission, payout } = calculateCommission(totalAmount);
 
-    // ✅ NEW: Deduct commission from driver balance (can create debt)
     const { BalanceService } = require("./services/balanceService");
     const balanceService = new BalanceService(pool);
 
@@ -1028,7 +1018,7 @@ app.post("/api/orders/:id/payment/cod", verifyToken, async (req, res) => {
       commission,
     );
 
-    // Record payment with correct commission
+    // Record payment
     const paymentId = generateId();
     await client.query(
       `INSERT INTO payments (id, order_id, amount, currency, payment_method, status, payer_id, payee_id, platform_fee, driver_earnings, processed_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP)`,
@@ -1046,58 +1036,25 @@ app.post("/api/orders/:id/payment/cod", verifyToken, async (req, res) => {
       ],
     );
 
-    // ✅ NEW: Check if driver can still accept orders
     const driverStatus = await balanceService.canAcceptOrders(
       order.assigned_driver_user_id,
     );
 
-    await createNotification(
-      order.customer_id,
-      order.id,
-      "payment_completed",
-      "Payment Confirmed",
-      `Payment of ${totalAmount.toFixed(2)} EGP has been confirmed for order ${order.order_number}`,
-    );
-
-    // ⚠️ NEW: Warn driver if debt is high
-    if (!driverStatus.canAccept) {
-      await createNotification(
-        order.assigned_driver_user_id,
-        order.id,
-        "balance_warning",
-        "Balance Alert",
-        `Your balance is ${driverStatus.currentBalance.toFixed(2)} EGP. Please deposit funds to continue accepting orders.`,
-      );
-    }
-
     await client.query("COMMIT");
 
     const duration = Date.now() - startTime;
-    logger.payment(`COD payment confirmed successfully with commission`, {
+    logger.payment(`COD payment confirmed (legacy endpoint)`, {
       paymentId,
       orderId: req.params.id,
-      orderNumber: order.order_number,
       amount: totalAmount,
       commission,
-      driverEarnings: payout,
-      driverBalance: driverStatus.currentBalance,
-      canAcceptOrders: driverStatus.canAccept,
-      userId: req.user.userId,
-      userName: req.user.name,
       duration: `${duration}ms`,
       category: "payment",
     });
 
-    logger.performance(`COD payment processing completed`, {
-      paymentId,
-      orderId: req.params.id,
-      amount: totalAmount,
-      duration: `${duration}ms`,
-      category: "performance",
-    });
-
     res.json({
-      message: "COD payment confirmed successfully",
+      message: "COD payment confirmed (legacy endpoint)",
+      warning: "Prefer using POST /orders/:id/confirm_delivery instead",
       payment: {
         id: paymentId,
         amount: totalAmount,
@@ -1105,22 +1062,9 @@ app.post("/api/orders/:id/payment/cod", verifyToken, async (req, res) => {
         driverEarnings: payout,
         status: "completed",
       },
-      driverStatus: {
-        currentBalance: driverStatus.currentBalance,
-        canAcceptOrders: driverStatus.canAccept,
-        warning: driverStatus.reason,
-      },
     });
   } catch (error) {
     await client.query("ROLLBACK");
-    const duration = Date.now() - startTime;
-    logger.error(`COD payment error: ${error.message}`, {
-      stack: error.stack,
-      orderId: req.params.id,
-      userId: req.user.userId,
-      duration: `${duration}ms`,
-      category: "error",
-    });
     res.status(500).json({ error: "Failed to confirm COD payment" });
   } finally {
     client.release();
