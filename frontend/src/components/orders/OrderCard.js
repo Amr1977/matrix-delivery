@@ -8,6 +8,7 @@ import {
 } from "../../utils/formatters";
 import DriverBiddingMap from "../maps/DriverBiddingMap";
 import AsyncOrderMap from "../AsyncOrderMap";
+import RoutePreviewMap from "../RoutePreviewMap";
 import LiveTrackingMap from "../maps/LiveTrackingMap";
 import useAuth from "../../hooks/useAuth";
 import useBidsLocations from "../../hooks/useBidsLocations";
@@ -1759,7 +1760,12 @@ const OrderCard = ({
           </div>
         )}
 
-      {["delivered", "courier_delivered", "customer_delivered", "completed"].includes(order.status) && (
+      {[
+        "delivered",
+        "courier_delivered",
+        "customer_delivered",
+        "completed",
+      ].includes(order.status) && (
         <div
           style={{
             borderTop: "2px solid var(--matrix-border)",
