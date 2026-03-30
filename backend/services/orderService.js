@@ -1267,10 +1267,16 @@ RETURNING * `;
       parseFloat(paymentMethodResult.rows[0]?.price) || bidPrice;
 
     // DEBUG: Log payment method details
+    const rawPaymentMethod = paymentMethodResult.rows[0]?.payment_method;
     logger.debug("AcceptBid payment method check", {
       orderId,
       customerId,
-      paymentMethodRaw: paymentMethodResult.rows[0]?.payment_method,
+      paymentMethodRaw: rawPaymentMethod,
+      paymentMethodRawType: typeof rawPaymentMethod,
+      paymentMethodRawLength: rawPaymentMethod?.length,
+      paymentMethodRawCharCodes: rawPaymentMethod
+        ? Array.from(rawPaymentMethod).map((c) => c.charCodeAt(0))
+        : null,
       paymentMethod,
       orderPrice,
       bidPrice,
