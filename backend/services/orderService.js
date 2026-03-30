@@ -201,6 +201,9 @@ class OrderService {
       query = `
 SELECT
 o.*,
+  o.route_polyline as "routePolyline",
+  o.estimated_distance_km as "estimatedDistanceKm",
+  o.estimated_duration_minutes as "estimatedDurationMinutes",
   o.pickup_contact_name as pickupContactName,
   o.pickup_contact_phone as pickupContactPhone,
   o.dropoff_contact_name as dropoffContactName,
@@ -399,6 +402,9 @@ END as acceptedBid,
       query = `
 SELECT
 o.*,
+  o.route_polyline as "routePolyline",
+  o.estimated_distance_km as "estimatedDistanceKm",
+  o.estimated_duration_minutes as "estimatedDurationMinutes",
   CASE WHEN o.assigned_driver_user_id = $1 THEN o.pickup_contact_name ELSE NULL END as "pickupContactName",
   CASE WHEN o.assigned_driver_user_id = $1 THEN o.pickup_contact_phone ELSE NULL END as "pickupContactPhone",
   CASE WHEN o.assigned_driver_user_id = $1 THEN o.dropoff_contact_name ELSE NULL END as "dropoffContactName",
