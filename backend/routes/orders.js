@@ -477,12 +477,14 @@ router.post("/:orderId/accept-bid", verifyToken, async (req, res) => {
     });
 
     // Return 400 for business logic/validation errors
+    const errorMsg = error.message.toLowerCase();
     if (
-      error.message.includes("not available for bid acceptance") ||
-      error.message.includes("Unauthorized") ||
-      error.message.includes("not found") ||
-      error.message.includes("Bid not found") ||
-      error.message.includes("cannot accept")
+      errorMsg.includes("not available for bid acceptance") ||
+      errorMsg.includes("unauthorized") ||
+      errorMsg.includes("not found") ||
+      errorMsg.includes("bid not found") ||
+      errorMsg.includes("cannot accept") ||
+      errorMsg.includes("insufficient")
     ) {
       return res.status(400).json({ error: error.message });
     }
@@ -688,18 +690,17 @@ router.get("/:orderId/tracking", verifyToken, async (req, res) => {
     ) {
       const targetType = order.status === "accepted" ? "pickup" : "delivery";
       const targetLat =
-        targetType === "pickup"
-          ? Number(order.from_lat)
-          : Number(order.to_lat);
+        targetType === "pickup" ? Number(order.from_lat) : Number(order.to_lat);
       const targetLng =
-        targetType === "pickup"
-          ? Number(order.from_lng)
-          : Number(order.to_lng);
+        targetType === "pickup" ? Number(order.from_lng) : Number(order.to_lng);
 
       if (Number.isFinite(targetLat) && Number.isFinite(targetLng)) {
         try {
           const route = await routeService.calculateRoute(
-            { lat: Number(currentLocation.lat), lng: Number(currentLocation.lng) },
+            {
+              lat: Number(currentLocation.lat),
+              lng: Number(currentLocation.lng),
+            },
             { lat: targetLat, lng: targetLng },
           );
 

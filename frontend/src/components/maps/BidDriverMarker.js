@@ -96,19 +96,28 @@ const BidDriverMarker = ({
     bid.driverCompletedDeliveries || bid.driver_completed_deliveries || 0;
 
   // Bid location fallback (from when bid was placed)
-  const bidLat = bid.driverLocation?.lat ?? bid.latitude ?? bid.lat;
-  const bidLng = bid.driverLocation?.lng ?? bid.longitude ?? bid.lng;
+  const rawBidLat = bid.driverLocation?.lat ?? bid.latitude ?? bid.lat;
+  const rawBidLng = bid.driverLocation?.lng ?? bid.longitude ?? bid.lng;
+  const hasBidLoc =
+    Number.isFinite(Number(rawBidLat)) &&
+    Number.isFinite(Number(rawBidLng)) &&
+    (rawBidLat !== 0 || rawBidLng !== 0);
+  const bidLat = hasBidLoc ? Number(rawBidLat) : null;
+  const bidLng = hasBidLoc ? Number(rawBidLng) : null;
 
   // Live location takes priority
   const currentLat = liveLocation?.latitude ?? bidLat;
   const currentLng = liveLocation?.longitude ?? bidLng;
 
-  if (
-    !Number.isFinite(Number(currentLat)) ||
-    !Number.isFinite(Number(currentLng))
-  )
-    return null;
-  if (Number(currentLat) === 0 && Number(currentLng) === 0) return null;
+  // If no location at all (no live, no bid-time), render at pickup as placeholder
+  const hasValidLoc =
+    Number.isFinite(Number(currentLat)) &&
+    Number.isFinite(Number(currentLng)) &&
+    (currentLat !== 0 || currentLng !== 0);
+  const markerLat = hasValidLoc ? Number(currentLat) : (pickup?.lat ?? null);
+  const markerLng = hasValidLoc ? Number(currentLng) : (pickup?.lng ?? null);
+
+  if (!Number.isFinite(markerLat) || !Number.isFinite(markerLng)) return null;
 
   const isLive = !!liveLocation;
 
@@ -121,22 +130,17 @@ const BidDriverMarker = ({
   // Calculate ETA
   const [eta, setEta] = useState(null);
   useEffect(() => {
-    if (!pickup?.lat || !pickup?.lng) return;
-    const dist = haversineKm(
-      Number(currentLat),
-      Number(currentLng),
-      pickup.lat,
-      pickup.lng,
-    );
+    if (!pickup?.lat || !pickup?.lng || !hasValidLoc) return;
+    const dist = haversineKm(markerLat, markerLng, pickup.lat, pickup.lng);
     const avgSpeedKmh = 30;
     setEta(Math.round((dist / avgSpeedKmh) * 60));
-  }, [currentLat, currentLng, pickup?.lat, pickup?.lng]);
+  }, [markerLat, markerLng, pickup?.lat, pickup?.lng, hasValidLoc]);
 
   const polylinePositions =
-    hasStoredRoute && !liveLocation
+    hasStoredRoute && !liveLocation && hasBidLoc
       ? storedRoute
       : [
-          [Number(currentLat), Number(currentLng)],
+          [markerLat, markerLng],
           [pickup.lat, pickup.lng],
         ];
 
@@ -148,12 +152,14 @@ const BidDriverMarker = ({
           color={isSelected ? "#3B82F6" : isLive ? "#10B981" : "#6B7280"}
           weight={isSelected ? 5 : 3}
           opacity={isSelected ? 0.9 : 0.5}
-          dashArray={hasStoredRoute && !liveLocation ? null : "8, 8"}
+          dashArray={
+            hasStoredRoute && !liveLocation && hasBidLoc ? null : "8, 8"
+          }
         />
       )}
 
       <Marker
-        position={[Number(currentLat), Number(currentLng)]}
+        position={[markerLat, markerLng]}
         icon={profileImageIcon(profilePic, bidPrice, isLive)}
         zIndexOffset={isSelected ? 500 : 100}
         eventHandlers={{ click: () => onSelect?.(driverId) }}
