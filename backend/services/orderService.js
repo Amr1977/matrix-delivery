@@ -1266,12 +1266,34 @@ RETURNING * `;
     const orderPrice =
       parseFloat(paymentMethodResult.rows[0]?.price) || bidPrice;
 
+    // DEBUG: Log payment method details
+    logger.debug("AcceptBid payment method check", {
+      orderId,
+      customerId,
+      paymentMethodRaw: paymentMethodResult.rows[0]?.payment_method,
+      paymentMethod,
+      orderPrice,
+      bidPrice,
+      upfrontPayment,
+    });
+
     // ✅ ESCROW/HOLD: Hold customer funds only for PREPAID orders
     // COD orders have no digital hold — driver collects cash on delivery
     let holdAmount;
+    logger.debug("Before paymentMethod check", {
+      paymentMethod,
+      PREPAID: paymentMethod === "PREPAID",
+      COD: paymentMethod === "COD",
+    });
     if (paymentMethod === "PREPAID") {
       // Prepaid: hold full order price (customer already paid via balance)
       holdAmount = orderPrice;
+      logger.info("About to hold funds for PREPAID order", {
+        orderId,
+        customerId,
+        holdAmount,
+        paymentMethod,
+      });
       try {
         await balanceService.holdFunds(customerId, orderId, holdAmount);
         logger.info("Escrow hold applied", { orderId, customerId, holdAmount });
