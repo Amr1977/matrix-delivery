@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Tooltip } from "react-leaflet";
 import L from "leaflet";
+import BidDriverMarker from "./BidDriverMarker";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -167,19 +168,12 @@ const OrdersMap = ({
             )
               return null;
 
-            // Check if order has assigned driver with location
-            const driverLocation =
-              order.assignedDriver?.location ||
-              order.driver_location ||
-              (order.assigned_driver && {
-                lat: order.assigned_driver.latitude,
-                lng: order.assigned_driver.longitude,
-              });
+            const bids = Array.isArray(order.bids) ? order.bids : [];
 
             return (
-              <>
+              <React.Fragment key={order.id}>
+                {/* Pickup marker */}
                 <Marker
-                  key={`order-${order.id}`}
                   position={[pickup.lat, pickup.lng]}
                   icon={L.icon({
                     iconUrl: "/markers/marker-icon-2x-green.png",
@@ -201,30 +195,16 @@ const OrdersMap = ({
                   </Tooltip>
                 </Marker>
 
-                {driverLocation && (
-                  <Marker
-                    key={`driver-${order.id}`}
-                    position={[driverLocation.lat, driverLocation.lng]}
-                    icon={L.icon({
-                      iconUrl: "/markers/marker-icon-2x-red.png", // Red marker for drivers
-                      iconSize: [25, 41],
-                      iconAnchor: [12, 41],
-                    })}
-                  >
-                    <Tooltip permanent direction="top">
-                      <div
-                        style={{
-                          fontSize: "0.75rem",
-                          fontWeight: 600,
-                          color: "#111827",
-                        }}
-                      >
-                        Driver Location
-                      </div>
-                    </Tooltip>
-                  </Marker>
-                )}
-              </>
+                {/* Bid driver markers with live location and routes */}
+                {bids.map((bid) => (
+                  <BidDriverMarker
+                    key={`bid-${order.id}-${bid.driver_id || bid.userId || bid.user_id}`}
+                    bid={bid}
+                    pickup={pickup}
+                    onSelect={() => onSelectOrder(order)}
+                  />
+                ))}
+              </React.Fragment>
             );
           })}
         </MapContainer>
