@@ -981,6 +981,21 @@ app.post("/api/orders/:id/payment/cod", verifyToken, async (req, res) => {
         .json({ error: "Only assigned driver can confirm payment" });
     }
 
+    // 🐛 FIX: Ensure order has been delivered before deducting commission
+    // Commission must only be deducted AFTER delivery is confirmed
+    const deliveredStatuses = [
+      "delivered",
+      "courier_delivered",
+      "customer_delivered",
+      "completed",
+    ];
+    if (!deliveredStatuses.includes(order.status)) {
+      await client.query("ROLLBACK");
+      return res.status(400).json({
+        error: `Cannot process COD payment: order must be delivered first. Current status: ${order.status}`,
+      });
+    }
+
     // Check if payment already processed (idempotency)
     const existingPayment = await client.query(
       "SELECT * FROM payments WHERE order_id = $1",
