@@ -63,7 +63,7 @@ class OrderService {
         c.rating as "customerRating",
         c.created_at as "customerJoinedAt",
         c.is_verified as "customerIsVerified",
-        (SELECT COUNT(*)::int FROM orders o2 WHERE o2.customer_id = o.customer_id AND o2.status IN ('delivered', 'DELIVERED', 'completed', 'COMPLETED')) as "customerCompletedOrders",
+        (SELECT COUNT(*)::int FROM orders o2 WHERE o2.customer_id = o.customer_id AND o2.status IN ('delivered', 'DELIVERED', 'courier_delivered', 'customer_delivered', 'completed', 'COMPLETED')) as "customerCompletedOrders",
         (SELECT COUNT(*)::int FROM reviews r WHERE r.reviewee_id = o.customer_id) as "customerReviewCount",
         (SELECT COUNT(*)::int FROM reviews r WHERE r.reviewer_id = o.customer_id) as "customerGivenReviewCount",
 
@@ -210,7 +210,7 @@ o.*,
   (SELECT rating FROM users WHERE id = o.customer_id) as "customerRating",
   (SELECT created_at FROM users WHERE id = o.customer_id) as "customerJoinedAt",
   (SELECT is_verified FROM users WHERE id = o.customer_id) as "customerIsVerified",
-  (SELECT COUNT(*)::int FROM orders o2 WHERE o2.customer_id = o.customer_id AND o2.status IN ('delivered', 'DELIVERED', 'completed', 'COMPLETED')) as "customerCompletedOrders",
+  (SELECT COUNT(*)::int FROM orders o2 WHERE o2.customer_id = o.customer_id AND o2.status IN ('delivered', 'DELIVERED', 'courier_delivered', 'customer_delivered', 'completed', 'COMPLETED')) as "customerCompletedOrders",
   (SELECT COUNT(*)::int FROM reviews r WHERE r.reviewee_id = o.customer_id) as "customerReviewCount",
   (SELECT COUNT(*)::int FROM reviews r WHERE r.reviewer_id = o.customer_id) as "customerGivenReviewCount",
 
@@ -283,7 +283,7 @@ END as acceptedBid,
           GROUP BY reviewee_id
   ) dr ON dr.reviewee_id = u.id
         WHERE o.customer_id = $1
-        AND o.status NOT IN ('delivered', 'cancelled')
+        AND o.status NOT IN ('delivered', 'courier_delivered', 'customer_delivered', 'cancelled')
         GROUP BY o.id, d.id, d.name, d.rating, d.completed_deliveries, r.id
         ORDER BY o.created_at DESC
       `;
@@ -408,7 +408,7 @@ o.*,
   c.rating as "customerRating",
   c.created_at as "customerJoinedAt",
   c.is_verified as "customerIsVerified",
-  (SELECT COUNT(*)::int FROM orders o2 WHERE o2.customer_id = o.customer_id AND o2.status IN ('delivered', 'DELIVERED', 'completed', 'COMPLETED')) as "customerCompletedOrders",
+  (SELECT COUNT(*)::int FROM orders o2 WHERE o2.customer_id = o.customer_id AND o2.status IN ('delivered', 'DELIVERED', 'courier_delivered', 'customer_delivered', 'completed', 'COMPLETED')) as "customerCompletedOrders",
   (SELECT COUNT(*)::int FROM reviews r WHERE r.reviewee_id = o.customer_id) as "customerReviewCount",
   (SELECT COUNT(*)::int FROM reviews r WHERE r.reviewer_id = o.customer_id) as "customerGivenReviewCount",
 
@@ -483,7 +483,7 @@ END as sort_priority
           GROUP BY reviewee_id
 ) dr ON dr.reviewee_id = u.id
 WHERE(o.status = 'pending_bids' AND o.assigned_driver_user_id IS NULL${locationConditions})
-           OR (o.assigned_driver_user_id = $1 AND o.status NOT IN ('delivered', 'cancelled'))
+           OR (o.assigned_driver_user_id = $1 AND o.status NOT IN ('delivered', 'courier_delivered', 'customer_delivered', 'cancelled'))
         GROUP BY o.id, d.id, c.id, d.name, d.rating, d.completed_deliveries, r.id
         ORDER BY sort_priority, o.created_at DESC
   `;
@@ -504,7 +504,7 @@ o.*,
   c.rating as "customerRating",
   c.created_at as "customerJoinedAt",
   c.is_verified as "customerIsVerified",
-  (SELECT COUNT(*)::int FROM orders o2 WHERE o2.customer_id = o.customer_id AND o2.status IN ('delivered', 'DELIVERED', 'completed', 'COMPLETED')) as "customerCompletedOrders",
+  (SELECT COUNT(*)::int FROM orders o2 WHERE o2.customer_id = o.customer_id AND o2.status IN ('delivered', 'DELIVERED', 'courier_delivered', 'customer_delivered', 'completed', 'COMPLETED')) as "customerCompletedOrders",
   (SELECT COUNT(*)::int FROM reviews r WHERE r.reviewee_id = o.customer_id) as "customerReviewCount",
   (SELECT COUNT(*)::int FROM reviews r WHERE r.reviewer_id = o.customer_id) as "customerGivenReviewCount",
 
@@ -1266,26 +1266,27 @@ RETURNING * `;
     const orderPrice =
       parseFloat(paymentMethodResult.rows[0]?.price) || bidPrice;
 
-    // ✅ ESCROW/HOLD: Hold customer funds based on payment method
+    // ✅ ESCROW/HOLD: Hold customer funds only for PREPAID orders
+    // COD orders have no digital hold — driver collects cash on delivery
     let holdAmount;
     if (paymentMethod === "PREPAID") {
       // Prepaid: hold full order price (customer already paid via balance)
-      holdAmount = orderPrice; // Customer prepaid, so we hold the full amount
+      holdAmount = orderPrice;
+      try {
+        await balanceService.holdFunds(customerId, orderId, holdAmount);
+        logger.info("Escrow hold applied", { orderId, customerId, holdAmount });
+      } catch (holdError) {
+        logger.error("Failed to hold funds for order", {
+          orderId,
+          customerId,
+          holdAmount,
+          error: holdError.message,
+        });
+        throw new Error(`Cannot accept bid: ${holdError.message}`);
+      }
     } else {
-      // COD: hold upfront + bid price (if upfront payment required)
-      holdAmount = upfrontPayment + bidPrice;
-    }
-    try {
-      await balanceService.holdFunds(customerId, orderId, holdAmount);
-      logger.info("Escrow hold applied", { orderId, customerId, holdAmount });
-    } catch (holdError) {
-      logger.error("Failed to hold funds for order", {
-        orderId,
-        customerId,
-        holdAmount,
-        error: holdError.message,
-      });
-      throw new Error(`Cannot accept bid: ${holdError.message}`);
+      // COD: No digital hold — customer pays driver in cash on delivery
+      holdAmount = 0;
     }
 
     // Update order with accepted bid and escrow info
@@ -1297,10 +1298,19 @@ RETURNING * `;
         assigned_driver_bid_price = (SELECT bid_price FROM bids WHERE order_id = $3 AND user_id = $5), 
         price = (SELECT bid_price FROM bids WHERE order_id = $3 AND user_id = $6),
         escrow_amount = $7,
-        escrow_status = 'held',
+        escrow_status = $8,
         accepted_at = NOW() 
       WHERE id = $3`,
-      ["accepted", driverId, orderId, driverId, driverId, driverId, holdAmount],
+      [
+        "accepted",
+        driverId,
+        orderId,
+        driverId,
+        driverId,
+        driverId,
+        holdAmount,
+        holdAmount > 0 ? "held" : "none",
+      ],
     );
 
     logger.order("Bid accepted successfully", {
@@ -1471,70 +1481,71 @@ RETURNING * `;
       );
     }
 
-    // ✅ ESCROW: Handle cancel action - forfeit with compensation
+    // ✅ CANCEL: Handle cancel action
     if (normalizedAction === "cancel") {
       const escrowAmount = parseFloat(order.escrow_amount) || 0;
-      if (
-        escrowAmount > 0 &&
-        order.escrow_status === "held" &&
-        order.assigned_driver_user_id
-      ) {
-        // Calculate driver compensation based on distance traveled
-        const distanceTraveled =
-          parseFloat(order.driver_distance_traveled_km) || 0;
-        const baseFee = 10; // Base compensation in EGP
-        const perKmRate = 3; // Per km rate in EGP
-        let driverCompensation = 0;
+      const distanceTraveled =
+        parseFloat(order.driver_distance_traveled_km) || 0;
+      const baseFee = 10; // Base compensation in EGP
+      const perKmRate = 3; // Per km rate in EGP
 
-        if (distanceTraveled > 0) {
-          driverCompensation = baseFee + distanceTraveled * perKmRate;
-        }
-        // Cap compensation at escrow amount
-        driverCompensation = Math.min(driverCompensation, escrowAmount);
+      if (order.assigned_driver_user_id && distanceTraveled > 0) {
+        const driverCompensation = baseFee + distanceTraveled * perKmRate;
 
-        try {
-          if (driverCompensation > 0) {
-            // Forfeit with compensation
+        if (escrowAmount > 0 && order.escrow_status === "held") {
+          // PREPAID: Forfeit escrow with driver compensation
+          const cappedCompensation = Math.min(driverCompensation, escrowAmount);
+          try {
             await balanceService.forfeitHold(
               order.customer_id,
               orderId,
               escrowAmount,
-              driverCompensation,
+              cappedCompensation,
               order.assigned_driver_user_id,
+            );
+            await pool.query(
+              "UPDATE orders SET escrow_status = $1, cancellation_fee = $2, cancelled_by = $3 WHERE id = $4",
+              ["forfeited", cappedCompensation, "customer", orderId],
             );
             logger.info("Escrow forfeited with driver compensation", {
               orderId,
               escrowAmount,
-              driverCompensation,
-              customerRefund: escrowAmount - driverCompensation,
+              cappedCompensation,
               distanceTraveled,
             });
-          } else {
-            // Full refund - no compensation
-            await balanceService.releaseHold(
-              order.customer_id,
+          } catch (escrowError) {
+            logger.error("Failed to forfeit escrow on cancel", {
               orderId,
-              escrowAmount,
-            );
-            logger.info("Escrow fully refunded (no driver travel)", {
-              orderId,
-              escrowAmount,
+              error: escrowError.message,
             });
           }
-
-          // Update escrow status
-          await pool.query(
-            "UPDATE orders SET escrow_status = $1, cancellation_fee = $2, cancelled_by = $3 WHERE id = $4",
-            ["forfeited", driverCompensation, "customer", orderId],
-          );
-        } catch (escrowError) {
-          logger.error("Failed to forfeit escrow on cancel", {
-            orderId,
-            error: escrowError.message,
-          });
+        } else {
+          // COD: No escrow — charge customer balance directly for driver compensation
+          try {
+            await balanceService.deductCancellationFee(
+              order.customer_id,
+              orderId,
+              driverCompensation,
+              order.assigned_driver_user_id,
+            );
+            await pool.query(
+              "UPDATE orders SET cancellation_fee = $1, cancelled_by = $2 WHERE id = $3",
+              [driverCompensation, "customer", orderId],
+            );
+            logger.info("COD cancellation fee charged to customer", {
+              orderId,
+              driverCompensation,
+              distanceTraveled,
+            });
+          } catch (feeError) {
+            logger.error("Failed to charge COD cancellation fee", {
+              orderId,
+              error: feeError.message,
+            });
+          }
         }
       } else if (escrowAmount > 0 && order.escrow_status === "held") {
-        // No driver assigned - full refund
+        // No driver travel — full escrow refund
         try {
           await balanceService.releaseHold(
             order.customer_id,
@@ -1545,7 +1556,7 @@ RETURNING * `;
             "UPDATE orders SET escrow_status = $1, cancelled_by = $2 WHERE id = $3",
             ["released", "customer", orderId],
           );
-          logger.info("Escrow refunded (no driver assigned)", {
+          logger.info("Escrow refunded (no driver travel)", {
             orderId,
             escrowAmount,
           });
@@ -1556,6 +1567,7 @@ RETURNING * `;
           });
         }
       }
+      // else: COD with no travel — no charge needed
     }
 
     //TODO How about completed orders count for customer user!!
@@ -1602,32 +1614,6 @@ RETURNING * `;
               error: feeError.message,
             });
             // Continue - don't block order completion
-          }
-        }
-
-        // ✅ COD: Release held escrow funds back to customer
-        if (escrowAmount > 0 && orderFull.escrow_status === "held") {
-          try {
-            await balanceService.releaseHold(
-              order.customer_id,
-              orderId,
-              escrowAmount,
-            );
-
-            await pool.query(
-              "UPDATE orders SET escrow_status = $1 WHERE id = $2",
-              ["released", orderId],
-            );
-
-            logger.info("COD escrow released on delivery confirmation", {
-              orderId,
-              escrowAmount,
-            });
-          } catch (escrowError) {
-            logger.error("Failed to release COD escrow", {
-              orderId,
-              error: escrowError.message,
-            });
           }
         }
 
@@ -1924,7 +1910,14 @@ o.*,
     if (order.status === "picked_up" || order.status === "in_transit") {
       nextPoint = "delivery";
       currentStepIndex = 1;
-    } else if (order.status === "delivered") {
+    } else if (
+      [
+        "delivered",
+        "courier_delivered",
+        "customer_delivered",
+        "completed",
+      ].includes(order.status)
+    ) {
       nextPoint = "completed";
       currentStepIndex = 2;
     }
@@ -1972,7 +1965,12 @@ o.*,
           status:
             order.status === "picked_up" ||
             order.status === "in_transit" ||
-            order.status === "delivered"
+            [
+              "delivered",
+              "courier_delivered",
+              "customer_delivered",
+              "completed",
+            ].includes(order.status)
               ? "completed"
               : "upcoming",
           completedAt: order.picked_up_at,
@@ -1985,7 +1983,14 @@ o.*,
             lat: parseFloat(order.to_coordinates.split(",")[0]),
             lng: parseFloat(order.to_coordinates.split(",")[1]),
           },
-          status: order.status === "delivered" ? "completed" : "upcoming",
+          status: [
+            "delivered",
+            "courier_delivered",
+            "customer_delivered",
+            "completed",
+          ].includes(order.status)
+            ? "completed"
+            : "upcoming",
           completedAt: order.delivered_at,
         },
       ];
@@ -2127,7 +2132,13 @@ o.*,
 
     const order = orderCheck.rows[0];
     if (
-      !["delivered", "delivered_pending", "completed"].includes(order.status)
+      ![
+        "delivered",
+        "courier_delivered",
+        "delivered_pending",
+        "customer_delivered",
+        "completed",
+      ].includes(order.status)
     ) {
       throw new Error("Can only review delivered orders");
     }

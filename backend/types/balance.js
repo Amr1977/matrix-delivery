@@ -23,6 +23,7 @@ const TransactionType = {
   BONUS: "bonus",
   CASHBACK: "cashback",
   PENALTY: "penalty",
+  COMPENSATION: "compensation",
   ADJUSTMENT: "adjustment",
   HOLD: "hold",
   RELEASE: "release",

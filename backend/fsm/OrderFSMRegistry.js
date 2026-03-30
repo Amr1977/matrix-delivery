@@ -518,11 +518,11 @@ class DeliveryOrderFSM extends BaseOrderFSM {
       description: "Emergency cancellation",
     });
 
-    // in_transit -> delivered
+    // in_transit -> courier_delivered
     this.transitions.set("in_transit:complete_delivery", {
-      nextStatus: T.DELIVERED,
+      nextStatus: T.COURIER_DELIVERED,
       allowedRoles: ["driver"],
-      description: "Package delivered",
+      description: "Package delivered by courier",
     });
 
     // in_transit -> canceled
@@ -532,25 +532,42 @@ class DeliveryOrderFSM extends BaseOrderFSM {
       description: "Cannot complete delivery",
     });
 
-    // delivered -> delivered_pending
-    this.transitions.set("delivered:confirm_delivery", {
-      nextStatus: T.DELIVERED_PENDING,
+    // courier_delivered -> customer_delivered
+    this.transitions.set("courier_delivered:confirm_delivery", {
+      nextStatus: T.CUSTOMER_DELIVERED,
       allowedRoles: ["customer"],
       description: "Customer confirms receipt",
     });
 
-    // delivered_pending -> completed
-    this.transitions.set("delivered_pending:finalize_order", {
+    // customer_delivered -> completed
+    this.transitions.set("customer_delivered:finalize_order", {
       nextStatus: T.COMPLETED,
       allowedRoles: ["system", "customer", "driver"],
       description: "Order completion confirmed",
     });
 
-    // delivered_pending -> disputed
-    this.transitions.set("delivered_pending:dispute_delivery", {
+    // customer_delivered -> disputed
+    this.transitions.set("customer_delivered:dispute_delivery", {
       nextStatus: T.DISPUTED,
       allowedRoles: ["customer"],
       description: "Customer reports issue",
+    });
+
+    // BACKWARD COMPAT: Map old status names to new transitions
+    this.transitions.set("delivered:confirm_delivery", {
+      nextStatus: T.CUSTOMER_DELIVERED,
+      allowedRoles: ["customer"],
+      description: "Customer confirms receipt (legacy status)",
+    });
+    this.transitions.set("delivered_pending:finalize_order", {
+      nextStatus: T.COMPLETED,
+      allowedRoles: ["system", "customer", "driver"],
+      description: "Order completion confirmed (legacy status)",
+    });
+    this.transitions.set("delivered_pending:dispute_delivery", {
+      nextStatus: T.DISPUTED,
+      allowedRoles: ["customer"],
+      description: "Customer reports issue (legacy status)",
     });
   }
 

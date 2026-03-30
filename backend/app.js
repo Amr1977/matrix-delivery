@@ -914,7 +914,12 @@ app.get("/api/orders/:id/review-status", verifyToken, async (req, res) => {
     const submittedReviews = reviewsResult.rows.map((r) => r.review_type);
 
     const status = {
-      canReview: order.status === "delivered",
+      canReview: [
+        "delivered",
+        "courier_delivered",
+        "customer_delivered",
+        "completed",
+      ].includes(order.status),
       userRole: req.user.primary_role || req.user.primary_role,
       reviews: {
         toDriver: isCustomer
@@ -2209,14 +2214,14 @@ app.get("/api/admin/stats", verifyAdmin, async (req, res) => {
 
     // Get completed orders
     const completedOrdersResult = await pool.query(
-      `SELECT COUNT(*) as count FROM orders WHERE status = 'delivered'`,
+      `SELECT COUNT(*) as count FROM orders WHERE status IN ('delivered', 'courier_delivered', 'customer_delivered')`,
     );
     const completedOrders = parseInt(completedOrdersResult.rows[0].count);
 
     // Calculate revenue
     const revenueResult = await pool.query(
       `SELECT COALESCE(SUM(assigned_driver_bid_price), 0) as total
-       FROM orders WHERE status = 'delivered' AND assigned_driver_bid_price IS NOT NULL`,
+       FROM orders WHERE status IN ('delivered', 'courier_delivered', 'customer_delivered') AND assigned_driver_bid_price IS NOT NULL`,
     );
     const revenue = parseFloat(revenueResult.rows[0].total);
 
@@ -2226,7 +2231,7 @@ app.get("/api/admin/stats", verifyAdmin, async (req, res) => {
         TO_CHAR(delivered_at, 'Mon') as month,
         COALESCE(SUM(assigned_driver_bid_price), 0) as revenue
        FROM orders
-       WHERE status = 'delivered'
+       WHERE status IN ('delivered', 'courier_delivered', 'customer_delivered')
          AND delivered_at >= NOW() - INTERVAL '6 months'
          AND assigned_driver_bid_price IS NOT NULL
        GROUP BY TO_CHAR(delivered_at, 'Mon'), DATE_TRUNC('month', delivered_at)
@@ -2261,14 +2266,14 @@ app.get("/api/admin/stats", verifyAdmin, async (req, res) => {
     const avgOrderValueResult = await pool.query(
       `SELECT AVG(assigned_driver_bid_price) as avg_value
        FROM orders
-       WHERE status = 'delivered' AND assigned_driver_bid_price IS NOT NULL`,
+       WHERE status IN ('delivered', 'courier_delivered', 'customer_delivered') AND assigned_driver_bid_price IS NOT NULL`,
     );
     const avgOrderValue =
       parseFloat(avgOrderValueResult.rows[0].avg_value) || 0;
 
     const completionRateResult = await pool.query(
       `SELECT
-        COUNT(CASE WHEN status = 'delivered' THEN 1 END) * 100.0 /
+        COUNT(CASE WHEN status IN ('delivered', 'courier_delivered', 'customer_delivered') THEN 1 END) * 100.0 /
         NULLIF(COUNT(CASE WHEN status != 'pending_bids' THEN 1 END), 0) as rate
        FROM orders`,
     );
@@ -2277,7 +2282,7 @@ app.get("/api/admin/stats", verifyAdmin, async (req, res) => {
     const avgDeliveryTimeResult = await pool.query(
       `SELECT AVG(EXTRACT(EPOCH FROM (delivered_at - accepted_at)) / 3600) as avg_hours
        FROM orders
-       WHERE status = 'delivered'
+       WHERE status IN ('delivered', 'courier_delivered', 'customer_delivered')
          AND accepted_at IS NOT NULL
          AND delivered_at IS NOT NULL`,
     );
@@ -3015,7 +3020,15 @@ app.post("/api/admin/orders/:id/cancel", verifyAdmin, async (req, res) => {
 
     const order = orderResult.rows[0];
 
-    if (order.status === "delivered" || order.status === "cancelled") {
+    if (
+      [
+        "delivered",
+        "courier_delivered",
+        "customer_delivered",
+        "completed",
+        "cancelled",
+      ].includes(order.status)
+    ) {
       await client.query("ROLLBACK");
       return res
         .status(400)
@@ -3098,7 +3111,7 @@ app.get("/api/admin/analytics/performance", verifyAdmin, async (req, res) => {
     const avgOrderValueResult = await pool.query(
       `SELECT AVG(assigned_driver_bid_price) as avg_value
        FROM orders
-       WHERE status = 'delivered'
+       WHERE status IN ('delivered', 'courier_delivered', 'customer_delivered')
          AND assigned_driver_bid_price IS NOT NULL
          AND delivered_at >= $1`,
       [startDate],
@@ -3106,7 +3119,7 @@ app.get("/api/admin/analytics/performance", verifyAdmin, async (req, res) => {
 
     const completionRateResult = await pool.query(
       `SELECT
-        COUNT(CASE WHEN status = 'delivered' THEN 1 END) * 100.0 /
+        COUNT(CASE WHEN status IN ('delivered', 'courier_delivered', 'customer_delivered') THEN 1 END) * 100.0 /
         NULLIF(COUNT(CASE WHEN status != 'pending_bids' THEN 1 END), 0) as rate
        FROM orders
        WHERE created_at >= $1`,
@@ -3116,7 +3129,7 @@ app.get("/api/admin/analytics/performance", verifyAdmin, async (req, res) => {
     const avgDeliveryTimeResult = await pool.query(
       `SELECT AVG(EXTRACT(EPOCH FROM (delivered_at - accepted_at)) / 3600) as avg_hours
        FROM orders
-       WHERE status = 'delivered'
+       WHERE status IN ('delivered', 'courier_delivered', 'customer_delivered')
          AND accepted_at IS NOT NULL
          AND delivered_at IS NOT NULL
          AND delivered_at >= $1`,
@@ -3138,7 +3151,7 @@ app.get("/api/admin/analytics/performance", verifyAdmin, async (req, res) => {
        FROM users u
        JOIN orders o ON o.assigned_driver_user_id = u.id
        WHERE u.primary_role = 'driver'
-         AND o.status = 'delivered'
+         AND o.status IN ('delivered', 'courier_delivered', 'customer_delivered')
          AND o.delivered_at >= $1
        GROUP BY u.id, u.name, u.email, u.rating
        ORDER BY deliveries DESC, earnings DESC
@@ -3523,7 +3536,7 @@ app.get("/api/admin/reports/revenue", verifyAdmin, async (req, res) => {
     }
 
     let whereConditions = [
-      "status = 'delivered'",
+      "status IN ('delivered', 'courier_delivered', 'customer_delivered')",
       "assigned_driver_bid_price IS NOT NULL",
     ];
     let queryParams = [];

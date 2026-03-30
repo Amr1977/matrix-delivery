@@ -1208,6 +1208,81 @@ class BalanceService {
     }
   }
 
+  /**
+   * Deduct cancellation fee from customer balance and credit driver for COD orders
+   * @param {string} customerId - Customer user ID
+   * @param {string} orderId - Order ID
+   * @param {number} feeAmount - Cancellation fee amount
+   * @param {string} driverId - Driver user ID to credit
+   * @returns {Promise<Object>} Result
+   */
+  async deductCancellationFee(customerId, orderId, feeAmount, driverId) {
+    const client = await this.pool.connect();
+    try {
+      await client.query("BEGIN");
+
+      // Deduct from customer
+      const customerBalance = await this.getBalanceForUpdate(
+        client,
+        customerId,
+      );
+      const customerAfter = customerBalance.availableBalance - feeAmount;
+      await client.query(
+        `UPDATE user_balances SET available_balance = $1, updated_at = NOW() WHERE user_id = $2`,
+        [customerAfter, customerId],
+      );
+      await this.createTransaction(client, {
+        userId: customerId,
+        type: TransactionType.PENALTY,
+        amount: -feeAmount,
+        currency: customerBalance.currency || DEFAULT_CURRENCY,
+        balanceBefore: customerBalance.availableBalance,
+        balanceAfter: customerAfter,
+        status: TransactionStatus.COMPLETED,
+        orderId,
+        description: `Cancellation fee for order #${orderId}`,
+      });
+
+      // Credit driver
+      const driverBalance = await this.getBalanceForUpdate(client, driverId);
+      const driverAfter = driverBalance.availableBalance + feeAmount;
+      await client.query(
+        `UPDATE user_balances SET available_balance = $1, lifetime_earnings = lifetime_earnings + $2, updated_at = NOW() WHERE user_id = $3`,
+        [driverAfter, feeAmount, driverId],
+      );
+      await this.createTransaction(client, {
+        userId: driverId,
+        type: TransactionType.COMPENSATION,
+        amount: feeAmount,
+        currency: driverBalance.currency || DEFAULT_CURRENCY,
+        balanceBefore: driverBalance.availableBalance,
+        balanceAfter: driverAfter,
+        status: TransactionStatus.COMPLETED,
+        orderId,
+        description: `Cancellation compensation for order #${orderId}`,
+      });
+
+      await client.query("COMMIT");
+      logger.info("Cancellation fee processed", {
+        customerId,
+        driverId,
+        orderId,
+        feeAmount,
+      });
+      return { success: true };
+    } catch (error) {
+      await client.query("ROLLBACK");
+      logger.error("Failed to deduct cancellation fee", {
+        customerId,
+        orderId,
+        error: error.message,
+      });
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
   // ============================================
   // ESCROW METHODS - Order Balance Hold System
   // ============================================
