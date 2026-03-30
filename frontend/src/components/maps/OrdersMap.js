@@ -108,11 +108,42 @@ const OrdersMap = ({
     };
   }, [API_BASE]);
 
-  // Auto-fit map to show all bid locations
+  // Track if user has manually interacted with the map
+  const userInteractedRef = useRef(false);
+  const prevCenterRef = useRef(null);
+
+  // Reset interaction flag when orders or radius change (new context)
+  useEffect(() => {
+    userInteractedRef.current = false;
+  }, [orders?.length, radiusKm]);
+
+  // Listen for user drag/zoom interactions to prevent auto-centering
   useEffect(() => {
     if (!map) return;
+    const handleInteraction = () => {
+      userInteractedRef.current = true;
+    };
+    map.on("dragstart", handleInteraction);
+    map.on("zoomstart", handleInteraction);
+    return () => {
+      map.off("dragstart", handleInteraction);
+      map.off("zoomstart", handleInteraction);
+    };
+  }, [map]);
+
+  // Auto-fit map to show all bid locations (only when user hasn't interacted)
+  useEffect(() => {
+    if (!map) return;
+    if (userInteractedRef.current) return;
+
     try {
+      // Deep value comparison to prevent unnecessary setView calls
+      const prev = prevCenterRef.current;
+      if (prev && prev[0] === center[0] && prev[1] === center[1]) {
+        return;
+      }
       map.setView(center, zoom, { animate: true });
+      prevCenterRef.current = center;
     } catch (e) {
       /* ignore */
     }

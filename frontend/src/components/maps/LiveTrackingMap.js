@@ -96,13 +96,44 @@ const MapEffect = () => {
 };
 
 // Better approach: A component that takes bounds as a prop
-const BoundsController = ({ bounds }) => {
+const BoundsController = ({ bounds, orderId }) => {
   const map = useMap();
+  const userInteractedRef = useRef(false);
+  const hasFittedRef = useRef(false);
+  const lastOrderRef = useRef(null);
+
+  // Track user drag/zoom interactions to prevent auto-fit after user interaction
+  useEffect(() => {
+    if (!map) return;
+    const handleInteraction = () => {
+      userInteractedRef.current = true;
+    };
+    map.on("dragstart", handleInteraction);
+    map.on("zoomstart", handleInteraction);
+    return () => {
+      map.off("dragstart", handleInteraction);
+      map.off("zoomstart", handleInteraction);
+    };
+  }, [map]);
+
+  // Reset interaction flag when order changes
+  useEffect(() => {
+    if (orderId && lastOrderRef.current !== orderId) {
+      userInteractedRef.current = false;
+      hasFittedRef.current = false;
+      lastOrderRef.current = orderId;
+    }
+  }, [orderId]);
 
   useEffect(() => {
-    if (bounds && bounds.isValid()) {
-      map.fitBounds(bounds, { padding: [50, 50] });
-    }
+    if (!map || !bounds || !bounds.isValid()) return;
+    // Skip auto-fit if user has manually interacted with the map
+    if (userInteractedRef.current) return;
+    // Only fit bounds once (initial load) or when order changes
+    if (hasFittedRef.current) return;
+
+    map.fitBounds(bounds, { padding: [50, 50] });
+    hasFittedRef.current = true;
   }, [map, bounds]);
 
   return null;
@@ -1046,7 +1077,7 @@ const LiveTrackingMap = ({
           zoomControl={false}
           ref={mapRef}
         >
-          <BoundsController bounds={bounds} />
+          <BoundsController bounds={bounds} orderId={validOrderId} />
           <TileLayer
             url={tileUrl}
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'

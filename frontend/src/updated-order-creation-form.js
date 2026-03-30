@@ -1723,11 +1723,33 @@ const MapClickHandler = ({ onMapClick }) => {
 
 const MapUpdater = ({ center }) => {
   const map = useMap();
+  const prevCenterRef = useRef(null);
+  const userInteractedRef = useRef(false);
+
+  // Track user drag/zoom interactions
+  useEffect(() => {
+    if (!map) return;
+    const handleInteraction = () => {
+      userInteractedRef.current = true;
+    };
+    map.on("dragstart", handleInteraction);
+    map.on("zoomstart", handleInteraction);
+    return () => {
+      map.off("dragstart", handleInteraction);
+      map.off("zoomstart", handleInteraction);
+    };
+  }, [map]);
 
   useEffect(() => {
-    if (center) {
+    if (center && !userInteractedRef.current) {
+      const prev = prevCenterRef.current;
+      // Deep value comparison to prevent unnecessary setView calls
+      if (prev && prev.lat === center.lat && prev.lng === center.lng) {
+        return;
+      }
       map.setView([center.lat, center.lng], map.getZoom());
       map.invalidateSize();
+      prevCenterRef.current = center;
     }
   }, [center, map]);
 
