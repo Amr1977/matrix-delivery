@@ -3,7 +3,7 @@ const router = express.Router();
 const pool = require('../config/db');
 const { verifyToken, requireRole } = require('../middleware/auth');
 // const googleMapsService = require('../services/googleMapsService');
-const { apiRateLimit } = require('../middleware/rateLimit');
+const { apiRateLimit, locationRateLimit } = require('../middleware/rateLimit');
 const logger = require('../config/logger');
 const driverLocationService = require('../services/driverLocationService');
 const { createNotification } = require('../services/notificationService') /* P0 FIX: removed .ts ext */; // Import from notification service
@@ -14,7 +14,7 @@ const { createNotification } = require('../services/notificationService') /* P0 
 
 
 // Start tracking for a specific order
-router.post('/tracking/:orderId/start', verifyToken, requireRole('driver'), apiRateLimit, async (req, res) => {
+router.post('/tracking/:orderId/start', verifyToken, requireRole('driver'), locationRateLimit, async (req, res) => {
   try {
     const { orderId } = req.params;
     const driverId = req.user.userId;
@@ -64,7 +64,7 @@ router.post('/tracking/:orderId/start', verifyToken, requireRole('driver'), apiR
 });
 
 // Stop tracking for a specific order
-router.post('/tracking/:orderId/stop', verifyToken, requireRole('driver'), apiRateLimit, async (req, res) => {
+router.post('/tracking/:orderId/stop', verifyToken, requireRole('driver'), locationRateLimit, async (req, res) => {
   try {
     const { orderId } = req.params;
     const driverId = req.user.userId;
@@ -176,7 +176,7 @@ router.get('/tracking/:orderId/status', verifyToken, async (req, res) => {
 });
 
 // Update driver online/offline status
-router.post('/status', verifyToken, requireRole('driver', 'admin'), apiRateLimit, async (req, res) => {
+router.post('/status', verifyToken, requireRole('driver', 'admin'), locationRateLimit, async (req, res) => {
   try {
     const { isOnline } = req.body;
 
@@ -216,7 +216,7 @@ router.post('/status', verifyToken, requireRole('driver', 'admin'), apiRateLimit
 });
 
 // Update driver location for specific order (live tracking)
-router.post('/location/:orderId', verifyToken, requireRole('driver'), apiRateLimit, async (req, res) => {
+router.post('/location/:orderId', verifyToken, requireRole('driver'), locationRateLimit, async (req, res) => {
   try {
     const { orderId } = req.params;
     const { latitude, longitude, heading, speedKmh, accuracyMeters } = req.body;
@@ -348,7 +348,7 @@ router.get('/location', verifyToken, requireRole('driver'), async (req, res) => 
 });
 
 // Update driver location (general)
-router.post('/location', verifyToken, requireRole('driver'), apiRateLimit, async (req, res) => {
+router.post('/location', verifyToken, requireRole('driver'), locationRateLimit, async (req, res) => {
   try {
     const driverId = req.user.userId;
     const { latitude, longitude, heading, speed, accuracy } = req.body;
@@ -382,7 +382,7 @@ router.post('/location', verifyToken, requireRole('driver'), apiRateLimit, async
 });
 
 // Update driver location for bidding (not tied to specific order)
-router.post('/location/bidding', verifyToken, requireRole('driver'), apiRateLimit, async (req, res) => {
+router.post('/location/bidding', verifyToken, requireRole('driver'), locationRateLimit, async (req, res) => {
   try {
     const driverId = req.user.userId;
     const { latitude, longitude, heading, speed, accuracy } = req.body;
