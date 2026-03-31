@@ -3,15 +3,11 @@
  * @description Main aggregator loop - reads Redis, health checks, scores, broadcasts
  */
 
-import Redis from "ioredis";
-import { config } from "./config.js";
-import { computeScore, normalizeScores } from "./scoring.js";
-import { startWsServer, broadcast } from "./wsServer.js";
+const Redis = require("ioredis");
+const { config } = require("./config.js");
+const { computeScore, normalizeScores } = require("./scoring.js");
+const { startWsServer, broadcast } = require("./wsServer.js");
 
-/**
- * Creates a Redis client for the aggregator
- * @returns {Redis}
- */
 function createRedisClient() {
   const client = new Redis({
     host: config.REDIS_HOST,
@@ -30,14 +26,9 @@ function createRedisClient() {
   return client;
 }
 
-/**
- * Runs a single aggregation cycle
- * @returns {Promise<void>}
- */
 async function runAggregatorCycle() {
   try {
     const redis = createRedisClient();
-
     const serverIds = await redis.smembers("mdp:servers:index");
 
     if (serverIds.length === 0) {
@@ -50,9 +41,7 @@ async function runAggregatorCycle() {
     const servers = [];
     for (const serverId of serverIds) {
       const data = await redis.hgetall(`mdp:server:${serverId}`);
-      if (!data || Object.keys(data).length === 0) {
-        continue;
-      }
+      if (!data || Object.keys(data).length === 0) continue;
 
       servers.push({
         id: serverId,
@@ -70,10 +59,10 @@ async function runAggregatorCycle() {
     }
 
     const healthyServers = servers.filter((server) => {
-      const isHealthy = server.status === "healthy";
-      const isFresh =
-        Date.now() - server.lastHeartbeat < config.STALENESS_THRESHOLD_MS;
-      return isHealthy && isFresh;
+      return (
+        server.status === "healthy" &&
+        Date.now() - server.lastHeartbeat < config.STALENESS_THRESHOLD_MS
+      );
     });
 
     const checkedServers = await Promise.allSettled(
@@ -84,17 +73,13 @@ async function runAggregatorCycle() {
             () => controller.abort(),
             config.HEALTH_CHECK_TIMEOUT_MS,
           );
-
-          const response = await fetch(`${server.url}/health`, {
+          const response = await fetch(`${server.url}/api/health`, {
             signal: controller.signal,
           });
-
           clearTimeout(timeout);
 
-          if (!response.ok) {
+          if (!response.ok)
             throw new Error(`Health check failed: ${response.status}`);
-          }
-
           return server;
         } catch (err) {
           console.warn(
@@ -110,27 +95,21 @@ async function runAggregatorCycle() {
     const passingServers = checkedServers
       .filter((r) => r.status === "fulfilled" && r.value !== null)
       .map((r) => r.value);
-
     const scoredServers = passingServers.map((server) => ({
       url: server.url,
       score: computeScore(server),
       priority: server.priority,
     }));
-
     const normalized = normalizeScores(scoredServers);
 
-    const routingData = JSON.stringify({
-      servers: normalized,
-      updatedAt: Date.now(),
-    });
-    await redis.set("mdp:routing:active", routingData);
-
+    await redis.set(
+      "mdp:routing:active",
+      JSON.stringify({ servers: normalized, updatedAt: Date.now() }),
+    );
     broadcast(normalized);
-
     console.info(
       `[Aggregator] cycle complete, healthy: ${passingServers.length}`,
     );
-
     await redis.quit();
   } catch (error) {
     console.error("[Aggregator] Cycle error:", error.message);
@@ -139,12 +118,8 @@ async function runAggregatorCycle() {
 
 let intervalId = null;
 
-/**
- * Starts the aggregator
- */
 function start() {
   console.info("[Aggregator] Starting...");
-
   startWsServer();
 
   runAggregatorCycle().then(() => {
@@ -152,19 +127,18 @@ function start() {
     console.info("[Aggregator] Started successfully");
   });
 
-  const shutdown = (signal) => {
-    console.info(`[Aggregator] Received ${signal}, shutting down...`);
-    if (intervalId) {
-      clearInterval(intervalId);
-    }
+  process.on("SIGTERM", () => {
+    console.info("[Aggregator] Shutting down...");
+    if (intervalId) clearInterval(intervalId);
     process.exit(0);
-  };
-
-  process.on("SIGTERM", () => shutdown("SIGTERM"));
-  process.on("SIGINT", () => shutdown("SIGINT"));
+  });
+  process.on("SIGINT", () => {
+    console.info("[Aggregator] Shutting down...");
+    if (intervalId) clearInterval(intervalId);
+    process.exit(0);
+  });
 }
 
 start();
 
-export { runAggregatorCycle, createRedisClient };
-export default { runAggregatorCycle };
+module.exports = { runAggregatorCycle, createRedisClient };

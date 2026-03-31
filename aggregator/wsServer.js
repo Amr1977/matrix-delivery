@@ -3,17 +3,13 @@
  * @description WebSocket server for broadcasting server snapshots to clients
  */
 
-import { WebSocketServer } from "ws";
-import { config } from "./config.js";
+const { WebSocketServer } = require("ws");
+const { config } = require("./config.js");
 
 let wss = null;
 let lastSnapshot = null;
 const clients = new Set();
 
-/**
- * Starts the WebSocket server
- * @returns {WebSocketServer} The WebSocket server instance
- */
 function startWsServer() {
   wss = new WebSocketServer({ port: config.WS_PORT });
 
@@ -25,10 +21,7 @@ function startWsServer() {
       try {
         ws.send(JSON.stringify(lastSnapshot));
       } catch (err) {
-        console.warn(
-          "[WsServer] Failed to send snapshot to new client:",
-          err.message,
-        );
+        console.warn("[WsServer] Failed to send snapshot:", err.message);
       }
     } else {
       try {
@@ -54,14 +47,9 @@ function startWsServer() {
   });
 
   console.info(`[WsServer] Started on port ${config.WS_PORT}`);
-
   return wss;
 }
 
-/**
- * Broadcasts server snapshot to all connected clients
- * @param {Array} servers - Array of server objects
- */
 function broadcast(servers) {
   lastSnapshot = { servers, updatedAt: Date.now() };
 
@@ -72,21 +60,15 @@ function broadcast(servers) {
         client.send(JSON.stringify(lastSnapshot));
         sentCount++;
       } catch (err) {
-        console.warn("[WsServer] Failed to broadcast to client:", err.message);
+        console.warn("[WsServer] Failed to broadcast:", err.message);
       }
     }
   }
-
   console.info(`[WsServer] broadcast to ${sentCount} clients`);
 }
 
-/**
- * Gets the current number of connected clients
- * @returns {number} Number of connected clients
- */
 function getClientCount() {
   return clients.size;
 }
 
-export { startWsServer, broadcast, getClientCount };
-export default { startWsServer, broadcast, getClientCount };
+module.exports = { startWsServer, broadcast, getClientCount };

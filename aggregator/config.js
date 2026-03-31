@@ -3,7 +3,7 @@
  * @description Aggregator configuration - validates and exports environment variables
  */
 
-const requiredVars = ["REDIS_HOST", "REDIS_PORT", "REDIS_PASSWORD", "WS_PORT"];
+const requiredVars = ["REDIS_HOST", "REDIS_PORT", "WS_PORT"];
 
 const optionalVars = {
   AGGREGATOR_INTERVAL_MS: 5000,
@@ -47,4 +47,4 @@ const config = Object.freeze({
   ),
 });
 
-export { config };
+module.exports = { config };
