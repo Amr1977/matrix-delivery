@@ -5,7 +5,7 @@ npm audit fix
 # Build with restricted memory (768MB) to prevent OOM
 node scripts/generate-git-info.js
 Copy-Item .env.production .env -Force
-$env:NODE_OPTIONS = "--max-old-space-size=1024"
+$env:NODE_OPTIONS = "--max-old-space-size=2048"
 $env:REACT_APP_ENV = "production"
 $env:DISABLE_ESLINT_PLUGIN = "true"
 npm run build

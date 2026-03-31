@@ -120,11 +120,11 @@ const RegisterForm = ({ onSubmit, loading, error, t, countries }) => {
           aria-label={showPassword ? "Hide password" : "Show password"}
           style={{
             position: "absolute",
-            right: "0",
+            right: "0.5rem",
             top: "50%",
             transform: "translateY(-50%)",
-            height: "2.5rem",
-            width: "2.5rem",
+            height: "1.75rem",
+            width: "1.75rem",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
