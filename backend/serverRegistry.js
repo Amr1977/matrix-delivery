@@ -1,146 +1,172 @@
 /**
  * @module serverRegistry
- * @description Server registration and heartbeat management using Redis
+ * @description Server registration and heartbeat using Firestore
  */
 
-const Redis = require("ioredis");
-const { config } = require("./config.js");
+const admin = require("./config/firebase-admin");
+const db = admin.firestore();
 
 let getMetrics = null;
-let redisClient = null;
 let heartbeatInterval = null;
-let serverId = null;
+const collectionName = "servers";
 
-function createRedisClient() {
-  const client = new Redis({
-    host: config.REDIS_HOST,
-    port: config.REDIS_PORT,
-    password: config.REDIS_PASSWORD,
-    maxRetriesPerRequest: 3,
-    enableReadyCheck: true,
-    lazyConnect: false,
-  });
-
-  client.on("error", (err) =>
-    console.error("[Redis] connection error:", err.message),
+function getServerId() {
+  return (
+    process.env.FIRESTORE_SERVER_ID ||
+    "server-" + (process.env.NODE_APP_INSTANCE || "1")
   );
-  client.on("ready", () => console.info("[Redis] connected and ready"));
+}
 
-  return client;
+function getServerUrl() {
+  return process.env.SERVER_URL;
 }
 
 async function registerServer() {
-  const serverKey = `mdp:server:${config.SERVER_ID}`;
-  const metrics = {
+  const serverId = getServerId();
+  const serverRef = db.collection(collectionName).doc(serverId);
+
+  const data = {
+    url: getServerUrl(),
+    status: "healthy",
     currentLoad: 0,
-    avgLatencyMs: config.LATENCY_BASELINE_MS,
+    maxCapacity: parseInt(process.env.SERVER_MAX_CAPACITY) || 100,
+    priority: parseInt(process.env.SERVER_PRIORITY) || 1,
+    avgLatencyMs: 1000,
     errorRate: 0,
     warmup: true,
+    lastHeartbeat: Date.now(),
+    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
   };
 
   try {
-    await redisClient.hset(serverKey, {
-      url: config.SERVER_URL,
-      status: "healthy",
-      currentLoad: metrics.currentLoad,
-      maxCapacity: config.SERVER_MAX_CAPACITY,
-      priority: config.SERVER_PRIORITY,
-      avgLatencyMs: metrics.avgLatencyMs,
-      errorRate: metrics.errorRate,
-      warmup: "true",
-      lastHeartbeat: Date.now(),
-    });
-
-    await redisClient.sadd("mdp:servers:index", config.SERVER_ID);
-
+    await serverRef.set(data, { merge: true });
     console.info(
-      `[Registry] Server registered: ${config.SERVER_ID} at ${config.SERVER_URL}`,
+      `[Registry] Server registered: ${serverId} at ${getServerUrl()}`,
     );
+    return data;
   } catch (error) {
-    console.error(`[Registry] Failed to register server:`, error.message);
+    console.error(`[Registry] Failed to register:`, error.message);
     throw error;
   }
 }
 
 async function updateHeartbeat() {
-  try {
-    const metrics = getMetrics();
-    const serverKey = `mdp:server:${config.SERVER_ID}`;
+  const serverId = getServerId();
+  const metrics = getMetrics
+    ? getMetrics()
+    : { currentLoad: 0, avgLatencyMs: 1000, errorRate: 0, warmup: true };
+  const serverRef = db.collection(collectionName).doc(serverId);
 
-    await redisClient.hset(serverKey, {
+  try {
+    await serverRef.update({
       status: "healthy",
       currentLoad: metrics.currentLoad,
-      avgLatencyMs: metrics.avgLatencyMs,
-      errorRate: metrics.errorRate,
-      warmup: metrics.warmup ? "true" : "false",
+      avgLatencyMs: Math.round(metrics.avgLatencyMs),
+      errorRate: Math.round(metrics.errorRate * 100) / 100,
+      warmup: metrics.warmup,
       lastHeartbeat: Date.now(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
-
     console.info(
-      `[Registry] Heartbeat updated: ${config.SERVER_ID}, load: ${metrics.currentLoad}`,
+      `[Registry] Heartbeat: ${serverId}, load: ${metrics.currentLoad}`,
     );
   } catch (error) {
-    console.warn(
-      `[Registry] Heartbeat update failed for ${config.SERVER_ID}:`,
-      error.message,
-    );
+    console.warn(`[Registry] Heartbeat failed for ${serverId}:`, error.message);
   }
 }
 
-async function gracefulShutdown() {
+async function getAllServers() {
   try {
-    const serverKey = `mdp:server:${config.SERVER_ID}`;
-    await redisClient.hset(serverKey, "status", "unhealthy");
-    console.info(`[Registry] Server marked unhealthy: ${config.SERVER_ID}`);
+    const snapshot = await db.collection(collectionName).get();
+    const servers = [];
+    snapshot.forEach((doc) => {
+      servers.push({ id: doc.id, ...doc.data() });
+    });
+    return servers;
   } catch (error) {
-    console.error(`[Registry] Failed to mark server unhealthy:`, error.message);
-  } finally {
-    if (redisClient) {
-      await redisClient.quit();
+    console.error("[Registry] Failed to get servers:", error.message);
+    return [];
+  }
+}
+
+async function healthCheckServer(serverUrl) {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3000);
+
+    const response = await fetch(`${serverUrl}/api/health`, {
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeout);
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
+async function runAggregatorCycle() {
+  console.info("[Aggregator] Running health check cycle...");
+
+  const servers = await getAllServers();
+  const now = Date.now();
+
+  for (const server of servers) {
+    const age = now - (server.lastHeartbeat || 0);
+    const isStale = age > 120000; // 2 minutes
+
+    if (server.status === "healthy" && !isStale) {
+      const isReachable = await healthCheckServer(server.url);
+      if (!isReachable) {
+        console.warn(
+          `[Aggregator] ${server.url} not responding, marking unhealthy`,
+        );
+        await db.collection(collectionName).doc(server.id).update({
+          status: "unhealthy",
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+      }
     }
-    process.exit(0);
   }
 }
 
 function startRegistry({ getMetrics: getMetricsFn }) {
   getMetrics = getMetricsFn;
-  serverId = config.SERVER_ID;
-  redisClient = createRedisClient();
 
   return registerServer()
     .then(() => {
-      heartbeatInterval = setInterval(
-        updateHeartbeat,
-        config.HEARTBEAT_INTERVAL_MS,
-      );
-      console.info(`[Registry] Started for ${config.SERVER_ID}`);
+      // Update heartbeat every 30 seconds
+      updateHeartbeat();
+      heartbeatInterval = setInterval(updateHeartbeat, 30000);
 
-      const shutdownHandler = (signal) => {
-        console.info(
-          `[Registry] Received ${signal}, starting graceful shutdown...`,
-        );
-        if (heartbeatInterval) {
-          clearInterval(heartbeatInterval);
-        }
-        gracefulShutdown();
-      };
+      // Run aggregator health check every 60 seconds
+      setInterval(runAggregatorCycle, 60000);
 
-      process.on("SIGTERM", () => shutdownHandler("SIGTERM"));
-      process.on("SIGINT", () => shutdownHandler("SIGINT"));
+      console.info(`[Registry] Started for ${getServerId()}`);
+
+      process.on("SIGTERM", () => {
+        console.info("[Registry] Shutting down...");
+        if (heartbeatInterval) clearInterval(heartbeatInterval);
+        db.collection(collectionName)
+          .doc(getServerId())
+          .update({ status: "unhealthy" });
+        process.exit(0);
+      });
 
       return {
-        stop: async () => {
-          if (heartbeatInterval) {
-            clearInterval(heartbeatInterval);
-          }
-          await gracefulShutdown();
+        stop: () => {
+          if (heartbeatInterval) clearInterval(heartbeatInterval);
+          return db
+            .collection(collectionName)
+            .doc(getServerId())
+            .update({ status: "unhealthy" });
         },
       };
     })
     .catch((error) => {
-      console.error(`[Registry] Failed to start:`, error.message);
+      console.error("[Registry] Failed to start:", error.message);
       process.exit(1);
     });
 }
 
-module.exports = { startRegistry, createRedisClient };
+module.exports = { startRegistry, getAllServers, healthCheckServer };

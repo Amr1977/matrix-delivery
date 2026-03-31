@@ -35,34 +35,20 @@ const IS_PRODUCTION = process.env.NODE_ENV === "production";
 const PORT = process.env.PORT || 5001;
 
 // ============================================================================
-// FAILOVER SYSTEM: V2 Redis-based Server Registry Integration
-// NOTE: This must run AFTER loadEnvironment() at the bottom of this file
+// FAILOVER SYSTEM: V2 Firestore-based Server Registry
+// Each server registers itself, health-checks others
 // ============================================================================
 let registryStop = null;
 let getMetrics = null;
 
-// This block runs immediately but config.js checks process.env after loadEnvironment
 try {
-  console.info("[Server] Initializing V2 failover system (Redis-based)...");
+  console.info("[Server] Initializing V2 failover system (Firestore-based)...");
 
-  // Load V2 config - it will use process.env which is now populated
-  const { config: v2Config } = require("./config.js");
-  console.info(
-    "[Server] V2 config loaded, SERVER_ID:",
-    v2Config.SERVER_ID ||
-      process.env.SERVER_ID ||
-      "server-" + (process.env.NODE_APP_INSTANCE || "1"),
-  );
+  const sr = require("./serverRegistry.js");
+  console.info("[Server] serverRegistry loaded");
 
   const { createRequestTracker } = require("./loadCalculator.js");
   console.info("[Server] LoadCalculator loaded");
-
-  const sr = require("./serverRegistry.js");
-  console.info("[Server] serverRegistry exports:", Object.keys(sr));
-  const { startRegistry, createRedisClient } = sr;
-
-  const { createIdempotencyMiddleware } = require("./idempotencyMiddleware.js");
-  console.info("[Server] idempotencyMiddleware loaded");
 
   const { middleware: requestTracker, getMetrics: getMetricsFn } =
     createRequestTracker();
@@ -71,22 +57,16 @@ try {
   app.use(requestTracker);
   console.info("[Server] Request tracker middleware registered");
 
-  const redisClient = createRedisClient();
-  console.info("[Server] Redis client created");
-
-  const idempotencyMw = createIdempotencyMiddleware(redisClient);
-  console.info("[Server] Idempotency middleware created");
-
-  registryStop = startRegistry({ getMetrics: getMetricsFn })
+  registryStop = sr
+    .startRegistry({ getMetrics: getMetricsFn })
     .then((registry) => {
       console.info("[Server] V2 failover system started successfully");
-      return { registry, idempotencyMw, redisClient };
+      return registry;
     })
     .catch((err) => {
       console.error(
         "[Server] Failed to start V2 failover system:",
         err.message,
-        err.stack,
       );
       return null;
     });
