@@ -11,6 +11,24 @@ let redisClient = null;
 let heartbeatInterval = null;
 let serverId = null;
 
+function createRedisClient() {
+  const client = new Redis({
+    host: config.REDIS_HOST,
+    port: config.REDIS_PORT,
+    password: config.REDIS_PASSWORD,
+    maxRetriesPerRequest: 3,
+    enableReadyCheck: true,
+    lazyConnect: false,
+  });
+
+  client.on("error", (err) =>
+    console.error("[Redis] connection error:", err.message),
+  );
+  client.on("ready", () => console.info("[Redis] connected and ready"));
+
+  return client;
+}
+
 async function registerServer() {
   const serverKey = `mdp:server:${config.SERVER_ID}`;
   const metrics = {
