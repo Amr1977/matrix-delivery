@@ -6,20 +6,9 @@
  * (POST, PUT, PATCH, DELETE). Never mount globally or on GET routes.
  */
 
-import { config } from "./config.js";
+const { config } = require("./config.js");
 
-/**
- * Creates an idempotency middleware using Redis
- * @param {Redis} redisClient - Connected Redis client instance
- * @returns {import('express').RequestHandler} Express middleware
- */
 function createIdempotencyMiddleware(redisClient) {
-  /**
-   * Idempotency middleware
-   * @param {import('express').Request} req
-   * @param {import('express').Response} res
-   * @param {import('express').NextFunction} next
-   */
   async function idempotencyMw(req, res, next) {
     const idempotencyKey = req.headers["idempotency-key"];
 
@@ -67,5 +56,4 @@ function createIdempotencyMiddleware(redisClient) {
   return idempotencyMw;
 }
 
-export { createIdempotencyMiddleware };
-export default createIdempotencyMiddleware;
+module.exports = { createIdempotencyMiddleware };

@@ -9,7 +9,6 @@ const requiredVars = [
   "SERVER_MAX_CAPACITY",
   "PORT",
   "ALLOWED_ORIGINS",
-  "REDIS_PASSWORD",
 ];
 
 const optionalVars = {
@@ -24,22 +23,18 @@ const optionalVars = {
 
 const missing = requiredVars.filter((v) => !process.env[v]);
 
-if (missing.length > 0) {
-  throw new Error(
-    `Missing required environment variables: ${missing.join(", ")}`,
-  );
-}
-
 const config = Object.freeze({
   SERVER_ID: process.env.SERVER_ID,
   SERVER_URL: process.env.SERVER_URL,
-  SERVER_MAX_CAPACITY: parseInt(process.env.SERVER_MAX_CAPACITY, 10),
+  SERVER_MAX_CAPACITY: parseInt(process.env.SERVER_MAX_CAPACITY, 10) || 100,
   SERVER_PRIORITY: parseInt(
     process.env.SERVER_PRIORITY || optionalVars.SERVER_PRIORITY,
     10,
   ),
   PORT: parseInt(process.env.PORT, 10),
-  ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim()),
+  ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
+    : [],
   REDIS_HOST: process.env.REDIS_HOST || optionalVars.REDIS_HOST,
   REDIS_PORT: parseInt(process.env.REDIS_PORT || optionalVars.REDIS_PORT, 10),
   REDIS_PASSWORD: process.env.REDIS_PASSWORD,
@@ -61,4 +56,4 @@ const config = Object.freeze({
   ),
 });
 
-export { config };
+module.exports = { config };

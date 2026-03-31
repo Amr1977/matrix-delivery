@@ -3,13 +3,9 @@
  * @description Server registration and heartbeat management using Redis
  */
 
-import Redis from "ioredis";
-import { config } from "./config.js";
+const Redis = require("ioredis");
+const { config } = require("./config.js");
 
-/**
- * @description Creates a Redis client instance for server registry
- * @returns {Redis}
- */
 function createRedisClient() {
   const client = new Redis({
     host: config.REDIS_HOST,
@@ -31,11 +27,6 @@ function createRedisClient() {
 let redisClient = null;
 let heartbeatInterval = null;
 
-/**
- * Registers this server in Redis
- * @private
- * @async
- */
 async function registerServer() {
   const serverKey = `mdp:server:${config.SERVER_ID}`;
   const metrics = {
@@ -69,10 +60,6 @@ async function registerServer() {
   }
 }
 
-/**
- * Updates heartbeat with current metrics
- * @private
- */
 async function updateHeartbeat() {
   try {
     const metrics = getMetrics();
@@ -98,10 +85,6 @@ async function updateHeartbeat() {
   }
 }
 
-/**
- * Graceful shutdown - marks server as unhealthy and disconnects
- * @private
- */
 async function gracefulShutdown() {
   try {
     const serverKey = `mdp:server:${config.SERVER_ID}`;
@@ -117,13 +100,7 @@ async function gracefulShutdown() {
   }
 }
 
-/**
- * Starts the server registry with heartbeat mechanism
- * @param {Object} params - Parameters object
- * @param {Function} params.getMetrics - Function to get current metrics
- * @returns {Object} { stop: Function } Function to stop the registry
- */
-function startRegistry({ getMetrics }) {
+function startRegistry({ getMetrics: getMetricsFn }) {
   redisClient = createRedisClient();
 
   registerServer()
@@ -162,5 +139,4 @@ function startRegistry({ getMetrics }) {
   };
 }
 
-export { startRegistry, createRedisClient };
-export default { startRegistry };
+module.exports = { startRegistry, createRedisClient };
