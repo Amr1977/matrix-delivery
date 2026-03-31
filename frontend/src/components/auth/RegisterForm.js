@@ -106,7 +106,7 @@ const RegisterForm = ({ onSubmit, loading, error, t, countries }) => {
           }
           style={{
             width: "100%",
-            padding: "0.5rem 2.5rem 0.5rem 1rem",
+            padding: "0.5rem 2.75rem 0.5rem 1rem",
             border: "1px solid #D1D5DB",
             borderRadius: "0.5rem",
             outline: "none",
