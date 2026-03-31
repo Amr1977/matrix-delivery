@@ -134,8 +134,10 @@ async function runAggregatorCycle() {
 let intervalId = null;
 
 function start() {
-  console.info("[Aggregator] Starting...");
-  startWsServer();
+  // Use environment port or default to 4001
+  const port = process.env.WS_PORT || 4001;
+  console.info(`[Aggregator] Starting on port ${port}...`);
+  startWsServer(port);
 
   runAggregatorCycle().then(() => {
     intervalId = setInterval(runAggregatorCycle, config.AGGREGATOR_INTERVAL_MS);

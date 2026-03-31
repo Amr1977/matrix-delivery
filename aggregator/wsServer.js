@@ -10,8 +10,9 @@ let wss = null;
 let lastSnapshot = null;
 const clients = new Set();
 
-function startWsServer() {
-  wss = new WebSocketServer({ port: config.WS_PORT });
+function startWsServer(port) {
+  port = port || 4001;
+  wss = new WebSocketServer({ port });
 
   wss.on("connection", (ws) => {
     clients.add(ws);
@@ -46,7 +47,7 @@ function startWsServer() {
     console.error("[WsServer] Server error:", err.message);
   });
 
-  console.info(`[WsServer] Started on port ${config.WS_PORT}`);
+  console.info(`[WsServer] Started on port ${port}`);
   return wss;
 }
 
