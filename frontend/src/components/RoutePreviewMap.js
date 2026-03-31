@@ -19,6 +19,48 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "/markers/marker-shadow.png",
 });
 
+// Map bounds controller - MODULE LEVEL to prevent React remount on every render
+const RouteBoundsController = ({ bounds, orderKey }) => {
+  const map = useMap();
+  const hasFittedRef = React.useRef(false);
+  const lastOrderRef = React.useRef(null);
+  const userInteractedRef = React.useRef(false);
+
+  // Track user drag/zoom interactions to prevent auto-fit after user interaction
+  React.useEffect(() => {
+    if (!map) return;
+    const handleInteraction = () => {
+      userInteractedRef.current = true;
+    };
+    map.on("dragstart", handleInteraction);
+    map.on("zoomstart", handleInteraction);
+    return () => {
+      map.off("dragstart", handleInteraction);
+      map.off("zoomstart", handleInteraction);
+    };
+  }, [map]);
+
+  // Reset interaction flag when order changes
+  React.useEffect(() => {
+    if (orderKey && lastOrderRef.current !== orderKey) {
+      userInteractedRef.current = false;
+      hasFittedRef.current = false;
+      lastOrderRef.current = orderKey;
+    }
+  }, [orderKey]);
+
+  React.useEffect(() => {
+    if (!map || !bounds || !bounds.isValid()) return;
+    if (userInteractedRef.current) return;
+    if (hasFittedRef.current) return;
+
+    map.fitBounds(bounds, { padding: [50, 50] });
+    hasFittedRef.current = true;
+  }, [map, bounds]);
+
+  return null;
+};
+
 function RoutePreviewMap({
   pickup,
   dropoff,
@@ -56,6 +98,10 @@ function RoutePreviewMap({
   const hasDropoffCoords = !!dropoffPoint;
   const hasCoords = hasPickupCoords || hasDropoffCoords;
   const hasCoordinates = hasCoords;
+  const orderKey = React.useMemo(
+    () => `${pickupPoint?.lat ?? "na"},${pickupPoint?.lng ?? "na"}-${dropoffPoint?.lat ?? "na"},${dropoffPoint?.lng ?? "na"}`,
+    [pickupPoint, dropoffPoint]
+  );
 
   console.log(
     `🗺️ [RoutePreviewMap] Coordinates check: pickup=${pickup}, dropoff=${dropoff}, hasPickup=${hasPickupCoords}, hasDropoff=${hasDropoffCoords}, hasCoords=${hasCoords}`,
@@ -277,27 +323,7 @@ function RoutePreviewMap({
     pickupToDropoffPath,
   ]);
 
-  const MapEffect = () => {
-    const map = useMap();
-    const hasFittedRef = React.useRef(false);
-    const lastOrderRef = React.useRef(null);
 
-    React.useEffect(() => {
-      // Only fit bounds on initial render or when order changes, not on every driver location update
-      const orderKey = `${pickupPoint?.lat ?? "na"},${pickupPoint?.lng ?? "na"}-${dropoffPoint?.lat ?? "na"},${dropoffPoint?.lng ?? "na"}`;
-      if (
-        bounds &&
-        bounds.isValid() &&
-        (!hasFittedRef.current || lastOrderRef.current !== orderKey)
-      ) {
-        map.fitBounds(bounds, { padding: [50, 50] });
-        hasFittedRef.current = true;
-        lastOrderRef.current = orderKey;
-      }
-    }, [map, bounds]);
-
-    return null;
-  };
 
   const renderMapContent = (isCompact) => {
     const isLightMode = theme === "light";
@@ -342,7 +368,7 @@ function RoutePreviewMap({
               url={tileUrl}
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             />
-            <MapEffect />
+            <RouteBoundsController bounds={bounds} orderKey={orderKey} />
             {(
               <>
                 {/* Debug: Show all props */}

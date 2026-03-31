@@ -87,32 +87,58 @@ const MapView = ({ pickupCoords, dropoffCoords, driverCoords, driverToPickupPath
     dragstart: () => onInteraction && onInteraction()
   });
 
+  const userInteractedRef = React.useRef(false);
+  const hasFittedInitialRef = React.useRef(false);
+  const lastOrderKeyRef = React.useRef(null);
+
+  // Track user drag/zoom interactions
   React.useEffect(() => {
-    if (map && pickupCoords && dropoffCoords && !lastDriverCoordsRef.current) {
-      // Initial bounds setting - only when map first loads
-      const boundsPoints = [
-        [pickupCoords.lat, pickupCoords.lng],
-        [dropoffCoords.lat, dropoffCoords.lng]
-      ];
+    if (!map) return;
+    const handleInteraction = () => { userInteractedRef.current = true; };
+    map.on("dragstart", handleInteraction);
+    map.on("zoomstart", handleInteraction);
+    return () => {
+      map.off("dragstart", handleInteraction);
+      map.off("zoomstart", handleInteraction);
+    };
+  }, [map]);
 
-      if (driverCoords && Number.isFinite(driverCoords.lat) && Number.isFinite(driverCoords.lng)) {
-        boundsPoints.push([driverCoords.lat, driverCoords.lng]);
-        lastDriverCoordsRef.current = driverCoords;
-      }
+  React.useEffect(() => {
+    if (!map || !pickupCoords || !dropoffCoords) return;
 
-      if (driverToPickupPath && driverToPickupPath.length > 0) {
-        boundsPoints.push(driverToPickupPath[Math.floor(driverToPickupPath.length / 2)]);
-      }
-      if (pickupToDropoffPath && pickupToDropoffPath.length > 0) {
-        boundsPoints.push(pickupToDropoffPath[Math.floor(pickupToDropoffPath.length / 2)]);
-      }
+    const orderKey = `${pickupCoords.lat},${pickupCoords.lng}-${dropoffCoords.lat},${dropoffCoords.lng}`;
 
-      const bounds = L.latLngBounds(boundsPoints);
-      if (bounds.isValid()) {
-        map.fitBounds(bounds, { padding: [50, 50] });
-      }
+    // Reset when order changes
+    if (lastOrderKeyRef.current !== orderKey) {
+      userInteractedRef.current = false;
+      hasFittedInitialRef.current = false;
+      lastOrderKeyRef.current = orderKey;
     }
-  }, [map, pickupCoords, dropoffCoords, driverCoords, driverToPickupPath, pickupToDropoffPath]);
+
+    // Only fit once per order, skip if user interacted
+    if (hasFittedInitialRef.current || userInteractedRef.current) return;
+
+    const boundsPoints = [
+      [pickupCoords.lat, pickupCoords.lng],
+      [dropoffCoords.lat, dropoffCoords.lng]
+    ];
+
+    if (driverCoords && Number.isFinite(driverCoords.lat) && Number.isFinite(driverCoords.lng)) {
+      boundsPoints.push([driverCoords.lat, driverCoords.lng]);
+    }
+    if (driverToPickupPath && driverToPickupPath.length > 0) {
+      boundsPoints.push(driverToPickupPath[Math.floor(driverToPickupPath.length / 2)]);
+    }
+    if (pickupToDropoffPath && pickupToDropoffPath.length > 0) {
+      boundsPoints.push(pickupToDropoffPath[Math.floor(pickupToDropoffPath.length / 2)]);
+    }
+
+    const bounds = L.latLngBounds(boundsPoints);
+    if (bounds.isValid()) {
+      map.fitBounds(bounds, { padding: [50, 50] });
+      hasFittedInitialRef.current = true;
+    }
+  }, [map, pickupCoords?.lat, pickupCoords?.lng, dropoffCoords?.lat, dropoffCoords?.lng]);
 
   return null;
 };

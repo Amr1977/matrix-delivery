@@ -22,37 +22,19 @@ export const MapInitializer = ({ children, center, zoom = 13 }) => {
     };
   }, [map]);
 
+  // Only auto-center on INITIAL load, never after user interaction
   React.useEffect(() => {
-    if (map && center) {
-      // Skip auto-centering if user has manually interacted with the map
-      if (userInteractedRef.current) return;
+    if (!map || !center) return;
+    if (userInteractedRef.current) return;
 
-      // Deep compare center to prevent unnecessary resets
-      const prev = prevCenterRef.current;
-      const currentLat = Array.isArray(center) ? center[0] : center.lat;
-      const currentLng = Array.isArray(center) ? center[1] : center.lng;
+    const currentLat = Array.isArray(center) ? center[0] : center.lat;
+    const currentLng = Array.isArray(center) ? center[1] : center.lng;
+    const prev = prevCenterRef.current;
 
-      const prevLat = prev ? (Array.isArray(prev) ? prev[0] : prev.lat) : null;
-      const prevLng = prev ? (Array.isArray(prev) ? prev[1] : prev.lng) : null;
-
-      // Only update if coordinates actually changed
-      if (currentLat !== prevLat || currentLng !== prevLng) {
-        map.setView(center, zoom);
-        prevCenterRef.current = center;
-
-        // Ensure proper sizing and tile loading
-        const initializeMap = () => {
-          try {
-            map.invalidateSize();
-          } catch (error) {
-            console.warn("Map initialization error:", error);
-          }
-        };
-
-        // Delay initialization to ensure DOM is ready
-        const timeoutId = setTimeout(initializeMap, 100);
-        return () => clearTimeout(timeoutId);
-      }
+    if (!prev) {
+      map.setView(center, zoom);
+      prevCenterRef.current = center;
+      try { map.invalidateSize(); } catch {}
     }
   }, [map, center, zoom]);
 
