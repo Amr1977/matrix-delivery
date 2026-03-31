@@ -24,7 +24,8 @@ const optionalVars = {
 const missing = requiredVars.filter((v) => !process.env[v]);
 
 const config = Object.freeze({
-  SERVER_ID: process.env.SERVER_ID,
+  SERVER_ID:
+    process.env.SERVER_ID || "server-" + (process.env.NODE_APP_INSTANCE || "1"),
   SERVER_URL: process.env.SERVER_URL,
   SERVER_MAX_CAPACITY: parseInt(process.env.SERVER_MAX_CAPACITY, 10) || 100,
   SERVER_PRIORITY: parseInt(

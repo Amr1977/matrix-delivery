@@ -47,7 +47,12 @@ try {
 
   // Load V2 config - it will use process.env which is now populated
   const { config: v2Config } = require("./config.js");
-  console.info("[Server] V2 config loaded, SERVER_ID:", v2Config.SERVER_ID);
+  console.info(
+    "[Server] V2 config loaded, SERVER_ID:",
+    v2Config.SERVER_ID ||
+      process.env.SERVER_ID ||
+      "server-" + (process.env.NODE_APP_INSTANCE || "1"),
+  );
 
   const { createRequestTracker } = require("./loadCalculator.js");
   console.info("[Server] LoadCalculator loaded");
