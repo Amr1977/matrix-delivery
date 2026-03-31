@@ -4,16 +4,22 @@
  * @module loadCalculator
  */
 
-import os from "os";
+const os = require("os");
 
 let activeRequestCount = 0;
+let isInitialized = false;
 
 /**
  * Creates a request tracker with Express middleware and load accessor.
  * Uses module-level integer counter for atomic request tracking.
  * @returns {Object} { middleware: Function, getCurrentLoad: Function }
  */
-export function createRequestTracker() {
+function createRequestTracker() {
+  if (!isInitialized) {
+    console.info("[LoadCalculator] Request tracker initialized");
+    isInitialized = true;
+  }
+
   /**
    * Express middleware that tracks active request count.
    * Increments on every incoming request, decrements on response finish or close.
@@ -54,7 +60,7 @@ export function createRequestTracker() {
  * @deprecated This function is provided as a fallback metric only.
  * Request-based load tracking via createRequestTracker is preferred.
  */
-export function getCpuLoad() {
+function getCpuLoad() {
   return os.loadavg()[0];
 }
 
@@ -65,9 +71,11 @@ export function getCpuLoad() {
  * @returns {number} Load factor clamped to [0, 1]
  * @throws {TypeError} If maxCapacity is 0 or negative
  */
-export function computeLoadFactor(currentLoad, maxCapacity) {
+function computeLoadFactor(currentLoad, maxCapacity) {
   if (maxCapacity <= 0) {
     throw new TypeError("maxCapacity must be a positive number");
   }
   return Math.min(Math.max(currentLoad / maxCapacity, 0), 1);
 }
+
+module.exports = { createRequestTracker, getCpuLoad, computeLoadFactor };

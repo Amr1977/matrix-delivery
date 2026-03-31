@@ -34,6 +34,33 @@ const IS_TEST =
 const IS_PRODUCTION = process.env.NODE_ENV === "production";
 const PORT = process.env.PORT || 5001;
 
+// ============================================================================
+// FAILOVER SYSTEM: Server Registry Integration
+// Imports loadCalculator and serverRegistry for Firestore registration
+// ============================================================================
+let registryStop = null;
+try {
+  console.info("[Server] Initializing failover system...");
+  const { createRequestTracker } = require("./loadCalculator");
+  const { startRegistry } = require("./serverRegistry");
+  const { middleware: requestTracker, getCurrentLoad } = createRequestTracker();
+
+  registryStop = startRegistry({ getCurrentLoad })
+    .then((registry) => {
+      console.info("[Server] Failover system started successfully");
+      return registry;
+    })
+    .catch((err) => {
+      console.error("[Server] Failed to start server registry:", err.message);
+      return null;
+    });
+
+  app.use(requestTracker);
+  console.info("[Server] Request tracker middleware registered");
+} catch (err) {
+  console.warn("[Server] Failover system not available:", err.message);
+}
+
 // Telegram polling service
 let telegramPollingService = null;
 
@@ -98,7 +125,11 @@ const io = socketIo(httpServer, {
 // Redis is optional - server will work without it (single instance mode)
 // ============================================================================
 const setupSocketRedisAdapter = () => {
-  if (process.env.REDIS_URL && process.env.ENABLE_REDIS === "true" && !IS_TEST) {
+  if (
+    process.env.REDIS_URL &&
+    process.env.ENABLE_REDIS === "true" &&
+    !IS_TEST
+  ) {
     // Only use Redis adapter if explicitly enabled
     try {
       const pubClient = new Redis(process.env.REDIS_URL, {
@@ -274,6 +305,19 @@ if (require.main === module) {
 process.on("SIGINT", async () => {
   console.log("\n🛑 Shutting down server...");
 
+  // Stop failover registry (mark server unhealthy in Firestore)
+  if (registryStop) {
+    try {
+      const registry = await registryStop;
+      if (registry && registry.stop) {
+        await registry.stop();
+        console.log("✅ Server registry stopped");
+      }
+    } catch (err) {
+      console.error("Server registry shutdown error:", err.message);
+    }
+  }
+
   // Stop Telegram polling
   if (telegramPollingService) {
     telegramPollingService.stop();
@@ -286,6 +330,57 @@ process.on("SIGINT", async () => {
     const {
       activityTracker,
     } = require("./services/activityTracker"); /* P0 FIX: removed .ts ext */
+    activityTracker.stopPeriodicCommit();
+    await activityTracker.flush();
+    console.log("✅ Activity tracker stopped");
+  } catch (err) {
+    console.error("Activity tracker shutdown error:", err.message);
+  }
+
+  // Stop cache cleanup
+  const { stopCacheCleanup } = require("./utils/cache");
+  stopCacheCleanup();
+  console.log("✅ Cache cleanup stopped");
+
+  if (server) {
+    server.close(async () => {
+      await pool.end();
+      console.log("✅ Server shutdown complete\n");
+      process.exit(0);
+    });
+  } else {
+    await pool.end();
+    process.exit(0);
+  }
+});
+
+// Graceful shutdown for SIGTERM (e.g., from PM2 or Kubernetes)
+process.on("SIGTERM", async () => {
+  console.log("\n🛑 Received SIGTERM, shutting down gracefully...");
+
+  // Stop failover registry (mark server unhealthy in Firestore)
+  if (registryStop) {
+    try {
+      const registry = await registryStop;
+      if (registry && registry.stop) {
+        await registry.stop();
+        console.log("✅ Server registry stopped");
+      }
+    } catch (err) {
+      console.error("Server registry shutdown error:", err.message);
+    }
+  }
+
+  // Stop Telegram polling
+  if (telegramPollingService) {
+    telegramPollingService.stop();
+  }
+
+  stopCleanup();
+
+  // Stop activity tracker interval and flush pending updates
+  try {
+    const { activityTracker } = require("./services/activityTracker");
     activityTracker.stopPeriodicCommit();
     await activityTracker.flush();
     console.log("✅ Activity tracker stopped");

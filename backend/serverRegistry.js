@@ -4,8 +4,8 @@
  * @module serverRegistry
  */
 
-import admin from "firebase-admin";
-import os from "os";
+const admin = require("firebase-admin");
+const os = require("os");
 
 let heartbeatInterval = null;
 let firestoreDb = null;
@@ -16,6 +16,8 @@ let serverConfig = null;
  * @throws {Error} If any required environment variable is missing
  */
 function validateConfig() {
+  console.info("[Registry] Validating configuration...");
+
   const required = [
     "FIRESTORE_SERVER_ID",
     "SERVER_URL",
@@ -48,6 +50,10 @@ function validateConfig() {
     maxCapacity,
     priority,
   };
+
+  console.info(
+    `[Registry] Config validated: serverId=${serverConfig.serverId}, url=${serverConfig.url}, maxCapacity=${maxCapacity}, priority=${priority}`,
+  );
 }
 
 /**
@@ -57,11 +63,17 @@ function validateConfig() {
  * @throws {Error} If Firebase is already initialized or credentials are invalid
  */
 function initFirebase() {
+  console.info("[Registry] Initializing Firebase Admin SDK...");
+
   if (admin.apps.length === 0) {
     admin.initializeApp({
       credential: admin.credential.applicationDefault(),
     });
+    console.info("[Registry] Firebase Admin SDK initialized");
+  } else {
+    console.info("[Registry] Firebase Admin SDK already initialized");
   }
+
   return admin.firestore();
 }
 
@@ -150,7 +162,7 @@ async function gracefulShutdown() {
  * @returns {Object} { stop: Function } Function to stop the registry
  * @throws {Error} If required environment variables are missing or Firebase init fails
  */
-export async function startRegistry({ getCurrentLoad }) {
+async function startRegistry({ getCurrentLoad }) {
   validateConfig();
   firestoreDb = initFirebase();
 
@@ -185,3 +197,5 @@ export async function startRegistry({ getCurrentLoad }) {
     },
   };
 }
+
+module.exports = { startRegistry };
