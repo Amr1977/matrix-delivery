@@ -36,20 +36,20 @@ const PORT = process.env.PORT || 5001;
 
 // ============================================================================
 // FAILOVER SYSTEM: V2 Redis-based Server Registry Integration
+// NOTE: This must run AFTER loadEnvironment() at the bottom of this file
 // ============================================================================
 let registryStop = null;
 let getMetrics = null;
 
+// This block runs immediately but config.js checks process.env after loadEnvironment
 try {
   console.info("[Server] Initializing V2 failover system (Redis-based)...");
 
+  // Load V2 config - it will use process.env which is now populated
   const { config } = require("./config.js");
   const { createRequestTracker } = require("./loadCalculator.js");
-  const { startRegistry } = require("./serverRegistry.js");
-  const {
-    createIdempotencyMiddleware,
-    default: createIdempotencyMiddlewareDefault,
-  } = require("./idempotencyMiddleware.js");
+  const { startRegistry, createRedisClient } = require("./serverRegistry.js");
+  const { createIdempotencyMiddleware } = require("./idempotencyMiddleware.js");
 
   const { middleware: requestTracker, getMetrics: getMetricsFn } =
     createRequestTracker();
@@ -58,7 +58,6 @@ try {
   app.use(requestTracker);
   console.info("[Server] Request tracker middleware registered");
 
-  const { createRedisClient } = require("./serverRegistry.js");
   const redisClient = createRedisClient();
   const idempotencyMw = createIdempotencyMiddleware(redisClient);
 
