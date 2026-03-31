@@ -86,39 +86,36 @@ async function healthCheckServer(serverUrl) {
 }
 
 /**
- * Aggregator cycle: check other servers, remove non-responding ones
+ * Aggregator cycle: concurrent health check all servers, remove non-responders
  */
 async function runAggregatorCycle() {
   console.info("[Aggregator] Running health check cycle...");
 
   const servers = await getAllServers();
-  const now = Date.now();
   const selfUrl = getServerUrl();
+  const selfId = getServerId();
 
-  for (const server of servers) {
-    // Skip self
-    if (server.url === selfUrl) {
-      continue;
-    }
+  // Ensure own entry exists
+  const selfExists = servers.some((s) => s.id === selfId);
+  if (!selfExists) {
+    console.warn("[Aggregator] Own entry missing, re-registering...");
+    await registerServer();
+  }
 
-    const age = now - (server.updatedAt?.toDate?.() || 0);
-    const isStale = age > 120000; // 2 minutes
-
-    if (!isStale) {
-      const isReachable = await healthCheckServer(server.url);
-      if (!isReachable) {
+  // Fire concurrent health checks for all non-self servers
+  const checks = servers
+    .filter((server) => server.url !== selfUrl)
+    .map(async (server) => {
+      const reachable = await healthCheckServer(server.url);
+      if (!reachable) {
         console.warn(
           `[Aggregator] ${server.url} not responding, removing from Firestore`,
         );
         await db.collection(collectionName).doc(server.id).delete();
       }
-    } else {
-      console.warn(
-        `[Aggregator] ${server.url} stale (last update: ${age}ms), removing`,
-      );
-      await db.collection(collectionName).doc(server.id).delete();
-    }
-  }
+    });
+
+  await Promise.all(checks);
 }
 
 /**
