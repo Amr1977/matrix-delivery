@@ -1,141 +1,97 @@
 /**
- * @fileoverview Server selection and ranking utilities for failover.
- * Pure functions that accept raw server arrays - no Firestore imports.
  * @module serverSelector
+ * @description Server selection utilities for failover - pure functions
  */
 
 import { isCircuitOpen } from "./circuitBreaker.js";
 
-export const STALENESS_THRESHOLD_MS = 20000;
 const STICKY_SERVER_KEY = "mdp_sticky_server";
 
 /**
- * Determines if a server is healthy based on status, heartbeat freshness, and circuit state.
- * @param {Object} server - Server object from Firestore
- * @returns {boolean} True if server is healthy
+ * Filters available servers by removing those with open circuits
+ * @param {Array} servers - Array of server objects with url and score
+ * @returns {Array} Filtered array of available servers
  */
-export function isServerHealthy(server) {
-  if (server.status !== "healthy") {
-    return false;
-  }
-
-  const timeSinceHeartbeat = Date.now() - server.lastHeartbeat;
-  if (timeSinceHeartbeat >= STALENESS_THRESHOLD_MS) {
-    return false;
-  }
-
-  if (isCircuitOpen(server.url)) {
-    return false;
-  }
-
-  return true;
-}
-
-/**
- * Computes the load score for a server (0-1 scale).
- * Returns 1 (fully saturated) if maxCapacity is 0 to avoid division by zero.
- * @param {Object} server - Server object with currentLoad and maxCapacity
- * @returns {number} Load factor between 0 and 1
- */
-export function computeLoadScore(server) {
-  if (!server.maxCapacity || server.maxCapacity === 0) {
-    return 1;
-  }
-  return server.currentLoad / server.maxCapacity;
-}
-
-/**
- * Ranks servers by health, sticky session preference, load score, and priority.
- * @param {Array<Object>} servers - Array of server objects from Firestore
- * @returns {Array<Object>} Sorted array of healthy servers (may be empty)
- */
-export function rankServers(servers) {
-  // Filter to healthy servers
-  const healthy = servers.filter(isServerHealthy);
-
-  if (healthy.length === 0) {
+export function filterAvailableServers(servers) {
+  if (!servers || servers.length === 0) {
     return [];
   }
+  return servers.filter((server) => !isCircuitOpen(server.url));
+}
 
-  // Check for sticky session
-  let stickyServer = null;
+/**
+ * Selects a server using weighted random selection
+ * Weight = 1 / (score + 0.01), lower score = higher weight
+ * @param {Array} servers - Pre-filtered array of available servers
+ * @returns {Object|null} Selected server or null if empty
+ */
+export function weightedRandomSelect(servers) {
+  if (!servers || servers.length === 0) {
+    return null;
+  }
+
+  const weights = servers.map((server) => 1 / (server.score + 0.01));
+  const totalWeight = weights.reduce((sum, w) => sum + w, 0);
+
+  const random = Math.random() * totalWeight;
+  let cumulative = 0;
+
+  for (let i = 0; i < servers.length; i++) {
+    cumulative += weights[i];
+    if (cumulative >= random) {
+      return servers[i];
+    }
+  }
+
+  return servers[servers.length - 1];
+}
+
+/**
+ * Selects an available server using filter + weighted random
+ * @param {Array} servers - Array of server objects with url and score
+ * @returns {Object|null} Selected server or null if none available
+ */
+export function selectServer(servers) {
+  const available = filterAvailableServers(servers);
+  return weightedRandomSelect(available);
+}
+
+/**
+ * Gets sticky server URL from localStorage if it exists in servers array
+ * @param {Array} servers - Array of server objects
+ * @returns {string|null} Sticky server URL or null
+ */
+export function getStickyServer(servers) {
   try {
     const stickyUrl = localStorage.getItem(STICKY_SERVER_KEY);
-    if (stickyUrl) {
-      const found = healthy.find((s) => s.url === stickyUrl);
-      if (found) {
-        stickyServer = found;
-      }
-    }
-  } catch {
-    // localStorage unavailable
-  }
+    if (!stickyUrl) return null;
 
-  // Sort by load score (ascending), then priority (ascending)
-  const sorted = [...healthy].sort((a, b) => {
-    const loadScoreA = computeLoadScore(a);
-    const loadScoreB = computeLoadScore(b);
-
-    if (loadScoreA !== loadScoreB) {
-      return loadScoreA - loadScoreB;
-    }
-
-    return a.priority - b.priority;
-  });
-
-  // Move sticky server to front if found
-  if (stickyServer) {
-    const stickyIndex = sorted.findIndex((s) => s.url === stickyServer.url);
-    if (stickyIndex > 0) {
-      sorted.splice(stickyIndex, 1);
-      sorted.unshift(stickyServer);
-    }
-  }
-
-  return sorted;
-}
-
-/**
- * Selects the best server from the available pool.
- * @param {Array<Object>} servers - Array of server objects from Firestore
- * @returns {Object|null} The best server or null if no healthy servers
- */
-export function selectBestServer(servers) {
-  const ranked = rankServers(servers);
-  return ranked.length > 0 ? ranked[0] : null;
-}
-
-/**
- * Gets the sticky server URL from localStorage.
- * @returns {string|null} Server URL or null if not set
- */
-export function getStickyServer() {
-  try {
-    return localStorage.getItem(STICKY_SERVER_KEY);
+    const exists = servers && servers.some((s) => s.url === stickyUrl);
+    return exists ? stickyUrl : null;
   } catch {
     return null;
   }
 }
 
 /**
- * Sets the sticky server URL in localStorage.
- * @param {string} serverUrl - Server URL to make sticky
+ * Sets sticky server URL in localStorage
+ * @param {string} url - Server URL to make sticky
  */
-export function setStickyServer(serverUrl) {
+export function setStickyServer(url) {
   try {
-    localStorage.setItem(STICKY_SERVER_KEY, serverUrl);
+    localStorage.setItem(STICKY_SERVER_KEY, url);
   } catch {
     // Silently fail on private browsing
   }
 }
 
 /**
- * Clears the sticky server from localStorage.
+ * Clears sticky server from localStorage
  */
 export function clearStickyServer() {
   try {
     localStorage.removeItem(STICKY_SERVER_KEY);
   } catch {
-    // Silently fail on private browsing
+    // Silently fail
   }
 }

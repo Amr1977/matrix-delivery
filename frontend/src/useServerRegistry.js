@@ -1,47 +1,45 @@
 /**
- * @fileoverview React hook for real-time server registry updates via Firestore onSnapshot.
  * @module useServerRegistry
+ * @description React hook for real-time server registry updates via WebSocket
  */
 
-import { useState, useEffect } from "react";
-import { db } from "./firebase.js";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
+import { useState, useEffect, useRef } from "react";
+import { createWsClient } from "./wsClient.js";
 
 /**
- * React hook that provides real-time server registry data from Firestore.
- * Uses onSnapshot for WebSocket-based live updates.
- * @returns {Object} { servers: Array, loading: boolean, error: Error|null }
+ * React hook that provides real-time server registry data from WebSocket
+ * @returns {Object} { servers: Array, updatedAt: number|null, connected: boolean }
  */
 export function useServerRegistry() {
   const [servers, setServers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [updatedAt, setUpdatedAt] = useState(null);
+  const [connected, setConnected] = useState(false);
+  const clientRef = useRef(null);
 
   useEffect(() => {
-    const serversRef = collection(db, "servers");
-    const q = query(serversRef, orderBy("priority", "asc"));
+    clientRef.current = createWsClient();
 
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const serverList = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setServers(serverList);
-        setLoading(false);
-      },
-      (firestoreError) => {
-        console.error("[useServerRegistry] Firestore error:", firestoreError);
-        setError(firestoreError);
-        setLoading(false);
-      },
-    );
+    const snapshot = clientRef.current.getLastSnapshot();
+    if (snapshot && snapshot.servers) {
+      setServers(snapshot.servers);
+      setUpdatedAt(snapshot.updatedAt);
+    }
+
+    const callback = (data) => {
+      setServers(data.servers || []);
+      setUpdatedAt(data.updatedAt);
+      setConnected(true);
+    };
+
+    clientRef.current.subscribe(callback);
 
     return () => {
-      unsubscribe();
+      if (clientRef.current) {
+        clientRef.current.unsubscribe(callback);
+        clientRef.current.disconnect();
+      }
     };
   }, []);
 
-  return { servers, loading, error };
+  return { servers, updatedAt, connected };
 }

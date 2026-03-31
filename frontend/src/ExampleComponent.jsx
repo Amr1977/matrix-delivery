@@ -1,12 +1,13 @@
 /**
- * @fileoverview Example component demonstrating failover integration.
  * @module ExampleComponent
+ * @description Full demo component for V2 Redis-based failover system
  */
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useServerRegistry } from "./useServerRegistry.js";
-import { rankServers, computeLoadScore } from "./serverSelector.js";
+import { selectServer } from "./serverSelector.js";
 import { fetchWithFailover } from "./fetchWithFailover.js";
+import { isCircuitOpen, getFailedServers } from "./circuitBreaker.js";
 
 const styles = {
   container: {
@@ -20,62 +21,40 @@ const styles = {
     paddingBottom: "10px",
     borderBottom: "1px solid #eee",
   },
-  loading: {
-    padding: "20px",
-    textAlign: "center",
-    color: "#666",
-  },
-  error: {
-    padding: "15px",
-    backgroundColor: "#fee",
-    border: "1px solid #fcc",
-    borderRadius: "4px",
-    color: "#c00",
-    marginBottom: "20px",
-  },
-  serverList: {
-    listStyle: "none",
-    padding: 0,
-    margin: "0 0 20px 0",
-  },
-  serverItem: {
+  statusBar: {
     display: "flex",
     alignItems: "center",
-    padding: "12px",
-    marginBottom: "8px",
-    backgroundColor: "#f9f9f9",
+    gap: "10px",
+    marginBottom: "20px",
+    padding: "10px",
+    backgroundColor: "#f5f5f5",
     borderRadius: "4px",
-    gap: "12px",
-  },
-  serverUrl: {
-    flex: 1,
-    fontWeight: "500",
-  },
-  loadScore: {
-    minWidth: "60px",
-    textAlign: "right",
-    fontSize: "14px",
-    color: "#666",
-  },
-  priority: {
-    minWidth: "40px",
-    textAlign: "center",
-    fontSize: "12px",
-    color: "#999",
   },
   statusBadge: {
-    padding: "4px 8px",
+    padding: "4px 12px",
     borderRadius: "12px",
     fontSize: "12px",
     fontWeight: "500",
   },
-  healthy: {
-    backgroundColor: "#dfd",
-    color: "#080",
+  live: { backgroundColor: "#dfd", color: "#080" },
+  reconnecting: { backgroundColor: "#ffeba7", color: "#880" },
+  connecting: { backgroundColor: "#e5e5e5", color: "#666" },
+  table: {
+    width: "100%",
+    borderCollapse: "collapse",
+    marginBottom: "20px",
   },
-  unhealthy: {
-    backgroundColor: "#fee",
-    color: "#c00",
+  th: {
+    textAlign: "left",
+    padding: "12px",
+    borderBottom: "2px solid #ddd",
+    fontSize: "14px",
+    color: "#666",
+  },
+  td: {
+    padding: "12px",
+    borderBottom: "1px solid #eee",
+    fontSize: "14px",
   },
   button: {
     padding: "12px 24px",
@@ -85,7 +64,8 @@ const styles = {
     color: "#fff",
     border: "none",
     borderRadius: "4px",
-    marginBottom: "20px",
+    marginRight: "10px",
+    marginBottom: "10px",
   },
   response: {
     padding: "15px",
@@ -95,101 +75,219 @@ const styles = {
     fontSize: "14px",
     whiteSpace: "pre-wrap",
     wordBreak: "break-word",
+    marginTop: "10px",
+  },
+  circuitPanel: {
+    marginTop: "20px",
+    padding: "15px",
+    backgroundColor: "#fff5f5",
+    borderRadius: "4px",
+    border: "1px solid #fcc",
+  },
+  circuitItem: {
+    padding: "8px 0",
+    borderBottom: "1px solid #eee",
   },
 };
 
-/**
- * Example component showing failover usage.
- * @returns {React.ReactElement}
- */
 export default function ExampleComponent() {
-  const { servers, loading, error: firestoreError } = useServerRegistry();
-  const [response, setResponse] = useState(null);
-  const [requestError, setRequestError] = useState(null);
+  const { servers, updatedAt, connected } = useServerRegistry();
+  const [getResponse, setGetResponse] = useState(null);
+  const [getError, setGetError] = useState(null);
+  const [getLoading, setGetLoading] = useState(false);
+  const [postResponse, setPostResponse] = useState(null);
+  const [postError, setPostError] = useState(null);
+  const [postLoading, setPostLoading] = useState(false);
+  const [failedServers, setFailedServers] = useState({});
 
-  const rankedServers = rankServers(servers);
+  useEffect(() => {
+    setFailedServers(getFailedServers());
+  }, [getResponse, postResponse]);
 
-  const handleMakeRequest = async () => {
-    setRequestError(null);
-    setResponse(null);
+  const handleGetRequest = async () => {
+    setGetError(null);
+    setGetResponse(null);
+    setGetLoading(true);
 
     try {
       const res = await fetchWithFailover(
         "/api/example",
+        { method: "GET", idempotencyKey: crypto.randomUUID() },
+        servers,
+      );
+      const data = await res.json();
+      setGetResponse(data);
+    } catch (err) {
+      setGetError(err.message);
+    } finally {
+      setGetLoading(false);
+    }
+  };
+
+  const handlePostRequest = async () => {
+    setPostError(null);
+    setPostResponse(null);
+    setPostLoading(true);
+
+    try {
+      const res = await fetchWithFailover(
+        "/api/order",
         {
-          method: "GET",
+          method: "POST",
+          body: JSON.stringify({ item: "test" }),
           idempotencyKey: crypto.randomUUID(),
         },
         servers,
       );
-
       const data = await res.json();
-      setResponse(data);
+      setPostResponse(data);
     } catch (err) {
-      setRequestError(err.message);
+      setPostError(err.message);
+    } finally {
+      setPostLoading(false);
     }
   };
 
-  if (loading) {
+  const getStatusBadge = () => {
+    if (connected) {
+      return (
+        <span style={{ ...styles.statusBadge, ...styles.live }}>Live</span>
+      );
+    } else if (servers.length > 0) {
+      return (
+        <span style={{ ...styles.statusBadge, ...styles.reconnecting }}>
+          Reconnecting (cached)
+        </span>
+      );
+    }
     return (
-      <div style={styles.container}>
-        <div style={styles.loading}>Loading server registry...</div>
-      </div>
+      <span style={{ ...styles.statusBadge, ...styles.connecting }}>
+        Connecting...
+      </span>
     );
-  }
+  };
+
+  const getTableContent = () => {
+    if (!connected && servers.length === 0) {
+      return (
+        <tr>
+          <td
+            colSpan="5"
+            style={{ ...styles.td, textAlign: "center", color: "#666" }}
+          >
+            Connecting to aggregator...
+          </td>
+        </tr>
+      );
+    }
+    if (servers.length === 0 && connected) {
+      return (
+        <tr>
+          <td
+            colSpan="5"
+            style={{ ...styles.td, textAlign: "center", color: "#666" }}
+          >
+            No healthy servers
+          </td>
+        </tr>
+      );
+    }
+    return servers.map((server, idx) => {
+      const weight = (1 / (server.score + 0.01)).toFixed(2);
+      const circuitOpen = isCircuitOpen(server.url);
+      return (
+        <tr key={idx}>
+          <td style={styles.td}>{server.url}</td>
+          <td style={styles.td}>{server.score?.toFixed(4) || "N/A"}</td>
+          <td style={styles.td}>{server.priority || 1}</td>
+          <td style={styles.td}>{weight}</td>
+          <td style={styles.td}>
+            <span style={circuitOpen ? { color: "#c00" } : { color: "#080" }}>
+              {circuitOpen ? "open" : "closed"}
+            </span>
+          </td>
+        </tr>
+      );
+    });
+  };
 
   return (
     <div style={styles.container}>
-      <h2 style={styles.header}>Server Registry (Failover Demo)</h2>
+      <h2 style={styles.header}>V2 Failover Demo (Redis + WebSocket)</h2>
 
-      {firestoreError && (
-        <div style={styles.error}>
-          Firestore Error: {firestoreError.message}
-        </div>
-      )}
+      <div style={styles.statusBar}>
+        <span>Status:</span>
+        {getStatusBadge()}
+        {updatedAt && (
+          <span style={{ fontSize: "12px", color: "#666" }}>
+            Last update: {new Date(updatedAt).toLocaleTimeString()}
+          </span>
+        )}
+      </div>
 
-      <ul style={styles.serverList}>
-        {rankedServers.map((server) => (
-          <li key={server.id} style={styles.serverItem}>
-            <span style={styles.serverUrl}>{server.url}</span>
-            <span style={styles.loadScore}>
-              {computeLoadScore(server).toFixed(2)}
-            </span>
-            <span style={styles.priority}>P{server.priority}</span>
-            <span
-              style={{
-                ...styles.statusBadge,
-                ...(server.status === "healthy"
-                  ? styles.healthy
-                  : styles.unhealthy),
-              }}
-            >
-              {server.status}
-            </span>
-          </li>
-        ))}
-      </ul>
-
-      {rankedServers.length === 0 && (
-        <p style={{ color: "#666", marginBottom: "20px" }}>
-          No healthy servers available
-        </p>
-      )}
+      <table style={styles.table}>
+        <thead>
+          <tr>
+            <th style={styles.th}>URL</th>
+            <th style={styles.th}>Score</th>
+            <th style={styles.th}>Priority</th>
+            <th style={styles.th}>Weight</th>
+            <th style={styles.th}>Circuit</th>
+          </tr>
+        </thead>
+        <tbody>{getTableContent()}</tbody>
+      </table>
 
       <button
         style={styles.button}
-        onClick={handleMakeRequest}
-        disabled={loading || rankedServers.length === 0}
+        onClick={handleGetRequest}
+        disabled={getLoading}
       >
-        Make Request
+        {getLoading ? "Loading..." : "GET /api/example"}
       </button>
 
-      {requestError && (
-        <div style={styles.error}>Request Error: {requestError}</div>
+      <button
+        style={styles.button}
+        onClick={handlePostRequest}
+        disabled={postLoading}
+      >
+        {postLoading ? "Loading..." : "POST /api/order"}
+      </button>
+
+      {getError && (
+        <div style={{ ...styles.response, color: "#c00" }}>
+          GET Error: {getError}
+        </div>
+      )}
+      {getResponse && (
+        <div style={styles.response}>
+          GET Response: {JSON.stringify(getResponse, null, 2)}
+        </div>
       )}
 
-      {response && (
-        <div style={styles.response}>{JSON.stringify(response, null, 2)}</div>
+      {postError && (
+        <div style={{ ...styles.response, color: "#c00" }}>
+          POST Error: {postError}
+        </div>
+      )}
+      {postResponse && (
+        <div style={styles.response}>
+          POST Response: {JSON.stringify(postResponse, null, 2)}
+        </div>
+      )}
+
+      {Object.keys(failedServers).length > 0 && (
+        <div style={styles.circuitPanel}>
+          <h4>Circuit Breaker Status</h4>
+          {Object.entries(failedServers).map(([url, timestamp]) => {
+            const expires = new Date(timestamp + 60000).toLocaleTimeString();
+            return (
+              <div key={url} style={styles.circuitItem}>
+                <strong>{url}</strong> - Opens at {expires}
+              </div>
+            );
+          })}
+        </div>
       )}
     </div>
   );

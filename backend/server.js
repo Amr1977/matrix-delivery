@@ -35,30 +35,47 @@ const IS_PRODUCTION = process.env.NODE_ENV === "production";
 const PORT = process.env.PORT || 5001;
 
 // ============================================================================
-// FAILOVER SYSTEM: Server Registry Integration
-// Imports loadCalculator and serverRegistry for Firestore registration
+// FAILOVER SYSTEM: V2 Redis-based Server Registry Integration
 // ============================================================================
 let registryStop = null;
-try {
-  console.info("[Server] Initializing failover system...");
-  const { createRequestTracker } = require("./loadCalculator");
-  const { startRegistry } = require("./serverRegistry");
-  const { middleware: requestTracker, getCurrentLoad } = createRequestTracker();
+let getMetrics = null;
 
-  registryStop = startRegistry({ getCurrentLoad })
-    .then((registry) => {
-      console.info("[Server] Failover system started successfully");
-      return registry;
-    })
-    .catch((err) => {
-      console.error("[Server] Failed to start server registry:", err.message);
-      return null;
-    });
+try {
+  console.info("[Server] Initializing V2 failover system (Redis-based)...");
+
+  const { config } = require("./config.js");
+  const { createRequestTracker } = require("./loadCalculator.js");
+  const { startRegistry } = require("./serverRegistry.js");
+  const {
+    createIdempotencyMiddleware,
+    default: createIdempotencyMiddlewareDefault,
+  } = require("./idempotencyMiddleware.js");
+
+  const { middleware: requestTracker, getMetrics: getMetricsFn } =
+    createRequestTracker();
+  getMetrics = getMetricsFn;
 
   app.use(requestTracker);
   console.info("[Server] Request tracker middleware registered");
+
+  const { createRedisClient } = require("./serverRegistry.js");
+  const redisClient = createRedisClient();
+  const idempotencyMw = createIdempotencyMiddleware(redisClient);
+
+  registryStop = startRegistry({ getMetrics: getMetricsFn })
+    .then((registry) => {
+      console.info("[Server] V2 failover system started successfully");
+      return { registry, idempotencyMw, redisClient };
+    })
+    .catch((err) => {
+      console.error(
+        "[Server] Failed to start V2 failover system:",
+        err.message,
+      );
+      return null;
+    });
 } catch (err) {
-  console.warn("[Server] Failover system not available:", err.message);
+  console.warn("[Server] V2 failover system not available:", err.message);
 }
 
 // Telegram polling service
@@ -305,16 +322,20 @@ if (require.main === module) {
 process.on("SIGINT", async () => {
   console.log("\n🛑 Shutting down server...");
 
-  // Stop failover registry (mark server unhealthy in Firestore)
+  // Stop V2 failover registry (mark server unhealthy in Redis)
   if (registryStop) {
     try {
-      const registry = await registryStop;
-      if (registry && registry.stop) {
-        await registry.stop();
-        console.log("✅ Server registry stopped");
+      const registryData = await registryStop;
+      if (registryData && registryData.registry && registryData.registry.stop) {
+        await registryData.registry.stop();
+        console.log("✅ V2 server registry stopped");
+      }
+      if (registryData && registryData.redisClient) {
+        await registryData.redisClient.quit();
+        console.log("✅ Redis client disconnected");
       }
     } catch (err) {
-      console.error("Server registry shutdown error:", err.message);
+      console.error("V2 server registry shutdown error:", err.message);
     }
   }
 
@@ -358,16 +379,20 @@ process.on("SIGINT", async () => {
 process.on("SIGTERM", async () => {
   console.log("\n🛑 Received SIGTERM, shutting down gracefully...");
 
-  // Stop failover registry (mark server unhealthy in Firestore)
+  // Stop V2 failover registry (mark server unhealthy in Redis)
   if (registryStop) {
     try {
-      const registry = await registryStop;
-      if (registry && registry.stop) {
-        await registry.stop();
-        console.log("✅ Server registry stopped");
+      const registryData = await registryStop;
+      if (registryData && registryData.registry && registryData.registry.stop) {
+        await registryData.registry.stop();
+        console.log("✅ V2 server registry stopped");
+      }
+      if (registryData && registryData.redisClient) {
+        await registryData.redisClient.quit();
+        console.log("✅ Redis client disconnected");
       }
     } catch (err) {
-      console.error("Server registry shutdown error:", err.message);
+      console.error("V2 server registry shutdown error:", err.message);
     }
   }
 

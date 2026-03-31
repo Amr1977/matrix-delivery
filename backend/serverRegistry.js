@@ -1,192 +1,156 @@
 /**
- * @fileoverview Server registration and heartbeat management for the Matrix Delivery Platform.
- * Uses Firebase Admin SDK to register servers in Firestore.
  * @module serverRegistry
+ * @description Server registration and heartbeat management using Redis
  */
 
-const admin = require("firebase-admin");
-const os = require("os");
-
-let heartbeatInterval = null;
-let firestoreDb = null;
-let serverConfig = null;
+import Redis from "ioredis";
+import { config } from "./config.js";
 
 /**
- * Validates required environment variables for server registry.
- * @throws {Error} If any required environment variable is missing
+ * @description Creates a Redis client instance for server registry
+ * @returns {Redis}
  */
-function validateConfig() {
-  console.info("[Registry] Validating configuration...");
+function createRedisClient() {
+  const client = new Redis({
+    host: config.REDIS_HOST,
+    port: config.REDIS_PORT,
+    password: config.REDIS_PASSWORD,
+    maxRetriesPerRequest: 3,
+    enableReadyCheck: true,
+    lazyConnect: false,
+  });
 
-  const required = [
-    "FIRESTORE_SERVER_ID",
-    "SERVER_URL",
-    "SERVER_MAX_CAPACITY",
-    "SERVER_PRIORITY",
-  ];
-
-  const missing = required.filter((varName) => !process.env[varName]);
-
-  if (missing.length > 0) {
-    throw new Error(
-      `Missing required environment variables: ${missing.join(", ")}`,
-    );
-  }
-
-  const maxCapacity = parseInt(process.env.SERVER_MAX_CAPACITY, 10);
-  const priority = parseInt(process.env.SERVER_PRIORITY, 10);
-
-  if (isNaN(maxCapacity) || maxCapacity <= 0) {
-    throw new Error("SERVER_MAX_CAPACITY must be a positive integer");
-  }
-
-  if (isNaN(priority)) {
-    throw new Error("SERVER_PRIORITY must be an integer");
-  }
-
-  serverConfig = {
-    serverId: process.env.FIRESTORE_SERVER_ID,
-    url: process.env.SERVER_URL.replace(/\/$/, ""),
-    maxCapacity,
-    priority,
-  };
-
-  console.info(
-    `[Registry] Config validated: serverId=${serverConfig.serverId}, url=${serverConfig.url}, maxCapacity=${maxCapacity}, priority=${priority}`,
+  client.on("error", (err) =>
+    console.error("[Redis] connection error:", err.message),
   );
+  client.on("ready", () => console.info("[Redis] connected and ready"));
+
+  return client;
 }
 
-/**
- * Initializes Firebase Admin SDK using Application Default Credentials (ADC).
- * GOOGLE_APPLICATION_CREDENTIALS env var must point to service account JSON file.
- * @returns {admin.firestore.Firestore} Firestore database instance
- * @throws {Error} If Firebase is already initialized or credentials are invalid
- */
-function initFirebase() {
-  console.info("[Registry] Initializing Firebase Admin SDK...");
-
-  if (admin.apps.length === 0) {
-    admin.initializeApp({
-      credential: admin.credential.applicationDefault(),
-    });
-    console.info("[Registry] Firebase Admin SDK initialized");
-  } else {
-    console.info("[Registry] Firebase Admin SDK already initialized");
-  }
-
-  return admin.firestore();
-}
+let redisClient = null;
+let heartbeatInterval = null;
 
 /**
- * Registers this server instance in Firestore.
- * Uses set() with merge: true to preserve data on restart.
+ * Registers this server in Redis
  * @private
+ * @async
  */
 async function registerServer() {
-  const serverRef = firestoreDb
-    .collection("servers")
-    .doc(serverConfig.serverId);
+  const serverKey = `mdp:server:${config.SERVER_ID}`;
+  const metrics = {
+    currentLoad: 0,
+    avgLatencyMs: config.LATENCY_BASELINE_MS,
+    errorRate: 0,
+    warmup: true,
+  };
 
-  await serverRef.set(
-    {
-      url: serverConfig.url,
+  try {
+    await redisClient.hset(serverKey, {
+      url: config.SERVER_URL,
       status: "healthy",
-      currentLoad: 0,
-      maxCapacity: serverConfig.maxCapacity,
-      priority: serverConfig.priority,
+      currentLoad: metrics.currentLoad,
+      maxCapacity: config.SERVER_MAX_CAPACITY,
+      priority: config.SERVER_PRIORITY,
+      avgLatencyMs: metrics.avgLatencyMs,
+      errorRate: metrics.errorRate,
+      warmup: "true",
       lastHeartbeat: Date.now(),
-    },
-    { merge: true },
-  );
+    });
 
-  console.info(
-    `[Registry] Server registered: ${serverConfig.serverId} at ${serverConfig.url}`,
-  );
+    await redisClient.sadd("mdp:servers:index", config.SERVER_ID);
+
+    console.info(
+      `[Registry] Server registered: ${config.SERVER_ID} at ${config.SERVER_URL}`,
+    );
+  } catch (error) {
+    console.error(`[Registry] Failed to register server:`, error.message);
+    throw error;
+  }
 }
 
 /**
- * Updates the server heartbeat in Firestore with current load.
- * @param {Object} params - Parameters object
- * @param {Function} params.getCurrentLoad - Function to get current request count
+ * Updates heartbeat with current metrics
  * @private
  */
-async function updateHeartbeat({ getCurrentLoad }) {
+async function updateHeartbeat() {
   try {
-    const serverRef = firestoreDb
-      .collection("servers")
-      .doc(serverConfig.serverId);
+    const metrics = getMetrics();
+    const serverKey = `mdp:server:${config.SERVER_ID}`;
 
-    await serverRef.update({
+    await redisClient.hset(serverKey, {
       status: "healthy",
-      currentLoad: getCurrentLoad(),
+      currentLoad: metrics.currentLoad,
+      avgLatencyMs: metrics.avgLatencyMs,
+      errorRate: metrics.errorRate,
+      warmup: metrics.warmup ? "true" : "false",
       lastHeartbeat: Date.now(),
     });
 
     console.info(
-      `[Registry] Heartbeat updated: ${serverConfig.serverId}, load: ${getCurrentLoad()}`,
+      `[Registry] Heartbeat updated: ${config.SERVER_ID}, load: ${metrics.currentLoad}`,
     );
   } catch (error) {
-    console.error(
-      `[Registry] Heartbeat update failed for ${serverConfig.serverId}:`,
+    console.warn(
+      `[Registry] Heartbeat update failed for ${config.SERVER_ID}:`,
       error.message,
     );
   }
 }
 
 /**
- * Marks this server as unhealthy during graceful shutdown.
+ * Graceful shutdown - marks server as unhealthy and disconnects
  * @private
  */
 async function gracefulShutdown() {
   try {
-    const serverRef = firestoreDb
-      .collection("servers")
-      .doc(serverConfig.serverId);
-
-    await serverRef.update({
-      status: "unhealthy",
-    });
-
-    console.info(
-      `[Registry] Server marked unhealthy: ${serverConfig.serverId}`,
-    );
+    const serverKey = `mdp:server:${config.SERVER_ID}`;
+    await redisClient.hset(serverKey, "status", "unhealthy");
+    console.info(`[Registry] Server marked unhealthy: ${config.SERVER_ID}`);
   } catch (error) {
     console.error(`[Registry] Failed to mark server unhealthy:`, error.message);
+  } finally {
+    if (redisClient) {
+      await redisClient.quit();
+    }
+    process.exit(0);
   }
 }
 
 /**
- * Starts the server registry with heartbeat mechanism.
+ * Starts the server registry with heartbeat mechanism
  * @param {Object} params - Parameters object
- * @param {Function} params.getCurrentLoad - Function to get current request count
+ * @param {Function} params.getMetrics - Function to get current metrics
  * @returns {Object} { stop: Function } Function to stop the registry
- * @throws {Error} If required environment variables are missing or Firebase init fails
  */
-async function startRegistry({ getCurrentLoad }) {
-  validateConfig();
-  firestoreDb = initFirebase();
+function startRegistry({ getMetrics }) {
+  redisClient = createRedisClient();
 
-  await registerServer();
+  registerServer()
+    .then(() => {
+      heartbeatInterval = setInterval(
+        updateHeartbeat,
+        config.HEARTBEAT_INTERVAL_MS,
+      );
+      console.info(`[Registry] Started for ${config.SERVER_ID}`);
+    })
+    .catch((error) => {
+      console.error(`[Registry] Failed to start:`, error.message);
+      process.exit(1);
+    });
 
-  heartbeatInterval = setInterval(() => {
-    updateHeartbeat({ getCurrentLoad });
-  }, 5000);
-
-  const shutdownHandler = async (signal) => {
+  const shutdownHandler = (signal) => {
     console.info(
       `[Registry] Received ${signal}, starting graceful shutdown...`,
     );
     if (heartbeatInterval) {
       clearInterval(heartbeatInterval);
     }
-    await gracefulShutdown();
-    process.exit(0);
+    gracefulShutdown();
   };
 
   process.on("SIGTERM", () => shutdownHandler("SIGTERM"));
   process.on("SIGINT", () => shutdownHandler("SIGINT"));
-
-  console.info(`[Registry] Started for ${serverConfig.serverId}`);
 
   return {
     stop: async () => {
@@ -198,4 +162,5 @@ async function startRegistry({ getCurrentLoad }) {
   };
 }
 
-module.exports = { startRegistry };
+export { startRegistry, createRedisClient };
+export default { startRegistry };

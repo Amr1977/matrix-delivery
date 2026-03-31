@@ -1,81 +1,124 @@
 /**
- * @fileoverview Load calculation utilities for the Matrix Delivery Platform.
- * Provides atomic request tracking and load factor computation.
  * @module loadCalculator
+ * @description Request tracker with rolling latency and error rate metrics
  */
 
-const os = require("os");
-
-let activeRequestCount = 0;
-let isInitialized = false;
+import { config } from "./config.js";
 
 /**
- * Creates a request tracker with Express middleware and load accessor.
- * Uses module-level integer counter for atomic request tracking.
- * @returns {Object} { middleware: Function, getCurrentLoad: Function }
+ * @typedef {Object} Metrics
+ * @property {number} currentLoad - Current active request count
+ * @property {number} avgLatencyMs - Rolling average latency in milliseconds
+ * @property {number} errorRate - Error rate in [0,1] range
+ * @property {boolean} warmup - Whether server is still in warmup period
+ */
+
+/**
+ * Creates a request tracker with middleware and metrics getter
+ * @returns {{ middleware: import('express').RequestHandler, getMetrics: () => Metrics }}
  */
 function createRequestTracker() {
-  if (!isInitialized) {
-    console.info("[LoadCalculator] Request tracker initialized");
-    isInitialized = true;
-  }
+  let activeRequests = 0;
+  const windowSize = config.ROLLING_WINDOW_SIZE;
+  const startTime = Date.now();
+
+  const latencyBufferFull = new Array(windowSize).fill(0);
+  const errorBufferFull = new Array(windowSize).fill(0);
+  let bufferIndex = 0;
 
   /**
-   * Express middleware that tracks active request count.
-   * Increments on every incoming request, decrements on response finish or close.
-   * @param {import('express').Request} req - Express request object
-   * @param {import('express').Response} res - Express response object
-   * @param {import('express').NextFunction} next - Express next function
+   * Express middleware to track requests
+   * @param {import('express').Request} req
+   * @param {import('express').Response} res
+   * @param {import('express').NextFunction} next
    */
-  const middleware = (req, res, next) => {
-    activeRequestCount++;
-    let decremented = false;
+  function middleware(req, res, next) {
+    if (req.path === "/health") {
+      return next();
+    }
+
+    activeRequests++;
+
+    const requestStart = Date.now();
+    let counted = false;
 
     const decrement = () => {
-      if (!decremented) {
-        decremented = true;
-        activeRequestCount--;
+      if (counted) return;
+      counted = true;
+      if (activeRequests > 0) {
+        activeRequests--;
       }
+
+      const duration = Date.now() - requestStart;
+      latencyBufferFull[bufferIndex] = duration;
+
+      const isError = res.statusCode >= 500 ? 1 : 0;
+      errorBufferFull[bufferIndex] = isError;
+
+      bufferIndex = (bufferIndex + 1) % windowSize;
     };
 
     res.on("finish", decrement);
     res.on("close", decrement);
 
-    next();
-  };
+    return next();
+  }
 
   /**
-   * Returns the current active request count.
-   * @returns {number} Current number of in-flight requests
+   * Get current metrics
+   * @returns {Metrics}
    */
-  const getCurrentLoad = () => activeRequestCount;
+  function getMetrics() {
+    const now = Date.now();
+    const inWarmup = now - startTime < config.WARMUP_PERIOD_MS;
 
-  return { middleware, getCurrentLoad };
+    let totalLatency = 0;
+    let count = 0;
+    for (let i = 0; i < windowSize; i++) {
+      if (latencyBufferFull[i] > 0) {
+        totalLatency += latencyBufferFull[i];
+        count++;
+      }
+    }
+
+    const avgLatencyMs =
+      count > 0 ? totalLatency / count : config.LATENCY_BASELINE_MS;
+
+    let totalErrors = 0;
+    let totalRequests = 0;
+    for (let i = 0; i < windowSize; i++) {
+      if (errorBufferFull[i] > 0 || latencyBufferFull[i] > 0) {
+        totalRequests++;
+        totalErrors += errorBufferFull[i];
+      }
+    }
+
+    const errorRate =
+      totalRequests > 0
+        ? Math.min(1, Math.max(0, totalErrors / totalRequests))
+        : 0;
+
+    return {
+      currentLoad: activeRequests,
+      avgLatencyMs: avgLatencyMs,
+      errorRate: errorRate,
+      warmup: inWarmup,
+    };
+  }
+
+  return { middleware, getMetrics };
 }
 
 /**
- * Returns the 1-minute CPU load average from the operating system.
- * Used only as a fallback metric when request-based load is unavailable.
- * @returns {number} 1-minute load average
- * @deprecated This function is provided as a fallback metric only.
- * Request-based load tracking via createRequestTracker is preferred.
- */
-function getCpuLoad() {
-  return os.loadavg()[0];
-}
-
-/**
- * Computes the load factor as a ratio of current load to maximum capacity.
- * @param {number} currentLoad - Current number of active requests
- * @param {number} maxCapacity - Maximum concurrent requests the server can handle
- * @returns {number} Load factor clamped to [0, 1]
- * @throws {TypeError} If maxCapacity is 0 or negative
+ * Compute load factor from current load and max capacity
+ * @param {number} currentLoad
+ * @param {number} maxCapacity
+ * @returns {number} Load factor clamped to [0,1]
  */
 function computeLoadFactor(currentLoad, maxCapacity) {
-  if (maxCapacity <= 0) {
-    throw new TypeError("maxCapacity must be a positive number");
-  }
-  return Math.min(Math.max(currentLoad / maxCapacity, 0), 1);
+  if (maxCapacity <= 0) return 1;
+  return Math.min(1, Math.max(0, currentLoad / maxCapacity));
 }
 
-module.exports = { createRequestTracker, getCpuLoad, computeLoadFactor };
+export { createRequestTracker, computeLoadFactor };
+export default createRequestTracker;
