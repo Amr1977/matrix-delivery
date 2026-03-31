@@ -6,6 +6,8 @@
 const Redis = require("ioredis");
 const { config } = require("./config.js");
 
+let getMetrics = null;
+
 function createRedisClient() {
   const client = new Redis({
     host: config.REDIS_HOST,
@@ -101,42 +103,43 @@ async function gracefulShutdown() {
 }
 
 function startRegistry({ getMetrics: getMetricsFn }) {
+  getMetrics = getMetricsFn;
   redisClient = createRedisClient();
 
-  registerServer()
+  return registerServer()
     .then(() => {
       heartbeatInterval = setInterval(
         updateHeartbeat,
         config.HEARTBEAT_INTERVAL_MS,
       );
       console.info(`[Registry] Started for ${config.SERVER_ID}`);
+
+      const shutdownHandler = (signal) => {
+        console.info(
+          `[Registry] Received ${signal}, starting graceful shutdown...`,
+        );
+        if (heartbeatInterval) {
+          clearInterval(heartbeatInterval);
+        }
+        gracefulShutdown();
+      };
+
+      process.on("SIGTERM", () => shutdownHandler("SIGTERM"));
+      process.on("SIGINT", () => shutdownHandler("SIGINT"));
+
+      return {
+        stop: async () => {
+          if (heartbeatInterval) {
+            clearInterval(heartbeatInterval);
+          }
+          await gracefulShutdown();
+        },
+      };
     })
     .catch((error) => {
       console.error(`[Registry] Failed to start:`, error.message);
       process.exit(1);
     });
-
-  const shutdownHandler = (signal) => {
-    console.info(
-      `[Registry] Received ${signal}, starting graceful shutdown...`,
-    );
-    if (heartbeatInterval) {
-      clearInterval(heartbeatInterval);
-    }
-    gracefulShutdown();
-  };
-
-  process.on("SIGTERM", () => shutdownHandler("SIGTERM"));
-  process.on("SIGINT", () => shutdownHandler("SIGINT"));
-
-  return {
-    stop: async () => {
-      if (heartbeatInterval) {
-        clearInterval(heartbeatInterval);
-      }
-      await gracefulShutdown();
-    },
-  };
 }
 
 module.exports = { startRegistry, createRedisClient };
