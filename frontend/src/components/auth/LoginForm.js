@@ -77,8 +77,9 @@ const LoginForm = ({ onSubmit, onForgotPassword, loading, error, t }) => {
             style={{
               position: "absolute",
               right: "0",
-              top: "0",
-              bottom: "0",
+              top: "50%",
+              transform: "translateY(-50%)",
+              height: "2.5rem",
               width: "2.5rem",
               display: "flex",
               alignItems: "center",
