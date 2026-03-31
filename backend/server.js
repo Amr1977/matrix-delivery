@@ -46,10 +46,18 @@ try {
   console.info("[Server] Initializing V2 failover system (Redis-based)...");
 
   // Load V2 config - it will use process.env which is now populated
-  const { config } = require("./config.js");
+  const { config: v2Config } = require("./config.js");
+  console.info("[Server] V2 config loaded, SERVER_ID:", v2Config.SERVER_ID);
+
   const { createRequestTracker } = require("./loadCalculator.js");
-  const { startRegistry, createRedisClient } = require("./serverRegistry.js");
+  console.info("[Server] LoadCalculator loaded");
+
+  const sr = require("./serverRegistry.js");
+  console.info("[Server] serverRegistry exports:", Object.keys(sr));
+  const { startRegistry, createRedisClient } = sr;
+
   const { createIdempotencyMiddleware } = require("./idempotencyMiddleware.js");
+  console.info("[Server] idempotencyMiddleware loaded");
 
   const { middleware: requestTracker, getMetrics: getMetricsFn } =
     createRequestTracker();
@@ -59,7 +67,10 @@ try {
   console.info("[Server] Request tracker middleware registered");
 
   const redisClient = createRedisClient();
+  console.info("[Server] Redis client created");
+
   const idempotencyMw = createIdempotencyMiddleware(redisClient);
+  console.info("[Server] Idempotency middleware created");
 
   registryStop = startRegistry({ getMetrics: getMetricsFn })
     .then((registry) => {
