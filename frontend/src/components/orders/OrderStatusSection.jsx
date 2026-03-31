@@ -714,7 +714,15 @@ const OrderStatusSection = ({
             <div style={{ display: "flex", gap: "0.5rem" }}>
               <button
                 data-testid={`complete-order-btn-${order.id}`}
-                onClick={() => handleCompleteOrder(order.id)}
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      "Did you receive cash from the customer? Click OK to confirm delivery.",
+                    )
+                  ) {
+                    handleCompleteOrder(order.id);
+                  }
+                }}
                 disabled={loadingStates.completeOrder}
                 style={{
                   flex: 1,

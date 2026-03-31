@@ -1667,7 +1667,15 @@ const OrderCard = ({
             <div style={{ display: "flex", gap: "0.5rem" }}>
               <button
                 data-testid={`complete-order-btn-${order.id}`}
-                onClick={() => onUpdateStatus(order.id, "complete")}
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      "Did you receive cash from the customer? Click OK to confirm delivery.",
+                    )
+                  ) {
+                    onUpdateStatus(order.id, "complete");
+                  }
+                }}
                 disabled={loadingStates.completeOrder}
                 className="btn-success"
                 style={{

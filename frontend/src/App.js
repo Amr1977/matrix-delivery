@@ -1749,7 +1749,7 @@ export const MainApp = () => {
   const handleCompleteOrder = async (orderId) => {
     setLoading(true);
     try {
-      await OrdersApi.updateStatus(orderId, "delivered"); // Maps to courier_delivered in backend via action alias
+      await OrdersApi.updateStatus(orderId, "complete"); // Maps to courier_delivered in backend via action alias
 
       fetchOrders();
       setSelectedOrder(null);
