@@ -1,0 +1,25 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Server registry collection
+    // READ: Allow all (frontend reads without auth via client SDK)
+    // WRITE: Deny all - all writes come from Admin SDK on backend, which bypasses rules
+    // 
+    // This is defence in depth: even though the Admin SDK bypasses Firestore security rules,
+    // we deny writes at the rules level to prevent any accidental client-side write path.
+    // Only trusted backend servers (running Admin SDK with service account credentials)
+    // should be writing to this collection.
+    match /servers/{serverId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // Deny read and write for all other collections
+    match /** {
+      allow read: if false;
+      allow write: if false;
+    }
+  }
+}

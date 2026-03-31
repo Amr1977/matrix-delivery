@@ -2,6 +2,11 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getMessaging, isSupported } from "firebase/messaging";
+import {
+  getFirestore,
+  initializeFirestore,
+  CACHE_SIZE_UNLIMITED,
+} from "firebase/firestore";
 
 // Environment-specific Firebase configurations
 const firebaseConfigs = {
@@ -12,7 +17,7 @@ const firebaseConfigs = {
     storageBucket: "matrix-delivery-dev.firebasestorage.app",
     messagingSenderId: "821695847521",
     appId: "1:821695847521:web:930d27360631e4ee041e20",
-    measurementId: "G-NRPCK9YNS4"
+    measurementId: "G-NRPCK9YNS4",
   },
   staging: {
     apiKey: "AIzaSyCJN5RuTC_31mFadOsmT7WNZaejkjdTrhA",
@@ -21,7 +26,7 @@ const firebaseConfigs = {
     storageBucket: "matrix-delivery-staging.firebasestorage.app",
     messagingSenderId: "395768910783",
     appId: "1:395768910783:web:ce5368f53c2f4e7c5fc70a",
-    measurementId: "G-E2P7LRW1Z9"
+    measurementId: "G-E2P7LRW1Z9",
   },
   test: {
     apiKey: "AIzaSyDNTvXNL5uzWvuDzinJ3hlTiGvf6GK1YLg",
@@ -30,7 +35,7 @@ const firebaseConfigs = {
     storageBucket: "matrix-delivery-test.firebasestorage.app",
     messagingSenderId: "267773227239",
     appId: "1:267773227239:web:1d4bac5faa97d41b503242",
-    measurementId: "G-VZ8S8NQDLX"
+    measurementId: "G-VZ8S8NQDLX",
   },
   production: {
     apiKey: "AIzaSyCKLqK_x_Jvop7a5ht3w1nsnpa2hhx1bVk",
@@ -39,8 +44,8 @@ const firebaseConfigs = {
     storageBucket: "matrix-delivery.firebasestorage.app",
     messagingSenderId: "127557882021",
     appId: "1:127557882021:web:f515e53b8d66547d2efd4c",
-    measurementId: "G-WE5CMMR9LB"
-  }
+    measurementId: "G-WE5CMMR9LB",
+  },
 };
 
 // Determine environment (can be overridden by REACT_APP_ENV)
@@ -51,20 +56,20 @@ const getEnvironment = () => {
   }
 
   // Fallback based on hostname or other indicators
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     const hostname = window.location.hostname;
-    if (hostname.includes('localhost') || hostname.includes('127.0.0.1')) {
-      return 'development';
+    if (hostname.includes("localhost") || hostname.includes("127.0.0.1")) {
+      return "development";
     }
-    if (hostname.includes('staging')) {
-      return 'staging';
+    if (hostname.includes("staging")) {
+      return "staging";
     }
-    if (hostname.includes('test') || hostname.includes('testing')) {
-      return 'test';
+    if (hostname.includes("test") || hostname.includes("testing")) {
+      return "test";
     }
   }
 
-  return 'production';
+  return "production";
 };
 
 const environment = getEnvironment();
@@ -73,16 +78,31 @@ const firebaseConfig = firebaseConfigs[environment];
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
+// Initialize Firestore with persistence disabled for real-time server updates
+// CRITICAL: Do NOT enable IndexedDb persistence - stale server states must never be read from cache
+let db;
+try {
+  db = initializeFirestore(app, {
+    cacheSizeBytes: CACHE_SIZE_UNLIMITED,
+  });
+} catch (e) {
+  // If already initialized, get the existing instance
+  db = getFirestore(app);
+}
+
 // Initialize Firebase Analytics (optional, only if you want analytics)
 // Disabled by default to avoid cookie domain issues with GA4
 let analytics;
 
 // Only enable analytics if explicitly enabled via environment variable
-if (typeof window !== 'undefined' && process.env.REACT_APP_ENABLE_ANALYTICS === 'true') {
+if (
+  typeof window !== "undefined" &&
+  process.env.REACT_APP_ENABLE_ANALYTICS === "true"
+) {
   try {
     analytics = getAnalytics(app);
   } catch (error) {
-    console.warn('Firebase Analytics initialization failed:', error);
+    console.warn("Firebase Analytics initialization failed:", error);
   }
 }
 
@@ -93,21 +113,24 @@ let messagingError = null;
 async function initializeMessaging() {
   try {
     const supported = await isSupported();
-    if (supported && typeof window !== 'undefined') {
+    if (supported && typeof window !== "undefined") {
       try {
         messaging = getMessaging(app);
       } catch (messagingInitError) {
         messagingError = messagingInitError;
-        console.warn('Firebase Messaging initialization failed:', messagingInitError);
+        console.warn(
+          "Firebase Messaging initialization failed:",
+          messagingInitError,
+        );
       }
     }
   } catch (error) {
     messagingError = error;
-    console.warn('Firebase Messaging not supported:', error);
+    console.warn("Firebase Messaging not supported:", error);
   }
 }
 
 // Initialize messaging but don't await - it's async
 initializeMessaging();
 
-export { app, analytics, messaging, environment, messagingError };
+export { app, db, analytics, messaging, environment, messagingError };
