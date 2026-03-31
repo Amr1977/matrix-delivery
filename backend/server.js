@@ -81,11 +81,16 @@ try {
       console.error(
         "[Server] Failed to start V2 failover system:",
         err.message,
+        err.stack,
       );
       return null;
     });
 } catch (err) {
-  console.warn("[Server] V2 failover system not available:", err.message);
+  console.warn(
+    "[Server] V2 failover system not available:",
+    err.message,
+    err.stack,
+  );
 }
 
 // Telegram polling service
