@@ -3,6 +3,21 @@
  * @description Main aggregator loop - reads Redis, health checks, scores, broadcasts
  */
 
+const fs = require("fs");
+const path = require("path");
+
+// Load .env from aggregator directory
+const envPath = path.join(__dirname, ".env");
+if (fs.existsSync(envPath)) {
+  const envContent = fs.readFileSync(envPath, "utf8");
+  envContent.split("\n").forEach((line) => {
+    const match = line.match(/^([^#=]+)=(.*)$/);
+    if (match) {
+      process.env[match[1].trim()] = match[2].trim();
+    }
+  });
+}
+
 const Redis = require("ioredis");
 const { config } = require("./config.js");
 const { computeScore, normalizeScores } = require("./scoring.js");
