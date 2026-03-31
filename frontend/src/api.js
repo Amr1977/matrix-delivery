@@ -1,19 +1,77 @@
-// API utility
-import { getDeviceFingerprint } from './utils/fingerprint';
+// API utility with failover support
+import { getDeviceFingerprint } from "./utils/fingerprint";
+import { fetchWithFailover } from "./fetchWithFailover";
+import { useServerRegistry } from "./useServerRegistry";
+import { db } from "./firebase";
+import { collection, getDocs } from "firebase/firestore";
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const FALLBACK_API_URL =
+  process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+const REQUEST_TIMEOUT_MS = 8000;
+
+// In-memory server registry for singleton access
+let cachedServers = [];
+let serverRegistryListener = null;
+
+// Initialize server registry listener
+async function initServerRegistry() {
+  if (serverRegistryListener) return;
+
+  try {
+    const serversRef = collection(db, "servers");
+    const snapshot = await getDocs(serversRef);
+    cachedServers = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+    // Set up real-time listener
+    const { onSnapshot } = await import("firebase/firestore");
+    serverRegistryListener = onSnapshot(serversRef, (snapshot) => {
+      cachedServers = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      console.log(
+        "[API] Server registry updated:",
+        cachedServers.length,
+        "servers",
+      );
+    });
+
+    console.log(
+      "[API] Server registry initialized with",
+      cachedServers.length,
+      "servers",
+    );
+  } catch (error) {
+    console.error("[API] Failed to initialize server registry:", error);
+    // Continue with fallback only
+  }
+}
+
+// Get current servers (for use in requests)
+function getServers() {
+  return cachedServers;
+}
+
+// Generate idempotency key for requests
+function generateIdempotencyKey() {
+  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+}
 
 class ApiClient {
   constructor() {
-    this.baseURL = API_BASE_URL;
+    this.baseURL = FALLBACK_API_URL;
     this.fingerprint = null;
     this.csrfToken = null;
     this.isFetchingToken = false;
+    this.initialized = false;
 
-    // Initialize fingerprint in background
-    getDeviceFingerprint().then(fp => {
+    // Initialize fingerprint and server registry
+    getDeviceFingerprint().then((fp) => {
       this.fingerprint = fp;
     });
+
+    // Start server registry in background
+    initServerRegistry().catch(console.error);
   }
 
   async fetchCsrfToken() {
@@ -23,9 +81,10 @@ class ApiClient {
 
     this.tokenPromise = (async () => {
       try {
+        // Use fallback for CSRF token
         const response = await fetch(`${this.baseURL}/csrf-token`, {
-          method: 'GET',
-          credentials: 'include'
+          method: "GET",
+          credentials: "include",
         });
 
         if (response.ok) {
@@ -33,7 +92,7 @@ class ApiClient {
           this.csrfToken = data.csrfToken;
         }
       } catch (error) {
-        console.error('Failed to fetch CSRF token:', error);
+        console.error("Failed to fetch CSRF token:", error);
       } finally {
         this.tokenPromise = null;
       }
@@ -53,68 +112,89 @@ class ApiClient {
     }
 
     const startTime = Date.now();
-    const url = `${this.baseURL}${endpoint}`;
+    const servers = getServers();
+    const hasServers = servers.length > 0;
 
     console.debug(`API Request: ${method} ${endpoint}`, {
       method,
       endpoint,
       hasData: !!data,
-      options
+      hasServers,
+      serverCount: servers.length,
     });
 
+    // Build request options for failover
+    const requestOptions = {
+      ...options,
+      method,
+      headers: {
+        ...options.headers,
+      },
+    };
+
+    // Add common headers
+    if (!(data instanceof FormData)) {
+      requestOptions.headers["Content-Type"] = "application/json";
+    }
+
+    if (this.fingerprint) {
+      requestOptions.headers["x-device-fingerprint"] = this.fingerprint;
+    }
+
+    // Add CSRF token for state-changing requests
+    const safeMethods = ["GET", "HEAD", "OPTIONS"];
+    if (!safeMethods.includes(method)) {
+      if (!this.csrfToken) {
+        await this.fetchCsrfToken();
+      }
+      if (this.csrfToken) {
+        requestOptions.headers["X-CSRF-Token"] = this.csrfToken;
+      }
+    }
+
+    // Add body for non-GET requests
+    if (data && method !== "GET") {
+      requestOptions.body = JSON.stringify(data);
+    }
+
+    // Add idempotency key
+    requestOptions.idempotencyKey =
+      options.idempotencyKey || generateIdempotencyKey();
+
     try {
-      const headers = {
-        ...options.headers
-      };
+      let response;
 
-      if (!(data instanceof FormData)) {
-        headers['Content-Type'] = 'application/json';
+      if (hasServers) {
+        // Use failover mechanism
+        response = await fetchWithFailover(endpoint, requestOptions, servers);
+      } else {
+        // Fallback to direct URL
+        const url = `${this.baseURL}${endpoint}`;
+        console.log(`[API] No servers available, using fallback: ${url}`);
+
+        requestOptions.credentials = "include";
+        response = await fetch(url, requestOptions);
       }
 
-      if (this.fingerprint) {
-        headers['x-device-fingerprint'] = this.fingerprint;
-      }
-
-      const config = {
-        method,
-        credentials: 'include', // Include cookies for session-based auth
-        headers,
-        ...options
-      };
-
-      // Add CSRF token for state-changing requests
-      const safeMethods = ['GET', 'HEAD', 'OPTIONS'];
-      if (!safeMethods.includes(method)) {
-        if (!this.csrfToken) {
-          await this.fetchCsrfToken();
-        }
-        if (this.csrfToken) {
-          config.headers['X-CSRF-Token'] = this.csrfToken;
-        }
-      }
-
-      // Add body for non-GET requests
-      if (data && method !== 'GET') {
-        config.body = JSON.stringify(data);
-      }
-
-      const response = await fetch(url, config);
       const duration = Date.now() - startTime;
 
       // Handle 403 Forbidden (CSRF Token Invalid) - Retry logic
       if (response.status === 403 && !options._retry) {
-        // Check if it's likely a CSRF issue (or just a generic auth issue)
-        // We'll try to refresh the token and retry once
-        console.warn(`403 Forbidden encountered at ${endpoint}. Refreshing CSRF token and retrying...`);
-        this.csrfToken = null; // Clear invalid token
-        await this.fetchCsrfToken(); // Fetch new token
-
-        // Recursive retry with _retry flag
-        return this.request(method, endpoint, data, { ...options, _retry: true });
+        console.warn(
+          `403 Forbidden at ${endpoint}. Refreshing CSRF token and retrying...`,
+        );
+        this.csrfToken = null;
+        await this.fetchCsrfToken();
+        return this.request(method, endpoint, data, {
+          ...options,
+          _retry: true,
+        });
       }
 
       // Log API response
-      console.log(`API ${method} ${endpoint} - ${response.status} (${duration}ms)`);
+      console.log(
+        `API ${method} ${endpoint} - ${response.status} (${duration}ms)`,
+      );
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -122,10 +202,9 @@ class ApiClient {
           status: response.status,
           statusText: response.statusText,
           error: errorText,
-          duration: `${duration}ms`
+          duration: `${duration}ms`,
         });
 
-        // Try to parse error as JSON to get friendly message
         let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
         try {
           const errorJson = JSON.parse(errorText);
@@ -135,7 +214,6 @@ class ApiClient {
             errorMessage = errorJson.message;
           }
         } catch (e) {
-          // If not JSON, use the raw text if it's short, otherwise fallback to status
           if (errorText && errorText.length < 200) {
             errorMessage = errorText;
           }
@@ -148,7 +226,7 @@ class ApiClient {
 
       console.debug(`API Success: ${method} ${endpoint}`, {
         duration: `${duration}ms`,
-        hasResponseData: !!responseData
+        hasResponseData: !!responseData,
       });
 
       return responseData;
@@ -158,7 +236,7 @@ class ApiClient {
       console.error(`API Request Failed: ${method} ${endpoint}`, {
         error: error.message,
         duration: `${duration}ms`,
-        stack: error.stack
+        stack: error.stack,
       });
 
       throw error;
@@ -167,45 +245,45 @@ class ApiClient {
 
   // HTTP method shortcuts
   async get(endpoint, options = {}) {
-    return this.request('GET', endpoint, null, options);
+    return this.request("GET", endpoint, null, options);
   }
 
   async post(endpoint, data, options = {}) {
-    return this.request('POST', endpoint, data, options);
+    return this.request("POST", endpoint, data, options);
   }
 
   async put(endpoint, data, options = {}) {
-    return this.request('PUT', endpoint, data, options);
+    return this.request("PUT", endpoint, data, options);
   }
 
   async patch(endpoint, data, options = {}) {
-    return this.request('PATCH', endpoint, data, options);
+    return this.request("PATCH", endpoint, data, options);
   }
 
   async delete(endpoint, options = {}) {
-    return this.request('DELETE', endpoint, null, options);
+    return this.request("DELETE", endpoint, null, options);
   }
 
   // Authentication methods
   async forgotPassword(email, recaptchaToken) {
-    return this.post('/auth/forgot-password', { email, recaptchaToken });
+    return this.post("/auth/forgot-password", { email, recaptchaToken });
   }
 
   async resetPassword(token, newPassword) {
-    return this.post('/auth/reset-password', { token, newPassword });
+    return this.post("/auth/reset-password", { token, newPassword });
   }
 
   async sendEmailVerification() {
-    return this.post('/auth/send-verification');
+    return this.post("/auth/send-verification");
   }
 
   async verifyEmail(token) {
-    return this.post('/auth/verify-email', { token });
+    return this.post("/auth/verify-email", { token });
   }
 
   // Payment methods
-  async createPaymentIntent(orderId, amount, currency = 'usd') {
-    return this.post('/payments/create-intent', { orderId, amount, currency });
+  async createPaymentIntent(orderId, amount, currency = "usd") {
+    return this.post("/payments/create-intent", { orderId, amount, currency });
   }
 
   async getPaymentDetails(orderId) {
@@ -217,11 +295,11 @@ class ApiClient {
   }
 
   async getPaymentMethods() {
-    return this.get('/payments/methods');
+    return this.get("/payments/methods");
   }
 
   async addPaymentMethod(paymentMethodId) {
-    return this.post('/payments/methods', { paymentMethodId });
+    return this.post("/payments/methods", { paymentMethodId });
   }
 
   async deletePaymentMethod(methodId) {
@@ -229,8 +307,13 @@ class ApiClient {
   }
 
   // Messaging methods
-  async sendMessage(orderId, recipientId, content, messageType = 'text') {
-    return this.post('/messages', { orderId, recipientId, content, messageType });
+  async sendMessage(orderId, recipientId, content, messageType = "text") {
+    return this.post("/messages", {
+      orderId,
+      recipientId,
+      content,
+      messageType,
+    });
   }
 
   async getOrderMessages(orderId, page = 1, limit = 50) {
@@ -246,7 +329,7 @@ class ApiClient {
   }
 
   async getUnreadMessageCount() {
-    return this.get('/messages/unread-count');
+    return this.get("/messages/unread-count");
   }
 
   async deleteMessage(messageId) {
@@ -260,32 +343,31 @@ class ApiClient {
   // Media upload methods
   async uploadImage(orderId, file, onProgress) {
     const formData = new FormData();
-    formData.append('file', file);
-    formData.append('orderId', orderId);
+    formData.append("file", file);
+    formData.append("orderId", orderId);
 
-    return this.uploadFile('/uploads/image', formData, onProgress);
+    return this.uploadFile("/uploads/image", formData, onProgress);
   }
 
   async uploadVideo(orderId, file, onProgress) {
     const formData = new FormData();
-    formData.append('file', file);
-    formData.append('orderId', orderId);
+    formData.append("file", file);
+    formData.append("orderId", orderId);
 
-    return this.uploadFile('/uploads/video', formData, onProgress);
+    return this.uploadFile("/uploads/video", formData, onProgress);
   }
 
   async uploadVoice(orderId, blob, onProgress) {
     const formData = new FormData();
-    formData.append('file', blob, 'voice-recording.webm');
-    formData.append('orderId', orderId);
+    formData.append("file", blob, "voice-recording.webm");
+    formData.append("orderId", orderId);
 
-    return this.uploadFile('/uploads/voice', formData, onProgress);
+    return this.uploadFile("/uploads/voice", formData, onProgress);
   }
 
   async uploadFile(endpoint, formData, onProgress) {
     const url = `${this.baseURL}${endpoint}`;
 
-    // Ensure we have fingerprint and CSRF token
     if (!this.fingerprint) {
       try {
         this.fingerprint = await getDeviceFingerprint();
@@ -301,59 +383,61 @@ class ApiClient {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
 
-      xhr.upload.addEventListener('progress', (e) => {
+      xhr.upload.addEventListener("progress", (e) => {
         if (e.lengthComputable && onProgress) {
           const percentComplete = (e.loaded / e.total) * 100;
           onProgress(percentComplete);
         }
       });
 
-      xhr.addEventListener('load', () => {
+      xhr.addEventListener("load", () => {
         if (xhr.status >= 200 && xhr.status < 300) {
           try {
             const response = JSON.parse(xhr.responseText);
             resolve(response);
           } catch (error) {
-            reject(new Error('Failed to parse response'));
+            reject(new Error("Failed to parse response"));
           }
         } else {
           try {
             const errorData = JSON.parse(xhr.responseText);
-            reject(new Error(errorData.error || `Upload failed with status ${xhr.status}`));
+            reject(
+              new Error(
+                errorData.error || `Upload failed with status ${xhr.status}`,
+              ),
+            );
           } catch (e) {
             reject(new Error(`Upload failed with status ${xhr.status}`));
           }
         }
       });
 
-      xhr.addEventListener('error', () => {
-        reject(new Error('Upload failed'));
+      xhr.addEventListener("error", () => {
+        reject(new Error("Upload failed"));
       });
 
-      xhr.open('POST', url);
+      xhr.open("POST", url);
 
-      // CRITICAL: Set withCredentials for session cookies
       xhr.withCredentials = true;
 
-      // Add security headers
       if (this.csrfToken) {
-        xhr.setRequestHeader('X-CSRF-Token', this.csrfToken);
+        xhr.setRequestHeader("X-CSRF-Token", this.csrfToken);
       }
       if (this.fingerprint) {
-        xhr.setRequestHeader('x-device-fingerprint', this.fingerprint);
+        xhr.setRequestHeader("x-device-fingerprint", this.fingerprint);
       }
 
       xhr.send(formData);
     });
   }
 
-  async sendMediaMessage(orderId, recipientId, mediaData, caption = '') {
-    return this.post('/messages', {
+  async sendMediaMessage(orderId, recipientId, mediaData, caption = "") {
+    return this.post("/messages", {
       orderId,
       recipientId,
       content: caption,
       messageType: mediaData.mediaType,
-      mediaData
+      mediaData,
     });
   }
 }
@@ -362,3 +446,4 @@ class ApiClient {
 const api = new ApiClient();
 
 export default api;
+export { useServerRegistry, getServers };
