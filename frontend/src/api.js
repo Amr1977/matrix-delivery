@@ -1,30 +1,10 @@
 // API utility with failover support
 import { getDeviceFingerprint } from "./utils/fingerprint";
 import { fetchWithFailover } from "./fetchWithFailover";
-import { selectBestServer, getAllServerStatuses } from "./serverSelector";
 
 const FALLBACK_API_URL =
   process.env.REACT_APP_API_URL || "http://localhost:5000/api";
 const REQUEST_TIMEOUT_MS = 8000;
-
-// Server list for health checks
-const SERVER_LIST = [
-  "https://api.matrix-delivery.com",
-  "https://matrix-delivery-api-gc.mywire.org",
-];
-
-// In-memory server registry for singleton access
-let cachedServers = [];
-let serverCheckInterval = null;
-
-// Initialize server health checker
-async function initServerRegistry() {
-  // Initial health check
-  await refreshServerList();
-
-  // Periodic health check every 30 seconds
-  serverCheckInterval = setInterval(refreshServerList, 30000);
-}
 
 // Refresh server list by health checking all servers
 async function refreshServerList() {
@@ -177,17 +157,8 @@ class ApiClient {
     try {
       let response;
 
-      if (hasServers) {
-        // Use failover mechanism
-        response = await fetchWithFailover(endpoint, requestOptions, servers);
-      } else {
-        // Fallback to direct URL
-        const url = `${this.baseURL}${endpoint}`;
-        console.log(`[API] No servers available, using fallback: ${url}`);
-
-        requestOptions.credentials = "include";
-        response = await fetch(url, requestOptions);
-      }
+      // Use failover mechanism - parallel health check, pick first responder
+      response = await fetchWithFailover(endpoint, requestOptions);
 
       const duration = Date.now() - startTime;
 
@@ -459,4 +430,4 @@ class ApiClient {
 const api = new ApiClient();
 
 export default api;
-export { useServerRegistry, getServers };
+export { getServers, refreshServerList, stopServerRegistry };

@@ -1,116 +1,118 @@
 /**
  * @module fetchWithFailover
- * @description Fetch with failover capability using weighted random selection
+ * @description Simple failover: parallel health check, pick first responder
  */
 
-import {
-  filterAvailableServers,
-  weightedRandomSelect,
-  getStickyServer,
-  setStickyServer,
-} from "./serverSelector.js";
-import {
-  isCircuitOpen,
-  markServerFailed,
-  resetServer,
-} from "./circuitBreaker.js";
+const SERVER_LIST = [
+  "https://api.matrix-delivery.com",
+  "https://matrix-delivery-api-gc.mywire.org",
+];
 
-const REQUEST_TIMEOUT_MS = parseInt(
-  import.meta.env.VITE_REQUEST_TIMEOUT_MS ?? "5000",
-  10,
-);
+const HEALTH_ENDPOINT = "/api/health";
+const HEALTH_CHECK_TIMEOUT = 5000;
 
 /**
- * Performs a fetch request with automatic failover to next healthy server
- * @param {string} endpoint - API endpoint path (must start with "/")
- * @param {Object} options - Fetch options
- * @param {string} options.idempotencyKey - Required unique key for idempotent requests
- * @param {string} [options.method='GET'] - HTTP method
- * @param {Object} [options.headers={}] - Additional headers
- * @param {Object} [options.body] - Request body (will be JSON stringified)
- * @param {Array} servers - Array of server objects from WebSocket snapshot
- * @returns {Promise<Response>} Fetch Response object
- * @throws {TypeError} If idempotencyKey is missing or empty
- * @throws {Error} "NO_HEALTHY_SERVERS" if no available servers
- * @throws {Error} "ALL_SERVERS_FAILED" if all servers fail
+ * Fire parallel health checks and return first healthy server
+ * @returns {Promise<{url: string}|null>}
  */
-export async function fetchWithFailover(endpoint, options, servers) {
-  if (!options.idempotencyKey || typeof options.idempotencyKey !== "string") {
-    throw new TypeError(
-      "idempotencyKey is required and must be a non-empty string",
-    );
+async function findHealthyServer() {
+  const results = await Promise.all(
+    SERVER_LIST.map(async (url) => {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(
+          () => controller.abort(),
+          HEALTH_CHECK_TIMEOUT,
+        );
+
+        const response = await fetch(`${url}${HEALTH_ENDPOINT}`, {
+          method: "GET",
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeout);
+        return { url, healthy: response.ok };
+      } catch {
+        return { url, healthy: false };
+      }
+    }),
+  );
+
+  const healthy = results.find((r) => r.healthy);
+  return healthy ? { url: healthy.url } : null;
+}
+
+/**
+ * Fetch with failover - health check on demand, pick first responder
+ */
+export async function fetchWithFailover(endpoint, options) {
+  if (!options.idempotencyKey) {
+    throw new TypeError("idempotencyKey is required");
   }
 
-  const available = filterAvailableServers(servers);
+  // Find first healthy server
+  const server = await findHealthyServer();
 
-  if (available.length === 0) {
+  if (!server) {
     throw new Error("NO_HEALTHY_SERVERS");
   }
 
-  const attemptList = [];
-  const remaining = [...available];
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
 
-  const sticky = getStickyServer(available);
-  if (sticky) {
-    const stickyServer = remaining.find((s) => s.url === sticky);
-    if (stickyServer) {
-      attemptList.push(stickyServer);
-      const idx = remaining.indexOf(stickyServer);
-      remaining.splice(idx, 1);
-    }
-  }
-
-  while (remaining.length > 0) {
-    const selected = weightedRandomSelect(remaining);
-    if (selected) {
-      attemptList.push(selected);
-      const idx = remaining.indexOf(selected);
-      remaining.splice(idx, 1);
-    }
-  }
-
-  for (const server of attemptList) {
-    if (isCircuitOpen(server.url)) {
-      continue;
-    }
-
-    const controller = new AbortController();
-    let timeoutId;
-
-    try {
-      timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-
-      const headers = {
+  try {
+    const response = await fetch(`${server.url}${endpoint}`, {
+      ...options,
+      signal: controller.signal,
+      headers: {
         ...options.headers,
         "Idempotency-Key": options.idempotencyKey,
         "Content-Type": "application/json",
-      };
+      },
+    });
 
-      const fetchOptions = {
-        ...options,
-        headers,
-        signal: controller.signal,
-      };
+    clearTimeout(timeout);
 
-      const response = await fetch(server.url + endpoint, fetchOptions);
-
-      clearTimeout(timeoutId);
-
-      if (response.ok) {
-        resetServer(server.url);
-        setStickyServer(server.url);
-        console.info("[Failover] success:", server.url + endpoint);
-        return response;
-      }
-
-      console.warn("[Failover] failed:", server.url, "— trying next");
-      markServerFailed(server.url);
-    } catch (error) {
-      if (timeoutId) clearTimeout(timeoutId);
-      console.warn("[Failover] failed:", server.url, "— trying next");
-      markServerFailed(server.url);
+    if (response.ok) {
+      console.info(`[Failover] success: ${server.url}${endpoint}`);
+      return response;
     }
-  }
 
-  throw new Error("ALL_SERVERS_FAILED");
+    // Try next server on failure
+    console.warn(`[Failover] ${server.url} failed, trying others`);
+    const otherServers = SERVER_LIST.filter((s) => s !== server.url);
+
+    for (const url of otherServers) {
+      try {
+        const altController = new AbortController();
+        const altTimeout = setTimeout(() => altController.abort(), 10000);
+
+        const altResponse = await fetch(`${url}${endpoint}`, {
+          ...options,
+          signal: altController.signal,
+          headers: {
+            ...options.headers,
+            "Idempotency-Key": options.idempotencyKey,
+            "Content-Type": "application/json",
+          },
+        });
+
+        clearTimeout(altTimeout);
+
+        if (altResponse.ok) {
+          console.info(`[Failover] success on fallback: ${url}${endpoint}`);
+          return altResponse;
+        }
+      } catch (e) {
+        console.warn(`[Failover] fallback ${url} failed`);
+      }
+    }
+
+    throw new Error("ALL_SERVERS_FAILED");
+  } catch (error) {
+    clearTimeout(timeout);
+    throw error;
+  }
 }
+
+export default { fetchWithFailover };
