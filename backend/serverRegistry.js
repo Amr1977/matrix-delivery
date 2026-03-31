@@ -1,13 +1,16 @@
 /**
  * @module serverRegistry
- * @description Server registration and heartbeat using Firestore
+ * @description Server registration and health checking using Firestore
+ * - Self-registers on startup
+ * - Every 60s: checks other servers, removes non-responding ones
+ * - Removes self on shutdown
  */
 
 const admin = require("./config/firebase-admin");
 const db = admin.firestore();
 
 let getMetrics = null;
-let heartbeatInterval = null;
+let aggregatorInterval = null;
 const collectionName = "servers";
 
 function getServerId() {
@@ -21,20 +24,16 @@ function getServerUrl() {
   return process.env.SERVER_URL;
 }
 
+/**
+ * Register this server in Firestore
+ */
 async function registerServer() {
   const serverId = getServerId();
   const serverRef = db.collection(collectionName).doc(serverId);
 
   const data = {
     url: getServerUrl(),
-    status: "healthy",
-    currentLoad: 0,
-    maxCapacity: parseInt(process.env.SERVER_MAX_CAPACITY) || 100,
-    priority: parseInt(process.env.SERVER_PRIORITY) || 1,
-    avgLatencyMs: 1000,
-    errorRate: 0,
-    warmup: true,
-    lastHeartbeat: Date.now(),
+    registeredAt: admin.firestore.FieldValue.serverTimestamp(),
     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
   };
 
@@ -50,31 +49,9 @@ async function registerServer() {
   }
 }
 
-async function updateHeartbeat() {
-  const serverId = getServerId();
-  const metrics = getMetrics
-    ? getMetrics()
-    : { currentLoad: 0, avgLatencyMs: 1000, errorRate: 0, warmup: true };
-  const serverRef = db.collection(collectionName).doc(serverId);
-
-  try {
-    await serverRef.update({
-      status: "healthy",
-      currentLoad: metrics.currentLoad,
-      avgLatencyMs: Math.round(metrics.avgLatencyMs),
-      errorRate: Math.round(metrics.errorRate * 100) / 100,
-      warmup: metrics.warmup,
-      lastHeartbeat: Date.now(),
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-    });
-    console.info(
-      `[Registry] Heartbeat: ${serverId}, load: ${metrics.currentLoad}`,
-    );
-  } catch (error) {
-    console.warn(`[Registry] Heartbeat failed for ${serverId}:`, error.message);
-  }
-}
-
+/**
+ * Get all servers from Firestore
+ */
 async function getAllServers() {
   try {
     const snapshot = await db.collection(collectionName).get();
@@ -89,6 +66,9 @@ async function getAllServers() {
   }
 }
 
+/**
+ * Health check a single server
+ */
 async function healthCheckServer(serverUrl) {
   try {
     const controller = new AbortController();
@@ -105,61 +85,76 @@ async function healthCheckServer(serverUrl) {
   }
 }
 
+/**
+ * Aggregator cycle: check other servers, remove non-responding ones
+ */
 async function runAggregatorCycle() {
   console.info("[Aggregator] Running health check cycle...");
 
   const servers = await getAllServers();
   const now = Date.now();
+  const selfUrl = getServerUrl();
 
   for (const server of servers) {
-    const age = now - (server.lastHeartbeat || 0);
+    // Skip self
+    if (server.url === selfUrl) {
+      continue;
+    }
+
+    const age = now - (server.updatedAt?.toDate?.() || 0);
     const isStale = age > 120000; // 2 minutes
 
-    if (server.status === "healthy" && !isStale) {
+    if (!isStale) {
       const isReachable = await healthCheckServer(server.url);
       if (!isReachable) {
         console.warn(
-          `[Aggregator] ${server.url} not responding, marking unhealthy`,
+          `[Aggregator] ${server.url} not responding, removing from Firestore`,
         );
-        await db.collection(collectionName).doc(server.id).update({
-          status: "unhealthy",
-          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-        });
+        await db.collection(collectionName).doc(server.id).delete();
       }
+    } else {
+      console.warn(
+        `[Aggregator] ${server.url} stale (last update: ${age}ms), removing`,
+      );
+      await db.collection(collectionName).doc(server.id).delete();
     }
   }
 }
 
+/**
+ * Start the server registry
+ */
 function startRegistry({ getMetrics: getMetricsFn }) {
   getMetrics = getMetricsFn;
 
   return registerServer()
     .then(() => {
-      // Update heartbeat every 30 seconds
-      updateHeartbeat();
-      heartbeatInterval = setInterval(updateHeartbeat, 30000);
-
       // Run aggregator health check every 60 seconds
-      setInterval(runAggregatorCycle, 60000);
+      aggregatorInterval = setInterval(runAggregatorCycle, 60000);
 
       console.info(`[Registry] Started for ${getServerId()}`);
 
       process.on("SIGTERM", () => {
         console.info("[Registry] Shutting down...");
-        if (heartbeatInterval) clearInterval(heartbeatInterval);
+        if (aggregatorInterval) clearInterval(aggregatorInterval);
+        // Remove self from Firestore
         db.collection(collectionName)
           .doc(getServerId())
-          .update({ status: "unhealthy" });
-        process.exit(0);
+          .delete()
+          .then(() => {
+            console.info("[Registry] Self removed from Firestore");
+            process.exit(0);
+          })
+          .catch((err) => {
+            console.error("[Registry] Failed to remove self:", err);
+            process.exit(1);
+          });
       });
 
       return {
         stop: () => {
-          if (heartbeatInterval) clearInterval(heartbeatInterval);
-          return db
-            .collection(collectionName)
-            .doc(getServerId())
-            .update({ status: "unhealthy" });
+          if (aggregatorInterval) clearInterval(aggregatorInterval);
+          return db.collection(collectionName).doc(getServerId()).delete();
         },
       };
     })

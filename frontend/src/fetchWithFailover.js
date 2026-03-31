@@ -1,23 +1,74 @@
 /**
  * @module fetchWithFailover
- * @description Simple failover: parallel health check, pick first responder
+ * @description Failover with Firestore server discovery and sticky server selection
  */
 
-const SERVER_LIST = [
-  "https://api.matrix-delivery.com",
-  "https://matrix-delivery-api-gc.mywire.org",
-];
+import { getFirestore, collection, getDocs } from "./firebase";
 
 const HEALTH_ENDPOINT = "/api/health";
 const HEALTH_CHECK_TIMEOUT = 5000;
+const REQUEST_TIMEOUT_MS = 10000;
+
+// Cache for sticky server selection
+let currentServer = null;
+let serverListPromise = null;
 
 /**
- * Fire parallel health checks and return first healthy server
+ * Fetch server list from Firestore
+ */
+async function getServerListFromFirestore() {
+  try {
+    // Avoid multiple simultaneous Firestore requests
+    if (serverListPromise) {
+      return serverListPromise;
+    }
+
+    serverListPromise = (async () => {
+      const db = getFirestore();
+      const serversCol = collection(db, "servers");
+      const serversSnapshot = await getDocs(serversCol);
+      const servers = [];
+
+      serversSnapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data.url) {
+          servers.push(data.url);
+        }
+      });
+
+      // Filter out duplicates and empty URLs
+      return [...new Set(servers.filter(Boolean))];
+    })();
+
+    const result = await serverListPromise;
+    serverListPromise = null; // Reset for next call
+    return result;
+  } catch (error) {
+    console.warn(
+      "[Failover] Firestore error, falling back to hardcoded list:",
+      error,
+    );
+    serverListPromise = null;
+    // Fallback to hardcoded list if Firestore fails
+    return [
+      "https://api.matrix-delivery.com",
+      "https://matrix-delivery-api-gc.mywire.org",
+    ];
+  }
+}
+
+/**
+ * Fire parallel health checks on server URLs and return first healthy server
+ * @param {string[]} serverUrls - Array of server base URLs
  * @returns {Promise<{url: string}|null>}
  */
-async function findHealthyServer() {
+async function findHealthyServer(serverUrls) {
+  if (serverUrls.length === 0) {
+    return null;
+  }
+
   const results = await Promise.all(
-    SERVER_LIST.map(async (url) => {
+    serverUrls.map(async (url) => {
       try {
         const controller = new AbortController();
         const timeout = setTimeout(
@@ -43,25 +94,35 @@ async function findHealthyServer() {
 }
 
 /**
- * Fetch with failover - health check on demand, pick first responder
+ * Fetch with failover - health check on demand, pick first responder, sticky until failure
  */
 export async function fetchWithFailover(endpoint, options) {
   if (!options.idempotencyKey) {
     throw new TypeError("idempotencyKey is required");
   }
 
-  // Find first healthy server
-  const server = await findHealthyServer();
+  // Use current sticky server if available and not marked for refresh
+  let serverToUse = currentServer;
 
-  if (!server) {
-    throw new Error("NO_HEALTHY_SERVERS");
+  // If no sticky server, get one from Firestore
+  if (!serverToUse) {
+    const serverList = await getServerListFromFirestore();
+    serverToUse = await findHealthyServer(serverList);
+
+    if (!serverToUse) {
+      throw new Error("NO_HEALTHY_SERVERS");
+    }
+
+    // Set as current sticky server
+    currentServer = serverToUse.url;
+    console.info(`[Failover] Selected sticky server: ${currentServer}`);
   }
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 10000);
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
-    const response = await fetch(`${server.url}${endpoint}`, {
+    const response = await fetch(`${serverToUse.url}${endpoint}`, {
       ...options,
       signal: controller.signal,
       headers: {
@@ -74,44 +135,29 @@ export async function fetchWithFailover(endpoint, options) {
     clearTimeout(timeout);
 
     if (response.ok) {
-      console.info(`[Failover] success: ${server.url}${endpoint}`);
+      console.info(`[Failover] success: ${serverToUse.url}${endpoint}`);
       return response;
     }
 
-    // Try next server on failure
-    console.warn(`[Failover] ${server.url} failed, trying others`);
-    const otherServers = SERVER_LIST.filter((s) => s !== server.url);
+    // Server responded with error - mark as failed and retry with fresh selection
+    console.warn(
+      `[Failover] ${serverToUse.url} returned ${response.status}, clearing sticky server`,
+    );
+    currentServer = null; // Clear sticky server on HTTP error
 
-    for (const url of otherServers) {
-      try {
-        const altController = new AbortController();
-        const altTimeout = setTimeout(() => altController.abort(), 10000);
-
-        const altResponse = await fetch(`${url}${endpoint}`, {
-          ...options,
-          signal: altController.signal,
-          headers: {
-            ...options.headers,
-            "Idempotency-Key": options.idempotencyKey,
-            "Content-Type": "application/json",
-          },
-        });
-
-        clearTimeout(altTimeout);
-
-        if (altResponse.ok) {
-          console.info(`[Failover] success on fallback: ${url}${endpoint}`);
-          return altResponse;
-        }
-      } catch (e) {
-        console.warn(`[Failover] fallback ${url} failed`);
-      }
-    }
-
-    throw new Error("ALL_SERVERS_FAILED");
+    // Recurse once to try with fresh server selection
+    return fetchWithFailover(endpoint, options);
   } catch (error) {
     clearTimeout(timeout);
-    throw error;
+
+    // Network error or timeout - mark server as failed and retry
+    console.warn(
+      `[Failover] ${serverToUse.url} failed with error: ${error.message}, clearing sticky server`,
+    );
+    currentServer = null; // Clear sticky server on network error
+
+    // Recurse once to try with fresh server selection
+    return fetchWithFailover(endpoint, options);
   }
 }
 

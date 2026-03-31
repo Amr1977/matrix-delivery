@@ -6,45 +6,6 @@ const FALLBACK_API_URL =
   process.env.REACT_APP_API_URL || "http://localhost:5000/api";
 const REQUEST_TIMEOUT_MS = 8000;
 
-// Refresh server list by health checking all servers
-async function refreshServerList() {
-  try {
-    const statuses = await getAllServerStatuses();
-
-    // Convert to server registry format for fetchWithFailover
-    cachedServers = statuses
-      .filter((s) => s.healthy)
-      .map((s) => ({
-        id: s.url,
-        url: s.url,
-        status: "healthy",
-        latency: s.latency,
-        priority: 1,
-      }));
-
-    console.log(
-      "[API] Server health check complete:",
-      cachedServers.length,
-      "healthy servers",
-    );
-  } catch (error) {
-    console.error("[API] Server health check failed:", error);
-  }
-}
-
-// Stop the periodic health checks
-function stopServerRegistry() {
-  if (serverCheckInterval) {
-    clearInterval(serverCheckInterval);
-    serverCheckInterval = null;
-  }
-}
-
-// Get current servers (for use in requests)
-function getServers() {
-  return cachedServers;
-}
-
 // Generate idempotency key for requests
 function generateIdempotencyKey() {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -58,13 +19,10 @@ class ApiClient {
     this.isFetchingToken = false;
     this.initialized = false;
 
-    // Initialize fingerprint and server registry
+    // Initialize fingerprint
     getDeviceFingerprint().then((fp) => {
       this.fingerprint = fp;
     });
-
-    // Start server health checker in background
-    initServerRegistry().catch(console.error);
   }
 
   async fetchCsrfToken() {
@@ -105,15 +63,11 @@ class ApiClient {
     }
 
     const startTime = Date.now();
-    const servers = getServers();
-    const hasServers = servers.length > 0;
 
     console.debug(`API Request: ${method} ${endpoint}`, {
       method,
       endpoint,
       hasData: !!data,
-      hasServers,
-      serverCount: servers.length,
     });
 
     // Build request options for failover
@@ -430,4 +384,3 @@ class ApiClient {
 const api = new ApiClient();
 
 export default api;
-export { getServers, refreshServerList, stopServerRegistry };
