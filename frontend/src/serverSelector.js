@@ -1,97 +1,111 @@
 /**
  * @module serverSelector
- * @description Server selection utilities for failover - pure functions
+ * @description Client-side server selection with health checks
  */
 
-import { isCircuitOpen } from "./circuitBreaker.js";
+const SERVER_LIST = [
+  "https://api.matrix-delivery.com",
+  "https://matrix-delivery-api-gc.mywire.org",
+];
 
-const STICKY_SERVER_KEY = "mdp_sticky_server";
+const HEALTH_ENDPOINT = "/api/health";
+const HEALTH_CHECK_TIMEOUT = 5000;
 
 /**
- * Filters available servers by removing those with open circuits
- * @param {Array} servers - Array of server objects with url and score
- * @returns {Array} Filtered array of available servers
+ * Check if a server is healthy
+ * @param {string} serverUrl - Base URL of the server
+ * @returns {Promise<{url: string, latency: number, healthy: boolean}>}
+ */
+async function checkServerHealth(serverUrl) {
+  const start = Date.now();
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(
+      () => controller.abort(),
+      HEALTH_CHECK_TIMEOUT,
+    );
+
+    const response = await fetch(`${serverUrl}${HEALTH_ENDPOINT}`, {
+      method: "GET",
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+    const latency = Date.now() - start;
+
+    return {
+      url: serverUrl,
+      latency,
+      healthy: response.ok,
+    };
+  } catch (error) {
+    return {
+      url: serverUrl,
+      latency: HEALTH_CHECK_TIMEOUT,
+      healthy: false,
+    };
+  }
+}
+
+/**
+ * Get the best server by checking all in parallel and picking the fastest healthy one
+ * @returns {Promise<{url: string, latency: number}|null>}
+ */
+export async function selectBestServer() {
+  const results = await Promise.all(
+    SERVER_LIST.map((url) => checkServerHealth(url)),
+  );
+
+  // Filter to healthy servers, sort by latency
+  const healthy = results
+    .filter((r) => r.healthy)
+    .sort((a, b) => a.latency - b.latency);
+
+  if (healthy.length === 0) {
+    console.warn("[ServerSelector] No healthy servers available");
+    return null;
+  }
+
+  const best = healthy[0];
+  console.info(
+    `[ServerSelector] Selected ${best.url} (latency: ${best.latency}ms)`,
+  );
+
+  return { url: best.url, latency: best.latency };
+}
+
+/**
+ * Get all server check results
+ * @returns {Promise<Array>}
+ */
+export async function getAllServerStatuses() {
+  return Promise.all(SERVER_LIST.map((url) => checkServerHealth(url)));
+}
+
+/**
+ * Filter available (healthy) servers from server list
  */
 export function filterAvailableServers(servers) {
-  if (!servers || servers.length === 0) {
-    return [];
-  }
-  return servers.filter((server) => !isCircuitOpen(server.url));
+  if (!servers || servers.length === 0) return [];
+  return servers.filter((s) => s.status === "healthy" || s.healthy);
 }
 
 /**
- * Selects a server using weighted random selection
- * Weight = 1 / (score + 0.01), lower score = higher weight
- * @param {Array} servers - Pre-filtered array of available servers
- * @returns {Object|null} Selected server or null if empty
+ * Select server with lowest latency (fastest)
  */
 export function weightedRandomSelect(servers) {
-  if (!servers || servers.length === 0) {
-    return null;
-  }
+  if (!servers || servers.length === 0) return null;
 
-  const weights = servers.map((server) => 1 / (server.score + 0.01));
-  const totalWeight = weights.reduce((sum, w) => sum + w, 0);
-
-  const random = Math.random() * totalWeight;
-  let cumulative = 0;
-
-  for (let i = 0; i < servers.length; i++) {
-    cumulative += weights[i];
-    if (cumulative >= random) {
-      return servers[i];
-    }
-  }
-
-  return servers[servers.length - 1];
+  const sorted = [...servers].sort(
+    (a, b) => (a.latency || 0) - (b.latency || 0),
+  );
+  return sorted[0];
 }
 
-/**
- * Selects an available server using filter + weighted random
- * @param {Array} servers - Array of server objects with url and score
- * @returns {Object|null} Selected server or null if none available
- */
-export function selectServer(servers) {
-  const available = filterAvailableServers(servers);
-  return weightedRandomSelect(available);
-}
-
-/**
- * Gets sticky server URL from localStorage if it exists in servers array
- * @param {Array} servers - Array of server objects
- * @returns {string|null} Sticky server URL or null
- */
-export function getStickyServer(servers) {
-  try {
-    const stickyUrl = localStorage.getItem(STICKY_SERVER_KEY);
-    if (!stickyUrl) return null;
-
-    const exists = servers && servers.some((s) => s.url === stickyUrl);
-    return exists ? stickyUrl : null;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Sets sticky server URL in localStorage
- * @param {string} url - Server URL to make sticky
- */
-export function setStickyServer(url) {
-  try {
-    localStorage.setItem(STICKY_SERVER_KEY, url);
-  } catch {
-    // Silently fail on private browsing
-  }
-}
-
-/**
- * Clears sticky server from localStorage
- */
-export function clearStickyServer() {
-  try {
-    localStorage.removeItem(STICKY_SERVER_KEY);
-  } catch {
-    // Silently fail
-  }
-}
+export default {
+  selectBestServer,
+  getAllServerStatuses,
+  filterAvailableServers,
+  weightedRandomSelect,
+};

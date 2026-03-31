@@ -1,49 +1,62 @@
 // API utility with failover support
 import { getDeviceFingerprint } from "./utils/fingerprint";
 import { fetchWithFailover } from "./fetchWithFailover";
-import { useServerRegistry } from "./useServerRegistry";
-import { db } from "./firebase";
-import { collection, getDocs } from "firebase/firestore";
+import { selectBestServer, getAllServerStatuses } from "./serverSelector";
 
 const FALLBACK_API_URL =
   process.env.REACT_APP_API_URL || "http://localhost:5000/api";
 const REQUEST_TIMEOUT_MS = 8000;
 
+// Server list for health checks
+const SERVER_LIST = [
+  "https://api.matrix-delivery.com",
+  "https://matrix-delivery-api-gc.mywire.org",
+];
+
 // In-memory server registry for singleton access
 let cachedServers = [];
-let serverRegistryListener = null;
+let serverCheckInterval = null;
 
-// Initialize server registry listener
+// Initialize server health checker
 async function initServerRegistry() {
-  if (serverRegistryListener) return;
+  // Initial health check
+  await refreshServerList();
 
+  // Periodic health check every 30 seconds
+  serverCheckInterval = setInterval(refreshServerList, 30000);
+}
+
+// Refresh server list by health checking all servers
+async function refreshServerList() {
   try {
-    const serversRef = collection(db, "servers");
-    const snapshot = await getDocs(serversRef);
-    cachedServers = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    const statuses = await getAllServerStatuses();
 
-    // Set up real-time listener
-    const { onSnapshot } = await import("firebase/firestore");
-    serverRegistryListener = onSnapshot(serversRef, (snapshot) => {
-      cachedServers = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
+    // Convert to server registry format for fetchWithFailover
+    cachedServers = statuses
+      .filter((s) => s.healthy)
+      .map((s) => ({
+        id: s.url,
+        url: s.url,
+        status: "healthy",
+        latency: s.latency,
+        priority: 1,
       }));
-      console.log(
-        "[API] Server registry updated:",
-        cachedServers.length,
-        "servers",
-      );
-    });
 
     console.log(
-      "[API] Server registry initialized with",
+      "[API] Server health check complete:",
       cachedServers.length,
-      "servers",
+      "healthy servers",
     );
   } catch (error) {
-    console.error("[API] Failed to initialize server registry:", error);
-    // Continue with fallback only
+    console.error("[API] Server health check failed:", error);
+  }
+}
+
+// Stop the periodic health checks
+function stopServerRegistry() {
+  if (serverCheckInterval) {
+    clearInterval(serverCheckInterval);
+    serverCheckInterval = null;
   }
 }
 
@@ -70,7 +83,7 @@ class ApiClient {
       this.fingerprint = fp;
     });
 
-    // Start server registry in background
+    // Start server health checker in background
     initServerRegistry().catch(console.error);
   }
 
