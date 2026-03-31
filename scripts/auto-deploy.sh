@@ -1,4 +1,4 @@
-﻿#!/bin/bash
+#!/bin/bash
 set -Eeuo pipefail
 
 # Configuration
@@ -40,13 +40,13 @@ while true; do
     # Load Environment Variables (for FIREBASE_TOKEN)
     # Check both root .env and backend/.env
     if [ -f backend/.env ]; then
-        log "ðŸ“„ Loading env from backend/.env"
+        log "Loading env from backend/.env"
         ENV_FILE="backend/.env"
     elif [ -f .env ]; then
-        log "ðŸ“„ Loading env from .env"
+        log "Loading env from .env"
         ENV_FILE=".env"
     else
-        log "âš ï¸ No .env file found"
+        log "No .env file found"
         ENV_FILE=""
     fi
     
@@ -63,9 +63,9 @@ while true; do
 
     # Debug: Check if Token is loaded (masked)
     if [ -n "$FIREBASE_TOKEN" ]; then
-        log "ðŸ”‘ FIREBASE_TOKEN found (starts with: ${FIREBASE_TOKEN:0:4}...)"
+        log "FIREBASE_TOKEN found (starts with: ${FIREBASE_TOKEN:0:4}...)"
     else
-        log "âš ï¸ FIREBASE_TOKEN is missing or empty"
+        log "FIREBASE_TOKEN is missing or empty"
     fi
 
     # Capture current script hash for self-update check
@@ -73,7 +73,7 @@ while true; do
 
     # Fetch latest changes without merging
     if ! git fetch origin $BRANCH > /dev/null 2>&1; then
-        log "âš ï¸ Git fetch failed. Check network, remote URL, or credentials."
+        log "Git fetch failed. Check network, remote URL, or credentials."
     fi
 
     # Get commit hashes
@@ -90,14 +90,14 @@ while true; do
         git pull origin $BRANCH
         
         if [ $? -ne 0 ]; then
-            log "âŒ Git pull failed! Retrying next loop."
+            log "Git pull failed! Retrying next loop."
         else
-            log "âœ… Git pull successful."
+            log "Git pull successful."
 
             # ---------------------------
             # 2. Backend Deployment
             # ---------------------------
-            log "ðŸ”§ Starting Backend Deployment..."
+            log "Starting Backend Deployment..."
             cd backend || exit
             
             log "Installing backend dependencies..."
@@ -107,12 +107,10 @@ while true; do
             exec_cmd npm audit fix --force
             
             if [ $? -ne 0 ]; then
-                 log "âš ï¸ Backend npm issues. Proceeding carefully..."
+                 log "Backend npm issues. Proceeding carefully..."
             fi
             
             log "Compiling Backend TypeScript..."
-            # Force output to current directory to ensure node server.js picks up changes
-            # (Overrides tsconfig.json outDir: ./dist)
             exec_cmd npx tsc --outDir .
             
             cd .. # Return to root
@@ -126,17 +124,15 @@ while true; do
             # ---------------------------
             # 3. Frontend Deployment (DISABLED - deploy manually)
             # ---------------------------
-            log "⚠️ Frontend deployment disabled - deploy manually from local machine"
+            log "Frontend deployment disabled - deploy manually from local machine"
             
-            log "🎉 Backend Deployment Finished."
+            log "Backend Deployment Finished."
             
             # Check for self-update
-            # We use git hash-object to compare the script file on disk vs what it was before validation
-            # Note: We are in root here
             NEW_SCRIPT_HASH=$(git hash-object scripts/auto-deploy.sh)
             
             if [ "$INITIAL_SCRIPT_HASH" != "$NEW_SCRIPT_HASH" ]; then
-                log "ðŸ”„ Auto-deploy script updated. Exiting to allow PM2 to restart..."
+                log "Auto-deploy script updated. Exiting to allow PM2 to restart..."
                 exit 0
             fi
         fi
@@ -154,12 +150,9 @@ while true; do
         
         UPTIME_STR=$(uptime -p 2>/dev/null | sed 's/up //' || echo "N/A")
         
-        log "â³ No changes | Mem: ${MEM_PCT}% (${MEM_FREE}MB avail) | PM2: ${PM2_INFO}(${PM2_MEM_TOTAL}MB total) | Up: ${UPTIME_STR}"
+        log "No changes | Mem: ${MEM_PCT}% (${MEM_FREE}MB avail) | PM2: ${PM2_INFO}(${PM2_MEM_TOTAL}MB total) | Up: ${UPTIME_STR}"
     fi
 
     # Wait before next check
     sleep $CHECK_INTERVAL
 done
-
-
-

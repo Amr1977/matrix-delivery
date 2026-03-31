@@ -13,7 +13,8 @@ const listeners = new Set();
  * @private
  */
 function connect() {
-  const wsUrl = import.meta.env.VITE_AGGREGATOR_WS_URL || "ws://localhost:4001";
+  const wsUrl =
+    import.meta.env.REACT_APP_AGGREGATOR_WS_URL || "ws://localhost:4001";
 
   socket = new WebSocket(wsUrl);
 
