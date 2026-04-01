@@ -33,7 +33,7 @@ async function getServerListFromFirestore() {
         const data = doc.data();
         if (data.url) {
           // Ensure URL includes /api prefix
-          const url = data.url.endsWith('/api') ? data.url : `${data.url}/api`;
+          const url = data.url.endsWith("/api") ? data.url : `${data.url}/api`;
           servers.push(url);
         }
       });
@@ -81,6 +81,7 @@ async function findHealthyServer(serverUrls) {
         const response = await fetch(`${url}${HEALTH_ENDPOINT}`, {
           method: "GET",
           signal: controller.signal,
+          credentials: "include",
         });
 
         clearTimeout(timeout);
@@ -127,6 +128,7 @@ export async function fetchWithFailover(endpoint, options) {
     const response = await fetch(`${serverToUse.url}${endpoint}`, {
       ...options,
       signal: controller.signal,
+      credentials: "include",
       headers: {
         ...options.headers,
         "Idempotency-Key": options.idempotencyKey,
