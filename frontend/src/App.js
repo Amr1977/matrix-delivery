@@ -96,13 +96,6 @@ export const MainApp = () => {
     playNotificationSound();
   });
 
-  // Register for push on login/app start (only when authenticated)
-  useEffect(() => {
-    if (token && permission === "default") {
-      registerForPush();
-    }
-  }, [token, permission]);
-
   const navigate = useNavigate();
   const { t, locale, changeLocale } = useI18n();
   const API_URL = process.env.REACT_APP_API_URL;
@@ -116,6 +109,13 @@ export const MainApp = () => {
   const [token, setToken] = useState(null); // Remove localStorage - tokens are in httpOnly cookies
   const [authChecking, setAuthChecking] = useState(true); // Track initial auth check
   const [currentUser, setCurrentUser] = useState(null);
+
+  // Register for push on login/app start (only when authenticated)
+  useEffect(() => {
+    if (token && permission === "default") {
+      registerForPush();
+    }
+  }, [token, permission]);
 
   // Heartbeat for online status tracking (must be after token state declaration)
   useHeartbeat(token, API_URL);
