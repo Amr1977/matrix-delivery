@@ -3,9 +3,10 @@
  * @description Failover with Firestore server discovery and sticky server selection
  */
 
-import { getFirestore, collection, getDocs } from "./firebase";
+import { db } from "./firebase";
+import { collection, getDocs } from "firebase/firestore";
 
-const HEALTH_ENDPOINT = "/api/health";
+const HEALTH_ENDPOINT = "/health";
 const HEALTH_CHECK_TIMEOUT = 5000;
 const REQUEST_TIMEOUT_MS = 10000;
 
@@ -24,7 +25,6 @@ async function getServerListFromFirestore() {
     }
 
     serverListPromise = (async () => {
-      const db = getFirestore();
       const serversCol = collection(db, "servers");
       const serversSnapshot = await getDocs(serversCol);
       const servers = [];
@@ -32,7 +32,9 @@ async function getServerListFromFirestore() {
       serversSnapshot.forEach((doc) => {
         const data = doc.data();
         if (data.url) {
-          servers.push(data.url);
+          // Ensure URL includes /api prefix
+          const url = data.url.endsWith('/api') ? data.url : `${data.url}/api`;
+          servers.push(url);
         }
       });
 
@@ -51,8 +53,8 @@ async function getServerListFromFirestore() {
     serverListPromise = null;
     // Fallback to hardcoded list if Firestore fails
     return [
-      "https://api.matrix-delivery.com",
-      "https://matrix-delivery-api-gc.mywire.org",
+      "https://api.matrix-delivery.com/api",
+      "https://matrix-delivery-api-gc.mywire.org/api",
     ];
   }
 }
