@@ -96,13 +96,12 @@ export const MainApp = () => {
     playNotificationSound();
   });
 
-  // Register for push on login/app start
+  // Register for push on login/app start (only when authenticated)
   useEffect(() => {
-    if (permission === "default") {
-      // Auto-register on app start (will show permission prompt)
+    if (token && permission === "default") {
       registerForPush();
     }
-  }, [permission]);
+  }, [token, permission]);
 
   const navigate = useNavigate();
   const { t, locale, changeLocale } = useI18n();
