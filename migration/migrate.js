@@ -19,10 +19,7 @@ const requiredEnvVars = [
   "REDIS_PASSWORD",
   "BACKEND_SERVER_IDS",
   "V2_BACKEND_ENV_PATH",
-  "V2_AGGREGATOR_ENV_PATH",
-  "WS_PORT",
   "MIGRATION_LOG_PATH",
-  "AGGREGATOR_DIR",
   "BACKEND_DIR",
 ];
 
@@ -45,10 +42,7 @@ const config = {
     s.trim(),
   ),
   v2BackendEnvPath: process.env.V2_BACKEND_ENV_PATH,
-  v2AggregatorEnvPath: process.env.V2_AGGREGATOR_ENV_PATH,
-  wsPort: parseInt(process.env.WS_PORT, 10),
   migrationLogPath: process.env.MIGRATION_LOG_PATH,
-  aggregatorDir: process.env.AGGREGATOR_DIR,
   backendDir: process.env.BACKEND_DIR,
 };
 
@@ -74,12 +68,6 @@ async function step1PreflightChecks() {
 
   if (!existsSync(config.v2BackendEnvPath)) {
     throw new Error(`V2 backend env not found: ${config.v2BackendEnvPath}`);
-  }
-
-  if (!existsSync(config.v2AggregatorEnvPath)) {
-    throw new Error(
-      `V2 aggregator env not found: ${config.v2AggregatorEnvPath}`,
-    );
   }
 
   const redis = new Redis({
@@ -177,42 +165,8 @@ async function step4SeedRedis(v1Snapshot) {
   log(`Seeded ${v1Snapshot.length} servers into Redis.`);
 }
 
-async function step5StartAggregator() {
-  log("STEP 5: Starting aggregator...");
-
-  await execAsync(
-    `pm2 start ${config.aggregatorDir}/aggregator.js --name mdp-aggregator`,
-  );
-
-  const redis = new Redis({
-    host: config.redisHost,
-    port: config.redisPort,
-    password: config.redisPassword,
-  });
-
-  let found = false;
-  for (let i = 0; i < 5; i++) {
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    const routing = await redis.get("mdp:routing:active");
-    if (routing) {
-      found = true;
-      break;
-    }
-  }
-
-  await redis.quit();
-
-  if (!found) {
-    throw new Error(
-      "Aggregator failed to create routing snapshot - check pm2 logs",
-    );
-  }
-
-  log("Aggregator started, routing snapshot confirmed.");
-}
-
-async function step6StartV2Backends() {
-  log("STEP 6: Starting V2 backends...");
+async function step5StartV2Backends() {
+  log("STEP 5: Starting V2 backends...");
 
   await execAsync(
     `pm2 start ${config.backendDir}/server.js --name mdp-backend`,
@@ -246,7 +200,7 @@ async function step6StartV2Backends() {
   );
 }
 
-async function step7DeleteFirestore() {
+async function step6DeleteFirestore() {
   log("POINT OF NO RETURN — deleting Firestore data.");
 
   const db = admin.firestore();
@@ -280,8 +234,8 @@ async function step7DeleteFirestore() {
   );
 }
 
-async function step8WriteCleanupReminder() {
-  log("STEP 8: Writing cleanup reminder...");
+async function step7WriteCleanupReminder() {
+  log("STEP 7: Writing cleanup reminder...");
 
   const cleanupContent = `# Firebase Cleanup Instructions
 
@@ -306,7 +260,7 @@ Run these steps on all VPS instances after migration:
   log("Cleanup reminder written to FIREBASE_CLEANUP.md");
 }
 
-async function step9Done() {
+async function step8Done() {
   log("MIGRATION COMPLETE. Downtime window closed.");
   log("Run: node migration/verify.js");
   log(`Completion timestamp: ${new Date().toISOString()}`);
@@ -321,11 +275,10 @@ async function runMigration() {
     const v1Snapshot = await step2SnapshotV1();
     await step3StopV1Backends();
     await step4SeedRedis(v1Snapshot);
-    await step5StartAggregator();
-    await step6StartV2Backends();
-    await step7DeleteFirestore();
-    await step8WriteCleanupReminder();
-    await step9Done();
+    await step5StartV2Backends();
+    await step6DeleteFirestore();
+    await step7WriteCleanupReminder();
+    await step8Done();
   } catch (error) {
     log(`MIGRATION FAILED: ${error.message}`);
     console.error(error);

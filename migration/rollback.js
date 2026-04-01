@@ -54,12 +54,6 @@ async function stepR1StopV2Processes() {
   log("STEP R1: Stopping V2 processes...");
 
   try {
-    await execAsync("pm2 stop mdp-aggregator");
-  } catch {
-    // May not be running
-  }
-
-  try {
     await execAsync("pm2 stop mdp-backend");
   } catch {
     // May not be running

@@ -1,0 +1,60 @@
+🔒 Security Assessment & Hardening Plan
+
+Current Posture (What's Already Good ✅)
+
+|                     | AWS                 | GCP                  |
+| ------------------- | ------------------- | -------------------- |
+| UFW Firewall        | ✅ Active            | ✅ Active             |
+| SSH Root Login      | ✅ Disabled          | ✅ Disabled           |
+| SSH Key-Only        | ⚠️ Not explicit     | ✅ Yes                |
+| Fail2ban            | ✅ Active (SSH only) | ✅ Active (SSH only)  |
+| Security Headers    | ✅ Good set          | ✅ Good set           |
+| Rate Limiting       | ✅ 10r/s             | ⚠️ 100r/s (too high) |
+| HTTPS + HSTS        | ✅ Yes               | ✅ Yes                |
+| Auto Updates        | ✅ Installed         | ✅ Installed          |
+| DB/Redis local only | ✅ Yes               | ✅ Yes                |
+
+Gaps to Fix 🔴
+
+Both servers:
+
+1. No bot/scanner blocking in Nginx — .env, .git, wp-admin etc. all reach your Node app
+2. Fail2ban only covers SSH — no jail for Nginx bad requests
+3. No Content-Security-Policy header
+4. Port 80 open (needed for redirect, but should only redirect)
+
+AWS specifically:
+5. PasswordAuthentication not explicitly disabled in sshd_config
+6. Port 5000 (Node) listening on 0.0.0.0 — should be 127.0.0.1 only (UFW blocks it, but defense in depth)
+7. Port 4001 (WebSocket) listening on all interfaces — same issue
+
+GCP specifically:
+8. Rate limit is 100r/s — way too generous, should be ~10-20r/s
+9. Nginx version 1.18 — older, consider updating
+
+───
+
+📋 Hardening Plan (Step by Step)
+
+Phase 1 — Nginx Bot Blocking (both servers)
+Add a location block to drop connections to common scan targets:
+
+# Block common vulnerability scanners
+location ~* /(\.env|\.git|\.svn|wp-admin|wp-login|phpMyAdmin|admin|\.htaccess|\.htpasswd) {
+    return 444;  # Drop connection silently
+}
+
+Phase 2 — Fail2ban Nginx Jail (both servers)
+Add a jail that bans IPs hitting 404s repeatedly (the exact bots scanning you)
+
+Phase 3 — SSH Hardening (AWS)
+Explicitly set PasswordAuthentication no in sshd_config
+
+Phase 4 — Bind Node/WebSocket to localhost (AWS)
+Change PM2 apps to bind to 127.0.0.1 instead of 0.0.0.0
+
+Phase 5 — Tighten GCP Rate Limit
+Reduce from 100r/s to 10r/s
+
+Phase 6 — Add CSP Header (both)
+Add Content-Security-Policy header to Nginx

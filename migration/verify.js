@@ -4,13 +4,11 @@
  */
 
 import Redis from "ioredis";
-import { WebSocket } from "ws";
 
 const requiredEnvVars = [
   "REDIS_HOST",
   "REDIS_PORT",
   "REDIS_PASSWORD",
-  "WS_PORT",
   "BACKEND_SERVER_IDS",
 ];
 
@@ -27,7 +25,6 @@ const config = {
   redisHost: process.env.REDIS_HOST,
   redisPort: parseInt(process.env.REDIS_PORT, 10),
   redisPassword: process.env.REDIS_PASSWORD,
-  wsPort: parseInt(process.env.WS_PORT, 10),
   backendServerIds: process.env.BACKEND_SERVER_IDS.split(",").map((s) =>
     s.trim(),
   ),
@@ -138,58 +135,7 @@ async function check3RoutingSnapshot() {
   }
 }
 
-async function check4WebSocket() {
-  return new Promise((resolve) => {
-    try {
-      const ws = new WebSocket(`ws://localhost:${config.wsPort}`);
-      let received = false;
-
-      const timeout = setTimeout(() => {
-        ws.close();
-        if (!received) {
-          logCheck("CHECK 4", "FAIL", "No message received within 5s");
-          resolve(false);
-        }
-      }, 5000);
-
-      ws.on("message", (data) => {
-        received = true;
-        clearTimeout(timeout);
-        try {
-          const json = JSON.parse(data.toString());
-          if (Array.isArray(json.servers)) {
-            ws.close();
-            logCheck(
-              "CHECK 4",
-              "PASS",
-              `Received ${json.servers.length} servers`,
-            );
-            resolve(true);
-          } else {
-            ws.close();
-            logCheck("CHECK 4", "FAIL", "Invalid servers array");
-            resolve(false);
-          }
-        } catch {
-          ws.close();
-          logCheck("CHECK 4", "FAIL", "Invalid JSON");
-          resolve(false);
-        }
-      });
-
-      ws.on("error", (err) => {
-        clearTimeout(timeout);
-        logCheck("CHECK 4", "FAIL", err.message);
-        resolve(false);
-      });
-    } catch (err) {
-      logCheck("CHECK 4", "FAIL", err.message);
-      resolve(false);
-    }
-  });
-}
-
-async function check5BackendHealth() {
+async function check4BackendHealth() {
   try {
     const redis = new Redis({
       host: config.redisHost,
@@ -237,17 +183,17 @@ async function check5BackendHealth() {
       }
     }
 
-    logCheck("CHECK 5", "PASS", "All backend health checks passed");
+    logCheck("CHECK 4", "PASS", "All backend health checks passed");
     return true;
   } catch (err) {
-    logCheck("CHECK 5", "FAIL", err.message);
+    logCheck("CHECK 4", "FAIL", err.message);
     return false;
   }
 }
 
-async function check6FirestoreEmpty() {
+async function check5FirestoreEmpty() {
   if (!config.firebaseCredentials) {
-    logCheck("CHECK 6", "SKIPPED", "GOOGLE_APPLICATION_CREDENTIALS not set");
+    logCheck("CHECK 5", "SKIPPED", "GOOGLE_APPLICATION_CREDENTIALS not set");
     return null;
   }
 
@@ -270,14 +216,14 @@ async function check6FirestoreEmpty() {
       routingSnap.size > 0 ||
       idempotencySnap.size > 0
     ) {
-      logCheck("CHECK 6", "FAIL", "Firestore still contains data");
+      logCheck("CHECK 5", "FAIL", "Firestore still contains data");
       return false;
     }
 
-    logCheck("CHECK 6", "PASS", "Firestore collections are empty");
+    logCheck("CHECK 5", "PASS", "Firestore collections are empty");
     return true;
   } catch (err) {
-    logCheck("CHECK 6", "FAIL", err.message);
+    logCheck("CHECK 5", "FAIL", err.message);
     return false;
   }
 }
@@ -288,9 +234,8 @@ async function runVerification() {
   const c1 = await check1RedisPing();
   const c2 = await check2ServerIndex();
   const c3 = await check3RoutingSnapshot();
-  const c4 = await check4WebSocket();
-  const c5 = await check5BackendHealth();
-  const c6 = await check6FirestoreEmpty();
+  const c4 = await check4BackendHealth();
+  const c5 = await check5FirestoreEmpty();
 
   console.log("\n=== Summary ===\n");
 
@@ -302,9 +247,9 @@ async function runVerification() {
   console.log(`FAILED: ${failed}`);
   console.log(`SKIPPED: ${skipped}`);
 
-  const check6Failed = c6 === false;
+  const check5Failed = c5 === false;
 
-  if (failed > 0 || check6Failed) {
+  if (failed > 0 || check5Failed) {
     console.log("\n❌ Verification FAILED");
     process.exit(1);
   }

@@ -42,19 +42,17 @@ The platform uses a 4-tier failover architecture:
 
 ### Components
 
-| Component      | Description                                              |
-| -------------- | -------------------------------------------------------- |
-| **Backend**    | Express servers register via Redis heartbeat             |
-| **Redis**      | Stores server state, routing snapshots, idempotency keys |
-| **Aggregator** | Health checks, scoring, broadcasts to WebSocket clients  |
-| **Frontend**   | WebSocket client, circuit breaker, weighted failover     |
+| Component    | Description                                                          |
+| ------------ | -------------------------------------------------------------------- |
+| **Backend**  | Express servers register via Redis heartbeat                         |
+| **Redis**    | Stores server state, routing snapshots, idempotency keys             |
+| **Frontend** | Firestore-based server discovery, circuit breaker, weighted failover |
 
 ### Setup
 
 1. **Redis** (`redis/redis.conf`): AOF persistence, password-protected
-2. **Aggregator** (`aggregator/`): Scores servers every 5s, WebSocket on port 4001
-3. **Backend** (`backend/`): Redis-based registration, heartbeat every 30s
-4. **Frontend** (`frontend/src/`): wsClient, circuitBreaker, fetchWithFailover
+2. **Backend** (`backend/`): Redis-based registration, heartbeat every 30s
+3. **Frontend** (`frontend/src/`): fetchWithFailover, circuitBreaker
 
 ### Migration
 
