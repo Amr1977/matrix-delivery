@@ -12,7 +12,7 @@ const clients = new Set();
 
 function startWsServer(port) {
   port = port || 4001;
-  wss = new WebSocketServer({ port });
+  wss = new WebSocketServer({ port, host: "127.0.0.1" });
 
   wss.on("connection", (ws) => {
     clients.add(ws);

@@ -262,7 +262,7 @@ if (require.main === module) {
     );
     locationCleanupInterval.unref();
 
-    server = httpServer.listen(PORT, "0.0.0.0", () => {
+    server = httpServer.listen(PORT, "127.0.0.1", () => {
       console.log("");
       console.log("╔════════════════════════════════════════════════════╗");
       console.log("         🚚 Matrix Delivery Server (PostgreSQL)");
