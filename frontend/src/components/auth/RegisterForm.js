@@ -14,7 +14,7 @@ const RegisterForm = ({ onSubmit, loading, error, t, countries }) => {
     city: "",
     area: "",
   });
-  const [showPassword, setShowPassword] = useState(false);
+  
   const [captchaRef, setCaptchaRef] = useState(null);
 
   const handleSubmit = async (e) => {
@@ -97,7 +97,7 @@ const RegisterForm = ({ onSubmit, loading, error, t, countries }) => {
       />
       <div style={{ position: "relative" }}>
         <input
-          type={showPassword ? "text" : "password"}
+          type="password"
           data-testid="password-input"
           placeholder={t("auth.password")}
           value={formData.password}

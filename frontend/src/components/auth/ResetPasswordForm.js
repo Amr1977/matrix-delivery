@@ -10,7 +10,7 @@ const ResetPasswordForm = ({ token, onSuccess, onBack }) => {
     password: "",
     confirmPassword: "",
   });
-  const [showPassword, setShowPassword] = useState(false);
+  
 
   const [success, setSuccess] = useState(false);
 
@@ -231,7 +231,7 @@ const ResetPasswordForm = ({ token, onSuccess, onBack }) => {
         >
           <div style={{ position: "relative" }}>
             <input
-              type={showPassword ? "text" : "password"}
+              type="password"
               placeholder={t("auth.newPassword")}
               value={formData.password}
               onChange={(e) =>

@@ -7,7 +7,7 @@ const LoginForm = ({ onSubmit, onForgotPassword, loading, error, t }) => {
     email: "",
     password: "",
   });
-  const [showPassword, setShowPassword] = useState(false);
+  
   const [captchaRef, setCaptchaRef] = useState(null);
 
   const handleSubmit = async (e) => {
@@ -53,7 +53,7 @@ const LoginForm = ({ onSubmit, onForgotPassword, loading, error, t }) => {
         />
         <div style={{ position: "relative" }}>
           <input
-            type={showPassword ? "text" : "password"}
+            type="password"
             data-testid="password-input"
             placeholder={t("auth.password")}
             value={formData.password}
@@ -71,14 +71,6 @@ const LoginForm = ({ onSubmit, onForgotPassword, loading, error, t }) => {
           />
           <button
             type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            data-testid="toggle-password-visibility"
-            aria-label={showPassword ? "Hide password" : "Show password"}
-            style={{
-              position: "absolute",
-              right: "0.5rem",
-              top: "50%",
-              transform: "translateY(-50%)",
               height: "1.75rem",
               width: "1.75rem",
               display: "flex",
