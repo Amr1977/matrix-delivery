@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useI18n } from "../../i18n/i18nContext";
 import { formatCurrency, formatDateTime } from "../../utils/formatters";
 import DriverBiddingMap from "../maps/DriverBiddingMap";
@@ -66,7 +66,7 @@ const DriverBiddingCard = ({
   const [dropoffDistanceKm, setDropoffDistanceKm] = useState(0);
 
   // Haversine Distance Calc
-  const haversineKm = (a, b) => {
+  const haversineKm = useCallback((a, b) => {
     if (
       !a ||
       !b ||
@@ -86,7 +86,7 @@ const DriverBiddingCard = ({
         Math.sin(dLng / 2) ** 2;
     const c = 2 * Math.atan2(Math.sqrt(aa), Math.sqrt(1 - aa));
     return R * c;
-  };
+  }, []);
 
   const distanceKm =
     order.estimatedDistanceKm || order.distance || calculatedDistance || 0;
@@ -136,105 +136,71 @@ const DriverBiddingCard = ({
     }
   }, [order]);
 
+  // Extract primitive coordinates for stable deps
+  const pickupLat = parseFloat(
+    order.from_lat || order.from?.lat || order.pickupLocation?.coordinates?.lat,
+  );
+  const pickupLng = parseFloat(
+    order.from_lng || order.from?.lng || order.pickupLocation?.coordinates?.lng,
+  );
+  const dropoffLat = parseFloat(
+    order.to_lat || order.to?.lat || order.dropoffLocation?.coordinates?.lat,
+  );
+  const dropoffLng = parseFloat(
+    order.to_lng || order.to?.lng || order.dropoffLocation?.coordinates?.lng,
+  );
+  const driverLat = driverLocation?.lat || driverLocation?.latitude;
+  const driverLng = driverLocation?.lng || driverLocation?.longitude;
+  const orderId = order.id;
+
+  const routeCacheRef = useRef({});
+
   // Calculate total distance using routing API with Haversine fallback
   useEffect(() => {
+    const pickup =
+      !isNaN(pickupLat) && !isNaN(pickupLng)
+        ? { lat: pickupLat, lng: pickupLng }
+        : null;
+    const dropoff =
+      !isNaN(dropoffLat) && !isNaN(dropoffLng)
+        ? { lat: dropoffLat, lng: dropoffLng }
+        : null;
+    const hasDriver = Number.isFinite(driverLat) && Number.isFinite(driverLng);
+
+    if (!pickup || !dropoff) return;
+
+    const cacheKey = `${orderId}_${driverLat}_${driverLng}_${pickupLat}_${pickupLng}_${dropoffLat}_${dropoffLng}`;
+    if (routeCacheRef.current[cacheKey]) return;
+
+    routeCacheRef.current[cacheKey] = true;
+
     const calculateRouteDistance = async () => {
-      // Comprehensive coordinate extraction - same logic as full map view but with all possible sources
-      const pickupLat = parseFloat(
-        order.from_lat ||
-          order.from?.lat ||
-          order.pickupLocation?.coordinates?.lat,
-      );
-      const pickupLng = parseFloat(
-        order.from_lng ||
-          order.from?.lng ||
-          order.pickupLocation?.coordinates?.lng,
-      );
-      const dropoffLat = parseFloat(
-        order.to_lat ||
-          order.to?.lat ||
-          order.dropoffLocation?.coordinates?.lat,
-      );
-      const dropoffLng = parseFloat(
-        order.to_lng ||
-          order.to?.lng ||
-          order.dropoffLocation?.coordinates?.lng,
-      );
-
-      const pickup =
-        !isNaN(pickupLat) && !isNaN(pickupLng)
-          ? { lat: pickupLat, lng: pickupLng }
-          : null;
-      const dropoff =
-        !isNaN(dropoffLat) && !isNaN(dropoffLng)
-          ? { lat: dropoffLat, lng: dropoffLng }
-          : null;
-
-      // if (!pickup || !dropoff) {
-      //     // Fallback to Haversine if coordinates are missing
-      //     let pickupToDropoffKm = 0;
-      //     if (pickup && dropoff) {
-      //         pickupToDropoffKm = haversineKm(pickup, dropoff);
-      //     }
-      //     let driverToPickupKm = 0;
-      //     if (driverLocation && Number.isFinite(driverLocation.lat || driverLocation.latitude) && Number.isFinite(driverLocation.lng || driverLocation.longitude) && pickup) {
-      //         const driverLat = driverLocation.lat || driverLocation.latitude;
-      //         const driverLng = driverLocation.lng || driverLocation.longitude;
-      //         driverToPickupKm = haversineKm({ lat: driverLat, lng: driverLng }, pickup);
-      //     }
-      //     const totalKm = driverToPickupKm + pickupToDropoffKm;
-      //     setTotalDistanceKm(totalKm);
-      //     return;
-      // }
-
       try {
-        // Calculate driver to pickup distance using routing API
         let driverToPickupKm = 0;
-        if (
-          driverLocation &&
-          Number.isFinite(driverLocation.lat || driverLocation.latitude) &&
-          Number.isFinite(driverLocation.lng || driverLocation.longitude)
-        ) {
-          const driverLat = driverLocation.lat || driverLocation.latitude;
-          const driverLng = driverLocation.lng || driverLocation.longitude;
-
+        if (hasDriver) {
           const driverToPickupResponse = await MapsApi.calculateRoute({
             pickup: { lat: driverLat, lng: driverLng },
             delivery: { lat: pickupLat, lng: pickupLng },
           });
-
           driverToPickupKm = driverToPickupResponse.distance_km || 0;
           setPickupDistanceKm(driverToPickupKm);
         }
 
-        // Calculate pickup to dropoff distance using routing API
         const pickupToDropoffResponse = await MapsApi.calculateRoute({
           pickup: { lat: pickupLat, lng: pickupLng },
           delivery: { lat: dropoffLat, lng: dropoffLng },
         });
-
         const pickupToDropoffKm = pickupToDropoffResponse.distance_km || 0;
         setDropoffDistanceKm(pickupToDropoffKm);
-        const totalKm = driverToPickupKm + pickupToDropoffKm;
-
-        setTotalDistanceKm(totalKm);
+        setTotalDistanceKm(driverToPickupKm + pickupToDropoffKm);
       } catch (error) {
         console.warn(
           "Route calculation failed, using Haversine fallback:",
           error.message,
         );
-
-        // Fallback to Haversine calculation
-        let pickupToDropoffKm = haversineKm(pickup, dropoff);
+        const pickupToDropoffKm = haversineKm(pickup, dropoff);
         let driverToPickupKm = 0;
-
-        if (
-          driverLocation &&
-          Number.isFinite(driverLocation.lat || driverLocation.latitude) &&
-          Number.isFinite(driverLocation.lng || driverLocation.longitude)
-        ) {
-          const driverLat = driverLocation.lat || driverLocation.latitude;
-          const driverLng = driverLocation.lng || driverLocation.longitude;
+        if (hasDriver) {
           driverToPickupKm = haversineKm(
             { lat: driverLat, lng: driverLng },
             pickup,
@@ -242,13 +208,21 @@ const DriverBiddingCard = ({
         }
         setPickupDistanceKm(driverToPickupKm);
         setDropoffDistanceKm(pickupToDropoffKm);
-        const totalKm = driverToPickupKm + pickupToDropoffKm;
-        setTotalDistanceKm(totalKm);
+        setTotalDistanceKm(driverToPickupKm + pickupToDropoffKm);
       }
     };
 
     calculateRouteDistance();
-  }, [order, driverLocation, haversineKm]);
+  }, [
+    orderId,
+    pickupLat,
+    pickupLng,
+    dropoffLat,
+    dropoffLng,
+    driverLat,
+    driverLng,
+    haversineKm,
+  ]);
 
   useEffect(() => {
     if (myBid && !bidInput[order.id] && !isEditing) {
@@ -476,17 +450,32 @@ const DriverBiddingCard = ({
           <div
             style={{
               textAlign: "center",
-              background: isPrepaid ? "rgba(59, 130, 246, 0.15)" : "rgba(16, 185, 129, 0.15)",
+              background: isPrepaid
+                ? "rgba(59, 130, 246, 0.15)"
+                : "rgba(16, 185, 129, 0.15)",
               padding: "0.4rem 0.8rem",
               borderRadius: "8px",
               border: `1px solid ${isPrepaid ? "#3B82F6" : "#10B981"}`,
               minWidth: "90px",
             }}
           >
-            <div style={{ fontSize: "0.6rem", color: isPrepaid ? "#93C5FD" : "#6ee7b7", textTransform: "uppercase", marginBottom: "2px" }}>
+            <div
+              style={{
+                fontSize: "0.6rem",
+                color: isPrepaid ? "#93C5FD" : "#6ee7b7",
+                textTransform: "uppercase",
+                marginBottom: "2px",
+              }}
+            >
               Pay
             </div>
-            <div style={{ fontSize: "1rem", fontWeight: "bold", color: isPrepaid ? "#BFDBFE" : "#a7f3d0" }}>
+            <div
+              style={{
+                fontSize: "1rem",
+                fontWeight: "bold",
+                color: isPrepaid ? "#BFDBFE" : "#a7f3d0",
+              }}
+            >
               {isPrepaid ? "Prepaid" : "COD"}
             </div>
           </div>
