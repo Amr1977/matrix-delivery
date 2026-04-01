@@ -34,49 +34,9 @@ const IS_TEST =
 const IS_PRODUCTION = process.env.NODE_ENV === "production";
 const PORT = process.env.PORT || 5001;
 
-// ============================================================================
-// FAILOVER SYSTEM: V2 Firestore-based Server Registry
-// Each server registers itself, health-checks others
-// ============================================================================
+// Server registry removed - was causing Redis timeout crashes
 let registryStop = null;
 let getMetrics = null;
-
-try {
-  console.info("[Server] Initializing V2 failover system (Firestore-based)...");
-
-  const sr = require("./serverRegistry.js");
-  console.info("[Server] serverRegistry loaded");
-
-  const { createRequestTracker } = require("./loadCalculator.js");
-  console.info("[Server] LoadCalculator loaded");
-
-  const { middleware: requestTracker, getMetrics: getMetricsFn } =
-    createRequestTracker();
-  getMetrics = getMetricsFn;
-
-  app.use(requestTracker);
-  console.info("[Server] Request tracker middleware registered");
-
-  registryStop = sr
-    .startRegistry({ getMetrics: getMetricsFn })
-    .then((registry) => {
-      console.info("[Server] V2 failover system started successfully");
-      return registry;
-    })
-    .catch((err) => {
-      console.error(
-        "[Server] Failed to start V2 failover system:",
-        err.message,
-      );
-      return null;
-    });
-} catch (err) {
-  console.warn(
-    "[Server] V2 failover system not available:",
-    err.message,
-    err.stack,
-  );
-}
 
 // Telegram polling service
 let telegramPollingService = null;
