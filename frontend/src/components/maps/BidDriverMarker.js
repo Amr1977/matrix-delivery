@@ -117,6 +117,14 @@ const BidDriverMarker = ({
   const markerLat = hasValidLoc ? Number(currentLat) : (pickup?.lat ?? null);
   const markerLng = hasValidLoc ? Number(currentLng) : (pickup?.lng ?? null);
 
+  const [eta, setEta] = useState(null);
+  useEffect(() => {
+    if (!pickup?.lat || !pickup?.lng || !hasValidLoc) return;
+    const dist = haversineKm(markerLat, markerLng, pickup.lat, pickup.lng);
+    const avgSpeedKmh = 30;
+    setEta(Math.round((dist / avgSpeedKmh) * 60));
+  }, [markerLat, markerLng, pickup?.lat, pickup?.lng, hasValidLoc]);
+
   if (!Number.isFinite(markerLat) || !Number.isFinite(markerLng)) return null;
 
   const isLive = !!liveLocation;
@@ -126,15 +134,6 @@ const BidDriverMarker = ({
     bid.driverToPickupPolyline || bid.driver_to_pickup_polyline,
   );
   const hasStoredRoute = storedRoute.length > 1;
-
-  // Calculate ETA
-  const [eta, setEta] = useState(null);
-  useEffect(() => {
-    if (!pickup?.lat || !pickup?.lng || !hasValidLoc) return;
-    const dist = haversineKm(markerLat, markerLng, pickup.lat, pickup.lng);
-    const avgSpeedKmh = 30;
-    setEta(Math.round((dist / avgSpeedKmh) * 60));
-  }, [markerLat, markerLng, pickup?.lat, pickup?.lng, hasValidLoc]);
 
   const polylinePositions =
     hasStoredRoute && !liveLocation && hasBidLoc
