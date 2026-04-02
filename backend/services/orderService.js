@@ -1604,14 +1604,10 @@ RETURNING * `;
       // else: COD with no travel — no charge needed
     }
 
-    //TODO How about completed orders count for customer user!!
-    // If order is confirmed by customer, update driver stats, release escrow, handle commission
-    if (normalizedAction === "confirm_delivery") {
-      await pool.query(
-        "UPDATE users SET completed_deliveries = completed_deliveries + 1 WHERE id = $1",
-        [order.assigned_driver_user_id],
-      );
-
+    // ✅ FIX: Deduct COD platform fee when DRIVER delivers (complete_delivery),
+    // not when customer confirms (confirm_delivery). This prevents revenue loss
+    // if the customer never confirms.
+    if (normalizedAction === "complete_delivery") {
       // Get order details including payment_method
       const orderDetails = await pool.query(
         "SELECT * FROM orders WHERE id = $1",
@@ -1624,10 +1620,9 @@ RETURNING * `;
       const deliveryFee = parseFloat(orderFull.price) || 0;
       const platformCommission = deliveryFee * PAYMENT_CONFIG.COMMISSION_RATE; // 10%
       const takafulContribution = deliveryFee * 0.05; // 5%
-      const escrowAmount = parseFloat(orderFull.escrow_amount) || 0;
 
       if (paymentMethod === "COD") {
-        // ✅ COD MODEL: Deduct platform fee from courier balance
+        // ✅ COD MODEL: Deduct platform fee from courier balance on delivery
         if (platformCommission > 0) {
           try {
             await balanceService.deductPlatformFee(
@@ -1649,6 +1644,141 @@ RETURNING * `;
             });
             // Continue - don't block order completion
           }
+        }
+
+        // ✅ COD: Record payment in payments table
+        try {
+          const existingPayment = await pool.query(
+            "SELECT id FROM payments WHERE order_id = $1",
+            [orderId],
+          );
+          if (existingPayment.rows.length === 0) {
+            const { generateId } = require("../config/utils");
+            const paymentId = generateId();
+            const driverEarnings = deliveryFee - platformCommission;
+            await pool.query(
+              `INSERT INTO payments (id, order_id, amount, currency, payment_method, status, payer_id, payee_id, platform_fee, driver_earnings, processed_at)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP)`,
+              [
+                paymentId,
+                orderId,
+                deliveryFee,
+                "EGP",
+                "cash",
+                "completed",
+                orderFull.customer_id,
+                order.assigned_driver_user_id,
+                platformCommission,
+                driverEarnings,
+              ],
+            );
+          }
+        } catch (paymentError) {
+          logger.error("Failed to record COD payment", {
+            orderId,
+            error: paymentError.message,
+          });
+        }
+
+        // ✅ COD: Record Takaful contribution
+        try {
+          await takafulService.recordContribution(
+            order.assigned_driver_user_id,
+            orderId,
+            deliveryFee,
+          );
+        } catch (takafulError) {
+          logger.error("Failed to record Takaful contribution", {
+            orderId,
+            error: takafulError.message,
+          });
+        }
+      }
+    }
+
+    // If order is confirmed by customer, update driver stats, release escrow (prepaid)
+    if (normalizedAction === "confirm_delivery") {
+      await pool.query(
+        "UPDATE users SET completed_deliveries = completed_deliveries + 1 WHERE id = $1",
+        [order.assigned_driver_user_id],
+      );
+
+      // Get order details including payment_method
+      const orderDetails = await pool.query(
+        "SELECT * FROM orders WHERE id = $1",
+        [orderId],
+      );
+      const orderFull = orderDetails.rows[0];
+      const paymentMethod = orderFull.payment_method || "COD";
+
+      // Commission rate: 10% platform + 5% Takaful = 15% total
+      const deliveryFee = parseFloat(orderFull.price) || 0;
+      const platformCommission = deliveryFee * PAYMENT_CONFIG.COMMISSION_RATE; // 10%
+      const takafulContribution = deliveryFee * 0.05; // 5%
+      const escrowAmount = parseFloat(orderFull.escrow_amount) || 0;
+
+      if (paymentMethod !== "COD") {
+        // ✅ PREPAID MODEL: Release held funds to driver with commission deduction
+        if (escrowAmount > 0 && orderFull.escrow_status === "held") {
+          try {
+            console.log(
+              `[DEBUG] Calling releaseHold for order ${orderId} from orderService. Confirming delivery.`,
+            );
+            await balanceService.releaseHold(
+              order.customer_id,
+              orderId,
+              escrowAmount,
+              {
+                destinationUserId: order.assigned_driver_user_id,
+                platformCommission,
+                takafulContribution,
+              },
+            );
+            console.log(`[DEBUG] releaseHold returned for order ${orderId}.`);
+
+            // Update escrow status on order
+            console.log(
+              `[DEBUG] Updating escrow status to 'released' for order ${orderId}`,
+            );
+            await pool.query(
+              "UPDATE orders SET escrow_status = $1 WHERE id = $2",
+              ["released", orderId],
+            );
+            console.log(`[DEBUG] Escrow status updated for order ${orderId}`);
+
+            logger.info("Escrow released on delivery confirmation", {
+              orderId,
+              escrowAmount,
+              platformCommission,
+              takafulContribution,
+              driverNet:
+                escrowAmount - platformCommission - takafulContribution,
+            });
+
+            // ✅ TAKAFUL: Record contribution to fund
+            try {
+              await takafulService.recordContribution(
+                order.assigned_driver_user_id,
+                orderId,
+                deliveryFee,
+              );
+            } catch (takafulError) {
+              logger.error("Failed to record Takaful contribution", {
+                orderId,
+                error: takafulError.message,
+              });
+              // Non-blocking - contribution tracking failure shouldn't block order
+            });
+          } catch (escrowError) {
+            logger.error("Failed to release escrow", {
+              orderId,
+              error: escrowError.message,
+            });
+            // Continue - don't block order completion
+          }
+        }
+      }
+    }
         }
 
         // ✅ COD: Record payment in payments table
