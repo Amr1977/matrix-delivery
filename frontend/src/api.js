@@ -7,8 +7,10 @@ const FALLBACK_API_URL =
 const REQUEST_TIMEOUT_MS = 8000;
 
 // Generate idempotency key for requests
-function generateIdempotencyKey() {
-  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+// Format: {userId}:{endpoint}:{bodyHash}:{clientTimestampMinute}
+function generateIdempotencyKey(userId = "anonymous") {
+  const clientMinute = Math.floor(Date.now() / 60000);
+  return `${userId}:${clientMinute}-${Math.random().toString(36).substr(2, 9)}`;
 }
 
 class ApiClient {

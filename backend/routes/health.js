@@ -7,6 +7,18 @@ const IS_TEST =
   process.env.NODE_ENV === "test" || process.env.NODE_ENV === "testing";
 const IS_PRODUCTION = process.env.NODE_ENV === "production";
 
+function getPoolStats() {
+  try {
+    return {
+      totalConnections: pool.totalCount,
+      idleConnections: pool.idleCount,
+      activeConnections: pool.totalCount - pool.idleCount,
+    };
+  } catch (error) {
+    return { error: "Unable to get pool stats" };
+  }
+}
+
 /**
  * Health check endpoint
  * GET /api/health
@@ -41,6 +53,7 @@ router.get("/", async (req, res) => {
         used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
         total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024),
       },
+      connectionPool: getPoolStats(),
       stats: {
         users: parseInt(usersResult.rows[0].count),
         orders: parseInt(ordersResult.rows[0].count),

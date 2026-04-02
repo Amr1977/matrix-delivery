@@ -261,7 +261,15 @@ if (require.main === module) {
 
       // ... Additional endpoint logs omitted for brevity in entry point ...
 
-      // Signal PM2 that the application is ready
+      // Start server registry with round-robin health check
+      const serverUrl = `http://localhost:${PORT}`;
+      const {
+        startServerRegistry,
+        stopServerRegistry,
+      } = require("./services/serverRegistry");
+      startServerRegistry(pool, serverUrl).catch((err) => {
+        console.error("❌ Server registry failed to start:", err.message);
+      });
       if (process.send) {
         process.send("ready");
       }
@@ -281,6 +289,15 @@ if (require.main === module) {
 // Graceful shutdown
 process.on("SIGINT", async () => {
   console.log("\n🛑 Shutting down server...");
+
+  // Stop server registry
+  try {
+    const { stopServerRegistry } = require("./services/serverRegistry");
+    await stopServerRegistry();
+    console.log("✅ Server registry stopped");
+  } catch (err) {
+    console.error("Server registry shutdown error:", err.message);
+  }
 
   // Stop V2 failover registry (mark server unhealthy in Redis)
   if (registryStop) {

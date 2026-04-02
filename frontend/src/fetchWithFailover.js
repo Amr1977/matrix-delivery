@@ -6,13 +6,33 @@
 import { db } from "./firebase";
 import { collection, getDocs } from "firebase/firestore";
 
-const HEALTH_ENDPOINT = "/health";
+const HEALTH_ENDPOINT = "/api/health";
 const HEALTH_CHECK_TIMEOUT = 5000;
 const REQUEST_TIMEOUT_MS = 10000;
+const SERVER_LIST_REFRESH_INTERVAL = 60000;
 
 // Cache for sticky server selection
 let currentServer = null;
 let serverListPromise = null;
+let lastServerListRefresh = 0;
+
+/**
+ * Clear the cached server (call on failover)
+ */
+export function clearServerCache() {
+  currentServer = null;
+  serverListPromise = null;
+  lastServerListRefresh = 0;
+}
+
+/**
+ * Force refresh server list
+ */
+export async function refreshServerList() {
+  currentServer = null;
+  lastServerListRefresh = Date.now();
+  return getServerListFromFirestore();
+}
 
 /**
  * Fetch server list from Firestore
@@ -108,7 +128,18 @@ export async function fetchWithFailover(endpoint, options) {
   let serverUrl = currentServer;
 
   // If no sticky server, get one from Firestore
-  if (!serverUrl) {
+  // Also refresh if stale (>60 seconds)
+  const shouldRefresh =
+    !serverUrl ||
+    Date.now() - lastServerListRefresh > SERVER_LIST_REFRESH_INTERVAL;
+
+  if (!serverUrl || shouldRefresh) {
+    // Clear stale cache if needed
+    if (shouldRefresh && currentServer) {
+      console.info("[Failover] Server list stale, refreshing...");
+      currentServer = null;
+    }
+
     const serverList = await getServerListFromFirestore();
     const found = await findHealthyServer(serverList);
 
@@ -119,6 +150,7 @@ export async function fetchWithFailover(endpoint, options) {
     // Set as current sticky server
     serverUrl = found.url;
     currentServer = serverUrl;
+    lastServerListRefresh = Date.now();
     console.info(`[Failover] Selected sticky server: ${currentServer}`);
   }
 
@@ -144,25 +176,57 @@ export async function fetchWithFailover(endpoint, options) {
       return response;
     }
 
-    // Server responded with error - mark as failed and retry with fresh selection
-    console.warn(
-      `[Failover] ${serverUrl} returned ${response.status}, clearing sticky server`,
-    );
-    currentServer = null; // Clear sticky server on HTTP error
+    // Server responded with 5xx error - refresh server list before retry
+    if (response.status >= 500) {
+      console.warn(
+        `[Failover] ${serverUrl} returned ${response.status}, refreshing server list`,
+      );
+      currentServer = null;
+      lastServerListRefresh = 0; // Force refresh
 
-    // Recurse once to try with fresh server selection
-    return fetchWithFailover(endpoint, options);
+      const serverList = await getServerListFromFirestore();
+      const found = await findHealthyServer(serverList);
+
+      if (found) {
+        serverUrl = found.url;
+        currentServer = serverUrl;
+        lastServerListRefresh = Date.now();
+        console.info(`[Failover] Failover to: ${currentServer}`);
+
+        // Retry with new server
+        return fetchWithFailover(endpoint, { ...options, _retry: true });
+      }
+
+      throw new Error("NO_HEALTHY_SERVERS");
+    }
+
+    // 4xx errors - don't retry, just return
+    console.warn(`[Failover] ${serverUrl} returned ${response.status}`);
+    return response;
   } catch (error) {
     clearTimeout(timeout);
 
-    // Network error or timeout - mark server as failed and retry
+    // Network error or timeout - mark server as failed and refresh
     console.warn(
-      `[Failover] ${serverUrl} failed with error: ${error.message}, clearing sticky server`,
+      `[Failover] ${serverUrl} failed with error: ${error.message}, refreshing server list`,
     );
-    currentServer = null; // Clear sticky server on network error
+    currentServer = null;
+    lastServerListRefresh = 0; // Force refresh
 
-    // Recurse once to try with fresh server selection
-    return fetchWithFailover(endpoint, options);
+    // Try once more with fresh server
+    const serverList = await getServerListFromFirestore();
+    const found = await findHealthyServer(serverList);
+
+    if (found) {
+      serverUrl = found.url;
+      currentServer = serverUrl;
+      lastServerListRefresh = Date.now();
+      console.info(`[Failover] Failover to: ${currentServer}`);
+
+      return fetchWithFailover(endpoint, { ...options, _retry: true });
+    }
+
+    throw new Error("NO_HEALTHY_SERVERS");
   }
 }
 
