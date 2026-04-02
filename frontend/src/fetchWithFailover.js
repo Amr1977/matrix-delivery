@@ -104,20 +104,21 @@ export async function fetchWithFailover(endpoint, options) {
     throw new TypeError("idempotencyKey is required");
   }
 
-  // Use current sticky server if available and not marked for refresh
-  let serverToUse = currentServer;
+  // Resolve server URL (currentServer is stored as a string URL)
+  let serverUrl = currentServer;
 
   // If no sticky server, get one from Firestore
-  if (!serverToUse) {
+  if (!serverUrl) {
     const serverList = await getServerListFromFirestore();
-    serverToUse = await findHealthyServer(serverList);
+    const found = await findHealthyServer(serverList);
 
-    if (!serverToUse) {
+    if (!found) {
       throw new Error("NO_HEALTHY_SERVERS");
     }
 
     // Set as current sticky server
-    currentServer = serverToUse.url;
+    serverUrl = found.url;
+    currentServer = serverUrl;
     console.info(`[Failover] Selected sticky server: ${currentServer}`);
   }
 
@@ -125,7 +126,7 @@ export async function fetchWithFailover(endpoint, options) {
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
-    const response = await fetch(`${serverToUse.url}${endpoint}`, {
+    const response = await fetch(`${serverUrl}${endpoint}`, {
       ...options,
       signal: controller.signal,
       credentials: "include",
@@ -139,13 +140,13 @@ export async function fetchWithFailover(endpoint, options) {
     clearTimeout(timeout);
 
     if (response.ok) {
-      console.info(`[Failover] success: ${serverToUse.url}${endpoint}`);
+      console.info(`[Failover] success: ${serverUrl}${endpoint}`);
       return response;
     }
 
     // Server responded with error - mark as failed and retry with fresh selection
     console.warn(
-      `[Failover] ${serverToUse.url} returned ${response.status}, clearing sticky server`,
+      `[Failover] ${serverUrl} returned ${response.status}, clearing sticky server`,
     );
     currentServer = null; // Clear sticky server on HTTP error
 
@@ -156,7 +157,7 @@ export async function fetchWithFailover(endpoint, options) {
 
     // Network error or timeout - mark server as failed and retry
     console.warn(
-      `[Failover] ${serverToUse.url} failed with error: ${error.message}, clearing sticky server`,
+      `[Failover] ${serverUrl} failed with error: ${error.message}, clearing sticky server`,
     );
     currentServer = null; // Clear sticky server on network error
 
