@@ -181,7 +181,20 @@ const registerRuntimeProcessHandlers = () => {
     process.exit(1);
   });
 
-  process.on("unhandledRejection", (reason) => {
+  process.on("unhandledRejection", (reason, promise) => {
+    // Don't exit on Redis-related unhandled rejections - we have fallback
+    if (
+      reason &&
+      reason.message &&
+      (reason.message.includes("Redis") ||
+        reason.message.includes("ioredis") ||
+        reason.message.includes("Command timed out") ||
+        reason.message.includes("timeout"))
+    ) {
+      console.error("⚠️ UNHANDLED REJECTION (non-fatal):", reason.message);
+      logger.warn("⚠️ UNHANDLED REJECTION (non-fatal):", reason.message);
+      return; // Don't exit
+    }
     console.error("❌ UNHANDLED REJECTION:", reason);
     logger.error("❌ UNHANDLED REJECTION:", reason);
     process.exit(1);
