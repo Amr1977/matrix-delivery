@@ -145,11 +145,8 @@ async function startServerRegistry(pool, serverUrl) {
       logger.error("Health check cycle failed:", error.message);
     }
   }, HEALTH_CHECK_INTERVAL);
-}
-    }
-  }, HEALTH_CHECK_INTERVAL);
 
-  logger.info("Server registry started with round-robin health check");
+  logger.info("Server registry started");
 }
 
 async function stopServerRegistry() {
