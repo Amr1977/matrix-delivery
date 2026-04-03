@@ -45,9 +45,10 @@ if (process.env.REDIS_URL && process.env.ENABLE_REDIS === "true") {
     logger.warn("⚠️ Redis error:", err.message);
   });
 
-  // Catch any unhandled promise rejections from Redis
-  redisClient.catch((err) => {
-    logger.warn("⚠️ Redis unhandled error (caught):", err.message);
+  // Catch any unhandled promise rejections from Redis operations
+  // Using process-level handler instead of client.catch()
+  redisClient.on("close", () => {
+    logger.warn("⚠️ Redis connection closed");
   });
 } else {
   if (isProduction && !process.env.REDIS_URL) {
