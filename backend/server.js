@@ -276,21 +276,16 @@ if (require.main === module) {
 
       // Start server registry with round-robin health check
       const serverUrl = process.env.SERVER_URL || `http://localhost:${PORT}`;
-      console.log(`🚀 About to start server registry with URL: ${serverUrl}`);
       const {
         startServerRegistry,
         stopServerRegistry,
       } = require("./services/serverRegistry");
-      console.log(`🚀 Calling startServerRegistry...`);
       startServerRegistry(pool, serverUrl).catch((err) => {
         console.error("❌ Server registry failed to start:", err.message);
       });
-      console.log(`🚀 startServerRegistry called, checking process.send...`);
       if (process.send) {
-        console.log(`🚀 Sending ready signal...`);
         process.send("ready");
       }
-      console.log(`🚀 Server startup complete!`);
     });
   };
 
