@@ -262,7 +262,7 @@ if (require.main === module) {
       // ... Additional endpoint logs omitted for brevity in entry point ...
 
       // Start server registry with round-robin health check
-      const serverUrl = `http://localhost:${PORT}`;
+      const serverUrl = process.env.SERVER_URL || `http://localhost:${PORT}`;
       const {
         startServerRegistry,
         stopServerRegistry,

@@ -26,7 +26,10 @@ function generateServerId() {
 async function registerServer(serverUrl) {
   const firestore = getFirestoreDb();
   myServerUrl = serverUrl;
-  myServerId = process.env.SERVER_ID || generateServerId();
+  myServerId =
+    process.env.FIRESTORE_SERVER_ID ||
+    process.env.SERVER_ID ||
+    generateServerId();
 
   const serverDoc = firestore.collection(SERVERS_COLLECTION).doc(myServerId);
 
@@ -38,7 +41,9 @@ async function registerServer(serverUrl) {
     healthy: true,
   });
 
-  logger.info(`Server registered: ${myServerId} at ${serverUrl}`);
+  logger.info(
+    `Server registered: ${myServerId} at ${serverUrl} (env: ${process.env.SERVER_URL})`,
+  );
 
   return myServerId;
 }
