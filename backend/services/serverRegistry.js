@@ -1,4 +1,4 @@
-const admin = require("./config/firebase-admin");
+const admin = require("../config/firebase-admin");
 const logger = require("../config/logger");
 
 const FIRESTORE_PROJECT_ID =
