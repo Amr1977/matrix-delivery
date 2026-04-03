@@ -31,62 +31,52 @@ async function registerServer(serverUrl) {
     process.env.SERVER_ID ||
     generateServerId();
 
-  const serverDoc = firestore.collection(SERVERS_COLLECTION).doc(myServerId);
-
-  await serverDoc.set({
-    serverId: myServerId,
-    url: serverUrl,
-    registeredAt: admin.firestore.Timestamp.now(),
-    lastHeartbeat: admin.firestore.Timestamp.now(),
-    healthy: true,
-  });
-
-  logger.info(
-    `Server registered: ${myServerId} at ${serverUrl} (env: ${process.env.SERVER_URL})`,
-  );
-
-  return myServerId;
-}
-
-async function updateHeartbeat() {
-  if (!myServerId) return;
-
   try {
-    const firestore = getFirestoreDb();
-    await firestore.collection(SERVERS_COLLECTION).doc(myServerId).update({
-      lastHeartbeat: admin.firestore.Timestamp.now(),
-      healthy: true,
-    });
+    // First, clean up any existing entries with same URL
+    const existingSnapshot = await firestore
+      .collection(SERVERS_COLLECTION)
+      .where("url", "==", serverUrl)
+      .get();
+
+    for (const doc of existingSnapshot.docs) {
+      if (doc.id !== myServerId) {
+        await doc.ref.delete();
+        logger.info(`Removed duplicate server entry: ${doc.id}`);
+      }
+    }
+
+    // Check if already registered with this serverId
+    const existingDoc = await firestore
+      .collection(SERVERS_COLLECTION)
+      .doc(myServerId)
+      .get();
+
+    if (existingDoc.exists) {
+      // Already registered, just update heartbeat
+      await existingDoc.ref.update({
+        lastHeartbeat: admin.firestore.Timestamp.now(),
+        healthy: true,
+      });
+      logger.info(
+        `Server already registered: ${myServerId} at ${serverUrl}, heartbeat updated`,
+      );
+    } else {
+      // Register new server
+      await firestore.collection(SERVERS_COLLECTION).doc(myServerId).set({
+        serverId: myServerId,
+        url: serverUrl,
+        registeredAt: admin.firestore.Timestamp.now(),
+        lastHeartbeat: admin.firestore.Timestamp.now(),
+        healthy: true,
+      });
+      logger.info(`Server registered: ${myServerId} at ${serverUrl}`);
+    }
+
+    return myServerId;
   } catch (error) {
-    logger.error("Heartbeat update failed:", error.message);
+    logger.error("Server registration failed:", error.message);
+    throw error;
   }
-}
-
-async function getMyPosition(serverId) {
-  const firestore = getFirestoreDb();
-  const snapshot = await firestore
-    .collection(SERVERS_COLLECTION)
-    .orderBy("serverId")
-    .get();
-
-  const servers = snapshot.docs.map((doc) => doc.id);
-  return servers.indexOf(serverId) + 1;
-}
-
-async function shouldRunHealthCheck() {
-  if (!myServerId) return false;
-
-  const firestore = getFirestoreDb();
-  const snapshot = await firestore.collection(SERVERS_COLLECTION).get();
-  const totalServers = snapshot.docs.length;
-
-  if (totalServers === 0) return false;
-
-  const myPosition = await getMyPosition(myServerId);
-  const currentMinute = Math.floor(Date.now() / 60000);
-  const checkPosition = (currentMinute % totalServers) + 1;
-
-  return myPosition === checkPosition;
 }
 
 async function removeServer(serverId) {
@@ -147,15 +137,15 @@ async function startServerRegistry(pool, serverUrl) {
 
   await warmupDatabase(pool);
 
+  // Only do periodic health checks to clean up dead servers - no heartbeat updates
   healthCheckInterval = setInterval(async () => {
     try {
-      const shouldCheck = await shouldRunHealthCheck();
-      if (shouldCheck) {
-        await healthCheckAndClean();
-      }
-      await updateHeartbeat();
+      await healthCheckAndClean();
     } catch (error) {
       logger.error("Health check cycle failed:", error.message);
+    }
+  }, HEALTH_CHECK_INTERVAL);
+}
     }
   }, HEALTH_CHECK_INTERVAL);
 
@@ -190,5 +180,4 @@ module.exports = {
   stopServerRegistry,
   getActiveServers,
   registerServer,
-  updateHeartbeat,
 };
