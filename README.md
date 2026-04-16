@@ -1,4 +1,4 @@
-# 🦸‍♂️ Matrix Heroes Platform
+# 🚚 Matrix Delivery Platform
 
 > "Your trusted heroes for delivery and ride-hailing - promoting freedom, transparency, fairness, and heroic collaboration."
 
@@ -239,7 +239,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Contact
 
 - **Email:** amr.lotfy.othman@gmail.com
-- **Website:** https://matrix-heroes.web.app
+- **Website:** https://matrix-delivery.com
 
 ---
 
