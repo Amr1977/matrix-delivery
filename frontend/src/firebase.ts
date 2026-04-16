@@ -72,7 +72,7 @@ const getEnvironment = () => {
   return "production";
 };
 
-const environment = getEnvironment();
+const environment = getEnvironment() as keyof typeof firebaseConfigs;
 const firebaseConfig = firebaseConfigs[environment];
 
 // Initialize Firebase
