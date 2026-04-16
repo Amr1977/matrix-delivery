@@ -27,7 +27,8 @@ log-analysis-*.md
 .env
 .env.*
 !.env.example
-!.env.testing
+# Environment files
+.env.testing
 secrets_*.txt
 *.key
 *.pem
