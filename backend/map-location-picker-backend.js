@@ -5,6 +5,7 @@ const logger = require("./config/logger");
 const { verifyToken } = require("./middleware/auth");
 const orderService = require("./services/orderService");
 const { getRouteFromCache, setRouteCache } = require("./utils/cache");
+const { routeCalculationRateLimit } = require("./middleware/rateLimit");
 
 // Helper functions for ID generation (same as OrderService)
 const generateId = () => {
@@ -290,154 +291,158 @@ module.exports = (app, pool, jwt) => {
   });
 
   // Calculate route between two points
-  app.post("/api/locations/calculate-route", async (req, res) => {
-    try {
-      const { pickup, delivery } = req.body;
-
-      if (
-        pickup?.lat === undefined ||
-        pickup?.lng === undefined ||
-        delivery?.lat === undefined ||
-        delivery?.lng === undefined
-      ) {
-        return res
-          .status(400)
-          .json({ error: "Pickup and delivery coordinates are required" });
-      }
-
-      // Validate coordinates range
-      if (
-        Math.abs(pickup.lat) > 90 ||
-        Math.abs(pickup.lng) > 180 ||
-        Math.abs(delivery.lat) > 90 ||
-        Math.abs(delivery.lng) > 180
-      ) {
-        return res.status(400).json({ error: "Invalid coordinates" });
-      }
-      // Check cache first
-      const cachedRoute = getRouteFromCache(pickup, delivery);
-      if (cachedRoute) {
-        // console.log('Serving route from cache');
-        return res.json(cachedRoute);
-      }
-
-      // Calculate straight-line distance
-      const straightDistance = calculateDistance(
-        pickup.lat,
-        pickup.lng,
-        delivery.lat,
-        delivery.lng,
-      );
-
-      // Try to get actual route from OSRM
-      let routeDistance = straightDistance;
-      let routeDuration = null;
-      let routePolyline = null;
-      let osrmSuccess = false;
-
+  app.post(
+    "/api/locations/calculate-route",
+    routeCalculationRateLimit,
+    async (req, res) => {
       try {
-        // Use environment variable for OSRM server, default to public server
-        const osrmServer =
-          process.env.OSRM_SERVER_URL || "http://router.project-osrm.org";
-        const osrmUrl = `${osrmServer}/route/v1/driving/${pickup.lng},${pickup.lat};${delivery.lng},${delivery.lat}?overview=full&geometries=polyline`;
+        const { pickup, delivery } = req.body;
 
-        console.log(
-          `Calculating route via OSRM: ${pickup.lat},${pickup.lng} -> ${delivery.lat},${delivery.lng}`,
-        );
-
-        const osrmResponse = await fetch(osrmUrl, {
-          headers: {
-            "User-Agent": "Matrix-Delivery-App/1.0",
-          },
-        });
-
-        if (osrmResponse.ok) {
-          const osrmData = await osrmResponse.json();
-
-          if (
-            osrmData.code === "Ok" &&
-            osrmData.routes &&
-            osrmData.routes.length > 0
-          ) {
-            const route = osrmData.routes[0];
-            routeDistance = route.distance / 1000; // Convert meters to km
-            routeDuration = route.duration / 60; // Convert seconds to minutes
-            routePolyline = route.geometry;
-            osrmSuccess = true;
-
-            console.log(
-              `OSRM route calculated: ${routeDistance.toFixed(2)}km, ${routeDuration.toFixed(0)}min`,
-            );
-          } else {
-            console.warn("OSRM returned no routes:", osrmData.code);
-          }
-        } else {
-          console.warn(`OSRM API error: HTTP ${osrmResponse.status}`);
+        if (
+          pickup?.lat === undefined ||
+          pickup?.lng === undefined ||
+          delivery?.lat === undefined ||
+          delivery?.lng === undefined
+        ) {
+          return res
+            .status(400)
+            .json({ error: "Pickup and delivery coordinates are required" });
         }
-      } catch (osrmError) {
-        console.warn(
-          "OSRM routing failed, using straight-line distance:",
-          osrmError.message,
+
+        // Validate coordinates range
+        if (
+          Math.abs(pickup.lat) > 90 ||
+          Math.abs(pickup.lng) > 180 ||
+          Math.abs(delivery.lat) > 90 ||
+          Math.abs(delivery.lng) > 180
+        ) {
+          return res.status(400).json({ error: "Invalid coordinates" });
+        }
+        // Check cache first
+        const cachedRoute = getRouteFromCache(pickup, delivery);
+        if (cachedRoute) {
+          // console.log('Serving route from cache');
+          return res.json(cachedRoute);
+        }
+
+        // Calculate straight-line distance
+        const straightDistance = calculateDistance(
+          pickup.lat,
+          pickup.lng,
+          delivery.lat,
+          delivery.lng,
         );
-        // Estimate route distance as straight-line * 1.3 (typical urban factor)
-        routeDistance = straightDistance * 1.3;
+
+        // Try to get actual route from OSRM
+        let routeDistance = straightDistance;
+        let routeDuration = null;
+        let routePolyline = null;
+        let osrmSuccess = false;
+
+        try {
+          // Use environment variable for OSRM server, default to public server
+          const osrmServer =
+            process.env.OSRM_SERVER_URL || "http://router.project-osrm.org";
+          const osrmUrl = `${osrmServer}/route/v1/driving/${pickup.lng},${pickup.lat};${delivery.lng},${delivery.lat}?overview=full&geometries=polyline`;
+
+          console.log(
+            `Calculating route via OSRM: ${pickup.lat},${pickup.lng} -> ${delivery.lat},${delivery.lng}`,
+          );
+
+          const osrmResponse = await fetch(osrmUrl, {
+            headers: {
+              "User-Agent": "Matrix-Delivery-App/1.0",
+            },
+          });
+
+          if (osrmResponse.ok) {
+            const osrmData = await osrmResponse.json();
+
+            if (
+              osrmData.code === "Ok" &&
+              osrmData.routes &&
+              osrmData.routes.length > 0
+            ) {
+              const route = osrmData.routes[0];
+              routeDistance = route.distance / 1000; // Convert meters to km
+              routeDuration = route.duration / 60; // Convert seconds to minutes
+              routePolyline = route.geometry;
+              osrmSuccess = true;
+
+              console.log(
+                `OSRM route calculated: ${routeDistance.toFixed(2)}km, ${routeDuration.toFixed(0)}min`,
+              );
+            } else {
+              console.warn("OSRM returned no routes:", osrmData.code);
+            }
+          } else {
+            console.warn(`OSRM API error: HTTP ${osrmResponse.status}`);
+          }
+        } catch (osrmError) {
+          console.warn(
+            "OSRM routing failed, using straight-line distance:",
+            osrmError.message,
+          );
+          // Estimate route distance as straight-line * 1.3 (typical urban factor)
+          routeDistance = straightDistance * 1.3;
+        }
+
+        // Calculate estimates for all vehicle types using actual or estimated distance
+        const estimates = {
+          walker: {
+            duration_minutes:
+              routeDuration || estimateDuration(routeDistance, "walker"),
+            speed_kmh: 5,
+            icon: "🚶",
+          },
+          bicycle: {
+            duration_minutes: routeDuration
+              ? Math.ceil(routeDuration * 0.6)
+              : estimateDuration(routeDistance, "bicycle"),
+            speed_kmh: 15,
+            icon: "🚲",
+          },
+          car: {
+            duration_minutes:
+              routeDuration || estimateDuration(routeDistance, "car"),
+            speed_kmh: 25,
+            icon: "🚗",
+          },
+          van: {
+            duration_minutes: routeDuration
+              ? Math.ceil(routeDuration * 1.25)
+              : estimateDuration(routeDistance, "van"),
+            speed_kmh: 20,
+            icon: "🚐",
+          },
+          truck: {
+            duration_minutes: routeDuration
+              ? Math.ceil(routeDuration * 1.4)
+              : estimateDuration(routeDistance, "truck"),
+            speed_kmh: 18,
+            icon: "🚛",
+          },
+        };
+
+        const responseData = {
+          distance_km: parseFloat(routeDistance.toFixed(2)),
+          straight_line_distance_km: parseFloat(straightDistance.toFixed(2)),
+          polyline: routePolyline,
+          estimates,
+          route_found: osrmSuccess,
+          osrm_used: osrmSuccess,
+        };
+
+        // Cache the result
+        setRouteCache(pickup, delivery, responseData);
+
+        res.json(responseData);
+      } catch (error) {
+        console.error("Route calculation error:", error);
+        res.status(500).json({ error: "Failed to calculate route" });
       }
-
-      // Calculate estimates for all vehicle types using actual or estimated distance
-      const estimates = {
-        walker: {
-          duration_minutes:
-            routeDuration || estimateDuration(routeDistance, "walker"),
-          speed_kmh: 5,
-          icon: "🚶",
-        },
-        bicycle: {
-          duration_minutes: routeDuration
-            ? Math.ceil(routeDuration * 0.6)
-            : estimateDuration(routeDistance, "bicycle"),
-          speed_kmh: 15,
-          icon: "🚲",
-        },
-        car: {
-          duration_minutes:
-            routeDuration || estimateDuration(routeDistance, "car"),
-          speed_kmh: 25,
-          icon: "🚗",
-        },
-        van: {
-          duration_minutes: routeDuration
-            ? Math.ceil(routeDuration * 1.25)
-            : estimateDuration(routeDistance, "van"),
-          speed_kmh: 20,
-          icon: "🚐",
-        },
-        truck: {
-          duration_minutes: routeDuration
-            ? Math.ceil(routeDuration * 1.4)
-            : estimateDuration(routeDistance, "truck"),
-          speed_kmh: 18,
-          icon: "🚛",
-        },
-      };
-
-      const responseData = {
-        distance_km: parseFloat(routeDistance.toFixed(2)),
-        straight_line_distance_km: parseFloat(straightDistance.toFixed(2)),
-        polyline: routePolyline,
-        estimates,
-        route_found: osrmSuccess,
-        osrm_used: osrmSuccess,
-      };
-
-      // Cache the result
-      setRouteCache(pickup, delivery, responseData);
-
-      res.json(responseData);
-    } catch (error) {
-      console.error("Route calculation error:", error);
-      res.status(500).json({ error: "Failed to calculate route" });
-    }
-  });
+    },
+  );
 
   // Get/Update delivery agent preferences
   app.get("/api/delivery-agent/preferences", verifyToken, async (req, res) => {
