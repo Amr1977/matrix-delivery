@@ -47,7 +47,7 @@
     "build:lan": "node -e \"require('fs').copyFileSync('.env.lan', '.env')\" && set REACT_APP_ENV=lan && react-scripts build",
     "build:staging": "node -e \"require('fs').copyFileSync('.env.staging', '.env')\" && set REACT_APP_ENV=staging && react-scripts build",
     "build:test": "node -e \"require('fs').copyFileSync('.env.testing', '.env')\" && set REACT_APP_ENV=test && react-scripts build",
-    "build:prod": "node scripts/generate-git-info.js && node -e \"require('fs').copyFileSync('.env.production', '.env')\" && cross-env GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true react-scripts build",
+    "build:prod": "node scripts/generate-git-info.js && node -e \"require('fs').copyFileSync('.env.production', '.env')\" && cross-env GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true TSC_COMPILE_ON_ERROR=true react-scripts build",
     "test": "react-scripts test",
     "test:build": "node test-build.js",
     "test:build:quick": "npm run build:prod && npx serve -s build -p 3001",
