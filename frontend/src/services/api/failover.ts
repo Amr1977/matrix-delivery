@@ -3,10 +3,10 @@
  * Provides automatic server failover with sticky session until failure
  */
 
-import { db } from "../firebase";
+import { db } from "../../firebase";
 import { collection, getDocs } from "firebase/firestore";
-import { ApiClient } from "./api/client";
-import type { ApiError } from "./api/types";
+import { ApiClient } from "./client";
+import type { ApiError } from "./types";
 
 const HEALTH_ENDPOINT = "/api/health";
 const HEALTH_CHECK_TIMEOUT = 5000;
