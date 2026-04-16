@@ -2,10 +2,10 @@
 
 > "Your trusted heroes for delivery and ride-hailing - promoting freedom, transparency, fairness, and heroic collaboration."
 
-![License: MIT](https://img.shields.io/github/license/Amr1977/matrix-heroes?label=license)
-![Stars](https://img.shields.io/github/stars/Amr1977/matrix-heroes?style=social)
-![Forks](https://img.shields.io/github/forks/Amr1977/matrix-heroes?style=social)
-![Build](https://img.shields.io/github/actions/workflow/status/Amr1977/matrix-heroes/.github/workflows/firebase-hosting-deploy.yml?label=build)
+![License: MIT](https://img.shields.io/github/license/Amr1977/matrix-delivery?label=license)
+![Stars](https://img.shields.io/github/stars/Amr1977/matrix-delivery?style=social)
+![Forks](https://img.shields.io/github/forks/Amr1977/matrix-delivery?style=social)
+![Build](https://img.shields.io/github/actions/workflow/status/Amr1977/matrix-delivery/.github/workflows/firebase-hosting-deploy.yml?label=build)
 <a href="https://github.com/Amr1977/matrix-delivery"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen" alt="PRs Welcome"></a>
 <a href="https://github.com/sponsors/Amr1977"><img src="https://img.shields.io/badge/GitHub Sponsors-Sponsor-red" alt="GitHub Sponsors"></a>
 
