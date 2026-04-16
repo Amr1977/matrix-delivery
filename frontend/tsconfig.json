@@ -18,11 +18,7 @@
     "checkJs": false,
     "jsx": "react-jsx",
     "baseUrl": "src",
-    "paths": {
-      "../firebase": ["./firebase.js"],
-      "../firebase.js": ["./firebase.js"]
-    },
     "typeRoots": ["./node_modules/@types", "./src/types"]
   },
-  "include": ["src", "src/types"]
+  "include": ["src"]
 }

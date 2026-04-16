@@ -1,4 +1,3 @@
-// Firebase module declarations
 declare module "../firebase" {
   const app: any;
   const db: any;

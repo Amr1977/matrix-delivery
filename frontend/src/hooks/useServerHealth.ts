@@ -47,7 +47,7 @@ export const useServerHealth = (
       const snapshot = await getDocs(serversCol);
       const serverList: ServerInfo[] = [];
 
-      snapshot.forEach((doc) => {
+      snapshot.forEach((doc: any) => {
         const data = doc.data();
         if (data.url && data.healthy) {
           let url = data.url;
@@ -203,7 +203,7 @@ export const useServerHealth = (
     const serversCol = collection(db, "servers");
     const unsubscribe = onSnapshot(serversCol, (snapshot) => {
       const serverList: ServerInfo[] = [];
-      snapshot.forEach((doc) => {
+      snapshot.forEach((doc: any) => {
         const data = doc.data();
         if (data.url && data.healthy) {
           let url = data.url;
