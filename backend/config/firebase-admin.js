@@ -7,14 +7,16 @@ let serviceAccount = {};
 const credsPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
 if (credsPath && fs.existsSync(credsPath)) {
   try {
-    const credsContent = fs.readFileSync(
-      path.isAbsolute(credsPath)
-        ? credsPath
-        : path.resolve(__dirname, "..", credsPath),
-      "utf8",
-    );
+    const absolutePath = path.isAbsolute(credsPath)
+      ? credsPath
+      : path.resolve(__dirname, "..", credsPath);
+    console.log("📁 Loading credentials from:", absolutePath);
+    const credsContent = fs.readFileSync(absolutePath, "utf8");
     serviceAccount = JSON.parse(credsContent);
-    console.log("✅ Loaded Firebase credentials from:", credsPath);
+    console.log(
+      "✅ Loaded Firebase credentials, project:",
+      serviceAccount.project_id,
+    );
   } catch (error) {
     console.error(
       "❌ Failed to load GOOGLE_APPLICATION_CREDENTIALS:",
