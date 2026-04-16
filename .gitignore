@@ -27,6 +27,13 @@ log-analysis-*.md
 .env
 .env.*
 !.env.example
+backend/.env
+backend/.env.production
+backend/.env.production.gcp
+backend/.env.production.relaxed
+backend/.env.develop
+backend/.env.development
+backend/.env.test
 # Environment files
 .env.testing
 secrets_*.txt
