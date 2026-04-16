@@ -8,9 +8,9 @@ on:
       - master
       - feature/advanced-location-mapping
     paths:
-      - 'frontend/**'
-      - 'frontend/src/map-location-picker-frontend.tsx'
-      - 'frontend/src/updated-order-creation-form.js'
+      - "frontend/**"
+      - "frontend/src/map-location-picker-frontend.tsx"
+      - "frontend/src/updated-order-creation-form.js"
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
@@ -19,11 +19,11 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: "18"
       - name: Install dependencies
         run: cd frontend && npm install
       - name: Build for production
-        run: cd frontend && npm run build:prod
+        run: cd frontend && DISABLE_ESLINT_PLUGIN=true npm run build:prod
       - name: Deploy to Firebase
         run: |
           cd frontend

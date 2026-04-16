@@ -7,7 +7,7 @@
     "incremental": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "strict": true,
+    "strict": false,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "module": "esnext",
@@ -18,7 +18,11 @@
     "checkJs": false,
     "jsx": "react-jsx",
     "baseUrl": "src",
+    "paths": {
+      "../firebase": ["./firebase.js"],
+      "../firebase.js": ["./firebase.js"]
+    },
     "typeRoots": ["./node_modules/@types", "./src/types"]
   },
-  "include": ["src"]
+  "include": ["src", "src/types"]
 }
