@@ -280,9 +280,18 @@ if (require.main === module) {
         startServerRegistry,
         stopServerRegistry,
       } = require("./services/serverRegistry");
-      startServerRegistry(pool, serverUrl).catch((err) => {
-        console.error("❌ Server registry failed to start:", err.message);
-      });
+      // Only start registry if GOOGLE_APPLICATION_CREDENTIALS file exists
+      const { existsSync } = require("fs");
+      const credsPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+      if (credsPath && existsSync(credsPath)) {
+        startServerRegistry(pool, serverUrl).catch((err) => {
+          console.error("❌ Server registry failed to start:", err.message);
+        });
+      } else {
+        console.warn(
+          "⚠️ Server registry disabled - no GOOGLE_APPLICATION_CREDENTIALS file",
+        );
+      }
       if (process.send) {
         process.send("ready");
       }
