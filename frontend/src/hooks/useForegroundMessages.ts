@@ -1,74 +1,80 @@
-import { useEffect, useRef } from 'react';
-import { onMessage, getMessaging, isSupported } from 'firebase/messaging';
-import { app } from '../firebase';
+import { useEffect, useRef } from "react";
+import { onMessage, getMessaging, isSupported } from "@firebase/messaging";
+import { app } from "../firebase";
 
 interface ForegroundMessage {
-    title?: string;
-    body?: string;
-    data?: Record<string, string>;
+  title?: string;
+  body?: string;
+  data?: Record<string, string>;
 }
 
-export function useForegroundMessages(onMessageCallback?: (message: ForegroundMessage) => void) {
-    const onMessageCallbackRef = useRef(onMessageCallback);
-    
-    // Update ref when callback changes
-    useEffect(() => {
-        onMessageCallbackRef.current = onMessageCallback;
-    }, [onMessageCallback]);
+export function useForegroundMessages(
+  onMessageCallback?: (message: ForegroundMessage) => void,
+) {
+  const onMessageCallbackRef = useRef(onMessageCallback);
 
-    useEffect(() => {
-        let unsubscribe: (() => void) | null = null;
-        let messagingInstance: any = null;
+  // Update ref when callback changes
+  useEffect(() => {
+    onMessageCallbackRef.current = onMessageCallback;
+  }, [onMessageCallback]);
 
-        const initMessaging = async () => {
-            try {
-                const supported = await isSupported();
-                if (!supported || typeof window === 'undefined') {
-                    console.log('Firebase Messaging not supported in this browser');
-                    return;
-                }
+  useEffect(() => {
+    let unsubscribe: (() => void) | null = null;
+    let messagingInstance: any = null;
 
-                messagingInstance = getMessaging(app);
-                
-                unsubscribe = onMessage(messagingInstance, (payload) => {
-                    const { title, body } = payload.notification || {};
-                    const data = payload.data || {};
+    const initMessaging = async () => {
+      try {
+        const supported = await isSupported();
+        if (!supported || typeof window === "undefined") {
+          console.log("Firebase Messaging not supported in this browser");
+          return;
+        }
 
-                    console.log('Foreground push received:', payload);
+        messagingInstance = getMessaging(app);
 
-                    // Call the callback if provided
-                    if (onMessageCallbackRef.current) {
-                        onMessageCallbackRef.current({ title, body, data });
-                    }
+        unsubscribe = onMessage(messagingInstance, (payload) => {
+          const { title, body } = payload.notification || {};
+          const data = payload.data || {};
 
-                    // Show browser notification if supported
-                    if (title && Notification.permission === 'granted') {
-                        new Notification(title, {
-                            body: body || '',
-                            icon: '/defaulticon.png'
-                        });
-                    }
+          console.log("Foreground push received:", payload);
 
-                    // Handle specific message types
-                    if (data.type === 'ORDER_ASSIGNED') {
-                        window.dispatchEvent(new CustomEvent('order:assigned', { detail: data }));
-                    }
+          // Call the callback if provided
+          if (onMessageCallbackRef.current) {
+            onMessageCallbackRef.current({ title, body, data });
+          }
 
-                    if (data.type === 'NEW_MESSAGE') {
-                        window.dispatchEvent(new CustomEvent('chat:message', { detail: data }));
-                    }
-                });
-            } catch (error) {
-                console.warn('Failed to initialize Firebase Messaging:', error);
-            }
-        };
+          // Show browser notification if supported
+          if (title && Notification.permission === "granted") {
+            new Notification(title, {
+              body: body || "",
+              icon: "/defaulticon.png",
+            });
+          }
 
-        initMessaging();
+          // Handle specific message types
+          if (data.type === "ORDER_ASSIGNED") {
+            window.dispatchEvent(
+              new CustomEvent("order:assigned", { detail: data }),
+            );
+          }
 
-        return () => {
-            if (unsubscribe) {
-                unsubscribe();
-            }
-        };
-    }, []);
+          if (data.type === "NEW_MESSAGE") {
+            window.dispatchEvent(
+              new CustomEvent("chat:message", { detail: data }),
+            );
+          }
+        });
+      } catch (error) {
+        console.warn("Failed to initialize Firebase Messaging:", error);
+      }
+    };
+
+    initMessaging();
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, []);
 }
