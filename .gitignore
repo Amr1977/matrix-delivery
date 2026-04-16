@@ -98,4 +98,36 @@ frontend/src/git-info.json
 # Test Reports and Results
 frontend/smoke-tests/report/
 frontend/test-results/
+test-results/
 test-results.json
+test-results/
+
+# Debug and test scripts
+scripts/test_*.py
+scripts/capture-console.py
+scripts/inspect_page.py
+scripts/main.*.js
+scripts/find-admin.js
+
+# Test screenshots
+test-results/*.png
+test-results/console-logs.json
+
+# Security reports
+security_report.txt
+security_report.zip
+*_report.txt
+
+# Kilo AI agent files
+.kilo/
+.kiro/
+
+# AutoClaude files
+.autoclaude/
+
+# Screenshots and debug files
+scripts/screenshots/
+
+# Test results
+test-results/
+test-results/.last-run.json
