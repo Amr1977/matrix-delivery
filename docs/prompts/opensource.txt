@@ -1,0 +1,154 @@
+You are a world-class senior security engineer performing a full pre-open-source security audit on this local repository. Your mission: identify and eliminate every possible security leak before this repo is made public on GitHub. Be thorough, methodical, and assume nothing is safe until proven otherwise. Work phase by phase. After each phase, report what you found and what you changed. Never skip a phase.
+
+---
+
+## PHASE 1 — Secrets & credentials scan
+
+Install and run `trufflehog filesystem .` and `gitleaks detect --source . --no-git` on the entire repository. Also run `grep -rE` patterns for:
+- API keys: patterns like `sk-`, `AIza`, `AKIA`, `xoxb-`, `xoxp-`, `ghp_`, `gho_`, `github_pat_`, `glpat-`
+- Passwords and secrets in variable names: `password`, `passwd`, `secret`, `token`, `api_key`, `apikey`, `auth_token`, `access_token`, `private_key`, `client_secret`
+- Connection strings: `mongodb://`, `postgresql://`, `mysql://`, `redis://`, `amqp://`, anything containing `@` with a host pattern
+- Private keys: `-----BEGIN RSA PRIVATE KEY-----`, `-----BEGIN EC PRIVATE KEY-----`, `-----BEGIN OPENSSH PRIVATE KEY-----`, `-----BEGIN PGP PRIVATE KEY-----`
+- JWT secrets and base64-encoded blobs that look like tokens
+- Cloud provider credentials: AWS, GCP, Azure patterns
+- .env files: list every .env, .env.local, .env.production, .env.staging file found anywhere in the tree
+
+For each finding:
+1. Show the file path and line number
+2. Redact and replace with a safe placeholder (e.g. `YOUR_API_KEY_HERE`)
+3. Add it to .gitignore if it's a file that should never be committed
+4. Generate a secrets-audit-report.md summarising all findings
+
+---
+
+## PHASE 2 — Git history purge
+
+The git history is just as dangerous as the current files. Perform the following:
+
+1. Run `git log --all --full-history -- "**/.env*"` and list every sensitive file ever committed
+2. Run `trufflehog git file://. --json` to scan the full commit history for secrets
+3. For any secrets or sensitive files found in history, use `git filter-repo` (preferred over BFG) to permanently remove them:
+   - `git filter-repo --path  --invert-paths` for sensitive files
+   - `git filter-repo --replace-text expressions.txt` for inline secrets (create expressions.txt with regex replacements)
+4. List every commit author name and email exposed in the log with `git log --format="%ae %an" | sort -u` — flag any personal or internal email addresses and ask me whether to rewrite author identity
+5. Check for and remove any large binary files, database dumps (.sql, .dump, .db, .sqlite), or backup files (.bak, .backup) in history
+6. After rewriting, force-push and verify with `git log --oneline` that history looks clean
+
+Warn me explicitly: after this phase, all existing forks/clones will diverge. This is expected and necessary.
+
+---
+
+## PHASE 3 — Sensitive files & data inventory
+
+Scan the entire working tree and identify:
+
+1. **Config files**: List all *.config.js, *.config.ts, settings.py, application.yml, application.properties, appsettings.json, web.config — review each for hardcoded values
+2. **Certificate and key files**: *.pem, *.key, *.crt, *.p12, *.pfx, *.jks, *.keystore — these must NEVER be committed
+3. **Database files**: *.sql, *.sqlite, *.db, *.mdb, *.dump — remove and add to .gitignore
+4. **Log files**: *.log, logs/ directories — scan for PII or credentials within them, then remove
+5. **IDE and OS artifacts**: .DS_Store, Thumbs.db, .idea/, .vscode/settings.json (may contain tokens), *.suo — add all to .gitignore
+6. **Infrastructure secrets**: terraform.tfvars, *.tfstate, *.tfstate.backup, kubeconfig, kube/config — these are critical
+7. **CI/CD files**: .travis.yml, .circleci/config.yml, .github/workflows/*.yml — check for hardcoded secrets, ensure they use secret references (e.g. `${{ secrets.MY_SECRET }}`) not inline values
+8. **Package lock files**: check package-lock.json, yarn.lock, Pipfile.lock for any private registry URLs or auth tokens embedded
+
+For each category: list found files, assess risk level (critical/high/medium), take action (delete, redact, or add to .gitignore), and explain why.
+
+---
+
+## PHASE 4 — Code security & dependency audit
+
+1. **Hardcoded internal references**: grep for internal hostnames, IPs (192.168.x.x, 10.x.x.x, 172.16-31.x.x), internal domain names (*.internal, *.corp, *.local, *.lan), internal URLs, Jira/Confluence/Slack workspace URLs, internal email domains — replace with generic examples or environment variables
+
+2. **Dependency vulnerabilities**:
+   - Run `npm audit --audit-level=high` (or `yarn audit`) for Node projects
+   - Run `pip-audit` or `safety check` for Python projects
+   - Run `bundle audit` for Ruby, `cargo audit` for Rust, `mvn dependency-check:check` for Java
+   - List all HIGH and CRITICAL CVEs found and whether they're in production dependencies
+   - Flag any dependencies fetched from private registries
+
+3. **Dangerous code patterns**: search for:
+   - `eval(`, `exec(`, `__import__(`, `subprocess.call(`, `os.system(` with user input
+   - SQL queries built with string concatenation (SQLi risk)
+   - `pickle.loads(`, `yaml.load(` without SafeLoader (deserialization risk)
+   - `md5(` or `sha1(` used for password hashing
+   - `Math.random()` used for security tokens
+   - `verify=False`, `SSL_VERIFY=false`, `InsecureSkipVerify: true`
+
+4. **PII exposure**: grep for patterns that look like real personal data — email addresses that aren't example.com/test.com, phone number patterns, social security patterns, credit card patterns, real full names in non-comment code
+
+Report findings with file:line and recommended fix for each.
+
+---
+
+## PHASE 5 — Business intelligence & proprietary information
+
+This phase targets non-technical sensitive content:
+
+1. **Comments and TODOs**: run `grep -rn "TODO\|FIXME\|HACK\|XXX\|SECRET\|INTERNAL\|PRIVATE\|DO NOT SHARE\|CONFIDENTIAL\|NDA"` — review each one and remove or sanitise any that reference internal systems, business logic, or unreleased features
+
+2. **Proprietary algorithms**: identify any code that implements patented processes, trade secrets, or algorithms explicitly marked as proprietary in internal docs — flag for my review before proceeding
+
+3. **Customer or user data**: check test fixtures, seed data, mock data directories for any real customer names, real email addresses, real phone numbers, real addresses — replace with clearly fake data (faker-generated values)
+
+4. **Internal documentation embedded in code**: check README files, inline docs, and comments for internal wiki links, internal architecture details, employee names, org structure references, financial figures, or roadmap details that shouldn't be public
+
+5. **License compliance**: check all third-party code included directly (not via package manager) for license headers — flag any GPL/AGPL code if this project isn't intended to be GPL-compatible
+
+6. **Branch names and commit messages**: run `git log --all --oneline` and `git branch -a` — flag commit messages or branch names that reference internal ticket numbers, client names, or sensitive project codenames
+
+Generate a business-risk-report.md with all findings.
+
+---
+
+## PHASE 6 — Hardening & open-source best practices
+
+Now set the repo up to be secure going forward:
+
+1. **Generate a comprehensive .gitignore** tailored to this project's tech stack — cover OS files, IDE files, secret files, build artifacts, log files, and any project-specific patterns found in previous phases
+
+2. **Add a .gitattributes** file that marks binary files as binary and sets consistent line endings
+
+3. **Create a SECURITY.md** file following GitHub's recommended format — include: supported versions table, how to report a vulnerability (use a placeholder email like security@yourproject.com), response time commitment, and disclosure policy
+
+4. **Add a pre-commit hook** using `pre-commit` framework with these hooks:
+   - `detect-secrets` or `gitleaks` to block future secret commits
+   - `check-added-large-files` (block files > 500KB)
+   - `check-merge-conflict` markers
+   - `trailing-whitespace` and `end-of-file-fixer`
+   Create .pre-commit-config.yaml with these configured
+
+5. **GitHub Actions secret scanning workflow**: create .github/workflows/security-scan.yml that runs on every PR — use `trufflehog` and `trivy` for dependency scanning
+
+6. **Environment variable documentation**: create a .env.example file listing every required environment variable with placeholder values and a comment explaining each one — ensure the real .env is in .gitignore
+
+7. **Review CONTRIBUTING.md / README**: ensure they don't mention internal onboarding steps, internal tools, or assume access to private systems
+
+Report what was created or modified in this phase.
+
+---
+
+## PHASE 7 — Final verification & go/no-go report
+
+Run a complete final pass to verify all previous phases were effective:
+
+1. Re-run `trufflehog filesystem .` and `gitleaks detect --source . --no-git` — output must be clean
+2. Re-run `trufflehog git file://.` — git history must be clean
+3. Run `git diff --stat HEAD` to confirm no unintended changes are staged
+4. Run `git log --all --oneline | head -20` to confirm history looks appropriate
+5. List all files currently tracked by git: `git ls-files` — review for anything that shouldn't be public
+6. List all files in .gitignore and confirm the critical categories are covered
+7. Check `git remote -v` — confirm the remote URL doesn't contain credentials embedded in it
+
+Then generate a final **go-live-checklist.md** with:
+- [ ] Secrets scan: PASSED / FAILED
+- [ ] Git history scan: PASSED / FAILED
+- [ ] Sensitive files removed: PASSED / FAILED
+- [ ] .gitignore comprehensive: PASSED / FAILED
+- [ ] .env.example present: PASSED / FAILED
+- [ ] SECURITY.md present: PASSED / FAILED
+- [ ] pre-commit hooks configured: PASSED / FAILED
+- [ ] Dependency vulnerabilities resolved: PASSED / FAILED (list any accepted risks)
+- [ ] PII removed: PASSED / FAILED
+- [ ] Internal references sanitised: PASSED / FAILED
+
+Only tell me the repo is ready to go public if ALL items pass. For any FAILED item, provide the exact remediation steps still needed.

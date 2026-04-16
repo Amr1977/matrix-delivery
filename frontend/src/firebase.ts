@@ -72,16 +72,16 @@ const getEnvironment = () => {
   return "production";
 };
 
-const environment = getEnvironment() as keyof typeof firebaseConfigs;
-const firebaseConfig = firebaseConfigs[environment];
+const environment = getEnvironment() as any;
+const firebaseConfig = (firebaseConfigs as any)[environment];
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
 // Initialize Firestore with persistence disabled for real-time server updates
 // CRITICAL: Do NOT enable IndexedDb persistence - stale server states must never be read from cache
-/** @type {import('firebase/firestore').Firestore} */
-let db;
+/** @type {any} */
+let db: any;
 try {
   db = initializeFirestore(app, {
     cacheSizeBytes: CACHE_SIZE_UNLIMITED,

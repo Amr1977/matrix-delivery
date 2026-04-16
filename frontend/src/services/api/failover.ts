@@ -37,7 +37,7 @@ async function getServerListFromFirestore(): Promise<string[]> {
       const snapshot = await getDocs(serversCol);
       const servers: string[] = [];
 
-      snapshot.forEach((doc: any) => {
+      snapshot.forEach((doc) => {
         const data = doc.data();
         if (data.url && data.healthy !== false) {
           let url = data.url;
