@@ -80,6 +80,7 @@ const app = initializeApp(firebaseConfig);
 
 // Initialize Firestore with persistence disabled for real-time server updates
 // CRITICAL: Do NOT enable IndexedDb persistence - stale server states must never be read from cache
+/** @type {import('firebase/firestore').Firestore} */
 let db;
 try {
   db = initializeFirestore(app, {

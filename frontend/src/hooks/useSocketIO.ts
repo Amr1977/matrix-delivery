@@ -6,6 +6,8 @@
 import { useEffect, useRef, useCallback } from "react";
 import io from "socket.io-client";
 
+type SocketType = ReturnType<typeof io>;
+
 const DEFAULT_RECONNECT_ATTEMPTS = 5;
 const DEFAULT_RECONNECT_DELAY = 1000;
 
@@ -18,7 +20,7 @@ export interface UseSocketIOOptions {
 }
 
 export interface UseSocketIOReturn {
-  socket: io.Socket | null;
+  socket: SocketType | null;
   isConnected: boolean;
   reconnect: () => void;
   disconnect: () => void;
@@ -38,7 +40,7 @@ export const useSocketIO = (
     onError,
   } = options;
 
-  const socketRef = useRef<io.Socket | null>(null);
+  const socketRef = useRef<SocketType | null>(null);
   const isConnectedRef = useRef(false);
   const serverUrlRef = useRef(serverUrl);
 
@@ -55,8 +57,8 @@ export const useSocketIO = (
       withCredentials: true,
       transports: ["websocket"],
       reconnection: true,
-      reconnectionAttempts,
-      reconnectionDelay,
+      reconnectionAttempts: reconnectAttempts,
+      reconnectionDelay: reconnectDelay,
     });
 
     socket.on("connect", () => {
@@ -67,13 +69,13 @@ export const useSocketIO = (
       onConnect?.();
     });
 
-    socket.on("disconnect", (reason) => {
+    socket.on("disconnect", (reason: string) => {
       console.log("📡 Socket.IO disconnected:", reason);
       isConnectedRef.current = false;
       onDisconnect?.(reason);
     });
 
-    socket.on("connect_error", (error) => {
+    socket.on("connect_error", (error: Error) => {
       console.error("📡 Socket.IO connection error:", error.message);
       onError?.(error);
     });

@@ -78,36 +78,44 @@ firebase deploy --only hosting
 ### Change 1: Add Helmet.js to backend/server.js
 
 Find this line:
+
 ```javascript
 // NOT USED: helmet, rateLimit packages - using custom implementation for demo
 ```
 
 Replace with:
-```javascript
-const helmet = require('helmet');
 
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "https://cdn.jsdelivr.net", "https://www.google.com/recaptcha/"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", process.env.CORS_ORIGIN],
-      frameSrc: ["https://www.google.com/recaptcha/"],
-      objectSrc: ["'none'"],
-      upgradeInsecureRequests: []
-    }
-  },
-  strictTransportSecurity: {
-    maxAge: 31536000,
-    includeSubDomains: true,
-    preload: true
-  },
-  frameGuard: { action: 'deny' },
-  xssFilter: true,
-  referrerPolicy: { policy: 'strict-origin-when-cross-origin' }
-}));
+```javascript
+const helmet = require("helmet");
+
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: [
+          "'self'",
+          "https://cdn.jsdelivr.net",
+          "https://www.google.com/recaptcha/",
+        ],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        imgSrc: ["'self'", "data:", "https:"],
+        connectSrc: ["'self'", process.env.CORS_ORIGIN],
+        frameSrc: ["https://www.google.com/recaptcha/"],
+        objectSrc: ["'none'"],
+        upgradeInsecureRequests: [],
+      },
+    },
+    strictTransportSecurity: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true,
+    },
+    frameGuard: { action: "deny" },
+    xssFilter: true,
+    referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+  }),
+);
 ```
 
 ---
@@ -155,37 +163,45 @@ LOG_LEVEL=info
 ### Change 3: Update backend/routes/auth.js - Add Input Validation
 
 Add at top of file after requires:
+
 ```javascript
-const { body, validationResult } = require('express-validator');
+const { body, validationResult } = require("express-validator");
 
 // Validation middleware
 const validateRegistration = [
-  body('name').trim().isLength({ min: 2, max: 255 }),
-  body('email').isEmail().normalizeEmail(),
-  body('password')
+  body("name").trim().isLength({ min: 2, max: 255 }),
+  body("email").isEmail().normalizeEmail(),
+  body("password")
     .isLength({ min: 12 })
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/),
-  body('phone').matches(/^\+?[1-9]\d{1,14}$/),
-  body('primary_role').isIn(['customer', 'driver', 'vendor']),
-  body('country').trim().isLength({ min: 2 }),
-  body('city').trim().isLength({ min: 2 }),
-  body('area').trim().isLength({ min: 2 })
+  body("phone").matches(/^\+?[1-9]\d{1,14}$/),
+  body("primary_role").isIn(["customer", "driver", "vendor"]),
+  body("country").trim().isLength({ min: 2 }),
+  body("city").trim().isLength({ min: 2 }),
+  body("area").trim().isLength({ min: 2 }),
 ];
 
 const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ error: 'Validation failed' });
+    return res.status(400).json({ error: "Validation failed" });
   }
   next();
 };
 ```
 
 Update register endpoint:
+
 ```javascript
-router.post('/register', validateRegistration, handleValidationErrors, authRateLimit, async (req, res) => {
-  // ... existing code ...
-});
+router.post(
+  "/register",
+  validateRegistration,
+  handleValidationErrors,
+  authRateLimit,
+  async (req, res) => {
+    // ... existing code ...
+  },
+);
 ```
 
 ---
@@ -193,56 +209,58 @@ router.post('/register', validateRegistration, handleValidationErrors, authRateL
 ### Change 4: Implement Token Refresh (backend/routes/auth.js)
 
 Add new endpoint after login route:
+
 ```javascript
 // Token refresh endpoint
-router.post('/refresh', (req, res) => {
+router.post("/refresh", (req, res) => {
   const refreshToken = req.cookies.refreshToken;
   if (!refreshToken) {
-    return res.status(401).json({ error: 'No refresh token' });
+    return res.status(401).json({ error: "No refresh token" });
   }
-  
+
   try {
     const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
     // Generate new access token
     const newAccessToken = jwt.sign(
       { userId: decoded.userId, primary_role: decoded.primary_role },
       process.env.JWT_SECRET,
-      { expiresIn: '15m' }
+      { expiresIn: "15m" },
     );
     res.json({ accessToken: newAccessToken });
   } catch (err) {
-    res.status(401).json({ error: 'Invalid refresh token' });
+    res.status(401).json({ error: "Invalid refresh token" });
   }
 });
 ```
 
 Update login response to send refresh token cookie:
+
 ```javascript
 // In login route, after successful authentication:
 const accessToken = jwt.sign(
   { userId: user.id, email: user.email, primary_role: user.primary_role },
   process.env.JWT_SECRET,
-  { expiresIn: '15m' }
+  { expiresIn: "15m" },
 );
 
 const refreshToken = jwt.sign(
   { userId: user.id },
   process.env.JWT_REFRESH_SECRET,
-  { expiresIn: '7d' }
+  { expiresIn: "7d" },
 );
 
 // Set refresh token in httpOnly cookie
-res.cookie('refreshToken', refreshToken, {
+res.cookie("refreshToken", refreshToken, {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'strict',
-  path: '/api/auth/refresh',
-  maxAge: 7 * 24 * 60 * 60 * 1000
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "strict",
+  path: "/api/auth/refresh",
+  maxAge: 7 * 24 * 60 * 60 * 1000,
 });
 
 res.json({
   accessToken,
-  user: { id: user.id, email: user.email, primary_role: user.primary_role }
+  user: { id: user.id, email: user.email, primary_role: user.primary_role },
 });
 ```
 
@@ -272,8 +290,8 @@ Update `frontend/src/firebase.js`:
 // OLD (INSECURE - Keys hardcoded)
 const firebaseConfigs = {
   production: {
-    apiKey: "AIzaSyCKLqK_x_Jvop7a5ht3w1nsnpa2hhx1bVk", // EXPOSED
-  }
+    apiKey: "YOUR_PROD_API_KEY", // Replace with your Firebase API key
+  },
 };
 
 // NEW (SECURE - From environment)
@@ -291,8 +309,9 @@ export const getFirebaseConfig = () => {
 ```
 
 Add to `frontend/.env.production`:
+
 ```dotenv
-REACT_APP_FIREBASE_API_KEY=AIzaSyCKLqK_x_Jvop7a5ht3w1nsnpa2hhx1bVk
+REACT_APP_FIREBASE_API_KEY=YOUR_PROD_API_KEY
 REACT_APP_FIREBASE_AUTH_DOMAIN=matrix-delivery.firebaseapp.com
 REACT_APP_FIREBASE_PROJECT_ID=matrix-delivery
 REACT_APP_FIREBASE_STORAGE_BUCKET=matrix-delivery.firebasestorage.app
@@ -357,12 +376,14 @@ curl -X POST https://matrix-delivery-api.com/api/auth/login \
 ## 🆘 TROUBLESHOOTING
 
 ### Issue: "JWT_SECRET not set"
+
 ```bash
 # Solution: Set in backend/.env.production
 JWT_SECRET=<generate_new_secret>
 ```
 
 ### Issue: CORS error
+
 ```bash
 # Check allowed origins
 echo $CORS_ORIGIN
@@ -372,6 +393,7 @@ CORS_ORIGIN=https://matrix-delivery.web.app,https://matrix-delivery.firebaseapp.
 ```
 
 ### Issue: SSL certificate error
+
 ```bash
 # Verify certificate
 openssl s_client -connect matrix-delivery.web.app:443
@@ -380,12 +402,13 @@ openssl s_client -connect matrix-delivery.web.app:443
 ```
 
 ### Issue: Rate limiting too strict
+
 ```bash
 # Adjust in backend/middleware/rateLimit.js
 // More lenient: 100 requests per minute
 createRateLimiter(100, 60 * 1000)
 
-// Strict: 10 requests per minute  
+// Strict: 10 requests per minute
 createRateLimiter(10, 60 * 1000)
 ```
 
@@ -422,6 +445,6 @@ firebase functions:log  # Check for errors
 
 **Estimated completion time:** 3-4 hours  
 **Risk level after fixes:** LOW  
-**Ready for production trial:** YES  
+**Ready for production trial:** YES
 
 Good luck! 🚀
