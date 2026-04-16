@@ -6,6 +6,8 @@
 ![Stars](https://img.shields.io/github/stars/Amr1977/matrix-heroes?style=social)
 ![Forks](https://img.shields.io/github/forks/Amr1977/matrix-heroes?style=social)
 ![Build](https://img.shields.io/github/actions/workflow/status/Amr1977/matrix-heroes/.github/workflows/firebase-hosting-deploy.yml?label=build)
+<a href="https://github.com/Amr1977/matrix-delivery"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen" alt="PRs Welcome"></a>
+<a href="https://github.com/sponsors/Amr1977"><img src="https://img.shields.io/badge/GitHub Sponsors-Sponsor-red" alt="GitHub Sponsors"></a>
 
 ---
 
@@ -77,7 +79,7 @@ See [migration/README.migration.md](migration/README.migration.md) for V1→V2 m
 ## 🧩 Project Structure
 
 ```
-matrix-heroes/
+matrix-delivery/
 ├── backend/
 │   ├── server.js
 │   ├── routes/
@@ -90,6 +92,47 @@ matrix-heroes/
 │   └── public/
 └── docs/
 ```
+
+---
+
+## 🤝 Open Source & Contributing
+
+This project is open source and we welcome contributions!
+
+### Why Contribute?
+
+- **Fair Pay**: Drivers keep 90% of delivery fees (vs industry standard 70%)
+- **Transparent**: Every transaction is visible and logged
+- **Impact**: Help thousands of delivery heroes earn fairly
+- **Growing**: Active development with new features planned
+
+### How to Contribute
+
+1. **Fork** the repository
+2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
+3. **Commit** your changes (`git commit -m 'feat: add amazing feature'`)
+4. **Push** to the branch (`git push origin feature/amazing-feature`)
+5. **Open** a Pull Request
+
+Please read our [Code of Conduct](CODE_OF_CONDUCT.md) and [Contributing Guide](CONTRIBUTING.md) before contributing.
+
+### Good First Issues
+
+Looking for a way to start? Check out these labels:
+
+- `good first issue` - Beginner-friendly tasks
+- `help wanted` - Tasks that need contribution
+
+---
+
+## 💰 Support the Project
+
+If you believe in fair delivery work, please consider supporting Matrix Heroes:
+
+- **GitHub Sponsors:** https://github.com/sponsors/Amr1977
+- **PayPal:** amr.lotfy.othman@gmail.com
+- **Crypto (TRON TRC20):** TACcgwLC4GeKzKGLWz14tiVahnpftHre1H
+- **InstaPay:** 01094450141
 
 ---
 
@@ -187,7 +230,17 @@ A full roadmap of upcoming milestones and features can be found in [`ROADMAP.md`
 
 ---
 
-## 🌐 Links
+## 📄 License
 
-- GitHub Repo: [https://github.com/Amr1977/matrix-heroes](https://github.com/Amr1977/matrix-heroes)
-- Official Site: [https://matrix-heroes.web.app](https://matrix-heroes.web.app)
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 📞 Contact
+
+- **Email:** amr.lotfy.othman@gmail.com
+- **Website:** https://matrix-heroes.web.app
+
+---
+
+<p align="center">Made with ❤️ for the community</p>
