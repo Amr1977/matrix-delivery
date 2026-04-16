@@ -1,8 +1,0 @@
-*** Begin Patch
-*** Update File: backend/config/express.js
-@@
--    // Handle preflight requests
--    app.options('*', cors(corsOptions));
-+    // Handle preflight requests (path-to-regexp v6 safe)
-+    app.options(/.*/, cors(corsOptions));
-*** End Patch
