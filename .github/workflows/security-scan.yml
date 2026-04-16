@@ -1,0 +1,26 @@
+name: Security Scan
+
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run TruffleHog
+        run: |
+          docker run -it --rm ghcr.io/trufflesecurity/trufflehog:latest filesystem . --no-scan-history || true
+
+      - name: Check dependency vulnerabilities
+        run: |
+          cd frontend && npm audit --audit-level=medium --audit-level=high --audit-level=critical || true
+          cd ../backend && npm audit --audit-level=medium --audit-level=high --audit-level=critical || true
+
+      - name: Run ESLint security
+        run: |
+          cd frontend && npm run lint || true
