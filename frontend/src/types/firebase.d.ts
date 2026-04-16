@@ -1,19 +1,26 @@
+// This file provides type declarations for the firebase.js module
+// to resolve TypeScript import issues
+
+import { app } from "./firebase";
+
+// Re-export from the JS module
+export { app };
+
+// Type declarations
 declare module "../firebase" {
-  const app: any;
-  const db: any;
-  const analytics: any;
-  const messaging: any;
-  const environment: string;
-  const messagingError: any;
-  export { app, db, analytics, messaging, environment, messagingError };
+  export const app: any;
+  export const db: any;
+  export const analytics: any;
+  export const messaging: any;
+  export const environment: string;
+  export const messagingError: any;
 }
 
 declare module "../firebase.js" {
-  const app: any;
-  const db: any;
-  const analytics: any;
-  const messaging: any;
-  const environment: string;
-  const messagingError: any;
-  export { app, db, analytics, messaging, environment, messagingError };
+  export const app: any;
+  export const db: any;
+  export const analytics: any;
+  export const messaging: any;
+  export const environment: string;
+  export const messagingError: any;
 }
