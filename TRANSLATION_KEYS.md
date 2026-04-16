@@ -1,6 +1,7 @@
 # Matrix Delivery - Hardcoded English Strings for Translation
 
 ## Scan Results
+
 - **Total Strings Found:** 480 hardcoded English strings
 - **Scanned Directory:** `/root/.openclaw/workspace/matrix-delivery/frontend/src`
 - **File Types:** .js, .jsx, .tsx
@@ -11,6 +12,7 @@
 ## 📋 Complete List of Hardcoded Strings
 
 ### Navigation & UI
+
 - Actions
 - Close
 - Close (Esc)
@@ -24,6 +26,7 @@
 - Next (→)
 
 ### Authentication & Account
+
 - Contact admin to verify account
 - Approve the connection in MetaMask
 - Make sure MetaMask is installed and unlocked
@@ -34,6 +37,7 @@
 - Edit wallet
 
 ### Order Management
+
 - Active Orders
 - Available Orders
 - New Order
@@ -59,6 +63,7 @@
 - Deliveries
 
 ### User Roles & Types
+
 - Courier
 - Customer
 - Driver
@@ -71,6 +76,7 @@
 - Drivers are expected to:
 
 ### Delivery & Logistics
+
 - DELIVERY
 - Delivery
 - Delivery Fee
@@ -91,6 +97,7 @@
 - Arrives in 15 minutes
 
 ### Forms & Inputs
+
 - Enter area
 - Enter bank or wallet reference
 - Enter city
@@ -131,6 +138,7 @@
 - Rejection reason (optional)
 
 ### Payment & Financial
+
 - Amount
 - Amount to Pay
 - Amount:
@@ -154,6 +162,7 @@
 - Upfront
 
 ### Currency Symbols
+
 - AED (د.إ) - UAE Dirham
 - AUD (A$) - Australian Dollar
 - BDT (৳) - Bangladeshi Taka
@@ -184,6 +193,7 @@
 - USD ($) - US Dollar
 
 ### Statuses & Conditions
+
 - Active
 - Approved
 - Cancelled
@@ -197,6 +207,7 @@
 - Verified
 
 ### Messages & Notifications
+
 - All Caught Up!
 - No messages yet. Start the conversation!
 - No notifications
@@ -210,6 +221,7 @@
 - Welcome back,
 
 ### Map & Location
+
 - Click "Apply Location" to use it for filtering orders
 - Clear the fake location to use your real GPS position
 - Fake Location:
@@ -227,6 +239,7 @@
 - Your Location
 
 ### Dashboard & Analytics
+
 - Activity Stats
 - Average Delivery Time
 - Average Order Value
@@ -275,6 +288,7 @@
 - User Details
 
 ### Errors & Validation
+
 - Error
 - Error:
 - Errors
@@ -284,6 +298,7 @@
 - Not available
 
 ### Profile & Account
+
 - Active Role:
 - Default Avatar
 - Edit
@@ -302,6 +317,7 @@
 - Verified At
 
 ### Settings & Preferences
+
 - Active Role:
 - Authentication:
 - Database
@@ -312,6 +328,7 @@
 - System
 
 ### Components & UI Elements
+
 - Balance Dashboard Component
 - Balance Statement Component
 - Buttons
@@ -336,12 +353,13 @@
 - Typography System
 
 ### Legal & Policies
+
 - Cookie Policy
 - Driver Partner Agreement
 - Privacy Policy
 - Refund & Cancellation Policy
 - Terms of Service
-- If you have any questions about these Terms, please contact us at support@matrix-heroes.io.
+- If you have any questions about these Terms, please contact us at support@matrix-delivery.com.
 - If you have any questions about this privacy policy or our privacy practices, please contact us at:
 - Approved refunds are processed within 5-10 business days and returned to the original payment method.
 - Cancellations made after the driver has already arrived at the pickup location.
@@ -367,6 +385,7 @@
 - Treat all customers and merchants with respect.
 
 ### Vehicles & Transport
+
 - Bicycle
 - Bike (Motorcycle)
 - Car
@@ -378,16 +397,19 @@
 - Vehicle:
 
 ### Deliverable Types
+
 - Any special handling instructions...
 - Documents, Electronics
 - Package Details
 
 ### Places & Categories
+
 - Restaurant District
 - Residential Area, 5th Ave
 - Tech Store, Downtown
 
 ### Time & Dates
+
 - Daily Reset:
 - Date
 - End Date
@@ -401,6 +423,7 @@
 ### Additional Categories
 
 #### Features & Capabilities
+
 - A futuristic palette combining Matrix green with cyberpunk accents
 - A clean driving record.
 - A valid driver's license for your vehicle type.
@@ -415,6 +438,7 @@
 - Is Remote Area
 
 #### Delivery Methods & Payment
+
 - All Levels
 - All Methods
 - All Sources
@@ -430,6 +454,7 @@
 - WE Pay
 
 #### Actions & Buttons
+
 - Approve
 - Dismiss verification
 - Download
@@ -439,6 +464,7 @@
 - Switching...
 
 #### Analytics & Data
+
 - Alex
 - Analysis
 - Backend
@@ -465,6 +491,7 @@
 - User Agent:
 
 #### Design System & Branding
+
 - CARTO
 - Color Palette
 - Dark
@@ -491,11 +518,13 @@
 - Tech Store, Downtown
 
 #### Languages
+
 - Arabic
 - English
 - Turkish
 
 #### Miscellaneous
+
 - All granted_roles
 - Approve
 - Attach media
@@ -562,6 +591,7 @@
 **Total Strings:** 480
 
 **Categories:**
+
 - Navigation & UI: 11
 - Authentication & Account: 8
 - Order Management: 27
@@ -602,6 +632,7 @@
 5. **Add Missing Translations:** Once structure is ready, add translations for your target languages
 
 **Suggested i18n Structure:**
+
 ```
 en/
   ├── common.json       (shared strings)

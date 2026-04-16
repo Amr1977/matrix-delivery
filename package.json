@@ -1,7 +1,7 @@
 {
-  "name": "matrix-heroes",
+  "name": "matrix-delivery",
   "version": "1.0.0",
-  "description": "Matrix Heroes - P2P Delivery & Ride-Hailing Platform",
+  "description": "Matrix Delivery - P2P Delivery & Ride-Hailing Platform",
   "private": true,
   "scripts": {
     "test": "npm run test:backend",
