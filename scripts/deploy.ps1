@@ -30,17 +30,25 @@ param(
     [string]$Target = 'all',
     
     [Parameter()]
+    [ValidateSet('aws', 'gcp', 'both')]
+    [string]$Server = 'both',
+    
+    [Parameter()]
     [switch]$SkipTests = $false
 )
 
 $ErrorActionPreference = 'Stop'
 
-# Configuration
-$VPS_HOST = "oldantique50.com"
-$VPS_PORT = "2222"
-$VPS_USER = "root"
-$VPS_PATH = "/root/matrix-delivery"
-$API_URL = "https://matrix-api.oldantique50.com"
+# AWS and GCP Configuration
+$VPS_HOST_AWS = "api.et3am.com"
+$VPS_HOST_GCP = "matrix-delivery-api-gc.mywire.org"
+$VPS_PORT = "22"
+$VPS_USER_AWS = "ubuntu"
+$VPS_USER_GCP = "amr_lotfy_othman"
+$VPS_PATH_AWS = "/home/ubuntu/matrix-delivery"
+$VPS_PATH_GCP = "/home/amr_lotfy_othman/matrix-delivery"
+$API_URL_AWS = "https://api.et3am.com"
+$API_URL_GCP = "https://matrix-delivery-api-gc.mywire.org"
 
 # Colors
 function Write-Header {
@@ -135,29 +143,37 @@ function Build-Frontend {
     }
 }
 
-# Deploy backend to VPS
-function Deploy-Backend {
-    Write-Step "Deploying backend to VPS..."
+# Deploy backend to VPS (supports AWS and GCP)
+function Deploy-BackendToServer {
+    param(
+        [string]$ServerName,
+        [string]$VPS_HOST,
+        [string]$VPS_USER,
+        [string]$VPS_PATH,
+        [string]$API_URL
+    )
+    
+    Write-Step "Deploying backend to $ServerName ($VPS_HOST)..."
     
     try {
         # Pull latest code on VPS
         Write-Info "Pulling latest code from git..."
-        ssh -p $VPS_PORT "${VPS_USER}@${VPS_HOST}" "cd $VPS_PATH && git pull origin master"
+        ssh -o ConnectTimeout=30 -p $VPS_PORT "${VPS_USER}@${VPS_HOST}" "cd $VPS_PATH && git pull origin master 2>&1"
         Write-Success "Code pulled"
         
         # Install dependencies (include devDependencies for tsc)
         Write-Info "Installing dependencies..."
-        ssh -p $VPS_PORT "${VPS_USER}@${VPS_HOST}" "cd $VPS_PATH/backend && npm ci"
+        ssh -o ConnectTimeout=30 -p $VPS_PORT "${VPS_USER}@${VPS_HOST}" "cd $VPS_PATH/backend && npm ci 2>&1"
         Write-Success "Dependencies installed"
 
         # Compile TypeScript
         Write-Info "Compiling Backend TypeScript..."
-        ssh -p $VPS_PORT "${VPS_USER}@${VPS_HOST}" "cd $VPS_PATH/backend && npx tsc --outDir ."
+        ssh -o ConnectTimeout=30 -p $VPS_PORT "${VPS_USER}@${VPS_HOST}" "cd $VPS_PATH/backend && npx tsc --outDir . 2>&1"
         Write-Success "Backend compiled"
         
         # Reload PM2
         Write-Info "Reloading PM2 services..."
-        ssh -p $VPS_PORT "${VPS_USER}@${VPS_HOST}" "cd $VPS_PATH/backend && pm2 reload ecosystem.config.js --env production"
+        ssh -o ConnectTimeout=30 -p $VPS_PORT "${VPS_USER}@${VPS_HOST}" "cd $VPS_PATH/backend && pm2 reload ecosystem.config.js --env production 2>&1"
         Write-Success "PM2 services reloaded"
         
         # Wait for services to start
@@ -166,20 +182,43 @@ function Deploy-Backend {
         
         # Health check
         Write-Info "Running health check..."
-        $response = Invoke-WebRequest -Uri "$API_URL/api/health" -UseBasicParsing -TimeoutSec 30
-        if ($response.StatusCode -eq 200) {
-            Write-Success "Backend health check passed"
-            return $true
+        try {
+            $response = Invoke-WebRequest -Uri "$API_URL/api/health" -UseBasicParsing -TimeoutSec 30
+            if ($response.StatusCode -eq 200) {
+                Write-Success "Backend health check passed for $ServerName"
+                return $true
+            }
+            else {
+                Write-Error-Custom "Backend health check failed for $ServerName (Status: $($response.StatusCode))"
+                return $false
+            }
         }
-        else {
-            Write-Error-Custom "Backend health check failed (Status: $($response.StatusCode))"
+        catch {
+            Write-Error-Custom "Backend health check failed for $ServerName: $_"
             return $false
         }
     }
     catch {
-        Write-Error-Custom "Backend deployment failed: $_"
+        Write-Error-Custom "Backend deployment to $ServerName failed: $_"
         return $false
     }
+}
+
+# Deploy backend to all configured servers
+function Deploy-Backend {
+    $deployAWS = ($Server -eq 'aws' -or $Server -eq 'both')
+    $deployGCP = ($Server -eq 'gcp' -or $Server -eq 'both')
+    $success = $true
+    
+    if ($deployAWS) {
+        $success = $success -and (Deploy-BackendToServer -ServerName "AWS" -VPS_HOST $VPS_HOST_AWS -VPS_USER $VPS_USER_AWS -VPS_PATH $VPS_PATH_AWS -API_URL $API_URL_AWS)
+    }
+    
+    if ($deployGCP) {
+        $success = $success -and (Deploy-BackendToServer -ServerName "GCP" -VPS_HOST $VPS_HOST_GCP -VPS_USER $VPS_USER_GCP -VPS_PATH $VPS_PATH_GCP -API_URL $API_URL_GCP)
+    }
+    
+    return $success
 }
 
 # Deploy frontend to Firebase
