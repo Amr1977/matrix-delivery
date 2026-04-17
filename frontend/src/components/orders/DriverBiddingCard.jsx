@@ -154,6 +154,7 @@ const DriverBiddingCard = ({
   const orderId = order.id;
 
   const routeCacheRef = useRef({});
+  const debounceTimerRef = useRef(null);
 
   // Calculate total distance using routing API with Haversine fallback
   useEffect(() => {
@@ -169,7 +170,23 @@ const DriverBiddingCard = ({
 
     if (!pickup || !dropoff) return;
 
-    const cacheKey = `${orderId}_${driverLat}_${driverLng}_${pickupLat}_${pickupLng}_${dropoffLat}_${dropoffLng}`;
+    // Round coordinates to 4 decimals for cache key to reduce GPS drift issues
+    const roundedPickup = {
+      lat: Math.round(pickupLat * 10000) / 10000,
+      lng: Math.round(pickupLng * 10000) / 10000,
+    };
+    const roundedDropoff = {
+      lat: Math.round(dropoffLat * 10000) / 10000,
+      lng: Math.round(dropoffLng * 10000) / 10000,
+    };
+    const roundedDriver = hasDriver
+      ? {
+          lat: Math.round(driverLat * 10000) / 10000,
+          lng: Math.round(driverLng * 10000) / 10000,
+        }
+      : null;
+
+    const cacheKey = `${orderId}_${roundedDriver?.lat || "nodriver"}_${roundedDriver?.lng || "nodriver"}_${roundedPickup.lat}_${roundedPickup.lng}_${roundedDropoff.lat}_${roundedDropoff.lng}`;
     if (routeCacheRef.current[cacheKey]) return;
 
     routeCacheRef.current[cacheKey] = true;
@@ -212,7 +229,13 @@ const DriverBiddingCard = ({
       }
     };
 
-    calculateRouteDistance();
+    // Debounce: wait 1 second before fetching to avoid rapid re-renders and rate limit
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = setTimeout(calculateRouteDistance, 1000);
+
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    };
   }, [
     orderId,
     pickupLat,

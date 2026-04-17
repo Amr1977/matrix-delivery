@@ -1,4 +1,4 @@
 commission_config:
-  decimal: 0.15
-  percent: 15
-  basis_points: 1500
+  decimal: 0.1
+  percent: 10
+  basis_points: 1000

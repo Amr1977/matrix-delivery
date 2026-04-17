@@ -25,6 +25,7 @@ const AsyncOrderMap = ({
   const [driverToPickupPath, setDriverToPickupPath] = useState([]);
   const [pickupToDropoffPath, setPickupToDropoffPath] = useState([]);
   const [routeLoading, setRouteLoading] = useState(false);
+  const routeCacheRef = useRef({ leg1: null, leg2: null });
   const [loading, setLoading] = useState(false);
   const socketRef = useRef(null);
   const pollRef = useRef(null);
@@ -300,6 +301,7 @@ const AsyncOrderMap = ({
   }, [shouldFetch, fetchTracking]);
 
   // Fetch two-leg route for drivers: driver→waypoint and waypoint→dropoff
+  // Debounce to prevent excessive API calls when coordinates change frequently
   useEffect(() => {
     if (!shouldFetch) return;
     if (nextWaypoint?.polyline) return;
@@ -320,6 +322,35 @@ const AsyncOrderMap = ({
 
       if (!Number.isFinite(pickupLat) || !Number.isFinite(pickupLng)) return;
 
+      // Round coordinates to 4 decimals to improve cache hit rate (~11m precision)
+      const rounded = {
+        driver: {
+          lat: Math.round(driverLat * 10000) / 10000,
+          lng: Math.round(driverLng * 10000) / 10000,
+        },
+        pickup: {
+          lat: Math.round(pickupLat * 10000) / 10000,
+          lng: Math.round(pickupLng * 10000) / 10000,
+        },
+        dropoff:
+          dropoffLat && dropoffLng
+            ? {
+                lat: Math.round(dropoffLat * 10000) / 10000,
+                lng: Math.round(dropoffLng * 10000) / 10000,
+              }
+            : null,
+      };
+
+      // Skip if same coordinates as last fetch (prevent unnecessary API calls)
+      const leg1Key = `${rounded.driver.lat},${rounded.driver.lng}:${rounded.pickup.lat},${rounded.pickup.lng}`;
+      if (
+        routeCacheRef.current.leg1 === leg1Key &&
+        routeCacheRef.current.leg2
+      ) {
+        return;
+      }
+      routeCacheRef.current.leg1 = leg1Key;
+
       setRouteLoading(true);
       try {
         // Leg 1: Driver → Pickup (waypoint)
@@ -335,6 +366,12 @@ const AsyncOrderMap = ({
 
         // Leg 2: Pickup → Dropoff (always fetch, regardless of status)
         if (Number.isFinite(dropoffLat) && Number.isFinite(dropoffLng)) {
+          const leg2Key = `${rounded.pickup.lat},${rounded.pickup.lng}:${rounded.dropoff.lat},${rounded.dropoff.lng}`;
+          if (routeCacheRef.current.leg2 === leg2Key) {
+            return;
+          }
+          routeCacheRef.current.leg2 = leg2Key;
+
           const leg2Response = await MapsApi.calculateRoute({
             pickup: { lat: pickupLat, lng: pickupLng },
             delivery: { lat: dropoffLat, lng: dropoffLng },
@@ -355,9 +392,11 @@ const AsyncOrderMap = ({
       }
     };
 
-    // Wait for driver location to be available before fetching routes
-    const timer = setTimeout(fetchRoutes, 500);
-    return () => clearTimeout(timer);
+    // Debounce: wait 1 second before fetching to avoid rapid re-renders
+    const timer = setTimeout(fetchRoutes, 1000);
+    return () => {
+      clearTimeout(timer);
+    };
   }, [
     shouldFetch,
     driverLocation,
