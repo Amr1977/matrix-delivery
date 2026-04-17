@@ -194,12 +194,14 @@ function Deploy-BackendToServer {
             }
         }
         catch {
-            Write-Error-Custom "Backend health check failed for $ServerName: $_"
+            $errMsg = $_.Exception.Message
+            Write-Error-Custom ("Backend health check failed for " + $ServerName + ": " + $errMsg)
             return $false
         }
     }
     catch {
-        Write-Error-Custom "Backend deployment to $ServerName failed: $_"
+        $errMsg = $_.Exception.Message
+        Write-Error-Custom ("Backend deployment to " + $ServerName + " failed: " + $errMsg)
         return $false
     }
 }
@@ -323,6 +325,7 @@ try {
     Start-Deployment
 }
 catch {
-    Write-Host "`n❌ Deployment failed: $_`n" -ForegroundColor Red
+    $errMsg = $_.Exception.Message
+    Write-Host "`nDeployment failed: $errMsg`n" -ForegroundColor Red
     exit 1
 }
