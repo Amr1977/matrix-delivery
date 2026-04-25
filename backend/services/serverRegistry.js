@@ -14,6 +14,10 @@ let healthCheckInterval = null;
 
 function getFirestoreDb() {
   if (!db) {
+    // Check if Firebase is properly initialized
+    if (!admin.apps.length) {
+      throw new Error("Firebase not initialized - credentials missing");
+    }
     db = admin.firestore();
   }
   return db;

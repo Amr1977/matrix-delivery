@@ -50,8 +50,9 @@ if (!serviceAccount.project_id) {
 if (serviceAccount && serviceAccount.project_id) {
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
+    projectId: serviceAccount.project_id,
   });
-  console.log("✅ Firebase Admin initialized successfully");
+  console.log("✅ Firebase Admin initialized successfully with project:", serviceAccount.project_id);
 } else {
   if (process.env.NODE_ENV !== "test") {
     console.warn(

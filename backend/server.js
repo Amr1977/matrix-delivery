@@ -280,16 +280,19 @@ if (require.main === module) {
         startServerRegistry,
         stopServerRegistry,
       } = require("./services/serverRegistry");
-      // Only start registry if GOOGLE_APPLICATION_CREDENTIALS file exists
+      // Start registry if Firebase credentials are available (file or env var)
       const { existsSync } = require("fs");
       const credsPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-      if (credsPath && existsSync(credsPath)) {
+      const hasServiceJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON && 
+                             process.env.FIREBASE_SERVICE_ACCOUNT_JSON.includes('project_id');
+      
+      if ((credsPath && existsSync(credsPath)) || hasServiceJson) {
         startServerRegistry(pool, serverUrl).catch((err) => {
           console.error("❌ Server registry failed to start:", err.message);
         });
       } else {
         console.warn(
-          "⚠️ Server registry disabled - no GOOGLE_APPLICATION_CREDENTIALS file",
+          "⚠️ Server registry disabled - no Firebase credentials (GOOGLE_APPLICATION_CREDENTIALS file or FIREBASE_SERVICE_ACCOUNT_JSON env var)",
         );
       }
       if (process.send) {
