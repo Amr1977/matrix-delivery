@@ -1,0 +1,42 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  smoke-tests:
+    name: Smoke Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: Install Dependencies
+        run: |
+          cd frontend && npm ci
+
+      - name: Install Playwright Browsers
+        run: |
+          cd frontend
+          npx playwright install --with-deps chromium
+
+      - name: Run Smoke Tests
+        run: |
+          cd frontend
+          npx playwright test smoke-tests/login-smoke.test.js
+        env:
+          BASE_URL: https://matrix-delivery.web.app
+          CI: true
+
+  deploy-check:
+    name: Verify Deployment
+    runs-on: ubuntu-latest
+    needs: smoke-tests
+    steps:
+      - name: Verify Frontend Deployed
+        run: |
+          curl -s -o /dev/null -w "%{http_code}" https://matrix-delivery.web.app | grep -q "200" && echo "✅ Frontend deployed successfully"

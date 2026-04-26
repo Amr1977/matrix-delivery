@@ -7,39 +7,22 @@ const { test, expect } = require('@playwright/test');
  * Checks for "Token has been revoked" error.
  */
 
-const BASE_URL = 'http://localhost:3000';
-const API_URL = 'http://localhost:5000/api';
+const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
+const API_URL = process.env.API_URL || 'http://localhost:5000/api';
 
 test.describe('Authentication Flow Tests', () => {
     // Increase timeout for this suite
     test.setTimeout(60000);
 
     const testUser = {
-        email: `test_${Date.now()}@example.com`,
-        password: 'password123',
+        email: 'testuser123@example.com',
+        password: 'Test123456',
         name: 'Test User'
     };
 
     test.beforeAll(async ({ request }) => {
-        // Create a test user via API
-        console.log(`Creating test user: ${testUser.email}`);
-        const response = await request.post(`${API_URL}/auth/register`, {
-            data: {
-                name: testUser.name,
-                email: testUser.email,
-                password: testUser.password,
-                phone: '1234567890',
-                primary_role: 'customer',
-                country: 'Egypt',
-                city: 'Cairo',
-                area: 'Maadi'
-            }
-        });
-
-        // We don't fail here if user exists (though unique email should prevent it)
-        if (!response.ok()) {
-            console.log('Registration status:', response.status());
-        }
+        // Test user already exists in production DB
+        console.log(`Using test user: ${testUser.email}`);
     });
 
     test('should allow login, logout, and login again immediately', async ({ page }) => {
