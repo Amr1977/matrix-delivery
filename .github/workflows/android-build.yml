@@ -1,48 +1,58 @@
-name: Build Matrix Delivery APK 
-on: 
-  push: 
-    branches: [ master ] 
-jobs: 
-  build: 
-    runs-on: ubuntu-latest 
-    
-    steps: 
-      - name: Checkout repository 
-        uses: actions/checkout@v4 
-    
-      - name: Setup Node 
-        uses: actions/setup-node@v4 
-        with: 
-          node-version: 18 
-    
-      - name: Install root dependencies 
-        run: npm install 
-    
-      - name: Install frontend dependencies 
+name: Build Matrix Delivery
+on:
+  push:
+    branches: [ master ]
+jobs:
+  android:
+    name: Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Install root dependencies
+        run: npm install
+      - name: Install frontend dependencies
+        run: cd frontend && npm install
+      - name: Build web project
+        run: npm run build
+      - name: Sync Capacitor
+        run: npx cap sync android
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Build APK
         run: |
-          cd frontend
-          npm install
-    
-      - name: Build web project 
-        run: npm run build 
-    
-      - name: Sync Capacitor 
-        run: npx cap sync android 
-    
-      - name: Setup Java 
-        uses: actions/setup-java@v4 
-        with: 
-          distribution: temurin 
-          java-version: 17 
-    
-      - name: Build APK 
-        run: | 
-          cd android 
-          chmod +x gradlew 
-          ./gradlew assembleDebug 
-    
-      - name: Upload APK 
-        uses: actions/upload-artifact@v4 
-        with: 
-          name: matrix-delivery-apk 
-          path: android/app/build/outputs/apk/debug/app-debug.apk 
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: matrix-delivery-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+
+  electron:
+    name: Electron (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Install frontend dependencies
+        run: cd frontend && npm install
+      - name: Build web project
+        run: cd frontend && npm run build:prod
+      - name: Build Electron (${{ matrix.os }})
+        run: cd frontend && npx electron-builder --config electron-builder.json --publish never
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: matrix-delivery-electron-${{ matrix.os }}
+          path: frontend/dist-electron/*

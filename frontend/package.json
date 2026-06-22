@@ -4,6 +4,9 @@
   "private": true,
   "homepage": ".",
   "proxy": "http://localhost:5000",
+  "description": "Matrix Delivery — Open-source delivery platform",
+  "author": "Amr Lotfy <https://amrlotfy.com>",
+  "repository": "github:oldantique50/matrix-delivery",
   "dependencies": {
     "@capacitor/cli": "^7.6.0",
     "@capacitor/core": "^7.6.0",
@@ -51,8 +54,14 @@
     "test": "react-scripts test",
     "test:build": "node test-build.js",
     "test:build:quick": "npm run build:prod && npx serve -s build -p 3001",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "electron:dev": "concurrently \"cross-env BROWSER=none react-scripts start\" \"wait-on http://localhost:3000 && ELECTRON_START_URL=http://localhost:3000 electron .\"",
+    "electron:build": "npm run build:prod && electron-builder --config electron-builder.json",
+    "electron:build:win": "npm run build:prod && electron-builder --config electron-builder.json --win",
+    "electron:build:mac": "npm run build:prod && electron-builder --config electron-builder.json --mac",
+    "electron:build:linux": "npm run build:prod && electron-builder --config electron-builder.json --linux"
   },
+  "main": "electron/main.js",
   "eslintConfig": {
     "plugins": [
       "security"
@@ -89,6 +98,9 @@
     "autoprefixer": "^10.4.22",
     "cross-env": "^10.1.0",
     "eslint-plugin-security": "^3.0.1",
+    "concurrently": "^9.1.2",
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8",
     "firebase-tools": "^15.1.0",
     "identity-obj-proxy": "^3.0.0",
     "jest-environment-jsdom": "^29.0.0",

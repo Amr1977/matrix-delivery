@@ -296,6 +296,15 @@ const SideMenu: React.FC<SideMenuProps> = ({
                             ⚙️ {t('menu.settings')}
                         </button>
 
+                        <button
+                            onClick={() => { window.location.href = '/downloads'; onClose(); }}
+                            style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem', background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', fontSize: '1rem', borderRadius: '0.5rem', marginBottom: '0.5rem', transition: 'background 0.2s' }}
+                            onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
+                            onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+                        >
+                            ⬇️ Downloads
+                        </button>
+
                         {/* Admin Panel - Only for admins */}
                         {(currentUser?.primary_role === 'admin' || (currentUser?.granted_roles && currentUser.granted_roles.includes('admin')) || availableRoles.includes('admin')) && (
                             <button

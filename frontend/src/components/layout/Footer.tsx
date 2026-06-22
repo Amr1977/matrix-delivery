@@ -28,10 +28,7 @@ interface FooterStats {
 
 const Footer: React.FC<FooterProps> = ({ footerStats }) => {
     const { t } = useI18n();
-    const version = (typeof process !== 'undefined' && process.env && process.env.REACT_APP_VERSION) || '1.0.0';
-    const commit = gitInfo.commit;
-    const date = new Date(gitInfo.date).toLocaleDateString();
-    const time = new Date(gitInfo.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const version = gitInfo.version || (typeof process !== 'undefined' && process.env && process.env.REACT_APP_VERSION) || '1.0.0';
 
     const [stats, setStats] = useState<FooterStats | null>(footerStats || null);
 
@@ -103,7 +100,7 @@ const Footer: React.FC<FooterProps> = ({ footerStats }) => {
             )}
             <div style={{ maxWidth: '80rem', margin: '0 auto' }}>
                 <p style={{ margin: 0, color: '#004400' }}>
-                    {`${t('footer.version')}${version} | ${t('footer.commit')}: ${commit} | ${date} ${time}`}
+                    v{version} | <a href="https://amrlotfy.com" style={{ color: '#008F11', textDecoration: 'none' }} target="_blank" rel="noopener noreferrer">Amr Lotfy</a> | MIT License
                 </p>
             </div>
         </footer>

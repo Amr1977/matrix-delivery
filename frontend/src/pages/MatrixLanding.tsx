@@ -127,6 +127,12 @@ const MatrixLanding: React.FC = () => {
               {t("landing.reviews")}
             </button>
             <button
+              onClick={() => navigate("/downloads")}
+              className="text-[#A0AEC0] hover:text-[#00FF41] transition-colors"
+            >
+              Downloads
+            </button>
+            <button
               onClick={() => navigate("/login")}
               className="px-6 py-2 bg-gradient-to-r from-[#00FF41] to-[#00F0FF] text-[#0A0E14] font-bold rounded-lg hover:shadow-[0_0_20px_rgba(0,255,65,0.4)] transition-all"
             >
@@ -175,6 +181,15 @@ const MatrixLanding: React.FC = () => {
                 className="text-[#A0AEC0] hover:text-[#00FF41] transition-colors text-left py-2"
               >
                 {t("landing.reviews")}
+              </button>
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  navigate("/downloads");
+                }}
+                className="text-[#A0AEC0] hover:text-[#00FF41] transition-colors text-left py-2"
+              >
+                Downloads
               </button>
               <button
                 onClick={() => {

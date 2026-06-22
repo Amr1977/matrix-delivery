@@ -84,6 +84,12 @@ build/
 dist/
 .cache/
 
+# Capacitor Android (generated)
+android/
+
+# Electron output
+dist-electron/
+
 # Temporary files
 *.tmp
 *.temp

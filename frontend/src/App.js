@@ -46,6 +46,7 @@ import {
 } from "./pages/BalancePages";
 import MatrixLanding from "./pages/MatrixLanding";
 import ReviewsPage from "./pages/ReviewsPage";
+import DownloadsPage from "./pages/Downloads";
 import CreateOrderPage from "./pages/CreateOrderPage";
 import ReviewModal from "./components/reviews/ReviewModal";
 import AuthScreen from "./components/auth/AuthScreen";
@@ -3964,6 +3965,11 @@ const router = createBrowserRouter([
   {
     path: "/reviews",
     element: <ReviewsPage />,
+    errorElement: <GlobalError />,
+  },
+  {
+    path: "/downloads",
+    element: <DownloadsPage />,
     errorElement: <GlobalError />,
   },
   {

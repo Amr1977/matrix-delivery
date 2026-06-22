@@ -1,0 +1,26 @@
+{
+  "appId": "com.matrix.delivery",
+  "productName": "Matrix Delivery",
+  "directories": {
+    "buildResources": "electron",
+    "output": "dist-electron"
+  },
+  "files": [
+    "electron/**/*",
+    "build/**/*"
+  ],
+  "win": {
+    "target": "nsis",
+    "icon": "electron/icon.png"
+  },
+  "mac": {
+    "target": "dmg",
+    "icon": "electron/icon.png",
+    "category": "public.app-category.business"
+  },
+  "linux": {
+    "target": "AppImage",
+    "icon": "electron/icon.png",
+    "category": "Network"
+  }
+}
