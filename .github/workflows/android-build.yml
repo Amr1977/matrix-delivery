@@ -47,7 +47,8 @@ jobs:
       - name: Install frontend dependencies
         run: cd frontend && npm install
       - name: Build web project
-        run: cd frontend && npm run build
+        run: npm run build
+        working-directory: frontend
       - name: Build Electron (${{ matrix.os }})
         run: cd frontend && npx electron-builder --config electron-builder.json --publish never
         env:
