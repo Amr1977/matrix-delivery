@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Download, Smartphone, Monitor, Apple, Linux, ChevronLeft } from 'lucide-react';
+import { Download, Smartphone, Monitor, Apple, Terminal, ChevronLeft } from 'lucide-react';
 
 const platforms = [
   {
@@ -36,11 +36,11 @@ const platforms = [
   {
     id: 'linux',
     name: 'Linux',
-    icon: <Linux className="w-8 h-8" />,
+    icon: <Terminal className="w-8 h-8" />,
     description: 'AppImage for x86_64 Linux',
     file: 'MatrixDelivery-x86_64.AppImage',
     size: '~80 MB',
-    gradient: 'from-[#FFB800] to-[#00FF41]',
+    gradient: 'from-[#FFB800] to-[#FF6B00]',
     color: '#FFB800',
   },
 ];
