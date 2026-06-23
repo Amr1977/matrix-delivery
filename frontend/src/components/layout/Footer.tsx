@@ -28,7 +28,7 @@ interface FooterStats {
 
 const Footer: React.FC<FooterProps> = ({ footerStats }) => {
     const { t } = useI18n();
-    const version = gitInfo.version || (typeof process !== 'undefined' && process.env && process.env.REACT_APP_VERSION) || '1.0.0';
+    const version = (gitInfo as any).version || (typeof process !== 'undefined' && process.env && process.env.REACT_APP_VERSION) || '1.0.0';
 
     const [stats, setStats] = useState<FooterStats | null>(footerStats || null);
 
