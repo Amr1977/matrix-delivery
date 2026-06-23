@@ -16,7 +16,7 @@ jobs:
       - name: Install frontend dependencies
         run: cd frontend && npm install
       - name: Build web project
-        run: npm run build
+        run: CI=false npm run build
       - name: Sync Capacitor
         run: npx cap sync android
       - uses: actions/setup-java@v4
@@ -47,7 +47,7 @@ jobs:
       - name: Install frontend dependencies
         run: cd frontend && npm install
       - name: Build web project
-        run: npm run build
+        run: CI=false npm run build
         working-directory: frontend
       - name: Build Electron (${{ matrix.os }})
         run: cd frontend && npx electron-builder --config electron-builder.json --publish never
