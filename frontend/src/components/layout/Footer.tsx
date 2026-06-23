@@ -100,7 +100,7 @@ const Footer: React.FC<FooterProps> = ({ footerStats }) => {
             )}
             <div style={{ maxWidth: '80rem', margin: '0 auto' }}>
                 <p style={{ margin: 0, color: '#004400' }}>
-                    v{version} | <a href="https://amrlotfy.com" style={{ color: '#008F11', textDecoration: 'none' }} target="_blank" rel="noopener noreferrer">Amr Lotfy</a> | MIT License
+                    v{version} | <a href="https://amrlotfy.et3am.com" style={{ color: '#008F11', textDecoration: 'none' }} target="_blank" rel="noopener noreferrer">Amr Lotfy</a> | MIT License
                 </p>
             </div>
         </footer>
