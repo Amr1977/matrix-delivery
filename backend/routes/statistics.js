@@ -20,30 +20,46 @@ router.get("/footer", async (req, res) => {
 
     stats.uptime = uptimeString;
 
-    // 2. Registered Users (Total Counts)
-    // Vendors
-    const totalVendorsResult = await pool.query(
+    // 2. Registered Users (Total & Online Counts)
+    const driversResult = await pool.query(
+      "SELECT COUNT(*) as total, COUNT(*) FILTER (WHERE is_available = true) as online FROM users WHERE 'driver' = ANY(granted_roles)",
+    );
+    stats.drivers = {
+      total: parseInt(driversResult.rows[0].total),
+      online: parseInt(driversResult.rows[0].online),
+    };
+
+    const customersResult = await pool.query(
+      "SELECT COUNT(*) as total, COUNT(*) FILTER (WHERE is_available = true) as online FROM users WHERE 'customer' = ANY(granted_roles)",
+    );
+    stats.customers = {
+      total: parseInt(customersResult.rows[0].total),
+      online: parseInt(customersResult.rows[0].online),
+    };
+
+    const adminsResult = await pool.query(
+      "SELECT COUNT(*) as total, COUNT(*) FILTER (WHERE is_available = true) as online FROM users WHERE 'admin' = ANY(granted_roles)",
+    );
+    stats.admins = {
+      total: parseInt(adminsResult.rows[0].total),
+      online: parseInt(adminsResult.rows[0].online),
+    };
+
+    const supportResult = await pool.query(
+      "SELECT COUNT(*) as total, COUNT(*) FILTER (WHERE is_available = true) as online FROM users WHERE 'support' = ANY(granted_roles)",
+    );
+    stats.support = {
+      total: parseInt(supportResult.rows[0].total),
+      online: parseInt(supportResult.rows[0].online),
+    };
+
+    // Vendors (for backward compatibility with landing page)
+    const vendorsResult = await pool.query(
       "SELECT COUNT(*) as count FROM users WHERE 'vendor' = ANY(granted_roles)",
     );
-    const totalVendors = parseInt(totalVendorsResult.rows[0].count);
+    stats.vendors = { total: parseInt(vendorsResult.rows[0].count) };
 
-    // Drivers
-    const totalDriversResult = await pool.query(
-      "SELECT COUNT(*) as count FROM users WHERE 'driver' = ANY(granted_roles)",
-    );
-    const totalDrivers = parseInt(totalDriversResult.rows[0].count);
-
-    // Customers
-    const totalCustomersResult = await pool.query(
-      "SELECT COUNT(*) as count FROM users WHERE 'customer' = ANY(granted_roles)",
-    );
-    const totalCustomers = parseInt(totalCustomersResult.rows[0].count);
-
-    stats.vendors = { total: totalVendors };
-    stats.drivers = { total: totalDrivers };
-    stats.customers = { total: totalCustomers };
-
-    // 3. Orders (Lifetime)
+    // 3. Orders
     // Active
     const activeOrdersResult = await pool.query(`
       SELECT COUNT(*) as count 
@@ -52,7 +68,16 @@ router.get("/footer", async (req, res) => {
     `);
     stats.activeOrders = parseInt(activeOrdersResult.rows[0].count);
 
-    // Total Lifetime Deliveries
+    // Completed Today
+    const completedTodayResult = await pool.query(`
+      SELECT COUNT(*) as count 
+      FROM orders 
+      WHERE status IN ('delivered', 'courier_delivered', 'customer_delivered')
+        AND DATE(completed_at) = CURRENT_DATE
+    `);
+    stats.ordersCompletedToday = parseInt(completedTodayResult.rows[0].count);
+
+    // Total Lifetime Deliveries (for backward compatibility with landing page)
     const totalDeliveriesResult = await pool.query(`
       SELECT COUNT(*) as count 
       FROM orders 
@@ -62,10 +87,13 @@ router.get("/footer", async (req, res) => {
       totalDeliveriesResult.rows[0].count,
     );
 
-    // (Optional: Keep today's count if needed by other components, otherwise strictly following new reqs)
-    // We'll leave the old 'ordersCompletedToday' logic out as it is replaced by lifetime for the main view.
+    // 4. Countries Reached
+    const countriesResult = await pool.query(`
+      SELECT COUNT(DISTINCT country) as count FROM users WHERE country IS NOT NULL AND country != ''
+    `);
+    stats.countriesReached = parseInt(countriesResult.rows[0].count);
 
-    // 4. System Load
+    // 5. System Load
     const systemLoadResult = await pool.query(`
       SELECT COUNT(*) as count 
       FROM logs 

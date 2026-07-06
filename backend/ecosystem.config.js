@@ -6,8 +6,8 @@ module.exports = {
       name: "matrix-delivery-backend",
       script: "./server.js",
       cwd: __dirname,
-      instances: 2,
-      exec_mode: "cluster",
+      instances: 1,
+      exec_mode: "fork",
       env: {
         NODE_ENV: "development",
         PORT: 5000,

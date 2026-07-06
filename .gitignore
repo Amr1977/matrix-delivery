@@ -144,4 +144,4 @@ scripts/screenshots/
 
 # Test results
 test-results/
-test-results/.last-run.json
+test-results/.last-run.jsonbackend/service-key.json
