@@ -147,6 +147,7 @@ test-results/.last-run.json
 backend/service-key.json
 
 # Lock files — not stable across node versions, use npm install in CI
+package-lock.json
 backend/package-lock.json
 frontend/package-lock.json
 

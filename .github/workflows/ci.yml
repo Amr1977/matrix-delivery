@@ -18,7 +18,7 @@ jobs:
           cache: "npm"
 
       - name: Install Dependencies
-        run: npm ci
+        run: npm install
 
       - name: Lint Codebase
         run: npm run lint
@@ -57,7 +57,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          npm ci
+          npm install
           cd backend && npm install --legacy-peer-deps
 
       - name: Run Backend Tests
@@ -82,7 +82,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          npm ci
+          npm install
           cd frontend && npm install --legacy-peer-deps
 
       - name: Run Frontend Tests
@@ -102,7 +102,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          npm ci
+          npm install
           cd frontend && npm install --legacy-peer-deps
 
       - name: Install Playwright Browsers
