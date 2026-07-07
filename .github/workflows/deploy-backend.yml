@@ -24,10 +24,10 @@ jobs:
     - name: Install dependencies
       run: |
         cd backend
-        npm ci
+        npm install --legacy-peer-deps
 
     - name: Install test dependencies
-      run: npm ci
+      run: npm install
 
     - name: Setup PostgreSQL for testing
       uses: harmon758/postgresql-action@v1
