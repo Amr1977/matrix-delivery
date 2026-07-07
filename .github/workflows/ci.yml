@@ -55,7 +55,6 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          npm install
           cd backend && npm install --legacy-peer-deps
 
       - name: Run Backend Tests
@@ -79,7 +78,6 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          npm install
           cd frontend && npm install --legacy-peer-deps
 
       - name: Run Frontend Tests
@@ -98,7 +96,6 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          npm install
           cd frontend && npm install --legacy-peer-deps
 
       - name: Install Playwright Browsers
