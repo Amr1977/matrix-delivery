@@ -1,6 +1,15 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
+# Block secrets from being committed
+STAGED_SECRETS=$(git diff --cached --name-only | grep -E 'firebase-adminsdk|service-account.*\.json|\.env\.production' || true)
+if [ -n "$STAGED_SECRETS" ]; then
+  echo "❌ BLOCKED: Attempting to commit secret file(s):"
+  echo "$STAGED_SECRETS"
+  echo "These files must never be committed. Add them to .gitignore and use git rm --cached if needed."
+  exit 1
+fi
+
 npm run test:backend
 npm run test:bdd:lifecycle
 npx lint-staged

@@ -145,3 +145,7 @@ scripts/screenshots/
 test-results/
 test-results/.last-run.json
 backend/service-key.json
+
+# Firebase Admin SDK service account keys — NEVER COMMIT
+*firebase-adminsdk*.json
+service-account*.json

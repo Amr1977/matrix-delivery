@@ -4,6 +4,10 @@ const path = require("path");
 
 let serviceAccount = {};
 
+// ⚠️ SECURITY: The service account JSON file (e.g. service-account.json, *firebase-adminsdk*.json)
+// must be supplied via environment/secret mount in production and must NEVER be committed to git.
+// Use GOOGLE_APPLICATION_CREDENTIALS env var pointing to a path OUTSIDE the repo,
+// or FIREBASE_SERVICE_ACCOUNT_JSON env var with the JSON content directly.
 const credsPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
 console.log("🔍 Firebase creds path from env:", credsPath);
 
