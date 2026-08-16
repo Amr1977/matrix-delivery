@@ -1,8 +1,16 @@
 import React, { useState } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 import { useI18n } from "../../i18n/i18nContext";
+import GoogleAuthButton from "./GoogleAuthButton";
 
-const LoginForm = ({ onSubmit, onForgotPassword, loading, error, t }) => {
+const LoginForm = ({
+  onSubmit,
+  onForgotPassword,
+  onGoogleAuth,
+  loading,
+  error,
+  t,
+}) => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -102,7 +110,31 @@ const LoginForm = ({ onSubmit, onForgotPassword, loading, error, t }) => {
         </button>
       </form>
 
-      <div style={{ textAlign: "center", marginTop: "1rem" }}>
+      {process.env.REACT_APP_GOOGLE_CLIENT_ID && (
+        <>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              marginTop: "0.5rem",
+            }}
+          >
+            <div style={{ flex: 1, height: "1px", background: "#D1D5DB" }} />
+            <span style={{ color: "#6B7280", fontSize: "0.75rem" }}>
+              {t("auth.or")}
+            </span>
+            <div style={{ flex: 1, height: "1px", background: "#D1D5DB" }} />
+          </div>
+          <GoogleAuthButton
+            onSuccess={onGoogleAuth}
+            onError={(msg) => {}}
+            loading={loading}
+            label="signin_with"
+          />
+        </>
+      )}
+      <div style={{ textAlign: "center", marginTop: "0.75rem" }}>
         <button
           onClick={onForgotPassword}
           style={{

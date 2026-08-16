@@ -1,47 +1,54 @@
 // Authentication API Service
 
-import { ApiClient } from './client';
+import { ApiClient } from "./client";
 import {
-    LoginRequest,
-    RegisterRequest,
-    AuthResponse,
-    SwitchRoleRequest,
-    User,
-} from './types';
+  LoginRequest,
+  RegisterRequest,
+  AuthResponse,
+  SwitchRoleRequest,
+  User,
+} from "./types";
 
 export class AuthApi {
-    /**
-     * Login user
-     */
-    static async login(credentials: LoginRequest): Promise<AuthResponse> {
-        return ApiClient.post<AuthResponse>('/auth/login', credentials);
-    }
+  /**
+   * Login user
+   */
+  static async login(credentials: LoginRequest): Promise<AuthResponse> {
+    return ApiClient.post<AuthResponse>("/auth/login", credentials);
+  }
 
-    /**
-     * Register new user
-     */
-    static async register(userData: RegisterRequest): Promise<AuthResponse> {
-        return ApiClient.post<AuthResponse>('/auth/register', userData);
-    }
+  /**
+   * Register new user
+   */
+  static async register(userData: RegisterRequest): Promise<AuthResponse> {
+    return ApiClient.post<AuthResponse>("/auth/register", userData);
+  }
 
-    /**
-     * Logout user
-     */
-    static async logout(): Promise<void> {
-        return ApiClient.post<void>('/auth/logout');
-    }
+  /**
+   * Logout user
+   */
+  static async logout(): Promise<void> {
+    return ApiClient.post<void>("/auth/logout");
+  }
 
-    /**
-     * Switch user primary_role
-     */
-    static async switchRole(data: SwitchRoleRequest): Promise<AuthResponse> {
-        return ApiClient.post<AuthResponse>('/auth/switch-primary_role', data);
-    }
+  /**
+   * Switch user primary_role
+   */
+  static async switchRole(data: SwitchRoleRequest): Promise<AuthResponse> {
+    return ApiClient.post<AuthResponse>("/auth/switch-primary_role", data);
+  }
 
-    /**
-     * Get current user info
-     */
-    static async getCurrentUser(): Promise<User> {
-        return ApiClient.get<User>('/auth/me');
-    }
+  /**
+   * Google OAuth login/signup
+   */
+  static async googleAuth(credential: string): Promise<AuthResponse> {
+    return ApiClient.post<AuthResponse>("/auth/google", { credential });
+  }
+
+  /**
+   * Get current user info
+   */
+  static async getCurrentUser(): Promise<User> {
+    return ApiClient.get<User>("/auth/me");
+  }
 }

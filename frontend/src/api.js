@@ -221,6 +221,10 @@ class ApiClient {
     return this.post("/auth/verify-email", { token });
   }
 
+  async googleAuth(credential) {
+    return this.post("/auth/google", { credential });
+  }
+
   // Payment methods
   async createPaymentIntent(orderId, amount, currency = "usd") {
     return this.post("/payments/create-intent", { orderId, amount, currency });

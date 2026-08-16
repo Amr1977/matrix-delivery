@@ -1,8 +1,16 @@
 import React, { useState } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 import { useI18n } from "../../i18n/i18nContext";
+import GoogleAuthButton from "./GoogleAuthButton";
 
-const RegisterForm = ({ onSubmit, loading, error, t, countries }) => {
+const RegisterForm = ({
+  onSubmit,
+  onGoogleAuth,
+  loading,
+  error,
+  t,
+  countries,
+}) => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -242,6 +250,29 @@ const RegisterForm = ({ onSubmit, loading, error, t, countries }) => {
       >
         {loading ? t("auth.loading") : t("auth.register")}
       </button>
+      {process.env.REACT_APP_GOOGLE_CLIENT_ID && (
+        <>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
+            }}
+          >
+            <div style={{ flex: 1, height: "1px", background: "#D1D5DB" }} />
+            <span style={{ color: "#6B7280", fontSize: "0.75rem" }}>
+              {t("auth.or")}
+            </span>
+            <div style={{ flex: 1, height: "1px", background: "#D1D5DB" }} />
+          </div>
+          <GoogleAuthButton
+            onSuccess={onGoogleAuth}
+            onError={(msg) => {}}
+            loading={loading}
+            label="signup_with"
+          />
+        </>
+      )}
     </>
   );
 };

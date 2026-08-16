@@ -69,6 +69,7 @@ import GlobalError from "./components/GlobalError";
 
 import { usePushNotifications } from "./hooks/usePushNotifications";
 import { useForegroundMessages } from "./hooks/useForegroundMessages";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 // Location data state and API functions
 export const MainApp = () => {
@@ -4013,11 +4014,23 @@ const AppWithErrorBoundary = () => {
   //   );
   // }
 
-  return (
+  const googleClientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+
+  const appContent = (
     <ErrorBoundary>
       <RouterProvider router={router} />
     </ErrorBoundary>
   );
+
+  if (googleClientId) {
+    return (
+      <GoogleOAuthProvider clientId={googleClientId}>
+        {appContent}
+      </GoogleOAuthProvider>
+    );
+  }
+
+  return appContent;
 };
 
 export default AppWithErrorBoundary;
