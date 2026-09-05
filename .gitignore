@@ -154,3 +154,6 @@ frontend/package-lock.json
 # Firebase Admin SDK service account keys — NEVER COMMIT
 *firebase-adminsdk*.json
 service-account*.json
+
+# VAPID keys — never commit
+push-notifications/PRIVATE_VAPID_KEY
