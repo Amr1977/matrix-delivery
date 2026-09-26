@@ -7,9 +7,34 @@ jest.mock('../routes/browse', () => {
 });
 
 const app = require('../app');
+const pool = require('../config/db');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 let token;
+
+beforeEach(() => {
+  jest.spyOn(pool, 'query').mockImplementation((query) => {
+    const normalizedQuery = query.toUpperCase();
+
+    if (normalizedQuery.includes('COUNT(*)')) {
+      return Promise.resolve({ rows: [{ count: '0' }] });
+    }
+
+    if (normalizedQuery.includes('SUM(DRIVER_EARNINGS)')) {
+      return Promise.resolve({ rows: [{ total: null }] });
+    }
+
+    if (normalizedQuery.includes('SUM(')) {
+      return Promise.resolve({ rows: [{ total: '0' }] });
+    }
+
+    return Promise.resolve({ rows: [] });
+  });
+});
+
+afterEach(() => {
+  jest.restoreAllMocks();
+});
 
 beforeAll(() => {
   token = jwt.sign(
@@ -72,4 +97,3 @@ describe('GET /api/drivers/earnings/history', () => {
     expect(res.body.pagination).toHaveProperty('totalPages');
   });
 });
-
