@@ -1,11 +1,15 @@
 Vendor Marketplace Implementation
 
-[ ] Vendor accounts
-[ ] Store creation
-[ ] Nested categories
-[ ] Item catalog
-[ ] Offers system
+[x] Vendor accounts
+[x] Store creation
+[x] Nested categories
+[x] Item catalog
+[x] Offers system
 [ ] Nearby store search
-[ ] Cart
-[ ] Marketplace order flow
-[ ] Commission calculation
+[x] Cart
+[x] Marketplace order flow
+[x] Commission calculation
+
+Current reality check:
+- vendor/store/category/item/offer/cart/order/payout are implemented in the codebase.
+- geo search, ratings/search/UI/jobs remain incomplete.

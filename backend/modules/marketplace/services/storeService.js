@@ -1,3 +1,6 @@
+const pool = require('../../../config/db');
+const logger = require('../../../config/logger');
+const { getDistance } = require('geolib');
 const storeRepository = require('../repositories/storeRepository');
 const vendorRepository = require('../repositories/vendorRepository');
 
@@ -8,6 +11,19 @@ const createError = (statusCode, message) => {
 };
 
 class StoreService {
+  normalizeCoordinate(value, fieldName) {
+    if (value === null || value === undefined || value === '') {
+      return null;
+    }
+
+    const num = Number(value);
+    if (!Number.isFinite(num)) {
+      throw createError(400, `${fieldName} must be a valid number`);
+    }
+
+    return num;
+  }
+
   async createStore(currentUser, payload) {
     if (!currentUser || !currentUser.userId) {
       throw createError(401, 'Authentication required');
@@ -19,7 +35,9 @@ class StoreService {
       description,
       address,
       phone,
-      email
+      email,
+      latitude,
+      longitude
     } = payload || {};
 
     if (!vendor_id || !name) {
@@ -39,13 +57,26 @@ class StoreService {
       throw createError(403, 'Only vendor owner or admin can create stores');
     }
 
+    const normalizedLatitude = this.normalizeCoordinate(latitude, 'latitude');
+    const normalizedLongitude = this.normalizeCoordinate(longitude, 'longitude');
+
+    if (normalizedLatitude !== null && (normalizedLatitude < -90 || normalizedLatitude > 90)) {
+      throw createError(400, 'latitude must be between -90 and 90');
+    }
+
+    if (normalizedLongitude !== null && (normalizedLongitude < -180 || normalizedLongitude > 180)) {
+      throw createError(400, 'longitude must be between -180 and 180');
+    }
+
     const store = await storeRepository.createStore({
       vendorId: vendor_id,
       name: name.trim(),
       description,
       address,
       phone,
-      email
+      email,
+      latitude: normalizedLatitude,
+      longitude: normalizedLongitude
     });
 
     return store;
@@ -82,12 +113,25 @@ class StoreService {
       throw createError(403, 'Only vendor owner or admin can update stores');
     }
 
+    const normalizedLatitude = fields.latitude !== undefined ? this.normalizeCoordinate(fields.latitude, 'latitude') : undefined;
+    const normalizedLongitude = fields.longitude !== undefined ? this.normalizeCoordinate(fields.longitude, 'longitude') : undefined;
+
+    if (normalizedLatitude !== undefined && (normalizedLatitude < -90 || normalizedLatitude > 90)) {
+      throw createError(400, 'latitude must be between -90 and 90');
+    }
+
+    if (normalizedLongitude !== undefined && (normalizedLongitude < -180 || normalizedLongitude > 180)) {
+      throw createError(400, 'longitude must be between -180 and 180');
+    }
+
     const allowedUpdates = {
       name: fields.name,
       description: fields.description,
       address: fields.address,
       phone: fields.phone,
       email: fields.email,
+      latitude: normalizedLatitude,
+      longitude: normalizedLongitude,
       status: fields.status
     };
 
@@ -124,6 +168,68 @@ class StoreService {
 
   async getStoresByVendor(vendorId) {
     return storeRepository.getStoresByVendor(vendorId);
+  }
+
+  async searchNearbyStores(lat, lng, radiusKm = 5, limit = 20) {
+    const latitude = Number(lat);
+    const longitude = Number(lng);
+    const safeRadiusKm = Number(radiusKm);
+    const safeLimit = Number(limit);
+
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+      throw createError(400, 'lat and lng are required');
+    }
+
+    if (!Number.isFinite(safeRadiusKm) || safeRadiusKm <= 0) {
+      throw createError(400, 'radiusKm must be greater than 0');
+    }
+
+    const radiusM = safeRadiusKm * 1000;
+    const safeQueryLimit = Number.isFinite(safeLimit) && safeLimit > 0 ? safeLimit : 20;
+
+    try {
+      const result = await pool.query(
+        `SELECT s.*, ST_Distance(
+          ST_MakePoint(s.longitude, s.latitude)::geography,
+          ST_MakePoint($2, $1)::geography
+        ) AS distance_m
+        FROM stores s
+        WHERE s.status = true
+          AND s.latitude IS NOT NULL
+          AND s.longitude IS NOT NULL
+          AND ST_DWithin(
+            ST_MakePoint(s.longitude, s.latitude)::geography,
+            ST_MakePoint($2, $1)::geography,
+            $3
+          )
+        ORDER BY distance_m ASC, s.created_at DESC
+        LIMIT $4`,
+        [latitude, longitude, radiusM, safeQueryLimit]
+      );
+
+      return result.rows;
+    } catch (error) {
+      logger.warn('PostGIS not available for nearby stores; falling back to geolib', {
+        category: 'marketplace_geo',
+        error: error.message
+      });
+
+      const stores = await storeRepository.getActiveStores();
+      const matches = stores
+        .filter((store) => Number.isFinite(Number(store.latitude)) && Number.isFinite(Number(store.longitude)))
+        .map((store) => ({
+          ...store,
+          distance_m: getDistance(
+            { latitude, longitude },
+            { latitude: Number(store.latitude), longitude: Number(store.longitude) }
+          )
+        }))
+        .filter((store) => store.distance_m <= radiusM)
+        .sort((a, b) => a.distance_m - b.distance_m)
+        .slice(0, safeQueryLimit);
+
+      return matches;
+    }
   }
 }
 

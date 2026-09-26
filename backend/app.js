@@ -87,7 +87,12 @@ app.get("/api/csrf-token", csrfTokenRoute);
 // ============================================================================
 
 // Import authentication middleware
-const { verifyToken, requireAdmin, requireRole } = require("./middleware/auth");
+const {
+  verifyToken,
+  verifyAdmin,
+  requireAdmin,
+  requireRole,
+} = require("./middleware/auth");
 
 // Legacy middleware aliases
 const isAdmin = requireAdmin;
@@ -123,8 +128,9 @@ app.use("/api/cart", cartRoutes);
 const marketplaceOrderRoutes = require("./routes/marketplaceOrderRoutes");
 app.use("/api/marketplace/orders", marketplaceOrderRoutes);
 
-// Load vendor management endpoints
-app.use("/api/vendors", require("./routes/vendors"));
+// Keep the legacy /api/vendors path as a compatibility alias to the canonical
+// modular marketplace vendor route to avoid duplicated vendor logic.
+app.use("/api/vendors", marketplaceVendorRoutes);
 
 // Load user profile endpoints
 app.use("/api/users", require("./routes/users"));
@@ -172,7 +178,7 @@ app.use("/api/heartbeat", heartbeatAuth, heartbeatRouter);
 app.use("/api/health", require("./routes/health"));
 
 // Load system health monitoring (admin only)
-// app.use('/api/admin/health', require('./routes/systemHealth'));
+app.use("/api/admin/health", verifyAdmin, require("./routes/systemHealth"));
 
 // Load Takaful cooperative insurance routes
 app.use("/api/takaful", require("./routes/takaful"));
@@ -2051,71 +2057,6 @@ app.get("/api/locations/countries/:country/cities/search", async (req, res) => {
 
 // ============ ADMIN BACKEND API ENDPOINTS ============
 // Add these endpoints after the existing routes
-
-// Admin authentication middleware
-const verifyAdmin = async (req, res, next) => {
-  try {
-    // Check for token in cookies first (preferred method)
-    let token = req.cookies?.token;
-
-    // Fall back to Authorization header
-    if (!token) {
-      token = req.headers["authorization"]?.split(" ")[1];
-    }
-
-    console.log("🔐 verifyAdmin - Token present:", !!token);
-    console.log("🔐 verifyAdmin - Cookies:", Object.keys(req.cookies || {}));
-    console.log(
-      "🔐 verifyAdmin - Auth header:",
-      req.headers["authorization"]?.substring(0, 20),
-    );
-
-    if (!token) {
-      console.log("❌ verifyAdmin - No token provided");
-      return res.status(401).json({ error: "No token provided" });
-    }
-
-    const decoded = jwt.verify(token, JWT_SECRET);
-    console.log("🔐 verifyAdmin - Token decoded:", {
-      userId: decoded.userId,
-      primary_role: decoded.primary_role,
-    });
-
-    // Check if user is admin
-    const userResult = await pool.query(
-      "SELECT id, email, name, primary_role, granted_roles FROM users WHERE id = $1",
-      [decoded.userId],
-    );
-
-    const row = userResult.rows[0];
-    console.log("🔐 verifyAdmin - User from DB:", {
-      id: row?.id,
-      primary_role: row?.primary_role,
-      granted_roles: row?.granted_roles,
-    });
-
-    const hasAdmin =
-      row &&
-      (row.primary_role === "admin" ||
-        (Array.isArray(row.granted_roles) &&
-          row.granted_roles.includes("admin")));
-    console.log("🔐 verifyAdmin - Has admin?", hasAdmin);
-
-    if (userResult.rows.length === 0 || !hasAdmin) {
-      console.log("❌ verifyAdmin - Admin access denied");
-      return res.status(403).json({ error: "Admin access required" });
-    }
-
-    // Set both req.user and req.admin for consistency
-    req.user = decoded;
-    req.admin = { id: row.id, email: row.email, name: row.name };
-    console.log("✅ verifyAdmin - Access granted");
-    next();
-  } catch (error) {
-    logger.error("❌ Admin verification error:", error.message);
-    res.status(401).json({ error: "Invalid or expired token" });
-  }
-};
 
 // Log admin actions
 const logAdminAction = async (

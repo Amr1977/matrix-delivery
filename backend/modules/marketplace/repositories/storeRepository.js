@@ -7,7 +7,9 @@ class StoreRepository {
     description,
     address,
     phone,
-    email
+    email,
+    latitude,
+    longitude
   }) {
     const query = `
       INSERT INTO stores (
@@ -17,9 +19,11 @@ class StoreRepository {
         address,
         phone,
         email,
+        latitude,
+        longitude,
         status
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING *
     `;
 
@@ -30,6 +34,8 @@ class StoreRepository {
       address || null,
       phone || null,
       email || null,
+      latitude != null ? latitude : null,
+      longitude != null ? longitude : null,
       true
     ];
 
@@ -52,6 +58,8 @@ class StoreRepository {
       'address',
       'phone',
       'email',
+      'latitude',
+      'longitude',
       'status'
     ];
 
@@ -95,6 +103,13 @@ class StoreRepository {
     const result = await pool.query(
       'SELECT * FROM stores WHERE vendor_id = $1 AND status = true ORDER BY created_at DESC',
       [vendorId]
+    );
+    return result.rows;
+  }
+
+  async getActiveStores() {
+    const result = await pool.query(
+      'SELECT * FROM stores WHERE status = true ORDER BY created_at DESC'
     );
     return result.rows;
   }

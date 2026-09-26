@@ -23,4 +23,6 @@ We are about to add:
 
 The database is PostgreSQL.
 
+Actual vendor key type: vendors.id = VARCHAR(255)
+
 Use this file as a high-level project guide.

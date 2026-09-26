@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
+const logger = require('../config/logger');
+const { getDistance } = require('geolib');
 const { verifyToken } = require('../middleware/auth');
 
 // PostGIS support flag
@@ -126,7 +128,6 @@ router.get('/items', verifyToken, async (req, res, next) => {
  */
 router.get('/vendors-near', verifyToken, async (req, res, next) => {
     try {
-        if (!HAS_POSTGIS) return res.status(501).json({ error: 'Geospatial near queries require PostGIS' });
         const lat = parseFloat(req.query.lat);
         const lng = parseFloat(req.query.lng);
         const radiusKm = Math.min(50, Math.max(0.1, parseFloat(req.query.radius_km || '5')));
@@ -135,15 +136,41 @@ router.get('/vendors-near', verifyToken, async (req, res, next) => {
         const offset = (page - 1) * limit;
         if (isNaN(lat) || isNaN(lng)) return res.status(400).json({ error: 'lat and lng required' });
         const radiusM = radiusKm * 1000;
-        const sql = `
-      SELECT v.*, ST_Distance(ST_MakePoint(v.longitude, v.latitude)::geography, ST_MakePoint($2, $1)::geography) AS distance_m
-      FROM vendors v
-      WHERE v.is_active = true AND v.latitude IS NOT NULL AND v.longitude IS NOT NULL
-        AND ST_DWithin(ST_MakePoint(v.longitude, v.latitude)::geography, ST_MakePoint($2, $1)::geography, $3)
-      ORDER BY distance_m ASC, v.created_at DESC
-      LIMIT $4 OFFSET $5`;
-        const result = await pool.query(sql, [lat, lng, radiusM, limit, offset]);
-        res.json({ page, limit, count: result.rows.length, items: result.rows });
+
+        try {
+            const sql = `
+          SELECT v.*, ST_Distance(ST_MakePoint(v.longitude, v.latitude)::geography, ST_MakePoint($2, $1)::geography) AS distance_m
+          FROM vendors v
+          WHERE v.is_active = true AND v.latitude IS NOT NULL AND v.longitude IS NOT NULL
+            AND ST_DWithin(ST_MakePoint(v.longitude, v.latitude)::geography, ST_MakePoint($2, $1)::geography, $3)
+          ORDER BY distance_m ASC, v.created_at DESC
+          LIMIT $4 OFFSET $5`;
+            const result = await pool.query(sql, [lat, lng, radiusM, limit, offset]);
+            return res.json({ page, limit, count: result.rows.length, items: result.rows });
+        } catch (error) {
+            logger.warn('PostGIS not available for vendors-near; falling back to geolib', {
+                category: 'marketplace_geo',
+                error: error.message
+            });
+
+            const vendorsResult = await pool.query(
+                'SELECT * FROM vendors WHERE is_active = true AND latitude IS NOT NULL AND longitude IS NOT NULL ORDER BY created_at DESC'
+            );
+
+            const items = vendorsResult.rows
+                .map((vendor) => ({
+                    ...vendor,
+                    distance_m: getDistance(
+                        { latitude: lat, longitude: lng },
+                        { latitude: Number(vendor.latitude), longitude: Number(vendor.longitude) }
+                    )
+                }))
+                .filter((vendor) => vendor.distance_m <= radiusM)
+                .sort((a, b) => a.distance_m - b.distance_m)
+                .slice(offset, offset + limit);
+
+            return res.json({ page, limit, count: items.length, items });
+        }
     } catch (error) {
         next(error);
     }
