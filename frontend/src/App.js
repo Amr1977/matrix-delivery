@@ -50,6 +50,7 @@ import DownloadsPage from "./pages/Downloads";
 import CreateOrderPage from "./pages/CreateOrderPage";
 import ReviewModal from "./components/reviews/ReviewModal";
 import AuthScreen from "./components/auth/AuthScreen";
+import MarketplaceBrowsePage from "./components/marketplace/MarketplaceBrowsePage";
 
 // TypeScript API Services
 import {
@@ -170,7 +171,12 @@ export const MainApp = () => {
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [favorites, setFavorites] = useState([]);
   const [activityData, setActivityData] = useState(null);
-  const [showBrowseVendors, setShowBrowseVendors] = useState(false);
+  const [showMarketplaceBrowse, setShowMarketplaceBrowse] = useState(
+    () => location.pathname === "/marketplace",
+  );
+  useEffect(() => {
+    setShowMarketplaceBrowse(location.pathname === "/marketplace");
+  }, [location.pathname]);
   const [showBrowseItems, setShowBrowseItems] = useState(false);
   const [showVendorDashboard, setShowVendorDashboard] = useState(false);
   const [showMessaging, setShowMessaging] = useState(false);
@@ -2159,6 +2165,13 @@ export const MainApp = () => {
       currentUser={currentUser}
       notifications={notifications}
       onNavigate={(view) => {
+        if (view === "marketplace") {
+          setShowMarketplaceBrowse(true);
+          navigate("/marketplace");
+          return;
+        }
+        setShowMarketplaceBrowse(false);
+        if (location.pathname === "/marketplace") navigate("/app");
         if (view === "home") setViewType("active");
         else if (view === "earnings") setViewType("earnings");
         else if (view === "profile") setViewType("profile");
@@ -2195,6 +2208,8 @@ export const MainApp = () => {
         changeLocale={changeLocale}
       />
 
+      {showMarketplaceBrowse && <MarketplaceBrowsePage />}
+
       <main
         style={{
           maxWidth: "80rem",
@@ -2202,6 +2217,7 @@ export const MainApp = () => {
           padding: mobileView ? "1rem 0.5rem" : "2rem 1rem",
           flex: 1,
           width: "100%",
+          display: showMarketplaceBrowse ? "none" : "block",
         }}
       >
         {error && (
@@ -3940,6 +3956,11 @@ const router = createBrowserRouter([
   },
   {
     path: "/app",
+    element: <MainApp />,
+    errorElement: <GlobalError />,
+  },
+  {
+    path: "/marketplace",
     element: <MainApp />,
     errorElement: <GlobalError />,
   },
