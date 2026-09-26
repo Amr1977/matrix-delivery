@@ -170,14 +170,23 @@ class StoreService {
     return storeRepository.getStoresByVendor(vendorId);
   }
 
-  async searchNearbyStores(lat, lng, radiusKm = 5, limit = 20) {
+  async searchNearbyStores(lat, lng, radiusKm = 5, limit = 20, offset = 0) {
     const latitude = Number(lat);
     const longitude = Number(lng);
     const safeRadiusKm = Number(radiusKm);
     const safeLimit = Number(limit);
+    const requestedOffset = Number(offset);
 
     if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
       throw createError(400, 'lat and lng are required');
+    }
+
+    if (latitude < -90 || latitude > 90) {
+      throw createError(400, 'lat must be between -90 and 90');
+    }
+
+    if (longitude < -180 || longitude > 180) {
+      throw createError(400, 'lng must be between -180 and 180');
     }
 
     if (!Number.isFinite(safeRadiusKm) || safeRadiusKm <= 0) {
@@ -185,7 +194,12 @@ class StoreService {
     }
 
     const radiusM = safeRadiusKm * 1000;
-    const safeQueryLimit = Number.isFinite(safeLimit) && safeLimit > 0 ? safeLimit : 20;
+    const safeQueryLimit = Number.isFinite(safeLimit) && safeLimit > 0
+      ? Math.max(1, Math.floor(safeLimit))
+      : 20;
+    const safeOffset = Number.isFinite(requestedOffset) && requestedOffset >= 0
+      ? Math.floor(requestedOffset)
+      : 0;
 
     try {
       const result = await pool.query(
@@ -203,8 +217,8 @@ class StoreService {
             $3
           )
         ORDER BY distance_m ASC, s.created_at DESC
-        LIMIT $4`,
-        [latitude, longitude, radiusM, safeQueryLimit]
+        LIMIT $4 OFFSET $5`,
+        [latitude, longitude, radiusM, safeQueryLimit, safeOffset]
       );
 
       return result.rows;
@@ -216,7 +230,16 @@ class StoreService {
 
       const stores = await storeRepository.getActiveStores();
       const matches = stores
-        .filter((store) => Number.isFinite(Number(store.latitude)) && Number.isFinite(Number(store.longitude)))
+        .filter((store) =>
+          store.latitude !== null &&
+          store.latitude !== undefined &&
+          store.latitude !== '' &&
+          store.longitude !== null &&
+          store.longitude !== undefined &&
+          store.longitude !== '' &&
+          Number.isFinite(Number(store.latitude)) &&
+          Number.isFinite(Number(store.longitude))
+        )
         .map((store) => ({
           ...store,
           distance_m: getDistance(
@@ -226,7 +249,7 @@ class StoreService {
         }))
         .filter((store) => store.distance_m <= radiusM)
         .sort((a, b) => a.distance_m - b.distance_m)
-        .slice(0, safeQueryLimit);
+        .slice(safeOffset, safeOffset + safeQueryLimit);
 
       return matches;
     }
@@ -234,4 +257,3 @@ class StoreService {
 }
 
 module.exports = new StoreService();
-
