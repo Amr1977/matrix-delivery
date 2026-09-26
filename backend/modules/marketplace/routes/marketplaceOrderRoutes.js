@@ -3,7 +3,7 @@ const router = express.Router();
 const marketplaceOrderController = require('../controllers/marketplaceOrderController');
 const {
   verifyToken
-} = require('../middleware/auth');
+} = require('../../../middleware/auth');
 
 /**
  * Routes for marketplace orders

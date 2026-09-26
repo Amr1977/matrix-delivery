@@ -1,6 +1,7 @@
-const pool = require('../config/db');
-const logger = require('../config/logger');
-const { multiFSMOrchestrator } = require('../fsm/MultiFSMOrchestrator');
+const pool = require('../../../config/db');
+const logger = require('../../../config/logger');
+const { multiFSMOrchestrator } = require('../../../fsm/MultiFSMOrchestrator');
+const registeredPaymentListeners = new WeakSet();
 
 /**
  * Vendor Payout Service
@@ -17,6 +18,11 @@ class VendorPayoutService {
    * Register event listeners for Payment FSM integration
    */
   registerPaymentFSMListeners() {
+    if (registeredPaymentListeners.has(multiFSMOrchestrator)) {
+      return;
+    }
+    registeredPaymentListeners.add(multiFSMOrchestrator);
+
     // Listen for successful payment events
     multiFSMOrchestrator.on('PAYMENT_SUCCESSFUL', async (eventData) => {
       await this.handlePaymentSuccessful(eventData);
@@ -293,6 +299,35 @@ class VendorPayoutService {
       return result.rows[0];
     } catch (error) {
       logger.error('Error completing payout:', error);
+      throw error;
+    }
+  }
+
+  async failPayout(payoutId, failureReason) {
+    try {
+      const result = await pool.query(`
+        UPDATE vendor_payouts
+        SET status = 'failed',
+            failure_reason = $2,
+            failed_at = CURRENT_TIMESTAMP,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = $1 AND status IN ('pending', 'processing')
+        RETURNING *
+      `, [payoutId, failureReason]);
+
+      if (result.rows.length === 0) {
+        throw new Error('Payout not found or not in a fail-able status');
+      }
+
+      logger.warn(`Payout failed: ${result.rows[0].payout_number}`, {
+        payoutId,
+        failureReason,
+        category: 'vendor_payout'
+      });
+
+      return result.rows[0];
+    } catch (error) {
+      logger.error('Error failing payout:', error);
       throw error;
     }
   }

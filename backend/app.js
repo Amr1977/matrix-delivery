@@ -117,15 +117,15 @@ app.use("/api/marketplace/categories", marketplaceCategoryRoutes);
 app.use("/api/marketplace/items", marketplaceItemRoutes);
 
 // New modular marketplace offer endpoints (Milestone 5)
-const offerRoutes = require("./routes/offerRoutes");
+const offerRoutes = require("./modules/marketplace/routes/offerRoutes");
 app.use("/api/offers", offerRoutes);
 
 // New modular marketplace cart endpoints (Milestone 6)
-const cartRoutes = require("./routes/cartRoutes");
+const cartRoutes = require("./modules/marketplace/routes/cartRoutes");
 app.use("/api/cart", cartRoutes);
 
 // New modular marketplace order endpoints (Milestone 7)
-const marketplaceOrderRoutes = require("./routes/marketplaceOrderRoutes");
+const marketplaceOrderRoutes = require("./modules/marketplace/routes/marketplaceOrderRoutes");
 app.use("/api/marketplace/orders", marketplaceOrderRoutes);
 
 // Keep the legacy /api/vendors path as a compatibility alias to the canonical

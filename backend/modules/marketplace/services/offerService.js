@@ -1,6 +1,6 @@
-const offerRepository = require('./offerRepository');
-const pool = require('../config/db');
-const logger = require('../config/logger');
+const offerRepository = require('../repositories/offerRepository');
+const pool = require('../../../config/db');
+const logger = require('../../../config/logger');
 
 class OfferService {
   /**
@@ -341,6 +341,10 @@ class OfferService {
       logger.error('Error getting offers by vendor:', error);
       throw error;
     }
+  }
+
+  async getAllOffers(limit = 50, offset = 0, filters = {}) {
+    return offerRepository.getAllOffers(limit, offset, filters);
   }
 
   /**

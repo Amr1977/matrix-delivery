@@ -189,7 +189,14 @@ Allows vendors to accept or reject orders. This endpoint uses action-based statu
 ### 5. Cancel Order
 **POST** `/api/marketplace/orders/:id/cancel`
 
-Allows customers or vendors to cancel orders before pickup.
+Allows the customer or the order's vendor to cancel an order before preparation
+starts. The order must still be pending, paid, or accepted, and the FSM must
+allow cancellation from its current vendor state. A cancellation reason is
+required.
+
+If payment has been confirmed, cancellation also initiates the existing Payment
+FSM refund transition and payout-reversal event. This is an internal workflow;
+it does not call a payment provider to transfer funds back to the customer.
 
 #### Request Body
 ```json
@@ -213,7 +220,7 @@ Allows customers or vendors to cancel orders before pickup.
 ```
 
 #### Error Responses
-- `400 Bad Request`: Missing cancellation reason or order cannot be cancelled at current status
+- `400 Bad Request`: Missing cancellation reason or preparation has started
 - `403 Forbidden`: Access denied
 
 ### 6. Get Vendor Statistics

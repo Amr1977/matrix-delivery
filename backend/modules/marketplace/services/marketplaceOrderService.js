@@ -1,9 +1,9 @@
 const MarketplaceOrderRepository = require('../repositories/marketplaceOrderRepository');
 const VendorPayoutService = require('./vendorPayoutService');
 const cartService = require('./cartService');
-const { ORDER_STATUS } = require('../config/constants');
-const { multiFSMOrchestrator } = require('../fsm/MultiFSMOrchestrator');
-const logger = require('../config/logger');
+const { ORDER_STATUS } = require('../../../config/constants');
+const { multiFSMOrchestrator } = require('../../../fsm/MultiFSMOrchestrator');
+const logger = require('../../../config/logger');
 
 /**
  * Marketplace Order Service
@@ -56,7 +56,7 @@ class MarketplaceOrderService {
       };
 
       // Get vendor ID from store
-      const vendorQuery = await require('../config/db').query(
+      const vendorQuery = await require('../../../config/db').query(
         'SELECT vendor_id FROM stores WHERE id = $1',
         [cart.store_id]
       );
@@ -256,7 +256,7 @@ class MarketplaceOrderService {
    * Schedule vendor confirmation timeout
    */
   async scheduleVendorTimeout(orchestrator, orderId, order) {
-    const { timeoutScheduler } = require('../services/timeoutScheduler');
+    const { timeoutScheduler } = require('../../../services/timeoutScheduler');
 
     await timeoutScheduler.scheduleTimeout(
       orderId,
@@ -296,7 +296,7 @@ class MarketplaceOrderService {
       // Check if user can access this order (customer or vendor)
       if (order.user_id !== userId) {
         // Check if user is vendor of this order
-        const vendorCheck = await require('../config/db').query(
+        const vendorCheck = await require('../../../config/db').query(
           'SELECT id FROM vendors WHERE id = $1',
           [order.vendor_id]
         );
@@ -360,6 +360,9 @@ class MarketplaceOrderService {
       const order = await this.marketplaceOrderRepository.getOrderById(orderId);
       if (!order) {
         throw new Error('Order not found');
+      }
+      if (order.status === ORDER_STATUS.CANCELED && action !== 'initiate_refund') {
+        throw new Error('Cannot perform actions on a cancelled order');
       }
 
       // Map action to FSM type
@@ -453,6 +456,8 @@ class MarketplaceOrderService {
       // Vendor FSM actions
       'vendor_accepts_order': 'vendor',
       'vendor_rejects_order': 'vendor',
+      'customer_cancels_order': 'vendor',
+      'vendor_cancels_order': 'vendor',
       'vendor_starts_preparing': 'vendor',
       'vendor_marks_prepared': 'vendor',
 
@@ -514,6 +519,9 @@ class MarketplaceOrderService {
         if (fsmState === 'vendor_is_actively_preparing_order') return ORDER_STATUS.ACCEPTED;
         if (fsmState === 'order_rejected_by_vendor') return ORDER_STATUS.REJECTED;
         if (fsmState === 'order_cancelled_vendor_unresponsive') return ORDER_STATUS.CANCELED;
+        if (fsmState === 'order_cancelled_by_customer' || fsmState === 'order_cancelled_by_vendor') {
+          return ORDER_STATUS.CANCELED;
+        }
         break;
 
       case 'payment':
@@ -521,7 +529,9 @@ class MarketplaceOrderService {
           return order.status === ORDER_STATUS.PENDING ? ORDER_STATUS.PAID : order.status;
         }
         if (fsmState === 'payment_attempt_failed_for_order') return ORDER_STATUS.FAILED;
-        if (fsmState === 'payment_has_been_refunded_to_customer') return ORDER_STATUS.REFUNDED;
+        if (fsmState === 'payment_has_been_refunded_to_customer') {
+          return order.status === ORDER_STATUS.CANCELED ? null : ORDER_STATUS.REFUNDED;
+        }
         break;
 
       case 'delivery':
@@ -549,6 +559,7 @@ class MarketplaceOrderService {
     switch (action) {
       case 'vendor_accepts_order':
       case 'vendor_rejects_order':
+      case 'vendor_cancels_order':
       case 'vendor_starts_preparing':
       case 'vendor_marks_prepared':
         if (userRole !== 'vendor') {
@@ -562,6 +573,7 @@ class MarketplaceOrderService {
       case 'customer_completes_payment':
       case 'customer_confirms_receipt':
       case 'customer_reports_problem':
+      case 'customer_cancels_order':
       case 'initiate_refund':
       case 'payment_fails':
       case 'payment_chargeback':
@@ -681,6 +693,7 @@ class MarketplaceOrderService {
     }
 
     if (action === 'courier_marks_delivered') {
+      context.location_update = { type: 'arrived_at_customer' };
       context.delivery_attempt = { success: true };
     }
 
@@ -738,6 +751,11 @@ class MarketplaceOrderService {
 
       case ORDER_STATUS.CANCELED:
       case ORDER_STATUS.REJECTED:
+        await require('../../../services/timeoutScheduler').timeoutScheduler.cancelTimeout(
+          orderId,
+          'vendor',
+          'awaiting_order_availability_vendor_confirmation'
+        );
         await this.restoreOrderInventory(orderId);
         break;
 
@@ -759,7 +777,7 @@ class MarketplaceOrderService {
   async processRefund(orderId, additionalData) {
     try {
       // Update payout status to refunded
-      await require('../config/db').query(`
+      await require('../../../config/db').query(`
         UPDATE vendor_payouts
         SET status = 'refunded', processed_at = CURRENT_TIMESTAMP
         WHERE order_id = $1
@@ -787,7 +805,7 @@ class MarketplaceOrderService {
       const order = await this.marketplaceOrderRepository.getOrderById(orderId);
       if (!order || !order.items) return;
 
-      const pool = require('../config/db');
+      const pool = require('../../../config/db');
       for (const item of order.items) {
         await pool.query(`
           UPDATE items
@@ -833,6 +851,61 @@ class MarketplaceOrderService {
    */
   async vendorRejectOrder(orderId, vendorId) {
     return this.updateOrderStatus(orderId, 'vendor_rejects_order', vendorId, 'vendor');
+  }
+
+  async cancelOrder(orderId, userId, reason) {
+    if (typeof reason !== 'string' || reason.trim().length === 0) {
+      throw new Error('Cancellation reason is required');
+    }
+
+    const order = await this.marketplaceOrderRepository.getOrderById(orderId);
+    if (!order) {
+      throw new Error('Order not found');
+    }
+
+    const cancellableStatuses = [ORDER_STATUS.PENDING, ORDER_STATUS.PAID, ORDER_STATUS.ACCEPTED];
+    if (!cancellableStatuses.includes(order.status)) {
+      throw new Error('Order can only be cancelled before preparation starts');
+    }
+
+    let actorId = userId;
+    let actorRole = 'customer';
+    let action = 'customer_cancels_order';
+
+    if (order.user_id !== userId) {
+      const vendorResult = await require('../../../config/db').query(
+        'SELECT id FROM vendors WHERE user_id = $1',
+        [userId]
+      );
+      const vendorId = vendorResult.rows[0]?.id;
+      if (!vendorId || vendorId !== order.vendor_id) {
+        throw new Error('Access denied');
+      }
+
+      actorId = vendorId;
+      actorRole = 'vendor';
+      action = 'vendor_cancels_order';
+    }
+
+    await this.updateOrderStatus(orderId, action, actorId, actorRole, {
+      cancellationReason: reason
+    });
+
+    const paymentStates = await multiFSMOrchestrator.getOrderFSMStates(orderId);
+    if (
+      order.status === ORDER_STATUS.PAID ||
+      paymentStates?.payment === 'payment_successfully_received_and_verified_for_order'
+    ) {
+      await this.updateOrderStatus(
+        orderId,
+        'initiate_refund',
+        order.user_id,
+        'system',
+        { refundReason: reason }
+      );
+    }
+
+    return this.marketplaceOrderRepository.getOrderById(orderId);
   }
 
   /**
@@ -974,6 +1047,3 @@ class MarketplaceOrderService {
 }
 
 module.exports = MarketplaceOrderService;
-
-
-

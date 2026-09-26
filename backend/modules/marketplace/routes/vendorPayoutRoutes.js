@@ -4,7 +4,7 @@ const vendorPayoutController = require('../controllers/vendorPayoutController');
 const {
   verifyToken,
   requireRole
-} = require('../middleware/auth');
+} = require('../../../middleware/auth');
 
 /**
  * Routes for vendor payouts

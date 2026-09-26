@@ -1,8 +1,8 @@
-const cartController = require('../../../backend/controllers/cartController');
-const cartService = require('../../../backend/services/cartService');
+const cartController = require('../../../backend/modules/marketplace/controllers/cartController');
+const cartService = require('../../../backend/modules/marketplace/services/cartService');
 
 // Mock cartService
-jest.mock('../../../backend/services/cartService');
+jest.mock('../../../backend/modules/marketplace/services/cartService');
 
 describe('CartController - Unit Tests', () => {
   let mockReq;

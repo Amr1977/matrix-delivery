@@ -1,5 +1,5 @@
 const cartService = require('../services/cartService');
-const logger = require('../config/logger');
+const logger = require('../../../config/logger');
 
 /**
  * Add item to cart

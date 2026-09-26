@@ -1,4 +1,4 @@
-const MarketplaceOrderRepository = require('../../../backend/repositories/marketplaceOrderRepository');
+const MarketplaceOrderRepository = require('../../../backend/modules/marketplace/repositories/marketplaceOrderRepository');
 const pool = require('../../../backend/config/db');
 
 jest.mock('../../../backend/config/db');
@@ -9,7 +9,7 @@ describe('MarketplaceOrderRepository', () => {
   let mockClient;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
     repository = new MarketplaceOrderRepository();
 
     // Mock database client
@@ -38,33 +38,30 @@ describe('MarketplaceOrderRepository', () => {
 
   describe('createOrder', () => {
     it('should create order successfully with inventory deduction', async () => {
-      // Mock cart items query
+      const order = { id: 1, order_number: 'MO-123-456' };
+      const cartItem = {
+        item_id: 1,
+        quantity: 2,
+        unit_price: 10.00,
+        name: 'Test Item',
+        description: 'Test'
+      };
+
       mockQuery
-        .mockImplementationOnce(() => ({
-          rows: [
-            { item_id: 1, quantity: 2, unit_price: 10.00, name: 'Test Item', description: 'Test' }
-          ]
-        }))
-        // Mock order creation
-        .mockImplementationOnce(() => ({
-          rows: [{ id: 1, order_number: 'MO-123-456' }]
-        }))
-        // Mock order items creation (2 times for 2 items)
-        .mockImplementationOnce(() => ({ rows: [{ id: 1 }] }))
-        // Mock inventory update
-        .mockImplementationOnce(() => ({ rowCount: 1 }))
-        // Mock cart clearing (2 queries)
-        .mockImplementationOnce(() => ({ rowCount: 1 }))
-        .mockImplementationOnce(() => ({ rowCount: 1 }))
-        // Mock final order retrieval
-        .mockImplementationOnce(() => ({
-          rows: [{
-            id: 1,
-            order_number: 'MO-123-456',
-            total_amount: 20.00,
-            items: [{ item_id: 1, quantity: 2 }]
-          }]
-        }));
+        .mockResolvedValueOnce({ rows: [] })
+        .mockResolvedValueOnce({ rows: [order] })
+        .mockResolvedValueOnce({ rows: [{ ...order, total_amount: 20.00 }] })
+        .mockResolvedValueOnce({ rows: [{ item_id: 1, quantity: 2 }] });
+
+      mockClient.query
+        .mockResolvedValueOnce({ rows: [] })
+        .mockResolvedValueOnce({ rows: [order] })
+        .mockResolvedValueOnce({ rows: [cartItem] })
+        .mockResolvedValueOnce({ rows: [{ id: 1 }] })
+        .mockResolvedValueOnce({ rowCount: 1 })
+        .mockResolvedValueOnce({ rowCount: 1 })
+        .mockResolvedValueOnce({ rowCount: 1 })
+        .mockResolvedValueOnce({ rows: [] });
 
       const orderData = {
         userId: 1,
@@ -82,7 +79,11 @@ describe('MarketplaceOrderRepository', () => {
 
       expect(result).toBeDefined();
       expect(result.order_number).toBe('MO-123-456');
-      expect(mockQuery).toHaveBeenCalledTimes(7); // All queries executed
+      expect(mockClient.query).toHaveBeenCalledTimes(8);
+      expect(mockClient.query).toHaveBeenCalledWith(
+        expect.stringContaining('UPDATE items'),
+        [2, 1]
+      );
     });
 
     it('should rollback transaction on error', async () => {
@@ -270,7 +271,7 @@ describe('MarketplaceOrderRepository', () => {
         expect.any(String),
         [
           1, 1, 1, 'order_created', 'marketplace_order', 1,
-          null, null, null, undefined, undefined
+          undefined, undefined, undefined, undefined, undefined
         ]
       );
     });

@@ -1,6 +1,6 @@
 const cartRepository = require('../repositories/cartRepository');
-const pool = require('../config/db');
-const logger = require('../config/logger');
+const pool = require('../../../config/db');
+const logger = require('../../../config/logger');
 
 class CartService {
   /**

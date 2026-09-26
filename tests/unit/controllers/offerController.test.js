@@ -1,8 +1,8 @@
-const offerController = require('../../../backend/controllers/offerController');
-const offerService = require('../../../backend/services/offerService');
+const offerController = require('../../../backend/modules/marketplace/controllers/offerController');
+const offerService = require('../../../backend/modules/marketplace/services/offerService');
 
 // Mock offerService
-jest.mock('../../../backend/services/offerService');
+jest.mock('../../../backend/modules/marketplace/services/offerService');
 
 describe('OfferController - Unit Tests', () => {
   let mockReq;
@@ -10,7 +10,7 @@ describe('OfferController - Unit Tests', () => {
   let mockNext;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
 
     // Mock request object
     mockReq = {
@@ -223,11 +223,11 @@ describe('OfferController - Unit Tests', () => {
       ];
 
       mockReq.params.itemId = '1';
-      offerService.getActiveOffersByItem.mockResolvedValue(offers);
+      offerService.getOffersByItem.mockResolvedValue(offers);
 
       await offerController.getOffersByItem(mockReq, mockRes);
 
-      expect(offerService.getActiveOffersByItem).toHaveBeenCalledWith('1');
+      expect(offerService.getOffersByItem).toHaveBeenCalledWith('1', 'vendor-123', 50, 0);
       expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.json).toHaveBeenCalledWith({
         success: true,
@@ -245,7 +245,7 @@ describe('OfferController - Unit Tests', () => {
       mockReq.query.limit = '10';
       mockReq.query.offset = '20';
 
-      offerService.getActiveOffersByItem.mockResolvedValue([]);
+      offerService.getOffersByItem.mockResolvedValue([]);
 
       await offerController.getOffersByItem(mockReq, mockRes);
 
@@ -258,6 +258,7 @@ describe('OfferController - Unit Tests', () => {
           count: 0
         }
       });
+      expect(offerService.getOffersByItem).toHaveBeenCalledWith('1', 'vendor-123', 10, 20);
     });
   });
 
@@ -380,7 +381,12 @@ describe('OfferController - Unit Tests', () => {
     });
 
     it('should calculate price with specific offer when offer_id provided', async () => {
-      const specificOffer = { id: 1, discount_type: 'percentage', discount_value: 20 };
+      const specificOffer = {
+        id: 1,
+        item_id: 1,
+        discount_type: 'percentage',
+        discount_value: 20
+      };
 
       mockReq.query = { item_id: '1', offer_id: '1' };
 
@@ -419,7 +425,7 @@ describe('OfferController - Unit Tests', () => {
       await offerController.calculateDiscountedPrice(mockReq, mockRes);
 
       expect(offerService.getActiveOffersByItem).toHaveBeenCalledWith('1');
-      expect(offerService.calculateDiscountedPrice).toHaveBeenCalledTimes(2);
+      expect(offerService.calculateDiscountedPrice).toHaveBeenCalledTimes(3);
     });
   });
 });

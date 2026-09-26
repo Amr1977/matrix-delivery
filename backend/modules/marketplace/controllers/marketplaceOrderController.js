@@ -1,6 +1,6 @@
 const MarketplaceOrderService = require('../services/marketplaceOrderService');
-const pool = require('../config/db');
-const logger = require('../config/logger');
+const pool = require('../../../config/db');
+const logger = require('../../../config/logger');
 
 // Instantiate service
 const marketplaceOrderService = new MarketplaceOrderService();
@@ -529,5 +529,4 @@ module.exports = {
   confirmReceipt,
   getVendorStats
 };
-
 

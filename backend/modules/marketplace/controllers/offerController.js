@@ -1,5 +1,5 @@
 const offerService = require('../services/offerService');
-const logger = require('../config/logger');
+const logger = require('../../../config/logger');
 
 /**
  * Create a new offer
@@ -354,7 +354,7 @@ const calculateDiscountedPrice = async (req, res) => {
     }
 
     // Get item details
-    const pool = require('../config/db');
+    const pool = require('../../../config/db');
     const itemResult = await pool.query('SELECT * FROM items WHERE id = $1', [item_id]);
 
     if (itemResult.rows.length === 0) {

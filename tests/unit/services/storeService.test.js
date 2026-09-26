@@ -75,7 +75,9 @@ describe('StoreService - Unit Tests', () => {
         description: 'Desc',
         address: '123 Street',
         phone: '+20123456789',
-        email: 'store@example.com'
+        email: 'store@example.com',
+        latitude: null,
+        longitude: null
       });
       expect(result).toBe(createdStore);
     });

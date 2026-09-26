@@ -1,10 +1,10 @@
-const offerService = require("../../../backend/services/offerService");
-const offerRepository = require("../../../backend/services/offerRepository");
+const offerService = require("../../../backend/modules/marketplace/services/offerService");
+const offerRepository = require("../../../backend/modules/marketplace/repositories/offerRepository");
 const pool = require("../../../backend/config/db");
 const logger = require("../../../backend/config/logger");
 
 // Mock dependencies
-jest.mock("../../../backend/services/offerRepository");
+jest.mock("../../../backend/modules/marketplace/repositories/offerRepository");
 jest.mock("../../../backend/config/db");
 jest.mock("../../../backend/config/logger", () => ({
   info: jest.fn(),
@@ -23,8 +23,8 @@ describe("OfferService - Unit Tests", () => {
     description: "Test description",
     discount_type: "percentage",
     discount_value: 20,
-    start_date: new Date("2027-01-01"),
-    end_date: new Date("2027-01-31"),
+    start_date: new Date(Date.now() - 60 * 60 * 1000),
+    end_date: new Date(Date.now() + 60 * 60 * 1000),
   };
 
   const mockOffer = {
@@ -44,7 +44,7 @@ describe("OfferService - Unit Tests", () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
   });
 
   describe("createOffer", () => {
@@ -231,8 +231,8 @@ describe("OfferService - Unit Tests", () => {
     it("should throw error for conflicting offer dates", async () => {
       const conflictingOffer = {
         id: 2,
-        start_date: "2027-01-01",
-        end_date: "2027-01-31",
+        start_date: mockOfferData.start_date,
+        end_date: mockOfferData.end_date,
       };
 
       pool.query.mockResolvedValueOnce({

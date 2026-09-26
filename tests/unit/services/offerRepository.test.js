@@ -1,6 +1,7 @@
-const offerRepository = require('../../../backend/services/offerRepository');
+const offerRepository = require('../../../backend/modules/marketplace/repositories/offerRepository');
 const pool = require('../../../backend/config/db');
 const logger = require('../../../backend/config/logger');
+const normalizeSql = (sql) => sql.replace(/\s+/g, ' ').trim();
 
 // Mock dependencies
 jest.mock('../../../backend/config/db');
@@ -37,7 +38,7 @@ describe('OfferRepository - Unit Tests', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
   });
 
   describe('createOffer', () => {
@@ -102,10 +103,8 @@ describe('OfferRepository - Unit Tests', () => {
 
       const result = await offerRepository.updateOffer(1, updateData);
 
-      expect(pool.query).toHaveBeenCalledWith(
-        expect.stringContaining('UPDATE offers SET'),
-        expect.arrayContaining([1])
-      );
+      expect(normalizeSql(pool.query.mock.calls[0][0])).toContain('UPDATE offers SET');
+      expect(pool.query.mock.calls[0][1]).toEqual(expect.arrayContaining([1]));
       expect(result).toEqual(mockOffer);
     });
 
@@ -139,15 +138,14 @@ describe('OfferRepository - Unit Tests', () => {
 
   describe('getActiveOffersByItem', () => {
     it('should retrieve active offers for an item', async () => {
-      const now = new Date();
       pool.query.mockResolvedValue(mockQueryResult);
 
       const result = await offerRepository.getActiveOffersByItem(1);
 
-      expect(pool.query).toHaveBeenCalledWith(
-        expect.stringContaining('WHERE o.item_id = $1 AND o.status = true'),
-        [1, now]
+      expect(normalizeSql(pool.query.mock.calls[0][0])).toContain(
+        'WHERE o.item_id = $1 AND o.status = true'
       );
+      expect(pool.query.mock.calls[0][1]).toEqual([1, expect.any(Date)]);
       expect(result).toEqual([mockOffer]);
     });
 
@@ -252,25 +250,22 @@ describe('OfferRepository - Unit Tests', () => {
 
       await offerRepository.getAllOffers(30, 15, filters);
 
-      expect(pool.query).toHaveBeenCalledWith(
-        expect.stringContaining('o.status = $1 AND o.discount_type = $2 AND o.item_id = $3'),
-        [true, 'percentage', 3, 30, 15]
+      expect(normalizeSql(pool.query.mock.calls[0][0])).toContain(
+        'o.status = $1 AND o.item_id = $2 AND o.discount_type = $3'
       );
+      expect(pool.query.mock.calls[0][1]).toEqual([true, 3, 'percentage', 30, 15]);
     });
   });
 
   describe('expireOffers', () => {
     it('should expire offers past their end date', async () => {
-      const now = new Date();
       const expiredOffers = [mockOffer, { ...mockOffer, id: 2 }];
       pool.query.mockResolvedValue({ rows: expiredOffers });
 
       const result = await offerRepository.expireOffers();
 
-      expect(pool.query).toHaveBeenCalledWith(
-        expect.stringContaining('UPDATE offers SET status = false'),
-        [now]
-      );
+      expect(normalizeSql(pool.query.mock.calls[0][0])).toContain('UPDATE offers SET status = false');
+      expect(pool.query.mock.calls[0][1]).toEqual([expect.any(Date)]);
       expect(result).toEqual(expiredOffers);
     });
 
@@ -286,32 +281,27 @@ describe('OfferRepository - Unit Tests', () => {
   describe('getExpiringOffers', () => {
     it('should retrieve offers expiring within specified hours', async () => {
       const hoursAhead = 24;
-      const now = new Date();
-      const futureTime = new Date(now.getTime() + (hoursAhead * 60 * 60 * 1000));
-
       pool.query.mockResolvedValue(mockQueryResult);
 
       const result = await offerRepository.getExpiringOffers(hoursAhead);
 
-      expect(pool.query).toHaveBeenCalledWith(
-        expect.stringContaining('WHERE o.status = true AND o.end_date > $1 AND o.end_date <= $2'),
-        [now, futureTime]
+      expect(normalizeSql(pool.query.mock.calls[0][0])).toContain(
+        'WHERE o.status = true AND o.end_date > $1 AND o.end_date <= $2'
       );
+      const [start, end] = pool.query.mock.calls[0][1];
+      expect(start).toBeInstanceOf(Date);
+      expect(end.getTime() - start.getTime()).toBe(hoursAhead * 60 * 60 * 1000);
       expect(result).toEqual([mockOffer]);
     });
 
     it('should use default 24 hours when no parameter provided', async () => {
-      const now = new Date();
-      const futureTime = new Date(now.getTime() + (24 * 60 * 60 * 1000));
-
       pool.query.mockResolvedValue(mockQueryResult);
 
       await offerRepository.getExpiringOffers();
 
-      expect(pool.query).toHaveBeenCalledWith(
-        expect.any(String),
-        [now, futureTime]
-      );
+      const [start, end] = pool.query.mock.calls[0][1];
+      expect(start).toBeInstanceOf(Date);
+      expect(end.getTime() - start.getTime()).toBe(24 * 60 * 60 * 1000);
     });
 
     it('should return empty array when no expiring offers', async () => {

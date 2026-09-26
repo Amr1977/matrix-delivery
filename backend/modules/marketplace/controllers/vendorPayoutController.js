@@ -1,5 +1,5 @@
 const VendorPayoutService = require('../services/vendorPayoutService');
-const logger = require('../config/logger');
+const logger = require('../../../config/logger');
 
 const vendorPayoutService = new VendorPayoutService();
 

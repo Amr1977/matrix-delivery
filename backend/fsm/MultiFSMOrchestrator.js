@@ -288,16 +288,25 @@ class MultiFSMOrchestrator extends EventEmitter {
     }
 
     try {
-      const result = await fsm.executeTransition(action, context);
+      const result = await fsm.executeTransition(
+        fsm.getCurrentState(),
+        action,
+        context
+      );
+      const transitionResult = {
+        ...result,
+        valid: result.success,
+        nextStatus: result.toState
+      };
 
-      if (result.valid) {
+      if (transitionResult.valid) {
         // Emit transition completed event for orchestration
         this.emit('FSM_TRANSITION_COMPLETED', {
           orderId,
           fsmType,
           action,
-          fromState: result.fromState,
-          toState: result.toState,
+          fromState: transitionResult.fromState,
+          toState: transitionResult.toState,
           context
         });
 
@@ -309,12 +318,12 @@ class MultiFSMOrchestrator extends EventEmitter {
           orderId,
           fsmType,
           action,
-          error: result.error,
+          error: transitionResult.error,
           context
         });
       }
 
-      return result;
+      return transitionResult;
     } catch (error) {
       console.error(`Error executing ${fsmType} transition:`, error);
       return {

@@ -1,10 +1,10 @@
-const cartService = require('../../../backend/services/cartService');
-const cartRepository = require('../../../backend/services/cartRepository');
+const cartService = require('../../../backend/modules/marketplace/services/cartService');
+const cartRepository = require('../../../backend/modules/marketplace/repositories/cartRepository');
 const pool = require('../../../backend/config/db');
 const logger = require('../../../backend/config/logger');
 
 // Mock dependencies
-jest.mock('../../../backend/services/cartRepository');
+jest.mock('../../../backend/modules/marketplace/repositories/cartRepository');
 jest.mock('../../../backend/config/db');
 jest.mock('../../../backend/config/logger', () => ({
   info: jest.fn(),

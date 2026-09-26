@@ -1,31 +1,30 @@
-const marketplaceOrderController = require('../../../backend/controllers/marketplaceOrderController');
-const marketplaceOrderService = require('../../../backend/services/marketplaceOrderService');
+const mockService = {
+  createOrder: jest.fn(),
+  getOrder: jest.fn(),
+  getOrdersForUser: jest.fn(),
+  updateOrderStatus: jest.fn(),
+  cancelOrder: jest.fn(),
+  getOrderStats: jest.fn(),
+  vendorAcceptOrder: jest.fn(),
+  vendorRejectOrder: jest.fn()
+};
+
+jest.mock('../../../backend/modules/marketplace/services/marketplaceOrderService', () => (
+  jest.fn(() => mockService)
+));
+
+const marketplaceOrderController = require('../../../backend/modules/marketplace/controllers/marketplaceOrderController');
 const pool = require('../../../backend/config/db');
 
-jest.mock('../../../backend/services/marketplaceOrderService');
 jest.mock('../../../backend/config/db');
 
 describe('MarketplaceOrderController', () => {
-  let mockService;
   let mockReq;
   let mockRes;
   let mockNext;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-
-    mockService = {
-      createOrder: jest.fn(),
-      getOrder: jest.fn(),
-      getOrdersForUser: jest.fn(),
-      updateOrderStatus: jest.fn(),
-      cancelOrder: jest.fn(),
-      getOrderStats: jest.fn(),
-      vendorAcceptOrder: jest.fn(),
-      vendorRejectOrder: jest.fn()
-    };
-
-    marketplaceOrderService.mockImplementation(() => mockService);
+    jest.resetAllMocks();
 
     mockReq = {
       user: { userId: 1 },
@@ -63,12 +62,21 @@ describe('MarketplaceOrderController', () => {
 
       await marketplaceOrderController.createOrder(mockReq, mockRes);
 
-      expect(mockService.createOrder).toHaveBeenCalledWith(1, orderData);
+      expect(mockService.createOrder).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({
+          ...orderData,
+          deliveryLat: null,
+          deliveryLng: null,
+          ipAddress: '127.0.0.1',
+          userAgent: 'test-agent'
+        })
+      );
       expect(mockRes.status).toHaveBeenCalledWith(201);
       expect(mockRes.json).toHaveBeenCalledWith({
         success: true,
         message: 'Order created successfully',
-        data: mockOrder
+        data: { ...mockOrder, fsm_states: null }
       });
     });
 
@@ -253,6 +261,7 @@ describe('MarketplaceOrderController', () => {
         error: 'Invalid action. Supported actions: accept, reject'
       });
     });
+  });
 
   describe('cancelOrder', () => {
     it('should cancel order successfully', async () => {
@@ -313,15 +322,19 @@ describe('MarketplaceOrderController', () => {
       // Mock vendor ID lookup
       pool.query = jest.fn().mockResolvedValue({ rows: [{ id: 2 }] });
 
-      mockService.getOrderStats.mockResolvedValue(mockStats);
+      pool.query
+        .mockResolvedValueOnce({ rows: [{ id: 2 }] })
+        .mockResolvedValueOnce({ rows: [mockStats] });
 
       await marketplaceOrderController.getVendorStats(mockReq, mockRes);
 
-      expect(pool.query).toHaveBeenCalledWith(
+      expect(pool.query).toHaveBeenNthCalledWith(
+        1,
         'SELECT id FROM vendors WHERE user_id = $1',
         [1]
       );
-      expect(mockService.getOrderStats).toHaveBeenCalledWith(2);
+      expect(pool.query.mock.calls[1][0]).toContain('COUNT(*)::int AS total_orders');
+      expect(pool.query.mock.calls[1][1]).toEqual([2]);
       expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.json).toHaveBeenCalledWith({
         success: true,
@@ -330,8 +343,9 @@ describe('MarketplaceOrderController', () => {
     });
 
     it('should handle service errors', async () => {
-      pool.query = jest.fn().mockResolvedValue({ rows: [{ id: 2 }] });
-      mockService.getOrderStats.mockRejectedValue(new Error('Database error'));
+      pool.query = jest.fn()
+        .mockResolvedValueOnce({ rows: [{ id: 2 }] })
+        .mockRejectedValueOnce(new Error('Database error'));
 
       await marketplaceOrderController.getVendorStats(mockReq, mockRes);
 

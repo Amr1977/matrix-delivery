@@ -11,7 +11,9 @@ class VendorFSM extends BaseOrderFSM {
     // Define terminal states
     this.terminalStates = new Set([
       'order_rejected_by_vendor',
-      'order_cancelled_vendor_unresponsive'
+      'order_cancelled_vendor_unresponsive',
+      'order_cancelled_by_customer',
+      'order_cancelled_by_vendor'
     ]);
 
     // Define transitions
@@ -43,7 +45,31 @@ class VendorFSM extends BaseOrderFSM {
       description: 'Vendor cannot fulfill the order'
     });
 
+    this.transitions.set('awaiting_order_availability_vendor_confirmation:customer_cancels_order', {
+      nextStatus: 'order_cancelled_by_customer',
+      allowedRoles: ['customer'],
+      description: 'Customer cancels before vendor acceptance'
+    });
+
+    this.transitions.set('awaiting_order_availability_vendor_confirmation:vendor_cancels_order', {
+      nextStatus: 'order_cancelled_by_vendor',
+      allowedRoles: ['vendor'],
+      description: 'Vendor cancels before accepting the order'
+    });
+
     // Preparation state transitions
+    this.transitions.set('awaiting_vendor_start_preparation:customer_cancels_order', {
+      nextStatus: 'order_cancelled_by_customer',
+      allowedRoles: ['customer'],
+      description: 'Customer cancels before preparation starts'
+    });
+
+    this.transitions.set('awaiting_vendor_start_preparation:vendor_cancels_order', {
+      nextStatus: 'order_cancelled_by_vendor',
+      allowedRoles: ['vendor'],
+      description: 'Vendor cancels before preparation starts'
+    });
+
     this.transitions.set('awaiting_vendor_start_preparation:vendor_starts_preparing', {
       nextStatus: 'vendor_is_actively_preparing_order',
       guards: ['vendor_is_active', 'order_not_cancelled'],

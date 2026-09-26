@@ -4,7 +4,7 @@ const offerController = require('../controllers/offerController');
 const {
   verifyToken,
   requireRole
-} = require('../middleware/auth');
+} = require('../../../middleware/auth');
 
 // Middleware aliases
 const isVendor = requireRole('vendor', 'admin');

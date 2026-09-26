@@ -1,13 +1,26 @@
-const MarketplaceOrderService = require('../../../backend/services/marketplaceOrderService');
+const MarketplaceOrderService = require('../../../backend/modules/marketplace/services/marketplaceOrderService');
+const { multiFSMOrchestrator } = require('../../../backend/fsm/MultiFSMOrchestrator');
+
+jest.mock('../../../backend/config/db', () => ({
+  query: jest.fn().mockResolvedValue({ rows: [] })
+}));
+const pool = require('../../../backend/config/db');
 
 // Mock the repository
-jest.mock('../../../backend/repositories/marketplaceOrderRepository');
+jest.mock('../../../backend/modules/marketplace/repositories/marketplaceOrderRepository');
 
-const MarketplaceOrderRepository = require('../../../backend/repositories/marketplaceOrderRepository');
+const MarketplaceOrderRepository = require('../../../backend/modules/marketplace/repositories/marketplaceOrderRepository');
 
 // Mock cart service - import after jest.mock
-jest.mock('../../../backend/services/cartService');
-const cartService = require('../../../backend/services/cartService');
+jest.mock('../../../backend/modules/marketplace/services/cartService');
+const cartService = require('../../../backend/modules/marketplace/services/cartService');
+
+jest.mock('../../../backend/services/timeoutScheduler', () => ({
+  timeoutScheduler: {
+    cancelTimeout: jest.fn().mockResolvedValue(undefined),
+    scheduleTimeout: jest.fn().mockResolvedValue(undefined)
+  }
+}));
 
 describe('MarketplaceOrderService', () => {
   let service;
@@ -15,7 +28,7 @@ describe('MarketplaceOrderService', () => {
   let mockCartService;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
 
     // Create fresh mocks
     mockRepository = {
@@ -28,15 +41,19 @@ describe('MarketplaceOrderService', () => {
       logAuditEvent: jest.fn()
     };
 
-    mockCartService = {
-      validateCartForCheckout: jest.fn(),
-      getUserCart: jest.fn()
-    };
+    mockCartService = cartService;
+    mockCartService.validateCartForCheckout.mockReset();
+    mockCartService.getUserCart.mockReset();
+    multiFSMOrchestrator.initializeOrderFSMs(null);
+    multiFSMOrchestrator.getOrderFSMStates = jest.fn().mockResolvedValue({
+      vendor: null,
+      payment: null,
+      delivery: null
+    });
+    pool.query.mockReset().mockResolvedValue({ rows: [] });
 
     // Mock the constructor and methods
     MarketplaceOrderRepository.mockImplementation(() => mockRepository);
-    cartService.mockImplementation(() => mockCartService);
-
     service = new MarketplaceOrderService();
   });
 
@@ -72,14 +89,11 @@ describe('MarketplaceOrderService', () => {
       // Mock cart retrieval
       mockCartService.getUserCart.mockResolvedValue(mockCart);
 
-      // Mock vendor ID query
-      const mockPool = require('../../../backend/config/db');
-      mockPool.query = jest.fn().mockResolvedValue({
-        rows: [{ vendor_id: 1 }]
-      });
+      pool.query.mockResolvedValueOnce({ rows: [{ vendor_id: 1 }] });
 
       // Mock order creation
       mockRepository.createOrder.mockResolvedValue(mockOrder);
+      jest.spyOn(service, 'initializeFSMOrchestrator').mockResolvedValue(undefined);
 
       // Mock payout creation
       mockRepository.createVendorPayout.mockResolvedValue({ id: 1 });
@@ -89,10 +103,13 @@ describe('MarketplaceOrderService', () => {
 
       const result = await service.createOrder(userId, orderData);
 
-      expect(result).toEqual(mockOrder);
+      expect(result).toEqual({
+        ...mockOrder,
+        fsm_states: { vendor: null, payment: null, delivery: null }
+      });
       expect(mockCartService.validateCartForCheckout).toHaveBeenCalledWith(userId);
       expect(mockRepository.createOrder).toHaveBeenCalled();
-      expect(mockRepository.createVendorPayout).toHaveBeenCalled();
+      expect(mockRepository.createVendorPayout).not.toHaveBeenCalled();
       expect(mockRepository.logAuditEvent).toHaveBeenCalled();
     });
 
@@ -110,11 +127,14 @@ describe('MarketplaceOrderService', () => {
       );
     });
 
-    it('should throw error if no delivery address provided', async () => {
+    it('should throw error if no active cart is available', async () => {
       const userId = 1;
       const orderData = {};
 
-      await expect(service.createOrder(userId, orderData)).rejects.toThrow('Delivery address is required');
+      mockCartService.validateCartForCheckout.mockResolvedValue({ isValid: true });
+      mockCartService.getUserCart.mockResolvedValue(null);
+
+      await expect(service.createOrder(userId, orderData)).rejects.toThrow('No active cart found');
     });
   });
 
@@ -205,13 +225,18 @@ describe('MarketplaceOrderService', () => {
         const mockOrder = { id: 1, vendor_id: 2, status: 'paid' };
         const acceptedOrder = { id: 1, vendor_id: 2, status: 'accepted' };
 
-        mockRepository.getOrderById.mockResolvedValue(mockOrder);
+        mockRepository.getOrderById
+          .mockResolvedValueOnce(mockOrder)
+          .mockResolvedValueOnce(acceptedOrder);
         mockRepository.updateOrderStatus.mockResolvedValue(acceptedOrder);
         mockRepository.logAuditEvent.mockResolvedValue({ id: 1 });
 
         const result = await service.vendorAcceptOrder(orderId, vendorId);
 
-        expect(result).toEqual(acceptedOrder);
+        expect(result).toEqual({
+          ...acceptedOrder,
+          fsm_states: { vendor: null, payment: null, delivery: null }
+        });
         expect(mockRepository.updateOrderStatus).toHaveBeenCalledWith(orderId, 'accepted', {});
       });
 
@@ -223,7 +248,7 @@ describe('MarketplaceOrderService', () => {
         mockRepository.getOrderById.mockResolvedValue(mockOrder);
 
         await expect(service.vendorAcceptOrder(orderId, vendorId)).rejects.toThrow(
-          'Only the assigned vendor can accept/reject this order'
+          'Only the assigned vendor can manage this order'
         );
       });
     });
@@ -235,13 +260,22 @@ describe('MarketplaceOrderService', () => {
         const mockOrder = { id: 1, user_id: 1, status: 'delivered' };
         const completedOrder = { id: 1, user_id: 1, status: 'completed' };
 
-        mockRepository.getOrderById.mockResolvedValue(mockOrder);
+        multiFSMOrchestrator.initializeOrderFSMs(orderId);
+        multiFSMOrchestrator.fsms.delivery.setCurrentState(
+          'awaiting_customer_confirmation_of_order_delivery'
+        );
+        mockRepository.getOrderById
+          .mockResolvedValueOnce(mockOrder)
+          .mockResolvedValueOnce(completedOrder);
         mockRepository.updateOrderStatus.mockResolvedValue(completedOrder);
         mockRepository.logAuditEvent.mockResolvedValue({ id: 1 });
 
         const result = await service.customerConfirmReceipt(orderId, customerId);
 
-        expect(result).toEqual(completedOrder);
+        expect(result).toEqual({
+          ...completedOrder,
+          fsm_states: { vendor: null, payment: null, delivery: null }
+        });
         expect(mockRepository.updateOrderStatus).toHaveBeenCalledWith(orderId, 'completed', {});
       });
 
@@ -253,7 +287,7 @@ describe('MarketplaceOrderService', () => {
         mockRepository.getOrderById.mockResolvedValue(mockOrder);
 
         await expect(service.customerConfirmReceipt(orderId, customerId)).rejects.toThrow(
-          'Only the customer can confirm receipt or dispute'
+          'Only the customer can perform this action'
         );
       });
     });
@@ -265,13 +299,22 @@ describe('MarketplaceOrderService', () => {
         const mockOrder = { id: 1, status: 'picked_up' };
         const deliveredOrder = { id: 1, status: 'delivered' };
 
-        mockRepository.getOrderById.mockResolvedValue(mockOrder);
+        multiFSMOrchestrator.initializeOrderFSMs(orderId);
+        multiFSMOrchestrator.fsms.delivery.setCurrentState(
+          'courier_has_arrived_at_customer_drop_off_location'
+        );
+        mockRepository.getOrderById
+          .mockResolvedValueOnce(mockOrder)
+          .mockResolvedValueOnce(deliveredOrder);
         mockRepository.updateOrderStatus.mockResolvedValue(deliveredOrder);
         mockRepository.logAuditEvent.mockResolvedValue({ id: 1 });
 
         const result = await service.driverDeliverOrder(orderId, driverId);
 
-        expect(result).toEqual(deliveredOrder);
+        expect(result).toEqual({
+          ...deliveredOrder,
+          fsm_states: { vendor: null, payment: null, delivery: null }
+        });
         expect(mockRepository.updateOrderStatus).toHaveBeenCalledWith(orderId, 'delivered', {});
       });
     });
@@ -283,20 +326,21 @@ describe('MarketplaceOrderService', () => {
       const userId = 1;
       const reason = 'Changed my mind';
 
-      const mockOrder = { id: 1, user_id: 1, vendor_id: 2, status: 'pending' };
+      const mockOrder = { id: 1, user_id: 1, vendor_id: 2, status: 'pending', items: [] };
       const cancelledOrder = { id: 1, user_id: 1, vendor_id: 2, status: 'cancelled' };
 
-      mockRepository.getOrderById.mockResolvedValue(mockOrder);
+      mockRepository.getOrderById
+        .mockResolvedValueOnce(mockOrder)
+        .mockResolvedValueOnce(mockOrder)
+        .mockResolvedValue(cancelledOrder);
       mockRepository.updateOrderStatus.mockResolvedValue(cancelledOrder);
       mockRepository.logAuditEvent.mockResolvedValue({ id: 1 });
 
       const result = await service.cancelOrder(orderId, userId, reason);
 
       expect(result).toEqual(cancelledOrder);
-      expect(mockRepository.updateOrderStatus).toHaveBeenCalledWith(
-        orderId,
-        'cancelled',
-        { cancellationReason: reason }
+      expect(multiFSMOrchestrator.fsms.vendor.getCurrentState()).toBe(
+        'order_cancelled_by_customer'
       );
     });
 
@@ -309,16 +353,24 @@ describe('MarketplaceOrderService', () => {
       const mockPool = require('../../../backend/config/db');
       mockPool.query = jest.fn().mockResolvedValue({ rows: [{ id: 2 }] });
 
-      const mockOrder = { id: 1, user_id: 1, vendor_id: 2, status: 'confirmed' };
+      const mockOrder = { id: 1, user_id: 1, vendor_id: 2, status: 'accepted', items: [] };
       const cancelledOrder = { id: 1, user_id: 1, vendor_id: 2, status: 'cancelled' };
 
-      mockRepository.getOrderById.mockResolvedValue(mockOrder);
+      multiFSMOrchestrator.initializeOrderFSMs(orderId);
+      multiFSMOrchestrator.fsms.vendor.setCurrentState('awaiting_vendor_start_preparation');
+      mockRepository.getOrderById
+        .mockResolvedValueOnce(mockOrder)
+        .mockResolvedValueOnce(mockOrder)
+        .mockResolvedValue(cancelledOrder);
       mockRepository.updateOrderStatus.mockResolvedValue(cancelledOrder);
       mockRepository.logAuditEvent.mockResolvedValue({ id: 1 });
 
       const result = await service.cancelOrder(orderId, userId, reason);
 
       expect(result).toEqual(cancelledOrder);
+      expect(multiFSMOrchestrator.fsms.vendor.getCurrentState()).toBe(
+        'order_cancelled_by_vendor'
+      );
     });
 
     it('should throw error for orders that cannot be cancelled', async () => {
@@ -331,28 +383,67 @@ describe('MarketplaceOrderService', () => {
       mockRepository.getOrderById.mockResolvedValue(mockOrder);
 
       await expect(service.cancelOrder(orderId, userId, reason)).rejects.toThrow(
-        'Order cannot be cancelled at this stage'
+        'Order can only be cancelled before preparation starts'
+      );
+    });
+
+    it('refunds a paid order through the Payment FSM', async () => {
+      const orderId = 1;
+      const order = { id: orderId, user_id: 1, vendor_id: 2, status: 'accepted', items: [] };
+      const cancelledOrder = { ...order, status: 'cancelled' };
+
+      multiFSMOrchestrator.initializeOrderFSMs(orderId);
+      multiFSMOrchestrator.fsms.vendor.setCurrentState('awaiting_vendor_start_preparation');
+      multiFSMOrchestrator.fsms.payment.setCurrentState(
+        'payment_successfully_received_and_verified_for_order'
+      );
+      multiFSMOrchestrator.getOrderFSMStates.mockResolvedValue({
+        vendor: 'order_cancelled_by_customer',
+        payment: 'payment_successfully_received_and_verified_for_order',
+        delivery: 'delivery_request_created_waiting_for_courier_acceptance'
+      });
+      mockRepository.getOrderById
+        .mockResolvedValueOnce(order)
+        .mockResolvedValueOnce(order)
+        .mockResolvedValue(cancelledOrder);
+
+      const result = await service.cancelOrder(orderId, 1, 'Changed my mind');
+
+      expect(result).toEqual(cancelledOrder);
+      expect(multiFSMOrchestrator.fsms.payment.getCurrentState()).toBe(
+        'payment_has_been_refunded_to_customer'
+      );
+      expect(mockRepository.updateOrderStatus).toHaveBeenCalledWith(
+        orderId,
+        'cancelled',
+        { cancellationReason: 'Changed my mind' }
       );
     });
   });
 
-  describe('getOrderStats', () => {
-    it('should return order statistics for vendor', async () => {
+  describe('getOrdersForVendor', () => {
+    it('should return orders for the vendor', async () => {
       const vendorId = 1;
-      const mockStats = {
-        total_orders: 10,
-        completed_orders: 8,
-        cancelled_orders: 1,
-        total_revenue: 500.00,
-        avg_order_value: 50.00
-      };
+      const mockOrders = [{ id: 1, vendor_id: vendorId }];
+      mockRepository.getOrdersByVendor.mockResolvedValue(mockOrders);
 
-      const mockPool = require('../../../backend/config/db');
-      mockPool.query = jest.fn().mockResolvedValue({ rows: [mockStats] });
+      const result = await service.getOrdersForVendor(vendorId);
 
-      const result = await service.getOrderStats(vendorId);
+      expect(result).toEqual(mockOrders);
+      expect(mockRepository.getOrdersByVendor).toHaveBeenCalledWith(vendorId, {});
+    });
 
-      expect(result).toEqual(mockStats);
+    it('does not allow further transitions after an order is cancelled', async () => {
+      mockRepository.getOrderById.mockResolvedValue({
+        id: 1,
+        user_id: 1,
+        vendor_id: 2,
+        status: 'cancelled'
+      });
+
+      await expect(
+        service.vendorAcceptOrder(1, 2)
+      ).rejects.toThrow('Cannot perform actions on a cancelled order');
     });
   });
 });

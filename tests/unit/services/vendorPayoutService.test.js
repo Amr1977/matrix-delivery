@@ -1,20 +1,19 @@
-const VendorPayoutService = require('../../../backend/services/vendorPayoutService');
+const VendorPayoutService = require('../../../backend/modules/marketplace/services/vendorPayoutService');
+const normalizeSql = (sql) => sql.replace(/\s+/g, ' ').trim();
 
 // Mock the database
 jest.mock('../../../backend/config/db', () => ({
-  db: {
-    query: jest.fn()
-  }
+  query: jest.fn()
 }));
 
-const { db } = require('../../../backend/config/db');
+const pool = require('../../../backend/config/db');
 
 describe('VendorPayoutService', () => {
   let service;
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    db.query.mockClear();
+    jest.resetAllMocks();
+    pool.query.mockReset();
     service = new VendorPayoutService();
   });
 
@@ -37,12 +36,14 @@ describe('VendorPayoutService', () => {
         status: 'pending'
       };
 
-      db.query.mockResolvedValue({ rows: [mockPayout] });
+      pool.query
+        .mockResolvedValueOnce({ rows: [] })
+        .mockResolvedValueOnce({ rows: [mockPayout] });
 
       const result = await service.createPayout(orderId, orderData);
 
       expect(result).toEqual(mockPayout);
-      expect(db.query).toHaveBeenCalledWith(
+      expect(pool.query).toHaveBeenCalledWith(
         expect.stringContaining('INSERT INTO vendor_payouts'),
         expect.any(Array)
       );
@@ -62,11 +63,13 @@ describe('VendorPayoutService', () => {
         status: 'pending'
       };
 
-      db.query.mockResolvedValue({ rows: [mockPayout] });
+      pool.query
+        .mockResolvedValueOnce({ rows: [] })
+        .mockResolvedValueOnce({ rows: [mockPayout] });
 
       await service.createPayout(orderId, orderData);
 
-      const insertCall = db.query.mock.calls.find(call =>
+      const insertCall = pool.query.mock.calls.find(call =>
         call[0].includes('INSERT INTO vendor_payouts')
       );
 
@@ -86,19 +89,19 @@ describe('VendorPayoutService', () => {
         processed_by: 100
       };
 
-      db.query.mockResolvedValue({ rows: [mockPayout] });
+      pool.query.mockResolvedValue({ rows: [mockPayout] });
 
       const result = await service.processPayout(payoutId, processedBy);
 
       expect(result).toEqual(mockPayout);
-      expect(db.query).toHaveBeenCalledWith(
-        expect.stringContaining('UPDATE vendor_payouts SET status = \'processing\''),
-        [payoutId, processedBy]
+      expect(normalizeSql(pool.query.mock.calls[0][0])).toContain(
+        "UPDATE vendor_payouts SET status = 'processing'"
       );
+      expect(pool.query.mock.calls[0][1]).toEqual([payoutId, processedBy]);
     });
 
     it('should throw error for non-existent payout', async () => {
-      db.query.mockResolvedValue({ rows: [] });
+      pool.query.mockResolvedValue({ rows: [] });
 
       await expect(service.processPayout(999, 100)).rejects.toThrow(
         'Payout not found or not in pending status'
@@ -120,15 +123,19 @@ describe('VendorPayoutService', () => {
         payout_details: { bankRef: 'BANK-456' }
       };
 
-      db.query.mockResolvedValue({ rows: [mockPayout] });
+      pool.query.mockResolvedValue({ rows: [mockPayout] });
 
       const result = await service.completePayout(payoutId, referenceNumber, payoutDetails);
 
       expect(result).toEqual(mockPayout);
-      expect(db.query).toHaveBeenCalledWith(
-        expect.stringContaining('UPDATE vendor_payouts SET status = \'completed\''),
-        [payoutId, referenceNumber, JSON.stringify(payoutDetails)]
+      expect(normalizeSql(pool.query.mock.calls[0][0])).toContain(
+        "UPDATE vendor_payouts SET status = 'completed'"
       );
+      expect(pool.query.mock.calls[0][1]).toEqual([
+        payoutId,
+        referenceNumber,
+        JSON.stringify(payoutDetails)
+      ]);
     });
   });
 
@@ -144,15 +151,15 @@ describe('VendorPayoutService', () => {
         failure_reason: 'Insufficient funds'
       };
 
-      db.query.mockResolvedValue({ rows: [mockPayout] });
+      pool.query.mockResolvedValue({ rows: [mockPayout] });
 
       const result = await service.failPayout(payoutId, failureReason);
 
       expect(result).toEqual(mockPayout);
-      expect(db.query).toHaveBeenCalledWith(
-        expect.stringContaining('UPDATE vendor_payouts SET status = \'failed\''),
-        [payoutId, failureReason]
+      expect(normalizeSql(pool.query.mock.calls[0][0])).toContain(
+        "UPDATE vendor_payouts SET status = 'failed'"
       );
+      expect(pool.query.mock.calls[0][1]).toEqual([payoutId, failureReason]);
     });
   });
 
@@ -167,19 +174,19 @@ describe('VendorPayoutService', () => {
         order_number: 'MO-123-456'
       };
 
-      db.query.mockResolvedValue({ rows: [mockPayout] });
+      pool.query.mockResolvedValue({ rows: [mockPayout] });
 
       const result = await service.getPayoutById(payoutId);
 
       expect(result).toEqual(mockPayout);
-      expect(db.query).toHaveBeenCalledWith(
-        expect.stringContaining('SELECT vp.*, v.name as vendor_name'),
-        [payoutId]
+      expect(normalizeSql(pool.query.mock.calls[0][0])).toContain(
+        'SELECT vp.*, v.name as vendor_name'
       );
+      expect(pool.query.mock.calls[0][1]).toEqual([payoutId]);
     });
 
     it('should return null for non-existent payout', async () => {
-      db.query.mockResolvedValue({ rows: [] });
+      pool.query.mockResolvedValue({ rows: [] });
 
       const result = await service.getPayoutById(999);
 
@@ -197,15 +204,15 @@ describe('VendorPayoutService', () => {
         { id: 2, payout_number: 'PAYOUT-002', status: 'pending' }
       ];
 
-      db.query.mockResolvedValue({ rows: mockPayouts });
+      pool.query.mockResolvedValue({ rows: mockPayouts });
 
       const result = await service.getPayoutsByVendor(vendorId, filters);
 
       expect(result).toEqual(mockPayouts);
-      expect(db.query).toHaveBeenCalledWith(
-        expect.stringContaining('SELECT vp.*, mo.order_number'),
-        [vendorId, 'pending', 10, 0]
+      expect(normalizeSql(pool.query.mock.calls[0][0])).toContain(
+        'SELECT vp.*, mo.order_number'
       );
+      expect(pool.query.mock.calls[0][1]).toEqual([vendorId, 'pending', 10, 0]);
     });
   });
 
@@ -217,15 +224,15 @@ describe('VendorPayoutService', () => {
         { id: 1, payout_number: 'PAYOUT-001', status: 'completed' }
       ];
 
-      db.query.mockResolvedValue({ rows: mockPayouts });
+      pool.query.mockResolvedValue({ rows: mockPayouts });
 
       const result = await service.getAllPayouts(filters);
 
       expect(result).toEqual(mockPayouts);
-      expect(db.query).toHaveBeenCalledWith(
-        expect.stringContaining('SELECT vp.*, v.name as vendor_name'),
-        ['completed', 2, 50, 0]
+      expect(normalizeSql(pool.query.mock.calls[0][0])).toContain(
+        'SELECT vp.*, v.name as vendor_name'
       );
+      expect(pool.query.mock.calls[0][1]).toEqual(['completed', 2, 50, 0]);
     });
   });
 
@@ -241,15 +248,19 @@ describe('VendorPayoutService', () => {
         payout_details: { accountNumber: '123456789' }
       };
 
-      db.query.mockResolvedValue({ rows: [mockPayout] });
+      pool.query.mockResolvedValue({ rows: [mockPayout] });
 
       const result = await service.updatePayoutMethod(payoutId, payoutMethod, payoutDetails);
 
       expect(result).toEqual(mockPayout);
-      expect(db.query).toHaveBeenCalledWith(
-        expect.stringContaining('UPDATE vendor_payouts SET payout_method'),
-        [payoutId, payoutMethod, JSON.stringify(payoutDetails)]
+      expect(normalizeSql(pool.query.mock.calls[0][0])).toContain(
+        'UPDATE vendor_payouts SET payout_method'
       );
+      expect(pool.query.mock.calls[0][1]).toEqual([
+        payoutId,
+        payoutMethod,
+        JSON.stringify(payoutDetails)
+      ]);
     });
   });
 
@@ -265,15 +276,15 @@ describe('VendorPayoutService', () => {
         total_commissions: 100.00
       };
 
-      db.query.mockResolvedValue({ rows: [mockStats] });
+      pool.query.mockResolvedValue({ rows: [mockStats] });
 
       const result = await service.getPayoutStats(vendorId);
 
       expect(result).toEqual(mockStats);
-      expect(db.query).toHaveBeenCalledWith(
-        expect.stringContaining('SELECT COUNT(*) as total_payouts'),
-        [vendorId]
+      expect(normalizeSql(pool.query.mock.calls[0][0])).toContain(
+        'SELECT COUNT(*) as total_payouts'
       );
+      expect(pool.query.mock.calls[0][1]).toEqual([vendorId]);
     });
   });
 
@@ -285,17 +296,17 @@ describe('VendorPayoutService', () => {
       ];
 
       // Mock getting pending payouts
-      db.query
+      pool.query
         .mockResolvedValueOnce({ rows: pendingPayouts }) // First call gets pending payouts
         .mockResolvedValue({ rows: [{ id: 1 }] }); // Subsequent calls for processing
 
       const result = await service.processPendingPayouts(10);
 
       expect(result).toHaveLength(2);
-      expect(db.query).toHaveBeenCalledWith(
-        expect.stringContaining('SELECT * FROM vendor_payouts WHERE status = \'pending\''),
-        [10]
+      expect(normalizeSql(pool.query.mock.calls[0][0])).toContain(
+        "SELECT * FROM vendor_payouts WHERE status = 'pending'"
       );
+      expect(pool.query.mock.calls[0][1]).toEqual([10]);
     });
 
     it('should handle payout processing failures gracefully', async () => {
@@ -304,7 +315,7 @@ describe('VendorPayoutService', () => {
       ];
 
       // Mock getting pending payouts
-      db.query
+      pool.query
         .mockResolvedValueOnce({ rows: pendingPayouts }) // Gets pending payouts
         .mockRejectedValueOnce(new Error('Processing failed')) // Processing fails
         .mockResolvedValue({ rows: [{ id: 1 }] }); // Fail payout call
@@ -322,7 +333,7 @@ describe('VendorPayoutService', () => {
       jest.spyOn(global, 'Date').mockImplementation(() => mockDate);
 
       // Mock payout number check - first exists, second doesn't
-      db.query
+      pool.query
         .mockResolvedValueOnce({ rows: [{ id: 1 }] }) // PAYOUT-20241201-0000 exists
         .mockResolvedValueOnce({ rows: [] }); // PAYOUT-20241201-0001 doesn't exist
 
