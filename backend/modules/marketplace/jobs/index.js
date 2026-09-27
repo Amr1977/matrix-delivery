@@ -1,11 +1,13 @@
 const { startOfferExpiryJob } = require('./offerExpiry');
 const { startCartCleanupJob } = require('./cartCleanup');
 const { startPayoutRunJob } = require('./payoutRun');
+const { startMetricsCollectionJob } = require('./metricsCollection');
 
 function registerJobs() {
   startOfferExpiryJob();
   startCartCleanupJob();
   startPayoutRunJob();
+  startMetricsCollectionJob();
 }
 
 module.exports = {
@@ -13,4 +15,5 @@ module.exports = {
   startOfferExpiryJob,
   startCartCleanupJob,
   startPayoutRunJob,
+  startMetricsCollectionJob,
 };

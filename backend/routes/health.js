@@ -1,11 +1,11 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const logger = require("../config/logger");
-const pool = require("../config/db");
+const logger = require('../config/logger');
+const pool = require('../config/db');
 
 const IS_TEST =
-  process.env.NODE_ENV === "test" || process.env.NODE_ENV === "testing";
-const IS_PRODUCTION = process.env.NODE_ENV === "production";
+  process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'testing';
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
 function getPoolStats() {
   try {
@@ -15,7 +15,7 @@ function getPoolStats() {
       activeConnections: pool.totalCount - pool.idleCount,
     };
   } catch (error) {
-    return { error: "Unable to get pool stats" };
+    return { error: 'Unable to get pool stats' };
   }
 }
 
@@ -24,30 +24,42 @@ function getPoolStats() {
  * GET /api/health
  * Returns server health status and basic statistics
  */
-router.get("/", async (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    const usersResult = await pool.query("SELECT COUNT(*) as count FROM users");
+    const usersResult = await pool.query('SELECT COUNT(*) as count FROM users');
     const ordersResult = await pool.query(
-      "SELECT COUNT(*) as count FROM orders",
+      'SELECT COUNT(*) as count FROM orders',
     );
     const openOrdersResult = await pool.query(
-      "SELECT COUNT(*) as count FROM orders WHERE status = 'pending_bids'",
+      'SELECT COUNT(*) as count FROM orders WHERE status = \'pending_bids\'',
     );
     const acceptedOrdersResult = await pool.query(
-      "SELECT COUNT(*) as count FROM orders WHERE status = 'accepted'",
+      'SELECT COUNT(*) as count FROM orders WHERE status = \'accepted\'',
     );
     const completedOrdersResult = await pool.query(
-      "SELECT COUNT(*) as count FROM orders WHERE status IN ('delivered', 'courier_delivered', 'customer_delivered')",
+      'SELECT COUNT(*) as count FROM orders WHERE status IN (\'delivered\', \'courier_delivered\', \'customer_delivered\')',
+    );
+
+    // Marketplace KPIs
+    const marketplaceStatsResult = await pool.query(
+      `SELECT
+        COUNT(*) as total_marketplace_orders,
+        COUNT(*) FILTER (WHERE status = 'pending') as mp_pending,
+        COUNT(*) FILTER (WHERE status = 'accepted') as mp_vendor_confirmed,
+        COUNT(*) FILTER (WHERE status IN ('delivered', 'customer_delivered', 'completed')) as mp_delivered,
+        COALESCE(SUM(total_amount), 0) as mp_volume_egp,
+        COALESCE(SUM(commission_amount), 0) as mp_commission_egp
+      FROM marketplace_orders`,
     );
 
     res.json({
-      status: "healthy",
+      status: 'healthy',
       environment: IS_TEST
-        ? "testing"
+        ? 'testing'
         : IS_PRODUCTION
-          ? "production"
-          : "development",
-      database: "PostgreSQL",
+          ? 'production'
+          : 'development',
+      database: 'PostgreSQL',
       uptime: process.uptime(),
       memory: {
         used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
@@ -61,12 +73,28 @@ router.get("/", async (req, res) => {
         activeOrders: parseInt(acceptedOrdersResult.rows[0].count),
         completedOrders: parseInt(completedOrdersResult.rows[0].count),
       },
-      version: "1.0.0",
+      marketplace: marketplaceStatsResult.rows[0]
+        ? {
+            totalOrders: parseInt(
+              marketplaceStatsResult.rows[0].total_marketplace_orders,
+            ),
+            pending: parseInt(marketplaceStatsResult.rows[0].mp_pending),
+            vendorConfirmed: parseInt(
+              marketplaceStatsResult.rows[0].mp_vendor_confirmed,
+            ),
+            delivered: parseInt(marketplaceStatsResult.rows[0].mp_delivered),
+            volumeEgp: parseFloat(marketplaceStatsResult.rows[0].mp_volume_egp),
+            commissionEgp: parseFloat(
+              marketplaceStatsResult.rows[0].mp_commission_egp,
+            ),
+          }
+        : null,
+      version: '1.0.0',
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error("Health check error:", error);
-    res.status(500).json({ status: "unhealthy", error: error.message });
+    logger.error('Health check error:', error);
+    res.status(500).json({ status: 'unhealthy', error: error.message });
   }
 });
 
@@ -75,7 +103,7 @@ router.get("/", async (req, res) => {
  * GET /api/health/footer/stats
  * Provides real-time system status for footer display
  */
-router.get("/footer/stats", async (req, res) => {
+router.get('/footer/stats', async (req, res) => {
   try {
     // Get users by primary_role
     const usersByRoleResult = await pool.query(
@@ -152,8 +180,8 @@ router.get("/footer/stats", async (req, res) => {
       lastUpdated: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error("Footer stats error:", error);
-    res.status(500).json({ error: "Failed to get footer statistics" });
+    logger.error('Footer stats error:', error);
+    res.status(500).json({ error: 'Failed to get footer statistics' });
   }
 });
 

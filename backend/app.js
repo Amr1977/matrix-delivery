@@ -128,6 +128,10 @@ app.use("/api/cart", cartRoutes);
 const marketplaceOrderRoutes = require("./modules/marketplace/routes/marketplaceOrderRoutes");
 app.use("/api/marketplace/orders", marketplaceOrderRoutes);
 
+// Marketplace monitoring endpoints (Phase 7)
+const marketplaceMonitoringRoutes = require("./modules/marketplace/routes/marketplaceMonitoringRoutes");
+app.use("/api/marketplace/monitoring", marketplaceMonitoringRoutes);
+
 // Keep the legacy /api/vendors path as a compatibility alias to the canonical
 // modular marketplace vendor route to avoid duplicated vendor logic.
 app.use("/api/vendors", marketplaceVendorRoutes);
