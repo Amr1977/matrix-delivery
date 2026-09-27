@@ -1,4 +1,4 @@
-const pool = require('../../../config/db');
+const pool = require("../../../config/db");
 
 /**
  * Marketplace Order Repository
@@ -14,7 +14,7 @@ class MarketplaceOrderRepository {
     const client = await pool.connect();
 
     try {
-      await client.query('BEGIN');
+      await client.query("BEGIN");
 
       // Generate unique order number
       const orderNumber = await this.generateOrderNumber();
@@ -30,7 +30,8 @@ class MarketplaceOrderRepository {
         RETURNING *
       `;
 
-      const commissionAmount = (orderData.totalAmount * orderData.commissionRate) / 100;
+      const commissionAmount =
+        (orderData.totalAmount * orderData.commissionRate) / 100;
 
       const orderValues = [
         orderData.userId,
@@ -46,58 +47,94 @@ class MarketplaceOrderRepository {
         orderData.deliveryInstructions,
         orderData.commissionRate,
         commissionAmount,
-        orderData.customerNotes
+        orderData.customerNotes,
       ];
 
       const orderResult = await client.query(orderQuery, orderValues);
       const order = orderResult.rows[0];
 
       // Get cart items and create order items
-      const cartItems = await client.query(`
+      const cartItems = await client.query(
+        `
         SELECT ci.*, i.name, i.description, i.price
         FROM cart_items ci
         JOIN items i ON ci.item_id = i.id
         WHERE ci.cart_id = $1
-      `, [orderData.cartId]);
+      `,
+        [orderData.cartId],
+      );
 
       // Create order items
       for (const cartItem of cartItems.rows) {
-        await client.query(`
+        await client.query(
+          `
           INSERT INTO marketplace_order_items (
             order_id, item_id, item_name, item_description,
             unit_price, quantity, total_price
           ) VALUES ($1, $2, $3, $4, $5, $6, $7)
-        `, [
-          order.id,
-          cartItem.item_id,
-          cartItem.name,
-          cartItem.description,
-          cartItem.unit_price,
-          cartItem.quantity,
-          cartItem.quantity * cartItem.unit_price
-        ]);
+        `,
+          [
+            order.id,
+            cartItem.item_id,
+            cartItem.name,
+            cartItem.description,
+            cartItem.unit_price,
+            cartItem.quantity,
+            cartItem.quantity * cartItem.unit_price,
+          ],
+        );
       }
 
-      // Deduct inventory
+      // Deduct inventory with row-level locking to prevent race conditions
       for (const cartItem of cartItems.rows) {
-        await client.query(`
+        // Lock the row first to prevent concurrent checkouts from overselling
+        const itemCheck = await client.query(
+          "SELECT inventory_quantity FROM items WHERE id = $1 FOR UPDATE",
+          [cartItem.item_id],
+        );
+
+        if (itemCheck.rows.length === 0) {
+          throw new Error(`Item ${cartItem.item_id} not found`);
+        }
+
+        const currentStock = parseInt(itemCheck.rows[0].inventory_quantity, 10);
+        if (currentStock < cartItem.quantity) {
+          throw new Error(
+            `Insufficient stock for item ${cartItem.item_id}: requested ${cartItem.quantity}, available ${currentStock}`,
+          );
+        }
+
+        const updateResult = await client.query(
+          `
           UPDATE items
           SET inventory_quantity = inventory_quantity - $1,
               updated_at = CURRENT_TIMESTAMP
           WHERE id = $2 AND inventory_quantity >= $1
-        `, [cartItem.quantity, cartItem.item_id]);
+        `,
+          [cartItem.quantity, cartItem.item_id],
+        );
+
+        if (updateResult.rowCount === 0) {
+          throw new Error(
+            `Race condition: item ${cartItem.item_id} stock was depleted between check and update`,
+          );
+        }
       }
 
       // Clear cart
-      await client.query('DELETE FROM cart_items WHERE cart_id = $1', [orderData.cartId]);
-      await client.query('DELETE FROM shopping_carts WHERE id = $1', [orderData.cartId]);
+      await client.query("DELETE FROM cart_items WHERE cart_id = $1", [
+        orderData.cartId,
+      ]);
+      await client.query("DELETE FROM shopping_carts WHERE id = $1", [
+        orderData.cartId,
+      ]);
 
-      await client.query('COMMIT');
+      await client.query("COMMIT");
 
       // Return order with items
       return await this.getOrderById(order.id);
     } catch (error) {
-      await client.query('ROLLBACK');
+      await client.query("ROLLBACK");
       throw error;
     } finally {
       client.release();
@@ -164,7 +201,7 @@ class MarketplaceOrderRepository {
       paramIndex++;
     }
 
-    query += ' ORDER BY mo.created_at DESC';
+    query += " ORDER BY mo.created_at DESC";
 
     if (filters.limit) {
       query += ` LIMIT $${paramIndex}`;
@@ -182,8 +219,8 @@ class MarketplaceOrderRepository {
     // Add items to each order
     for (const order of result.rows) {
       const itemsResult = await pool.query(
-        'SELECT * FROM marketplace_order_items WHERE order_id = $1 ORDER BY created_at',
-        [order.id]
+        "SELECT * FROM marketplace_order_items WHERE order_id = $1 ORDER BY created_at",
+        [order.id],
       );
       order.items = itemsResult.rows;
     }
@@ -215,7 +252,7 @@ class MarketplaceOrderRepository {
       paramIndex++;
     }
 
-    query += ' ORDER BY mo.created_at DESC';
+    query += " ORDER BY mo.created_at DESC";
 
     if (filters.limit) {
       query += ` LIMIT $${paramIndex}`;
@@ -233,8 +270,8 @@ class MarketplaceOrderRepository {
     // Add items to each order
     for (const order of result.rows) {
       const itemsResult = await pool.query(
-        'SELECT * FROM marketplace_order_items WHERE order_id = $1 ORDER BY created_at',
-        [order.id]
+        "SELECT * FROM marketplace_order_items WHERE order_id = $1 ORDER BY created_at",
+        [order.id],
       );
       order.items = itemsResult.rows;
     }
@@ -250,17 +287,17 @@ class MarketplaceOrderRepository {
    * @returns {Promise<Object>} Updated order
    */
   async updateOrderStatus(orderId, status, additionalData = {}) {
-    const updateFields = ['status = $1', 'updated_at = CURRENT_TIMESTAMP'];
+    const updateFields = ["status = $1", "updated_at = CURRENT_TIMESTAMP"];
     const params = [status];
     let paramIndex = 2;
 
     // Add timestamp fields based on status
     const statusTimestampMap = {
-      'confirmed': 'confirmed_at',
-      'prepared': 'prepared_at',
-      'picked_up': 'picked_up_at',
-      'delivered': 'delivered_at',
-      'cancelled': 'cancelled_at'
+      confirmed: "confirmed_at",
+      prepared: "prepared_at",
+      picked_up: "picked_up_at",
+      delivered: "delivered_at",
+      cancelled: "cancelled_at",
     };
 
     if (statusTimestampMap[status]) {
@@ -284,7 +321,7 @@ class MarketplaceOrderRepository {
 
     const query = `
       UPDATE marketplace_orders
-      SET ${updateFields.join(', ')}
+      SET ${updateFields.join(", ")}
       WHERE id = $${paramIndex}
       RETURNING *
     `;
@@ -292,7 +329,7 @@ class MarketplaceOrderRepository {
     const result = await pool.query(query, params);
 
     if (result.rows.length === 0) {
-      throw new Error('Order not found');
+      throw new Error("Order not found");
     }
 
     return result.rows[0];
@@ -304,13 +341,15 @@ class MarketplaceOrderRepository {
    */
   async generateOrderNumber() {
     const timestamp = Date.now();
-    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    const random = Math.floor(Math.random() * 1000)
+      .toString()
+      .padStart(3, "0");
     const orderNumber = `MO-${timestamp}-${random}`;
 
     // Check if order number already exists (very unlikely but safe)
     const existing = await pool.query(
-      'SELECT id FROM marketplace_orders WHERE order_number = $1',
-      [orderNumber]
+      "SELECT id FROM marketplace_orders WHERE order_number = $1",
+      [orderNumber],
     );
 
     if (existing.rows.length > 0) {
@@ -339,7 +378,13 @@ class MarketplaceOrderRepository {
       RETURNING *
     `;
 
-    const result = await pool.query(query, [vendorId, orderId, amount, commissionAmount, netAmount]);
+    const result = await pool.query(query, [
+      vendorId,
+      orderId,
+      amount,
+      commissionAmount,
+      netAmount,
+    ]);
     return result.rows[0];
   }
 
@@ -368,7 +413,7 @@ class MarketplaceOrderRepository {
       JSON.stringify(auditData.newValues),
       JSON.stringify(auditData.changes),
       auditData.ipAddress,
-      auditData.userAgent
+      auditData.userAgent,
     ]);
 
     return result.rows[0];

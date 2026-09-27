@@ -1,9 +1,9 @@
-const MarketplaceOrderRepository = require('../../../backend/modules/marketplace/repositories/marketplaceOrderRepository');
-const pool = require('../../../backend/config/db');
+const MarketplaceOrderRepository = require("../../../backend/modules/marketplace/repositories/marketplaceOrderRepository");
+const pool = require("../../../backend/config/db");
 
-jest.mock('../../../backend/config/db');
+jest.mock("../../../backend/config/db");
 
-describe('MarketplaceOrderRepository', () => {
+describe("MarketplaceOrderRepository", () => {
   let repository;
   let mockQuery;
   let mockClient;
@@ -15,19 +15,19 @@ describe('MarketplaceOrderRepository', () => {
     // Mock database client
     mockClient = {
       query: jest.fn(),
-      release: jest.fn()
+      release: jest.fn(),
     };
 
     // Mock pool
     mockQuery = jest.fn();
     const mockPool = {
       query: mockQuery,
-      connect: jest.fn().mockResolvedValue(mockClient)
+      connect: jest.fn().mockResolvedValue(mockClient),
     };
 
     // Replace the pool import
-    require('../../../backend/config/db').query = mockQuery;
-    require('../../../backend/config/db').connect = mockPool.connect;
+    require("../../../backend/config/db").query = mockQuery;
+    require("../../../backend/config/db").connect = mockPool.connect;
 
     // Reset mock implementation
     mockQuery.mockReset();
@@ -36,21 +36,21 @@ describe('MarketplaceOrderRepository', () => {
     mockClient.query.mockImplementation(() => ({ rows: [] }));
   });
 
-  describe('createOrder', () => {
-    it('should create order successfully with inventory deduction', async () => {
-      const order = { id: 1, order_number: 'MO-123-456' };
+  describe("createOrder", () => {
+    it("should create order successfully with inventory deduction", async () => {
+      const order = { id: 1, order_number: "MO-123-456" };
       const cartItem = {
         item_id: 1,
         quantity: 2,
-        unit_price: 10.00,
-        name: 'Test Item',
-        description: 'Test'
+        unit_price: 10.0,
+        name: "Test Item",
+        description: "Test",
       };
 
       mockQuery
         .mockResolvedValueOnce({ rows: [] })
         .mockResolvedValueOnce({ rows: [order] })
-        .mockResolvedValueOnce({ rows: [{ ...order, total_amount: 20.00 }] })
+        .mockResolvedValueOnce({ rows: [{ ...order, total_amount: 20.0 }] })
         .mockResolvedValueOnce({ rows: [{ item_id: 1, quantity: 2 }] });
 
       mockClient.query
@@ -58,8 +58,7 @@ describe('MarketplaceOrderRepository', () => {
         .mockResolvedValueOnce({ rows: [order] })
         .mockResolvedValueOnce({ rows: [cartItem] })
         .mockResolvedValueOnce({ rows: [{ id: 1 }] })
-        .mockResolvedValueOnce({ rowCount: 1 })
-        .mockResolvedValueOnce({ rowCount: 1 })
+        .mockResolvedValueOnce({ rows: [{ inventory_quantity: 5 }] })
         .mockResolvedValueOnce({ rowCount: 1 })
         .mockResolvedValueOnce({ rows: [] });
 
@@ -68,30 +67,32 @@ describe('MarketplaceOrderRepository', () => {
         cartId: 1,
         storeId: 1,
         vendorId: 1,
-        totalAmount: 20.00,
-        deliveryFee: 5.00,
-        deliveryAddress: '123 Test St',
-        commissionRate: 10.00,
-        customerNotes: 'Test order'
+        totalAmount: 20.0,
+        deliveryFee: 5.0,
+        deliveryAddress: "123 Test St",
+        commissionRate: 10.0,
+        customerNotes: "Test order",
       };
 
       const result = await repository.createOrder(orderData);
 
       expect(result).toBeDefined();
-      expect(result.order_number).toBe('MO-123-456');
+      expect(result.order_number).toBe("MO-123-456");
       expect(mockClient.query).toHaveBeenCalledTimes(8);
       expect(mockClient.query).toHaveBeenCalledWith(
-        expect.stringContaining('UPDATE items'),
-        [2, 1]
+        expect.stringContaining("UPDATE items"),
+        [2, 1],
       );
     });
 
-    it('should rollback transaction on error', async () => {
+    it("should rollback transaction on error", async () => {
       // Mock transaction begin
       mockClient.query.mockImplementationOnce(() => Promise.resolve());
 
       // Mock error on cart items query
-      mockClient.query.mockImplementationOnce(() => Promise.reject(new Error('Database error')));
+      mockClient.query.mockImplementationOnce(() =>
+        Promise.reject(new Error("Database error")),
+      );
 
       // Mock rollback
       mockClient.query.mockImplementationOnce(() => Promise.resolve());
@@ -101,33 +102,41 @@ describe('MarketplaceOrderRepository', () => {
         cartId: 1,
         storeId: 1,
         vendorId: 1,
-        totalAmount: 20.00
+        totalAmount: 20.0,
       };
 
-      await expect(repository.createOrder(orderData)).rejects.toThrow('Database error');
+      await expect(repository.createOrder(orderData)).rejects.toThrow(
+        "Database error",
+      );
 
-      expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK');
+      expect(mockClient.query).toHaveBeenCalledWith("ROLLBACK");
       expect(mockClient.release).toHaveBeenCalled();
     });
   });
 
-  describe('getOrderById', () => {
-    it('should return order with items', async () => {
+  describe("getOrderById", () => {
+    it("should return order with items", async () => {
       const mockOrder = {
         id: 1,
-        order_number: 'MO-123-456',
+        order_number: "MO-123-456",
         user_id: 1,
         store_id: 1,
         vendor_id: 1,
-        total_amount: 20.00,
-        status: 'pending',
-        customer_name: 'John Doe',
-        store_name: 'Test Store',
-        vendor_name: 'Test Vendor'
+        total_amount: 20.0,
+        status: "pending",
+        customer_name: "John Doe",
+        store_name: "Test Store",
+        vendor_name: "Test Vendor",
       };
 
       const mockItems = [
-        { id: 1, item_id: 1, item_name: 'Test Item', quantity: 2, unit_price: 10.00 }
+        {
+          id: 1,
+          item_id: 1,
+          item_name: "Test Item",
+          quantity: 2,
+          unit_price: 10.0,
+        },
       ];
 
       mockQuery
@@ -138,11 +147,11 @@ describe('MarketplaceOrderRepository', () => {
 
       expect(result).toBeDefined();
       expect(result.id).toBe(1);
-      expect(result.order_number).toBe('MO-123-456');
+      expect(result.order_number).toBe("MO-123-456");
       expect(result.items).toEqual(mockItems);
     });
 
-    it('should return null if order not found', async () => {
+    it("should return null if order not found", async () => {
       mockQuery.mockImplementationOnce(() => ({ rows: [] }));
 
       const result = await repository.getOrderById(999);
@@ -151,10 +160,15 @@ describe('MarketplaceOrderRepository', () => {
     });
   });
 
-  describe('getOrdersByUser', () => {
-    it('should return user orders with items', async () => {
+  describe("getOrdersByUser", () => {
+    it("should return user orders with items", async () => {
       const mockOrders = [
-        { id: 1, order_number: 'MO-123-456', status: 'delivered', total_amount: 20.00 }
+        {
+          id: 1,
+          order_number: "MO-123-456",
+          status: "delivered",
+          total_amount: 20.0,
+        },
       ];
 
       mockQuery
@@ -167,52 +181,56 @@ describe('MarketplaceOrderRepository', () => {
       expect(result[0].items).toEqual([]);
     });
 
-    it('should apply status filter', async () => {
-      const filters = { status: 'delivered' };
+    it("should apply status filter", async () => {
+      const filters = { status: "delivered" };
 
       mockQuery.mockImplementationOnce(() => ({ rows: [] }));
 
       await repository.getOrdersByUser(1, filters);
 
       expect(mockQuery).toHaveBeenCalledWith(
-        expect.stringContaining('status = $2'),
-        [1, 'delivered']
+        expect.stringContaining("status = $2"),
+        [1, "delivered"],
       );
     });
   });
 
-  describe('updateOrderStatus', () => {
-    it('should update order status successfully', async () => {
+  describe("updateOrderStatus", () => {
+    it("should update order status successfully", async () => {
       mockQuery.mockImplementationOnce(() => ({
-        rows: [{ id: 1, status: 'confirmed' }]
+        rows: [{ id: 1, status: "confirmed" }],
       }));
 
-      const result = await repository.updateOrderStatus(1, 'confirmed');
+      const result = await repository.updateOrderStatus(1, "confirmed");
 
       expect(result).toBeDefined();
-      expect(result.status).toBe('confirmed');
+      expect(result.status).toBe("confirmed");
     });
 
-    it('should throw error if order not found', async () => {
+    it("should throw error if order not found", async () => {
       mockQuery.mockImplementationOnce(() => ({ rows: [] }));
 
-      await expect(repository.updateOrderStatus(999, 'confirmed')).rejects.toThrow('Order not found');
+      await expect(
+        repository.updateOrderStatus(999, "confirmed"),
+      ).rejects.toThrow("Order not found");
     });
 
-    it('should include vendor notes when provided', async () => {
+    it("should include vendor notes when provided", async () => {
       mockQuery.mockImplementationOnce(() => ({ rows: [{ id: 1 }] }));
 
-      await repository.updateOrderStatus(1, 'confirmed', { vendorNotes: 'Ready for pickup' });
+      await repository.updateOrderStatus(1, "confirmed", {
+        vendorNotes: "Ready for pickup",
+      });
 
       expect(mockQuery).toHaveBeenCalledWith(
-        expect.stringContaining('vendor_notes = $2'),
-        ['confirmed', 'Ready for pickup', 1]
+        expect.stringContaining("vendor_notes = $2"),
+        ["confirmed", "Ready for pickup", 1],
       );
     });
   });
 
-  describe('generateOrderNumber', () => {
-    it('should generate unique order number', async () => {
+  describe("generateOrderNumber", () => {
+    it("should generate unique order number", async () => {
       // Mock no existing order number
       mockQuery.mockImplementation(() => ({ rows: [] }));
 
@@ -221,7 +239,7 @@ describe('MarketplaceOrderRepository', () => {
       expect(result).toMatch(/^MO-\d+-\d{3}$/);
     });
 
-    it('should handle collisions and retry', async () => {
+    it("should handle collisions and retry", async () => {
       // Mock collision on first attempt
       mockQuery
         .mockImplementationOnce(() => ({ rows: [{ id: 1 }] }))
@@ -234,46 +252,52 @@ describe('MarketplaceOrderRepository', () => {
     });
   });
 
-  describe('createVendorPayout', () => {
-    it('should create vendor payout successfully', async () => {
+  describe("createVendorPayout", () => {
+    it("should create vendor payout successfully", async () => {
       mockQuery.mockImplementationOnce(() => ({
-        rows: [{ id: 1, vendor_id: 1, amount: 20.00, commission_amount: 2.00 }]
+        rows: [{ id: 1, vendor_id: 1, amount: 20.0, commission_amount: 2.0 }],
       }));
 
-      const result = await repository.createVendorPayout(1, 1, 20.00, 2.00);
+      const result = await repository.createVendorPayout(1, 1, 20.0, 2.0);
 
       expect(result).toBeDefined();
       expect(result.vendor_id).toBe(1);
-      expect(result.amount).toBe(20.00);
+      expect(result.amount).toBe(20.0);
     });
   });
 
-  describe('logAuditEvent', () => {
-    it('should log audit event successfully', async () => {
+  describe("logAuditEvent", () => {
+    it("should log audit event successfully", async () => {
       mockQuery.mockImplementationOnce(() => ({
-        rows: [{ id: 1, action: 'order_created' }]
+        rows: [{ id: 1, action: "order_created" }],
       }));
 
       const auditData = {
         userId: 1,
         vendorId: 1,
         orderId: 1,
-        action: 'order_created',
-        entityType: 'marketplace_order',
-        entityId: 1
+        action: "order_created",
+        entityType: "marketplace_order",
+        entityId: 1,
       };
 
       const result = await repository.logAuditEvent(auditData);
 
       expect(result).toBeDefined();
-      expect(result.action).toBe('order_created');
-      expect(mockQuery).toHaveBeenCalledWith(
-        expect.any(String),
-        [
-          1, 1, 1, 'order_created', 'marketplace_order', 1,
-          undefined, undefined, undefined, undefined, undefined
-        ]
-      );
+      expect(result.action).toBe("order_created");
+      expect(mockQuery).toHaveBeenCalledWith(expect.any(String), [
+        1,
+        1,
+        1,
+        "order_created",
+        "marketplace_order",
+        1,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+      ]);
     });
   });
 });

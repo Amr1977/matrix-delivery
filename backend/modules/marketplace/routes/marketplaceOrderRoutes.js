@@ -1,9 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const marketplaceOrderController = require('../controllers/marketplaceOrderController');
-const {
-  verifyToken
-} = require('../../../middleware/auth');
+const { verifyToken } = require('../../../middleware/auth');
+const { orderCreationRateLimit } = require('../../../middleware/rateLimit');
 
 /**
  * Routes for marketplace orders
@@ -12,7 +11,7 @@ const {
  */
 
 // Create new order from cart
-router.post('/', verifyToken, marketplaceOrderController.createOrder);
+router.post('/', verifyToken, orderCreationRateLimit, marketplaceOrderController.createOrder);
 
 // Get user's orders
 router.get('/', verifyToken, marketplaceOrderController.getOrders);
