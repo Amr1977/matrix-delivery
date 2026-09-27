@@ -10,6 +10,7 @@ import RoutePreviewMap from "./RoutePreviewMap";
 import { MapsApi } from "../services/api/maps";
 import polyline from "@mapbox/polyline";
 import io from "socket.io-client";
+import { getSocketServerUrl } from "../utils/socketUrl";
 
 const AsyncOrderMap = ({
   order,
@@ -233,7 +234,7 @@ const AsyncOrderMap = ({
 
   useEffect(() => {
     if (!shouldFetch) return;
-    const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+    const apiUrl = getSocketServerUrl(process.env.REACT_APP_API_URL);
     const socket = io(apiUrl, {
       withCredentials: true,
       transports: ["websocket"],

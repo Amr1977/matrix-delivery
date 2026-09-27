@@ -1,104 +1,134 @@
 /**
  * API Client with Failover Support
  * Provides automatic server failover with sticky session until failure
+ * MODIFIED FOR SINGLE SERVER: Uses REACT_APP_API_URL or localhost:5000/api directly
  */
 
-import { db } from "../../firebase";
-import { collection, getDocs } from "firebase/firestore";
+// Import { db } from "../../firebase";
+// Import { collection, getDocs } from "firebase/firestore";
 import { ApiClient } from "./client";
 import type { ApiError } from "./types";
 
-const HEALTH_ENDPOINT = "/api/health";
-const HEALTH_CHECK_TIMEOUT = 5000;
+declare global {
+  interface Window {
+    REACT_APP_API_URL?: string;
+  }
+}
+
+// Get API URL from environment variable or use localhost fallback
+const API_URL = (() => {
+  // Try to get from environment variable (if available in runtime)
+  if (typeof process !== "undefined" && process.env.REACT_APP_API_URL) {
+    return process.env.REACT_APP_API_URL;
+  }
+
+  // Try to get from window object (for web apps)
+  if (typeof window !== "undefined" && window.REACT_APP_API_URL) {
+    return window.REACT_APP_API_URL;
+  }
+
+  // Fallback to localhost for development
+  return "http://localhost:5000/api";
+})();
+
+// Ensure URL doesn't have trailing /api duplication
+const BASE_URL = API_URL.endsWith("/api") ? API_URL : `${API_URL}/api`;
+
 const REQUEST_TIMEOUT_MS = 15000;
 
-let cachedServerList: string[] | null = null;
-let serverListPromise: Promise<string[]> | null = null;
-let currentServerUrl: string | null = null;
+// let cachedServerList: string[] | null = null;
+// let serverListPromise: Promise<string[]> | null = null;
+// let currentServerUrl: string | null = null;
 
+let currentServerUrl: string | null = BASE_URL;
+
+/**
+ * @interface FailoverConfig
+ */
 export interface FailoverConfig {
   idempotencyKey: string;
   maxRetries?: number;
   timeout?: number;
 }
 
-async function getServerListFromFirestore(): Promise<string[]> {
-  if (cachedServerList) {
-    return cachedServerList;
-  }
+// async function getServerListFromFirestore(): Promise<string[]> {
+//   if (cachedServerList) {
+//     return cachedServerList;
+//   }
 
-  if (serverListPromise) {
-    return serverListPromise;
-  }
+//   if (serverListPromise) {
+//     return serverListPromise;
+//   }
 
-  serverListPromise = (async () => {
-    try {
-      const serversCol = collection(db, "servers");
-      const snapshot = await getDocs(serversCol);
-      const servers: string[] = [];
+//   serverListPromise = (async () => {
+//     try {
+//       const serversCol = collection(db, "servers");
+//       const snapshot = await getDocs(serversCol);
+//       const servers: string[] = [];
 
-      snapshot.forEach((doc: any) => {
-        const data = doc.data();
-        if (data.url && data.healthy !== false) {
-          let url = data.url;
-          if (!url.endsWith("/api")) {
-            url = `${url}/api`;
-          }
-          servers.push(url);
-        }
-      });
+//       snapshot.forEach((doc: any) => {
+//         const data = doc.data();
+//         if (data.url && data.healthy !== false) {
+//           let url = data.url;
+//           if (!url.endsWith("/api")) {
+//             url = `${url}/api`;
+//           }
+//           servers.push(url);
+//         }
+//       });
 
-      cachedServerList = [...new Set(servers.filter(Boolean))];
-      return cachedServerList!;
-    } catch (error) {
-      console.warn("[Failover] Firestore error, using fallback:", error);
-      cachedServerList = [
-        "https://api.matrix-delivery.com/api",
-        "https://matrix-delivery-api-gc.mywire.org/api",
-      ];
-      return cachedServerList;
-    } finally {
-      serverListPromise = null;
-    }
-  })();
+//       cachedServerList = [...new Set(servers.filter(Boolean))];
+//       return cachedServerList!;
+//     } catch (error) {
+//       console.warn("[Failover] Firestore error, using fallback:", error);
+//       cachedServerList = [
+//         "https://api.matrix-delivery.com/api",
+//         "https://matrix-delivery-api-gc.mywire.org/api",
+//       ];
+//       return cachedServerList;
+//     } finally {
+//       serverListPromise = null;
+//     }
+//   })();
 
-  return serverListPromise;
-}
+//   return serverListPromise;
+// }
 
-async function checkServerHealth(url: string): Promise<boolean> {
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), HEALTH_CHECK_TIMEOUT);
+// async function checkServerHealth(url: string): Promise<boolean> {
+//   try {
+//     const controller = new AbortController();
+//     const timeout = setTimeout(() => controller.abort(), HEALTH_CHECK_TIMEOUT);
 
-    const response = await fetch(`${url}${HEALTH_ENDPOINT}`, {
-      method: "GET",
-      signal: controller.signal,
-      credentials: "include",
-    });
+//     const response = await fetch(`${url}${HEALTH_ENDPOINT}`, {
+//       method: "GET",
+//       signal: controller.signal,
+//       credentials: "include",
+//     });
 
-    clearTimeout(timeout);
-    return response.ok;
-  } catch {
-    return false;
-  }
-}
+//     clearTimeout(timeout);
+//     return response.ok;
+//   } catch {
+//     return false;
+//   }
+// }
 
-async function findHealthyServer(urls: string[]): Promise<string | null> {
-  if (urls.length === 0) return null;
+// async function findHealthyServer(urls: string[]): Promise<string | null> {
+//   if (urls.length === 0) return null;
 
-  const results = await Promise.all(
-    urls.map(async (url) => ({
-      url,
-      healthy: await checkServerHealth(url),
-    })),
-  );
+//   const results = await Promise.all(
+//     urls.map(async (url) => ({
+//       url,
+//       healthy: await checkServerHealth(url),
+//     })),
+//   );
 
-  return results.find((r) => r.healthy)?.url || null;
-}
+//   return results.find((r) => r.healthy)?.url || null;
+// }
 
 export function clearServerCache(): void {
-  cachedServerList = null;
-  currentServerUrl = null;
+  // cachedServerList = null;
+  // currentServerUrl = null;
+  // No-op for single server mode
 }
 
 export function getCurrentServerUrl(): string | null {
@@ -124,18 +154,22 @@ export async function fetchWithFailover<T>(
   let retries = 0;
 
   const attemptRequest = async (): Promise<T> => {
-    if (!serverUrl) {
-      const serverList = await getServerListFromFirestore();
-      const healthy = await findHealthyServer(serverList);
+    // if (!serverUrl) {
+    //   const serverList = await getServerListFromFirestore();
+    //   const healthy = await findHealthyServer(serverList);
 
-      if (!healthy) {
-        throw { error: "NO_HEALTHY_SERVERS", statusCode: 503 } as ApiError;
-      }
+    //   if (!healthy) {
+    //     throw { error: "NO_HEALTHY_SERVERS", statusCode: 503 } as ApiError;
+    //   }
 
-      serverUrl = healthy;
-      currentServerUrl = serverUrl;
-      console.info(`[Failover] Selected server: ${serverUrl}`);
-    }
+    //   serverUrl = healthy;
+    //   currentServerUrl = serverUrl;
+    //   console.info(`[Failover] Selected server: ${serverUrl}`);
+    // }
+
+    // For single server mode, always use our configured server
+    serverUrl = BASE_URL;
+    currentServerUrl = serverUrl;
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);

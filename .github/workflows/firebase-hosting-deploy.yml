@@ -21,6 +21,8 @@ jobs:
       - name: Install dependencies
         run: cd frontend && npm install
       - name: Build for production
+        env:
+          REACT_APP_API_URL: https://api.matrix-delivery.com/api
         run: |
           cd frontend
           CI=false npm run build

@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Tooltip } from "react-leaflet";
 import L from "leaflet";
 import io from "socket.io-client";
+import { getSocketServerUrl } from "../../utils/socketUrl";
 import BidDriverMarker from "./BidDriverMarker";
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -29,7 +30,8 @@ const OrdersMap = ({
   onSelectOrder,
   theme = "dark",
 }) => {
-  const API_BASE = process.env.REACT_APP_API_URL;
+  const API_BASE =
+    process.env.REACT_APP_API_URL || "https://api.matrix-delivery.com/api";
   const tileUrl = `${API_BASE}/maps/tiles/{z}/{x}/{y}.png?v=3`;
 
   const getActiveLocation = () => {
@@ -73,7 +75,7 @@ const OrdersMap = ({
   useEffect(() => {
     if (!API_BASE) return;
 
-    const apiUrl = API_BASE.replace("/api", "");
+    const apiUrl = getSocketServerUrl(API_BASE);
     const socket = io(apiUrl, {
       transports: ["websocket"],
       reconnection: true,

@@ -11,6 +11,7 @@ import {
 import L from "leaflet";
 import polyline from "@mapbox/polyline";
 import io from "socket.io-client";
+import { getSocketServerUrl } from "../../utils/socketUrl";
 import { ClickableMap } from "../FullscreenMapModal";
 import api from "../../api";
 
@@ -273,8 +274,7 @@ const LiveTrackingMap = ({
       fetchTrackingData(); // Initial load
 
       // Set up Socket.IO connection for real-time updates
-      const apiUrl =
-        process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+      const apiUrl = getSocketServerUrl(process.env.REACT_APP_API_URL);
       const socket = io(apiUrl, {
         withCredentials: true,
         transports: ["websocket"],

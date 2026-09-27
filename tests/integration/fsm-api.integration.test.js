@@ -24,7 +24,7 @@ const mockMarketplaceOrderService = {
   handleTimeout: jest.fn()
 };
 
-jest.mock('../../backend/services/marketplaceOrderService', () => {
+jest.mock('../../backend/modules/marketplace/services/marketplaceOrderService', () => {
   return jest.fn().mockImplementation(() => mockMarketplaceOrderService);
 });
 

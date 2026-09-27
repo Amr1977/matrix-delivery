@@ -2,7 +2,9 @@
 
 import { ApiError } from './types';
 
-const API_URL = process.env.REACT_APP_API_URL;
+const API_URL = (
+    process.env.REACT_APP_API_URL || 'https://api.matrix-delivery.com/api'
+).replace(/\/+$/, '');
 
 export class ApiClient {
     /**

@@ -81,8 +81,13 @@ pm2 logs matrix-delivery-backend
 cd /root/matrix-delivery/backend
 pm2 start ecosystem.config.js --env production
 pm2 save
-pm2 startup  # Run once after initial setup
+pm2 startup  # Run once; execute the generated systemd command as root
 ```
+
+The backend process is named `matrix-delivery-backend` in PM2. `pm2 save`
+stores the current process list; the enabled `pm2-<user>` systemd service
+restores that list after a server reboot. Run `scripts/pm2-startup.sh` to
+install and verify the service for the current PM2 user.
 
 ### Check Health
 

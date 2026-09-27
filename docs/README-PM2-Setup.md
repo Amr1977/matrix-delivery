@@ -30,10 +30,14 @@ cd /root/matrix-delivery
 
 The setup script will:
 - ✅ Install PM2 globally if not already installed
-- ✅ Configure PM2 to auto-start on server reboot
 - ✅ Stop any existing backend processes
 - ✅ Start your backend under PM2 management
+- ✅ Save the running process list and enable the PM2 systemd startup service
 - ✅ Show PM2 status and useful commands
+
+Run the setup script as root. PM2 must run under the same user whose
+`pm2-<user>` systemd service is enabled; the script uses root, consistent with
+its `/root/matrix-delivery/backend` install path.
 
 ### 3. Verify Setup
 
@@ -86,7 +90,10 @@ pm2 monit
 pm2 save
 
 # Generate startup script (run once after setup)
-pm2 startup
+pm2 startup  # Then run the generated systemd command as root
+
+# Verify reboot startup is enabled for this PM2 user
+systemctl is-enabled pm2-$(whoami)
 ```
 
 ## 🔧 Manual Deployment

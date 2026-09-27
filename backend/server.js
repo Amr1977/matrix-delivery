@@ -72,9 +72,12 @@ const io = socketIo(httpServer, {
         ? process.env.CORS_ORIGIN.split(",").map((o) => o.trim())
         : [
             "http://localhost:3000",
+            "http://127.0.0.1:3000",
             "http://192.168.1.2:3000",
             "https://" + process.env.REPLIT_DEV_DOMAIN,
             "https://matrix-delivery.web.app",
+            "https://matrix-delivery.com",
+            "https://api.matrix-delivery.com",
           ];
 
       if (allowedOrigins.indexOf(origin) !== -1) {
@@ -91,7 +94,7 @@ const io = socketIo(httpServer, {
     methods: ["GET", "POST"],
     credentials: true,
   },
-  transports: ["polling", "websocket"],
+  transports: ["websocket", "polling"],
   allowEIO3: true, // Support older Socket.IO clients
   path: "/socket.io/",
 });
@@ -235,7 +238,10 @@ if (require.main === module) {
     );
     locationCleanupInterval.unref();
 
-    server = httpServer.listen(PORT, "127.0.0.1", () => {
+    // Bind to 0.0.0.0 so the Cloudflare tunnel (and any reverse proxy on localhost)
+    // can reach this server. Was previously "127.0.0.1" which blocked external access.
+    const HOST = process.env.HOST || "0.0.0.0";
+    server = httpServer.listen(PORT, HOST, () => {
       console.log("");
       console.log("╔════════════════════════════════════════════════════╗");
       console.log("         🚚 Matrix Delivery Server (PostgreSQL)");
@@ -256,6 +262,11 @@ if (require.main === module) {
         `🔍 Telegram startup check: IS_TEST=${IS_TEST}, HAS_TOKEN=${!!process.env.TELEGRAM_BOT_TOKEN}`,
       );
 
+      // Register marketplace background jobs (cron)
+      const { registerJobs } = require("./modules/marketplace/jobs");
+      registerJobs();
+      logger.info("✅ Marketplace background jobs scheduled");
+
       // Telegram polling service disabled - using webhook mode instead
       // If webhook is not available, uncomment below to enable polling
       if (false && !IS_TEST && process.env.TELEGRAM_BOT_TOKEN) {
@@ -275,6 +286,8 @@ if (require.main === module) {
       // ... Additional endpoint logs omitted for brevity in entry point ...
 
       // Start server registry with round-robin health check
+      // TEMPORARILY DISABLED FOR CLOUDFLARED TUNNEL - using single backend server
+      /*
       const serverUrl = process.env.SERVER_URL || `http://localhost:${PORT}`;
       const {
         startServerRegistry,
@@ -283,9 +296,10 @@ if (require.main === module) {
       // Start registry if Firebase credentials are available (file or env var)
       const { existsSync } = require("fs");
       const credsPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-      const hasServiceJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON && 
-                             process.env.FIREBASE_SERVICE_ACCOUNT_JSON.includes('project_id');
-      
+      const hasServiceJson =
+        process.env.FIREBASE_SERVICE_ACCOUNT_JSON &&
+        process.env.FIREBASE_SERVICE_ACCOUNT_JSON.includes("project_id");
+
       if ((credsPath && existsSync(credsPath)) || hasServiceJson) {
         startServerRegistry(pool, serverUrl).catch((err) => {
           console.error("❌ Server registry failed to start:", err.message);
@@ -295,6 +309,7 @@ if (require.main === module) {
           "⚠️ Server registry disabled - no Firebase credentials (GOOGLE_APPLICATION_CREDENTIALS file or FIREBASE_SERVICE_ACCOUNT_JSON env var)",
         );
       }
+      */
       if (process.send) {
         process.send("ready");
       }

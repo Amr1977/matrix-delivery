@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import io from 'socket.io-client';
+import { getSocketServerUrl } from '../utils/socketUrl';
 import usePageVisibility from './usePageVisibility';
 import api from '../api';
 import { NotificationsApi } from '../services/api';
@@ -130,7 +131,7 @@ const useNotifications = (token, currentUser) => {
   // Real-time notifications via WebSocket
   useEffect(() => {
     if (token && currentUser?.id) {
-      const apiUrl = API_URL;
+      const apiUrl = getSocketServerUrl(API_URL);
 
       console.log('🔌 Initializing Socket.IO connection to:', apiUrl);
 

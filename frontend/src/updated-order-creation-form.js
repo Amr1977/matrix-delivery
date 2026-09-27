@@ -21,7 +21,7 @@ import { DraggableMarker } from "./DraggableMarker";
 // import { useLocationData } from './useLocationData';
 
 // Fix Leaflet default icon issue
-const GLOBAL_API_URL = process.env.REACT_APP_API_URL;
+const GLOBAL_API_URL = process.env.REACT_APP_API_URL || "https://api.matrix-delivery.com/api";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -1396,7 +1396,7 @@ const MapLocationPicker = ({
             >
               <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url={`${process.env.REACT_APP_API_URL}/maps/tiles/{z}/{x}/{y}.png?v=3`}
+                url={`${GLOBAL_API_URL}/maps/tiles/{z}/{x}/{y}.png?v=3`}
                 maxZoom={19}
                 minZoom={1}
                 subdomains={[]}
@@ -1524,7 +1524,7 @@ const MapLocationPicker = ({
             >
               <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url={`${process.env.REACT_APP_API_URL}/maps/tiles/{z}/{x}/{y}.png?v=3`}
+                url={`${GLOBAL_API_URL}/maps/tiles/{z}/{x}/{y}.png?v=3`}
                 maxZoom={19}
                 minZoom={1}
                 subdomains={[]}

@@ -5,6 +5,7 @@
 
 import { useEffect, useRef, useCallback } from "react";
 import io from "socket.io-client";
+import { getSocketServerUrl } from "../utils/socketUrl";
 
 type SocketType = ReturnType<typeof io>;
 
@@ -53,7 +54,7 @@ export const useSocketIO = (
 
     console.log(`🔌 Connecting to Socket.IO: ${serverUrl}`);
 
-    const socket = io(serverUrl, {
+    const socket = io(getSocketServerUrl(serverUrl), {
       withCredentials: true,
       transports: ["websocket"],
       reconnection: true,
@@ -64,8 +65,6 @@ export const useSocketIO = (
     socket.on("connect", () => {
       console.log("📡 Socket.IO connected");
       isConnectedRef.current = true;
-      socket.emit("join_user_room", userId);
-      console.log(`📡 Joined user room: user_${userId}`);
       onConnect?.();
     });
 

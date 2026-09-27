@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import api from '../api';
 import io from 'socket.io-client';
+import { getSocketServerUrl } from '../utils/socketUrl';
 
 const useMessaging = (initialUserId = null) => {
   const [userId, setUserId] = useState(initialUserId);
@@ -318,10 +319,9 @@ const useMessaging = (initialUserId = null) => {
 
   // Initialize WebSocket connection (Running ONCE on mount)
   useEffect(() => {
-    const apiUrl = (process.env.REACT_APP_API_URL || 'http://localhost:5000/api');
+    const apiUrl = getSocketServerUrl(process.env.REACT_APP_API_URL);
     console.log('🔌 Connecting Chat Socket.IO to:', apiUrl);
 
-    const io = require('socket.io-client');
     const newSocket = io(apiUrl, {
       withCredentials: true,
       transports: ['polling', 'websocket'], // Polling + Websocket for reliability

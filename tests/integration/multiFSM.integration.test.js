@@ -1,6 +1,6 @@
 const { multiFSMOrchestrator } = require('../../backend/fsm/MultiFSMOrchestrator');
-const MarketplaceOrderService = require('../../backend/services/marketplaceOrderService');
-const VendorPayoutService = require('../../backend/services/vendorPayoutService');
+const MarketplaceOrderService = require('../../backend/modules/marketplace/services/marketplaceOrderService');
+const VendorPayoutService = require('../../backend/modules/marketplace/services/vendorPayoutService');
 const pool = require('../../backend/config/db');
 const { eventBus } = require('../../backend/services/eventBus');
 const { timeoutScheduler } = require('../../backend/services/timeoutScheduler');
@@ -9,7 +9,7 @@ const { timeoutScheduler } = require('../../backend/services/timeoutScheduler');
 jest.mock('../../backend/config/db');
 jest.mock('../../backend/services/eventBus');
 jest.mock('../../backend/services/timeoutScheduler');
-jest.mock('../../backend/services/vendorPayoutService');
+jest.mock('../../backend/modules/marketplace/services/vendorPayoutService');
 
 describe('Multi-FSM Integration', () => {
   let marketplaceOrderService;

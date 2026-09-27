@@ -59,7 +59,7 @@ const MatrixLanding: React.FC = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const API_URL = process.env.REACT_APP_API_URL;
+        const API_URL = process.env.REACT_APP_API_URL || "https://api.matrix-delivery.com/api";
         const response = await fetch(`${API_URL}/stats/footer`);
         if (response.ok) {
           const data = await response.json();

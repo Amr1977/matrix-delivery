@@ -232,7 +232,7 @@ async function deployProduction() {
 
     // Build the app
     console.log('\n📦 Building production bundle...');
-    execCommand('npm run build');
+    execCommand('npm run build:prod');
 
     // Deploy to Firebase
     execCommand('firebase deploy --only hosting');

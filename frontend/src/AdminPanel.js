@@ -45,7 +45,6 @@ const AdminPanel = ({ onClose }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterRole, setFilterRole] = useState("all");
   const [dateRange, setDateRange] = useState("7d");
-  const [deployStatus, setDeployStatus] = useState(null);
   const [error, setError] = useState("");
 
   // User Management
@@ -147,16 +146,6 @@ const AdminPanel = ({ onClose }) => {
       fetchLogs();
     }
   }, [activeTab, fetchLogs]);
-
-  const triggerBackendDeploy = async () => {
-    setDeployStatus("running");
-    try {
-      const data = await api.post("/admin/deploy");
-      setDeployStatus(`completed (code ${data.exitCode})`);
-    } catch (e) {
-      setDeployStatus(`failed: ${e.message}`);
-    }
-  };
 
   const handleUserAction = async (action, userId, data = {}) => {
     setLoading(true);
@@ -324,21 +313,6 @@ const AdminPanel = ({ onClose }) => {
             </p>
           </div>
           <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-            <button onClick={triggerBackendDeploy} className="btn btn-primary">
-              🚀 Deploy Backend
-            </button>
-            {deployStatus && (
-              <span
-                style={{
-                  fontSize: "0.75rem",
-                  color: deployStatus.startsWith("completed")
-                    ? "#10B981"
-                    : "#EF4444",
-                }}
-              >
-                {`Deploy: ${deployStatus}`}
-              </span>
-            )}
             <button onClick={onClose} className="btn btn-primary">
               ✖ Close
             </button>

@@ -9,6 +9,7 @@ import LiveTrackingMapView from "./components/maps/LiveTrackingMap";
 import OrdersMap from "./components/maps/OrdersMap";
 import AsyncOrderMap from "./components/AsyncOrderMap";
 import io from "socket.io-client";
+import { getSocketServerUrl } from "./utils/socketUrl";
 import ReCAPTCHA from "react-google-recaptcha";
 import "./Mobile.css";
 import "./MatrixTheme.css";
@@ -872,7 +873,7 @@ export const MainApp = () => {
   useEffect(() => {
     if (!token || !currentUser?.id) return;
 
-    const apiUrl = API_URL;
+    const apiUrl = getSocketServerUrl(API_URL);
 
     console.log("🔌 Initializing Socket.IO connection for notifications");
 
@@ -887,12 +888,6 @@ export const MainApp = () => {
 
     socket.on("connect", () => {
       console.log("📡 Connected to real-time notifications");
-
-      // Join user's notification room
-      if (currentUserRef.current?.id) {
-        socket.emit("join_user_room", currentUserRef.current.id);
-        console.log(`📡 Joined user room: user_${currentUserRef.current.id}`);
-      }
     });
 
     socket.on("notification", async (notification) => {

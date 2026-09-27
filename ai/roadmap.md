@@ -12,7 +12,7 @@ Vendor Marketplace Implementation
 [x] Vendor payouts
 [ ] Ratings, full-text search
 [ ] Storefront UI
-[ ] Background jobs
+[x] Background jobs
 [ ] Delivery integration
 [ ] Marketplace test suite
 

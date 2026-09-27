@@ -68,14 +68,19 @@ install_pm2() {
 setup_pm2_startup() {
     print_step "Setting up PM2 startup script..."
 
-    # Save current PM2 processes
+    local pm2_user
+    pm2_user="$(id -un)"
+
+    # Install the systemd unit for the same user that owns the PM2 process list.
+    pm2 startup systemd -u "$pm2_user" --hp "$HOME"
     pm2 save
 
-    # Generate startup script
-    pm2 startup
+    if ! systemctl is-enabled "pm2-$pm2_user" &> /dev/null; then
+        print_error "PM2 systemd startup service pm2-$pm2_user is not enabled"
+        exit 1
+    fi
 
-    print_status "PM2 startup script configured"
-    print_warning "Note: You may need to run the generated startup command manually if prompted"
+    print_status "PM2 startup enabled for user $pm2_user"
 }
 
 # Stop any existing backend processes
@@ -147,10 +152,15 @@ main() {
     echo ""
 
     check_permissions
+    if [[ $EUID -ne 0 ]]; then
+        print_error "Run this setup script as root so it can install the systemd startup service"
+        exit 1
+    fi
+
     install_pm2
-    setup_pm2_startup
     stop_existing_processes
     start_backend_with_pm2
+    setup_pm2_startup
     show_status
 
     echo ""

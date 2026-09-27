@@ -1,8 +1,8 @@
 const { Given, When, Then, Before, After } = require('@cucumber/cucumber');
 const assert = require('assert');
 const { multiFSMOrchestrator } = require('../../../backend/fsm/MultiFSMOrchestrator');
-const MarketplaceOrderService = require('../../../backend/services/marketplaceOrderService');
-const VendorPayoutService = require('../../../backend/services/vendorPayoutService');
+const MarketplaceOrderService = require('../../../backend/modules/marketplace/services/marketplaceOrderService');
+const VendorPayoutService = require('../../../backend/modules/marketplace/services/vendorPayoutService');
 const pool = require('../../../backend/config/db');
 
 // Initialize services
