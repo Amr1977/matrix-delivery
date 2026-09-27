@@ -8,10 +8,12 @@ This repository contains:
 - Modules like auth, orders, delivery
 
 Matrix Delivery currently supports:
+
 - Customer orders
 - Courier delivery
 
-We are about to add:
+We have added:
+
 - Vendor marketplace
   - Vendors
   - Stores
@@ -23,6 +25,11 @@ We are about to add:
 
 The database is PostgreSQL.
 
-Actual vendor key type: vendors.id = VARCHAR(255)
+Key schema facts:
+
+- vendors.id = VARCHAR(255) PRIMARY KEY (not SERIAL — this is important for FK references in new migrations)
+- stores.vendor_id = VARCHAR(255) REFERENCES vendors(id) ON DELETE CASCADE
+- Migration 021 added latitude/longitude + PostGIS geography to stores
+- PostGIS is conditionally enabled at startup (backend/database/startup.js)
 
 Use this file as a high-level project guide.

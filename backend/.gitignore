@@ -41,3 +41,7 @@ dist/
 
 # Process IDs
 *.pid
+
+# Backups and artifacts (contain sensitive DB dumps and build artifacts)
+backups/
+artifacts/
