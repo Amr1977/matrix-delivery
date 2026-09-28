@@ -17,7 +17,7 @@ class VendorRepository {
     country,
     latitude,
     longitude,
-    logoUrl
+    logoUrl,
   }) {
     const query = `
       INSERT INTO vendors (
@@ -37,7 +37,7 @@ class VendorRepository {
       VALUES (
         $1, $2, $3, $4, $5,
         $6, $7, $8, $9, $10,
-        $11, $12, $13
+        $11, $12
       )
       RETURNING *
     `;
@@ -54,7 +54,7 @@ class VendorRepository {
       latitude != null ? latitude : null,
       longitude != null ? longitude : null,
       logoUrl || null,
-      false // start as inactive until approved
+      false, // start as inactive until approved
     ];
 
     const result = await pool.query(query, values);
@@ -62,17 +62,16 @@ class VendorRepository {
   }
 
   async findById(id) {
-    const result = await pool.query(
-      'SELECT * FROM vendors WHERE id = $1',
-      [id]
-    );
+    const result = await pool.query('SELECT * FROM vendors WHERE id = $1', [
+      id,
+    ]);
     return result.rows[0] || null;
   }
 
   async findByOwnerUserId(ownerUserId) {
     const result = await pool.query(
       'SELECT * FROM vendors WHERE owner_user_id = $1',
-      [ownerUserId]
+      [ownerUserId],
     );
     return result.rows[0] || null;
   }
@@ -90,7 +89,9 @@ class VendorRepository {
       conditions.push('LOWER(name) LIKE $' + values.length);
     }
 
-    const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+    const whereClause = conditions.length
+      ? `WHERE ${conditions.join(' AND ')}`
+      : '';
     const query = `
       SELECT *
       FROM vendors
@@ -112,7 +113,7 @@ class VendorRepository {
       'country',
       'latitude',
       'longitude',
-      'logo_url'
+      'logo_url',
     ];
 
     const updates = [];
@@ -120,7 +121,10 @@ class VendorRepository {
     let index = 1;
 
     for (const key of allowedFields) {
-      if (Object.prototype.hasOwnProperty.call(fields, key) && fields[key] !== undefined) {
+      if (
+        Object.prototype.hasOwnProperty.call(fields, key) &&
+        fields[key] !== undefined
+      ) {
         updates.push(`${key} = $${index}`);
         values.push(fields[key]);
         index += 1;
@@ -146,11 +150,10 @@ class VendorRepository {
   async setActiveStatus(id, isActive) {
     const result = await pool.query(
       'UPDATE vendors SET is_active = $1 WHERE id = $2 RETURNING *',
-      [isActive, id]
+      [isActive, id],
     );
     return result.rows[0] || null;
   }
 }
 
 module.exports = new VendorRepository();
-

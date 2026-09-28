@@ -35,3 +35,16 @@ Current reality check:
 - Full marketplace lifecycle complete: creation → delivery → payout.
 - Observability layer: health + system health + marketplace metrics.
 - Remaining: frontend storefront UI, ratings/reviews UI, full-text search.
+
+[x] Phase 7.5: Vendor Catalog Schema Reconciliation
+- Confirmed Model B (stores/categories/items/offers/shopping_carts/marketplace_orders/vendor_payouts/marketplace_reviews/marketplace_metrics) as canonical schema
+- Model A (vendor_items, vendor_categories) confirmed empty; backend/routes/vendors.js is dead code (not mounted)
+- Applied migrations 022 (marketplace_metrics) and 023 (marketplace_reviews) to production (2026-09-28)
+- Fixed SQL bug in vendorRepository.js createVendor (12 columns / 12 placeholders mismatch)
+- Updated browse.js /items and /items-near to use Model B tables (was using deprecated vendor_items)
+- Regenerated database/schema/schema.sql via pg_dump to reflect full live schema
+- Added db:migrate, db:migrate:force, db:schema:dump, db:schema:check npm scripts
+- Added scripts/apply-pending-migrations.js and scripts/dump-schema.js
+- Added scripts/check-schema-drift.js for CI schema freshness gate
+- All 604 unit tests pass (5 pre-existing FSM module-resolution failures unrelated to changes)
+- All 7 marketplace integration tests pass

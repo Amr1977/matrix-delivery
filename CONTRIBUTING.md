@@ -158,6 +158,16 @@ chore: clean up unused dependencies
 - Bug fixes should include regression tests
 - Always run tests before committing
 
+### Database Schema Management
+
+The canonical database schema is captured in `database/schema/schema.sql` (a `pg_dump --schema-only` snapshot of the production database). After merging any migration that adds, modifies, or drops tables/indexes/constraints/functions, you **must** regenerate this file before pushing:
+
+```bash
+npm run db:schema:dump
+```
+
+A drift-check script (`db:schema:check`) is wired into CI to fail the build if migration files are newer than the last `schema.sql` commit. If you see drift-check failures in CI, run the dump command above and commit the updated `database/schema/schema.sql`.
+
 ### Test ID Requirements
 
 All testable elements must use `data-testid` attributes for i18n-ready testing:
@@ -201,3 +211,4 @@ Please read our [Code of Conduct](CODE_OF_CONDUCT.md) to keep our community frie
 ---
 
 _Last updated: 2026-04-16_
+
