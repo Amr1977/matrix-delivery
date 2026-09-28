@@ -31,7 +31,7 @@ class MarketplaceMetricsService {
           COUNT(*) FILTER (WHERE status = 'pending') AS orders_pending_bids,
           COUNT(*) FILTER (WHERE status = 'accepted') AS orders_vendor_confirmed,
           COUNT(*) FILTER (WHERE status = 'assigned') AS orders_assigned,
-          COUNT(*) FILTER (WHEN status IN ('delivered', 'customer_delivered', 'completed')) AS orders_delivered,
+          COUNT(*) FILTER (WHERE status IN ('delivered', 'customer_delivered', 'completed')) AS orders_delivered,
           COUNT(*) FILTER (WHERE status IN ('cancelled', 'refunded', 'failed')) AS orders_cancelled
         FROM marketplace_orders
       `);
@@ -40,7 +40,7 @@ class MarketplaceMetricsService {
       const financialResult = await client.query(`
         SELECT
           COALESCE(SUM(total_amount), 0) AS order_volume_egp,
-          COALESCE(SUM(commission_amount), 0) AS commission_collected_egp,
+          COALESCE(SUM(mo.commission_amount), 0) AS commission_collected_egp,
           COALESCE(SUM(vp.payout_amount) FILTER (WHERE vp.status = 'pending'), 0) AS payouts_pending_egp
         FROM marketplace_orders mo
         LEFT JOIN vendor_payouts vp ON vp.order_id = mo.id

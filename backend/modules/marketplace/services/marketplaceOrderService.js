@@ -229,7 +229,7 @@ class MarketplaceOrderService {
       await this.restoreOrderInventory(orderId);
 
       // Send notification to customer
-      await this.sendNotification(customerId, 'vendor_timeout', { orderId });
+      await this.sendNotification(customerId, orderId, 'vendor_timeout', { orderId });
     });
 
     orchestrator.on('PAYMENT_TIMEOUT', async (eventData) => {
@@ -240,7 +240,7 @@ class MarketplaceOrderService {
       await this.marketplaceOrderRepository.updateOrderStatus(orderId, ORDER_STATUS.FAILED);
       await this.restoreOrderInventory(orderId);
 
-      await this.sendNotification(customerId, 'payment_timeout', { orderId });
+      await this.sendNotification(customerId, orderId, 'payment_timeout', { orderId });
     });
 
     orchestrator.on('DELIVERY_AUTO_CONFIRMED', async (eventData) => {
@@ -744,9 +744,21 @@ class MarketplaceOrderService {
    * @param {Object} additionalData - Additional data
    */
   async handleStatusTransition(orderId, newStatus, additionalData) {
+    const order = await this.marketplaceOrderRepository.getOrderById(orderId);
+    if (!order) return;
+
     switch (newStatus) {
+      case ORDER_STATUS.ACCEPTED:
+        await this.sendNotification(order.user_id, orderId, 'vendor_confirmed', { orderId, orderNumber: order.order_number });
+        break;
+
       case ORDER_STATUS.DELIVERED:
         await this.processOrderDelivery(orderId);
+        await this.sendNotification(order.user_id, orderId, 'order_delivered', { orderId, orderNumber: order.order_number });
+        break;
+
+      case ORDER_STATUS.COMPLETED:
+        await this.sendNotification(order.user_id, orderId, 'order_completed', { orderId, orderNumber: order.order_number });
         break;
 
       case ORDER_STATUS.CANCELED:
@@ -757,13 +769,14 @@ class MarketplaceOrderService {
           'awaiting_order_availability_vendor_confirmation'
         );
         await this.restoreOrderInventory(orderId);
+        await this.sendNotification(order.user_id, orderId, 'order_cancelled', { orderId, orderNumber: order.order_number });
         break;
 
       case ORDER_STATUS.REFUNDED:
         await this.processRefund(orderId, additionalData);
+        await this.sendNotification(order.user_id, orderId, 'order_refunded', { orderId, orderNumber: order.order_number });
         break;
 
-      // Other statuses may not need side effects
       default:
         break;
     }
@@ -976,18 +989,17 @@ class MarketplaceOrderService {
    * @param {string} notificationType - Type of notification
    * @param {Object} data - Notification data
    */
-  async sendNotification(userId, notificationType, data) {
+  async sendNotification(userId, orderId, notificationType, data) {
     try {
       // Import notification service dynamically to avoid circular dependencies
-      const notificationService = require('./notificationService') /* P0 FIX: removed .ts ext */;
+      const notificationService = require('../../../services/notificationService'); /* P0 FIX: corrected path */
 
       const notificationData = {
         userId,
+        orderId,
         type: notificationType,
         title: this.getNotificationTitle(notificationType),
         message: this.getNotificationMessage(notificationType, data),
-        data,
-        priority: this.getNotificationPriority(notificationType)
       };
 
       await notificationService.createNotification(notificationData);
@@ -1012,7 +1024,9 @@ class MarketplaceOrderService {
       'payment_timeout': 'Payment Timeout',
       'order_completed': 'Order Completed Successfully',
       'order_cancelled': 'Order Cancelled',
-      'vendor_confirmed': 'Vendor Confirmed Your Order'
+      'vendor_confirmed': 'Vendor Confirmed Your Order',
+      'order_delivered': 'Order Delivered - Confirmation Needed',
+      'order_refunded': 'Order Refunded'
     };
     return titles[type] || 'Order Update';
   }
@@ -1026,7 +1040,9 @@ class MarketplaceOrderService {
       'payment_timeout': `Your payment for order #${data.orderId} timed out. Please try again.`,
       'order_completed': `Your order #${data.orderId} has been delivered successfully!`,
       'order_cancelled': `Your order #${data.orderId} has been cancelled.`,
-      'vendor_confirmed': `Great news! The vendor has confirmed your order #${data.orderId} and preparation will begin soon.`
+      'vendor_confirmed': `Great news! The vendor has confirmed your order #${data.orderId} and preparation will begin soon.`,
+      'order_delivered': `Your order #${data.orderId} has been delivered. Please confirm receipt to complete the order.`,
+      'order_refunded': `Your order #${data.orderId} has been refunded.`
     };
     return messages[type] || 'Your order status has been updated.';
   }

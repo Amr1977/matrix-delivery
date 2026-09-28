@@ -1366,7 +1366,21 @@ RETURNING * `;
         `Your bid for order "${order.title}" (${order.order_number}) was accepted! Proceed to pickup.`,
       );
     } catch (notifyError) {
-      logger.error("Failed to send bid acceptance notification", notifyError);
+      logger.error("Failed to send bid acceptance notification to driver", notifyError);
+    }
+
+    // Send notification to customer
+    try {
+      const { createNotification } = require("./notificationService");
+      await createNotification(
+        order.customer_id,
+        orderId,
+        "driver_assigned",
+        "Driver Assigned! 🚚",
+        `A driver has accepted your order "${order.title}" (${order.order_number}) and is on the way to pick it up.`,
+      );
+    } catch (notifyError) {
+      logger.error("Failed to send driver assignment notification to customer", notifyError);
     }
 
     return { message: "Bid accepted successfully" };
@@ -1793,15 +1807,15 @@ RETURNING * `;
       const { createNotification } = require("./notificationService");
       let title, message, targetUserId;
 
-      if (normalizedAction === "pickup") {
+      if (normalizedAction === "pickup_package") {
         targetUserId = order.customer_id;
         title = "Order Picked Up 📦";
         message = `Your order "${order.title}" has been picked up and is on the way!`;
-      } else if (normalizedAction === "in-transit") {
+      } else if (normalizedAction === "start_transit") {
         targetUserId = order.customer_id;
         title = "Order In Transit 🚚";
         message = `Your order "${order.title}" is now moving towards the destination.`;
-      } else if (normalizedAction === "complete") {
+      } else if (normalizedAction === "complete_delivery") {
         // Driver marked as complete -> Notify Customer to Confirm
         targetUserId = order.customer_id;
         title = "Delivery Confirmation Required ✅";

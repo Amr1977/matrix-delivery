@@ -4,8 +4,8 @@ module.exports = {
   apps: [
     {
       name: "matrix-delivery-backend",
-      script: "./server.js",
-      cwd: __dirname,
+      script: "./backend/server.js",
+      cwd: path.resolve(__dirname, ".."),
       instances: 1,
       exec_mode: "fork",
       env: {

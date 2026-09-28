@@ -707,16 +707,23 @@ app.get("/api/drivers/location", verifyToken, async (req, res) => {
   }
 });
 
-// Helper function to create notifications
+// Helper function to create notifications (delegates to NotificationService for real-time Socket.IO emission)
+const { createNotification: createNotificationInService } = require("./services/notificationService"); /* P0 FIX: removed .ts ext */
 const createNotification = async (userId, orderId, type, title, message) => {
   try {
-    await pool.query(
-      `INSERT INTO notifications (user_id, order_id, type, title, message, is_read, created_at)
-       VALUES ($1, $2, $3, $4, $5, false, NOW())`,
-      [userId, orderId, type, title, message],
-    );
+    await createNotificationInService(userId, orderId, type, title, message);
   } catch (error) {
     logger.error("Failed to create notification:", error);
+    // Fallback to direct insert if service fails
+    try {
+      await pool.query(
+        `INSERT INTO notifications (user_id, order_id, type, title, message, is_read, created_at)
+         VALUES ($1, $2, $3, $4, $5, false, NOW())`,
+        [userId, orderId, type, title, message],
+      );
+    } catch (fallbackError) {
+      logger.error("Failed to create notification (fallback):", fallbackError);
+    }
   }
 };
 
