@@ -2081,7 +2081,7 @@ export const MainApp = () => {
     // Check if user has admin privileges
     if (
       !currentUser ||
-      (!currentUser.primary_role === "admin" &&
+       (!currentUser.primary_role === "admin" &&
         !availableRoles.includes("admin"))
     ) {
       setError("Access denied: Admin privileges required");
