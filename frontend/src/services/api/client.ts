@@ -1,6 +1,6 @@
-// Base API Client with Cookie-Based Authentication
+import { ApiError, StoreBranding, StoreGalleryImage, StoreGalleryResponse, UpdateStoreBrandingRequest, ItemImage, ItemImageResponse, ItemImageUploadResponse, ReorderImagesRequest } from './types';
 
-import { ApiError } from './types';
+// Base API Client with Cookie-Based Authentication
 
 const API_URL = (
     process.env.REACT_APP_API_URL || 'https://api.matrix-delivery.com/api'
@@ -161,5 +161,117 @@ export class ApiClient {
 
         const queryString = searchParams.toString();
         return queryString ? `?${queryString}` : '';
+    }
+
+    // ============ Store Branding API Methods ============
+
+    /**
+     * Update store branding (logo/cover)
+     */
+    static async updateStoreBranding(storeId: string, branding: UpdateStoreBrandingRequest): Promise<StoreBranding> {
+        return this.request<StoreBranding>(`/marketplace/stores/${storeId}/branding`, {
+            method: 'PATCH',
+            body: branding,
+        });
+    }
+
+    /**
+     * Add image to store gallery
+     * Note: Use FormData for file uploads
+     */
+    static async addStoreGalleryImage(storeId: string, formData: FormData): Promise<StoreGalleryImage> {
+        return this.request<StoreGalleryImage>(`/marketplace/stores/${storeId}/gallery`, {
+            method: 'POST',
+            body: formData,
+            headers: {},
+        });
+    }
+
+    /**
+     * Get store gallery images
+     */
+    static async getStoreGallery(storeId: string): Promise<StoreGalleryResponse> {
+        return this.request<StoreGalleryResponse>(`/marketplace/stores/${storeId}/gallery`, {
+            method: 'GET',
+        });
+    }
+
+    /**
+     * Delete store gallery image
+     */
+    static async deleteStoreGalleryImage(storeId: string, imageId: number): Promise<StoreGalleryImage> {
+        return this.request<StoreGalleryImage>(`/marketplace/stores/${storeId}/gallery/${imageId}`, {
+            method: 'DELETE',
+        });
+    }
+
+    /**
+     * Reorder store gallery images
+     */
+    static async reorderStoreGalleryImages(storeId: string, imageOrders: ReorderImagesRequest): Promise<StoreGalleryResponse> {
+        return this.request<StoreGalleryResponse>(`/marketplace/stores/${storeId}/gallery/reorder`, {
+            method: 'PATCH',
+            body: imageOrders,
+        });
+    }
+
+    /**
+     * Set primary store gallery image
+     */
+    static async setStoreGalleryPrimary(storeId: string, imageId: number): Promise<StoreGalleryImage> {
+        return this.request<StoreGalleryImage>(`/marketplace/stores/${storeId}/gallery/${imageId}/primary`, {
+            method: 'PATCH',
+        });
+    }
+
+    // ============ Item Image API Methods ============
+
+    /**
+     * Upload item image
+     * Note: Use FormData for file uploads
+     */
+    static async uploadItemImage(itemId: string, formData: FormData): Promise<ItemImageUploadResponse> {
+        return this.request<ItemImageUploadResponse>(`/marketplace/items/${itemId}/images`, {
+            method: 'POST',
+            body: formData,
+            headers: {},
+        });
+    }
+
+    /**
+     * Get item images
+     */
+    static async getItemImages(itemId: string): Promise<ItemImageResponse> {
+        return this.request<ItemImageResponse>(`/marketplace/items/${itemId}/images`, {
+            method: 'GET',
+        });
+    }
+
+    /**
+     * Delete item image
+     */
+    static async deleteItemImage(itemId: string, imageId: number): Promise<ItemImage> {
+        return this.request<ItemImage>(`/marketplace/items/${itemId}/images/${imageId}`, {
+            method: 'DELETE',
+        });
+    }
+
+    /**
+     * Reorder item images
+     */
+    static async reorderItemImages(itemId: string, imageOrders: ReorderImagesRequest): Promise<ItemImageResponse> {
+        return this.request<ItemImageResponse>(`/marketplace/items/${itemId}/images/reorder`, {
+            method: 'PATCH',
+            body: imageOrders,
+        });
+    }
+
+    /**
+     * Set primary item image
+     */
+    static async setItemImagePrimary(itemId: string, imageId: number): Promise<ItemImageUploadResponse> {
+        return this.request<ItemImageUploadResponse>(`/marketplace/items/${itemId}/images/${imageId}/primary`, {
+            method: 'PATCH',
+        });
     }
 }

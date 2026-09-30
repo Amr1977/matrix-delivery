@@ -161,6 +161,10 @@ app.use("/api/reviews", reviewsRouter);
 const driverRoutes = require("./routes/drivers");
 app.use("/api/drivers", driverRoutes);
 
+// Load courier career network endpoints
+const courierCareerRoutes = require("./modules/courierCareer/routes/courierCareerRoutes");
+app.use("/api/couriers", courierCareerRoutes);
+
 // Load map tile proxy endpoints
 app.use("/api/maps", require("./routes/maps"));
 

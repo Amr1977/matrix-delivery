@@ -4,6 +4,7 @@ import CashBalanceCard from '../components/driver/CashBalanceCard';
 import { formatCurrency } from '../utils/formatters';
 import { useI18n } from '../i18n/i18nContext';
 import api from '../api';
+import { CourierCareerApi } from '../services/api';
 
 const ProfilePage = ({
     profileData,
@@ -85,6 +86,36 @@ const ProfilePage = ({
         if (setCurrentUser) setCurrentUser(updatedUser);
         // Reload page to ensure all app state (sockets, orders, etc.) refreshes with new primary_role
         window.location.reload();
+    };
+
+    // Profile Visibility State
+    const [profileVisibility, setProfileVisibility] = useState(profileData?.is_profile_public || false);
+    const [visibilityLoading, setVisibilityLoading] = useState(false);
+
+    // Keep visibility in sync with profileData
+    useEffect(() => {
+        if (profileData?.is_profile_public !== undefined) {
+            setProfileVisibility(profileData.is_profile_public);
+        }
+    }, [profileData?.is_profile_public]);
+
+    const handleVisibilityToggle = async () => {
+        const newVisibility = !profileVisibility;
+        setVisibilityLoading(true);
+        try {
+            const result = await CourierCareerApi.updateProfileVisibility({ is_profile_public: newVisibility });
+            setProfileVisibility(result.is_profile_public);
+            // Update parent state
+            if (profileData) {
+                setProfileData(prev => ({ ...prev, is_profile_public: result.is_profile_public }));
+            }
+        } catch (err) {
+            if (setError) setError(err.message || String(err));
+            // Revert on error
+            setProfileVisibility(profileVisibility);
+        } finally {
+            setVisibilityLoading(false);
+        }
     };
 
     return (
@@ -460,6 +491,74 @@ const ProfilePage = ({
                         {/* Add method button could go here */}
                     </div>
                 </div>
+
+                {/* Profile Visibility (Courier Career Network) */}
+                {(profileData.primary_role === 'driver' || profileData.primary_role === 'driver' || (profileData.granted_roles && profileData.granted_roles.includes('driver')) || (profileData.granted_roles && profileData.granted_roles.includes('driver'))) && (
+                    <div className="card" style={{ padding: '20px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', marginTop: '20px' }}>
+                        <h3 style={{ marginTop: 0, color: '#A7F3D0', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '10px' }}>👁️ {t('courier.profile.visibilityTitle')}</h3>
+                        
+                        <div style={{ marginTop: '15px' }}>
+                            <div style={{ 
+                                padding: '15px', 
+                                background: 'rgba(59, 130, 246, 0.1)', 
+                                borderRadius: '8px', 
+                                border: '1px solid rgba(59, 130, 246, 0.2)',
+                                marginBottom: '15px'
+                            }}>
+                                <div style={{ fontWeight: 'bold', color: '#60A5FA', marginBottom: '8px' }}>
+                                    {t('courier.profile.visibilityExplanation')}
+                                </div>
+                                <ul style={{ margin: 0, paddingLeft: '20px', color: '#D1D5DB', fontSize: '14px', lineHeight: '1.8' }}>
+                                    <li>{t('courier.profile.visibilityFieldName')}</li>
+                                    <li>{t('courier.profile.visibilityFieldPhoto')}</li>
+                                    <li>{t('courier.profile.visibilityFieldTier')}</li>
+                                    <li>{t('courier.profile.visibilityFieldRating')}</li>
+                                    <li>{t('courier.profile.visibilityFieldDeliveries')}</li>
+                                    <li>{t('courier.profile.visibilityFieldTenure')}</li>
+                                    <li>{t('courier.profile.visibilityFieldLocation')}</li>
+                                    <li>{t('courier.profile.visibilityFieldVerified')}</li>
+                                    <li>{t('courier.profile.visibilityFieldLicense')}</li>
+                                </ul>
+                                <p style={{ margin: '12px 0 0', fontSize: '13px', color: '#9CA3AF', fontStyle: 'italic' }}>
+                                    {t('courier.profile.visibilityNeverShown')}
+                                </p>
+                            </div>
+
+                            <label style={{ 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                gap: '12px', 
+                                cursor: 'pointer',
+                                padding: '15px',
+                                background: 'rgba(0,0,0,0.2)',
+                                borderRadius: '8px',
+                                border: '1px solid rgba(255,255,255,0.05)',
+                                transition: 'all 0.2s'
+                            }}>
+                                <input
+                                    type="checkbox"
+                                    checked={profileVisibility}
+                                    onChange={handleVisibilityToggle}
+                                    disabled={visibilityLoading}
+                                    style={{ width: '22px', height: '22px', accentColor: '#10B981', flexShrink: 0 }}
+                                />
+                                <div style={{ flex: 1 }}>
+                                    <div style={{ fontWeight: '600', fontSize: '16px', color: '#F9FAFB' }}>
+                                        {t('courier.profile.makeProfilePublic')}
+                                    </div>
+                                    <div style={{ fontSize: '13px', color: '#9CA3AF', marginTop: '4px' }}>
+                                        {profileVisibility 
+                                            ? t('courier.profile.profileIsPublic')
+                                            : t('courier.profile.profileIsPrivate')}
+                                    </div>
+                                </div>
+                                {visibilityLoading && (
+                                    <div style={{ width: '20px', height: '20px', border: '2px solid #3B82F6', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                                )}
+                            </label>
+                        </div>
+                    </div>
+                )}
 
             </div>
 

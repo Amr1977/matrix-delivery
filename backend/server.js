@@ -267,6 +267,11 @@ if (require.main === module) {
       registerJobs();
       logger.info("✅ Marketplace background jobs scheduled");
 
+      // Register courier career network background jobs (cron)
+      const { registerJobs: registerCourierCareerJobs } = require("./modules/courierCareer/jobs");
+      registerCourierCareerJobs();
+      logger.info("✅ Courier career network background jobs scheduled");
+
       // Telegram polling service disabled - using webhook mode instead
       // If webhook is not available, uncomment below to enable polling
       if (false && !IS_TEST && process.env.TELEGRAM_BOT_TOKEN) {

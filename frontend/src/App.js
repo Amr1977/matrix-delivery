@@ -52,6 +52,8 @@ import CreateOrderPage from "./pages/CreateOrderPage";
 import ReviewModal from "./components/reviews/ReviewModal";
 import AuthScreen from "./components/auth/AuthScreen";
 import MarketplaceBrowsePage from "./components/marketplace/MarketplaceBrowsePage";
+import CourierProfilePage from "./pages/CourierProfilePage";
+import CourierDirectoryPage from "./pages/CourierDirectoryPage";
 
 // TypeScript API Services
 import {
@@ -4007,6 +4009,16 @@ const router = createBrowserRouter([
   {
     path: "/balance/statement",
     element: <BalanceStatementPage />,
+    errorElement: <GlobalError />,
+  },
+  {
+    path: "/couriers/directory",
+    element: <CourierDirectoryPage />,
+    errorElement: <GlobalError />,
+  },
+  {
+    path: "/couriers/:id/profile",
+    element: <CourierProfilePage />,
     errorElement: <GlobalError />,
   },
   {

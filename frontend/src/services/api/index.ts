@@ -9,6 +9,7 @@ export { NotificationsApi } from './notifications';
 export { ReviewsApi } from './reviews';
 export { platformWalletsApi } from './platformWallets';
 export { MapsApi } from './maps';
+export { CourierCareerApi } from './courierCareer';
 
 // Export types
 export * from './types';
