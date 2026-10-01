@@ -5,8 +5,9 @@ import { formatCurrency } from '../utils/formatters';
 import { useI18n } from '../i18n/i18nContext';
 import api from '../api';
 import { CourierCareerApi } from '../services/api';
-// Import version from generated file
-import { APP_VERSION } from '../version';
+
+// Version injected at build time
+const APP_VERSION = '__APP_VERSION__';
 
 const ProfilePage = ({
     profileData,

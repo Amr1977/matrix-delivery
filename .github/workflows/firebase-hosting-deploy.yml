@@ -76,11 +76,22 @@ jobs:
           cd frontend
           node scripts/generate-git-info.js
 
+      - name: Get version for build
+        id: build_version
+        run: |
+          VERSION=$(cat VERSION | grep PATCH | cut -d'=' -f2)
+          MAJOR=$(cat VERSION | grep MAJOR | cut -d'=' -f2)
+          MINOR=$(cat VERSION | grep MINOR | cut -d'=' -f2)
+          echo "version=$MAJOR.$MINOR.$VERSION" >> $GITHUB_OUTPUT
+
       - name: Build for production
         env:
           REACT_APP_API_URL: https://api.matrix-delivery.com/api
         run: |
           cd frontend
+          # Replace version placeholder in ProfilePage.js
+          VERSION="${{ steps.build_version.outputs.version }}"
+          sed -i "s/__APP_VERSION__/$VERSION/g" src/pages/ProfilePage.js
           CI=false npm run build
 
       - name: Deploy to Firebase
