@@ -255,6 +255,17 @@ const SideMenu: React.FC<SideMenuProps> = ({
                             🛍️ {t('marketplace.browseStores')}
                         </button>
 
+                        {currentUser?.primary_role === 'vendor' && (
+                            <button
+                                onClick={() => { onNavigate('vendor_dashboard'); onClose(); }}
+                                style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.75rem', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0.05) 100%)', border: '1px solid rgba(16, 185, 129, 0.3)', color: '#10B981', cursor: 'pointer', fontSize: '1rem', borderRadius: '0.5rem', marginBottom: '0.5rem', transition: 'all 0.2s', fontWeight: '600' }}
+                                onMouseOver={(e) => { e.currentTarget.style.background = 'linear-gradient(135deg, rgba(16, 185, 129, 0.3) 0%, rgba(16, 185, 129, 0.1) 100%)'; e.currentTarget.style.borderColor = 'rgba(16, 185, 129, 0.5)'; }}
+                                onMouseOut={(e) => { e.currentTarget.style.background = 'linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0.05) 100%)'; e.currentTarget.style.borderColor = 'rgba(16, 185, 129, 0.3)'; }}
+                            >
+                                🏪 {t('menu.vendorDashboard') || 'Vendor Dashboard'}
+                            </button>
+                        )}
+
                         {currentUser?.primary_role === 'driver' && (
                             <button
                                 onClick={() => { onNavigate('earnings'); onClose(); }}

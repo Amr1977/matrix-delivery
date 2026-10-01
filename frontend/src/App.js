@@ -22,6 +22,7 @@ import ProfilePage from "./pages/ProfilePage";
 import NotificationPanel from "./components/notifications/NotificationPanel";
 import SettingsModal from "./components/layout/SettingsModal";
 import DriverEarningsDashboard from "./components/driver/DriverEarningsDashboard";
+import VendorSelfDashboard from "./components/VendorSelfDashboard";
 import PrivacyPolicy from "./components/legal/PrivacyPolicy";
 import TermsOfService from "./components/legal/TermsOfService";
 import RefundPolicy from "./components/legal/RefundPolicy";
@@ -2172,6 +2173,7 @@ export const MainApp = () => {
         if (view === "home") setViewType("active");
         else if (view === "earnings") setViewType("earnings");
         else if (view === "profile") setViewType("profile");
+        else if (view === "vendor_dashboard") setViewType("vendor_dashboard");
         else if (view === "notifications")
           setShowNotifications((prev) => !prev);
         else if (view === "settings") setShowSettings(true);
@@ -2301,6 +2303,11 @@ export const MainApp = () => {
               if (view === "earnings") setViewType("earnings");
             }}
           />
+        )}
+
+        {/* Vendor Dashboard */}
+        {viewType === "vendor_dashboard" && currentUser?.primary_role === "vendor" && (
+          <VendorSelfDashboard apiUrl={API_URL} token={token} />
         )}
 
         {viewType !== "profile" &&

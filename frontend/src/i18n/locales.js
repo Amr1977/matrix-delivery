@@ -319,6 +319,7 @@ const translations = {
       profile: "Profile",
       menu: "Menu",
       reorder: "Reorder",
+      vendorDashboard: "Vendor Dashboard",
     },
     system: {
       criticalError: "CRITICAL ERROR",
@@ -815,6 +816,7 @@ const translations = {
       downloadApp: "Download Android App",
       downloadAppDesc: "Get the latest APK from GitHub releases",
       downloadApk: "Download Latest APK",
+      vendorDashboard: "Vendor Dashboard",
     },
     footer: {
       onlineDrivers: "Online Drivers",
@@ -1648,6 +1650,7 @@ const translations = {
       downloadApp: "تنزيل تطبيق أندرويد",
       downloadAppDesc: "احصل على أحدث APK من إصدارات GitHub",
       downloadApk: "تنزيل أحدث APK",
+      vendorDashboard: "لوحة البائع",
     },
     footer: {
       onlineDrivers: "السائقون المتصلون",
@@ -2284,6 +2287,7 @@ const translations = {
       profile: "Profile",
       menu: "Menu",
       reorder: "Reorder",
+      vendorDashboard: "Vendor Dashboard",
     },
     languages: {
       english: "Anglais",
@@ -2596,6 +2600,7 @@ const translations = {
       profile: "Profile",
       menu: "Menu",
       reorder: "Reorder",
+      vendorDashboard: "Vendor Dashboard",
     },
     languages: {
       english: "英语",
@@ -2914,6 +2919,7 @@ const translations = {
       profile: "Profile",
       menu: "Menu",
       reorder: "Reorder",
+      vendorDashboard: "Vendor Dashboard",
     },
     languages: {
       english: "Englisch",
@@ -3233,6 +3239,7 @@ const translations = {
       profile: "Profile",
       menu: "Menu",
       reorder: "Reorder",
+      vendorDashboard: "Vendor Dashboard",
     },
     languages: {
       english: "Inglês",
@@ -3550,6 +3557,7 @@ const translations = {
       profile: "Profile",
       menu: "Menu",
       reorder: "Reorder",
+      vendorDashboard: "Vendor Dashboard",
     },
     languages: {
       english: "Английский",
@@ -3867,6 +3875,7 @@ const translations = {
       profile: "Profile",
       menu: "Menu",
       reorder: "Reorder",
+      vendorDashboard: "Vendor Dashboard",
     },
     languages: {
       english: "英語",
@@ -4183,6 +4192,7 @@ const translations = {
       profile: "Profile",
       menu: "Menu",
       reorder: "Reorder",
+      vendorDashboard: "Vendor Dashboard",
     },
     languages: {
       english: "İngilizce",
@@ -4501,6 +4511,7 @@ const translations = {
       profile: "Profile",
       menu: "Menu",
       reorder: "Reorder",
+      vendorDashboard: "Vendor Dashboard",
     },
     languages: {
       english: "English",
@@ -4822,6 +4833,7 @@ const translations = {
       profile: "Profile",
       menu: "Menu",
       reorder: "Reorder",
+      vendorDashboard: "Vendor Dashboard",
     },
     languages: {
       english: "अंग्रेजी",
