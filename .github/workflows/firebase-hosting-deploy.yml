@@ -72,7 +72,7 @@ jobs:
           node scripts/generate-git-info.js
 
       - name: Get version for build
-        id: version
+        id: build_version
         run: |
           VERSION=$(cat VERSION | grep PATCH | cut -d'=' -f2)
           MAJOR=$(cat VERSION | grep MAJOR | cut -d'=' -f2)
