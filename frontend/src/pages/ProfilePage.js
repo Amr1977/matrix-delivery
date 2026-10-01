@@ -5,8 +5,6 @@ import { formatCurrency } from '../utils/formatters';
 import { useI18n } from '../i18n/i18nContext';
 import api from '../api';
 import { CourierCareerApi } from '../services/api';
-// Import git-info.json using baseUrl (src/git-info.json) for version
-import gitInfo from 'git-info.json';
 
 const ProfilePage = ({
     profileData,
@@ -567,7 +565,7 @@ const ProfilePage = ({
             {/* Footer */}
             <div style={{ marginTop: '30px', textAlign: 'center', color: '#6B7280', fontSize: '14px' }}>
                 <p>{t('profile.userId')}: {profileData.id}</p>
-                <p>Matrix Delivery v{gitInfo?.version || '1.0.0'}</p>
+                <p>Matrix Delivery v{process.env.REACT_APP_VERSION || '1.0.0'}</p>
             </div>
 
         </div>
