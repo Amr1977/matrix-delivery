@@ -15,7 +15,7 @@ function readVersion() {
 try {
     const version = readVersion();
     const content = `// Auto-generated version constant - DO NOT EDIT MANUALLY
-export const VERSION = '${version}';
+export const APP_VERSION = '${version}';
 `;
     fs.writeFileSync(OUTPUT_FILE, content);
     console.log('Generated version-constant.js:', version);
