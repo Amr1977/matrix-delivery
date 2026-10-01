@@ -71,6 +71,15 @@ jobs:
         run: |
           node scripts/generate-version-constant.js
 
+      - name: Inject version into ProfilePage
+        run: |
+          cd frontend
+          VERSION=$(cat ../VERSION | grep PATCH | cut -d'=' -f2)
+          MAJOR=$(cat ../VERSION | grep MAJOR | cut -d'=' -f2)
+          MINOR=$(cat ../VERSION | grep MINOR | cut -d'=' -f2)
+          VERSION_STR="$MAJOR.$MINOR.$VERSION"
+          sed -i "s/const APP_VERSION = process.env.REACT_APP_VERSION || '1.0.0';/const APP_VERSION = '$VERSION_STR';/g" src/pages/ProfilePage.js
+
       - name: Generate git info (includes version)
         run: |
           cd frontend
