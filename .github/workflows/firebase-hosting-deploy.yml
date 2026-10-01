@@ -71,9 +71,19 @@ jobs:
           cd frontend
           node scripts/generate-git-info.js
 
+      - name: Get version for build
+        id: version
+        run: |
+          VERSION=$(cat VERSION | grep PATCH | cut -d'=' -f2)
+          MAJOR=$(cat VERSION | grep MAJOR | cut -d'=' -f2)
+          MINOR=$(cat VERSION | grep MINOR | cut -d'=' -f2)
+          echo "version=$MAJOR.$MINOR.$VERSION" >> $GITHUB_OUTPUT
+          echo "REACT_APP_VERSION=$MAJOR.$MINOR.$VERSION" >> $GITHUB_ENV
+
       - name: Build for production
         env:
           REACT_APP_API_URL: https://api.matrix-delivery.com/api
+          REACT_APP_VERSION: ${{ env.REACT_APP_VERSION }}
         run: |
           cd frontend
           CI=false npm run build
