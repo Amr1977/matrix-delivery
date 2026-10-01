@@ -79,6 +79,70 @@ export default function VendorSelfDashboard({ apiUrl, token }) {
     } catch (e) { }
   }, [vendor]);
 
+  // Vendor creation/update
+  const createSelf = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const d = await api.post('/vendors/self', {
+        name: form.name,
+        city: form.city,
+        country: form.country,
+        latitude: form.latitude ? parseFloat(form.latitude) : undefined,
+        longitude: form.longitude ? parseFloat(form.longitude) : undefined
+      });
+      setVendor(d.vendor || d);
+    } catch (e) {
+      setError('Create failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateSelf = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const d = await api.put('/vendors/self', {
+        name: form.name,
+        city: form.city,
+        country: form.country,
+        latitude: form.latitude ? parseFloat(form.latitude) : null,
+        longitude: form.longitude ? parseFloat(form.longitude) : null
+      });
+      setVendor(d.vendor || d);
+    } catch (e) {
+      setError('Update failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Item management
+  const addItem = async () => {
+    if (!vendor || !vendor.id) return;
+    try {
+      setLoading(true);
+      await api.post(`/vendors/${vendor.id}/items`, {
+        name: newItem.name,
+        price: parseFloat(newItem.price)
+      });
+      await loadItemsWithImages();
+      setNewItem({ name: '', price: '' });
+      setLoading(false);
+    } catch (e) {
+      setError(e.error || t('common.error'));
+      setLoading(false);
+    }
+  };
+
+  const deactivateItem = async (itemId) => {
+    try {
+      await api.post(`/vendors/${vendor.id}/items/${itemId}/deactivate`);
+      await loadItemsWithImages();
+    } catch (e) { }
+  };
+
   useEffect(() => { loadSelf(); }, [loadSelf]);
   useEffect(() => { loadItemsWithImages(); }, [loadItemsWithImages]);
   useEffect(() => { loadStoreGallery(); }, [loadStoreGallery]);
@@ -264,39 +328,6 @@ export default function VendorSelfDashboard({ apiUrl, token }) {
     }
   };
 
-  const addItem = async () => {
-    if (!vendor || !vendor.id) return;
-    try {
-      setLoading(true);
-      await api.post(`/vendors/${vendor.id}/items`, {
-        name: newItem.name,
-        price: parseFloat(newItem.price)
-      });
-      await loadItemsWithImages();
-      setNewItem({ name: '', price: '' });
-      setLoading(false);
-    } catch (e) {
-      setError(e.error || t('common.error'));
-      setLoading(false);
-    }
-  };
-
-  const updateItemPrice = async (itemId, price) => {
-    try {
-      await api.put(`/vendors/${vendor.id}/items/${itemId}`, {
-        price: parseFloat(price)
-      });
-      await loadItemsWithImages();
-    } catch (e) { }
-  };
-
-  const deactivateItem = async (itemId) => {
-    try {
-      await api.post(`/vendors/${vendor.id}/items/${itemId}/deactivate`);
-      await loadItemsWithImages();
-    } catch (e) { }
-  };
-
   return (
     <div style={{ border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1rem', background: '#F9FAFB' }}>
       {error && <div style={{ color: '#DC2626', marginBottom: '1rem' }}>{error}</div>}
@@ -311,7 +342,8 @@ export default function VendorSelfDashboard({ apiUrl, token }) {
             <input value={form.latitude} onChange={(e) => setForm({ ...form, latitude: e.target.value })} placeholder={t('common.lat')} style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
             <input value={form.longitude} onChange={(e) => setForm({ ...form, longitude: e.target.value })} placeholder={t('common.lng')} style={{ padding: '0.5rem', border: '1px solid #D1D5DB', borderRadius: '0.375rem' }} />
           </div>
-          <button onClick={createSelf} style={{ padding: '0.5rem 1rem', background: '#4F46E5', color: 'white', border: 'none', borderRadius: '0.375rem' }}>{t('common.createVendor')}</button>
+          {/* eslint-disable-next-line no-undef */}
+<button onClick={createSelf} style={{ padding: '0.5rem 1rem', background: '#4F46E5', color: 'white', border: 'none', borderRadius: '0.375rem' }}>{t('common.createVendor')}</button>
         </div>
       )}
       
