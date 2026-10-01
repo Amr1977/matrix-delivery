@@ -24,13 +24,29 @@ logger.info(`🔧 Environment Configuration:`);
 logger.info(`   NODE_ENV: ${process.env.NODE_ENV}`);
 console.log(`   DATABASE_URL: ${process.env.DATABASE_URL}`);
 
-const poolConfig  = { connectionString: process.env.DATABASE_URL };
+// Configure pool for Neon's pooler (PgBouncer)
+// Use conservative settings to avoid connection pool exhaustion
+const poolConfig = { 
+  connectionString: process.env.DATABASE_URL,
+  max: 20,                    // Max connections in pool
+  idleTimeoutMillis: 30000,   // Close idle connections after 30s
+  connectionTimeoutMillis: 5000, // Wait up to 5s for a connection
+  maxUses: 7500,              // Recycle connection after 7500 queries (Neon recommendation)
+  allowExitOnIdle: true,      // Allow process to exit if only idle connections remain
+};
 
 const pool = new Pool(poolConfig);
-logger.info(`🔌 Connecting to database: ${poolConfig.database} (Test Mode: ${IS_TEST})`);
+logger.info(`🔌 Connecting to database (pool: max=${poolConfig.max}, idleTimeout=${poolConfig.idleTimeoutMillis}ms)`);
 pool.on('error', (err, client) => {
     logger.error('Unexpected error on idle client', err);
     process.exit(-1);
 });
+
+// Log pool status periodically in development
+if (!IS_TEST && process.env.NODE_ENV !== 'production') {
+  setInterval(() => {
+    logger.debug(`📊 Pool status: total=${pool.totalCount}, idle=${pool.idleCount}, waiting=${pool.waitingCount}`);
+  }, 60000);
+}
 
 module.exports = pool;

@@ -318,6 +318,7 @@ const translations = {
       notifications: "Notifications",
       profile: "Profile",
       menu: "Menu",
+      reorder: "Reorder",
     },
     system: {
       criticalError: "CRITICAL ERROR",
@@ -811,6 +812,9 @@ const translations = {
       supportDeveloper: "Support Developer",
       delivery: "delivery",
       deliveries: "deliveries",
+      downloadApp: "Download Android App",
+      downloadAppDesc: "Get the latest APK from GitHub releases",
+      downloadApk: "Download Latest APK",
     },
     footer: {
       onlineDrivers: "Online Drivers",
@@ -1160,6 +1164,7 @@ const translations = {
       notifications: "الإشعارات",
       profile: "الملف الشخصي",
       menu: "القائمة",
+      reorder: "إعادة ترتيب",
     },
     system: {
       criticalError: "خطأ حرج",
@@ -1640,6 +1645,9 @@ const translations = {
       supportDeveloper: "دعم المطوّر",
       delivery: "توصيلة",
       deliveries: "توصيلات",
+      downloadApp: "تنزيل تطبيق أندرويد",
+      downloadAppDesc: "احصل على أحدث APK من إصدارات GitHub",
+      downloadApk: "تنزيل أحدث APK",
     },
     footer: {
       onlineDrivers: "السائقون المتصلون",
@@ -2275,6 +2283,7 @@ const translations = {
       notifications: "Notifications",
       profile: "Profile",
       menu: "Menu",
+      reorder: "Reorder",
     },
     languages: {
       english: "Anglais",
@@ -2586,6 +2595,7 @@ const translations = {
       notifications: "Notifications",
       profile: "Profile",
       menu: "Menu",
+      reorder: "Reorder",
     },
     languages: {
       english: "英语",
@@ -2903,6 +2913,7 @@ const translations = {
       notifications: "Notifications",
       profile: "Profile",
       menu: "Menu",
+      reorder: "Reorder",
     },
     languages: {
       english: "Englisch",
@@ -3221,6 +3232,7 @@ const translations = {
       notifications: "Notifications",
       profile: "Profile",
       menu: "Menu",
+      reorder: "Reorder",
     },
     languages: {
       english: "Inglês",
@@ -3537,6 +3549,7 @@ const translations = {
       notifications: "Notifications",
       profile: "Profile",
       menu: "Menu",
+      reorder: "Reorder",
     },
     languages: {
       english: "Английский",
@@ -3853,6 +3866,7 @@ const translations = {
       notifications: "Notifications",
       profile: "Profile",
       menu: "Menu",
+      reorder: "Reorder",
     },
     languages: {
       english: "英語",
@@ -4168,6 +4182,7 @@ const translations = {
       notifications: "Notifications",
       profile: "Profile",
       menu: "Menu",
+      reorder: "Reorder",
     },
     languages: {
       english: "İngilizce",
@@ -4485,6 +4500,7 @@ const translations = {
       notifications: "Notifications",
       profile: "Profile",
       menu: "Menu",
+      reorder: "Reorder",
     },
     languages: {
       english: "English",
@@ -4805,6 +4821,7 @@ const translations = {
       notifications: "Notifications",
       profile: "Profile",
       menu: "Menu",
+      reorder: "Reorder",
     },
     languages: {
       english: "अंग्रेजी",

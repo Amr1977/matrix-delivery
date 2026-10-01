@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useI18n } from '../../i18n/i18nContext';
-import { CourierCareerApi } from '../../services/api';
-import { CourierPublicProfile, CourierCareerEvent, CourierTeam } from '../../services/api/types';
-import { TierBadge } from '../courier/TierBadge';
+import { useI18n } from 'i18n/i18nContext';
+import { CourierCareerApi, CourierPublicProfile, CourierCareerEvent, CourierTeam } from 'services/api';
+import { TierBadge } from 'components/courier/TierBadge';
 import './CourierProfilePage.css';
 
 const CourierProfilePage: React.FC = () => {

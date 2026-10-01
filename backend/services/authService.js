@@ -222,7 +222,7 @@ class AuthService {
       throw new Error("Password must be at least 8 characters");
     }
 
-    if (!["customer", "driver"].includes(primary_role)) {
+    if (!["customer", "driver", "admin", "vendor"].includes(primary_role)) {
       throw new Error("Invalid primary_role");
     }
 

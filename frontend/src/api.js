@@ -90,6 +90,16 @@ class ApiClient {
       requestOptions.headers["x-device-fingerprint"] = this.fingerprint;
     }
 
+    // Add Authorization header if token is available (for cross-domain auth)
+    try {
+      const authToken = localStorage.getItem('authToken');
+      if (authToken) {
+        requestOptions.headers["Authorization"] = `Bearer ${authToken}`;
+      }
+    } catch (e) {
+      // Ignore localStorage errors
+    }
+
     // Add CSRF token for state-changing requests
     const safeMethods = ["GET", "HEAD", "OPTIONS"];
     if (!safeMethods.includes(method)) {
@@ -363,6 +373,16 @@ class ApiClient {
       xhr.open("POST", url);
 
       xhr.withCredentials = true;
+
+      // Add Authorization header if token is available (for cross-domain auth)
+      try {
+        const authToken = localStorage.getItem('authToken');
+        if (authToken) {
+          xhr.setRequestHeader("Authorization", `Bearer ${authToken}`);
+        }
+      } catch (e) {
+        // Ignore localStorage errors
+      }
 
       if (this.csrfToken) {
         xhr.setRequestHeader("X-CSRF-Token", this.csrfToken);

@@ -1,19 +1,20 @@
 import { ApiError, StoreBranding, StoreGalleryImage, StoreGalleryResponse, UpdateStoreBrandingRequest, ItemImage, ItemImageResponse, ItemImageUploadResponse, ReorderImagesRequest } from './types';
 
-// Base API Client with Cookie-Based Authentication
+/**
+ * Generic request method with cookie-based authentication
+ */
+private static async getAuthToken(): Promise<string | null> {
+    try {
+      return localStorage.getItem('authToken');
+    } catch {
+      return null;
+    }
+  }
 
-const API_URL = (
-    process.env.REACT_APP_API_URL || 'https://api.matrix-delivery.com/api'
-).replace(/\/+$/, '');
+private static csrfToken: string | null = null;
+private static tokenPromise: Promise<void> | null = null;
 
-export class ApiClient {
-    /**
-     * Generic request method with cookie-based authentication
-     */
-    private static csrfToken: string | null = null;
-    private static tokenPromise: Promise<void> | null = null;
-
-    private static async fetchCsrfToken(): Promise<void> {
+private static async fetchCsrfToken(): Promise<void> {
         if (this.tokenPromise) return this.tokenPromise;
 
         this.tokenPromise = (async () => {
@@ -48,6 +49,12 @@ export class ApiClient {
         const headers: Record<string, string> = { ...options.headers as Record<string, string> };
         if (!(options.body instanceof FormData)) {
             headers['Content-Type'] = 'application/json';
+        }
+
+        // Add Authorization header if token is available (for cross-domain auth)
+        const authToken = await this.getAuthToken();
+        if (authToken) {
+            headers['Authorization'] = `Bearer ${authToken}`;
         }
 
         const config: RequestInit = {
@@ -141,6 +148,16 @@ export class ApiClient {
     }
 
     /**
+     * PATCH request
+     */
+    static async patch<T>(endpoint: string, data?: any): Promise<T> {
+        return this.request<T>(endpoint, {
+            method: 'PATCH',
+            body: data ? JSON.stringify(data) : undefined,
+        });
+    }
+
+    /**
      * DELETE request
      */
     static async delete<T>(endpoint: string): Promise<T> {
@@ -171,7 +188,7 @@ export class ApiClient {
     static async updateStoreBranding(storeId: string, branding: UpdateStoreBrandingRequest): Promise<StoreBranding> {
         return this.request<StoreBranding>(`/marketplace/stores/${storeId}/branding`, {
             method: 'PATCH',
-            body: branding,
+            body: JSON.stringify(branding),
         });
     }
 
@@ -211,7 +228,7 @@ export class ApiClient {
     static async reorderStoreGalleryImages(storeId: string, imageOrders: ReorderImagesRequest): Promise<StoreGalleryResponse> {
         return this.request<StoreGalleryResponse>(`/marketplace/stores/${storeId}/gallery/reorder`, {
             method: 'PATCH',
-            body: imageOrders,
+            body: JSON.stringify(imageOrders),
         });
     }
 
@@ -262,7 +279,7 @@ export class ApiClient {
     static async reorderItemImages(itemId: string, imageOrders: ReorderImagesRequest): Promise<ItemImageResponse> {
         return this.request<ItemImageResponse>(`/marketplace/items/${itemId}/images/reorder`, {
             method: 'PATCH',
-            body: imageOrders,
+            body: JSON.stringify(imageOrders),
         });
     }
 

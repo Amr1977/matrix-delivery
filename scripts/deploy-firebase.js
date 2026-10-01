@@ -14,6 +14,9 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
+// Get the script's directory (not the current working directory)
+const SCRIPT_DIR = __dirname;
+
 // Parse command line argument
 const mode = process.argv[2];
 
@@ -25,19 +28,32 @@ if (!mode || !['maintenance', 'production'].includes(mode)) {
     process.exit(1);
 }
 
-const frontendDir = path.join(__dirname, '..', 'frontend');
+const projectRoot = path.join(SCRIPT_DIR, '..');
+const frontendDir = path.join(projectRoot, 'frontend');
 const firebaseConfigPath = path.join(frontendDir, 'firebase.json');
+
+// Service key path - always use the one from .secrets folder (in home directory)
+const SERVICE_KEY_PATH = path.join('/home/amr', '.secrets', 'matrix-delivery-service-key.json');
+console.log(`🔑 Using service key: ${SERVICE_KEY_PATH}`);
 
 // Backup original firebase.json
 const backupPath = path.join(frontendDir, 'firebase.json.backup');
 
-function execCommand(command, cwd = frontendDir) {
-    console.log(`\n🔧 Running: ${command}`);
+function execCommand(command, cwd = frontendDir, extraEnv = {}) {
+    console.log(`\n🔧 Running: ${command} (in ${cwd})`);
     try {
-        execSync(command, {
+        // Use bash -c with the full command and env - this works reliably
+        const fullCommand = `GOOGLE_APPLICATION_CREDENTIALS="${SERVICE_KEY_PATH}" ${command}`;
+        
+        execSync(fullCommand, {
             cwd,
             stdio: 'inherit',
-            shell: true
+            shell: '/bin/bash',
+            env: {
+                ...process.env,
+                GOOGLE_APPLICATION_CREDENTIALS: SERVICE_KEY_PATH,
+                ...extraEnv
+            }
         });
     } catch (error) {
         console.error(`\n❌ Command failed: ${command}`);

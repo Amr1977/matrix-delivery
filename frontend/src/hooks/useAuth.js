@@ -5,6 +5,14 @@ const useAuth = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [authToken, setAuthToken] = useState(() => {
+    // Load token from localStorage on init
+    try {
+      return localStorage.getItem('authToken');
+    } catch {
+      return null;
+    }
+  });
 
   // Form state kept for backward compatibility
   const [authForm, setAuthForm] = useState({
@@ -58,6 +66,15 @@ const useAuth = () => {
     try {
       const response = await AuthApi.login(formData);
       setCurrentUser(response.user);
+      // Store token for Authorization header usage
+      if (response.token) {
+        setAuthToken(response.token);
+        try {
+          localStorage.setItem('authToken', response.token);
+        } catch (e) {
+          console.warn('Failed to store auth token:', e);
+        }
+      }
 
       setAuthForm({
         name: '', email: '', password: '', phone: '',
@@ -94,6 +111,15 @@ const useAuth = () => {
     try {
       const response = await AuthApi.register(payload);
       setCurrentUser(response.user);
+      // Store token for Authorization header usage
+      if (response.token) {
+        setAuthToken(response.token);
+        try {
+          localStorage.setItem('authToken', response.token);
+        } catch (e) {
+          console.warn('Failed to store auth token:', e);
+        }
+      }
 
       setAuthForm({
         name: '', email: '', password: '', phone: '',
@@ -117,6 +143,12 @@ const useAuth = () => {
       console.error('Logout failed:', err);
     } finally {
       setCurrentUser(null);
+      setAuthToken(null);
+      try {
+        localStorage.removeItem('authToken');
+      } catch (e) {
+        console.warn('Failed to remove auth token:', e);
+      }
       setAuthState('login');
       setError('');
     }
@@ -163,7 +195,7 @@ const useAuth = () => {
     logout,
     updateUser,
     resetForm,
-    token: 'cookie'
+    token: authToken
   };
 };
 

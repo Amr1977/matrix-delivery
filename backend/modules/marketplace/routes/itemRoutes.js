@@ -7,6 +7,7 @@ const {
 } = require('../../../middleware/auth');
 
 const itemController = require('../controllers/itemController');
+const fileUploadService = require('../../../services/fileUploadService');
 
 const isVendorOrAdmin = requireRole('vendor', 'admin');
 
@@ -22,7 +23,10 @@ const isVendorOrAdmin = requireRole('vendor', 'admin');
  *   PUT    /:id                    - Update item (vendor owner/admin)
  *   DELETE /:id                    - Soft delete item (vendor owner/admin)
  *   PATCH  /:id/inventory          - Update inventory (vendor owner/admin)
- *   POST   /:id/images             - Attach/update image URL (vendor owner/admin)
+ *   POST   /:id/images             - Upload item image (vendor owner/admin)
+ *   DELETE /:id/images/:imageId    - Delete item image (vendor owner/admin)
+ *   PATCH  /:id/images/reorder     - Reorder item images (vendor owner/admin)
+ *   PATCH  /:id/images/:imageId/primary - Set primary item image (vendor owner/admin)
  */
 
 router.post(
@@ -62,7 +66,29 @@ router.post(
   '/:id/images',
   verifyToken,
   isVendorOrAdmin,
+  fileUploadService.createUploadMiddleware('file'),
   itemController.uploadItemImage
+);
+
+router.delete(
+  '/:id/images/:imageId',
+  verifyToken,
+  isVendorOrAdmin,
+  itemController.deleteItemImage
+);
+
+router.patch(
+  '/:id/images/reorder',
+  verifyToken,
+  isVendorOrAdmin,
+  itemController.reorderItemImages
+);
+
+router.patch(
+  '/:id/images/:imageId/primary',
+  verifyToken,
+  isVendorOrAdmin,
+  itemController.setItemImagePrimary
 );
 
 module.exports = router;

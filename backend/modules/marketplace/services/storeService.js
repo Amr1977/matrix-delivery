@@ -254,6 +254,206 @@ class StoreService {
       return matches;
     }
   }
+
+  // ============ BRANDING METHODS ============
+
+  async updateStoreBranding(currentUser, storeId, branding) {
+    if (!currentUser || !currentUser.userId) {
+      throw createError(401, 'Authentication required');
+    }
+
+    const store = await storeRepository.getStoreById(storeId);
+    if (!store) {
+      throw createError(404, 'Store not found');
+    }
+
+    const vendor = await vendorRepository.findById(store.vendor_id);
+    if (!vendor) {
+      throw createError(404, 'Vendor not found for this store');
+    }
+
+    const effectiveRole = currentUser.primary_role || currentUser.role;
+    const isAdmin = effectiveRole === 'admin';
+    const isOwner = vendor.owner_user_id === currentUser.userId;
+
+    if (!isAdmin && !isOwner) {
+      throw createError(403, 'Only vendor owner or admin can update store branding');
+    }
+
+    const allowedBranding = {
+      logo_url: branding.logo_url,
+      logo_public_id: branding.logo_public_id,
+      cover_image_url: branding.cover_image_url,
+      cover_public_id: branding.cover_public_id
+    };
+
+    const updated = await storeRepository.updateStoreBranding(storeId, allowedBranding);
+    return updated;
+  }
+
+  // ============ GALLERY METHODS ============
+
+  async addGalleryImage(currentUser, storeId, file) {
+    if (!currentUser || !currentUser.userId) {
+      throw createError(401, 'Authentication required');
+    }
+
+    const store = await storeRepository.getStoreById(storeId);
+    if (!store) {
+      throw createError(404, 'Store not found');
+    }
+
+    const vendor = await vendorRepository.findById(store.vendor_id);
+    if (!vendor) {
+      throw createError(404, 'Vendor not found for this store');
+    }
+
+    const effectiveRole = currentUser.primary_role || currentUser.role;
+    const isAdmin = effectiveRole === 'admin';
+    const isOwner = vendor.owner_user_id === currentUser.userId;
+
+    if (!isAdmin && !isOwner) {
+      throw createError(403, 'Only vendor owner or admin can add gallery images');
+    }
+
+    // Upload to Cloudinary
+    const fileUploadService = require('../../../services/fileUploadService');
+    const folder = `matrix-delivery/stores/${storeId}/gallery`;
+    
+    const uploadResult = await fileUploadService.uploadToCloudinary(file.buffer, {
+      folder,
+      transformations: { quality: 'auto', format: 'auto' }
+    });
+
+    // Get next display order
+    const gallery = await storeRepository.getGalleryImages(storeId);
+    const nextOrder = gallery.length > 0 
+      ? Math.max(...gallery.map(g => g.display_order)) + 1 
+      : 0;
+
+    const imageData = {
+      image_url: uploadResult.image_url,
+      cloudinary_public_id: uploadResult.cloudinary_public_id,
+      display_order: nextOrder,
+      is_primary: gallery.length === 0 // First image is primary
+    };
+
+    const image = await storeRepository.addGalleryImage(storeId, imageData);
+    return image;
+  }
+
+  async getGalleryImages(currentUser, storeId) {
+    const store = await storeRepository.getStoreById(storeId);
+    if (!store) {
+      throw createError(404, 'Store not found');
+    }
+    return storeRepository.getGalleryImages(storeId);
+  }
+
+  async deleteGalleryImage(currentUser, storeId, imageId) {
+    if (!currentUser || !currentUser.userId) {
+      throw createError(401, 'Authentication required');
+    }
+
+    const store = await storeRepository.getStoreById(storeId);
+    if (!store) {
+      throw createError(404, 'Store not found');
+    }
+
+    const vendor = await vendorRepository.findById(store.vendor_id);
+    if (!vendor) {
+      throw createError(404, 'Vendor not found for this store');
+    }
+
+    const effectiveRole = currentUser.primary_role || currentUser.role;
+    const isAdmin = effectiveRole === 'admin';
+    const isOwner = vendor.owner_user_id === currentUser.userId;
+
+    if (!isAdmin && !isOwner) {
+      throw createError(403, 'Only vendor owner or admin can delete gallery images');
+    }
+
+    // Get the image to find its public_id for Cloudinary deletion
+    const gallery = await storeRepository.getGalleryImages(storeId);
+    const image = gallery.find(img => img.id === imageId);
+    if (!image) {
+      throw createError(404, 'Gallery image not found');
+    }
+
+    // Delete from Cloudinary first
+    const fileUploadService = require('../../../services/fileUploadService');
+    await fileUploadService.deleteFromCloudinary(image.cloudinary_public_id);
+
+    // Then delete from database
+    const deleted = await storeRepository.deleteGalleryImage(storeId, imageId);
+    return deleted;
+  }
+
+  async reorderGalleryImages(currentUser, storeId, imageOrders) {
+    if (!currentUser || !currentUser.userId) {
+      throw createError(401, 'Authentication required');
+    }
+
+    const store = await storeRepository.getStoreById(storeId);
+    if (!store) {
+      throw createError(404, 'Store not found');
+    }
+
+    const vendor = await vendorRepository.findById(store.vendor_id);
+    if (!vendor) {
+      throw createError(404, 'Vendor not found for this store');
+    }
+
+    const effectiveRole = currentUser.primary_role || currentUser.role;
+    const isAdmin = effectiveRole === 'admin';
+    const isOwner = vendor.owner_user_id === currentUser.userId;
+
+    if (!isAdmin && !isOwner) {
+      throw createError(403, 'Only vendor owner or admin can reorder gallery images');
+    }
+
+    // Validate all image IDs belong to this store
+    const gallery = await storeRepository.getGalleryImages(storeId);
+    const validIds = new Set(gallery.map(g => g.id));
+    for (const { id } of imageOrders) {
+      if (!validIds.has(id)) {
+        throw createError(400, `Invalid image ID: ${id}`);
+      }
+    }
+
+    const reordered = await storeRepository.reorderGalleryImages(storeId, imageOrders);
+    return reordered;
+  }
+
+  async setGalleryPrimary(currentUser, storeId, imageId) {
+    if (!currentUser || !currentUser.userId) {
+      throw createError(401, 'Authentication required');
+    }
+
+    const store = await storeRepository.getStoreById(storeId);
+    if (!store) {
+      throw createError(404, 'Store not found');
+    }
+
+    const vendor = await vendorRepository.findById(store.vendor_id);
+    if (!vendor) {
+      throw createError(404, 'Vendor not found for this store');
+    }
+
+    const effectiveRole = currentUser.primary_role || currentUser.role;
+    const isAdmin = effectiveRole === 'admin';
+    const isOwner = vendor.owner_user_id === currentUser.userId;
+
+    if (!isAdmin && !isOwner) {
+      throw createError(403, 'Only vendor owner or admin can set primary gallery image');
+    }
+
+    const image = await storeRepository.setGalleryPrimary(storeId, imageId);
+    if (!image) {
+      throw createError(404, 'Gallery image not found');
+    }
+    return image;
+  }
 }
 
 module.exports = new StoreService();

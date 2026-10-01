@@ -6,26 +6,78 @@ on:
   push:
     branches:
       - master
-      - feature/advanced-location-mapping
     paths:
       - "frontend/**"
+      - "scripts/**"
+      - "VERSION"
+      - "package.json"
+      - "backend/package.json"
+      - "frontend/package.json"
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: 'Version bump type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Needed for git push
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Needed for version bump commit
+          token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "18"
+
+      - name: Bump version
+        id: version
+        run: |
+          # Determine version bump type
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TYPE="${{ github.event.inputs.version_type }}"
+          else
+            TYPE="patch"
+          fi
+          
+          echo "Bumping version ($TYPE)..."
+          NEW_VERSION=$(node scripts/bump-version.js $TYPE)
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Commit version changes
+          git add VERSION package.json backend/package.json frontend/package.json
+          git commit -m "chore: bump version to $NEW_VERSION" || echo "No changes to commit"
+          git push
+
       - name: Install dependencies
-        run: cd frontend && npm install
+        run: cd frontend && npm install --legacy-peer-deps
+
+      - name: Generate git info (includes version)
+        run: |
+          cd frontend
+          node scripts/generate-git-info.js
+
       - name: Build for production
         env:
           REACT_APP_API_URL: https://api.matrix-delivery.com/api
         run: |
           cd frontend
           CI=false npm run build
+
       - name: Deploy to Firebase
         run: |
           cd frontend

@@ -1,6 +1,8 @@
 import React from 'react';
-import { useI18n } from '../../i18n/i18nContext';
-import { CourierTier } from '../../services/api/types';
+import { useI18n } from 'i18n/i18nContext';
+
+// Courier tier types
+type CourierTier = "junior" | "mid" | "senior" | "team_leader";
 
 interface TierBadgeProps {
     tier: CourierTier;

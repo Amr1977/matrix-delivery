@@ -207,9 +207,9 @@ const register = async (req, res) => {
 
     res.cookie("token", token, cookieOptions);
 
-    // Remove token from response body for security
+    // Include token in response body for cross-domain auth (frontend on matrix-delivery.web.app, API on api.matrix-delivery.com)
     const response = { ...result };
-    delete response.token;
+    response.token = token; // Include token for Authorization header usage
 
     // Add message field for consistency
     response.message = "User registered successfully";
@@ -309,9 +309,9 @@ const login = async (req, res) => {
 
     res.cookie("token", token, cookieOptions);
 
-    // Remove token from response body for security
+    // Include token in response body for cross-domain auth (frontend on matrix-delivery.web.app, API on api.matrix-delivery.com)
     const response = { ...result };
-    delete response.token;
+    response.token = token; // Include token for Authorization header usage
 
     // Add message field
     response.message = "Login successful";
@@ -832,8 +832,9 @@ const googleAuth = async (req, res) => {
 
     res.cookie("token", token, cookieOptions);
 
+    // Include token in response body for cross-domain auth
     const response = { ...result };
-    delete response.token;
+    response.token = token;
     response.message = "Google authentication successful";
 
     res.json(response);

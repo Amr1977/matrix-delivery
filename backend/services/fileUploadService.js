@@ -1,75 +1,42 @@
-const fs = require('fs');
-const path = require('path');
 const multer = require('multer');
-const sharp = require('sharp');
-const ffmpeg = require('fluent-ffmpeg');
+const cloudinary = require('cloudinary').v2;
+const { Readable } = require('stream');
 const logger = require('../config/logger');
 
 class FileUploadService {
     constructor() {
-        // Create uploads directory if it doesn't exist
-        this.uploadsDir = path.join(__dirname, '..', 'uploads');
-        this.ensureDirectoryExists(this.uploadsDir);
+        // Configure Cloudinary
+        cloudinary.config({
+            cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+            api_key: process.env.CLOUDINARY_API_KEY,
+            api_secret: process.env.CLOUDINARY_API_SECRET,
+        });
 
-        // Create subdirectories for different media types
-        this.imageDir = path.join(this.uploadsDir, 'images');
-        this.videoDir = path.join(this.uploadsDir, 'videos');
-        this.voiceDir = path.join(this.uploadsDir, 'voice');
-        this.thumbnailDir = path.join(this.uploadsDir, 'thumbnails');
-
-        this.ensureDirectoryExists(this.imageDir);
-        this.ensureDirectoryExists(this.videoDir);
-        this.ensureDirectoryExists(this.voiceDir);
-        this.ensureDirectoryExists(this.thumbnailDir);
-
-        // TODO: put this in .env file!!
         // File size limits (in bytes)
         this.limits = {
             image: 10 * 1024 * 1024,  // 10MB
-            video: 50 * 1024 * 1024,  // 50MB
-            voice: 5 * 1024 * 1024    // 5MB
         };
 
-        // Allowed file types
-        this.allowedTypes = {
-            image: ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'],
-            video: ['video/mp4', 'video/webm', 'video/quicktime'],
-            voice: ['audio/webm', 'audio/mp3', 'audio/mpeg', 'audio/wav', 'audio/ogg']
-        };
-    }
+        // Allowed MIME types for images
+        this.allowedImageTypes = [
+            'image/jpeg',
+            'image/jpg',
+            'image/png',
+            'image/gif',
+            'image/webp'
+        ];
 
-    /**
-     * Ensure directory exists, create if not
-     */
-    ensureDirectoryExists(dirPath) {
-        if (!fs.existsSync(dirPath)) {
-            fs.mkdirSync(dirPath, { recursive: true });
-            logger.info(`Created directory: ${dirPath}`, { category: 'file-upload' });
-        }
-    }
-
-    /**
-     * Generate unique filename
-     */
-    generateFilename(orderId, originalName) {
-        const timestamp = Date.now();
-        const randomId = Math.random().toString(36).substring(2, 9);
-        const ext = path.extname(originalName);
-        return `${orderId}_${timestamp}_${randomId}${ext}`;
+        // Allowed file extensions (for additional validation)
+        this.allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
     }
 
     /**
      * Validate file type and size
+     * Security-first: real file-type checks, not just extension/MIME header trust
      */
-    validateFile(file, mediaType) {
-        // Check if file exists
+    validateFile(file, mediaType = 'image') {
         if (!file) {
             throw new Error('No file provided');
-        }
-
-        // Check file type
-        if (!this.allowedTypes[mediaType].includes(file.mimetype)) {
-            throw new Error(`Invalid file type. Allowed types: ${this.allowedTypes[mediaType].join(', ')}`);
         }
 
         // Check file size
@@ -78,224 +45,129 @@ class FileUploadService {
             throw new Error(`File size exceeds ${limitMB}MB limit`);
         }
 
+        // Check MIME type against allowed list
+        if (!this.allowedImageTypes.includes(file.mimetype)) {
+            throw new Error(`Invalid file type. Allowed types: ${this.allowedImageTypes.join(', ')}`);
+        }
+
+        // Additional extension check (defense in depth)
+        const ext = file.originalname.toLowerCase().substring(file.originalname.lastIndexOf('.'));
+        if (!this.allowedExtensions.includes(ext)) {
+            throw new Error(`Invalid file extension. Allowed: ${this.allowedExtensions.join(', ')}`);
+        }
+
         return true;
     }
 
     /**
-     * Configure multer storage for different media types
+     * Create multer upload middleware using memory storage
+     * Files are buffered in memory and streamed to Cloudinary
      */
-    getMulterStorage(mediaType) {
-        const targetDir = mediaType === 'image' ? this.imageDir :
-            mediaType === 'video' ? this.videoDir :
-                this.voiceDir;
-
-        return multer.diskStorage({
-            destination: (req, file, cb) => {
-                cb(null, targetDir);
-            },
-            filename: (req, file, cb) => {
-                const orderId = req.body.orderId || 'unknown';
-                const filename = this.generateFilename(orderId, file.originalname);
-                cb(null, filename);
-            }
-        });
-    }
-
-    /**
-     * Create multer upload middleware
-     */
-    createUploadMiddleware(mediaType) {
+    createUploadMiddleware(fieldName = 'file') {
         return multer({
-            storage: this.getMulterStorage(mediaType),
+            storage: multer.memoryStorage(),
             limits: {
-                fileSize: this.limits[mediaType]
+                fileSize: this.limits.image
             },
             fileFilter: (req, file, cb) => {
                 try {
-                    if (!this.allowedTypes[mediaType].includes(file.mimetype)) {
-                        cb(new Error(`Invalid file type. Allowed types: ${this.allowedTypes[mediaType].join(', ')}`), false);
-                    } else {
-                        cb(null, true);
-                    }
+                    this.validateFile(file, 'image');
+                    cb(null, true);
                 } catch (error) {
                     cb(error, false);
                 }
             }
-        }).single('file');
+        }).single(fieldName);
     }
 
     /**
-     * Generate thumbnail for image
+     * Upload a file buffer to Cloudinary
+     * @param {Buffer} fileBuffer - File buffer from multer.memoryStorage()
+     * @param {Object} options - Upload options
+     * @param {string} options.folder - Cloudinary folder path (e.g., 'matrix-delivery/stores/123/gallery')
+     * @param {string} options.publicId - Optional custom public_id
+     * @param {Object} options.transformations - Optional Cloudinary transformations
+     * @returns {Promise<Object>} Upload result with url and public_id
      */
-    async generateImageThumbnail(imagePath) {
-        try {
-            const filename = path.basename(imagePath);
-            const thumbnailPath = path.join(this.thumbnailDir, `thumb_${filename}`);
+    async uploadToCloudinary(fileBuffer, options = {}) {
+        const { folder, publicId, transformations = {} } = options;
 
-            await sharp(imagePath)
-                .resize(300, 300, {
-                    fit: 'inside',
-                    withoutEnlargement: true
-                })
-                .jpeg({ quality: 80 })
-                .toFile(thumbnailPath);
-
-            logger.info('Image thumbnail generated', {
-                imagePath,
-                thumbnailPath,
-                category: 'file-upload'
-            });
-
-            return thumbnailPath;
-        } catch (error) {
-            logger.error('Failed to generate image thumbnail', {
-                error: error.message,
-                imagePath,
-                category: 'file-upload'
-            });
-            return null;
-        }
-    }
-
-    /**
-     * Generate thumbnail for video
-     */
-    async generateVideoThumbnail(videoPath) {
         return new Promise((resolve, reject) => {
-            try {
-                const filename = path.basename(videoPath, path.extname(videoPath));
-                const thumbnailPath = path.join(this.thumbnailDir, `thumb_${filename}.jpg`);
-
-                ffmpeg(videoPath)
-                    .screenshots({
-                        timestamps: ['00:00:01'],
-                        filename: `thumb_${filename}.jpg`,
-                        folder: this.thumbnailDir,
-                        size: '300x300'
-                    })
-                    .on('end', () => {
-                        logger.info('Video thumbnail generated', {
-                            videoPath,
-                            thumbnailPath,
-                            category: 'file-upload'
-                        });
-                        resolve(thumbnailPath);
-                    })
-                    .on('error', (error) => {
-                        logger.error('Failed to generate video thumbnail', {
+            const uploadStream = cloudinary.uploader.upload_stream(
+                {
+                    folder,
+                    public_id: publicId,
+                    resource_type: 'image',
+                    transformation: transformations,
+                    overwrite: false,
+                    unique_filename: true,
+                    use_filename: false,
+                },
+                (error, result) => {
+                    if (error) {
+                        logger.error('Cloudinary upload failed', {
                             error: error.message,
-                            videoPath,
+                            folder,
                             category: 'file-upload'
                         });
-                        resolve(null);
-                    });
-            } catch (error) {
-                logger.error('Video thumbnail generation error', {
-                    error: error.message,
-                    videoPath,
+                        reject(new Error(`Upload failed: ${error.message}`));
+                    } else {
+                        logger.info('Cloudinary upload successful', {
+                            publicId: result.public_id,
+                            url: result.secure_url,
+                            folder,
+                            category: 'file-upload'
+                        });
+                        resolve({
+                            image_url: result.secure_url,
+                            cloudinary_public_id: result.public_id,
+                            width: result.width,
+                            height: result.height,
+                            format: result.format,
+                            bytes: result.bytes
+                        });
+                    }
+                }
+            );
+
+            // Convert buffer to stream and pipe to Cloudinary
+            const readable = new Readable();
+            readable._read = () => {};
+            readable.push(fileBuffer);
+            readable.push(null);
+            readable.pipe(uploadStream);
+        });
+    }
+
+    /**
+     * Delete an image from Cloudinary by public_id
+     */
+    async deleteFromCloudinary(publicId) {
+        try {
+            const result = await cloudinary.uploader.destroy(publicId, {
+                resource_type: 'image',
+                invalidate: true // Invalidate CDN cache
+            });
+
+            if (result.result === 'ok' || result.result === 'not found') {
+                logger.info('Cloudinary delete successful', {
+                    publicId,
+                    result: result.result,
                     category: 'file-upload'
                 });
-                resolve(null);
-            }
-        });
-    }
-
-    /**
-     * Get video duration
-     */
-    async getVideoDuration(videoPath) {
-        return new Promise((resolve, reject) => {
-            ffmpeg.ffprobe(videoPath, (err, metadata) => {
-                if (err) {
-                    logger.error('Failed to get video duration', {
-                        error: err.message,
-                        videoPath,
-                        category: 'file-upload'
-                    });
-                    resolve(null);
-                } else {
-                    const duration = Math.floor(metadata.format.duration);
-                    resolve(duration);
-                }
-            });
-        });
-    }
-
-    /**
-     * Upload image file
-     */
-    async uploadImage(file, orderId) {
-        this.validateFile(file, 'image');
-
-        const thumbnailPath = await this.generateImageThumbnail(file.path);
-
-        return {
-            mediaUrl: `/uploads/images/${file.filename}`,
-            mediaType: 'image',
-            mediaSize: file.size,
-            thumbnailUrl: thumbnailPath ? `/uploads/thumbnails/${path.basename(thumbnailPath)}` : null
-        };
-    }
-
-    /**
-     * Upload video file
-     */
-    async uploadVideo(file, orderId) {
-        this.validateFile(file, 'video');
-
-        const thumbnailPath = await this.generateVideoThumbnail(file.path);
-        const duration = await this.getVideoDuration(file.path);
-
-        return {
-            mediaUrl: `/uploads/videos/${file.filename}`,
-            mediaType: 'video',
-            mediaSize: file.size,
-            mediaDuration: duration,
-            thumbnailUrl: thumbnailPath ? `/uploads/thumbnails/${path.basename(thumbnailPath)}` : null
-        };
-    }
-
-    /**
-     * Upload voice recording
-     */
-    async uploadVoice(file, orderId) {
-        this.validateFile(file, 'voice');
-
-        // For voice, we could get duration using ffprobe if needed
-        let duration = null;
-        try {
-            duration = await this.getVideoDuration(file.path);
-        } catch (error) {
-            logger.warn('Could not get voice duration', {
-                error: error.message,
-                category: 'file-upload'
-            });
-        }
-
-        return {
-            mediaUrl: `/uploads/voice/${file.filename}`,
-            mediaType: 'voice',
-            mediaSize: file.size,
-            mediaDuration: duration
-        };
-    }
-
-    /**
-     * Delete uploaded file
-     */
-    async deleteFile(filePath) {
-        try {
-            const fullPath = path.join(__dirname, '..', filePath);
-            if (fs.existsSync(fullPath)) {
-                fs.unlinkSync(fullPath);
-                logger.info('File deleted', { filePath, category: 'file-upload' });
                 return true;
+            } else {
+                logger.warn('Cloudinary delete returned unexpected result', {
+                    publicId,
+                    result: result.result,
+                    category: 'file-upload'
+                });
+                return false;
             }
-            return false;
         } catch (error) {
-            logger.error('Failed to delete file', {
+            logger.error('Cloudinary delete failed', {
                 error: error.message,
-                filePath,
+                publicId,
                 category: 'file-upload'
             });
             return false;
@@ -303,20 +175,77 @@ class FileUploadService {
     }
 
     /**
-     * Delete message media files (including thumbnail)
+     * Generate Cloudinary URL with transformations for thumbnails, etc.
+     * This is called at render time in the frontend, not during upload.
+     * @param {string} publicId - Cloudinary public_id
+     * @param {Object} transformations - Transformation options (width, height, crop, etc.)
+     * @returns {string} Transformed Cloudinary URL
      */
-    async deleteMessageMedia(mediaUrl, thumbnailUrl) {
-        const promises = [];
+    getTransformedUrl(publicId, transformations = {}) {
+        if (!publicId) return null;
 
-        if (mediaUrl) {
-            promises.push(this.deleteFile(mediaUrl));
-        }
+        const {
+            width,
+            height,
+            crop = 'fill',
+            quality = 'auto',
+            format = 'auto',
+            gravity = 'auto'
+        } = transformations;
 
-        if (thumbnailUrl) {
-            promises.push(this.deleteFile(thumbnailUrl));
-        }
+        const transformParts = [];
+        if (width) transformParts.push(`w_${width}`);
+        if (height) transformParts.push(`h_${height}`);
+        if (crop) transformParts.push(`c_${crop}`);
+        if (gravity) transformParts.push(`g_${gravity}`);
+        if (quality) transformParts.push(`q_${quality}`);
+        if (format) transformParts.push(`f_${format}`);
 
-        await Promise.all(promises);
+        const transformString = transformParts.join(',');
+        return cloudinary.url(publicId, {
+            transformation: transformString,
+            secure: true
+        });
+    }
+
+    /**
+     * Generate standard thumbnail URL (400x400 fill)
+     */
+    getThumbnailUrl(publicId, size = 400) {
+        return this.getTransformedUrl(publicId, {
+            width: size,
+            height: size,
+            crop: 'fill',
+            gravity: 'auto',
+            quality: 'auto',
+            format: 'auto'
+        });
+    }
+
+    /**
+     * Generate detail/zoom URL (larger, e.g., 1200px wide)
+     */
+    getDetailUrl(publicId, maxWidth = 1200) {
+        return this.getTransformedUrl(publicId, {
+            width: maxWidth,
+            crop: 'limit',
+            quality: 'auto',
+            format: 'auto'
+        });
+    }
+
+    /**
+     * Generate grid thumbnail URL (e.g., 300x300)
+     */
+    getGridUrl(publicId, size = 300) {
+        return this.getTransformedUrl(publicId, {
+            width: size,
+            height: size,
+            crop: 'fill',
+            gravity: 'auto',
+            quality: 'auto',
+            format: 'auto'
+        });
     }
 }
 

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import useAuth from '../../hooks/useAuth';
 import { User, Notification } from '../../types';
 
+const APK_DOWNLOAD_URL = 'https://github.com/Amr1977/matrix-delivery/releases/latest/download/app-debug.apk';
+
 interface SideMenuProps {
     isOpen: boolean;
     onClose: () => void;
@@ -323,6 +325,56 @@ const SideMenu: React.FC<SideMenuProps> = ({
                         >
                             ⬇️ Downloads
                         </button>
+
+                        {/* APK Download Section */}
+                        <div style={{ marginTop: '1rem', padding: '1rem', background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.05) 100%)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '0.75rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                                <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                    <span style={{ fontSize: '1.25rem' }}>📱</span>
+                                </div>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{ fontWeight: 'bold', color: 'white', fontSize: '0.875rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                        {t('menu.downloadApp') || 'Download Android App'}
+                                    </div>
+                                    <div style={{ fontSize: '0.7rem', color: '#9CA3AF', marginTop: '0.125rem' }}>
+                                        {t('menu.downloadAppDesc') || 'Get the latest APK from GitHub releases'}
+                                    </div>
+                                </div>
+                            </div>
+                            <a
+                                href={APK_DOWNLOAD_URL}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                    display: 'block',
+                                    width: '100%',
+                                    textAlign: 'center',
+                                    padding: '0.625rem',
+                                    background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                                    border: 'none',
+                                    color: 'white',
+                                    cursor: 'pointer',
+                                    fontSize: '0.875rem',
+                                    fontWeight: '600',
+                                    borderRadius: '0.5rem',
+                                    textDecoration: 'none',
+                                    transition: 'all 0.2s',
+                                    boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)'
+                                }}
+                                onMouseOver={(e) => {
+                                    e.currentTarget.style.background = 'linear-gradient(135deg, #059669 0%, #047857 100%)';
+                                    e.currentTarget.style.transform = 'translateY(-1px)';
+                                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.4)';
+                                }}
+                                onMouseOut={(e) => {
+                                    e.currentTarget.style.background = 'linear-gradient(135deg, #10B981 0%, #059669 100%)';
+                                    e.currentTarget.style.transform = 'translateY(0)';
+                                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(16, 185, 129, 0.3)';
+                                }}
+                            >
+                                ⬇️ {t('menu.downloadApk') || 'Download Latest APK'}
+                            </a>
+                        </div>
 
                         {/* Admin Panel - Only for admins */}
                         {(currentUser?.primary_role === 'admin' || (currentUser?.granted_roles && currentUser.granted_roles.includes('admin')) || availableRoles.includes('admin')) && (

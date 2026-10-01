@@ -81,7 +81,10 @@ class ItemService {
     if (!item || item.status === false) {
       throw createError(404, 'Item not found');
     }
-    return item;
+    
+    // Include images array for gallery rendering
+    const images = await itemRepository.getItemImages(id);
+    return { ...item, images };
   }
 
   async updateItem(currentUser, id, fields) {
@@ -150,7 +153,9 @@ class ItemService {
     return updated;
   }
 
-  async uploadItemImage(currentUser, id, payload) {
+  // ============ ITEM IMAGE UPLOAD ============
+
+  async uploadItemImage(currentUser, id, file) {
     const existing = await itemRepository.getItemById(id);
     if (!existing) {
       throw createError(404, 'Item not found');
@@ -158,13 +163,111 @@ class ItemService {
 
     await this.ensureStoreOwnership(currentUser, existing.store_id);
 
-    const { image_url } = payload || {};
-    if (!image_url) {
-      throw createError(400, 'image_url is required');
+    // Upload to Cloudinary
+    const fileUploadService = require('../../../services/fileUploadService');
+    const folder = `matrix-delivery/items/${id}`;
+    
+    const uploadResult = await fileUploadService.uploadToCloudinary(file.buffer, {
+      folder,
+      transformations: { quality: 'auto', format: 'auto' }
+    });
+
+    // Mark as primary if no other primary exists
+    const existingImages = await itemRepository.getItemImages(id);
+    const hasPrimary = existingImages.some(img => img.is_primary);
+    const isPrimary = !hasPrimary; // First image becomes primary if none exist
+
+    const imageData = {
+      image_url: uploadResult.image_url,
+      cloudinary_public_id: uploadResult.cloudinary_public_id,
+      display_order: existingImages.length,
+      is_primary: isPrimary
+    };
+
+    const image = await itemRepository.addItemImage(id, imageData);
+    
+    // Sync primary image URL to items.image_url if this is the new primary
+    if (isPrimary) {
+      await itemRepository.syncPrimaryImageToItem(id);
     }
 
-    const updated = await itemRepository.updateItem(id, { image_url });
-    return updated;
+    return { image, hasPrimaryBefore: !isPrimary };
+  }
+
+  // ============ ITEM IMAGE DELETE/REORDER ============
+
+  async deleteItemImage(currentUser, id, imageId) {
+    const existing = await itemRepository.getItemById(id);
+    if (!existing) {
+      throw createError(404, 'Item not found');
+    }
+
+    await this.ensureStoreOwnership(currentUser, existing.store_id);
+
+    // Get the image to find its public_id for Cloudinary deletion
+    const gallery = await itemRepository.getItemImages(id);
+    const image = gallery.find(img => img.id === imageId);
+    if (!image) {
+      throw createError(404, 'Item image not found');
+    }
+
+    // Delete from Cloudinary first
+    const fileUploadService = require('../../../services/fileUploadService');
+    await fileUploadService.deleteFromCloudinary(image.cloudinary_public_id);
+
+    // Then delete from database
+    const deleted = await itemRepository.deleteItemImage(id, imageId);
+    
+    // Sync primary image URL if the deleted image was primary
+    if (image.is_primary) {
+      await itemRepository.syncPrimaryImageToItem(id);
+    }
+
+    return { deleted, wasPrimary: image.is_primary };
+  }
+
+  async reorderItemImages(currentUser, id, imageOrders) {
+    const existing = await itemRepository.getItemById(id);
+    if (!existing) {
+      throw createError(404, 'Item not found');
+    }
+
+    await this.ensureStoreOwnership(currentUser, existing.store_id);
+
+    // Validate all image IDs belong to this item
+    const gallery = await itemRepository.getItemImages(id);
+    const validIds = new Set(gallery.map(g => g.id));
+    for (const { id: imgId } of imageOrders) {
+      if (!validIds.has(imgId)) {
+        throw createError(400, `Invalid image ID: ${imgId}`);
+      }
+    }
+
+    const reordered = await itemRepository.reorderItemImages(id, imageOrders);
+    
+    // After reordering, sync primary image URL
+    await itemRepository.syncPrimaryImageToItem(id);
+    
+    return reordered;
+  }
+
+  async setItemImagePrimary(currentUser, id, imageId) {
+    const existing = await itemRepository.getItemById(id);
+    if (!existing) {
+      throw createError(404, 'Item not found');
+    }
+
+    await this.ensureStoreOwnership(currentUser, existing.store_id);
+
+    const image = await itemRepository.setItemImagePrimary(id, imageId);
+    if (!image) {
+      throw createError(404, 'Item image not found');
+    }
+    
+    // Sync primary image URL to items.image_url
+    await itemRepository.syncPrimaryImageToItem(id);
+    
+    return { image, wasSetAsPrimary: true };
   }
 }
 

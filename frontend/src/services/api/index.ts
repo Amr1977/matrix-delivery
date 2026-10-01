@@ -14,5 +14,21 @@ export { CourierCareerApi } from './courierCareer';
 // Export types
 export * from './types';
 
+// Explicitly re-export courier career types
+export type {
+  CourierTier,
+  CourierTierRule,
+  CourierTeam,
+  CourierTeamMember,
+  CourierCareerEvent,
+  CourierPublicProfile,
+  CourierDirectoryFilters,
+  CourierDirectoryResponse,
+  UpdateProfileVisibilityRequest,
+  CreateTeamRequest,
+  AddTeamMemberRequest,
+  TierRecalculationResult,
+} from './courierCareerTypes';
+
 // Export API client for advanced use cases
 export { ApiClient } from './client';

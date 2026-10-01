@@ -109,6 +109,120 @@ class ItemRepository {
     );
     return result.rows[0] || null;
   }
+
+  // ============ ITEM IMAGE METHODS ============
+
+  async getItemImages(itemId) {
+    const result = await pool.query(
+      `SELECT id, image_url, cloudinary_public_id, display_order, is_primary, created_at
+       FROM item_images
+       WHERE item_id = $1
+       ORDER BY display_order ASC, created_at ASC`,
+      [itemId]
+    );
+    return result.rows;
+  }
+
+  async addItemImage(itemId, imageData) {
+    const { image_url, cloudinary_public_id, display_order, is_primary } = imageData;
+    
+    // If this is marked primary, unset any existing primary
+    if (is_primary) {
+      await pool.query(
+        `UPDATE item_images SET is_primary = false WHERE item_id = $1 AND is_primary = true`,
+        [itemId]
+      );
+    }
+
+    const result = await pool.query(
+      `INSERT INTO item_images (item_id, image_url, cloudinary_public_id, display_order, is_primary)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING *`,
+      [itemId, image_url, cloudinary_public_id, display_order || 0, is_primary || false]
+    );
+    return result.rows[0];
+  }
+
+  async deleteItemImage(itemId, imageId) {
+    const result = await pool.query(
+      `DELETE FROM item_images WHERE id = $1 AND item_id = $2 RETURNING *`,
+      [imageId, itemId]
+    );
+    return result.rows[0] || null;
+  }
+
+  async reorderItemImages(itemId, imageOrders) {
+    // imageOrders: array of { id, display_order }
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      
+      for (const { id, display_order } of imageOrders) {
+        await client.query(
+          `UPDATE item_images SET display_order = $1 WHERE id = $2 AND item_id = $3`,
+          [display_order, id, itemId]
+        );
+      }
+      
+      await client.query('COMMIT');
+      return this.getItemImages(itemId);
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  async setItemImagePrimary(itemId, imageId) {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      
+      // Unset current primary
+      await client.query(
+        `UPDATE item_images SET is_primary = false WHERE item_id = $1 AND is_primary = true`,
+        [itemId]
+      );
+      
+      // Set new primary
+      const result = await client.query(
+        `UPDATE item_images SET is_primary = true WHERE id = $1 AND item_id = $2 RETURNING *`,
+        [imageId, itemId]
+      );
+      
+      await client.query('COMMIT');
+      return result.rows[0] || null;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  // Sync primary image to items.image_url
+  async syncPrimaryImageToItem(itemId) {
+    // Get the primary image
+    const primaryImage = await pool.query(
+      `SELECT image_url, cloudinary_public_id FROM item_images WHERE item_id = $1 AND is_primary = true`,
+      [itemId]
+    );
+    
+    if (primaryImage.rows.length === 0) {
+      // No primary image - set image_url to null
+      return await pool.query(
+        `UPDATE items SET image_url = NULL WHERE id = $1 RETURNING *`,
+        [itemId]
+      );
+    }
+    
+    // Update items.image_url to match the primary image's URL
+    return await pool.query(
+      `UPDATE items SET image_url = $1 WHERE id = $2 RETURNING *`,
+      [primaryImage.rows[0].image_url, itemId]
+    );
+  }
 }
 
 module.exports = new ItemRepository();

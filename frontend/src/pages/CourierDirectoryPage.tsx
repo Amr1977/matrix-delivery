@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useI18n } from '../../i18n/i18nContext';
-import { CourierCareerApi } from '../../services/api';
-import { CourierPublicProfile, CourierTier, CourierDirectoryFilters } from '../../services/api/types';
-import { TierBadge } from '../courier/TierBadge';
+import { useI18n } from 'i18n/i18nContext';
+import { CourierCareerApi } from 'services/api';
+import { CourierPublicProfile, CourierTier, CourierDirectoryFilters } from 'services/api/courierCareerTypes';
+import { TierBadge } from 'components/courier/TierBadge';
 import './CourierDirectoryPage.css';
 
 const CourierDirectoryPage: React.FC = () => {

@@ -63,8 +63,44 @@ exports.updateInventory = async (req, res, next) => {
 
 exports.uploadItemImage = async (req, res, next) => {
   try {
-    const item = await itemService.uploadItemImage(req.user, req.params.id, req.body);
-    res.json(item);
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+    const result = await itemService.uploadItemImage(req.user, req.params.id, req.file);
+    res.json(result);
+  } catch (error) {
+    handleControllerError(error, res, next);
+  }
+};
+
+// ============ ITEM IMAGE MANAGEMENT ============
+
+exports.deleteItemImage = async (req, res, next) => {
+  try {
+    const result = await itemService.deleteItemImage(req.user, req.params.id, req.params.imageId);
+    res.json(result);
+  } catch (error) {
+    handleControllerError(error, res, next);
+  }
+};
+
+exports.reorderItemImages = async (req, res, next) => {
+  try {
+    const { imageOrders } = req.body;
+    if (!Array.isArray(imageOrders)) {
+      return res.status(400).json({ error: 'imageOrders must be an array' });
+    }
+    const images = await itemService.reorderItemImages(req.params.id, imageOrders);
+    res.json(images);
+  } catch (error) {
+    handleControllerError(error, res, next);
+  }
+};
+
+exports.setItemImagePrimary = async (req, res, next) => {
+  try {
+    const result = await itemService.setItemImagePrimary(req.user, req.params.id, req.params.imageId);
+    res.json(result);
   } catch (error) {
     handleControllerError(error, res, next);
   }

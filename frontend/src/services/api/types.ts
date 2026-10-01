@@ -356,33 +356,6 @@ export type PaymentMethodType =
   | "we_pay"
   | "instapay";
 
-// ============ Courier Career Network Types ============
-
-export type CourierTier = "junior" | "mid" | "senior" | "team_leader";
-
-export interface CourierTierRule {
-  tier_name: CourierTier;
-  display_order: number;
-  min_completed_deliveries: number;
-  min_tenure_days: number;
-  min_rating: number;
-  min_team_size: number;
-}
-
-export interface CourierTeam {
-  id: number;
-  leader_user_id: string;
-  name: string;
-  created_at: string;
-  members?: CourierTeamMember[];
-  stats?: {
-    member_count: number;
-    total_deliveries: number;
-    average_rating: number;
-    verified_count: number;
-  };
-}
-
 export interface CourierTeamMember {
   id: number;
   team_id: number;
@@ -515,15 +488,6 @@ export interface ItemImageUploadResponse {
 export interface ReorderImagesRequest {
   imageOrders: Array<{ id: number; display_order: number }>;
 }
-
-// ============ Response Types ============
-
-export type PaymentMethodType =
-  | "vodafone_cash"
-  | "orange_money"
-  | "etisalat_cash"
-  | "we_pay"
-  | "instapay";
 
 // ============ Courier Career Network Types ============
 

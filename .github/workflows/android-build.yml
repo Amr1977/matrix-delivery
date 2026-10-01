@@ -6,6 +6,8 @@ jobs:
   android:
     name: Android APK
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -28,6 +30,31 @@ jobs:
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
+      - name: Get version
+        id: get_version
+        run: |
+          VERSION=$(cat package.json | grep '"version"' | head -1 | awk -F: '{ print $2 }' | sed 's/[",]//g' | tr -d '[[:space:]]')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/master'
+        with:
+          tag_name: v${{ steps.get_version.outputs.version }}
+          name: Matrix Delivery v${{ steps.get_version.outputs.version }}
+          body: |
+            ## Matrix Delivery Android APK
+            
+            Automated build from commit ${{ github.sha }}
+            
+            ### Changes
+            See commit history for details.
+            
+            ### Download
+            - [app-debug.apk](./app-debug.apk)
+          files: |
+            android/app/build/outputs/apk/debug/app-debug.apk
+          draft: false
+          prerelease: false
       - uses: actions/upload-artifact@v4
         with:
           name: matrix-delivery-apk
