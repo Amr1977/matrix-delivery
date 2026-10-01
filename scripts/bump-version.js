@@ -58,15 +58,15 @@ function bumpVersion(type = 'patch') {
             pkg.version = newVersion;
             fs.writeFileSync(pkgFile, JSON.stringify(pkg, null, 2) + '\n');
         } catch (e) {
-            console.warn(`Could not update ${pkgFile}:`, e.message);
+            console.error(`Could not update ${pkgFile}:`, e.message);
         }
     });
 
-    console.log(`Version bumped to ${newVersion} (${type})`);
+    // Only output the version number (for GitHub Actions)
+    console.log(newVersion);
     return newVersion;
 }
 
 // CLI
 const type = process.argv[2] || 'patch';
 const newVersion = bumpVersion(type);
-console.log(`New version: ${newVersion}`);
