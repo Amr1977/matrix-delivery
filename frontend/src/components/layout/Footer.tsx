@@ -16,7 +16,8 @@ try {
 }
 
 // Build-time version from REACT_APP_VERSION (set by CI/CD) takes priority over git-info.json
-const buildTimeVersion = typeof process !== 'undefined' && process.env && process.env.REACT_APP_VERSION;
+// In create-react-app, process.env.REACT_APP_VERSION is replaced at build time by DefinePlugin
+const buildTimeVersion = process.env.REACT_APP_VERSION;
 
 interface FooterStats {
     drivers: { online: number; total: number };
