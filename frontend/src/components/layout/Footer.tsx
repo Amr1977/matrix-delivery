@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useI18n } from '../../i18n/i18nContext';
 import { Activity, Users, Truck, ShoppingBag, Globe, BarChart2 } from 'lucide-react';
+// Import git-info.json using baseUrl (src/git-info.json)
+import gitInfo from 'git-info.json';
 
 interface FooterProps {
     footerStats?: any;
@@ -20,8 +22,8 @@ interface FooterStats {
 
 const Footer: React.FC<FooterProps> = ({ footerStats }) => {
     const { t } = useI18n();
-    // REACT_APP_VERSION is replaced at build time by DefinePlugin (create-react-app)
-    const version = process.env.REACT_APP_VERSION || '1.0.0';
+    // Version from git-info.json (generated at build time with correct version via baseUrl import)
+    const version = (gitInfo as any).version || '1.0.0';
 
     const [stats, setStats] = useState<FooterStats | null>(footerStats || null);
 
