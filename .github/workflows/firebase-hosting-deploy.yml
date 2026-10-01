@@ -79,6 +79,7 @@ jobs:
       - name: Build for production
         env:
           REACT_APP_API_URL: https://api.matrix-delivery.com/api
+          REACT_APP_VERSION: ${{ steps.version.outputs.new_version }}
         run: |
           cd frontend
           CI=false npm run build
