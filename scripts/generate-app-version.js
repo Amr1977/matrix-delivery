@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const VERSION_FILE = path.resolve(__dirname, '../VERSION');
-const OUTPUT_FILE = path.resolve(__dirname, '../frontend/src/app-version.js');
+const OUTPUT_FILE = path.resolve(__dirname, '../frontend/src/version-constant.js');
 
 function readVersion() {
     const content = fs.readFileSync(VERSION_FILE, 'utf-8');
@@ -18,7 +18,7 @@ try {
 export const APP_VERSION = '${version}';
 `;
     fs.writeFileSync(OUTPUT_FILE, content);
-    console.log('Generated app-version.js:', version);
+    console.log('Generated version-constant.js:', version);
 } catch (error) {
     console.error('Failed to generate app-version.js:', error.message);
     process.exit(1);
