@@ -82,8 +82,7 @@ jobs:
       - name: Build for production
         run: |
           cd frontend
-          export REACT_APP_VERSION="${{ steps.build_version.outputs.version }}"
-          CI=false npm run build
+          REACT_APP_VERSION="${{ steps.build_version.outputs.version }}" CI=false npm run build
 
       - name: Deploy to Firebase
         run: |
