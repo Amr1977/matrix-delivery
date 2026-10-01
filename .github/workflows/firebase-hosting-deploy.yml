@@ -87,11 +87,9 @@ jobs:
       - name: Build for production
         env:
           REACT_APP_API_URL: https://api.matrix-delivery.com/api
+          REACT_APP_VERSION: ${{ steps.build_version.outputs.version }}
         run: |
           cd frontend
-          # Replace version placeholder in ProfilePage.js
-          VERSION="${{ steps.build_version.outputs.version }}"
-          sed -i "s/__APP_VERSION__/$VERSION/g" src/pages/ProfilePage.js
           CI=false npm run build
 
       - name: Deploy to Firebase

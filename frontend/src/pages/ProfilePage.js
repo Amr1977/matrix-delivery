@@ -6,8 +6,8 @@ import { useI18n } from '../i18n/i18nContext';
 import api from '../api';
 import { CourierCareerApi } from '../services/api';
 
-// Version injected at build time
-const APP_VERSION = '__APP_VERSION__';
+// Version injected at build time via DefinePlugin
+const APP_VERSION = process.env.REACT_APP_VERSION || '1.0.0';
 
 const ProfilePage = ({
     profileData,
