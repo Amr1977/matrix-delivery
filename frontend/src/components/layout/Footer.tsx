@@ -15,9 +15,8 @@ try {
     // Ignore missing file
 }
 
-// Build-time version from REACT_APP_VERSION (set by CI/CD) takes priority over git-info.json
-// In create-react-app, process.env.REACT_APP_VERSION is replaced at build time by DefinePlugin
-const buildTimeVersion = process.env.REACT_APP_VERSION;
+// Build-time version from git-info.json (generated at build time with correct version)
+const buildTimeVersion = (gitInfo as any).version;
 
 interface FooterStats {
     drivers: { online: number; total: number };
