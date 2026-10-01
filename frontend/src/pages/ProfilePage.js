@@ -567,7 +567,7 @@ const ProfilePage = ({
             {/* Footer */}
             <div style={{ marginTop: '30px', textAlign: 'center', color: '#6B7280', fontSize: '14px' }}>
                 <p>{t('profile.userId')}: {profileData.id}</p>
-                <p>Matrix Delivery v{(gitInfo as any).version || '1.0.0'}</p>
+                <p>Matrix Delivery v{gitInfo?.version || '1.0.0'}</p>
             </div>
 
         </div>
