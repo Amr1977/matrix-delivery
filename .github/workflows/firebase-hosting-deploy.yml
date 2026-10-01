@@ -67,9 +67,9 @@ jobs:
       - name: Install dependencies
         run: cd frontend && npm install --legacy-peer-deps
 
-      - name: Inject version into ProfilePage.js
+      - name: Generate version constant
         run: |
-          node scripts/inject-version.js
+          node scripts/generate-version-constant.js
 
       - name: Generate git info (includes version)
         run: |
