@@ -80,11 +80,9 @@ jobs:
           echo "version=$MAJOR.$MINOR.$VERSION" >> $GITHUB_OUTPUT
 
       - name: Build for production
-        env:
-          REACT_APP_API_URL: https://api.matrix-delivery.com/api
-          REACT_APP_VERSION: ${{ steps.build_version.outputs.version }}
         run: |
           cd frontend
+          export REACT_APP_VERSION="${{ steps.build_version.outputs.version }}"
           CI=false npm run build
 
       - name: Deploy to Firebase
