@@ -61,6 +61,7 @@ jobs:
           # Commit version changes
           git add VERSION package.json backend/package.json frontend/package.json
           git commit -m "chore: bump version to $NEW_VERSION" || echo "No changes to commit"
+          git pull --rebase origin master
           git push
 
       - name: Install dependencies
