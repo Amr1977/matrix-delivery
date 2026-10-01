@@ -67,23 +67,18 @@ jobs:
       - name: Install dependencies
         run: cd frontend && npm install --legacy-peer-deps
 
+      - name: Generate version file
+        run: |
+          node scripts/generate-version-file.js
+
       - name: Generate git info (includes version)
         run: |
           cd frontend
           node scripts/generate-git-info.js
 
-      - name: Get version for build
-        id: build_version
-        run: |
-          VERSION=$(cat VERSION | grep PATCH | cut -d'=' -f2)
-          MAJOR=$(cat VERSION | grep MAJOR | cut -d'=' -f2)
-          MINOR=$(cat VERSION | grep MINOR | cut -d'=' -f2)
-          echo "version=$MAJOR.$MINOR.$VERSION" >> $GITHUB_OUTPUT
-
       - name: Build for production
         env:
           REACT_APP_API_URL: https://api.matrix-delivery.com/api
-          REACT_APP_VERSION: ${{ steps.build_version.outputs.version }}
         run: |
           cd frontend
           CI=false npm run build
