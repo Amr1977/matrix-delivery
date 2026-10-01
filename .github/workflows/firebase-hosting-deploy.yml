@@ -69,7 +69,7 @@ jobs:
 
       - name: Generate version file
         run: |
-          node scripts/generate-app-version.js
+          node ${{ github.workspace }}/scripts/generate-app-version.js
 
       - name: Generate git info (includes version)
         run: |
