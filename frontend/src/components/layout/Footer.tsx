@@ -15,6 +15,9 @@ try {
     // Ignore missing file
 }
 
+// Build-time version from REACT_APP_VERSION (set by CI/CD) takes priority over git-info.json
+const buildTimeVersion = typeof process !== 'undefined' && process.env && process.env.REACT_APP_VERSION;
+
 interface FooterStats {
     drivers: { online: number; total: number };
     customers: { online: number; total: number };
@@ -28,7 +31,8 @@ interface FooterStats {
 
 const Footer: React.FC<FooterProps> = ({ footerStats }) => {
     const { t } = useI18n();
-    const version = (gitInfo as any).version || (typeof process !== 'undefined' && process.env && process.env.REACT_APP_VERSION) || '1.0.0';
+    // Priority: 1. REACT_APP_VERSION (build-time), 2. git-info.json version, 3. fallback
+    const version = buildTimeVersion || (gitInfo as any).version || '1.0.0';
 
     const [stats, setStats] = useState<FooterStats | null>(footerStats || null);
 
