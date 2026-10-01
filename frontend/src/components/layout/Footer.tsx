@@ -1,22 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useI18n } from '../../i18n/i18nContext';
 import { Activity, Users, Truck, ShoppingBag, Globe, BarChart2 } from 'lucide-react';
+import gitInfo from '../../git-info.json';
 
 interface FooterProps {
     footerStats?: any;
     t?: (key: string) => string;
 }
-
-// Try to import git info, fallback if missing (during first install)
-let gitInfo = { commit: 'dev', date: new Date().toISOString() };
-try {
-    gitInfo = require('../../git-info.json');
-} catch (e) {
-    // Ignore missing file
-}
-
-// Build-time version from git-info.json (generated at build time with correct version)
-const buildTimeVersion = (gitInfo as any).version;
 
 interface FooterStats {
     drivers: { online: number; total: number };
@@ -31,8 +21,8 @@ interface FooterStats {
 
 const Footer: React.FC<FooterProps> = ({ footerStats }) => {
     const { t } = useI18n();
-    // Priority: 1. REACT_APP_VERSION (build-time), 2. git-info.json version, 3. fallback
-    const version = buildTimeVersion || (gitInfo as any).version || '1.0.0';
+    // Version from git-info.json (generated at build time with correct version)
+    const version = (gitInfo as any).version || '1.0.0';
 
     const [stats, setStats] = useState<FooterStats | null>(footerStats || null);
 
