@@ -1,6 +1,6 @@
 {
   "name": "matrix-delivery-backend",
-  "version": "1.0.19",
+  "version": "1.0.20",
   "description": "Matrix Delivery Backend API - Production Grade with PostgreSQL",
   "main": "server.js",
   "author": "Amr1977",
