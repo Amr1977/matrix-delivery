@@ -58,6 +58,12 @@ export class ApiClient {
             headers['Content-Type'] = 'application/json';
         }
 
+        // Add Authorization header if token is available (for cross-domain auth)
+        const authToken = await this.getAuthToken();
+        if (authToken) {
+            headers['Authorization'] = `Bearer ${authToken}`;
+        }
+
         const config: RequestInit = {
             credentials: 'include', // Always include cookies for authentication
             headers,
