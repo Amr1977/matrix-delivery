@@ -9,8 +9,6 @@ import { CourierCareerApi } from '../services/api';
 import gitInfo from '../git-info.json';
 
 const APP_VERSION = gitInfo?.version || '1.0.0';
-// Import version from generated file
-import { APP_VERSION } from 'version-constant';
 
 const ProfilePage = ({
     profileData,
