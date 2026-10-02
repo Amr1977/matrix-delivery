@@ -1,6 +1,6 @@
 {
   "name": "matrix-delivery",
-  "version": "1.0.49",
+  "version": "1.0.50",
   "description": "Matrix Delivery - P2P Delivery & Ride-Hailing Platform",
   "private": true,
   "scripts": {
