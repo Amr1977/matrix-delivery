@@ -6,7 +6,7 @@ import { useI18n } from '../i18n/i18nContext';
 import api from '../api';
 import { CourierCareerApi } from '../services/api';
 // Import version from generated file
-import { APP_VERSION } from '../version-constant';
+import { APP_VERSION } from 'version-constant';
 
 const ProfilePage = ({
     profileData,
