@@ -5,8 +5,8 @@ import { formatCurrency } from '../utils/formatters';
 import { useI18n } from '../i18n/i18nContext';
 import api from '../api';
 import { CourierCareerApi } from '../services/api';
-// Import version from git-info.json (same pattern as Footer component)
-import gitInfo from '../git-info.json';
+// Import git-info.json using baseUrl (src/git-info.json)
+import gitInfo from 'git-info.json';
 
 const APP_VERSION = gitInfo?.version || '1.0.0';
 
