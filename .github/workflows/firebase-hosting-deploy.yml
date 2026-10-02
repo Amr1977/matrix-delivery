@@ -67,18 +67,14 @@ jobs:
       - name: Install dependencies
         run: cd frontend && npm install --legacy-peer-deps
 
+      - name: Generate version constant
+        run: |
+          node ${{ github.workspace }}/scripts/generate-app-version.js
+
       - name: Generate git info (includes version)
         run: |
           cd frontend
           node scripts/generate-git-info.js
-
-      - name: Inject version into ProfilePage
-        run: |
-          cd frontend
-          VERSION_STR="${{ steps.version.outputs.new_version }}"
-          sed -i "s#process.env.REACT_APP_VERSION || '1.0.0'#'${VERSION_STR}'#g" src/pages/ProfilePage.js
-          # Verify injection worked
-          grep -n "Matrix Delivery v" src/pages/ProfilePage.js
 
       - name: Build for production
         env:
