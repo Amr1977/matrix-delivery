@@ -19,7 +19,18 @@ export const APP_VERSION = '${version}';
 `;
     fs.writeFileSync(OUTPUT_FILE, content);
     console.log('Generated version-constant.js:', version);
+    
+    // Also inject directly into ProfilePage.js as a fallback
+    const PROFILE_PAGE = path.resolve(__dirname, '../frontend/src/pages/ProfilePage.js');
+    const profileContent = fs.readFileSync(PROFILE_PAGE, 'utf-8');
+    const updatedContent = profileContent.replace(
+        /process\.env\.REACT_APP_VERSION \|\| '1\.0\.0'/g,
+        `'${version}'`
+    );
+    fs.writeFileSync(PROFILE_PAGE, updatedContent);
+    console.log('Injected version into ProfilePage.js:', version);
+    
 } catch (error) {
-    console.error('Failed to generate app-version.js:', error.message);
+    console.error('Failed to generate version files:', error.message);
     process.exit(1);
 }
