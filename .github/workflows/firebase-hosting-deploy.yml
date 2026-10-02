@@ -67,10 +67,6 @@ jobs:
       - name: Install dependencies
         run: cd frontend && npm install --legacy-peer-deps
 
-      - name: Generate version files
-        run: |
-          node scripts/generate-app-version.js
-
       - name: Generate git info (includes version)
         run: |
           cd frontend
