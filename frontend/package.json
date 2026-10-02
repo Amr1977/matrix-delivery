@@ -1,6 +1,6 @@
 {
   "name": "matrix-delivery-frontend",
-  "version": "1.0.52",
+  "version": "1.0.53",
   "private": true,
   "homepage": ".",
   "proxy": "http://localhost:5000",
