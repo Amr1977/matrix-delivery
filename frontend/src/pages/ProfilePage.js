@@ -5,10 +5,9 @@ import { formatCurrency } from '../utils/formatters';
 import { useI18n } from '../i18n/i18nContext';
 import api from '../api';
 import { CourierCareerApi } from '../services/api';
-// Import version from git-info.json (generated at build time)
-import gitInfo from 'git-info.json';
 
-const APP_VERSION = gitInfo.version || '1.0.0';
+// Version from REACT_APP_VERSION (injected at build time by DefinePlugin)
+const APP_VERSION = process.env.REACT_APP_VERSION || '1.0.0';
 
 const ProfilePage = ({
     profileData,
